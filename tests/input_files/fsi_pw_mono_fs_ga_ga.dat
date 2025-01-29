@@ -24,6 +24,7 @@ METHOD                          hypergraph
 MIN_ELE_PER_PROC                800
 ----------------------------------------------------------STRUCTURAL DYNAMIC
 LINEAR_SOLVER                   1
+INT_STRATEGY                    Standard
 DYNAMICTYPE                      GenAlpha
 PREDICT                         ConstDisVelAcc
 -------------------------------------------------STRUCTURAL DYNAMIC/GENALPHA

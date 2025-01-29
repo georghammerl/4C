@@ -421,9 +421,12 @@ void FSI::MortarMonolithicStructureSplit::setup_rhs_residual(Core::LinAlg::Vecto
   const std::shared_ptr<Core::LinAlg::SparseMatrix> mortarp = coupsfm_->get_mortar_matrix_p();
 
   // get single field residuals
-  const Core::LinAlg::Vector<double> sv(*structure_field()->rhs());
+  Core::LinAlg::Vector<double> sv(*structure_field()->rhs());
   const Core::LinAlg::Vector<double> fv(*fluid_field()->rhs());
   const Core::LinAlg::Vector<double> av(*ale_field()->rhs());
+
+  // NOX treats rhs different in new solid time integration, hence sign inversion is necessary here
+  if (!use_old_structure_) sv.Scale(-1.0);
 
   // extract only inner DOFs from structure (=slave) and ALE field
   std::shared_ptr<const Core::LinAlg::Vector<double>> sov =

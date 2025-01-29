@@ -35,6 +35,7 @@ PARALLEL_REDIST                 No
 GHOSTING_STRATEGY               redundant_all
 ----------------------------------------------------------STRUCTURAL DYNAMIC
 LINEAR_SOLVER                   1
+INT_STRATEGY                    Standard
 DYNAMICTYPE                      OneStepTheta
 PREDICT                         ConstDisVelAcc
 STC_LAYER                       2
