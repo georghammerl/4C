@@ -18,49 +18,48 @@ FOUR_C_NAMESPACE_OPEN
 // forward declarations
 void put_all_slaves_to_masters_proc(
     const std::vector<const Core::Conditions::Condition*>& all_point_coupling_conditions,
-    Core::FE::Discretization& discret, const bool verbose);
+    Core::FE::Discretization& discret);
 void redistribute(const std::vector<int>& rank_to_hold_condition,
     const std::vector<const Core::Conditions::Condition*>& all_point_coupling_conditions,
-    Core::FE::Discretization& discret, const bool verbose);
+    Core::FE::Discretization& discret);
 
-void Core::Conditions::redistribute_for_point_coupling_conditions(
-    std::shared_ptr<Core::FE::Discretization> discret, const bool verbose)
+void Core::Conditions::redistribute_for_point_coupling_conditions(Core::FE::Discretization& discret)
 {
   // MPI rank of this processor
-  const int myrank = Communication::my_mpi_rank(discret->get_comm());
+  const int myrank = Communication::my_mpi_rank(discret.get_comm());
 
   // vector of point coupling conditions
   std::vector<const Core::Conditions::Condition*> all_point_coupling_conditions;
-  discret->get_condition("PointCoupling", all_point_coupling_conditions);
+  discret.get_condition("PointCoupling", all_point_coupling_conditions);
 
-  if (Core::Communication::num_mpi_ranks(discret->get_comm()) == 1 ||
+  if (Core::Communication::num_mpi_ranks(discret.get_comm()) == 1 ||
       all_point_coupling_conditions.empty())
   {
     // no redistribution necessary if only one processor or no point coupling condition
     // hence, fill complete discretization including assign degrees of freedom and leave
-    discret->fill_complete();
+    discret.fill_complete();
     return;
   }
 
-  if (myrank == 0 && verbose)
+  if (myrank == 0)
   {
     std::cout << "Redistribution for point coupling condition(s) on discretization  "
-              << discret->name() << std::endl;
+              << discret.name() << std::endl;
   }
 
   // fetch all slaves to the proc of the master
-  put_all_slaves_to_masters_proc(all_point_coupling_conditions, *discret, verbose);
+  put_all_slaves_to_masters_proc(all_point_coupling_conditions, discret);
 
-  if (myrank == 0 && verbose)
+  if (myrank == 0)
   {
     std::cout << "Finished redistribution for point coupling conditions on discretization"
-              << discret->name() << std::endl;
+              << discret.name() << std::endl;
   }
 }
 
 void put_all_slaves_to_masters_proc(
     const std::vector<const Core::Conditions::Condition*>& all_point_coupling_conditions,
-    Core::FE::Discretization& discret, const bool verbose)
+    Core::FE::Discretization& discret)
 {
   const int myrank = Core::Communication::my_mpi_rank(discret.get_comm());
 
@@ -133,12 +132,12 @@ void put_all_slaves_to_masters_proc(
   }
 
   // redistribute such that all master and corresponding slave nodes are owned by the same processor
-  redistribute(rank_to_hold_condition, all_point_coupling_conditions, discret, verbose);
+  redistribute(rank_to_hold_condition, all_point_coupling_conditions, discret);
 }
 
 void redistribute(const std::vector<int>& rank_to_hold_condition,
     const std::vector<const Core::Conditions::Condition*>& all_point_coupling_conditions,
-    Core::FE::Discretization& discret, const bool verbose)
+    Core::FE::Discretization& discret)
 {
   const int myrank = Core::Communication::my_mpi_rank(discret.get_comm());
 
@@ -188,7 +187,7 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
   // print information
   Core::Communication::sum_all(&myerase, &numerase, 1, discret.get_comm());
   Core::Communication::sum_all(&myadd, &numadd, 1, discret.get_comm());
-  if (myrank == 0 && verbose)
+  if (myrank == 0)
   {
     std::cout << "Erased " << numerase << " nodes in total from row node list.\n";
     std::cout << "Added " << numadd << " nodes in total from row node list.\n";
@@ -200,12 +199,9 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
     int gn = 0;
 
     Core::Communication::sum_all(&myn, &gn, 1, discret.get_comm());
-    if (gn != discret.num_global_nodes())
-    {
-      FOUR_C_THROW(
-          "Unmatching numbers of nodes before and after call Redistribution. Nodemap "
-          "constructor will crash.\n");
-    }
+    FOUR_C_ASSERT_ALWAYS(gn == discret.num_global_nodes(),
+        "Unmatching numbers of nodes before and after call Redistribution. Nodemap "
+        "constructor will crash.\n");
   }
 
   const std::vector<int> new_row_nodes(row_node_set.begin(), row_node_set.end());
@@ -245,7 +241,7 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
           .do_boundary_conditions = true,
           .do_extended_ghosting = true});
 
-  if (myrank == 0 && verbose)
+  if (myrank == 0)
     std::cout << "\nparallel redistributed discretization due to point coupling condition(s)"
               << std::endl;
 

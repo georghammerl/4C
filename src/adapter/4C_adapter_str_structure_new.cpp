@@ -171,7 +171,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
 
     if (conditionend_node_at_solid_element_global == 1)
     {
-      Core::Conditions::redistribute_for_point_coupling_conditions(actdis_, true);
+      Core::Conditions::redistribute_for_point_coupling_conditions(*actdis_);
     }
     else
     {

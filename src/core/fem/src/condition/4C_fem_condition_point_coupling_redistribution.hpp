@@ -22,13 +22,11 @@ namespace Core::FE
 namespace Core::Conditions
 {
   /*!
-  \brief  The procedure to assign degrees of freedom relies for point coupling conditions on a
-  layout in which the master and connected slave nodes must be owned by the same processor. This
-  function redistributes the row nodes accordingly.
-  */
-  //! make sure that proper node distribution is achieved for point coupling conditions
-  void redistribute_for_point_coupling_conditions(
-      std::shared_ptr<Core::FE::Discretization> discret, bool verbose);
+   * The procedure to assign degrees of freedom relies for point coupling conditions on a
+   * layout in which the master and connected slave nodes must be owned by the same processor. This
+   * function redistributes the row nodes accordingly.
+   */
+  void redistribute_for_point_coupling_conditions(Core::FE::Discretization& discret);
 
 }  // namespace Core::Conditions
 
