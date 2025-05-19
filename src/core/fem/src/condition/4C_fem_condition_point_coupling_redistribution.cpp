@@ -150,62 +150,66 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
   }
 
   // get all currently owned node gids of this proc
-  std::vector<int> row_node_ids_on_this_proc(discret.node_row_map()->NumMyElements());
-  discret.node_row_map()->MyGlobalElements(row_node_ids_on_this_proc.data());
-  std::set<int> row_node_set(row_node_ids_on_this_proc.begin(), row_node_ids_on_this_proc.end());
-  row_node_ids_on_this_proc.clear();
-
-  // insert/remove gids such that all conditioned nodes are on the target processor
-  int myerase = 0;
-  int numerase = 0;
-  int myadd = 0;
-  int numadd = 0;
-
-  for (size_t i = 0; i < all_point_coupling_conditions.size(); ++i)
-  {
-    const auto& current_condition = all_point_coupling_conditions[i];
-    const std::vector<int>* conditioned_nodes = current_condition->get_nodes();
-
-    // add conditioned nodes to target processor and remove from others
-    if (rank_to_hold_condition[i] == myrank)
-    {
-      const int size_before = static_cast<int>(row_node_set.size());
-      row_node_set.insert(conditioned_nodes->begin(), conditioned_nodes->end());
-      myadd += static_cast<int>(row_node_set.size()) - size_before;
-    }
-    else
-    {
-      const int size_before = static_cast<int>(row_node_set.size());
-      for (int idtodel : (*conditioned_nodes))
+  const std::vector<int> new_row_nodes = std::invoke(
+      [&]()
       {
-        row_node_set.erase(idtodel);
-      }
-      myerase -= static_cast<int>(row_node_set.size()) - size_before;
-    }
-  }
+        std::vector<int> row_node_ids_on_this_proc(discret.node_row_map()->NumMyElements());
+        discret.node_row_map()->MyGlobalElements(row_node_ids_on_this_proc.data());
+        std::set<int> row_node_set(
+            row_node_ids_on_this_proc.begin(), row_node_ids_on_this_proc.end());
+        row_node_ids_on_this_proc.clear();
 
-  // print information
-  Core::Communication::sum_all(&myerase, &numerase, 1, discret.get_comm());
-  Core::Communication::sum_all(&myadd, &numadd, 1, discret.get_comm());
-  if (myrank == 0)
-  {
-    std::cout << "Erased " << numerase << " nodes in total from row node list.\n";
-    std::cout << "Added " << numadd << " nodes in total from row node list.\n";
-  }
+        // insert/remove gids such that all conditioned nodes are on the target processor
+        int myerase = 0;
+        int numerase = 0;
+        int myadd = 0;
+        int numadd = 0;
 
-  {
-    // safety check
-    int myn = static_cast<int>(row_node_set.size());
-    int gn = 0;
+        for (size_t i = 0; i < all_point_coupling_conditions.size(); ++i)
+        {
+          const auto& current_condition = all_point_coupling_conditions[i];
+          const std::vector<int>* conditioned_nodes = current_condition->get_nodes();
 
-    Core::Communication::sum_all(&myn, &gn, 1, discret.get_comm());
-    FOUR_C_ASSERT_ALWAYS(gn == discret.num_global_nodes(),
-        "Unmatching numbers of nodes before and after call Redistribution. Nodemap "
-        "constructor will crash.\n");
-  }
+          // add conditioned nodes to target processor and remove from others
+          if (rank_to_hold_condition[i] == myrank)
+          {
+            const int size_before = static_cast<int>(row_node_set.size());
+            row_node_set.insert(conditioned_nodes->begin(), conditioned_nodes->end());
+            myadd += static_cast<int>(row_node_set.size()) - size_before;
+          }
+          else
+          {
+            const int size_before = static_cast<int>(row_node_set.size());
+            for (int idtodel : (*conditioned_nodes))
+            {
+              row_node_set.erase(idtodel);
+            }
+            myerase -= static_cast<int>(row_node_set.size()) - size_before;
+          }
+        }
 
-  const std::vector<int> new_row_nodes(row_node_set.begin(), row_node_set.end());
-  row_node_set.clear();
+        // print information
+        Core::Communication::sum_all(&myerase, &numerase, 1, discret.get_comm());
+        Core::Communication::sum_all(&myadd, &numadd, 1, discret.get_comm());
+        if (myrank == 0)
+        {
+          std::cout << "Erased " << numerase << " nodes in total from row node list.\n";
+          std::cout << "Added " << numadd << " nodes in total from row node list.\n";
+        }
+
+        {
+          // safety check
+          int myn = static_cast<int>(row_node_set.size());
+          int gn = 0;
+
+          Core::Communication::sum_all(&myn, &gn, 1, discret.get_comm());
+          FOUR_C_ASSERT_ALWAYS(gn == discret.num_global_nodes(),
+              "Unmatching numbers of nodes before and after call Redistribution. Nodemap "
+              "constructor will crash.\n");
+        }
+
+        return std::vector<int>(row_node_set.begin(), row_node_set.end());
+      });
 
   //--------------------------------------------------
   // build new row node map
