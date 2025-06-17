@@ -1155,7 +1155,7 @@ namespace ScaTra
 
     /*--- set, prepare, and predict ------------------------------------------*/
     //! compute null space information associated with global system matrix if applicable
-    virtual void compute_null_space_if_necessary() const;
+    void compute_null_space_if_necessary() const;
 
     //! create scalar handler
     virtual void create_scalar_handler();

@@ -219,18 +219,18 @@ STI::Monolithic::Monolithic(MPI_Comm comm, const Teuchos::ParameterList& stidyn,
     case Core::LinAlg::MatrixType::block_condition:
     {
       // safety check
-      if (!solver_->params().isSublist("AMGnxn Parameters"))
-        FOUR_C_THROW(
-            "Global system matrix with block structure requires AMGnxn block preconditioner!");
+      const bool allowed_block_system_solvers = solver().params().isSublist("Teko Parameters") or
+                                                solver().params().isSublist("MueLu Parameters");
+      FOUR_C_ASSERT_ALWAYS(allowed_block_system_solvers,
+          "Global system matrix with block structure requires MueLu or Teko block preconditioner!");
 
       // initialize global system matrix
       systemmatrix_ = std::make_shared<
           Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>(
-
           *blockmaps_, *blockmaps_, 81, false, true);
 
-      // feed AMGnxn block preconditioner with null space information for each block of global block
-      // system matrix
+      // feed block preconditioner with null space information for each block of global block system
+      // matrix
       build_null_spaces();
 
       break;
@@ -1178,21 +1178,16 @@ void STI::Monolithic::build_null_spaces() const
   {
     case Core::LinAlg::MatrixType::block_condition:
     {
+      Core::FE::compute_null_space_if_necessary(
+          *scatra_field()->discretization(), solver_->params(), true);
       scatra_field()->build_block_null_spaces(*solver_, 0);
       break;
     }
 
     case Core::LinAlg::MatrixType::sparse:
     {
-      // equip smoother for scatra matrix block with empty parameter sublists to trigger null space
-      // computation
       Teuchos::ParameterList& blocksmootherparams = solver_->params().sublist("Inverse1");
-      blocksmootherparams.sublist("Belos Parameters");
-      blocksmootherparams.sublist("MueLu Parameters");
-
-      // equip smoother for scatra matrix block with null space associated with all degrees of
-      // freedom on scatra discretization
-      Core::FE::compute_null_space_if_necessary(
+      Core::LinearSolver::Parameters::compute_solver_parameters(
           *scatra_field()->discretization(), blocksmootherparams);
 
       break;
@@ -1209,23 +1204,27 @@ void STI::Monolithic::build_null_spaces() const
   std::stringstream iblockstr;
   iblockstr << blockmaps_->num_maps();
 
-  // equip smoother for thermo matrix block with empty parameter sublists to trigger null space
-  // computation
-  Teuchos::ParameterList& blocksmootherparams =
-      solver_->params().sublist("Inverse" + iblockstr.str());
-  blocksmootherparams.sublist("Belos Parameters");
-  blocksmootherparams.sublist("MueLu Parameters");
+  if (solver_->params().isSublist("MueLu Parameters"))
+  {
+    solver_->params()
+        .sublist("Inverse" + iblockstr.str())
+        .set("MueLu Parameters", solver_->params().sublist("MueLu Parameters"));
+  }
 
-  // equip smoother for thermo matrix block with null space associated with all degrees of freedom
-  // on thermo discretization
-  Core::FE::compute_null_space_if_necessary(*thermo_field()->discretization(), blocksmootherparams);
+  Teuchos::ParameterList& blocksmootherparams =
+      solver_->params().isSublist("MueLu Parameters")
+          ? solver_->params().sublist("Inverse" + iblockstr.str()).sublist("MueLu Parameters")
+          : solver_->params().sublist("Inverse" + iblockstr.str());
+
+  Core::LinearSolver::Parameters::compute_solver_parameters(
+      *thermo_field()->discretization(), blocksmootherparams);
 
   // reduce full null space to match degrees of freedom associated with thermo matrix block if
   // necessary
   if (condensationthermo_)
     Core::LinearSolver::Parameters::fix_null_space("Block " + iblockstr.str(),
         *thermo_field()->discretization()->dof_row_map(), *maps_->map(1), blocksmootherparams);
-}  // STI::Monolithic::build_block_null_spaces
+}
 
 /*--------------------------------------------------------------------------------*
  *--------------------------------------------------------------------------------*/
