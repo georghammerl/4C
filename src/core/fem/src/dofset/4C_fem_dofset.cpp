@@ -292,8 +292,8 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
         }
       }
       if (!allononeproc)
-        FOUR_C_THROW(
-            "ERROR: Nodes in point coupling condition must all be on same processor (for now).");
+        throw NodalDistributionException(
+            "ERROR: Nodes in point coupling condition must all be on same processor.");
 
       // check for node coupling condition and slave/master status
 
@@ -637,6 +637,14 @@ int Core::DOFSets::DofSet::get_minimal_node_gid_if_relevant(
     const Core::FE::Discretization& dis) const
 {
   return dis.node_row_map()->min_all_gid();
+}
+
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+Core::DOFSets::NodalDistributionException::NodalDistributionException(const std::string& message)
+    : Core::Exception(message)
+{
 }
 
 FOUR_C_NAMESPACE_CLOSE

@@ -23,6 +23,7 @@
 #include "4C_fem_condition.hpp"
 #include "4C_fem_condition_point_coupling_redistribution.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_dofset.hpp"
 #include "4C_global_data.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
 #include "4C_inpar_beaminteraction.hpp"
@@ -192,7 +193,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
           Global::Problem::instance()->output_control_file(), actdis_vec, correct_node,
           determine_relevant_points, true);
     }
-    catch (const Core::Exception& e)
+    catch (const Core::DOFSets::NodalDistributionException& e)
     {
       // this can happen due to improper node distribution in assign degrees of freedom
       node_distribution_repair_necessary = 1;
