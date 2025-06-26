@@ -186,7 +186,6 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
         return Core::Binstrategy::DefaultRelevantPoints{}(discret, ele, disnp);
     };
 
-    int node_distribution_repair_necessary = 0;
     try
     {
       Core::Rebalance::rebalance_discretizations_by_binning(binning_params,
@@ -196,15 +195,6 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
     catch (const Core::DOFSets::NodalDistributionException& e)
     {
       // this can happen due to improper node distribution in assign degrees of freedom
-      node_distribution_repair_necessary = 1;
-    }
-
-    int node_distribution_repair_necessary_global;
-    Core::Communication::max_all(&node_distribution_repair_necessary,
-        &node_distribution_repair_necessary_global, 1, actdis_->get_comm());
-
-    if (node_distribution_repair_necessary_global == 1)
-    {
       Core::Conditions::redistribute_for_point_coupling_conditions(*actdis_);
     }
   }
