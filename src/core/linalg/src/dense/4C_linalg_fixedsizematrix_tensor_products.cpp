@@ -375,6 +375,19 @@ void Core::LinAlg::FourTensorOperations::add_symmetric_holzapfel_product(
 }
 
 template <typename T>
+Core::LinAlg::SymmetricTensor<T, 3, 3, 3, 3>
+Core::LinAlg::FourTensorOperations::symmetric_holzapfel_product(
+    const Core::LinAlg::Tensor<T, 3, 3>& A, const Core::LinAlg::Tensor<T, 3, 3>& B)
+{
+  auto c1 = einsum_sym<"ca", "db">(A, B);
+  auto c2 = einsum_sym<"da", "cb">(A, B);
+  auto c3 = einsum_sym<"db", "ca">(A, B);
+  auto c4 = einsum_sym<"cb", "da">(A, B);
+
+  return c1 + c2 + c3 + c4;
+}
+
+template <typename T>
 void Core::LinAlg::FourTensorOperations::add_right_non_symmetric_holzapfel_product(
     Core::LinAlg::Matrix<6, 9, T>& out, Core::LinAlg::Matrix<3, 3, T> const& A,
     Core::LinAlg::Matrix<3, 3, T> const& B, T const fac)
@@ -931,6 +944,12 @@ Core::LinAlg::FourTensorOperations::holzapfel_product<double>(
 template Core::LinAlg::SymmetricTensor<FAD, 3, 3, 3, 3>
 Core::LinAlg::FourTensorOperations::holzapfel_product<FAD>(
     const Core::LinAlg::SymmetricTensor<FAD, 3, 3>&);
+template Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>
+Core::LinAlg::FourTensorOperations::symmetric_holzapfel_product<double>(
+    const Core::LinAlg::Tensor<double, 3, 3>&, const Core::LinAlg::Tensor<double, 3, 3>&);
+template Core::LinAlg::SymmetricTensor<FAD, 3, 3, 3, 3>
+Core::LinAlg::FourTensorOperations::symmetric_holzapfel_product<FAD>(
+    const Core::LinAlg::Tensor<FAD, 3, 3>&, const Core::LinAlg::Tensor<FAD, 3, 3>&);
 template void Core::LinAlg::FourTensorOperations::add_right_non_symmetric_holzapfel_product<double>(
     Core::LinAlg::Matrix<6, 9, double>&, Core::LinAlg::Matrix<3, 3, double> const&,
     Core::LinAlg::Matrix<3, 3, double> const&, double const);
