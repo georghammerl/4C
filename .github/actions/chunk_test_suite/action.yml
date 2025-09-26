@@ -50,12 +50,12 @@ runs:
         ctest --show-only=json-v1 --test-dir $BUILD_DIRECTORY > 4C_ctest_suite_summary.json
         python -m venv venv
         . venv/bin/activate
-        pip install junitparser==3.2.0
+        pip install -e ./utilities/four_c_python\[build\]
         EXTRA_ARGS="-c $NUMBER_OF_CHUNKS"
         if [ -n "$NUMBER_OF_PROCESSOR_TESTS" ]; then
           EXTRA_ARGS="$EXTRA_ARGS --max-proctests $NUMBER_OF_PROCESSOR_TESTS"
         fi
-        TEST_CHUNKS=`python .github/actions/chunk_test_suite/chunk_test_suite.py $EXTRA_ARGS $JUNIT_REPORT_FLAG 4C_ctest_suite_summary.json`
+        TEST_CHUNKS=`chunk-test-suite $EXTRA_ARGS $JUNIT_REPORT_FLAG 4C_ctest_suite_summary.json`
         echo "Test chunks: $TEST_CHUNKS"
         echo "chunk_array=$TEST_CHUNKS" >> $GITHUB_OUTPUT
       env:

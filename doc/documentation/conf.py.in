@@ -6,18 +6,12 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
 import sys
 import os
-# sys.path.append(os.path.abspath('.../site-packages/sphinx/ext'))
 # Include our own python helper modules
-sys.path.append('@PROJECT_SOURCE_DIR@/doc/documentation/python')
-import plot
-import include_yaml
-
-
+sys.path.append('@PROJECT_SOURCE_DIR@/utilities/four_c_python/src')
+from four_c_documentation.plot import generate_figures
+from four_c_documentation.include_yaml import convert
 
 # -- Project information -----------------------------------------------------
 
@@ -114,9 +108,9 @@ myst_heading_anchors = 4
 
 # -- Additional scripts to generate more fancy output -------------------------------------------------
 # Now generate the tutorial files
-include_yaml.convert("@_sphinx_SOURCE_DIR@/src/tutorial_templates", "@_sphinx_OUT_DIR@/reference_docs/tutorials", "@PROJECT_BINARY_DIR@/doc/tmp")
-include_yaml.convert("@_sphinx_SOURCE_DIR@/src/analysis_guide_templates", "@_sphinx_OUT_DIR@/reference_docs/analysis_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
+convert("@_sphinx_SOURCE_DIR@/src/tutorial_templates", "@_sphinx_OUT_DIR@/reference_docs/tutorials", "@PROJECT_BINARY_DIR@/doc/tmp")
+convert("@_sphinx_SOURCE_DIR@/src/analysis_guide_templates", "@_sphinx_OUT_DIR@/reference_docs/analysis_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
 
 # Create figures for the element node and face numbers
-plot.generate_figures("@_sphinx_OUT_DIR@/reference_docs/elementinformation.yaml",
+generate_figures("@_sphinx_OUT_DIR@/reference_docs/elementinformation.yaml",
     "@_sphinx_OUT_DIR@/reference_docs/reference_images")

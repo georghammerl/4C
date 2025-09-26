@@ -2,6 +2,8 @@
 vtk
 
 # for sphinx documentation:
+jinja2
+junitparser==3.2.0
 matplotlib
 myst-parser
 nbsphinx
