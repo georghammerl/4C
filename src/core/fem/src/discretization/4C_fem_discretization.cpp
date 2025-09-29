@@ -159,6 +159,13 @@ void Core::FE::Discretization::fill_from_mesh(const IO::MeshInput::Mesh<3>& mesh
       add_node(std::span(coordinate.data(), n_dim_), point.id(), user_node);
     }
   }
+  else
+  {
+    FOUR_C_ASSERT_ALWAYS(mesh.points().size() == 0 && mesh.cell_blocks().size() == 0,
+        "Non-zero number of nodes or elements on rank {} in discretization fill_from_mesh(). "
+        "Currently we only expect elements and nodes on rank 0.",
+        my_rank);
+  }
 
   // Currently, all elements live on rank 0. Create a map for this situation.
   const int num_my_elements = (my_rank == 0) ? element_.size() : 0;
