@@ -559,7 +559,7 @@ namespace
 
   void read_external_mesh(const Core::IO::InputFile& input,
       Core::IO::Internal::MeshReader& mesh_reader,
-      const Core::Rebalance::RebalanceParameters& parameters, int& ele_count, MPI_Comm comm)
+      const Core::Rebalance::RebalanceParameters& parameters, MPI_Comm comm)
   {
     TEUCHOS_FUNC_TIME_MONITOR("Core::IO::MeshReader::read_external_mesh");
     auto my_rank = Core::Communication::my_mpi_rank(comm);
@@ -568,9 +568,6 @@ namespace
     {
       FOUR_C_ASSERT(mesh_reader.mesh_on_rank_zero != nullptr, "Internal error.");
       auto& mesh = *mesh_reader.mesh_on_rank_zero;
-
-      // Clean up specific data
-      std::ranges::for_each(mesh.cell_blocks(), [](auto& eb) { eb.second.specific_data.reset(); });
 
       Core::IO::InputParameterContainer data;
       input.match_section(mesh_reader.section_name, data);
@@ -581,6 +578,12 @@ namespace
       Core::Elements::ElementDefinition element_definition;
 
       std::vector<int> skipped_blocks;
+
+      std::map<Core::IO::MeshInput::ExternalIdType, std::shared_ptr<Core::Elements::Element>>
+          user_elements;
+
+      int ele_count = 0;
+      std::vector<Core::IO::MeshInput::ExternalIdType> relevant_blocks;
       for (auto& [eb_id, eb] : mesh.cell_blocks())
       {
         // Look into the input file to find out which elements we need to assign to this block.
@@ -593,18 +596,43 @@ namespace
           continue;
         }
 
-        // Store the element specific data in the block for later use
-        eb.specific_data = *current_block_data;
+        relevant_blocks.emplace_back(eb_id);
+
+        const auto [element_name, cell_type, specific_data] =
+            element_definition.unpack_element_data(*current_block_data);
+
+        const std::string cell_type_string = Core::FE::cell_type_to_string(eb.cell_type);
+
+        FOUR_C_ASSERT_ALWAYS(cell_type == eb.cell_type,
+            "Element block '{}' has cell type '{}' but your given element definition for '{}' has "
+            "cell type '{}'.",
+            eb_id, eb.cell_type, element_name, cell_type);
+
+        for (const auto& cell : eb.cells())
+        {
+          // Do not yet use the external cell ID. 4C is not yet prepared to deal with this!
+          // replace ele_count with cell.external_id once possible
+          auto ele = Core::Communication::factory(element_name, cell_type_string, ele_count, 0);
+          if (!ele) FOUR_C_THROW("element creation failed");
+          ele->set_node_ids(cell.size(), cell.data());
+          ele->read_element(element_name, cell_type_string, specific_data);
+
+          user_elements.emplace(ele_count, std::move(ele));
+          ele_count++;
+        }
       }
 
+      auto filtered_mesh = mesh.filter_by_cell_block_ids(relevant_blocks);
+
       // Rank zero provides the actual data.
-      mesh_reader.target_discretization.fill_from_mesh(mesh, parameters);
+      mesh_reader.target_discretization.fill_from_mesh(
+          filtered_mesh, user_elements, {}, parameters);
     }
     // Other ranks
     else
     {
       Core::IO::MeshInput::Mesh<3> empty_mesh_other_ranks;
-      mesh_reader.target_discretization.fill_from_mesh(empty_mesh_other_ranks, parameters);
+      mesh_reader.target_discretization.fill_from_mesh(empty_mesh_other_ranks, {}, {}, parameters);
     }
   }
 }  // namespace
@@ -764,10 +792,9 @@ void Core::IO::MeshReader::read_and_partition()
     }
   }
 
-  int ele_count = 0;
   for (auto& mesh_reader : mesh_readers_)
   {
-    read_external_mesh(input_, *mesh_reader, parameters_, ele_count, comm_);
+    read_external_mesh(input_, *mesh_reader, parameters_, comm_);
   }
 }
 

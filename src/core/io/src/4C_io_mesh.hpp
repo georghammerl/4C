@@ -165,13 +165,6 @@ namespace Core::IO::MeshInput
      */
     std::unordered_map<std::string, FieldDataVariantType<dim>> cell_data{};
 
-    /**
-     * Optional specific data for the cell block.
-     *
-     * This data can be used to construct specialized user elements for this block.
-     */
-    std::optional<Core::IO::InputParameterContainer> specific_data{};
-
     CellBlock(FE::CellType cell_type) : cell_type(cell_type) {}
 
     /*!

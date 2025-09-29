@@ -103,8 +103,10 @@ void Core::FE::Discretization::add_node(
 }
 
 
-void Core::FE::Discretization::fill_from_mesh(
-    const IO::MeshInput::Mesh<3>& mesh, const Rebalance::RebalanceParameters& params)
+void Core::FE::Discretization::fill_from_mesh(const IO::MeshInput::Mesh<3>& mesh,
+    const std::map<int, std::shared_ptr<Elements::Element>>& user_elements,
+    const std::map<int, std::shared_ptr<Nodes::Node>>& user_nodes,
+    const Rebalance::RebalanceParameters& params)
 {
   FOUR_C_ASSERT_ALWAYS(!filled() && element_.empty() && node_.empty(),
       "Discretization must be empty before calling fill_from_mesh().");
@@ -117,55 +119,44 @@ void Core::FE::Discretization::fill_from_mesh(
     unsigned ele_count = 0;
     for (const auto& [eb_id, eb] : mesh.cell_blocks())
     {
-      // Remove this once we support pure geometry meshes without user elements
-      if (!eb.specific_data) continue;
-
-      const auto [element_name, cell_type, specific_data] =
-          element_definition.unpack_element_data(*eb.specific_data);
-
-      const std::string cell_type_string = Core::FE::cell_type_to_string(eb.cell_type);
-
-      FOUR_C_ASSERT_ALWAYS(cell_type == eb.cell_type,
-          "Element block '{}' has cell type '{}' but your given element definition for '{}' has "
-          "cell type '{}'.",
-          eb_id, eb.cell_type, element_name, cell_type);
-
-      for (const auto& cell : eb.cells())
+      for (const auto& connectivity : eb.cells())
       {
-        // Do not yet use the external cell ID. 4C is not yet prepared to deal with this!
-        // replace ele_count with cell.external_id once possible
-        auto ele = Core::Communication::factory(element_name, cell_type_string, ele_count, 0);
-        if (!ele) FOUR_C_THROW("element creation failed");
-        ele->set_node_ids(cell.size(), cell.data());
-        ele->read_element(element_name, cell_type_string, specific_data);
-        add_element(ele);
+        (void)connectivity;
+        std::shared_ptr<Core::Elements::Element> user_element = nullptr;
 
+        if (auto it = user_elements.find(ele_count); it != user_elements.end())
+          user_element = it->second;
+
+        // Currently, we always require a user element
+        FOUR_C_ASSERT_ALWAYS(user_element,
+            "Need a user element for element ID {} in block with ID {}.", ele_count, eb_id);
+
+        add_element(user_element);
         ele_count++;
       }
     }
 
     // Now add all the nodes to the discretization on rank 0. They are distributed later during
     // the rebalancing process.
-    int id = 0;
-    for (const auto& point : mesh.points())
+    for (const auto& point : mesh.points_with_data())
     {
+      const auto coordinate = point.coordinate();
       // Discard additional coordinates but only if they are zero.
-      for (auto i = point.size() - 1; i >= n_dim_; --i)
+      for (auto i = coordinate.size() - 1; i >= n_dim_; --i)
       {
-        if (std::abs(point[i]) != 0)
+        if (std::abs(coordinate[i]) != 0)
         {
           FOUR_C_THROW(
               "Node {} has a non-zero coordinate {} in direction {} but discretization "
               "is {}D!",
-              id, point[i], i, n_dim_);
+              point.id(), coordinate[i], i, n_dim_);
         }
       }
 
-      // for now, discard external id of the node. 4C is not yet prepared to deal with this!
-      // replace id with point.external_id once possible
+      std::shared_ptr<Core::Nodes::Node> user_node = nullptr;
+      if (auto it = user_nodes.find(point.id()); it != user_nodes.end()) user_node = it->second;
 
-      add_node(std::span(point.data(), n_dim_), id, nullptr);
-      ++id;
+      add_node(std::span(coordinate.data(), n_dim_), point.id(), user_node);
     }
   }
 
