@@ -161,10 +161,10 @@ namespace TESTING
     const double imbalance_tol(1.1);
 
     Core::Rebalance::RebalanceParameters rebalance_parameters;
-    rebalance_parameters.mesh_partitioning_parameters.set("MIN_ELE_PER_PROC", total_ranks);
-    rebalance_parameters.mesh_partitioning_parameters.set("IMBALANCE_TOL", imbalance_tol);
-    rebalance_parameters.mesh_partitioning_parameters.set(
-        "METHOD", Core::Rebalance::RebalanceType::hypergraph);
+    rebalance_parameters.mesh_partitioning_parameters.min_ele_per_proc = total_ranks;
+    rebalance_parameters.mesh_partitioning_parameters.imbalance_tol = imbalance_tol;
+    rebalance_parameters.mesh_partitioning_parameters.rebalance_type =
+        Core::Rebalance::RebalanceType::hypergraph;
 
     Core::FE::DiscretizationBuilder<3> builder;
 
