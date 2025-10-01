@@ -109,7 +109,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamToSolid::valid_parameters()
               .default_value = 0.0}),
   };
   // Add the geometry pair input parameters.
-  GeometryPair::valid_parameters_line_to3_d(beam_to_solid_volume_mestying);
+  GeometryPair::valid_parameters_line_to_3d(beam_to_solid_volume_mestying);
 
   std::vector<Core::IO::InputSpec> specs;
   specs.push_back(group("BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING",
@@ -203,7 +203,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamToSolid::valid_parameters()
               .default_value = BeamToSolidSurfaceRotationCoupling::none}),
   };
   // Add the geometry pair input parameters.
-  GeometryPair::valid_parameters_line_to3_d(beam_to_solid_surface_meshtying);
+  GeometryPair::valid_parameters_line_to_3d(beam_to_solid_surface_meshtying);
 
   // Add the surface options.
   GeometryPair::valid_parameters_line_to_surface(beam_to_solid_surface_meshtying);
@@ -250,7 +250,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamToSolid::valid_parameters()
               .default_value = BeamToSolidMortarShapefunctions::none}),
   };
   // Add the geometry pair input parameters.
-  GeometryPair::valid_parameters_line_to3_d(beam_to_solid_surface_contact);
+  GeometryPair::valid_parameters_line_to_3d(beam_to_solid_surface_contact);
 
   // Add the surface options.
   GeometryPair::valid_parameters_line_to_surface(beam_to_solid_surface_contact);
