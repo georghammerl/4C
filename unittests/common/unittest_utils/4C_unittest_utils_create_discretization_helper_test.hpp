@@ -13,9 +13,11 @@
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_comm_utils_factory.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_builder.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_elementtype.hpp"
 #include "4C_fem_general_node.hpp"
+#include "4C_rebalance.hpp"
 #include "4C_rebalance_graph_based.hpp"
 
 #include <mpi.h>
@@ -151,63 +153,51 @@ namespace TESTING
     const int my_rank = Core::Communication::my_mpi_rank(comm);
     const int total_ranks = Core::Communication::num_mpi_ranks(comm);
 
-    const int total_elements = subdivisions * subdivisions * subdivisions;
+    [[maybe_unused]] const int total_elements = subdivisions * subdivisions * subdivisions;
     // function to convert indices into a node lid
     const auto lid = [subdivisions](int i, int j, int k)
     { return i * (subdivisions + 1) * (subdivisions + 1) + j * (subdivisions + 1) + k; };
 
-    // Create a map for all elements with some initial distribution
-    auto row_elements =
-        std::make_shared<Core::LinAlg::Map>(total_elements, 0, discretization.get_comm());
+    const double imbalance_tol(1.1);
 
-    // Connect the nodes into elements on the owning ranks
-    for (int i = 0; i < subdivisions; ++i)
+    Core::Rebalance::RebalanceParameters rebalance_parameters;
+    rebalance_parameters.mesh_partitioning_parameters.min_ele_per_proc = total_ranks;
+    rebalance_parameters.mesh_partitioning_parameters.imbalance_tol = imbalance_tol;
+    rebalance_parameters.mesh_partitioning_parameters.rebalance_type =
+        Core::Rebalance::RebalanceType::hypergraph;
+
+    Core::FE::DiscretizationBuilder<3> builder;
+
+    // Dummy call to ensure the element type is registered
+    PureGeometryElementType::instance();
+
+    if (my_rank == 0)
     {
-      for (int j = 0; j < subdivisions; ++j)
+      // Connect the nodes into elements on the owning ranks
+      for (int i = 0; i < subdivisions; ++i)
       {
-        for (int k = 0; k < subdivisions; ++k)
+        for (int j = 0; j < subdivisions; ++j)
         {
-          const int ele_id = i * subdivisions * subdivisions + j * subdivisions + k;
-
-          if (row_elements->lid(ele_id) != -1)
+          for (int k = 0; k < subdivisions; ++k)
           {
+            const int ele_id = i * subdivisions * subdivisions + j * subdivisions + k;
+
             const std::array nodeids = {lid(i, j, k), lid(i + 1, j, k), lid(i + 1, j + 1, k),
                 lid(i, j + 1, k), lid(i, j, k + 1), lid(i + 1, j, k + 1), lid(i + 1, j + 1, k + 1),
                 lid(i, j + 1, k + 1)};
 
-            PureGeometryElementType::instance();
+
             auto ele = std::make_unique<PureGeometryElement>(ele_id, my_rank,
                 PureGeometryElement::Data{
                     .cell_type = Core::FE::CellType::hex8, .num_dof_per_node = 3});
             ele->set_node_ids(8, nodeids.begin());
 
-            discretization.add_element(std::move(ele));
+            builder.add_element(Core::FE::CellType::hex8, nodeids, ele_id, std::move(ele));
           }
         }
       }
-    }
 
-    auto graph = Core::Rebalance::build_graph(discretization, *row_elements);
-
-    const double imbalance_tol(1.1);
-    Teuchos::ParameterList rebalanceParams;
-    rebalanceParams.set<std::string>("num parts", std::to_string(total_ranks));
-    rebalanceParams.set<std::string>("imbalance tol", std::to_string(imbalance_tol));
-
-    std::shared_ptr<Core::LinAlg::Map> col_elements;
-    const auto [row_nodes, col_nodes] =
-        Core::Rebalance::rebalance_node_maps(*graph, rebalanceParams);
-
-    std::tie(row_elements, col_elements) =
-        discretization.build_element_row_column(*row_nodes, *col_nodes);
-
-    discretization.export_row_elements(*row_elements);
-    discretization.export_column_elements(*col_elements);
-
-    // Now create the nodes on the owning ranks
-    {
       const double increment = 1.0 / subdivisions;
-
       // Add all nodes of the partitioned hypercube
       for (int i = 0; i < subdivisions + 1; ++i)
       {
@@ -215,18 +205,13 @@ namespace TESTING
         {
           for (int k = 0; k < subdivisions + 1; ++k)
           {
-            const int node_lid = lid(i, j, k);
-            if (row_nodes->lid(node_lid) != -1)
-            {
-              const std::array<double, 3> coords = {i * increment, j * increment, k * increment};
-              discretization.add_node(coords, lid(i, j, k), nullptr);
-            }
+            const std::array<double, 3> coords = {i * increment, j * increment, k * increment};
+            builder.add_node(coords, lid(i, j, k), nullptr);
           }
         }
       }
     }
-
-    discretization.export_column_nodes(*col_nodes);
+    builder.build(discretization, rebalance_parameters);
     discretization.fill_complete();
 
     FOUR_C_ASSERT(discretization.num_global_elements() == total_elements, "Internal error.");

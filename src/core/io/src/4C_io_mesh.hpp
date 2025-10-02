@@ -165,13 +165,6 @@ namespace Core::IO::MeshInput
      */
     std::unordered_map<std::string, FieldDataVariantType<dim>> cell_data{};
 
-    /**
-     * Optional specific data for the cell block.
-     *
-     * This data can be used to construct specialized user elements for this block.
-     */
-    std::optional<Core::IO::InputParameterContainer> specific_data{};
-
     CellBlock(FE::CellType cell_type) : cell_type(cell_type) {}
 
     /*!
@@ -299,7 +292,8 @@ namespace Core::IO::MeshInput
       [[nodiscard]] const T& data_as(const std::string& field_name) const
       {
         const auto* vector = std::get_if<std::vector<T>>(&raw_mesh_->point_data.at(field_name));
-        FOUR_C_ASSERT_ALWAYS(vector, "bal");
+        FOUR_C_ASSERT_ALWAYS(
+            vector, "Data for field '{}' is not of the requested type.", field_name);
 
         return (*vector)[index_];
       }

@@ -1311,10 +1311,15 @@ namespace Core::FE
      * at once and redistributes it according to the settings in @p params. This is a collective
      * call.
      *
+     * The @p user_elements and @p user_nodes maps can be used to provide custom objects for
+     * the elements and nodes.
+     *
      * @note This only works if the discretization is empty, i.e., contains no nodes or elements.
      */
-    void fill_from_mesh(
-        const IO::MeshInput::Mesh<3>& mesh, const Rebalance::RebalanceParameters& params);
+    void fill_from_mesh(const IO::MeshInput::Mesh<3>& mesh,
+        const std::map<int, std::shared_ptr<Elements::Element>>& user_elements,
+        const std::map<int, std::shared_ptr<Nodes::Node>>& user_nodes,
+        const Rebalance::RebalanceParameters& params);
 
     /*!
     \brief Delete an node from the discretization (Filled()==true NOT prerequisite)
