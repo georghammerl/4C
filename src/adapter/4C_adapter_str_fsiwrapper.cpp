@@ -207,12 +207,11 @@ void Adapter::FSIStructureWrapper::apply_interface_forces(
 void Adapter::FSIStructureWrapper::apply_interface_forces_temporary_deprecated(
     std::shared_ptr<Core::LinAlg::Vector<double>> iforce)
 {
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> fifc =
-      Core::LinAlg::create_multi_vector(*dof_row_map(), 1, true);
+  auto fifc = Core::LinAlg::MultiVector<double>(*dof_row_map(), 1, true);
 
-  interface_->add_fsi_cond_vector(*iforce, (*fifc)(0));
+  interface_->add_fsi_cond_vector(*iforce, fifc(0));
 
-  set_force_interface(*fifc);
+  set_force_interface(fifc);
 
   prepare_partition_step();
 }

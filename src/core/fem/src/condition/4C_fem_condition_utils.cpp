@@ -47,8 +47,8 @@ namespace
     for (const auto& condition : conditions)
       fill_conditioned_node_set(nodeRange, condition, condnodeset);
 
-    std::shared_ptr<Core::LinAlg::Map> condnodemap =
-        Core::LinAlg::create_map(condnodeset, dis.get_comm());
+    std::shared_ptr<Core::LinAlg::Map> condnodemap = Core::LinAlg::create_map(
+        std::vector<int>(condnodeset.begin(), condnodeset.end()), dis.get_comm());
     return condnodemap;
   }
 

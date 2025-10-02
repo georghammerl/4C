@@ -222,8 +222,8 @@ void PoroPressureBased::PorofluidAlgorithm::init(bool isale, int nds_disp, int n
   {
     const int num_poro_dof = discret_->num_dof(0, discret_->l_row_node(0));
     const int num_rows = num_poro_dof * nsd_;
-    phase_velocities_ =
-        Core::LinAlg::create_multi_vector(*discret_->element_row_map(), num_rows, true);
+    phase_velocities_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
+        *discret_->element_row_map(), num_rows, true);
   }
 
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
