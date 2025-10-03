@@ -28,16 +28,6 @@ using GO = GlobalOrdinal;
 using NO = Node;
 
 /*----------------------------------------------------------------------*
- |  create a Epetra_CrsMatrix                                mwgee 12/06|
- *----------------------------------------------------------------------*/
-std::shared_ptr<Epetra_CrsMatrix> Core::LinAlg::create_matrix(
-    const Core::LinAlg::Map& rowmap, const int npr)
-{
-  if (!rowmap.unique_gids()) FOUR_C_THROW("Row map is not unique");
-  return std::make_shared<Epetra_CrsMatrix>(::Copy, rowmap.get_epetra_map(), npr, false);
-}
-
-/*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::create_identity_matrix(
     const Core::LinAlg::Map& map)
@@ -139,27 +129,12 @@ Core::LinAlg::SparseMatrix Core::LinAlg::create_interpolation_matrix(const Spars
   return prolongator;
 }
 
-
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> Core::LinAlg::create_vector(
     const Map& rowmap, const bool init)
 {
   return std::make_shared<Core::LinAlg::Vector<double>>(rowmap, init);
-}
-
-
-std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::LinAlg::create_multi_vector(
-    const Map& rowmap, const int numrows, const bool init)
-{
-  return std::make_shared<Core::LinAlg::MultiVector<double>>(rowmap, numrows, init);
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Map> Core::LinAlg::create_map(
-    const std::set<int>& gids, MPI_Comm comm)
-{
-  std::vector<int> mapvec(gids.begin(), gids.end());
-  return create_map(mapvec, comm);
 }
 
 /*----------------------------------------------------------------------*

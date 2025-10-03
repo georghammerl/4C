@@ -115,10 +115,12 @@ void Core::Conditions::setup_extractor(const Core::FE::Discretization& dis,
   std::vector<std::shared_ptr<const Core::LinAlg::Map>> maps;
   maps.reserve(conditioned_dof_sets.size() + 1);
 
-  maps.emplace_back(Core::LinAlg::create_map(otherdofset, dis.get_comm()));
+  maps.emplace_back(Core::LinAlg::create_map(
+      std::vector<int>(otherdofset.begin(), otherdofset.end()), dis.get_comm()));
   for (auto& conddofset : conditioned_dof_sets)
   {
-    maps.emplace_back(Core::LinAlg::create_map(conddofset, dis.get_comm()));
+    maps.emplace_back(Core::LinAlg::create_map(
+        std::vector<int>(conddofset.begin(), conddofset.end()), dis.get_comm()));
   }
 
   // MultiMapExtractor setup

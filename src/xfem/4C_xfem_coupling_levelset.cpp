@@ -180,8 +180,10 @@ void XFEM::LevelSetCoupling::init_state_vectors_cutter()
 
   cutter_phinp_ = Core::LinAlg::create_vector(*cutter_dofrowmap, true);
   cutter_phinp_col_ = Core::LinAlg::create_vector(*cutter_dofcolmap, true);
-  gradphinp_smoothed_node_ = Core::LinAlg::create_multi_vector(*cutter_dofrowmap, nsd_, true);
-  gradphinp_smoothed_node_col_ = Core::LinAlg::create_multi_vector(*cutter_dofcolmap, nsd_, true);
+  gradphinp_smoothed_node_ =
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*cutter_dofrowmap, nsd_, true);
+  gradphinp_smoothed_node_col_ =
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*cutter_dofcolmap, nsd_, true);
   curvaturenp_node_ = Core::LinAlg::create_vector(*cutter_dofrowmap, true);
   curvaturenp_node_col_ = Core::LinAlg::create_vector(*cutter_dofcolmap, true);
 }
