@@ -16,8 +16,7 @@ env:
 jobs:
   build_4c_image:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository == '4C-multiphysics/4C'
-      }}
+    if: ${{ github.repository == '4C-multiphysics/4C' }}
     permissions:
       contents: read
       packages: write
@@ -38,6 +37,15 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           labels: |
             org.opencontainers.image.description=Image containing the built 4C code
+      - name: Create tags
+        id: tags
+        # If the nightly tests are successful the docker image is additionally tagged as `stable`
+        run: |
+          TAGS="${{ env.IMAGE_NAME }}:main"
+          if [[ "${{ github.event.workflow_run.conclusion }}" == 'success' ]]; then
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:stable"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
@@ -45,13 +53,12 @@ jobs:
           context: .
           file: docker/prebuilt_4C/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}:main
+          tags: ${{ steps.tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   build_4c_minimal_image:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository == '4C-multiphysics/4C'
-      }}
+    if: ${{ github.repository == '4C-multiphysics/4C' }}
     permissions:
       contents: read
       packages: write
@@ -72,6 +79,15 @@ jobs:
           images: ${{ env.IMAGE_NAME }}-minimal
           labels: |
             org.opencontainers.image.description=Image containing the 4C executable
+      - name: Create tags
+        id: tags
+        # If the nightly tests are successful the docker image is additionally tagged as `stable`
+        run: |
+          TAGS="${{ env.IMAGE_NAME }}:main"
+          if [[ "${{ github.event.workflow_run.conclusion }}" == 'success' ]]; then
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:stable"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
@@ -79,5 +95,5 @@ jobs:
           context: docker/prebuilt_4C_minimal
           file: docker/prebuilt_4C_minimal/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}-minimal:main
+          tags: ${{ steps.tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
