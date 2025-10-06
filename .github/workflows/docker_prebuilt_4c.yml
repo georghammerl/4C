@@ -83,9 +83,9 @@ jobs:
         id: tags
         # If the nightly tests are successful the docker image is additionally tagged as `stable`
         run: |
-          TAGS="${{ env.IMAGE_NAME }}:main"
+          TAGS="${{ env.IMAGE_NAME }}-minimal:main"
           if [[ "${{ github.event.workflow_run.conclusion }}" == 'success' ]]; then
-            TAGS="$TAGS,${{ env.IMAGE_NAME }}:stable"
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}-minimal:stable"
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
