@@ -27,7 +27,8 @@ FOUR_C_NAMESPACE_OPEN
 namespace Mat
 {
   class Anisotropy;
-}
+  struct EvaluationContext;
+}  // namespace Mat
 
 /*!
  * \brief The mixture namespace holds all mixture specific classes.
@@ -150,7 +151,8 @@ namespace Mixture
      * @param eleGID Global element identifier
      */
     virtual void update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd,
-        const Teuchos::ParameterList& params, const int gp, const int eleGID)
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp,
+        const int eleGID)
     {
     }
 
@@ -176,7 +178,7 @@ namespace Mixture
      */
     virtual void update_elastic_part(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::Tensor<double, 3, 3>& iFext, const Teuchos::ParameterList& params,
-        const double dt, const int gp, const int eleGID)
+        const Mat::EvaluationContext& context, const double dt, const int gp, const int eleGID)
     {
       // do nothing
     }
@@ -189,8 +191,8 @@ namespace Mixture
      * @param gp (in) : Gauss point
      * @param eleGID (in) : Global element id
      */
-    virtual void pre_evaluate(
-        MixtureRule& mixtureRule, const Teuchos::ParameterList& params, int gp, int eleGID)
+    virtual void pre_evaluate(MixtureRule& mixtureRule, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context, int gp, int eleGID)
     {
       // do nothing in the default case
     }
@@ -244,6 +246,7 @@ namespace Mixture
      */
     virtual void evaluate_elastic_part(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::Tensor<double, 3, 3>& iF_in, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID);
 
@@ -265,7 +268,8 @@ namespace Mixture
      */
     virtual void evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) = 0;
 
     /// Returns the reference mass density. Needs to be implemented by the deriving class.

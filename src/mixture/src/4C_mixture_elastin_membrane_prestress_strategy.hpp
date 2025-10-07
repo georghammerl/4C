@@ -12,6 +12,7 @@
 
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
 // forward declarations
@@ -20,7 +21,8 @@ FOUR_C_NAMESPACE_OPEN
 namespace Mat
 {
   class CoordinateSystemProvider;
-}
+  struct EvaluationContext;
+}  // namespace Mat
 
 namespace Mixture
 {
@@ -57,7 +59,8 @@ namespace Mixture
     virtual double evaluate_mue_frac(MixtureRule& mixtureRule,
         const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
         Mixture::MixtureConstituent& constituent, ElastinMembraneEvaluation& membraneEvaluation,
-        const Teuchos::ParameterList& params, int gp, int eleGID) const = 0;
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+        int eleGID) const = 0;
   };
 
   /*!

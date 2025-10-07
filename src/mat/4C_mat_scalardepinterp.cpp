@@ -95,7 +95,8 @@ void Mat::ScalarDepInterp::setup(int numgp, const Discret::Elements::Fibers& fib
 /*----------------------------------------------------------------------*/
 void Mat::ScalarDepInterp::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // evaluate elastic material corresponding to zero concentration
@@ -103,14 +104,14 @@ void Mat::ScalarDepInterp::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat_zero_conc{};
 
   lambda_zero_mat_->evaluate(
-      defgrad, glstrain, params, stress_lambda_zero, cmat_zero_conc, gp, eleGID);
+      defgrad, glstrain, params, context, stress_lambda_zero, cmat_zero_conc, gp, eleGID);
 
   // evaluate elastic material corresponding to infinite concentration
   Core::LinAlg::SymmetricTensor<double, 3, 3> stress_lambda_unit{};
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat_infty_conc{};
 
   lambda_unit_mat_->evaluate(
-      defgrad, glstrain, params, stress_lambda_unit, cmat_infty_conc, gp, eleGID);
+      defgrad, glstrain, params, context, stress_lambda_unit, cmat_infty_conc, gp, eleGID);
 
   double lambda;
   // get the ratio of interpolation
@@ -158,9 +159,9 @@ void Mat::ScalarDepInterp::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
         params.get<std::shared_ptr<Core::LinAlg::Matrix<6, 1>>>("dlambda_dC");
 
     // evaluate strain energy functions
-    double psi_lambda_zero = lambda_zero_mat_->strain_energy(glstrain, gp, eleGID);
+    double psi_lambda_zero = lambda_zero_mat_->strain_energy(glstrain, context, gp, eleGID);
 
-    double psi_lambda_unit = lambda_unit_mat_->strain_energy(glstrain, gp, eleGID);
+    double psi_lambda_unit = lambda_unit_mat_->strain_energy(glstrain, context, gp, eleGID);
 
     // and add the stresses due to possible dependency of the ratio w.r.t. to C
     // ... - 2 * \Psi_0 * \frac{\partial}{\partial \mym C} \lambda(C) ) + * 2 * \Psi_1 *
@@ -328,13 +329,13 @@ bool Mat::ScalarDepInterp::vis_data(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 double Mat::ScalarDepInterp::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const int gp,
-    const int eleGID) const
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,
+    const int gp, const int eleGID) const
 {
   // evaluate strain energy functions
-  double psi_lambda_zero = lambda_zero_mat_->strain_energy(glstrain, gp, eleGID);
+  double psi_lambda_zero = lambda_zero_mat_->strain_energy(glstrain, context, gp, eleGID);
 
-  double psi_lambda_unit = lambda_unit_mat_->strain_energy(glstrain, gp, eleGID);
+  double psi_lambda_unit = lambda_unit_mat_->strain_energy(glstrain, context, gp, eleGID);
 
   double lambda = 0.0;
   for (double gp : lambda_)

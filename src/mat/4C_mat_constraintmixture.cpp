@@ -716,7 +716,8 @@ void Mat::ConstraintMixture::reset_step()
  *----------------------------------------------------------------------*/
 void Mat::ConstraintMixture::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -732,8 +733,10 @@ void Mat::ConstraintMixture::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* 
   const double growthfactor = params_->get_parameter(params_->growthfactor, eleGID);
 
   // get variables from params
-  double dt = Mat::get_or<double>(params, "delta time", -1.0);
-  double time = Mat::get_or<double>(params, "total time", -1.0);
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  double time = *context.total_time;
   std::string action = Mat::get_or<std::string>(params, "action", "none");
   bool output = false;
   if (action == "calc_struct_stress") output = true;
@@ -765,8 +768,8 @@ void Mat::ConstraintMixture::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* 
     if (params_->elastindegrad_ == "Rectangle" || params_->elastindegrad_ == "RectanglePlate" ||
         params_->elastindegrad_ == "Wedge" || params_->elastindegrad_ == "Circles")
     {
-      const auto& gp_reference_coordinates =
-          params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
+      FOUR_C_ASSERT(context.ref_coords, "Reference coordinates not given in evaluation context.");
+      const auto& gp_reference_coordinates = *context.ref_coords;
 
       elastin_degradation(gp_reference_coordinates, elastin_survival);
     }

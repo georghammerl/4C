@@ -19,6 +19,7 @@
 #include "4C_mat_material_factory.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_utils_enum.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -508,7 +509,8 @@ void Mat::ViscoElastHyper::update()
 /*----------------------------------------------------------------------*/
 void Mat::ViscoElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<6, 1> glstrain_mat =
@@ -571,7 +573,7 @@ void Mat::ViscoElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
     }
     // calculate viscous quantities
     evaluate_kin_quant_vis(C_strain, C_stress, iC_stress, prinv, rateinv, modC_strain, params,
-        scgrate, modrcgrate, modrateinv, gp);
+        context, scgrate, modrcgrate, modrateinv, gp);
     evaluate_mu_xi(prinv, modinv, mu, modmu, xi, modxi, rateinv, modrateinv, params, gp, eleGID);
   }
 
@@ -625,7 +627,7 @@ void Mat::ViscoElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
     Core::LinAlg::Matrix<NUM_STRESS_3D, 1> Q(
         Core::LinAlg::Initialization::zero);  // artificial viscous stress
     Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D> cmatq(Core::LinAlg::Initialization::zero);
-    evaluate_visco_gen_max(&stress_view, &cmat_view, Q, cmatq, params, gp);
+    evaluate_visco_gen_max(&stress_view, &cmat_view, Q, cmatq, params, context, gp);
     stress_view.update(1.0, Q, 1.0);
     cmat_view.update(1.0, cmatq, 1.0);
   }
@@ -635,7 +637,7 @@ void Mat::ViscoElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   {
     Core::LinAlg::Matrix<NUM_STRESS_3D, 1> Q(Core::LinAlg::Initialization::zero);
     Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D> cmatq(Core::LinAlg::Initialization::zero);
-    evaluate_visco_generalized_gen_max(Q, cmatq, params, &glstrain_mat, gp, eleGID);
+    evaluate_visco_generalized_gen_max(Q, cmatq, params, context, &glstrain_mat, gp, eleGID);
     stress_view.update(1.0, Q, 1.0);
     cmat_view.update(1.0, cmatq, 1.0);
   }
@@ -646,7 +648,7 @@ void Mat::ViscoElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
     Core::LinAlg::Matrix<NUM_STRESS_3D, 1> Q(
         Core::LinAlg::Initialization::zero);  // artificial viscous stress
     Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D> cmatq(Core::LinAlg::Initialization::zero);
-    evaluate_visco_fract(stress_view, cmat_view, Q, cmatq, params, gp);
+    evaluate_visco_fract(stress_view, cmat_view, Q, cmatq, params, context, gp);
     stress_view.update(1.0, Q, 1.);
     cmat_view.update(1.0, cmatq, 1.);
   }
@@ -679,13 +681,14 @@ void Mat::ViscoElastHyper::evaluate_kin_quant_vis(Core::LinAlg::Matrix<6, 1>& rc
     Core::LinAlg::Matrix<6, 1>& scg, Core::LinAlg::Matrix<6, 1>& icg,
     Core::LinAlg::Matrix<3, 1>& prinv, Core::LinAlg::Matrix<7, 1>& rateinv,
     Core::LinAlg::Matrix<6, 1>& modrcg, const Teuchos::ParameterList& params,
-    Core::LinAlg::Matrix<6, 1>& scgrate, Core::LinAlg::Matrix<6, 1>& modrcgrate,
-    Core::LinAlg::Matrix<7, 1>& modrateinv, const int gp)
+    const EvaluationContext& context, Core::LinAlg::Matrix<6, 1>& scgrate,
+    Core::LinAlg::Matrix<6, 1>& modrcgrate, Core::LinAlg::Matrix<7, 1>& modrateinv, const int gp)
 {
   // time derivative
   // -------------------------------------------------------------------
   // get time algorithmic parameters
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   // modrcg : \overline{C} = J^{-\frac{2}{3}} C
   const double modscale = std::pow(prinv(2), -1. / 3.);
@@ -864,7 +867,8 @@ void Mat::ViscoElastHyper::evaluate_iso_visco_modified(
 /*----------------------------------------------------------------------*/
 void Mat::ViscoElastHyper::evaluate_visco_gen_max(Core::LinAlg::Matrix<6, 1>* stress,
     Core::LinAlg::Matrix<6, 6>* cmat, Core::LinAlg::Matrix<6, 1>& Q,
-    Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params, const int gp)
+    Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp)
 {
   // initialize material parameters
   double tau = -1.0;
@@ -899,7 +903,8 @@ void Mat::ViscoElastHyper::evaluate_visco_gen_max(Core::LinAlg::Matrix<6, 1>* st
     // get time algorithmic parameters
     // NOTE: dt can be zero (in restart of STI) for Generalized Maxwell model
     // there is no special treatment required. Adaptation for Kelvin-Voigt were necessary.
-    double dt = params.get<double>("delta time");  // TIMESTEP in the input file
+    FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+    double dt = *context.time_step_size;  // TIMESTEP in the input file
 
     // evaluate scalars to compute
     // Q^(n+1) = tau/(tau+theta*dt) [(tau-dt+theta*dt)/tau Q + beta(S^(n+1) - S^n)]
@@ -941,7 +946,8 @@ void Mat::ViscoElastHyper::evaluate_visco_gen_max(Core::LinAlg::Matrix<6, 1>* st
     // get time algorithmic parameters
     // NOTE: dt can be zero (in restart of STI) for Generalized Maxwell model
     // there is no special treatment required. Adaptation for Kelvin-Voigt were necessary.
-    double dt = params.get<double>("delta time");  // TIMESTEP in the input file
+    FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+    double dt = *context.time_step_size;  // TIMESTEP in the input file
     // evaluate scalars to compute
     // Q_(n+1)=\exp(2*(-dt/(2*tau)))*Q_n+exp(-dt/(2*tau))*beta*(S_(n+1)-S_n)
 
@@ -974,7 +980,8 @@ void Mat::ViscoElastHyper::evaluate_visco_gen_max(Core::LinAlg::Matrix<6, 1>* st
 /*----------------------------------------------------------------------*/
 void Mat::ViscoElastHyper::evaluate_visco_generalized_gen_max(Core::LinAlg::Matrix<6, 1>& Q,
     Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
-    const Core::LinAlg::Matrix<6, 1>* glstrain, const int gp, const int eleGID)
+    const Mat::EvaluationContext& context, const Core::LinAlg::Matrix<6, 1>* glstrain, const int gp,
+    const int eleGID)
 {
   int numbranch = -1;
   double tau = -1.0;
@@ -1119,7 +1126,8 @@ void Mat::ViscoElastHyper::evaluate_visco_generalized_gen_max(Core::LinAlg::Matr
       // get time algorithmic parameters
       // NOTE: dt can be zero (in restart of STI) for Generalized Maxwell model
       // there is no special treatment required. Adaptation for Kelvin-Voigt were necessary.
-      double dt = params.get<double>("delta time");  // TIMESTEP in the input file
+      FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+      double dt = *context.time_step_size;  // TIMESTEP in the input file
 
       // evaluate scalars to compute
       // Q^(n+1) = tau/(tau+theta*dt) [(tau-dt+theta*dt)/tau Q + beta(S^(n+1) - S^n)]
@@ -1141,7 +1149,8 @@ void Mat::ViscoElastHyper::evaluate_visco_generalized_gen_max(Core::LinAlg::Matr
       // initialize scalars
       double xiscalar1(true);
       double xiscalar2(true);
-      double dt = params.get<double>("delta time");
+      FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+      double dt = *context.time_step_size;
 
       xiscalar1 = exp(-dt / tau);
       xiscalar2 = exp(-dt / (2 * tau));
@@ -1173,7 +1182,8 @@ void Mat::ViscoElastHyper::evaluate_visco_generalized_gen_max(Core::LinAlg::Matr
 /*----------------------------------------------------------------------*/
 void Mat::ViscoElastHyper::evaluate_visco_fract(Core::LinAlg::Matrix<6, 1> stress,
     Core::LinAlg::Matrix<6, 6> cmat, Core::LinAlg::Matrix<6, 1>& Q,
-    Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params, const int gp)
+    Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp)
 {
   // initialize parameters
   double tau(true);
@@ -1197,7 +1207,8 @@ void Mat::ViscoElastHyper::evaluate_visco_fract(Core::LinAlg::Matrix<6, 1> stres
   // get time algorithmic parameters
   // NOTE: dt can be zero (in restart of STI) for this model
   // there is no special treatment required.
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
 
   // read history of last time step at gp

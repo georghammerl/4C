@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_fixedsizematrix.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mixture_elastin_membrane_prestress_strategy.hpp"
 #include "4C_mixture_prestress_strategy.hpp"
 
@@ -18,6 +19,10 @@
 
 FOUR_C_NAMESPACE_OPEN
 
+namespace Mat
+{
+  struct EvaluationContext;
+}
 namespace Mixture
 {
   // forward declaration
@@ -66,17 +71,19 @@ namespace Mixture
     double evaluate_mue_frac(MixtureRule& mixtureRule,
         const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
         Mixture::MixtureConstituent& constituent, ElastinMembraneEvaluation& membraneEvaluation,
-        const Teuchos::ParameterList& params, int gp, int eleGID) const override;
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+        int eleGID) const override;
 
     void evaluate_prestress(const MixtureRule& mixtureRule,
         const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
         Mixture::MixtureConstituent& constituent, Core::LinAlg::SymmetricTensor<double, 3, 3>& G,
-        const Teuchos::ParameterList& params, int gp, int eleGID) override;
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+        int eleGID) override;
 
     void update(const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
         Mixture::MixtureConstituent& constituent, const Core::LinAlg::Tensor<double, 3, 3>& F,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params,
-        int gp, int eleGID) override;
+        const Mat::EvaluationContext& context, int gp, int eleGID) override;
 
    private:
     /// Holder for internal parameters

@@ -16,6 +16,7 @@
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_plasticdruckerprager.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_material_base.hpp"
 #include "4C_material_parameter_base.hpp"
 #include "4C_unittest_utils_assertions_test.hpp"
@@ -95,7 +96,13 @@ namespace
     FourC::Mat::PlasticDruckerPrager plastic;
     Core::Communication::UnpackBuffer buffer(dataSend);
     plastic.unpack(buffer);
-    plastic.evaluate(nullptr, input_strain, paras, result_stress, result_cmat, 0, 0);
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+    plastic.evaluate(nullptr, input_strain, paras, context, result_stress, result_cmat, 0, 0);
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress, 1.0e-12);
   };
 
@@ -127,7 +134,13 @@ namespace
     }
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> result_cmat{};
     Core::LinAlg::SymmetricTensor<double, 3, 3> result_stress{};
-    druckprag_->evaluate(nullptr, input_strain, paras, result_stress, result_cmat, 0, 0);
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+    druckprag_->evaluate(nullptr, input_strain, paras, context, result_stress, result_cmat, 0, 0);
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress, 1.0e-12);
   };
 
@@ -146,7 +159,13 @@ namespace
         (1 - ((1.0 / (2 * (1.0 + 0.25))) * Dgamma / (2.2 * sqrt(3) / 2.5))) * 2.2;
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> result_cmat{};
     Core::LinAlg::SymmetricTensor<double, 3, 3> result_stress{};
-    druckprag_->evaluate(nullptr, input_strain, paras, result_stress, result_cmat, 0, 0);
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+    druckprag_->evaluate(nullptr, input_strain, paras, context, result_stress, result_cmat, 0, 0);
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress, 1.0e-12);
   };
 
@@ -161,7 +180,13 @@ namespace
     for (int i = 0; i < 3; ++i) ref_stress(i, i) = 2.0 - (10. / 15.) * (3. / 5.);
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> result_cmat{};
     Core::LinAlg::SymmetricTensor<double, 3, 3> result_stress{};
-    druckprag_->evaluate(nullptr, input_strain, paras, result_stress, result_cmat, 0, 0);
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+    druckprag_->evaluate(nullptr, input_strain, paras, context, result_stress, result_cmat, 0, 0);
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress, 1.0e-12);
   };
 
@@ -237,7 +262,13 @@ namespace
     ref_stress(0, 2) = 0.2613249104715;
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> result_cmat{};
     Core::LinAlg::SymmetricTensor<double, 3, 3> result_stress{};
-    druckprag_->evaluate(nullptr, input_strain, paras, result_stress, result_cmat, 0, 0);
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+    druckprag_->evaluate(nullptr, input_strain, paras, context, result_stress, result_cmat, 0, 0);
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress, 1.0e-12);
   };
 

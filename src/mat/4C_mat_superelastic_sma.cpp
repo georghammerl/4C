@@ -303,7 +303,8 @@ void Mat::SuperElasticSMA::update()
  *----------------------------------------------------------------------*/
 void Mat::SuperElasticSMA::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -1120,8 +1121,8 @@ bool Mat::SuperElasticSMA::vis_data(
  |  calculate strain energy                                hemmler 11/16|
  *----------------------------------------------------------------------*/
 double Mat::SuperElasticSMA::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const int gp,
-    const int eleGID) const
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,
+    const int gp, const int eleGID) const
 {
   return strainenergy_;
 }

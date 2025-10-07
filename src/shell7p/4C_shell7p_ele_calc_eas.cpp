@@ -268,6 +268,10 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
   // init EAS shape function matrix
   Core::LinAlg::SerialDenseMatrix M(Shell::Internal::num_internal_variables, locking_types_.total);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   Shell::for_each_gauss_point<distype>(nodal_coordinates, intpoints_midsurface_,
       [&](const std::array<double, 2>& xi_gp,
           const Shell::ShapefunctionsAndDerivatives<distype>& shape_functions,
@@ -309,7 +313,13 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
 
           Core::LinAlg::SymmetricTensor<double, 3, 3> gl_strain =
               Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(gl_stress);
-          double psi = solid_material.strain_energy(gl_strain, gp, ele.id());
+
+          Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
+          Mat::EvaluationContext context{.total_time = total_time,
+              .time_step_size = time_step_size,
+              .xi = &xi,
+              .ref_coords = nullptr};
+          double psi = solid_material.strain_energy(gl_strain, context, gp, ele.id());
 
           double thickness = 0.0;
           for (int i = 0; i < Shell::Internal::num_node<distype>; ++i)
@@ -407,6 +417,10 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::calculate_stresses_strains(
   // init EAS shape function matrix
   Core::LinAlg::SerialDenseMatrix M(Shell::Internal::num_internal_variables, locking_types_.total);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   Shell::for_each_gauss_point<distype>(nodal_coordinates, intpoints_midsurface_,
       [&](const std::array<double, 2>& xi_gp,
           const Shell::ShapefunctionsAndDerivatives<distype>& shape_functions,
@@ -448,9 +462,14 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::calculate_stresses_strains(
               strains.defgrd_, strains.gl_strain_, defgrd_enh);
           strains.defgrd_ = defgrd_enh;
 
+          Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
+          Mat::EvaluationContext context{.total_time = total_time,
+              .time_step_size = time_step_size,
+              .xi = &xi,
+              .ref_coords = nullptr};
           // evaluate stress in local cartesian system
           auto stress = Shell::evaluate_material_stress_cartesian_system<Shell::Internal::num_dim>(
-              solid_material, strains, params, gp, ele.id());
+              solid_material, strains, params, context, gp, ele.id());
           Shell::assemble_strain_type_to_matrix_row<distype>(
               strains, strainIO.type, strain_data, gp, 0.5);
           Shell::assemble_stress_type_to_matrix_row<distype>(
@@ -587,6 +606,10 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
               }
             });
 
+        const double* total_time =
+            params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+        const double* time_step_size =
+            params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
         // integration loop in thickness direction, here we prescribe 2 integration points to avoid
         // nonlinear poisson stiffening
         for (int gpt = 0; gpt < intpoints_thickness_.num_points(); ++gpt)
@@ -618,8 +641,13 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
               strains.defgrd_, strains.gl_strain_, defgrd_enh);
           strains.defgrd_ = defgrd_enh;
 
+          Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
+          Mat::EvaluationContext context{.total_time = total_time,
+              .time_step_size = time_step_size,
+              .xi = &xi,
+              .ref_coords = nullptr};
           auto stress = Shell::evaluate_material_stress_cartesian_system<Shell::Internal::num_dim>(
-              solid_material, strains, params, gp, ele.id());
+              solid_material, strains, params, context, gp, ele.id());
           Shell::map_material_stress_to_curvilinear_system(stress, g_reference);
           Shell::thickness_integration<distype>(stress_enh, stress, factor, zeta);
           // thickness integration of mass matrix variables
@@ -826,6 +854,10 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::update(Core::Elements::Eleme
     // init EAS shape function matrix
     Core::LinAlg::SerialDenseMatrix M(num_internal_variables, num_internal_variables);
 
+    const double* total_time =
+        params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+    const double* time_step_size =
+        params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
     Shell::for_each_gauss_point<distype>(nodal_coordinates, intpoints_midsurface_,
         [&](const std::array<double, 2>& xi_gp,
             const Shell::ShapefunctionsAndDerivatives<distype>& shape_functions,
@@ -867,7 +899,12 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::update(Core::Elements::Eleme
                 strains.defgrd_, strains.gl_strain_, defgrd_enh);
             strains.defgrd_ = defgrd_enh;
             Core::LinAlg::Tensor<double, 3, 3> defgrd = Core::LinAlg::make_tensor(strains.defgrd_);
-            solid_material.update(defgrd, gp, params, ele.id());
+            Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
+            Mat::EvaluationContext context{.total_time = total_time,
+                .time_step_size = time_step_size,
+                .xi = &xi,
+                .ref_coords = nullptr};
+            solid_material.update(defgrd, gp, params, context, ele.id());
           }
         });
   }

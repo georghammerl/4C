@@ -776,6 +776,10 @@ void Discret::Elements::Wall1::w1_nlnstiffmass(const std::vector<int>& lm,
     w1_eassetup(boplin0, F0, xjm0, detJ0, xrefe, xcure, distype);
   }
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   /*=================================================== integration loops */
   for (int ip = 0; ip < intpoints.nquad; ++ip)
   {
@@ -841,7 +845,12 @@ void Discret::Elements::Wall1::w1_nlnstiffmass(const std::vector<int>& lm,
       /*-----total deformation gradient, Green-Lagrange-strain E^F -----------*/
       w1_call_defgrad_tot(F_enh, F_tot, F, strain);
       /* call material law----------------------------------------------------*/
-      w1_call_matgeononl(strain, stress, C, numeps, material, params, ip);
+      Core::LinAlg::Tensor<double, 3> xi = {{e1, e2, 0.0}};
+      Mat::EvaluationContext context{.total_time = total_time,
+          .time_step_size = time_step_size,
+          .xi = &xi,
+          .ref_coords = nullptr};
+      w1_call_matgeononl(strain, stress, C, numeps, material, params, context, ip);
 
       // return gp strains (only in case of strain output)
       switch (iostrain)
@@ -902,7 +911,12 @@ void Discret::Elements::Wall1::w1_nlnstiffmass(const std::vector<int>& lm,
     }
     else
     {
-      w1_call_matgeononl(strain, stress, C, numeps, material, params, ip);
+      Core::LinAlg::Tensor<double, 3> xi = {{e1, e2, 0.0}};
+      Mat::EvaluationContext context{.total_time = total_time,
+          .time_step_size = time_step_size,
+          .xi = &xi,
+          .ref_coords = nullptr};
+      w1_call_matgeononl(strain, stress, C, numeps, material, params, context, ip);
 
       // return gp strains (only in case of strain output)
       switch (iostrain)
@@ -1075,6 +1089,10 @@ void Discret::Elements::Wall1::w1_linstiffmass(const std::vector<int>& lm,
     }
   }
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   /*=================================================== integration loops */
   for (int ip = 0; ip < intpoints.nquad; ++ip)
   {
@@ -1133,7 +1151,12 @@ void Discret::Elements::Wall1::w1_linstiffmass(const std::vector<int>& lm,
     strain[3] = strain[2];
 
     // material call
-    w1_call_matgeononl(strain, stress, C, numeps, material, params, ip);
+    Core::LinAlg::Tensor<double, 3> xi = {{e1, e2, 0.0}};
+    Mat::EvaluationContext context{.total_time = total_time,
+        .time_step_size = time_step_size,
+        .xi = &xi,
+        .ref_coords = nullptr};
+    w1_call_matgeononl(strain, stress, C, numeps, material, params, context, ip);
 
     // return gp strains (only in case of strain output)
     switch (iostrain)
@@ -1545,6 +1568,10 @@ void Discret::Elements::Wall1::energy(Teuchos::ParameterList& params, const std:
     w1_defgrad(Fuv0, Ev, Xe, xe, boplin0, numnode);  // at t_{n}
   }
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   // integration loops over element domain
   for (int ip = 0; ip < intpoints.nquad; ++ip)
   {
@@ -1585,7 +1612,12 @@ void Discret::Elements::Wall1::energy(Teuchos::ParameterList& params, const std:
       w1_call_defgrad_tot(Fenhv, Fm, Fuv, Ev);  // at t_{n}
     }
 
-    internal_energy += fac * energy_internal(material, params, Ev, ip);
+    Core::LinAlg::Tensor<double, 3> xi = {{xi1, xi2, 0.0}};
+    Mat::EvaluationContext context{.total_time = total_time,
+        .time_step_size = time_step_size,
+        .xi = &xi,
+        .ref_coords = nullptr};
+    internal_energy += fac * energy_internal(material, params, context, Ev, ip);
   }  // end loop Gauss points
 
 

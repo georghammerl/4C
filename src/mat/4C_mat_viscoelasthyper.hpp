@@ -177,7 +177,8 @@ namespace Mat
     /// hyperelastic stress response plus elasticity tensor
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp,
         int eleGID) override;  ///< Constitutive matrix
 
@@ -194,8 +195,8 @@ namespace Mat
         Core::LinAlg::Matrix<6, 1>& scg, Core::LinAlg::Matrix<6, 1>& icg,
         Core::LinAlg::Matrix<3, 1>& prinv, Core::LinAlg::Matrix<7, 1>& rateinv,
         Core::LinAlg::Matrix<6, 1>& modrcg, const Teuchos::ParameterList& params,
-        Core::LinAlg::Matrix<6, 1>& scgrate, Core::LinAlg::Matrix<6, 1>& modrcgrate,
-        Core::LinAlg::Matrix<7, 1>& modrateinv, int gp);
+        const EvaluationContext& context, Core::LinAlg::Matrix<6, 1>& scgrate,
+        Core::LinAlg::Matrix<6, 1>& modrcgrate, Core::LinAlg::Matrix<7, 1>& modrateinv, int gp);
 
     /// calculates the factors associated to the viscous laws
     virtual void evaluate_mu_xi(Core::LinAlg::Matrix<3, 1>& inv, Core::LinAlg::Matrix<3, 1>& modinv,
@@ -226,12 +227,14 @@ namespace Mat
     /// tensors are added
     virtual void evaluate_visco_gen_max(Core::LinAlg::Matrix<6, 1>* stress,
         Core::LinAlg::Matrix<6, 6>* cmat, Core::LinAlg::Matrix<6, 1>& Q,
-        Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params, int gp);
+        Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context, int gp);
 
     /// calculates the stress and elasticitiy tensor for the GeneneralizedMax-material
     virtual void evaluate_visco_generalized_gen_max(Core::LinAlg::Matrix<6, 1>& Q,
         Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
-        const Core::LinAlg::Matrix<6, 1>* glstrain, int gp, int eleGID);
+        const Mat::EvaluationContext& context, const Core::LinAlg::Matrix<6, 1>* glstrain, int gp,
+        int eleGID);
 
     /// calculates the stress and elasticity tensor for the viscos Fract-material
     /// depending on the viscoelastic material isochoric-principal, isochoric-modified
@@ -239,7 +242,8 @@ namespace Mat
     /// tensors are added
     virtual void evaluate_visco_fract(Core::LinAlg::Matrix<6, 1> stress,
         Core::LinAlg::Matrix<6, 6> cmat, Core::LinAlg::Matrix<6, 1>& Q,
-        Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params, int gp);
+        Core::LinAlg::Matrix<6, 6>& cmatq, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context, int gp);
 
     /// @name Flags to specify the viscous formulations
     //@{

@@ -13,6 +13,7 @@
 #include "4C_mat_elast_aniso_structuraltensor_strategy.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mixture_constituent_remodelfiber_lib.hpp"
 #include "4C_mixture_constituent_remodelfiber_material_exponential.hpp"
 #include "4C_mixture_constituent_remodelfiber_material_exponential_active.hpp"
@@ -127,19 +128,20 @@ void Mixture::MixtureConstituentRemodelFiberImpl::setup(
     const Teuchos::ParameterList& params, int eleGID)
 {
   Mixture::MixtureConstituent::setup(params, eleGID);
-  update_homeostatic_values(params, eleGID);
+  update_homeostatic_values(params, 0.0, eleGID);
 }
 
 void Mixture::MixtureConstituentRemodelFiberImpl::update(
-    const Core::LinAlg::Tensor<double, 3, 3>& F, const Teuchos::ParameterList& params, const int gp,
-    const int eleGID)
+    const Core::LinAlg::Tensor<double, 3, 3>& F, const Teuchos::ParameterList& params,
+    const Mat::EvaluationContext& context, const int gp, const int eleGID)
 {
-  MixtureConstituent::update(F, params, gp, eleGID);
+  MixtureConstituent::update(F, params, context, gp, eleGID);
 
   // Update state
   remodel_fiber_[gp].update();
 
-  update_homeostatic_values(params, eleGID);
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  update_homeostatic_values(params, *context.total_time, eleGID);
 }
 
 void Mixture::MixtureConstituentRemodelFiberImpl::register_output_data_names(
@@ -247,10 +249,12 @@ void Mixture::MixtureConstituentRemodelFiberImpl::integrate_local_evolution_equa
 void Mixture::MixtureConstituentRemodelFiberImpl::evaluate(
     const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
-  const double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  const double dt = *context.time_step_size;
 
   Core::LinAlg::SymmetricTensor<double, 3, 3> C = evaluate_c(F);
 
@@ -265,7 +269,8 @@ void Mixture::MixtureConstituentRemodelFiberImpl::evaluate(
 
 void Mixture::MixtureConstituentRemodelFiberImpl::evaluate_elastic_part(
     const Core::LinAlg::Tensor<double, 3, 3>& FM, const Core::LinAlg::Tensor<double, 3, 3>& iFextin,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   FOUR_C_THROW(
@@ -300,22 +305,10 @@ double Mixture::MixtureConstituentRemodelFiberImpl::evaluate_deposition_stretch(
       .evaluate(time);
 }
 void Mixture::MixtureConstituentRemodelFiberImpl::update_homeostatic_values(
-    const Teuchos::ParameterList& params, const int eleGID)
+    const Teuchos::ParameterList& params, const double total_time, const int eleGID)
 {
   // Update deposition stretch / prestretch of fiber depending on time function
-  const double time = std::invoke(
-      [&]()
-      {
-        constexpr auto total_time_key = "total time";
-        if (!params.isParameter(total_time_key)) return 0.0;
-
-        const double total_time = params.get<double>(total_time_key);
-        if (total_time < 0.0) return 0.0;
-
-        return total_time;
-      });
-
-  const double new_lambda_pre = evaluate_deposition_stretch(time);
+  const double new_lambda_pre = evaluate_deposition_stretch(total_time);
 
   for (auto& fiber : remodel_fiber_)
   {

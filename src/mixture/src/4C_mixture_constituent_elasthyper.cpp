@@ -49,7 +49,8 @@ Core::Materials::MaterialType Mixture::MixtureConstituentElastHyper::material_ty
 // Evaluates the stress of the constituent
 void Mixture::MixtureConstituentElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
   if (prestress_strategy() != nullptr)
@@ -72,7 +73,8 @@ void Mixture::MixtureConstituentElastHyper::evaluate(const Core::LinAlg::Tensor<
 // Compute the stress resultant with incorporating an elastic and inelastic part of the deformation
 void Mixture::MixtureConstituentElastHyper::evaluate_elastic_part(
     const Core::LinAlg::Tensor<double, 3, 3>& F, const Core::LinAlg::Tensor<double, 3, 3>& iFextin,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   Core::LinAlg::Tensor<double, 3, 3> iFin = iFextin * prestretch_tensor(gp);

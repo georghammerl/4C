@@ -645,7 +645,8 @@ namespace Discret
           const int numeps,                                     ///< number of strains
           std::shared_ptr<const Core::Mat::Material> material,  ///< the material data
           Teuchos::ParameterList& params,                       ///< element parameter list
-          int gp                                                ///< Gauss point
+          const Mat::EvaluationContext& context,
+          int gp  ///< Gauss point
       );
 
       /// Stress and constitutive matrix mapper from 3d to 2d
@@ -655,7 +656,8 @@ namespace Discret
           Core::LinAlg::SerialDenseMatrix& C,             ///< elasticity matrix
           const Core::LinAlg::SerialDenseVector& strain,  ///< Green-Lagrange strain vector
           Teuchos::ParameterList& params,                 ///< element parameter list
-          int gp                                          ///< Gauss point
+          const Mat::EvaluationContext& context,
+          int gp  ///< Gauss point
       );
 
       /// Generic 3D stress response
@@ -666,7 +668,8 @@ namespace Discret
           const Core::LinAlg::SymmetricTensor<double, 3, 3>&
               glstrain,                    ///< 3D Green-Lagrange strain vector
           Teuchos::ParameterList& params,  ///< element parameter list
-          int gp                           ///< Gauss point
+          const Mat::EvaluationContext& context,
+          int gp  ///< Gauss point
       );
 
       /// Map plane Green-Lagrange strains to 3d
@@ -680,8 +683,9 @@ namespace Discret
       double energy_internal(
           std::shared_ptr<const Core::Mat::Material> material,  ///< element material
           Teuchos::ParameterList& params,                       ///< element parameter list
-          const Core::LinAlg::SerialDenseVector& Ev,            ///< Green-Lagrange strain vector
-          int gp                                                ///< Gauss point
+          const Mat::EvaluationContext& context,
+          const Core::LinAlg::SerialDenseVector& Ev,  ///< Green-Lagrange strain vector
+          int gp                                      ///< Gauss point
       );
 
       /// Kinetic Energy

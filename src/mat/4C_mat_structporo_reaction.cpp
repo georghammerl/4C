@@ -200,11 +200,12 @@ void Mat::StructPoroReaction::reaction(const double porosity, const double J,
  *----------------------------------------------------------------------*/
 void Mat::StructPoroReaction::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // call base class
-  StructPoro::evaluate(defgrad, glstrain, params, stress, cmat, gp, eleGID);
+  StructPoro::evaluate(defgrad, glstrain, params, context, stress, cmat, gp, eleGID);
 
   // scale stresses and cmat
   stress *= (1.0 - refporosity_) / (1.0 - params_->init_porosity_);

@@ -320,7 +320,8 @@ void Mat::Robinson::update()
  *----------------------------------------------------------------------*/
 void Mat::Robinson::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<6, 1> glstrain_mat =
@@ -354,7 +355,8 @@ void Mat::Robinson::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
   //     --> NO kintype is needed
 
   // get material parameters
-  const double dt_ = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  const double dt_ = *context.time_step_size;
 
   // build Cartesian identity 2-tensor I_{AB}
   Core::LinAlg::Matrix<Mat::NUM_STRESS_3D, 1> id2(Core::LinAlg::Initialization::zero);
@@ -539,7 +541,7 @@ void Mat::Robinson::stress_temperature_modulus_and_deriv(
 Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::Robinson::evaluate_d_stress_d_scalar(
     const Core::LinAlg::Tensor<double, 3, 3>& defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int gp, int eleGID)
 {
   return {};
 }

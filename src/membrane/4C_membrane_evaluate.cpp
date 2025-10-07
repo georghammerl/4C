@@ -697,6 +697,10 @@ void Discret::Elements::Membrane<distype>::mem_nlnstiffmass(
   Core::LinAlg::Matrix<numnod_, 1> shapefcts(Core::LinAlg::Initialization::zero);
   Core::LinAlg::Matrix<numdim_, numnod_> derivs(Core::LinAlg::Initialization::zero);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   for (int gp = 0; gp < intpoints_.nquad; ++gp)
   {
     // get gauss points from integration rule
@@ -779,14 +783,13 @@ void Discret::Elements::Membrane<distype>::mem_nlnstiffmass(
     // material tangent matrix for plane stress
     Core::LinAlg::Matrix<3, 3> cmatred_loc(Core::LinAlg::Initialization::zero);
 
+    // Gauss-point coordinates in reference configuration
+    Core::LinAlg::Tensor<double, noddof_> gprefecoord{};
+    Core::LinAlg::make_matrix_view<noddof_, 1>(gprefecoord).multiply_tn(xrefe, shapefcts);
+
     // The growth remodel elast hyper material needs some special quantities for its evaluation
     if (material()->material_type() == Core::Materials::m_growthremodel_elasthyper)
     {
-      // Gauss-point coordinates in reference configuration
-      Core::LinAlg::Tensor<double, noddof_> gprefecoord{};
-      Core::LinAlg::make_matrix_view<noddof_, 1>(gprefecoord).multiply_tn(xrefe, shapefcts);
-      params.set("gp_coords_ref", gprefecoord);
-
       // center of element in reference configuration
       Core::LinAlg::Matrix<numnod_, 1> funct_center;
       Core::FE::shape_function_2d(funct_center, 0.0, 0.0, distype);
@@ -795,11 +798,16 @@ void Discret::Elements::Membrane<distype>::mem_nlnstiffmass(
       params.set("elecenter_coords_ref", midpoint);
     }
 
+    Core::LinAlg::Tensor<double, 3> xi = {{xi_gp, eta_gp, 0.0}};
+    Mat::EvaluationContext context{.total_time = total_time,
+        .time_step_size = time_step_size,
+        .xi = &xi,
+        .ref_coords = &gprefecoord};
     if (material_inelastic_thickness != nullptr)
     {
       // Let material decide the total stretch in thickness direction
       lambda3 = material_inelastic_thickness->evaluate_membrane_thickness_stretch(
-          defgrd_glob, params, gp, id());
+          defgrd_glob, params, context, gp, id());
 
       // update surface deformation gradient in 3 dimensions in global coordinates
       mem_defgrd_global(dXds1, dXds2, dxds1, dxds2, lambda3, defgrd_glob);
@@ -815,8 +823,8 @@ void Discret::Elements::Membrane<distype>::mem_nlnstiffmass(
     // standard evaluation (incompressible, plane stress)
     if (material_local_coordinates != nullptr)
     {
-      material_local_coordinates->evaluate_membrane(
-          defgrd_loc, cauchygreen_loc, params, Q_localToGlobal, pk2red_loc, cmatred_loc, gp, id());
+      material_local_coordinates->evaluate_membrane(defgrd_loc, cauchygreen_loc, params, context,
+          Q_localToGlobal, pk2red_loc, cmatred_loc, gp, id());
     }
     else if (material_global_coordinates != nullptr)
     {
@@ -825,7 +833,7 @@ void Discret::Elements::Membrane<distype>::mem_nlnstiffmass(
 
       // Evaluate material with quantities in the global coordinate system
       material_global_coordinates->evaluate_membrane(
-          defgrd_glob, params, pk2M_glob, cmat_glob, gp, id());
+          defgrd_glob, params, context, pk2M_glob, cmat_glob, gp, id());
 
       // Transform stress and elasticity into the local membrane coordinate system
       Core::LinAlg::Matrix<3, 3> pk2M_loc(Core::LinAlg::Initialization::zero);
@@ -1547,6 +1555,11 @@ void Discret::Elements::Membrane<distype>::update_element(
     // allocate vector for shape functions and matrix for derivatives at gp
     Core::LinAlg::Matrix<numdim_, numnod_> derivs(Core::LinAlg::Initialization::zero);
 
+    const double* total_time =
+        params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+    const double* time_step_size =
+        params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
+
     for (int gp = 0; gp < intpoints_.nquad; ++gp)
     {
       // get gauss points from integration rule
@@ -1594,13 +1607,19 @@ void Discret::Elements::Membrane<distype>::update_element(
       auto material_global_coordinates =
           std::dynamic_pointer_cast<Mat::MembraneMaterialGlobalCoordinates>(
               Core::Elements::Element::material());
+      Core::LinAlg::Tensor<double, 3> xi = {{xi_gp, eta_gp, 0.0}};
+      Mat::EvaluationContext context{.total_time = total_time,
+          .time_step_size = time_step_size,
+          .xi = &xi,
+          .ref_coords = nullptr};
       if (material_local_coordinates != nullptr)
       {
-        material_local_coordinates->update_membrane(defgrd_loc, params, Q_localToGlobal, gp, id());
+        material_local_coordinates->update_membrane(
+            defgrd_loc, params, context, Q_localToGlobal, gp, id());
       }
       else if (material_global_coordinates != nullptr)
       {
-        solid_material()->update(Core::LinAlg::make_tensor(defgrd_glob), gp, params, id());
+        solid_material()->update(Core::LinAlg::make_tensor(defgrd_glob), gp, params, context, id());
       }
     }
   }

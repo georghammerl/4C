@@ -78,8 +78,14 @@ namespace
     Teuchos::ParameterList params{};
 
     // Call evaluate function with test strain
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
     stvenantkirchhoff_->evaluate(
-        nullptr, input_glstrain_, params, result_stress, result_cmat, 0, 0);
+        nullptr, input_glstrain_, params, context, result_stress, result_cmat, 0, 0);
 
     // Test member function results using reference stress values
     FOUR_C_EXPECT_NEAR(result_stress, ref_stress_, 1.0e-4);
@@ -98,8 +104,15 @@ namespace
 
     int eleGID = 1;
 
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
+
     // Call evaluate function with test strain
-    double result_psi = stvenantkirchhoff_->strain_energy(input_glstrain_, 0, eleGID);
+    double result_psi = stvenantkirchhoff_->strain_energy(input_glstrain_, context, 0, eleGID);
 
     // test result with respect to reference result
     EXPECT_NEAR(result_psi, ref_strain_energy, 1.0e-4);

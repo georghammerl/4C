@@ -13,6 +13,7 @@
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_linalg_tensor.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_material_parameter_base.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
@@ -45,7 +46,8 @@ namespace Mat
 namespace Mat
 {
   class CoordinateSystemProvider;
-}
+  struct EvaluationContext;
+}  // namespace Mat
 
 namespace Mixture
 {
@@ -153,7 +155,8 @@ namespace Mixture
     virtual void evaluate_prestress(const MixtureRule& mixtureRule,
         const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
         Mixture::MixtureConstituent& constituent, Core::LinAlg::SymmetricTensor<double, 3, 3>& G,
-        const Teuchos::ParameterList& params, int gp, int eleGID) = 0;
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+        int eleGID) = 0;
 
     /*!
      * \brief Update prestretch tensor during update
@@ -169,7 +172,7 @@ namespace Mixture
     virtual void update(const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
         Mixture::MixtureConstituent& constituent, const Core::LinAlg::Tensor<double, 3, 3>& F,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params,
-        int gp, int eleGID) = 0;
+        const Mat::EvaluationContext& context, int gp, int eleGID) = 0;
   };
 }  // namespace Mixture
 

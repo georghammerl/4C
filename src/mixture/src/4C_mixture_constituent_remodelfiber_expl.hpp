@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_mat_anisotropy_extension_default.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_material_parameter_base.hpp"
 #include "4C_mixture_constituent.hpp"
 #include "4C_mixture_constituent_remodelfiber_material.hpp"
@@ -77,19 +78,21 @@ namespace Mixture
     void setup(const Teuchos::ParameterList& params, int eleGID) override;
 
     void update(const Core::LinAlg::Tensor<double, 3, 3>& F, const Teuchos::ParameterList& params,
-        int gp, int eleGID) override;
+        const Mat::EvaluationContext& context, int gp, int eleGID) override;
 
     void update_elastic_part(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::Tensor<double, 3, 3>& iFext, const Teuchos::ParameterList& params,
-        double dt, int gp, int eleGID) override;
+        const Mat::EvaluationContext& context, double dt, int gp, int eleGID) override;
 
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& E, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     void evaluate_elastic_part(const Core::LinAlg::Tensor<double, 3, 3>& FM,
         const Core::LinAlg::Tensor<double, 3, 3>& iFextin, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
@@ -113,7 +116,8 @@ namespace Mixture
         int gp, int eleGID) const;
 
     [[nodiscard]] double evaluate_deposition_stretch(double time) const;
-    void update_homeostatic_values(const Teuchos::ParameterList& params, int eleGID);
+    void update_homeostatic_values(
+        const Teuchos::ParameterList& params, double total_time, int eleGID);
 
     void initialize();
 

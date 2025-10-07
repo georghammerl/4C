@@ -22,6 +22,7 @@
 #include "4C_mat_material_factory.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_solid_3D_ele_fibers.hpp"
 #include "4C_utils_enum.hpp"
 
@@ -565,10 +566,12 @@ void Mat::GrowthRemodelElastHyper::setup_axi_cir_rad_cylinder(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 void Mat::GrowthRemodelElastHyper::update(const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
-    int const gp, const Teuchos::ParameterList& params, int const eleGID)
+    int const gp, const Teuchos::ParameterList& params, const EvaluationContext& context,
+    int const eleGID)
 {
   // Update individual volume of elastin
-  static double dt_pre = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  static double dt_pre = *context.time_step_size;
   if (params_->damage_ == 1) evaluate_elastin_damage(dt_pre);
 
   // loop map of associated potential summands
@@ -596,7 +599,8 @@ void Mat::GrowthRemodelElastHyper::update(const Core::LinAlg::Tensor<double, 3, 
   evaluate_growth_def_grad(FgM, iFgM, dFgdrhoM, diFgdrhoM, gp);
 
   // time step size
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   switch (params_->loctimeint_)
   {
@@ -730,12 +734,13 @@ void Mat::GrowthRemodelElastHyper::evaluate_prestretch(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 void Mat::GrowthRemodelElastHyper::setup_g_r_3d(Core::LinAlg::Matrix<3, 3> const* const defgrd,
-    const Teuchos::ParameterList& params, const double dt, const int gp, const int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, const double dt,
+    const int gp, const int eleGID)
 {
   Core::LinAlg::Tensor<double, 3> axdir{};
   Core::LinAlg::Tensor<double, 3> raddir{};
-  const auto& gp_reference_coordinates =
-      params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
+  FOUR_C_ASSERT(context.ref_coords, "Reference coordinates not given in evaluation context.");
+  const auto& gp_reference_coordinates = *context.ref_coords;
 
   if ((params_->cylinder_ == 1 || params_->cylinder_ == 2 || params_->cylinder_ == 3) &&
       (setup_[0] == 1))
@@ -770,7 +775,8 @@ void Mat::GrowthRemodelElastHyper::setup_g_r_3d(Core::LinAlg::Matrix<3, 3> const
 /*----------------------------------------------------------------------*/
 void Mat::GrowthRemodelElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -781,14 +787,16 @@ void Mat::GrowthRemodelElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3
   Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
 
   // save current simulation time (used for the evaluation of elastin degradation)
-  t_tot_ = params.get<double>("total time");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  t_tot_ = *context.total_time;
 
   // time step size
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   if (setup_[gp] == 1)
   {
-    setup_g_r_3d(&defgrd_mat, params, dt, gp, eleGID);
+    setup_g_r_3d(&defgrd_mat, params, context, dt, gp, eleGID);
     setup_[gp] = 0;
   }
 
@@ -1577,11 +1585,12 @@ void Mat::GrowthRemodelElastHyper::evaluate_growth_def_grad(Core::LinAlg::Matrix
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Mat::GrowthRemodelElastHyper::setup_g_r_2d(
-    const Teuchos::ParameterList& params, const double dt, const int gp)
+void Mat::GrowthRemodelElastHyper::setup_g_r_2d(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const double dt, const int gp)
 {
   Core::LinAlg::Tensor<double, 3> axdir{};
-  const auto& gp_coords_ref = params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
+  FOUR_C_ASSERT(context.ref_coords, "Reference coordinates not given in evaluation context.");
+  const auto& gp_coords_ref = *context.ref_coords;
 
   if ((params_->cylinder_ == 1 || params_->cylinder_ == 2 || params_->cylinder_ == 3) &&
       (setup_[0] == 1))
@@ -1608,11 +1617,13 @@ void Mat::GrowthRemodelElastHyper::setup_g_r_2d(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 void Mat::GrowthRemodelElastHyper::evaluate_membrane(Core::LinAlg::Matrix<3, 3> const& defgrd_glob,
-    const Teuchos::ParameterList& params, Core::LinAlg::Matrix<3, 3>& pk2M_glob,
-    Core::LinAlg::Matrix<6, 6>& cmat_glob, const int gp, const int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::Matrix<3, 3>& pk2M_glob, Core::LinAlg::Matrix<6, 6>& cmat_glob, const int gp,
+    const int eleGID)
 {
   // time step size
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   // blank resulting quantities
   pk2M_glob.clear();
@@ -1656,17 +1667,19 @@ void Mat::GrowthRemodelElastHyper::evaluate_membrane(Core::LinAlg::Matrix<3, 3> 
 
 double Mat::GrowthRemodelElastHyper::evaluate_membrane_thickness_stretch(
     Core::LinAlg::Matrix<3, 3> const& defgrd_glob, const Teuchos::ParameterList& params,
-    const int gp, const int eleGID)
+    const EvaluationContext& context, const int gp, const int eleGID)
 {
   // save current simulation time (used for the evaluation of elastin degradation)
-  t_tot_ = params.get<double>("total time");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  t_tot_ = *context.total_time;
 
   // time step size
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   if (setup_[gp] == 1)
   {
-    setup_g_r_2d(params, dt, gp);
+    setup_g_r_2d(params, context, dt, gp);
     setup_[gp] = 0;
   }
 

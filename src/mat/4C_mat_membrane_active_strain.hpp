@@ -166,7 +166,8 @@ namespace Mat
     /// Standard SO3 evaluate (not meant to be used)
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp,
         int eleGID) override  ///< Element ID
     {
@@ -174,16 +175,17 @@ namespace Mat
     };
 
     void update_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
-        const Teuchos::ParameterList& params, const Core::LinAlg::Matrix<3, 3>& Q_trafo, int gp,
-        int eleGID) override
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        const Core::LinAlg::Matrix<3, 3>& Q_trafo, int gp, int eleGID) override
     {
       // nothing to do
     }
 
     void evaluate_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
         const Core::LinAlg::Matrix<3, 3>& cauchygreen, const Teuchos::ParameterList& params,
-        const Core::LinAlg::Matrix<3, 3>& Q_trafo, Core::LinAlg::Matrix<3, 1>& stress,
-        Core::LinAlg::Matrix<3, 3>& cmat, int gp, int eleGID) override;
+        const EvaluationContext& context, const Core::LinAlg::Matrix<3, 3>& Q_trafo,
+        Core::LinAlg::Matrix<3, 1>& stress, Core::LinAlg::Matrix<3, 3>& cmat, int gp,
+        int eleGID) override;
 
     /// Update internal variables
     void update() override;

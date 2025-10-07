@@ -23,6 +23,7 @@
 #include "4C_mat_multiplicative_split_defgrad_elasthyper_service.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_ssi_input.hpp"
 #include "4C_structure_new_enum_lists.hpp"
 #include "4C_utils_enum.hpp"
@@ -219,7 +220,8 @@ void Mat::MultiplicativeSplitDefgradElastHyper::unpack(Core::Communication::Unpa
 void Mat::MultiplicativeSplitDefgradElastHyper::evaluate(
     const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -227,7 +229,7 @@ void Mat::MultiplicativeSplitDefgradElastHyper::evaluate(
   Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
 
   // do all stuff that only has to be done once per evaluate() call
-  pre_evaluate(params, gp, eleGID);
+  pre_evaluate(params, context, gp, eleGID);
 
   // compute kinematic quantities
   KinematicQuantities kinematic_quantities =
@@ -272,11 +274,11 @@ Core::LinAlg::SymmetricTensor<double, 3, 3>
 Mat::MultiplicativeSplitDefgradElastHyper::evaluate_d_stress_d_scalar(
     const Core::LinAlg::Tensor<double, 3, 3>& defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int gp, int eleGID)
 {
   Core::LinAlg::Matrix<3, 3> defgrad_mat = Core::LinAlg::make_matrix_view(defgrad);
   // do all stuff that only has to be done once per evaluate() call
-  pre_evaluate(params, gp, eleGID);
+  pre_evaluate(params, context, gp, eleGID);
 
   // get source of deformation for this OD block depending on the differentiation type
   auto source(PAR::InelasticSource::none);
@@ -312,7 +314,7 @@ double Mat::MultiplicativeSplitDefgradElastHyper::evaluate_cauchy_n_dir_and_deri
     const Core::LinAlg::Tensor<double, 3>& dir, Core::LinAlg::Matrix<3, 1>* d_cauchyndir_dn,
     Core::LinAlg::Matrix<3, 1>* d_cauchyndir_ddir, Core::LinAlg::Matrix<9, 1>* d_cauchyndir_dF,
     Core::LinAlg::Matrix<9, 9>* d2_cauchyndir_dF2, Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_dn,
-    Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, int gp, int eleGID,
+    Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, const EvaluationContext& context, int eleGID,
     const double* concentration, const double* temp, double* d_cauchyndir_dT,
     Core::LinAlg::Matrix<9, 1>* d2_cauchyndir_dF_dT)
 {
@@ -362,7 +364,8 @@ double Mat::MultiplicativeSplitDefgradElastHyper::evaluate_cauchy_n_dir_and_deri
   // derivatives of principle invariants of elastic left cauchy-green tensor
   static Core::LinAlg::Matrix<3, 1> dPI(Core::LinAlg::Initialization::zero);
   static Core::LinAlg::Matrix<6, 1> ddPII(Core::LinAlg::Initialization::zero);
-  evaluate_invariant_derivatives(prinv, gp, eleGID, dPI, ddPII);
+  constexpr int dummy_gp = -1;
+  evaluate_invariant_derivatives(prinv, dummy_gp, eleGID, dPI, ddPII);
 
   const double detFe = FeM.determinant();
   const double nddir = n * dir;
@@ -1058,12 +1061,12 @@ void Mat::MultiplicativeSplitDefgradElastHyper::evaluate_od_stiff_mat(PAR::Inela
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::MultiplicativeSplitDefgradElastHyper::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID) const
+void Mat::MultiplicativeSplitDefgradElastHyper::pre_evaluate(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp, const int eleGID) const
 {
   // loop over all inelastic contributions
   for (int p = 0; p < inelastic_->num_inelastic_def_grad(); ++p)
-    inelastic_->fac_def_grad_in()[p].second->pre_evaluate(params, gp, eleGID);
+    inelastic_->fac_def_grad_in()[p].second->pre_evaluate(params, context, gp, eleGID);
 }
 
 /*--------------------------------------------------------------------*

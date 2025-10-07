@@ -20,6 +20,8 @@
 #include "4C_utils_enum.hpp"
 #include "4C_utils_exceptions.hpp"
 
+#include <cmath>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------------*/
@@ -1414,6 +1416,11 @@ void Discret::Elements::Ale3Impl<distype>::static_ke_nonlinear(Ale3* ele,
   const Core::FE::GaussRule3D gaussrule = get_optimal_gaussrule();
   const Core::FE::IntegrationPoints3D intpoints(gaussrule);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
+
   /* =========================================================================*/
   /* ================================================= Loop over Gauss Points */
   /* =========================================================================*/
@@ -1523,7 +1530,12 @@ void Discret::Elements::Ale3Impl<distype>::static_ke_nonlinear(Ale3* ele,
     Core::LinAlg::Tensor<double, 3, 3> fixed_defgrd = Core::LinAlg::make_tensor(defgrd);
     std::shared_ptr<Mat::So3Material> so3mat =
         std::dynamic_pointer_cast<Mat::So3Material>(ele->material());
-    so3mat->evaluate(&fixed_defgrd, glstrain, params, stress_f, cmat_f, iquad, ele->id());
+    Core::LinAlg::Tensor<double, 3> xi = {{e1, e2, e3}};
+    Mat::EvaluationContext context{.total_time = total_time,
+        .time_step_size = time_step_size,
+        .xi = &xi,
+        .ref_coords = nullptr};
+    so3mat->evaluate(&fixed_defgrd, glstrain, params, context, stress_f, cmat_f, iquad, ele->id());
     // end of call material law ccccccccccccccccccccccccccccccccccccccccccccccc
 
     // integrate internal force vector f = f + (B^T . sigma) * detJ * w(gp)

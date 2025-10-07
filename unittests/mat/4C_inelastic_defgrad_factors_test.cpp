@@ -15,6 +15,7 @@
 #include "4C_mat_electrode.hpp"
 #include "4C_mat_inelastic_defgrad_factors.hpp"
 #include "4C_mat_par_bundle.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mat_vplast_law.hpp"
 #include "4C_mat_vplast_reform_johnsoncook.hpp"
 #include "4C_solid_3D_ele_fibers.hpp"
@@ -118,7 +119,7 @@ namespace
           params_inelastic_defgrad_lin_scalar_iso_.get());
 
       // call pre_evaluate to set the concentration value
-      lin_scalar_iso_->pre_evaluate(params_lin, 0, 0);
+      lin_scalar_iso_->pre_evaluate(params_lin, {}, 0, 0);
 
       // create InelasticDefgradLinScalarAniso object initialize container for material parameters
       Core::IO::InputParameterContainer inelastic_defgrad_lin_scalar_aniso_data;
@@ -140,7 +141,7 @@ namespace
           params_inelastic_defgrad_lin_scalar_aniso_.get());
 
       // call pre_evaluate to set the concentration value
-      lin_scalar_aniso_->pre_evaluate(params_lin, 0, 0);
+      lin_scalar_aniso_->pre_evaluate(params_lin, {}, 0, 0);
 
       // InelasticDefgradPolyIntercalFracIso object initialize container for required electrode
       // material parameters
@@ -229,7 +230,7 @@ namespace
           params_inelastic_defgrad_poly_intercal_frac_.get());
 
       // call pre_evaluate to set the concentration value
-      poly_intercal_frac_iso_->pre_evaluate(params_poly, 0, 0);
+      poly_intercal_frac_iso_->pre_evaluate(params_poly, {}, 0, 0);
 
       // create InelasticDefgradPolyIntercalFracAniso object initialize container for material
       // parameters
@@ -260,7 +261,7 @@ namespace
           params_inelastic_defgrad_poly_intercal_frac_aniso_.get());
 
       // call pre_evaluate to set the concentration value
-      poly_intercal_frac_aniso_->pre_evaluate(params_poly, 0, 0);
+      poly_intercal_frac_aniso_->pre_evaluate(params_poly, {}, 0, 0);
 
       // create InelasticDefgradLinTempIso object initialize container for material parameters
       Core::IO::InputParameterContainer inelastic_defgrad_temp_iso_data;
@@ -280,7 +281,7 @@ namespace
       Teuchos::ParameterList params_temp{};
       params_temp.set<double>("temperature", 280.0);
       // call pre_evaluate to set the temperature
-      lin_temp_iso_->pre_evaluate(params_temp, 0, 0);
+      lin_temp_iso_->pre_evaluate(params_temp, {}, 0, 0);
 
 
       // create InelasticDefgradTransvIsotropElastViscoplast object initialize container for
@@ -404,11 +405,16 @@ namespace
 
       // parameter list for InelasticDefGradTransvIsotropElastViscoplast
       Teuchos::ParameterList param_list_transv_isotrop_elast_viscoplast{};
-      param_list_transv_isotrop_elast_viscoplast.set<double>("delta time", 1.0e-6);
-      // call pre_evaluate
+      double total_time = 0.2;
+      double time_step_size = 1e-6;
+      Mat::EvaluationContext context{.total_time = &total_time,
+          .time_step_size = &time_step_size,
+          .xi = {},
+          .ref_coords = nullptr};
       transv_isotrop_elast_viscoplast_->pre_evaluate(
-          param_list_transv_isotrop_elast_viscoplast, 0, 0);
-      isotrop_elast_viscoplast_->pre_evaluate(param_list_transv_isotrop_elast_viscoplast, 0, 0);
+          param_list_transv_isotrop_elast_viscoplast, context, 0, 0);
+      isotrop_elast_viscoplast_->pre_evaluate(
+          param_list_transv_isotrop_elast_viscoplast, context, 0, 0);
     }
 
     void set_up_state_quantities_solution()

@@ -219,27 +219,31 @@ void Mixture::MixtureConstituentElastHyperElastinMembrane::read_element(int numg
 // Updates all summands
 void Mixture::MixtureConstituentElastHyperElastinMembrane::update(
     Core::LinAlg::Tensor<double, 3, 3> const& defgrd, const Teuchos::ParameterList& params,
-    const int gp, const int eleGID)
+    const Mat::EvaluationContext& context, const int gp, const int eleGID)
 {
-  const auto& reference_coordinates = params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
+  FOUR_C_ASSERT(context.ref_coords,
+      "Reference coordinates not set in EvaluationContext, but required for function-based "
+      "mixture rule!");
+  const auto& reference_coordinates = *context.ref_coords;
 
-  double totaltime = params.get<double>("total time");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  double totaltime = *context.total_time;
 
   current_reference_growth_[gp] =
       Global::Problem::instance()
           ->function_by_id<Core::Utils::FunctionOfSpaceTime>(params_->damage_function_id_)
           .evaluate(reference_coordinates.as_span(), totaltime, 0);
 
-  MixtureConstituentElastHyperBase::update(defgrd, params, gp, eleGID);
+  MixtureConstituentElastHyperBase::update(defgrd, params, context, gp, eleGID);
 
   // loop map of associated potential summands
   for (auto& summand : potsum_membrane_) summand->update();
 }
 
-void Mixture::MixtureConstituentElastHyperElastinMembrane::pre_evaluate(
-    MixtureRule& mixtureRule, const Teuchos::ParameterList& params, int gp, int eleGID)
+void Mixture::MixtureConstituentElastHyperElastinMembrane::pre_evaluate(MixtureRule& mixtureRule,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp, int eleGID)
 {
-  Mixture::MixtureConstituentElastHyperBase::pre_evaluate(mixtureRule, params, gp, eleGID);
+  Mixture::MixtureConstituentElastHyperBase::pre_evaluate(mixtureRule, params, context, gp, eleGID);
 
   // Evaluate mue frac
   std::shared_ptr<ElastinMembranePrestressStrategy> strategy =
@@ -254,7 +258,7 @@ void Mixture::MixtureConstituentElastHyperElastinMembrane::pre_evaluate(
 
   mue_frac_[gp] = strategy->evaluate_mue_frac(mixtureRule,
       cylinder_coordinate_system_anisotropy_extension().get_coordinate_system_provider(gp), *this,
-      *this, params, gp, eleGID);
+      *this, params, context, gp, eleGID);
 }
 
 double Mixture::MixtureConstituentElastHyperElastinMembrane::get_growth_scalar(int gp) const
@@ -265,7 +269,8 @@ double Mixture::MixtureConstituentElastHyperElastinMembrane::get_growth_scalar(i
 void Mixture::MixtureConstituentElastHyperElastinMembrane::evaluate(
     const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   FOUR_C_THROW("This constituent does not support Evaluation without an elastic part.");
@@ -273,7 +278,8 @@ void Mixture::MixtureConstituentElastHyperElastinMembrane::evaluate(
 
 void Mixture::MixtureConstituentElastHyperElastinMembrane::evaluate_elastic_part(
     const Core::LinAlg::Tensor<double, 3, 3>& F, const Core::LinAlg::Tensor<double, 3, 3>& iFextin,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // Compute total inelastic deformation gradient

@@ -172,7 +172,8 @@ void Mat::ViscoPlasticNoYieldSurface::update()
  *----------------------------------------------------------------------*/
 void Mat::ViscoPlasticNoYieldSurface::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -180,7 +181,8 @@ void Mat::ViscoPlasticNoYieldSurface::evaluate(const Core::LinAlg::Tensor<double
   Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
 
   // read input and history variables
-  const double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  const double dt = *context.time_step_size;
   const Core::LinAlg::Matrix<3, 3>& last_iFv = last_plastic_defgrd_inverse_[gp];
 
   // trial (purely elastic) deformation gradient

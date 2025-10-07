@@ -54,7 +54,8 @@ void Mixture::SimpleMixtureRule::setup(const Teuchos::ParameterList& params, int
 
 void Mixture::SimpleMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
   // define temporary matrices
@@ -68,7 +69,7 @@ void Mixture::SimpleMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3, 
     MixtureConstituent& constituent = *constituents()[i];
     cstress = {};
     ccmat = {};
-    constituent.evaluate(F, E_strain, params, cstress, ccmat, gp, eleGID);
+    constituent.evaluate(F, E_strain, params, context, cstress, ccmat, gp, eleGID);
 
     // Add stress contribution to global stress
     // In this basic mixture rule, the mass fractions do not change

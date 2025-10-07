@@ -14,6 +14,7 @@
 #include "4C_linalg_tensor_matrix_conversion.hpp"
 #include "4C_linalg_utils_densematrix_multiply.hpp"
 #include "4C_mat_elasthyper.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mat_stvenantkirchhoff.hpp"
 #include "4C_utils_exceptions.hpp"
 
@@ -572,6 +573,11 @@ void Discret::Elements::Ale2::static_ke_nonlinear(const std::vector<int>& lm,
   const int numdf = 2;
   const int nd = numnode * numdf;
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
+
   // general arrays
   Core::LinAlg::SerialDenseVector funct(numnode);
   Core::LinAlg::SerialDenseMatrix deriv;
@@ -669,8 +675,12 @@ void Discret::Elements::Ale2::static_ke_nonlinear(const std::vector<int>& lm,
     /*-calculate defgrad F in matrix notation and Blin in current conf.*/
     b_op_lin_cure(b_cure, boplin, F, numeps, nd);
 
-
-    call_mat_geo_nonl(strain, stress, C, numeps, material(), params, ip);
+    Core::LinAlg::Tensor<double, 3> xi = {{e1, e2, 0.0}};
+    Mat::EvaluationContext context{.total_time = total_time,
+        .time_step_size = time_step_size,
+        .xi = &xi,
+        .ref_coords = nullptr};
+    call_mat_geo_nonl(strain, stress, C, numeps, material(), params, context, ip);
 
 
 
@@ -1053,6 +1063,7 @@ void Discret::Elements::Ale2::call_mat_geo_nonl(
     const int numeps,                                     ///< number of strains
     std::shared_ptr<const Core::Mat::Material> material,  ///< the material data
     Teuchos::ParameterList& params,                       ///< element parameter list
+    const Mat::EvaluationContext& context,                ///< context for material evaluation
     const int gp)
 {
   /*--------------------------- call material law -> get tangent modulus--*/
@@ -1120,7 +1131,7 @@ void Discret::Elements::Ale2::call_mat_geo_nonl(
     }
     case Core::Materials::m_elasthyper:  // general hyperelastic material (bborn, 06/09)
     {
-      material_response3d_plane(stress, C, strain, params, gp);
+      material_response3d_plane(stress, C, strain, params, context, gp);
       break;
     }
     default:
@@ -1137,7 +1148,7 @@ void Discret::Elements::Ale2::call_mat_geo_nonl(
 /*----------------------------------------------------------------------*/
 void Discret::Elements::Ale2::material_response3d_plane(Core::LinAlg::SerialDenseMatrix& stress,
     Core::LinAlg::SerialDenseMatrix& C, const Core::LinAlg::SerialDenseVector& strain,
-    Teuchos::ParameterList& params, const int gp)
+    Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp)
 {
   // make 3d equivalent of Green-Lagrange strain
   Core::LinAlg::Matrix<6, 1> gl(Core::LinAlg::Initialization::uninitialized);
@@ -1146,7 +1157,7 @@ void Discret::Elements::Ale2::material_response3d_plane(Core::LinAlg::SerialDens
   // call 3d stress response
   Core::LinAlg::Matrix<6, 1> pk2(Core::LinAlg::Initialization::zero);   // must be zerofied!!!
   Core::LinAlg::Matrix<6, 6> cmat(Core::LinAlg::Initialization::zero);  // must be zerofied!!!
-  material_response3d(&pk2, &cmat, &gl, params, gp);
+  material_response3d(&pk2, &cmat, &gl, params, context, gp);
 
   // we have plain strain
 
@@ -1185,7 +1196,7 @@ void Discret::Elements::Ale2::material_response3d_plane(Core::LinAlg::SerialDens
 /*----------------------------------------------------------------------*/
 void Discret::Elements::Ale2::material_response3d(Core::LinAlg::Matrix<6, 1>* stress,
     Core::LinAlg::Matrix<6, 6>* cmat, const Core::LinAlg::Matrix<6, 1>* glstrain,
-    Teuchos::ParameterList& params, const int gp)
+    Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp)
 {
   std::shared_ptr<Mat::So3Material> so3mat =
       std::dynamic_pointer_cast<Mat::So3Material>(material());
@@ -1198,7 +1209,7 @@ void Discret::Elements::Ale2::material_response3d(Core::LinAlg::Matrix<6, 1>* st
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat_t{};
   so3mat->evaluate(nullptr,
       Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(stress_like_glstrain),
-      params, stress_t, cmat_t, gp, id());
+      params, context, stress_t, cmat_t, gp, id());
 
   *stress = Core::LinAlg::Matrix<6, 1>(Core::LinAlg::make_stress_like_voigt_view(stress_t));
   *cmat = Core::LinAlg::Matrix<6, 6>(Core::LinAlg::make_stress_like_voigt_view(cmat_t));

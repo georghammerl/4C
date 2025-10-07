@@ -157,7 +157,8 @@ void Mat::AAAneohooke::unpack(Core::Communication::UnpackBuffer& buffer)
  */
 void Mat::AAAneohooke::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // map in GetParameter can now calculate LID, so we do not need it here       05/2017 birzle
@@ -306,8 +307,8 @@ void Mat::AAAneohooke::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
 /*----------------------------------------------------------------------*
  |  calculate strain energy                                hemmler 02/17|
  *----------------------------------------------------------------------*/
-double Mat::AAAneohooke::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, int gp, int eleGID) const
+double Mat::AAAneohooke::strain_energy(const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
+    const EvaluationContext& context, int gp, int eleGID) const
 {
   // material parameters for isochoric part
   const double youngs = params_->get_parameter(params_->young, eleGID);  // Young's modulus

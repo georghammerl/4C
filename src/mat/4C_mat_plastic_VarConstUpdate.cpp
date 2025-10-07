@@ -191,7 +191,8 @@ void Mat::PlasticElastHyperVCU::setup(int numgp, const Discret::Elements::Fibers
 // MAIN
 void Mat::PlasticElastHyperVCU::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)  ///< Element GID
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -212,7 +213,7 @@ void Mat::PlasticElastHyperVCU::evaluate(const Core::LinAlg::Tensor<double, 3, 3
   // get 2pk stresses
   Core::LinAlg::SymmetricTensor<double, 3, 3> etstr;
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> etcmat;
-  ElastHyper::evaluate(nullptr, ee_test, params, etstr, etcmat, gp, eleGID);
+  ElastHyper::evaluate(nullptr, ee_test, params, context, etstr, etcmat, gp, eleGID);
 
   double yf;
   double normZero = 0.0;
@@ -232,7 +233,7 @@ void Mat::PlasticElastHyperVCU::evaluate(const Core::LinAlg::Tensor<double, 3, 3
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> checkCmat;
     Core::LinAlg::Matrix<3, 3> emptymat;
     PlasticElastHyper::evaluate_elast(&defgrd_mat, &emptymat, &stress_view, &cmat_view, gp, eleGID);
-    ElastHyper::evaluate(defgrad, ee_test, params, checkStr, checkCmat, gp, eleGID);
+    ElastHyper::evaluate(defgrad, ee_test, params, context, checkStr, checkCmat, gp, eleGID);
 
     // push back
     const Core::LinAlg::Matrix<3, 3> checkStrMat =
@@ -297,7 +298,8 @@ void Mat::PlasticElastHyperVCU::evaluate(const Core::LinAlg::Tensor<double, 3, 3
 
       Core::LinAlg::Matrix<5, 1> rhsElast;
       Core::LinAlg::SymmetricTensor<double, 3, 3> eeOut;
-      evaluate_rhs(gp, dLp, defgrd_mat, eeOut, rhs, rhsElast, dcedlp, dFpiDdeltaDp, params, eleGID);
+      evaluate_rhs(
+          gp, dLp, defgrd_mat, eeOut, rhs, rhsElast, dcedlp, dFpiDdeltaDp, params, context, eleGID);
 
       // Hessian matrix elastic component
       Core::LinAlg::SymmetricTensor<double, 3, 3> elastStress;
@@ -308,7 +310,7 @@ void Mat::PlasticElastHyperVCU::evaluate(const Core::LinAlg::Tensor<double, 3, 3
           Core::LinAlg::make_stress_like_voigt_view(elastCmat);
       Core::LinAlg::Matrix<6, 1> elastStressDummy;
       Core::LinAlg::Matrix<6, 6> elastCmatDummy;
-      ElastHyper::evaluate(nullptr, eeOut, params, elastStress, elastCmat, gp, eleGID);
+      ElastHyper::evaluate(nullptr, eeOut, params, context, elastStress, elastCmat, gp, eleGID);
 
       Core::LinAlg::Matrix<6, 6> d2ced2lpVoigt[6];
       ce2nd_deriv(&defgrd_mat, last_plastic_defgrd_inverse_[gp], dLp, d2ced2lpVoigt);
@@ -645,7 +647,7 @@ void Mat::PlasticElastHyperVCU::evaluate_rhs(const int gp, const Core::LinAlg::M
     const Core::LinAlg::Matrix<3, 3> defgrd, Core::LinAlg::SymmetricTensor<double, 3, 3>& eeOut,
     Core::LinAlg::Matrix<5, 1>& rhs, Core::LinAlg::Matrix<5, 1>& rhsElast,
     Core::LinAlg::Matrix<6, 6>& dcedlp, Core::LinAlg::Matrix<9, 6>& dFpiDdeltaDp,
-    const Teuchos::ParameterList& params, const int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, const int eleGID)
 {
   Core::LinAlg::Matrix<3, 3> zeros;
   Core::LinAlg::Matrix<6, 6> zeros66;
@@ -692,7 +694,7 @@ void Mat::PlasticElastHyperVCU::evaluate_rhs(const int gp, const Core::LinAlg::M
 
   Core::LinAlg::SymmetricTensor<double, 3, 3> se;
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> dummy;
-  ElastHyper::evaluate(nullptr, eeOut, params, se, dummy, gp, eleGID);
+  ElastHyper::evaluate(nullptr, eeOut, params, context, se, dummy, gp, eleGID);
 
   eval_dce_dlp(last_plastic_defgrd_inverse_[gp], &defgrd, dexpOut_mat, cetrial, expOut, dcedlp,
       dFpiDdeltaDp);

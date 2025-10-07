@@ -172,7 +172,8 @@ namespace Mixture
      * @param eleGID Global element identifier
      */
     void update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd,
-        const Teuchos::ParameterList& params, int gp, int eleGID) override;
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+        int eleGID) override;
 
     /*!
      * \brief Method that will be called once before the evaluation process. The elastin material
@@ -183,8 +184,8 @@ namespace Mixture
      * \param gp Gauss point
      * \param eleGID Global element id
      */
-    void pre_evaluate(MixtureRule& mixtureRule, const Teuchos::ParameterList& params, int gp,
-        int eleGID) override;
+    void pre_evaluate(MixtureRule& mixtureRule, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context, int gp, int eleGID) override;
 
 
     [[nodiscard]] double get_growth_scalar(int gp) const override;
@@ -203,7 +204,8 @@ namespace Mixture
      */
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+        const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     /*!
@@ -219,6 +221,7 @@ namespace Mixture
      */
     void evaluate_elastic_part(const Core::LinAlg::Tensor<double, 3, 3>& F,
         const Core::LinAlg::Tensor<double, 3, 3>& iFextin, const Teuchos::ParameterList& params,
+        const Mat::EvaluationContext& context,
         Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 

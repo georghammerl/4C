@@ -834,10 +834,11 @@ namespace Discret::Elements
       const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>& defgrd,
       const Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>&
           gl_strain,
-      Teuchos::ParameterList& params, const int gp, const int eleGID)
+      Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp,
+      const int eleGID)
   {
     Stress<celltype> stress{};
-    material.evaluate(&defgrd, gl_strain, params, stress.pk2_, stress.cmat_, gp, eleGID);
+    material.evaluate(&defgrd, gl_strain, params, context, stress.pk2_, stress.cmat_, gp, eleGID);
     return stress;
   }
 
@@ -1165,26 +1166,6 @@ namespace Discret::Elements
           error_result.integrated_volume += integration_factor;
         });
     return error_result;
-  }
-
-  /*!
-   * @brief Evaluates the Gauss point coordinates in reference configuration
-   * and adds those to the parameter list
-   *
-   * @tparam celltype : Cell type
-   * @param nodal_coordinates (in) : Reference and current coordinates of the nodes of the element
-   * @param shape_functions_gp (in) : Shape functions evaluated at the Gauss point
-   * @param params (in/out) : ParameterList the quantities are added to
-   */
-  template <Core::FE::CellType celltype>
-  void evaluate_gp_coordinates_and_add_to_parameter_list(
-      const ElementNodes<celltype>& nodal_coordinates,
-      const ShapeFunctionsAndDerivatives<celltype>& shape_functions_gp,
-      Teuchos::ParameterList& params)
-  {
-    auto gp_ref_coord = evaluate_reference_coordinate<celltype>(
-        nodal_coordinates.reference_coordinates, shape_functions_gp.shapefunctions_);
-    params.set("gp_coords_ref", gp_ref_coord);
   }
 
   /*!
