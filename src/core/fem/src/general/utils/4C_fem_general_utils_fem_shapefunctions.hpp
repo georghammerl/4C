@@ -19,22 +19,32 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Core::FE
 {
+  namespace Internal
+  {
+    /**
+     * @brief A concept to check whether a given type can be converted to a std::span.
+     */
+    template <typename T>
+    concept VectorConvertibleToSpan = requires(T t) {
+      { t.as_span() } -> std::ranges::sized_range;
+    };
+  }  // namespace Internal
+
   /*!
-   \brief Fill a vector of type VectorType with with 3D shape function
+   \brief Fill a span of data with with 3D shape function
    */
-  template <class VectorType, typename NumberType>
-  void shape_function_3d(VectorType& funct,  ///< to be filled with shape function values
-      const NumberType& r,                   ///< r coordinate
-      const NumberType& s,                   ///< s coordinate
-      const NumberType& t,                   ///< t coordinate
-      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  template <typename NumberType, typename T, std::size_t extent>
+  void shape_function_3d(std::span<T, extent> funct,  ///< to be filled with shape function values
+      const NumberType& r,                            ///< r coordinate
+      const NumberType& s,                            ///< s coordinate
+      const NumberType& t,                            ///< t coordinate
+      const Core::FE::CellType& distype               ///< distinguish between DiscretizationType
   )
   {
     // if the given template parameter is of type int, the error occurs during compilation
     static_assert(!std::is_integral_v<NumberType>);
 
-    FOUR_C_ASSERT_ALWAYS(
-        static_cast<int>(funct.num_rows() * funct.num_cols()) >= Core::FE::num_nodes(distype),
+    FOUR_C_ASSERT_ALWAYS(static_cast<int>(funct.size()) >= Core::FE::num_nodes(distype),
         "Internal error: size mismatch.");
 
     const NumberType Q18 = 0.125;
@@ -45,7 +55,7 @@ namespace Core::FE
     {
       case Core::FE::CellType::point1:
       {
-        funct(0) = 1.0;
+        funct[0] = 1.0;
         break;
       }
       case Core::FE::CellType::hex8:
@@ -57,14 +67,14 @@ namespace Core::FE
         const NumberType tp = 1.0 + t;
         const NumberType tm = 1.0 - t;
 
-        funct(0) = Q18 * rm * sm * tm;
-        funct(1) = Q18 * rp * sm * tm;
-        funct(2) = Q18 * rp * sp * tm;
-        funct(3) = Q18 * rm * sp * tm;
-        funct(4) = Q18 * rm * sm * tp;
-        funct(5) = Q18 * rp * sm * tp;
-        funct(6) = Q18 * rp * sp * tp;
-        funct(7) = Q18 * rm * sp * tp;
+        funct[0] = Q18 * rm * sm * tm;
+        funct[1] = Q18 * rp * sm * tm;
+        funct[2] = Q18 * rp * sp * tm;
+        funct[3] = Q18 * rm * sp * tm;
+        funct[4] = Q18 * rm * sm * tp;
+        funct[5] = Q18 * rp * sm * tp;
+        funct[6] = Q18 * rp * sp * tp;
+        funct[7] = Q18 * rm * sp * tp;
 
         break;
       }
@@ -79,23 +89,23 @@ namespace Core::FE
         const NumberType tp = 1.0 + t;
         const NumberType tm = 1.0 - t;
 
-        funct(0) = 0.125 * (rm * sm - (r2 * sm + s2 * rm)) * tm;
-        funct(1) = 0.125 * (rp * sm - (r2 * sm + s2 * rp)) * tm;
-        funct(2) = 0.125 * (rp * sp - (s2 * rp + r2 * sp)) * tm;
-        funct(3) = 0.125 * (rm * sp - (r2 * sp + s2 * rm)) * tm;
-        funct(4) = 0.25 * r2 * sm * tm;
-        funct(5) = 0.25 * s2 * rp * tm;
-        funct(6) = 0.25 * r2 * sp * tm;
-        funct(7) = 0.25 * s2 * rm * tm;
+        funct[0] = 0.125 * (rm * sm - (r2 * sm + s2 * rm)) * tm;
+        funct[1] = 0.125 * (rp * sm - (r2 * sm + s2 * rp)) * tm;
+        funct[2] = 0.125 * (rp * sp - (s2 * rp + r2 * sp)) * tm;
+        funct[3] = 0.125 * (rm * sp - (r2 * sp + s2 * rm)) * tm;
+        funct[4] = 0.25 * r2 * sm * tm;
+        funct[5] = 0.25 * s2 * rp * tm;
+        funct[6] = 0.25 * r2 * sp * tm;
+        funct[7] = 0.25 * s2 * rm * tm;
 
-        funct(8) = 0.125 * (rm * sm - (r2 * sm + s2 * rm)) * tp;
-        funct(9) = 0.125 * (rp * sm - (r2 * sm + s2 * rp)) * tp;
-        funct(10) = 0.125 * (rp * sp - (s2 * rp + r2 * sp)) * tp;
-        funct(11) = 0.125 * (rm * sp - (r2 * sp + s2 * rm)) * tp;
-        funct(12) = 0.25 * r2 * sm * tp;
-        funct(13) = 0.25 * s2 * rp * tp;
-        funct(14) = 0.25 * r2 * sp * tp;
-        funct(15) = 0.25 * s2 * rm * tp;
+        funct[8] = 0.125 * (rm * sm - (r2 * sm + s2 * rm)) * tp;
+        funct[9] = 0.125 * (rp * sm - (r2 * sm + s2 * rp)) * tp;
+        funct[10] = 0.125 * (rp * sp - (s2 * rp + r2 * sp)) * tp;
+        funct[11] = 0.125 * (rm * sp - (r2 * sp + s2 * rm)) * tp;
+        funct[12] = 0.25 * r2 * sm * tp;
+        funct[13] = 0.25 * s2 * rp * tp;
+        funct[14] = 0.25 * r2 * sp * tp;
+        funct[15] = 0.25 * s2 * rm * tp;
 
         break;
       }
@@ -111,25 +121,25 @@ namespace Core::FE
         const NumberType sh = 0.5 * s;
         const NumberType rs = rh * sh;
 
-        funct(0) = rs * rm * sm * (1.0 - t) * 0.5;
-        funct(1) = -rs * rp * sm * (1.0 - t) * 0.5;
-        funct(2) = rs * rp * sp * (1.0 - t) * 0.5;
-        funct(3) = -rs * rm * sp * (1.0 - t) * 0.5;
-        funct(4) = -sh * sm * r2 * (1.0 - t) * 0.5;
-        funct(5) = rh * rp * s2 * (1.0 - t) * 0.5;
-        funct(6) = sh * sp * r2 * (1.0 - t) * 0.5;
-        funct(7) = -rh * rm * s2 * (1.0 - t) * 0.5;
-        funct(8) = r2 * s2 * (1.0 - t) * 0.5;
+        funct[0] = rs * rm * sm * (1.0 - t) * 0.5;
+        funct[1] = -rs * rp * sm * (1.0 - t) * 0.5;
+        funct[2] = rs * rp * sp * (1.0 - t) * 0.5;
+        funct[3] = -rs * rm * sp * (1.0 - t) * 0.5;
+        funct[4] = -sh * sm * r2 * (1.0 - t) * 0.5;
+        funct[5] = rh * rp * s2 * (1.0 - t) * 0.5;
+        funct[6] = sh * sp * r2 * (1.0 - t) * 0.5;
+        funct[7] = -rh * rm * s2 * (1.0 - t) * 0.5;
+        funct[8] = r2 * s2 * (1.0 - t) * 0.5;
 
-        funct(9) = rs * rm * sm * (1.0 + t) * 0.5;
-        funct(10) = -rs * rp * sm * (1.0 + t) * 0.5;
-        funct(11) = rs * rp * sp * (1.0 + t) * 0.5;
-        funct(12) = -rs * rm * sp * (1.0 + t) * 0.5;
-        funct(13) = -sh * sm * r2 * (1.0 + t) * 0.5;
-        funct(14) = rh * rp * s2 * (1.0 + t) * 0.5;
-        funct(15) = sh * sp * r2 * (1.0 + t) * 0.5;
-        funct(16) = -rh * rm * s2 * (1.0 + t) * 0.5;
-        funct(17) = r2 * s2 * (1.0 + t) * 0.5;
+        funct[9] = rs * rm * sm * (1.0 + t) * 0.5;
+        funct[10] = -rs * rp * sm * (1.0 + t) * 0.5;
+        funct[11] = rs * rp * sp * (1.0 + t) * 0.5;
+        funct[12] = -rs * rm * sp * (1.0 + t) * 0.5;
+        funct[13] = -sh * sm * r2 * (1.0 + t) * 0.5;
+        funct[14] = rh * rp * s2 * (1.0 + t) * 0.5;
+        funct[15] = sh * sp * r2 * (1.0 + t) * 0.5;
+        funct[16] = -rh * rm * s2 * (1.0 + t) * 0.5;
+        funct[17] = r2 * s2 * (1.0 + t) * 0.5;
 
         break;
       }
@@ -156,32 +166,32 @@ namespace Core::FE
         const NumberType ttm = 1.0 - t * t;
 
         // corner nodes
-        funct(0) = Q18 * rm * sm * tm * (rm + sm + tm - 5.0);
-        funct(1) = Q18 * rp * sm * tm * (rp + sm + tm - 5.0);
-        funct(2) = Q18 * rp * sp * tm * (rp + sp + tm - 5.0);
-        funct(3) = Q18 * rm * sp * tm * (rm + sp + tm - 5.0);
-        funct(4) = Q18 * rm * sm * tp * (rm + sm + tp - 5.0);
-        funct(5) = Q18 * rp * sm * tp * (rp + sm + tp - 5.0);
-        funct(6) = Q18 * rp * sp * tp * (rp + sp + tp - 5.0);
-        funct(7) = Q18 * rm * sp * tp * (rm + sp + tp - 5.0);
+        funct[0] = Q18 * rm * sm * tm * (rm + sm + tm - 5.0);
+        funct[1] = Q18 * rp * sm * tm * (rp + sm + tm - 5.0);
+        funct[2] = Q18 * rp * sp * tm * (rp + sp + tm - 5.0);
+        funct[3] = Q18 * rm * sp * tm * (rm + sp + tm - 5.0);
+        funct[4] = Q18 * rm * sm * tp * (rm + sm + tp - 5.0);
+        funct[5] = Q18 * rp * sm * tp * (rp + sm + tp - 5.0);
+        funct[6] = Q18 * rp * sp * tp * (rp + sp + tp - 5.0);
+        funct[7] = Q18 * rm * sp * tp * (rm + sp + tp - 5.0);
 
         // centernodes, bottom surface
-        funct(8) = 0.25 * rrm * sm * tm;
-        funct(9) = 0.25 * rp * ssm * tm;
-        funct(10) = 0.25 * rrm * sp * tm;
-        funct(11) = 0.25 * rm * ssm * tm;
+        funct[8] = 0.25 * rrm * sm * tm;
+        funct[9] = 0.25 * rp * ssm * tm;
+        funct[10] = 0.25 * rrm * sp * tm;
+        funct[11] = 0.25 * rm * ssm * tm;
 
         // centernodes, rs-plane
-        funct(12) = 0.25 * rm * sm * ttm;
-        funct(13) = 0.25 * rp * sm * ttm;
-        funct(14) = 0.25 * rp * sp * ttm;
-        funct(15) = 0.25 * rm * sp * ttm;
+        funct[12] = 0.25 * rm * sm * ttm;
+        funct[13] = 0.25 * rp * sm * ttm;
+        funct[14] = 0.25 * rp * sp * ttm;
+        funct[15] = 0.25 * rm * sp * ttm;
 
         // centernodes, top surface
-        funct(16) = 0.25 * rrm * sm * tp;
-        funct(17) = 0.25 * rp * ssm * tp;
-        funct(18) = 0.25 * rrm * sp * tp;
-        funct(19) = 0.25 * rm * ssm * tp;
+        funct[16] = 0.25 * rrm * sm * tp;
+        funct[17] = 0.25 * rp * ssm * tp;
+        funct[18] = 0.25 * rrm * sp * tp;
+        funct[19] = 0.25 * rm * ssm * tp;
 
         break;
       }
@@ -197,33 +207,33 @@ namespace Core::FE
         const NumberType t00 = (1.0 - t * t);
         const NumberType tp1 = 0.5 * t * (t + 1.0);
 
-        funct(0) = rm1 * sm1 * tm1;
-        funct(1) = rp1 * sm1 * tm1;
-        funct(2) = rp1 * sp1 * tm1;
-        funct(3) = rm1 * sp1 * tm1;
-        funct(4) = rm1 * sm1 * tp1;
-        funct(5) = rp1 * sm1 * tp1;
-        funct(6) = rp1 * sp1 * tp1;
-        funct(7) = rm1 * sp1 * tp1;
-        funct(8) = r00 * sm1 * tm1;
-        funct(9) = s00 * tm1 * rp1;
-        funct(10) = r00 * tm1 * sp1;
-        funct(11) = s00 * rm1 * tm1;
-        funct(12) = t00 * rm1 * sm1;
-        funct(13) = t00 * sm1 * rp1;
-        funct(14) = t00 * rp1 * sp1;
-        funct(15) = t00 * rm1 * sp1;
-        funct(16) = r00 * sm1 * tp1;
-        funct(17) = s00 * rp1 * tp1;
-        funct(18) = r00 * sp1 * tp1;
-        funct(19) = s00 * rm1 * tp1;
-        funct(20) = r00 * s00 * tm1;
-        funct(21) = r00 * t00 * sm1;
-        funct(22) = s00 * t00 * rp1;
-        funct(23) = r00 * t00 * sp1;
-        funct(24) = s00 * t00 * rm1;
-        funct(25) = r00 * s00 * tp1;
-        funct(26) = r00 * s00 * t00;
+        funct[0] = rm1 * sm1 * tm1;
+        funct[1] = rp1 * sm1 * tm1;
+        funct[2] = rp1 * sp1 * tm1;
+        funct[3] = rm1 * sp1 * tm1;
+        funct[4] = rm1 * sm1 * tp1;
+        funct[5] = rp1 * sm1 * tp1;
+        funct[6] = rp1 * sp1 * tp1;
+        funct[7] = rm1 * sp1 * tp1;
+        funct[8] = r00 * sm1 * tm1;
+        funct[9] = s00 * tm1 * rp1;
+        funct[10] = r00 * tm1 * sp1;
+        funct[11] = s00 * rm1 * tm1;
+        funct[12] = t00 * rm1 * sm1;
+        funct[13] = t00 * sm1 * rp1;
+        funct[14] = t00 * rp1 * sp1;
+        funct[15] = t00 * rm1 * sp1;
+        funct[16] = r00 * sm1 * tp1;
+        funct[17] = s00 * rp1 * tp1;
+        funct[18] = r00 * sp1 * tp1;
+        funct[19] = s00 * rm1 * tp1;
+        funct[20] = r00 * s00 * tm1;
+        funct[21] = r00 * t00 * sm1;
+        funct[22] = s00 * t00 * rp1;
+        funct[23] = r00 * t00 * sp1;
+        funct[24] = s00 * t00 * rm1;
+        funct[25] = r00 * s00 * tp1;
+        funct[26] = r00 * s00 * t00;
         break;
       }
       case Core::FE::CellType::tet4:
@@ -233,38 +243,38 @@ namespace Core::FE
         const NumberType t3 = s;
         const NumberType t4 = t;
 
-        funct(0) = t1;
-        funct(1) = t2;
-        funct(2) = t3;
-        funct(3) = t4;
+        funct[0] = t1;
+        funct[1] = t2;
+        funct[2] = t3;
+        funct[3] = t4;
         break;
       }
       case Core::FE::CellType::tet10:
       {
         const NumberType u = 1.0 - r - s - t;
 
-        funct(0) = u * (2.0 * u - 1.0);
-        funct(1) = r * (2.0 * r - 1.0);
-        funct(2) = s * (2.0 * s - 1.0);
-        funct(3) = t * (2.0 * t - 1.0);
-        funct(4) = 4.0 * r * u;
-        funct(5) = 4.0 * r * s;
-        funct(6) = 4.0 * s * u;
-        funct(7) = 4.0 * t * u;
-        funct(8) = 4.0 * r * t;
-        funct(9) = 4.0 * s * t;
+        funct[0] = u * (2.0 * u - 1.0);
+        funct[1] = r * (2.0 * r - 1.0);
+        funct[2] = s * (2.0 * s - 1.0);
+        funct[3] = t * (2.0 * t - 1.0);
+        funct[4] = 4.0 * r * u;
+        funct[5] = 4.0 * r * s;
+        funct[6] = 4.0 * s * u;
+        funct[7] = 4.0 * t * u;
+        funct[8] = 4.0 * r * t;
+        funct[9] = 4.0 * s * t;
         break;
       }
       case Core::FE::CellType::wedge6:
       {
         const NumberType t3 = 1.0 - r - s;
 
-        funct(0) = Q12 * r * (1.0 - t);
-        funct(1) = Q12 * s * (1.0 - t);
-        funct(2) = Q12 * t3 * (1.0 - t);
-        funct(3) = Q12 * r * (1.0 + t);
-        funct(4) = Q12 * s * (1.0 + t);
-        funct(5) = Q12 * t3 * (1.0 + t);
+        funct[0] = Q12 * r * (1.0 - t);
+        funct[1] = Q12 * s * (1.0 - t);
+        funct[2] = Q12 * t3 * (1.0 - t);
+        funct[3] = Q12 * r * (1.0 + t);
+        funct[4] = Q12 * s * (1.0 + t);
+        funct[5] = Q12 * t3 * (1.0 + t);
         break;
       }
       case Core::FE::CellType::wedge15:
@@ -289,21 +299,21 @@ namespace Core::FE
         const NumberType t2t3_2 = 2.0 * t2 * t3;
         const NumberType t3t1_2 = 2.0 * t3 * t1;
 
-        funct(0) = Q12 * (f1 * mt - t1p2);
-        funct(1) = Q12 * (f2 * mt - t2p2);
-        funct(2) = Q12 * (f3 * mt - t3p2);
-        funct(3) = Q12 * (f1 * pt - t1p2);
-        funct(4) = Q12 * (f2 * pt - t2p2);
-        funct(5) = Q12 * (f3 * pt - t3p2);
-        funct(6) = t1t2_2 * mt;
-        funct(7) = t2t3_2 * mt;
-        funct(8) = t3t1_2 * mt;
-        funct(9) = t1p2;
-        funct(10) = t2p2;
-        funct(11) = t3p2;
-        funct(12) = t1t2_2 * pt;
-        funct(13) = t2t3_2 * pt;
-        funct(14) = t3t1_2 * pt;
+        funct[0] = Q12 * (f1 * mt - t1p2);
+        funct[1] = Q12 * (f2 * mt - t2p2);
+        funct[2] = Q12 * (f3 * mt - t3p2);
+        funct[3] = Q12 * (f1 * pt - t1p2);
+        funct[4] = Q12 * (f2 * pt - t2p2);
+        funct[5] = Q12 * (f3 * pt - t3p2);
+        funct[6] = t1t2_2 * mt;
+        funct[7] = t2t3_2 * mt;
+        funct[8] = t3t1_2 * mt;
+        funct[9] = t1p2;
+        funct[10] = t2p2;
+        funct[11] = t3p2;
+        funct[12] = t1t2_2 * pt;
+        funct[13] = t2t3_2 * pt;
+        funct[14] = t3t1_2 * pt;
 
         break;
       }
@@ -331,11 +341,11 @@ namespace Core::FE
           ration = 0.0;
         }
 
-        funct(0) = Q14 * ((1.0 - r) * (1.0 - s) - t + ration);
-        funct(1) = Q14 * ((1.0 + r) * (1.0 - s) - t - ration);
-        funct(2) = Q14 * ((1.0 + r) * (1.0 + s) - t + ration);
-        funct(3) = Q14 * ((1.0 - r) * (1.0 + s) - t - ration);
-        funct(4) = t;
+        funct[0] = Q14 * ((1.0 - r) * (1.0 - s) - t + ration);
+        funct[1] = Q14 * ((1.0 + r) * (1.0 - s) - t - ration);
+        funct[2] = Q14 * ((1.0 + r) * (1.0 + s) - t + ration);
+        funct[3] = Q14 * ((1.0 - r) * (1.0 + s) - t - ration);
+        funct[4] = t;
 
         break;
       }
@@ -344,6 +354,21 @@ namespace Core::FE
         break;
     } /* end switch(distype) */
     return;
+  }
+
+  /**
+   * @brief An overload of shape_function_3d that accepts any type that can be converted to a
+   * std::span (e.g., @p Core::LinAlg::Matrix).
+   */
+  template <Internal::VectorConvertibleToSpan VectorType, typename NumberType>
+  void shape_function_3d(VectorType& funct,  ///< to be filled with shape function values
+      const NumberType& r,                   ///< r coordinate
+      const NumberType& s,                   ///< s coordinate
+      const NumberType& t,                   ///< t coordinate
+      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  )
+  {
+    shape_function_3d(funct.as_span(), r, s, t, distype);
   }
 
   /*!
@@ -1975,27 +2000,26 @@ namespace Core::FE
   }
 
   /*!
-   \brief Fill a vector of type VectorType with 2D shape function
+   \brief Fill a span of data with 2D shape function values
    */
-  template <class VectorType, typename NumberType>
-  void shape_function_2d(VectorType& funct,  ///< to be filled with shape function values
-      const NumberType& r,                   ///< r coordinate
-      const NumberType& s,                   ///< s coordinate
-      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  template <typename NumberType, typename T, std::size_t extent>
+  void shape_function_2d(std::span<T, extent> funct,  ///< to be filled with shape function values
+      const NumberType& r,                            ///< r coordinate
+      const NumberType& s,                            ///< s coordinate
+      const Core::FE::CellType& distype               ///< distinguish between DiscretizationType
   )
   {
     // if the given template parameter is of type int, the error occurs during compilation
     static_assert(!std::is_integral_v<NumberType>);
 
-    FOUR_C_ASSERT_ALWAYS(
-        static_cast<int>(funct.num_rows() * funct.num_cols()) >= Core::FE::num_nodes(distype),
+    FOUR_C_ASSERT_ALWAYS(static_cast<int>(funct.size()) >= Core::FE::num_nodes(distype),
         "Internal error: size mismatch.");
 
     switch (distype)
     {
       case Core::FE::CellType::point1:
       {
-        funct(0) = 1.0;
+        funct[0] = 1.0;
         break;
       }
       case Core::FE::CellType::quad4:
@@ -2005,20 +2029,20 @@ namespace Core::FE
         const NumberType sp = 1.0 + s;
         const NumberType sm = 1.0 - s;
 
-        funct(0) = 0.25 * rm * sm;
-        funct(1) = 0.25 * rp * sm;
-        funct(2) = 0.25 * rp * sp;
-        funct(3) = 0.25 * rm * sp;
+        funct[0] = 0.25 * rm * sm;
+        funct[1] = 0.25 * rp * sm;
+        funct[2] = 0.25 * rp * sp;
+        funct[3] = 0.25 * rm * sp;
         break;
       }
       case Core::FE::CellType::quad6:
       {
-        funct(0) = 0.25 * r * (r - 1.) * (1. - s);
-        funct(1) = 0.25 * r * (r + 1.) * (1. - s);
-        funct(2) = -0.5 * (r - 1.) * (r + 1.) * (1. - s);
-        funct(3) = 0.25 * r * (r - 1.) * (1. + s);
-        funct(4) = 0.25 * r * (r + 1.) * (1. + s);
-        funct(5) = -0.5 * (r - 1.) * (r + 1.) * (1. + s);
+        funct[0] = 0.25 * r * (r - 1.) * (1. - s);
+        funct[1] = 0.25 * r * (r + 1.) * (1. - s);
+        funct[2] = -0.5 * (r - 1.) * (r + 1.) * (1. - s);
+        funct[3] = 0.25 * r * (r - 1.) * (1. + s);
+        funct[4] = 0.25 * r * (r + 1.) * (1. + s);
+        funct[5] = -0.5 * (r - 1.) * (r + 1.) * (1. + s);
 
         break;
       }
@@ -2043,21 +2067,21 @@ namespace Core::FE
         //
 
         //(r,s)->0.25*((1-r)*(1-s)-((1-r*r)*(1-s)+(1-s*s)*(1-r)))
-        funct(0) = 0.25 * (rm * sm - (r2 * sm + s2 * rm));
+        funct[0] = 0.25 * (rm * sm - (r2 * sm + s2 * rm));
         //(r,s)->0.25*((1+r)*(1-s)-((1-r*r)*(1-s)+(1-s*s)*(1+r)))
-        funct(1) = 0.25 * (rp * sm - (r2 * sm + s2 * rp));
+        funct[1] = 0.25 * (rp * sm - (r2 * sm + s2 * rp));
         //(r,s)->0.25*((1+r)*(1+s)-((1-r*r)*(1+s)+(1-s*s)*(1+r)))
-        funct(2) = 0.25 * (rp * sp - (s2 * rp + r2 * sp));
+        funct[2] = 0.25 * (rp * sp - (s2 * rp + r2 * sp));
         //(r,s)->0.25*((1-r)*(1+s)-((1-r*r)*(1+s)+(1-s*s)*(1-r)))
-        funct(3) = 0.25 * (rm * sp - (r2 * sp + s2 * rm));
+        funct[3] = 0.25 * (rm * sp - (r2 * sp + s2 * rm));
         //(r, s) -> 0.5*(1-r*r)*(1-s)
-        funct(4) = 0.5 * r2 * sm;
+        funct[4] = 0.5 * r2 * sm;
         //(r, s) -> 0.5*(1-s*s)*(1+r)
-        funct(5) = 0.5 * s2 * rp;
+        funct[5] = 0.5 * s2 * rp;
         //(r, s) -> 0.5*(1-r*r)*(1+s)
-        funct(6) = 0.5 * r2 * sp;
+        funct[6] = 0.5 * r2 * sp;
         //(r, s) -> 0.5*(1-s*s)*(1-r)
-        funct(7) = 0.5 * s2 * rm;
+        funct[7] = 0.5 * s2 * rm;
         break;
       }
       case Core::FE::CellType::quad9:
@@ -2072,15 +2096,15 @@ namespace Core::FE
         const NumberType sh = 0.5 * s;
         const NumberType rs = rh * sh;
 
-        funct(0) = rs * rm * sm;
-        funct(1) = -rs * rp * sm;
-        funct(2) = rs * rp * sp;
-        funct(3) = -rs * rm * sp;
-        funct(4) = -sh * sm * r2;
-        funct(5) = rh * rp * s2;
-        funct(6) = sh * sp * r2;
-        funct(7) = -rh * rm * s2;
-        funct(8) = r2 * s2;
+        funct[0] = rs * rm * sm;
+        funct[1] = -rs * rp * sm;
+        funct[2] = rs * rp * sp;
+        funct[3] = -rs * rm * sp;
+        funct[4] = -sh * sm * r2;
+        funct[5] = rh * rp * s2;
+        funct[6] = sh * sp * r2;
+        funct[7] = -rh * rm * s2;
+        funct[8] = r2 * s2;
         break;
       }
       case Core::FE::CellType::tri3:
@@ -2088,9 +2112,9 @@ namespace Core::FE
         const NumberType t1 = 1.0 - r - s;
         const NumberType t2 = r;
         const NumberType t3 = s;
-        funct(0) = t1;
-        funct(1) = t2;
-        funct(2) = t3;
+        funct[0] = t1;
+        funct[1] = t2;
+        funct[2] = t3;
         break;
       }
       case Core::FE::CellType::tri6:
@@ -2099,12 +2123,12 @@ namespace Core::FE
         const NumberType t2 = r;
         const NumberType t3 = s;
 
-        funct(0) = t1 * (2.0 * t1 - 1.0);
-        funct(1) = t2 * (2.0 * t2 - 1.0);
-        funct(2) = t3 * (2.0 * t3 - 1.0);
-        funct(3) = 4.0 * t2 * t1;
-        funct(4) = 4.0 * t2 * t3;
-        funct(5) = 4.0 * t3 * t1;
+        funct[0] = t1 * (2.0 * t1 - 1.0);
+        funct[1] = t2 * (2.0 * t2 - 1.0);
+        funct[2] = t3 * (2.0 * t3 - 1.0);
+        funct[3] = 4.0 * t2 * t1;
+        funct[4] = 4.0 * t2 * t3;
+        funct[5] = 4.0 * t3 * t1;
         break;
       }
       default:
@@ -2113,6 +2137,20 @@ namespace Core::FE
     } /* end switch(distype) */
 
     return;
+  }
+
+  /**
+   * @brief An overload of shape_function_2d that accepts any type that can be converted to a
+   * std::span (e.g., @p Core::LinAlg::Matrix).
+   */
+  template <Internal::VectorConvertibleToSpan VectorType, typename NumberType>
+  void shape_function_2d(VectorType& funct,  ///< to be filled with shape function values
+      const NumberType& r,                   ///< r coordinate
+      const NumberType& s,                   ///< s coordinate
+      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  )
+  {
+    shape_function_2d(funct.as_span(), r, s, distype);
   }
 
   /*!
@@ -2556,47 +2594,46 @@ namespace Core::FE
   }
 
   /*!
-   \brief Fill a vector of type VectorType with 1D shape function
+   \brief Fill a span of data with 1D shape function values
    */
-  template <class VectorType, typename NumberType>
-  void shape_function_1d(VectorType& funct,  ///< to be filled with shape function values
-      const NumberType& r,                   ///< r coordinate
-      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  template <typename NumberType, typename T, std::size_t extent>
+  void shape_function_1d(std::span<T, extent> funct,  ///< to be filled with shape function values
+      const NumberType& r,                            ///< r coordinate
+      const Core::FE::CellType& distype               ///< distinguish between DiscretizationType
   )
   {
     // if the given template parameter is of type int, the error occurs during compilation
     static_assert(!std::is_integral_v<NumberType>);
 
-    FOUR_C_ASSERT_ALWAYS(
-        static_cast<int>(funct.num_rows() * funct.num_cols()) >= Core::FE::num_nodes(distype),
+    FOUR_C_ASSERT_ALWAYS(static_cast<int>(funct.size()) >= Core::FE::num_nodes(distype),
         "Internal error: size mismatch.");
 
     switch (distype)
     {
       case Core::FE::CellType::point1:
       {
-        funct(0) = 1.0;
+        funct[0] = 1.0;
         break;
       }
       case Core::FE::CellType::line2:
       {
-        funct(0) = 0.5 * (1.0 - r);
-        funct(1) = 0.5 * (1.0 + r);
+        funct[0] = 0.5 * (1.0 - r);
+        funct[1] = 0.5 * (1.0 + r);
         break;
       }
       case Core::FE::CellType::line3:
       {
-        funct(0) = -0.5 * r * (1.0 - r);
-        funct(1) = 0.5 * r * (1.0 + r);
-        funct(2) = 1.0 - r * r;
+        funct[0] = -0.5 * r * (1.0 - r);
+        funct[1] = 0.5 * r * (1.0 + r);
+        funct[2] = 1.0 - r * r;
         break;
       }
       case Core::FE::CellType::line4:
       {
-        funct(0) = -(9.0 / 16.0) * (1.0 - r) * ((1.0 / 9.0) - r * r);
-        funct(1) = -(9.0 / 16.0) * (1.0 + r) * ((1.0 / 9.0) - r * r);
-        funct(2) = (27.0 / 16.0) * ((1.0 / 3.0) - r) * (1.0 - r * r);
-        funct(3) = (27.0 / 16.0) * ((1.0 / 3.0) + r) * (1.0 - r * r);
+        funct[0] = -(9.0 / 16.0) * (1.0 - r) * ((1.0 / 9.0) - r * r);
+        funct[1] = -(9.0 / 16.0) * (1.0 + r) * ((1.0 / 9.0) - r * r);
+        funct[2] = (27.0 / 16.0) * ((1.0 / 3.0) - r) * (1.0 - r * r);
+        funct[3] = (27.0 / 16.0) * ((1.0 / 3.0) + r) * (1.0 - r * r);
         break;
         /*
          *nodegeometry    x-------x-------x-------x-----> xi
@@ -2606,11 +2643,11 @@ namespace Core::FE
       }
       case Core::FE::CellType::line5:
       {
-        funct(0) = (2.0 / 3.0) * r * (1.0 - r) * (0.25 - r * r);
-        funct(1) = -(2.0 / 3.0) * r * (1.0 + r) * (0.25 - r * r);
-        funct(2) = -(8.0 / 3.0) * r * (1.0 - r * r) * (0.5 - r);
-        funct(3) = 4.0 * (1.0 - r * r) * (0.25 - r * r);
-        funct(4) = (8.0 / 3.0) * r * (1.0 - r * r) * (0.5 + r);
+        funct[0] = (2.0 / 3.0) * r * (1.0 - r) * (0.25 - r * r);
+        funct[1] = -(2.0 / 3.0) * r * (1.0 + r) * (0.25 - r * r);
+        funct[2] = -(8.0 / 3.0) * r * (1.0 - r * r) * (0.5 - r);
+        funct[3] = 4.0 * (1.0 - r * r) * (0.25 - r * r);
+        funct[4] = (8.0 / 3.0) * r * (1.0 - r * r) * (0.5 + r);
         break;
         /*
          *nodegeometry    x-------x-------x-------x-------x-----> xi
@@ -2620,32 +2657,32 @@ namespace Core::FE
       }
       case Core::FE::CellType::line6:
       {
-        funct(0) = -625.0 / 768.0 *
+        funct[0] = -625.0 / 768.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) -
                        Core::MathOperations<NumberType>::pow(r, 4) -
                        2.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 3) + 2.0 / 5.0 * r * r +
                        9.0 / 625.0 * r - 9.0 / 625.0);
-        funct(1) = 625.0 / 768.0 *
+        funct[1] = 625.0 / 768.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) +
                        Core::MathOperations<NumberType>::pow(r, 4) -
                        2.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 3) - 2.0 / 5.0 * r * r +
                        9.0 / 625.0 * r + 9.0 / 625.0);
-        funct(2) = 3125.0 / 768.0 *
+        funct[2] = 3125.0 / 768.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) -
                        3.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 4) -
                        26.0 / 25.0 * Core::MathOperations<NumberType>::pow(r, 3) +
                        78.0 / 125.0 * r * r + 1.0 / 25.0 * r - 3.0 / 125.0);
-        funct(3) = -3125.0 / 384.0 *
+        funct[3] = -3125.0 / 384.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) -
                        1.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 4) -
                        34.0 / 25.0 * Core::MathOperations<NumberType>::pow(r, 3) +
                        34.0 / 125.0 * r * r + 9.0 / 25.0 * r - 9.0 / 125.0);
-        funct(4) = 3125.0 / 384.0 *
+        funct[4] = 3125.0 / 384.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) +
                        1.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 4) -
                        34.0 / 25.0 * Core::MathOperations<NumberType>::pow(r, 3) -
                        34.0 / 125.0 * r * r + 9.0 / 25.0 * r + 9.0 / 125.0);
-        funct(5) = -3125.0 / 768.0 *
+        funct[5] = -3125.0 / 768.0 *
                    (Core::MathOperations<NumberType>::pow(r, 5) +
                        3.0 / 5.0 * Core::MathOperations<NumberType>::pow(r, 4) -
                        26.0 / 25.0 * Core::MathOperations<NumberType>::pow(r, 3) -
@@ -2663,6 +2700,19 @@ namespace Core::FE
     }
 
     return;
+  }
+
+  /**
+   * @brief An overload of shape_function_1d that accepts any type that can be converted to a
+   * std::span (e.g., @p Core::LinAlg::Matrix).
+   */
+  template <Internal::VectorConvertibleToSpan VectorType, typename NumberType>
+  void shape_function_1d(VectorType& funct,  ///< to be filled with shape function values
+      const NumberType& r,                   ///< r coordinate
+      const Core::FE::CellType& distype      ///< distinguish between DiscretizationType
+  )
+  {
+    shape_function_1d(funct.as_span(), r, distype);
   }
 
   /*!
