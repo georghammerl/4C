@@ -127,32 +127,6 @@ void PoroPressureBased::setup_material(
   return;
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>>
-PoroPressureBased::convert_dof_vector_to_node_based_multi_vector(
-    const Core::FE::Discretization& dis, const Core::LinAlg::Vector<double>& vector, const int nds,
-    const int numdofpernode)
-{
-  // initialize multi vector
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> multi =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*dis.node_row_map(), numdofpernode, true);
-
-  // get maps
-  const Core::LinAlg::Map& vectormap = vector.get_map();
-
-  // loop over nodes of the discretization
-  for (int inode = 0; inode < dis.num_my_row_nodes(); ++inode)
-  {
-    // get current node
-    Core::Nodes::Node* node = dis.l_row_node(inode);
-    // copy each dof value of node
-    for (int idof = 0; idof < numdofpernode; ++idof)
-      (*multi)(idof).get_values()[inode] = vector[vectormap.lid(dis.dof(nds, node, idof))];
-  }
-
-  return multi;
-}
 
 /*----------------------------------------------------------------------*
  | create algorithm                                                      |

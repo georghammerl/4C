@@ -140,18 +140,12 @@ void ScaTra::ScaTraTimIntPoroMulti::collect_runtime_output_data()
     if (dispnp == nullptr) FOUR_C_THROW("Cannot extract displacement field from discretization");
 
     // convert dof-based vector into node-based multi-vector for postprocessing
-    auto dispnp_multi = Core::LinAlg::MultiVector<double>(*discret_->node_row_map(), nsd_, true);
-    for (int inode = 0; inode < discret_->num_my_row_nodes(); ++inode)
-    {
-      Core::Nodes::Node* node = discret_->l_row_node(inode);
-      for (int idim = 0; idim < nsd_; ++idim)
-        (dispnp_multi)(idim).get_values()[inode] =
-            (*dispnp)[dispnp->get_map().lid(discret_->dof(nds_disp(), node, idim))];
-    }
+    auto dispnp_multi = Core::IO::convert_dof_vector_to_node_based_multi_vector(
+        *discret_, *dispnp, nds_disp(), nsd_);
 
     std::vector<std::optional<std::string>> context(nsd_, "ale-displacement");
     visualization_writer().append_result_data_vector_with_context(
-        dispnp_multi, Core::IO::OutputEntity::node, context);
+        *dispnp_multi, Core::IO::OutputEntity::node, context);
   }
 
   // extract conditions for oxygen partial pressure

@@ -158,6 +158,16 @@ namespace Core::LinAlg
     const double* get_values() const { return vector_->Values(); }
     double* get_values() { return vector_->Values(); }
 
+    //! returns the values (data) as span
+    std::span<double> local_values_as_span()
+    {
+      return {get_values(), static_cast<size_t>(local_length())};
+    };
+    std::span<const double> local_values_as_span() const
+    {
+      return {get_values(), static_cast<size_t>(local_length())};
+    };
+
     /**
      * Replace map, only if new map has same point-structure as current map.
      *

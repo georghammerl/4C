@@ -1763,18 +1763,12 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
     if (convel == nullptr) FOUR_C_THROW("Cannot get state vector convective velocity");
 
     // convert dof-based vector into node-based multi-vector for postprocessing
-    auto convel_multi = Core::LinAlg::MultiVector<double>(*discret_->node_row_map(), nsd_, true);
-    for (int inode = 0; inode < discret_->num_my_row_nodes(); ++inode)
-    {
-      Core::Nodes::Node* node = discret_->l_row_node(inode);
-      for (int idim = 0; idim < nsd_; ++idim)
-        (convel_multi)(idim).get_values()[inode] =
-            (*convel)[convel->get_map().lid(discret_->dof(nds_vel(), node, idim))];
-    }
+    auto convel_multi = Core::IO::convert_dof_vector_to_node_based_multi_vector(
+        *discret_, *convel, nds_vel(), nsd_);
 
     std::vector<std::optional<std::string>> context(nsd_, "convec_velocity");
     visualization_writer_->append_result_data_vector_with_context(
-        convel_multi, Core::IO::OutputEntity::node, context);
+        *convel_multi, Core::IO::OutputEntity::node, context);
   }
 
   if (has_external_force_)
@@ -1785,18 +1779,12 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
       if (state_vector == nullptr) FOUR_C_THROW("Cannot get state vector {}", field_name);
 
       // convert dof-based linalg vector into node-based multi-vector for postprocessing
-      auto multi_vector = Core::LinAlg::MultiVector<double>(*discret_->node_row_map(), nsd_, true);
-      for (int inode = 0; inode < discret_->num_my_row_nodes(); ++inode)
-      {
-        const Core::Nodes::Node* node = discret_->l_row_node(inode);
-        for (int idim = 0; idim < nsd_; ++idim)
-          (multi_vector)(idim).get_values()[inode] =
-              (*state_vector)
-                  .get_values()[state_vector->get_map().lid(discret_->dof(nds_vel(), node, idim))];
-      }
+      auto multi_vector = Core::IO::convert_dof_vector_to_node_based_multi_vector(
+          *discret_, *state_vector, nds_vel(), nsd_);
+
       const std::vector<std::optional<std::string>> context(nsd_, field_name);
       visualization_writer_->append_result_data_vector_with_context(
-          multi_vector, Core::IO::OutputEntity::node, context);
+          *multi_vector, Core::IO::OutputEntity::node, context);
     };
 
     write_output_as_multivector("external_force");
@@ -1812,18 +1800,12 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
     if (dispnp == nullptr) FOUR_C_THROW("Cannot extract displacement field from discretization");
 
     // convert dof-based vector into node-based multi-vector for postprocessing
-    auto dispnp_multi = Core::LinAlg::MultiVector<double>(*discret_->node_row_map(), nsd_, true);
-    for (int inode = 0; inode < discret_->num_my_row_nodes(); ++inode)
-    {
-      Core::Nodes::Node* node = discret_->l_row_node(inode);
-      for (int idim = 0; idim < nsd_; ++idim)
-        (dispnp_multi)(idim).get_values()[inode] =
-            (*dispnp).get_values()[dispnp->get_map().lid(discret_->dof(nds_disp(), node, idim))];
-    }
+    auto dispnp_multi = Core::IO::convert_dof_vector_to_node_based_multi_vector(
+        *discret_, *dispnp, nds_disp(), nsd_);
 
     std::vector<std::optional<std::string>> context(nsd_, "ale-displacement");
     visualization_writer_->append_result_data_vector_with_context(
-        dispnp_multi, Core::IO::OutputEntity::node, context);
+        *dispnp_multi, Core::IO::OutputEntity::node, context);
   }
 
   if (output_element_material_id_) visualization_writer_->append_element_material_id();

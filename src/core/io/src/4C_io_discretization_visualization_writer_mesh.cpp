@@ -26,6 +26,35 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Core::IO
 {
+
+  /*-----------------------------------------------------------------------------------------------*
+   *-----------------------------------------------------------------------------------------------*/
+  std::unique_ptr<Core::LinAlg::MultiVector<double>> convert_dof_vector_to_node_based_multi_vector(
+      const Core::FE::Discretization& dis, const Core::LinAlg::Vector<double>& input_vector,
+      const int number_of_dofset, const int number_of_dofs_per_node)
+  {
+    // initialize multi vector
+    auto multi = std::make_unique<Core::LinAlg::MultiVector<double>>(
+        *dis.node_row_map(), number_of_dofs_per_node, true);
+
+    // get maps
+    const Core::LinAlg::Map& vectormap = input_vector.get_map();
+
+    // loop over nodes of the discretization
+    for (int inode = 0; inode < dis.num_my_row_nodes(); ++inode)
+    {
+      // get current node
+      Core::Nodes::Node* node = dis.l_row_node(inode);
+      // copy each dof value of node
+      for (int idof = 0; idof < number_of_dofs_per_node; ++idof)
+        (*multi)(idof).local_values_as_span()[inode] =
+            input_vector[vectormap.lid(dis.dof(number_of_dofset, node, idof))];
+    }
+
+    return multi;
+  }
+
+
   /*-----------------------------------------------------------------------------------------------*
    *-----------------------------------------------------------------------------------------------*/
   DiscretizationVisualizationWriterMesh::DiscretizationVisualizationWriterMesh(

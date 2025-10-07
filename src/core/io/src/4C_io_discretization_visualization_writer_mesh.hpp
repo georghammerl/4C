@@ -30,6 +30,25 @@ namespace Core::IO
   };
 
   /*!
+   * @brief: convert a dof based vector to a node based multi vector
+   *
+   * For postprocessing, only vectors based on the primary dof set of the discretization can be
+   * used. Hence, all other vectors based on secondary dof sets are copied to multi vectors with one
+   * node based vector for each component.
+   *
+   * @param dis (in): discretization, the vector is based on
+   * @param input_vector (in): vector to convert
+   * @param number_of_dofset (in): number of the dof set the map of the vector corresponds to
+   * @param number_of_dofs_per_node (in): number of dofs per node of the vector (assumed to be equal
+   * for all nodes)
+   * @return: multivector
+   */
+  [[nodiscard]] std::unique_ptr<Core::LinAlg::MultiVector<double>>
+  convert_dof_vector_to_node_based_multi_vector(const Core::FE::Discretization& dis,
+      const Core::LinAlg::Vector<double>& input_vector, const int number_of_dofset,
+      const int number_of_dofs_per_node);
+
+  /*!
    * \brief This object allows to write visualization output for a discretization, i.e., write the
    * mesh and results on the mesh to disk
    */
