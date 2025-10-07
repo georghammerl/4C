@@ -8,8 +8,6 @@
 #ifndef FOUR_C_UNITTEST_UTILS_CREATE_DISCRETIZATION_HELPER_TEST_HPP
 #define FOUR_C_UNITTEST_UTILS_CREATE_DISCRETIZATION_HELPER_TEST_HPP
 
-#include "4C_config.hpp"
-
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_comm_utils_factory.hpp"
 #include "4C_fem_discretization.hpp"
@@ -25,10 +23,9 @@
 
 #include <array>
 
-FOUR_C_NAMESPACE_OPEN
-
 namespace TESTING
 {
+  using namespace FourC;
 
   class PureGeometryElementType : public Core::Elements::ElementType
   {
@@ -215,6 +212,35 @@ namespace TESTING
     discretization.fill_complete();
 
     FOUR_C_ASSERT(discretization.num_global_elements() == total_elements, "Internal error.");
+  }
+
+
+  /**
+   * Fill the given @p discretization with the cells and points from the given @p mesh with @p
+   * PureGeometryElements.
+   */
+  inline void fill_discretization_from_mesh(
+      Core::FE::Discretization& dis, const FourC::Core::IO::MeshInput::Mesh<3>& mesh)
+  {
+    // Create discretization from mesh and redistribute
+    std::map<int, std::shared_ptr<Core::Elements::Element>> user_elements;
+    int cell_id = 0;
+    for (const auto& [_, block] : mesh.cell_blocks())
+    {
+      for (const auto& cell : block.cells())
+      {
+        auto e = std::make_shared<TESTING::PureGeometryElement>(cell_id, 0,
+            TESTING::PureGeometryElement::Data{
+                .cell_type = block.cell_type, .num_dof_per_node = 3});
+        e->set_node_ids(cell.size(), cell.data());
+        user_elements[cell_id] = e;
+
+        cell_id++;
+      }
+    }
+    Core::Rebalance::RebalanceParameters rebalance_parameters;
+
+    dis.fill_from_mesh(mesh, user_elements, {}, rebalance_parameters);
   }
 
 
@@ -481,7 +507,5 @@ namespace TESTING
   }
 
 }  // namespace TESTING
-
-FOUR_C_NAMESPACE_CLOSE
 
 #endif

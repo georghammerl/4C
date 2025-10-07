@@ -282,8 +282,7 @@ namespace Core::IO::MeshInput
         return raw_mesh_->external_ids ? (*raw_mesh_->external_ids)[index_] : invalid_external_id;
       }
 
-
-      [[nodiscard]] EligibleFieldTypes<dim> data(const std::string& field_name)
+      [[nodiscard]] EligibleFieldTypes<dim> data(const std::string& field_name) const
       {
         return std::visit([this](auto& variant_vector) -> EligibleFieldTypes<dim>
             { return variant_vector[index_]; }, raw_mesh_->point_data.at(field_name));
@@ -418,6 +417,17 @@ namespace Core::IO::MeshInput
     [[nodiscard]] Mesh filter_by_cell_block_ids(
         const std::vector<ExternalIdType>& cell_block_ids) const;
 
+    /**
+     * Check whether the mesh is empty, i.e., it contains no cell blocks and no points.
+     *
+     * @note A mesh is considered as not empty if it contains an empty cell-block (the mesh does not
+     * have points or cells).
+     */
+    [[nodiscard]] bool empty() const
+    {
+      return point_ids_filter_.empty() && cell_blocks_ids_filter_.empty();
+    }
+
    private:
     /**
      * Setup default indices including all entities in the mesh.
@@ -512,6 +522,50 @@ namespace Core::IO::MeshInput
               {
                 value[ele_id++] = static_cast<T>(v);
               }
+            }
+          },
+          data);
+    }
+  }
+
+  /*!
+   * @brief Reads in a map with value_type @p T from the point data of the given @p mesh.
+   *
+   * @throws if the point data is not found in all point sets or if the type of the point data is
+   * not implicitly convertible to the expected type.
+   */
+  template <typename IndexType, typename T, unsigned dim>
+    requires(std::is_integral_v<IndexType>)
+  void read_value_from_point_data(
+      const Mesh<dim>& mesh, const std::string& key, std::unordered_map<IndexType, T>& value)
+  {
+    if (mesh.empty())
+    {
+      // Nothing to do for an empty mesh
+      return;
+    }
+    FOUR_C_ASSERT_ALWAYS(
+        mesh.has_point_data(key), "The mesh does not contain point data with the name '{}'.", key);
+
+    for (const auto& point_ref : mesh.points_with_data())
+    {
+      const EligibleFieldTypes<dim>& data = point_ref.data(key);
+
+      std::visit(
+          [&](const auto& data)
+          {
+            using Type = std::decay_t<decltype(data)>;
+            if constexpr (!std::is_convertible_v<Type, T>)
+            {
+              FOUR_C_THROW(
+                  "Point data with name '{}' has type '{}' which is not convertible to "
+                  "the target type '{}'.",
+                  key, Core::Utils::try_demangle(typeid(Type).name()),
+                  Core::Utils::try_demangle(typeid(T).name()));
+            }
+            else
+            {
+              value[point_ref.id()] = static_cast<T>(data);
             }
           },
           data);

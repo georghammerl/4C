@@ -223,6 +223,8 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
     {
       case Core::IO::FieldDataBasis::cells:
         return "Field data is defined on the cells";
+      case Core::IO::FieldDataBasis::points:
+        return "Field data is defined on the points";
       default:
         FOUR_C_THROW("Unknown FieldDataBasis enum value");
     }

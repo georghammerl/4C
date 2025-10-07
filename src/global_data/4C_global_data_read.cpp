@@ -1839,6 +1839,7 @@ void Global::read_fields(
       const auto& mesh_input = field_entry.group("source").group("from_mesh");
 
       auto key = mesh_input.get<std::optional<std::string>>("key");
+      auto basis = mesh_input.get<Core::IO::FieldDataBasis>("basis");
       if (!key) key = field;
 
       auto it = mesh_data_registry.fields.find(field);
@@ -1864,16 +1865,26 @@ void Global::read_fields(
             field, discretization_name);
         for (auto& function : field_data.init_functions | std::views::values)
         {
-          function(*mesh, *key);
+          function(*discretization, *mesh, basis, *key);
+        }
+      }
+      else
+      {
+        const Core::IO::MeshInput::Mesh<3> empty_mesh_on_other_ranks{};
+        for (auto& function : field_data.init_functions | std::views::values)
+        {
+          function(*discretization, empty_mesh_on_other_ranks, basis, *key);
         }
       }
 
       // Attach a callback to redistribute the field once the dofs are assigned.
       discretization->callbacks().post_assign_dofs.add(
-          [&field_data](const Core::FE::Discretization& dis)
+          [&field_data, basis](const Core::FE::Discretization& dis)
           {
             // Redistribute the field once we assigned the dofs
-            const auto& target_map = *dis.element_col_map();
+            const auto& target_map = basis == Core::IO::FieldDataBasis::points
+                                         ? *dis.node_col_map()
+                                         : *dis.element_col_map();
             for (const auto& fn : field_data.redistribute_functions | std::views::values)
               fn(target_map);
           });
