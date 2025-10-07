@@ -275,38 +275,41 @@ void FSI::FSIResultTest::test_element(
 void FSI::FSIResultTest::test_special(
     const Core::IO::InputParameterContainer& container, int& nerr, int& test_count)
 {
-  std::string quantity = container.get<std::string>("QUANTITY");
-  bool unknownquantity = true;  // make sure the result value std::string can be handled
-  double result = 0.0;          // will hold the actual result of run
-
-  // test for time step size
-  if (quantity == "dt")
+  if (Core::Communication::my_mpi_rank(fsi_->get_comm()) == 0)
   {
-    unknownquantity = false;
-    result = fsi_->dt();
+    std::string quantity = container.get<std::string>("QUANTITY");
+    bool unknownquantity = true;  // make sure the result value std::string can be handled
+    double result = 0.0;          // will hold the actual result of run
+
+    // test for time step size
+    if (quantity == "dt")
+    {
+      unknownquantity = false;
+      result = fsi_->dt();
+    }
+
+    // test for number of repetitions of time step in case of time step size adaptivity
+    if (quantity == "adasteps")
+    {
+      unknownquantity = false;
+      result = fsi_->get_num_adapt_steps();
+    }
+
+    // test for simulation time in case of time step size adaptivity
+    if (quantity == "time")
+    {
+      unknownquantity = false;
+      result = fsi_->time();
+    }
+
+    // catch quantity strings, which are not handled by fsi result test
+    if (unknownquantity) FOUR_C_THROW("Quantity '{}' not supported in fsi testing", quantity);
+
+    // compare values
+    const int err = compare_values(result, "SPECIAL", container);
+    nerr += err;
+    test_count++;
   }
-
-  // test for number of repetitions of time step in case of time step size adaptivity
-  if (quantity == "adasteps")
-  {
-    unknownquantity = false;
-    result = fsi_->get_num_adapt_steps();
-  }
-
-  // test for simulation time in case of time step size adaptivity
-  if (quantity == "time")
-  {
-    unknownquantity = false;
-    result = fsi_->time();
-  }
-
-  // catch quantity strings, which are not handled by fsi result test
-  if (unknownquantity) FOUR_C_THROW("Quantity '{}' not supported in fsi testing", quantity);
-
-  // compare values
-  const int err = compare_values(result, "SPECIAL", container);
-  nerr += err;
-  test_count++;
 }
 
 FOUR_C_NAMESPACE_CLOSE
