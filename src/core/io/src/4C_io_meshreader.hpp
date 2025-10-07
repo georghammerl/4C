@@ -87,6 +87,14 @@ namespace Core::IO
      */
     [[nodiscard]] const MeshInput::Mesh<3>* get_external_mesh_on_rank_zero() const;
 
+    /**
+     * Access the filtered external mesh on rank 0 that belongs to a certain discretization. This is
+     * only available if an external mesh was actually read. On ranks other than 0, this will always
+     * return a nullptr.
+     */
+    [[nodiscard]] const MeshInput::Mesh<3>* get_filtered_external_mesh_on_rank_zero(
+        const Core::FE::Discretization& dis) const;
+
    private:
     /// Communicator for this mesh reader.
     MPI_Comm comm_;

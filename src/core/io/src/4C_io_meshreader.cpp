@@ -54,6 +54,12 @@ namespace Core::IO::Internal
      * The mesh intermediate representation. This is only created on rank 0.
      */
     std::shared_ptr<Core::IO::MeshInput::Mesh<3>> mesh_on_rank_zero{};
+
+    /**
+     * The filtered mesh that is created once the discretization is created. This is only available
+     * on rank 0.
+     */
+    std::optional<Core::IO::MeshInput::Mesh<3>> filtered_mesh_on_rank_zero{};
   };
 }  // namespace Core::IO::Internal
 
@@ -622,11 +628,12 @@ namespace
         }
       }
 
-      auto filtered_mesh = mesh.filter_by_cell_block_ids(relevant_blocks);
+      mesh_reader.filtered_mesh_on_rank_zero.emplace(
+          mesh.filter_by_cell_block_ids(relevant_blocks));
 
       // Rank zero provides the actual data.
       mesh_reader.target_discretization.fill_from_mesh(
-          filtered_mesh, user_elements, {}, parameters);
+          *mesh_reader.filtered_mesh_on_rank_zero, user_elements, {}, parameters);
     }
     // Other ranks
     else
@@ -814,6 +821,22 @@ const Core::IO::MeshInput::Mesh<3>* Core::IO::MeshReader::get_external_mesh_on_r
       "Internal error: all meshes are supposed to be the same.");
 
   return mesh_readers_.front()->mesh_on_rank_zero.get();
+}
+
+
+const Core::IO::MeshInput::Mesh<3>* Core::IO::MeshReader::get_filtered_external_mesh_on_rank_zero(
+    const Core::FE::Discretization& dis) const
+{
+  if (mesh_readers_.empty()) return nullptr;
+
+  auto it = std::ranges::find_if(mesh_readers_,
+      [&](const auto& mesh_reader) { return &mesh_reader->target_discretization == &dis; });
+
+  if (it == mesh_readers_.end()) return nullptr;
+
+  const Internal::MeshReader& mesh_reader = **it;
+  if (!mesh_reader.filtered_mesh_on_rank_zero.has_value()) return nullptr;
+  return &mesh_reader.filtered_mesh_on_rank_zero.value();
 }
 
 FOUR_C_NAMESPACE_CLOSE
