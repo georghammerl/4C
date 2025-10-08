@@ -409,8 +409,6 @@ void FSI::MonolithicNoNOX::set_default_parameters(
   solverOptions.set<std::string>("Status Test Check Type", "Complete");
 
   // be explicit about linear solver parameters
-  lsParams.set<std::string>("Aztec Solver", "GMRES");
-  // lsParams.set<std::string>("BiCGStab","GMRES");
   lsParams.set<std::string>("Orthogonalization", "Modified");
 
   // "r0", "rhs", "norm", "no scaling", "sol"
