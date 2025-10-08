@@ -24,11 +24,6 @@
 
 
 
-// Do not lint the file for identifier names, since the naming of the Wrapper functions follow the
-// naming of the Core::LinAlg::MultiVector<double>
-
-// NOLINTBEGIN(readability-identifier-naming)
-
 FOUR_C_NAMESPACE_OPEN
 
 namespace Core::LinAlg
@@ -274,6 +269,5 @@ namespace Core::LinAlg
 
 FOUR_C_NAMESPACE_CLOSE
 
-// NOLINTEND(readability-identifier-naming)
 
 #endif

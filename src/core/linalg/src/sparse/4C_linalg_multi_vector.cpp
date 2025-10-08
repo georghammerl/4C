@@ -12,11 +12,6 @@
 #include "4C_utils_exceptions.hpp"
 
 
-// Do not lint the file for identifier names, since the naming of the Wrapper functions follow the
-// naming of the Core::LinAlg::MultiVector<double>
-
-// NOLINTBEGIN(readability-identifier-naming)
-
 FOUR_C_NAMESPACE_OPEN
 template <typename T>
 Core::LinAlg::MultiVector<T>::MultiVector(const Epetra_BlockMap& Map, int num_columns, bool zeroOut)
@@ -185,5 +180,3 @@ std::unique_ptr<const Core::LinAlg::MultiVector<T>> Core::LinAlg::MultiVector<T>
 template class Core::LinAlg::MultiVector<double>;
 
 FOUR_C_NAMESPACE_CLOSE
-
-// NOLINTEND(readability-identifier-naming)
