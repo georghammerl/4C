@@ -2,7 +2,6 @@ PROBLEM TYPE:
   PROBLEMTYPE: "Thermo_Structure_Interaction"
 IO:
   STRUCT_STRAIN: "GL"
-  THERM_TEMPERATURE: true
   THERM_HEATFLUX: "Initial"
   THERM_TEMPGRAD: "Initial"
 CONTACT DYNAMIC:
