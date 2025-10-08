@@ -47,10 +47,6 @@ Miscellaneous:
 - HDF5
 - ArborX (optional)
 
-Post processing:
-
-- Paraview (recommended version: 5.5) - newer versions may fail some post processing tests.
-
 Build information
 ~~~~~~~~~~~~~~~~~
 

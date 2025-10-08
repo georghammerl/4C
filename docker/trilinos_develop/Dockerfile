@@ -98,9 +98,6 @@ RUN mkdir ${FOUR_C_TESTING_DEPENDENCIES_DIR}
 # Install Mathjax
 RUN /dependencies/testing/mathjax/install.sh ${FOUR_C_TESTING_DEPENDENCIES_DIR}
 
-# Install Paraview
-RUN /dependencies/testing/paraview/install.sh ${FOUR_C_TESTING_DEPENDENCIES_DIR}
-
 # add and enable the default user
 ENV USER=user
 RUN adduser --disabled-password --shell '/usr/bin/bash' --gecos '' $USER
