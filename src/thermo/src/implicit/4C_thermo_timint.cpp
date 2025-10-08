@@ -456,12 +456,6 @@ void Thermo::TimInt::output_step(bool forced_writerestart)
     if ((writerestartevery_ and (step_ % writerestartevery_ == 0)) or
         step_ == Global::Problem::instance()->restart())
       return;
-    // if state already exists, add restart information
-    if (writeglobevery_ and (step_ % writeglobevery_ == 0))
-    {
-      add_restart_to_output_state();
-      return;
-    }
   }
 
   // this flag is passed along subroutines and prevents
@@ -512,24 +506,6 @@ void Thermo::TimInt::output_restart(bool& datawritten)
         << "\n";
   }
 }
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-void Thermo::TimInt::add_restart_to_output_state()
-{
-  write_restart_force(output_);
-  output_->write_mesh(step_, time_[0]);
-
-  if ((Core::Communication::my_mpi_rank(discret_->get_comm()) == 0) and printscreen_ and
-      (step_old() % printscreen_ == 0))
-  {
-    Core::IO::cout << "====== Restart written in step " << step_ << "\n";
-    Core::IO::cout
-        << "--------------------------------------------------------------------------------"
-        << "\n";
-  }
-}
-
 
 /*----------------------------------------------------------------------*
  | heatflux calculation and output                          bborn 06/08 |

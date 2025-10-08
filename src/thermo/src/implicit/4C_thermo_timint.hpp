@@ -160,9 +160,6 @@ namespace Thermo
                                            //!< it was written at this time step
     );
 
-    //! Add restart information to output_state
-    void add_restart_to_output_state();
-
     //! Heatflux & temperature gradient output
     void output_heatflux_tempgrad(bool& datawritten  //!< (in/out) read and append if
                                                      //!< it was written at this time step
