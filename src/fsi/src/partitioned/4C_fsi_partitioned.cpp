@@ -603,14 +603,10 @@ Teuchos::RCP<::NOX::Epetra::LinearSystem> FSI::Partitioned::create_linear_system
     {
       // if no Jacobian has been set this better be the fix point
       // method.
-      if (dirParams.get("Method", "Newton") != "User Defined")
-      {
-        if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-          utils.out() << "Warning: No Jacobian for solver " << dirParams.get("Method", "Newton")
-                      << "\n";
-      }
-      linSys = Teuchos::make_rcp<::NOX::Epetra::LinearSystemAztecOO>(
-          printParams, lsParams, interface, noxSoln);
+      FOUR_C_ASSERT(dirParams.get("Method", "Newton") == "User Defined",
+          "No Jacobian for solver '{}'", dirParams.get("Method", "Newton"));
+
+      linSys = Teuchos::null;
     }
     else
     {
