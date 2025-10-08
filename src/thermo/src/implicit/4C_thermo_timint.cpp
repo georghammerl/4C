@@ -42,7 +42,6 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       output_(output),
       printscreen_(ioparams.get<int>("STDOUTEVERY")),
       writerestartevery_(tdynparams.get<int>("RESTARTEVERY")),
-      writeglob_(ioparams.get<bool>("THERM_TEMPERATURE")),
       writeglobevery_(tdynparams.get<int>("RESULTSEVERY")),
       writeheatflux_(Teuchos::getIntegralValue<Thermo::HeatFluxType>(ioparams, "THERM_HEATFLUX")),
       writetempgrad_(Teuchos::getIntegralValue<Thermo::TempGradType>(ioparams, "THERM_TEMPGRAD")),
@@ -53,7 +52,6 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       stepmax_(tdynparams.get<int>("NUMSTEP")),
       step_(0),
       stepn_(0),
-      firstoutputofrun_(true),
       lumpcapa_(tdynparams.get<bool>("LUMPCAPA")),
       zeros_(nullptr),
       tempn_(nullptr),
@@ -128,6 +126,8 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
     if (vtk_output_thermo)
     {
       bool output_temperature_state = thermo_vtk_runtime_output_list.get<bool>("TEMPERATURE");
+      bool output_temperature_rate_state =
+          thermo_vtk_runtime_output_list.get<bool>("TEMPERATURE_RATE");
       bool output_conductivity_state = thermo_vtk_runtime_output_list.get<bool>("CONDUCTIVITY");
       bool output_heatflux_state = thermo_vtk_runtime_output_list.get<bool>("HEATFLUX");
       bool output_tempgrad_state = thermo_vtk_runtime_output_list.get<bool>("TEMPGRAD");
@@ -136,6 +136,7 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       bool output_node_gid = thermo_vtk_runtime_output_list.get<bool>("NODE_GID");
 
       runtime_vtk_params_ = {.output_temperature_state = output_temperature_state,
+          .output_temperature_rate_state = output_temperature_rate_state,
           .output_conductivity_state = output_conductivity_state,
           .output_heatflux_state = output_heatflux_state,
           .output_tempgrad_state = output_tempgrad_state,
@@ -382,6 +383,12 @@ void Thermo::TimInt::write_runtime_output()
           *tempn_, Core::IO::OutputEntity::node, {"temperature"});
     }
 
+    if (runtime_vtk_params_.output_temperature_rate_state)
+    {
+      runtime_vtk_writer_->append_result_data_vector_with_context(
+          *raten_, Core::IO::OutputEntity::node, {"temperature_rate"});
+    }
+
     if (runtime_vtk_params_.output_conductivity_state)
     {
       std::vector<std::optional<std::string>> context(conductivity_->NumVectors(), "conductivity");
@@ -475,12 +482,6 @@ void Thermo::TimInt::output_step(bool forced_writerestart)
     write_runtime_output();
   }
 
-  // output results (not necessary if restart in same step)
-  if (writeglob_ and writeglobevery_ and (step_ % writeglobevery_ == 0) and (not datawritten))
-  {
-    output_state(datawritten);
-  }
-
   // output heatflux & tempgrad
   if (writeglobevery_ and (step_ % writeglobevery_ == 0) and
       ((writeheatflux_ != Thermo::heatflux_none) or (writetempgrad_ != Thermo::tempgrad_none)))
@@ -491,85 +492,43 @@ void Thermo::TimInt::output_step(bool forced_writerestart)
 
 
 /*----------------------------------------------------------------------*
- | write restart                                            mwgee 03/07 |
  *----------------------------------------------------------------------*/
 void Thermo::TimInt::output_restart(bool& datawritten)
 {
-  // Yes, we are going to write...
   datawritten = true;
 
-  // write restart output, please
   output_->write_mesh(step_, time_[0]);
   output_->new_step(step_, time_[0]);
   output_->write_vector("temperature", temp_(0));
   output_->write_vector("rate", rate_(0));
-  // write all force vectors which are later read in restart
   write_restart_force(output_);
-  // owner of elements is just written once because it does not change during simulation (so far)
-  output_->write_element_data(firstoutputofrun_);
-  firstoutputofrun_ = false;
 
-  // info dedicated to user's eyes staring at standard out
   if ((Core::Communication::my_mpi_rank(discret_->get_comm()) == 0) and printscreen_ and
       (step_old() % printscreen_ == 0))
   {
-    printf("====== Restart written in step %d\n", step_);
-    // print a beautiful line made exactly of 80 dashes
-    printf(
-        "--------------------------------------------------------------"
-        "------------------\n");
-    fflush(stdout);
+    Core::IO::cout << "====== Restart written in step " << step_ << "\n";
+    Core::IO::cout
+        << "--------------------------------------------------------------------------------"
+        << "\n";
   }
-
-}  // output_restart()
-
+}
 
 /*----------------------------------------------------------------------*
- | output temperature,temperature rate                      bborn 06/08 |
- | originally by mwgee 03/07                                            |
- *----------------------------------------------------------------------*/
-void Thermo::TimInt::output_state(bool& datawritten)
-{
-  // Yes, we are going to write...
-  datawritten = true;
-
-  // write now
-  output_->new_step(step_, time_[0]);
-  output_->write_vector("temperature", temp_(0));
-  output_->write_vector("rate", rate_(0));
-  // owner of elements is just written once because it does not change during simulation (so far)
-  output_->write_element_data(firstoutputofrun_);
-  firstoutputofrun_ = false;
-
-  // leave for good
-  return;
-
-}  // output_state()
-
-
-/*----------------------------------------------------------------------*
- | add restart information to OutputStatewrite restart      ghamm 10/13 |
  *----------------------------------------------------------------------*/
 void Thermo::TimInt::add_restart_to_output_state()
 {
-  // write all force vectors which are later read in restart
   write_restart_force(output_);
-
-  // finally add the missing mesh information, order is important here
   output_->write_mesh(step_, time_[0]);
 
-  // info dedicated to user's eyes staring at standard out
   if ((Core::Communication::my_mpi_rank(discret_->get_comm()) == 0) and printscreen_ and
       (step_old() % printscreen_ == 0))
   {
-    printf("====== Restart written in step %d\n", step_);
-    // print a beautiful line made exactly of 80 dashes
-    printf(
-        "--------------------------------------------------------------"
-        "------------------\n");
-    fflush(stdout);
+    Core::IO::cout << "====== Restart written in step " << step_ << "\n";
+    Core::IO::cout
+        << "--------------------------------------------------------------------------------"
+        << "\n";
   }
-}  // add_restart_to_output_state()
+}
 
 
 /*----------------------------------------------------------------------*

@@ -160,12 +160,6 @@ namespace Thermo
                                            //!< it was written at this time step
     );
 
-    //! Output temperatures, temperature rates
-    //! and more system vectors
-    void output_state(bool& datawritten  //!< (in/out) read and append if
-                                         //!< it was written at this time step
-    );
-
     //! Add restart information to output_state
     void add_restart_to_output_state();
 
@@ -383,6 +377,9 @@ namespace Thermo
       /// whether to write temperature output
       bool output_temperature_state = false;
 
+      /// whether to write temperature rate output
+      bool output_temperature_rate_state = false;
+
       /// whether to write conductivity output
       bool output_conductivity_state = false;
 
@@ -418,7 +415,6 @@ namespace Thermo
     int printscreen_;        //!< print infos to standard out every n steps
     int writerestartevery_;  //!< write restart every given step;
                              //!< if 0, restart is not written
-    bool writeglob_;         //!< write state on/off
     int writeglobevery_;     //!< write state every given step
     Thermo::HeatFluxType writeheatflux_;
     Thermo::TempGradType writetempgrad_;
@@ -436,8 +432,7 @@ namespace Thermo
     int stepmax_;                             //!< final step \f$N\f$
     int step_;                                //!< time step index \f$n\f$
     int stepn_;                               //!< time step index \f$n+1\f$
-    bool firstoutputofrun_;  //!< flag whether this output step is the first one (restarted or not)
-    bool lumpcapa_;          //!< flag for lumping the capacity matrix, default: false
+    bool lumpcapa_;  //!< flag for lumping the capacity matrix, default: false
 
     //@}
 
