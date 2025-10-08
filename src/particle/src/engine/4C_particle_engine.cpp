@@ -935,7 +935,7 @@ void PARTICLEENGINE::ParticleEngine::setup_binning_strategy()
   binstrategy_->get_all_bin_centers(*binrowmap_, *bincenters_);
 
   // initialize weights of all bins
-  binweights_->PutScalar(1.0e-05);
+  binweights_->put_scalar(1.0e-05);
 
   // distribute bins via recursive coordinate bisection
   binstrategy_->distribute_bins_recurs_coord_bisection(binrowmap_, bincenters_, binweights_);
@@ -2089,7 +2089,7 @@ void PARTICLEENGINE::ParticleEngine::determine_bin_weights()
   if (not validownedparticles_) FOUR_C_THROW("invalid relation of owned particles to bins!");
 
   // initialize weights of all bins
-  binweights_->PutScalar(1.0e-05);
+  binweights_->put_scalar(1.0e-05);
 
   // loop over row bins
   for (int rowlidofbin = 0; rowlidofbin < binrowmap_->num_my_elements(); ++rowlidofbin)

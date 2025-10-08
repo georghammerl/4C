@@ -334,7 +334,7 @@ namespace Core::Communication
           vec.get_map(), Core::Communication::num_mpi_ranks(lcomm) - 1);
 
     // export full vectors to the two desired processors
-    Core::LinAlg::MultiVector<double> fullvec(*proc0map, vec.NumVectors(), true);
+    Core::LinAlg::MultiVector<double> fullvec(*proc0map, vec.num_vectors(), true);
     Core::LinAlg::export_to(vec, fullvec);
 
     const int myglobalrank = Core::Communication::my_mpi_rank(gcomm);
@@ -372,7 +372,7 @@ namespace Core::Communication
       MPI_Recv(&lengthRecv, 1, MPI_INT, Core::Communication::num_mpi_ranks(gcomm) - 1, tag, gcomm,
           &status);
       // also enable comparison of empty vectors
-      if (lengthRecv == 0 && fullvec.MyLength() != lengthRecv)
+      if (lengthRecv == 0 && fullvec.local_length() != lengthRecv)
         FOUR_C_THROW("Length of data received from second run is incorrect.");
 
       // second: receive data
@@ -382,14 +382,14 @@ namespace Core::Communication
           Core::Communication::num_mpi_ranks(gcomm) - 1, tag, gcomm, &status);
 
       // start comparison
-      int mylength = fullvec.MyLength() * vec.NumVectors();
+      int mylength = fullvec.local_length() * vec.num_vectors();
       if (mylength != lengthRecv)
         FOUR_C_THROW(
             "length of received data ({}) does not match own data ({})", lengthRecv, mylength);
 
       for (int i = 0; i < mylength; ++i)
       {
-        double difference = std::abs(fullvec.Values()[i] - receivebuf[i]);
+        double difference = std::abs(fullvec.get_values()[i] - receivebuf[i]);
         if (difference > tol)
         {
           std::stringstream diff;
@@ -421,14 +421,14 @@ namespace Core::Communication
       MPI_Send(const_cast<char*>(name), lengthSend, MPI_CHAR, 0, tag, gcomm);
 
       // compare data
-      lengthSend = fullvec.MyLength() * vec.NumVectors();
+      lengthSend = fullvec.local_length() * vec.num_vectors();
       // first: send length of data
       tag = 1337;
       MPI_Send(&lengthSend, 1, MPI_INT, 0, tag, gcomm);
 
       // second: send data
       tag = 2674;
-      MPI_Send(fullvec.Values(), lengthSend, MPI_DOUBLE, 0, tag, gcomm);
+      MPI_Send(fullvec.get_values(), lengthSend, MPI_DOUBLE, 0, tag, gcomm);
     }
 
     // force all procs to stay here until proc 0 has checked the vectors

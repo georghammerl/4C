@@ -117,12 +117,12 @@ void Core::IO::DiscretizationReader::read_multi_vector(
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> nv = read_multi_vector(name);
 
-  if (nv->GlobalLength() > vec->GlobalLength())
+  if (nv->global_length() > vec->global_length())
     FOUR_C_THROW(
         "Reading vector \"{}\": Global length of source exceeds target "
         "(Multi-) Vector length! This case is not supported ! "
         "Source size: {} Target size: {}",
-        name.c_str(), nv->GlobalLength(), vec->GlobalLength());
+        name.c_str(), nv->global_length(), vec->global_length());
 
   Core::LinAlg::export_to(*nv, *vec);
 }
@@ -828,8 +828,8 @@ void Core::IO::DiscretizationWriter::write_multi_vector(
   if (binio_)
   {
     std::string valuename = name + ".values";
-    const double* data = vec.Values();
-    const hsize_t size = vec.MyLength() * vec.NumVectors();
+    const double* data = vec.get_values();
+    const hsize_t size = vec.local_length() * vec.num_vectors();
     if (size != 0)
     {
       const herr_t make_status =
@@ -868,7 +868,7 @@ void Core::IO::DiscretizationWriter::write_multi_vector(
     }
     else
     {
-      const hsize_t mapsize = vec.MyLength();
+      const hsize_t mapsize = vec.local_length();
       idname = name + ".ids";
       int* ids = vec.get_map().my_global_elements();
       if (size != 0)
@@ -928,7 +928,7 @@ void Core::IO::DiscretizationWriter::write_multi_vector(
       }
       output_->control_file() << "    " << name << ":\n"
                               << "        type = \"" << vectortype << "\"\n"
-                              << "        columns = " << vec.NumVectors() << "\n"
+                              << "        columns = " << vec.num_vectors() << "\n"
                               << "        values = \"" << valuename.c_str() << "\"\n"
                               << "        ids = \"" << idname.c_str()
                               << "\"\n\n"  // different names + other information?

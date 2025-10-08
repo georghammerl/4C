@@ -315,10 +315,10 @@ namespace Core::IO
     auto result_data_nodebased_col_map = convert_to_col_map_if_necessary(result_data_nodebased);
 
     // safety checks
-    FOUR_C_ASSERT(static_cast<unsigned int>(result_data_nodebased_col_map.NumVectors()) ==
+    FOUR_C_ASSERT(static_cast<unsigned int>(result_data_nodebased_col_map.num_vectors()) ==
                       result_num_components_per_node,
         "Expected Core::LinAlg::MultiVector<double> with {} columns but got {}.",
-        result_num_components_per_node, result_data_nodebased_col_map.NumVectors());
+        result_num_components_per_node, result_data_nodebased_col_map.num_vectors());
 
     FOUR_C_ASSERT(discretization_->node_col_map()->same_as(result_data_nodebased_col_map.get_map()),
         "Received map of node-based result data vector does not match the discretization's node "
@@ -366,10 +366,10 @@ namespace Core::IO
      * data */
 
     // safety check
-    FOUR_C_ASSERT(static_cast<unsigned int>(result_data_elementbased.NumVectors()) ==
+    FOUR_C_ASSERT(static_cast<unsigned int>(result_data_elementbased.num_vectors()) ==
                       result_num_components_per_element,
         "Expected Core::LinAlg::MultiVector<double> with {} columns but got {}.",
-        result_num_components_per_element, result_data_elementbased.NumVectors());
+        result_num_components_per_element, result_data_elementbased.num_vectors());
 
     FOUR_C_ASSERT(discretization_->element_row_map()->same_as(result_data_elementbased.get_map()),
         "Received map of element-based result data vector does not match the discretization's "

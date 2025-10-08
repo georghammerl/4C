@@ -141,7 +141,7 @@ void Core::LinearSolver::AMGNxN::Vcycle::do_vcycle(
     DX.update(1.0, X, -1.0);
 
     //  Create coarser representation of the residual
-    int NV = X.get_vector(0)->NumVectors();
+    int NV = X.get_vector(0)->num_vectors();
     Teuchos::RCP<BlockedVector> DXcoarse = rvec_[level]->new_range_blocked_vector(NV, false);
     rvec_[level]->apply(DX, *DXcoarse);
 
@@ -301,10 +301,10 @@ void Core::LinearSolver::AMGNxN::VcycleSingle::do_vcycle(const Core::LinAlg::Mul
     svec_pre_[level]->apply(X, Y, InitialGuessIsZero);
 
     // Compute residual
-    int NV = X.NumVectors();
+    int NV = X.num_vectors();
     Core::LinAlg::MultiVector<double> DX(X.get_map(), NV, false);
     avec_[level]->Apply(Y, DX);
-    DX.Update(1.0, X, -1.0);
+    DX.update(1.0, X, -1.0);
 
     //  Create coarser representation of the residual
     const Core::LinAlg::Map& Map = rvec_[level]->range_map();
@@ -319,7 +319,7 @@ void Core::LinearSolver::AMGNxN::VcycleSingle::do_vcycle(const Core::LinAlg::Mul
     // Compute correction
     Core::LinAlg::MultiVector<double> DY(Y.get_map(), NV, false);
     pvec_[level]->Apply(DYcoarse, DY);
-    Y.Update(1.0, DY, 1.0);
+    Y.update(1.0, DY, 1.0);
 
     // Apply post smoother
     svec_pos_[level]->apply(X, Y, false);

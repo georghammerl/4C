@@ -496,7 +496,7 @@ void Adapter::FluidFSI::proj_vel_to_div_zero()
   {
     std::shared_ptr<Core::LinAlg::MultiVector<double>> pressure_nullspace =
         std::make_shared<Core::LinAlg::MultiVector<double>>(*(dis_->dof_row_map()), 1);
-    pressure_nullspace->PutScalar(1.0);
+    pressure_nullspace->put_scalar(1.0);
 
     solver->params().sublist("MueLu Parameters").set("PDE equations", 1);
     solver->params()

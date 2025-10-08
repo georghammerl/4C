@@ -779,7 +779,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor:
 
   // create a new multi vector
   std::shared_ptr<Core::LinAlg::MultiVector<double>> vec =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*sl_full_map, full.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*sl_full_map, full.num_vectors());
 
   // extract the actual vector and return it
   extract_vector(full, dis_id, *vec, map_type);
@@ -860,7 +860,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor:
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> full =
       std::make_shared<Core::LinAlg::MultiVector<double>>(
-          *full_map(map_type), partial.NumVectors());
+          *full_map(map_type), partial.num_vectors());
 
   insert_vector(partial, dis_id, *full, map_type);
   return full;

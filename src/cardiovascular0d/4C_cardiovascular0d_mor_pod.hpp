@@ -55,7 +55,7 @@ namespace Cardiovascular0D
 
     bool have_mor() { return havemor_; };
 
-    int get_red_dim() { return projmatrix_->NumVectors(); };
+    int get_red_dim() { return projmatrix_->num_vectors(); };
 
    private:
     /*! \brief Read POD basis vectors from file

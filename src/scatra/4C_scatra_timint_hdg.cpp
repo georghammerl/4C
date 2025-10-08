@@ -374,7 +374,7 @@ void ScaTra::TimIntHDG::collect_runtime_output_data()
   visualization_writer().append_result_data_vector_with_context(
       *interpolatedPhinp_, Core::IO::OutputEntity::node, context);
 
-  context.assign(interpolatedGradPhi->NumVectors(), "grad_phi");
+  context.assign(interpolatedGradPhi->num_vectors(), "grad_phi");
   visualization_writer().append_result_data_vector_with_context(
       *interpolatedGradPhi, Core::IO::OutputEntity::node, context);
 

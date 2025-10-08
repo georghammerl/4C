@@ -100,7 +100,7 @@ namespace Core::FE
   template <typename T, std::ranges::sized_range Range>
   std::vector<T> extract_values(const Core::LinAlg::MultiVector<T>& global, const Range& global_ids)
   {
-    const int numcol = global.NumVectors();
+    const int numcol = global.num_vectors();
     const size_t ldim = std::size(global_ids);
 
     std::vector<T> local(ldim * numcol);
@@ -109,7 +109,7 @@ namespace Core::FE
       const int lid = global.get_map().lid(global_ids[i]);
       FOUR_C_ASSERT_ALWAYS(lid >= 0,
           "Proc {}: Cannot find gid={} in Core::LinAlg::MultiVector<double>",
-          Core::Communication::my_mpi_rank(global.Comm()), global_ids[i]);
+          Core::Communication::my_mpi_rank(global.get_comm()), global_ids[i]);
 
       // loop over multi vector columns (numcol=1 for Core::LinAlg::Vector<double>)
       for (int col = 0; col < numcol; col++)
@@ -214,8 +214,8 @@ namespace Core::FE
       const int nsd                               ///< number of space dimensions
   )
   {
-    if (nsd > global.NumVectors())
-      FOUR_C_THROW("Requested {} of {} available columns", nsd, global.NumVectors());
+    if (nsd > global.num_vectors())
+      FOUR_C_THROW("Requested {} of {} available columns", nsd, global.num_vectors());
     const int iel = ele->num_node();  // number of nodes
     if (((int)localmatrix.num_cols()) != iel)
       FOUR_C_THROW("local matrix has wrong number of columns");
@@ -230,7 +230,7 @@ namespace Core::FE
         const int lid = global.get_map().lid(nodegid);
         if (lid < 0)
           FOUR_C_THROW("Proc {}: Cannot find gid={} in Core::LinAlg::Vector<double>",
-              Core::Communication::my_mpi_rank((global).Comm()), nodegid);
+              Core::Communication::my_mpi_rank((global).get_comm()), nodegid);
         localmatrix(i, j) = global(i)[lid];
       }
     }
@@ -247,7 +247,7 @@ namespace Core::FE
       const Core::Elements::Element* ele, M& local, const Core::LinAlg::MultiVector<double>& global)
   {
     const int numnode = ele->num_node();
-    const int numcol = global.NumVectors();
+    const int numcol = global.num_vectors();
     if (((int)local.n()) != 1) FOUR_C_THROW("local matrix must have one column");
     if (((int)local.m()) != numnode * numcol) FOUR_C_THROW("local matrix has wrong number of rows");
 
@@ -258,7 +258,7 @@ namespace Core::FE
       const int lid = global.get_map().lid(nodegid);
       if (lid < 0)
         FOUR_C_THROW("Proc {}: Cannot find gid={} in Core::LinAlg::Vector<double>",
-            Core::Communication::my_mpi_rank(global.Comm()), nodegid);
+            Core::Communication::my_mpi_rank(global.get_comm()), nodegid);
 
       // loop over multi vector columns (numcol=1 for Core::LinAlg::Vector<double>)
       for (int col = 0; col < numcol; col++)

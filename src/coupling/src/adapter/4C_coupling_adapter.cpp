@@ -591,7 +591,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::
     const Core::LinAlg::MultiVector<double>& mv) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*slavedofmap_, mv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*slavedofmap_, mv.num_vectors());
 
   master_to_slave(mv, *sv);
 
@@ -605,7 +605,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::
     const Core::LinAlg::MultiVector<double>& sv) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*masterdofmap_, sv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*masterdofmap_, sv.num_vectors());
 
   slave_to_master(sv, *mv);
 
@@ -622,14 +622,15 @@ void Coupling::Adapter::Coupling::master_to_slave(
   if (not mv.get_map().point_same_as(*masterdofmap_))
     FOUR_C_THROW("master dof map vector expected");
   if (not sv.get_map().point_same_as(*slavedofmap_)) FOUR_C_THROW("slave dof map vector expected");
-  if (sv.NumVectors() != mv.NumVectors())
-    FOUR_C_THROW("column number mismatch {}!={}", sv.NumVectors(), mv.NumVectors());
+  if (sv.num_vectors() != mv.num_vectors())
+    FOUR_C_THROW("column number mismatch {}!={}", sv.num_vectors(), mv.num_vectors());
 #endif
 
-  Core::LinAlg::MultiVector<double> perm(*permslavedofmap_, mv.NumVectors());
-  std::copy(mv.Values(), mv.Values() + (mv.MyLength() * mv.NumVectors()), perm.Values());
+  Core::LinAlg::MultiVector<double> perm(*permslavedofmap_, mv.num_vectors());
+  std::copy(
+      mv.get_values(), mv.get_values() + (mv.local_length() * mv.num_vectors()), perm.get_values());
 
-  const int err = sv.Export(perm, *slaveexport_, Insert);
+  const int err = sv.export_to(perm, *slaveexport_, Insert);
   if (err) FOUR_C_THROW("Export to slave distribution returned err={}", err);
 }
 
@@ -663,14 +664,15 @@ void Coupling::Adapter::Coupling::slave_to_master(
     std::cout << sv.get_map() << std::endl;
     FOUR_C_THROW("slave dof map vector expected");
   }
-  if (sv.NumVectors() != mv.NumVectors())
-    FOUR_C_THROW("column number mismatch {}!={}", sv.NumVectors(), mv.NumVectors());
+  if (sv.num_vectors() != mv.num_vectors())
+    FOUR_C_THROW("column number mismatch {}!={}", sv.num_vectors(), mv.num_vectors());
 #endif
 
-  Core::LinAlg::MultiVector<double> perm(*permmasterdofmap_, sv.NumVectors());
-  std::copy(sv.Values(), sv.Values() + (sv.MyLength() * sv.NumVectors()), perm.Values());
+  Core::LinAlg::MultiVector<double> perm(*permmasterdofmap_, sv.num_vectors());
+  std::copy(
+      sv.get_values(), sv.get_values() + (sv.local_length() * sv.num_vectors()), perm.get_values());
 
-  const int err = mv.Export(perm, *masterexport_, Insert);
+  const int err = mv.export_to(perm, *masterexport_, Insert);
   if (err) FOUR_C_THROW("Export to master distribution returned err={}", err);
 }
 

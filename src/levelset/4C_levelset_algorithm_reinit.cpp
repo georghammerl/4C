@@ -1502,7 +1502,7 @@ void ScaTra::LevelSetAlgorithm::reinitialize_with_elliptic_equation()
   // clear variables
   interface_eleq_ = nullptr;
   initialphireinit_ = nullptr;
-  if (projection_ == true) nb_grad_val_->PutScalar(0.0);
+  if (projection_ == true) nb_grad_val_->put_scalar(0.0);
 
   return;
 }

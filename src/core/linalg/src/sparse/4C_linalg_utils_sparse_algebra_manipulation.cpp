@@ -29,12 +29,13 @@ void Core::LinAlg::export_to(
     const bool targetunique = target.get_map().unique_gids();
 
     // both are unique, does not matter whether ex- or import
-    if (sourceunique && targetunique && Core::Communication::num_mpi_ranks(source.Comm()) == 1 &&
-        Core::Communication::num_mpi_ranks(target.Comm()) == 1)
+    if (sourceunique && targetunique &&
+        Core::Communication::num_mpi_ranks(source.get_comm()) == 1 &&
+        Core::Communication::num_mpi_ranks(target.get_comm()) == 1)
     {
-      if (source.NumVectors() != target.NumVectors())
+      if (source.num_vectors() != target.num_vectors())
         FOUR_C_THROW("number of vectors in source and target not the same!");
-      for (int k = 0; k < source.NumVectors(); ++k)
+      for (int k = 0; k < source.num_vectors(); ++k)
         for (int i = 0; i < target.get_map().num_my_elements(); ++i)
         {
           const int gid = target.get_map().gid(i);
@@ -49,14 +50,14 @@ void Core::LinAlg::export_to(
     else if (sourceunique && targetunique)
     {
       Core::LinAlg::Export exporter(source.get_map(), target.get_map());
-      int err = target.Export(source, exporter, Insert);
+      int err = target.export_to(source, exporter, Insert);
       if (err) FOUR_C_THROW("Export using exporter returned err={}", err);
       return;
     }
     else if (sourceunique && !targetunique)
     {
       Core::LinAlg::Import importer(target.get_map(), source.get_map());
-      int err = target.Import(source, importer, Insert);
+      int err = target.import(source, importer, Insert);
       if (err) FOUR_C_THROW("Export using importer returned err={}", err);
       return;
     }
@@ -74,7 +75,7 @@ void Core::LinAlg::export_to(
           FOUR_C_THROW(
               "Export of non-unique source failed. Source data not available on target proc");
 
-        for (int k = 0; k < source.NumVectors(); ++k)
+        for (int k = 0; k < source.num_vectors(); ++k)
           target(k).get_values()[targetlid] = source(k)[sourcelid];
       }
       return;
@@ -759,13 +760,13 @@ void Core::LinAlg::std_vector_to_multi_vector(const std::vector<double>& std_vec
   for (size_t dim = 0; dim < Teuchos::as<size_t>(block_size); ++dim)
   {
     double** arrayOfPointers;
-    multi_vector.ExtractView(&arrayOfPointers);
+    multi_vector.extract_view(&arrayOfPointers);
     double* data = arrayOfPointers[dim];
-    int localLength = multi_vector.MyLength();
+    int localLength = multi_vector.local_length();
 
     Teuchos::ArrayRCP<double> dataVector(data, 0, localLength, false);
 
-    const double myLength = multi_vector.MyLength();
+    const double myLength = multi_vector.local_length();
     for (double dofLID = 0; dofLID < myLength; ++dofLID)
     {
       dataVector[dofLID] = std_vector[dim * myLength + dofLID];
@@ -781,13 +782,13 @@ void Core::LinAlg::multi_vector_to_std_vector(const Core::LinAlg::MultiVector<do
   for (size_t dim = 0; dim < Teuchos::as<size_t>(block_size); ++dim)
   {
     double** arrayOfPointers;
-    multi_vector.ExtractView(&arrayOfPointers);
+    multi_vector.extract_view(&arrayOfPointers);
     double* data = arrayOfPointers[dim];
-    int localLength = multi_vector.MyLength();
+    int localLength = multi_vector.local_length();
 
     Teuchos::ArrayRCP<double> dataVector(data, 0, localLength, false);
 
-    const double myLength = multi_vector.MyLength();
+    const double myLength = multi_vector.local_length();
     for (double dofLID = 0; dofLID < myLength; ++dofLID)
       std_vector[dim * myLength + dofLID] = dataVector[dofLID];
   }
@@ -799,14 +800,14 @@ void Core::LinAlg::multi_vector_to_linalg_sparse_matrix(
     const Core::LinAlg::MultiVector<double>& multivect, const Core::LinAlg::Map& rangemap,
     const Core::LinAlg::Map& domainmap, Core::LinAlg::SparseMatrix& sparsemat)
 {
-  const double* Values = multivect.Values();
+  const double* Values = multivect.get_values();
 
   double value;
-  for (int i = 0; i < multivect.NumVectors(); i++)
+  for (int i = 0; i < multivect.num_vectors(); i++)
   {
-    for (int j = 0; j < multivect.MyLength(); j++)
+    for (int j = 0; j < multivect.local_length(); j++)
     {
-      value = Values[i * multivect.MyLength() + j];
+      value = Values[i * multivect.local_length() + j];
 
       // if we have a zero value, just continue
       if (std::abs(value) < std::numeric_limits<double>::min()) continue;

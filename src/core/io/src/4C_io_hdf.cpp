@@ -352,9 +352,9 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::IO::HDFReader::read_res
   std::vector<int> lengths;
   std::shared_ptr<std::vector<double>> values = read_double_data(value_path, start, end, lengths);
 
-  if (static_cast<int>(values->size()) != res->MyLength() * res->NumVectors())
+  if (static_cast<int>(values->size()) != res->local_length() * res->num_vectors())
     FOUR_C_THROW("vector value size mismatch: {} != {}", values->size(),
-        res->MyLength() * res->NumVectors());
+        res->local_length() * res->num_vectors());
 
   // Rearrange multi vectors that are read with fewer processors than written.
   int offset = 0;
@@ -365,7 +365,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::IO::HDFReader::read_res
     {
       std::copy(values->data() + offset + c * l / columns,
           values->data() + offset + (c + 1) * l / columns,
-          res->Values() + c * res->MyLength() + offset / columns);
+          res->get_values() + c * res->local_length() + offset / columns);
     }
     offset += l;
   }

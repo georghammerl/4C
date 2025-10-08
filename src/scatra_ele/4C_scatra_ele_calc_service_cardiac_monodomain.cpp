@@ -112,9 +112,9 @@ int Discret::Elements::ScaTraEleCalcCardiacMonodomain<distype, probdim>::evaluat
         {
           std::shared_ptr<Mat::Myocard> material =
               std::dynamic_pointer_cast<Mat::Myocard>(ele->material());
-          for (int k = 0; k < material_internal_state->NumVectors(); ++k)
+          for (int k = 0; k < material_internal_state->num_vectors(); ++k)
           {
-            int err = material_internal_state->ReplaceGlobalValue(
+            int err = material_internal_state->replace_global_value(
                 ele->id(), k, material->get_internal_state(k));
             if (err != 0) FOUR_C_THROW("{}", err);
           }
@@ -164,9 +164,9 @@ int Discret::Elements::ScaTraEleCalcCardiacMonodomain<distype, probdim>::evaluat
         {
           std::shared_ptr<Mat::Myocard> material =
               std::dynamic_pointer_cast<Mat::Myocard>(ele->material());
-          for (int k = 0; k < material_ionic_currents->NumVectors(); ++k)
+          for (int k = 0; k < material_ionic_currents->num_vectors(); ++k)
           {
-            int err = material_ionic_currents->ReplaceGlobalValue(
+            int err = material_ionic_currents->replace_global_value(
                 ele->id(), k, material->get_ionic_currents(k));
             if (err != 0) FOUR_C_THROW("{}", err);
           }

@@ -494,12 +494,12 @@ bool XFEM::LevelSetCoupling::set_level_set_field(const double time)
       {
         // Convert NodeRowMap from compute_nodal_l2_projection to dof_row_map while assuming
         // identical ordering
-        for (int ivec = 0; ivec < gradphinp_smoothed_rownode->NumVectors(); ivec++)
+        for (int ivec = 0; ivec < gradphinp_smoothed_rownode->num_vectors(); ivec++)
         {
           auto& itemp = (*gradphinp_smoothed_rownode)(ivec);
           for (int jlength = 0; jlength < itemp.local_length(); jlength++)
           {
-            gradphinp_smoothed_node_->ReplaceMyValue(jlength, ivec, itemp[jlength]);
+            gradphinp_smoothed_node_->replace_local_value(jlength, ivec, itemp[jlength]);
           }
         }
         // Bring dof_row_map to DofColMap layout (Attention: name is node but lives on dof)

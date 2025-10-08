@@ -2010,9 +2010,9 @@ namespace FLD
     }
 
     double massflowpos = 0.0;
-    massflvec.Norm1(&massflowpos);
+    massflvec.norm_1(&massflowpos);
     double massflowneg = 0.0;
-    massflvecneg.Norm1(&massflowneg);
+    massflvecneg.norm_1(&massflowneg);
     double massflow = massflowpos - massflowneg;
 
     double dm = massflow - oldflow_;

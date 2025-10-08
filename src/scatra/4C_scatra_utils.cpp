@@ -208,7 +208,7 @@ ScaTra::ScaTraUtils::compute_gradient_at_nodes_mean_average(Core::FE::Discretiza
   // before we can export to NodeColMap we need reconstruction with a NodeRowMap
   const std::shared_ptr<Core::LinAlg::MultiVector<double>> gradphirow =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*discret.dof_row_map(), nsd);
-  gradphirow->PutScalar(0.0);
+  gradphirow->put_scalar(0.0);
 
   // map of pointers to nodes which must be reconstructed by this processor <local id, node>
   std::map<int, const Core::Nodes::Node*> nodesToReconstruct;
@@ -315,9 +315,9 @@ ScaTra::ScaTraUtils::compute_gradient_at_nodes_mean_average(Core::FE::Discretiza
     const int lid = (*gradphirow).get_map().lid(GID);
     if (lid < 0)
       FOUR_C_THROW("Proc {}: Cannot find gid={} in Core::LinAlg::Vector<double>",
-          Core::Communication::my_mpi_rank((*gradphirow).Comm()), GID);
+          Core::Communication::my_mpi_rank((*gradphirow).get_comm()), GID);
 
-    const int numcol = (*gradphirow).NumVectors();
+    const int numcol = (*gradphirow).num_vectors();
     if (numcol != (int)nsd)
       FOUR_C_THROW(
           "number of columns in Core::LinAlg::MultiVector<double> is not identically to nsd");

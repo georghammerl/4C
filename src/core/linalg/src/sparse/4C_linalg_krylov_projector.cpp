@@ -119,12 +119,12 @@ void Core::LinAlg::KrylovProjector::fill_complete()
     FOUR_C_THROW("No weight vector supplied for projection");
   }
 
-  if (c_->NumVectors() != nsdim_)
+  if (c_->num_vectors() != nsdim_)
   {
     FOUR_C_THROW("Number of kernel vectors has been changed.");
   }
 
-  if (w_->NumVectors() != nsdim_)
+  if (w_->num_vectors() != nsdim_)
   {
     FOUR_C_THROW("Number of weight vectors has been changed.");
   }
@@ -351,7 +351,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
 
   // compute temp1
   Core::LinAlg::MultiVector<double> temp1 = multiply_multi_vector_dense_matrix(v2, inv_v1Tv2);
-  temp1.Scale(-1.0);
+  temp1.scale(-1.0);
 
 
   // compute P by multiplying upright temp1 with lying v1^T:
@@ -360,7 +360,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
   //--------------------------------------------------------
   // Add identity matrix
   //--------------------------------------------------------
-  const int nummyrows = v1.MyLength();
+  const int nummyrows = v1.local_length();
   const double one = 1.0;
   // loop over all proc-rows
   for (int rr = 0; rr < nummyrows; ++rr)

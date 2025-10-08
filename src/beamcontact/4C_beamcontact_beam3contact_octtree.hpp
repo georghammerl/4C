@@ -201,12 +201,12 @@ class Beam3ContactOctTree
         std::strcmp(typeid(TYPE).name(), "d") != 0)
       FOUR_C_THROW("Template of wrong type {}! Only int, float, and double are permitted!",
           typeid(TYPE).name());
-    if (vector.MyLength() != (int)stdvector.size()) FOUR_C_THROW("Sizes differ!");
+    if (vector.local_length() != (int)stdvector.size()) FOUR_C_THROW("Sizes differ!");
     for (int i = 0; i < (int)stdvector.size(); i++)
     {
-      if ((int)stdvector[i].size() > vector.NumVectors())
+      if ((int)stdvector[i].size() > vector.num_vectors())
         FOUR_C_THROW("stdvector[{}].size() = {} is larger than vector.NumVectors() = {}", i,
-            (int)stdvector[i].size(), vector.NumVectors());
+            (int)stdvector[i].size(), vector.num_vectors());
       for (int j = 0; j < (int)stdvector[i].size(); j++)
         vector(j).get_values()[i] = (TYPE)stdvector[i][j];
     }
@@ -220,14 +220,14 @@ class Beam3ContactOctTree
         std::strcmp(typeid(TYPE).name(), "d") != 0)
       FOUR_C_THROW("Template of wrong type {}! Only int, float, and double are permitted!",
           typeid(TYPE).name());
-    if (vector.MyLength() != (int)stdvector.size()) FOUR_C_THROW("Sizes differ!");
-    for (int i = 0; i < vector.NumVectors(); i++)
+    if (vector.local_length() != (int)stdvector.size()) FOUR_C_THROW("Sizes differ!");
+    for (int i = 0; i < vector.num_vectors(); i++)
     {
-      for (int j = 0; j < vector.MyLength(); j++)
+      for (int j = 0; j < vector.local_length(); j++)
       {
-        if ((int)stdvector[j].size() < vector.NumVectors())
+        if ((int)stdvector[j].size() < vector.num_vectors())
           FOUR_C_THROW("stdvector[{}].size() = {} is larger than vector.NumVectors() = {}", j,
-              (int)stdvector[j].size(), vector.NumVectors());
+              (int)stdvector[j].size(), vector.num_vectors());
         stdvector[j][i] = vector(i)[j];
       }
     }

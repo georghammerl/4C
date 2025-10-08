@@ -307,8 +307,8 @@ void Coupling::Adapter::MortarVolCoupl::master_to_slave(
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   FOUR_C_ASSERT(mv.get_map().point_same_as(p21_->domain_map()), "master dof map vector expected");
   FOUR_C_ASSERT(sv.get_map().point_same_as(p21_->row_map()), "slave dof map vector expected");
-  FOUR_C_ASSERT(sv.NumVectors() == mv.NumVectors(), "column number mismatch {}!={}",
-      sv.NumVectors(), mv.NumVectors());
+  FOUR_C_ASSERT(sv.num_vectors() == mv.num_vectors(), "column number mismatch {}!={}",
+      sv.num_vectors(), mv.num_vectors());
 #endif
 
   // safety check
@@ -316,15 +316,15 @@ void Coupling::Adapter::MortarVolCoupl::master_to_slave(
   check_init();
 
   // slave vector with auxiliary dofmap
-  Core::LinAlg::MultiVector<double> sv_aux(p21_->row_map(), sv.NumVectors());
+  Core::LinAlg::MultiVector<double> sv_aux(p21_->row_map(), sv.num_vectors());
 
   // project
   int err = p21_->multiply(false, mv, sv_aux);
   if (err != 0) FOUR_C_THROW("ERROR: Matrix multiply returned error code {}", err);
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
-  std::copy(
-      sv_aux.Values(), sv_aux.Values() + (sv_aux.MyLength() * sv_aux.NumVectors()), sv.Values());
+  std::copy(sv_aux.get_values(),
+      sv_aux.get_values() + (sv_aux.local_length() * sv_aux.num_vectors()), sv.get_values());
 
   // in contrast to the Adapter::Coupling class we do not need to export here, as
   // the binning has (or should have) guaranteed the same distribution of master and slave dis
@@ -344,7 +344,7 @@ Coupling::Adapter::MortarVolCoupl::master_to_slave(
 
   // create vector
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(p21_->row_map(), mv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(p21_->row_map(), mv.num_vectors());
   // project
   master_to_slave(mv, *sv);
 
@@ -382,7 +382,7 @@ Coupling::Adapter::MortarVolCoupl::slave_to_master(
 
   // create vector
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(p12_->row_map(), sv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(p12_->row_map(), sv.num_vectors());
   // project
   slave_to_master(sv, *mv);
 
@@ -395,27 +395,27 @@ Coupling::Adapter::MortarVolCoupl::slave_to_master(
 void Coupling::Adapter::MortarVolCoupl::slave_to_master(
     const Core::LinAlg::MultiVector<double>& sv, Core::LinAlg::MultiVector<double>& mv) const
 {
-#ifdef FOUR_C_ENABLE_ASSERTIONS
+  // #ifdef FOUR_C_ENABLE_ASSERTIONS
   FOUR_C_ASSERT(mv.get_map().point_same_as(p12_->row_map()), "master dof map vector expected");
   FOUR_C_ASSERT(sv.get_map().point_same_as(p21_->row_map()), "slave dof map vector expected");
-  FOUR_C_ASSERT(sv.NumVectors() == mv.NumVectors(), "column number mismatch {}!={}",
-      sv.NumVectors(), mv.NumVectors());
-#endif
+  FOUR_C_ASSERT(sv.num_vectors() == mv.num_vectors(), "column number mismatch {}!={}",
+      sv.num_vectors(), mv.num_vectors());
+  // #endif
 
   // safety check
   check_setup();
   check_init();
 
   // master vector with auxiliary dofmap
-  Core::LinAlg::MultiVector<double> mv_aux(p12_->row_map(), mv.NumVectors());
+  Core::LinAlg::MultiVector<double> mv_aux(p12_->row_map(), mv.num_vectors());
 
   // project
   int err = p12_->multiply(false, sv, mv_aux);
   if (err != 0) FOUR_C_THROW("ERROR: Matrix multiply returned error code {}", err);
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
-  std::copy(
-      mv_aux.Values(), mv_aux.Values() + (mv_aux.MyLength() * mv_aux.NumVectors()), mv.Values());
+  std::copy(mv_aux.get_values(),
+      mv_aux.get_values() + (mv_aux.local_length() * mv_aux.num_vectors()), mv.get_values());
 
   // in contrast to the Adapter::Coupling class we do not need to export here, as
   // the binning has (or should have) guaranteed the same distribution of master and slave dis

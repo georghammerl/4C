@@ -1245,12 +1245,12 @@ Coupling::Adapter::CouplingMortar::master_to_slave(
   FOUR_C_ASSERT(masterdofrowmap_->same_as(mv.get_map()), "Vector with master dof map expected");
 
   Core::LinAlg::MultiVector<double> tmp =
-      Core::LinAlg::MultiVector<double>(M_->row_map(), mv.NumVectors());
+      Core::LinAlg::MultiVector<double>(M_->row_map(), mv.num_vectors());
 
   if (M_->multiply(false, mv, tmp)) FOUR_C_THROW("M*mv multiplication failed");
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*pslavedofrowmap_, mv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*pslavedofrowmap_, mv.num_vectors());
 
   if (Dinv_->multiply(false, tmp, *sv)) FOUR_C_THROW("D^{{-1}}*v multiplication failed");
 
@@ -1294,14 +1294,14 @@ void Coupling::Adapter::CouplingMortar::master_to_slave(
   check_setup();
 
   // slave vector with auxiliary dofmap
-  Core::LinAlg::MultiVector<double> sv_aux(P_->row_map(), sv.NumVectors());
+  Core::LinAlg::MultiVector<double> sv_aux(P_->row_map(), sv.num_vectors());
 
   // project
   P_->multiply(false, mv, sv_aux);
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
-  std::copy(
-      sv_aux.Values(), sv_aux.Values() + (sv_aux.MyLength() * sv_aux.NumVectors()), sv.Values());
+  std::copy(sv_aux.get_values(),
+      sv_aux.get_values() + (sv_aux.local_length() * sv_aux.num_vectors()), sv.get_values());
 
   // in contrast to the Adapter::Coupling class we do not need to export here, as
   // the mortar interface itself has (or should have) guaranteed the same distribution of master and
@@ -1323,14 +1323,14 @@ void Coupling::Adapter::CouplingMortar::slave_to_master(
   check_setup();
 
   Core::LinAlg::Vector<double> tmp = Core::LinAlg::Vector<double>(M_->range_map());
-  std::copy(sv.Values(), sv.Values() + sv.MyLength(), tmp.get_values());
+  std::copy(sv.get_values(), sv.get_values() + sv.local_length(), tmp.get_values());
 
   Core::LinAlg::Vector<double> tempm(*pmasterdofrowmap_);
   if (M_->multiply(true, tmp, tempm)) FOUR_C_THROW("M^{{T}}*sv multiplication failed");
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
   std::copy(tempm.get_values(), tempm.get_values() + (tempm.local_length() * tempm.num_vectors()),
-      mv.Values());
+      mv.get_values());
 
   // in contrast to the Adapter::Coupling class we do not need to export here, as
   // the mortar interface itself has (or should have) guaranteed the same distribution of master and
@@ -1367,11 +1367,11 @@ Coupling::Adapter::CouplingMortar::slave_to_master(
   check_setup();
 
   Core::LinAlg::MultiVector<double> tmp =
-      Core::LinAlg::MultiVector<double>(M_->range_map(), sv.NumVectors());
-  std::copy(sv.Values(), sv.Values() + sv.MyLength(), tmp.Values());
+      Core::LinAlg::MultiVector<double>(M_->range_map(), sv.num_vectors());
+  std::copy(sv.get_values(), sv.get_values() + sv.local_length(), tmp.get_values());
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*pmasterdofrowmap_, sv.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*pmasterdofrowmap_, sv.num_vectors());
   if (M_->multiply(true, tmp, *mv)) FOUR_C_THROW("M^{{T}}*sv multiplication failed");
 
   return mv;

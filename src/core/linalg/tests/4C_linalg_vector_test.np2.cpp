@@ -173,8 +173,8 @@ namespace
 
   std::vector<double> means_multi_vector(const Core::LinAlg::MultiVector<double>& mv)
   {
-    std::vector<double> means(mv.NumVectors());
-    mv.MeanValue(means.data());
+    std::vector<double> means(mv.num_vectors());
+    mv.mean_value(means.data());
     return means;
   }
 
@@ -217,7 +217,7 @@ namespace
     a.put_scalar(1.0);
 
     Core::LinAlg::MultiVector<double>& mv = a;
-    mv.PutScalar(2.0);
+    mv.put_scalar(2.0);
     EXPECT_EQ(means_multi_vector(a)[0], 2.0);
 
     // Reassigning to a must keep mv valid: move assign
@@ -249,7 +249,7 @@ namespace
   TEST_F(VectorTest, VectorFromMultiVector)
   {
     Core::LinAlg::MultiVector<double> mv(*map_, 3, true);
-    mv.PutScalar(1.0);
+    mv.put_scalar(1.0);
 
     const int index = 1;
 
@@ -263,13 +263,13 @@ namespace
 
     // Another MultiVector conversion
     Core::LinAlg::MultiVector<double>& mv2 = a;
-    mv2.PutScalar(3.0);
+    mv2.put_scalar(3.0);
     EXPECT_EQ(means_multi_vector(mv), (std::vector{1., 3., 1.}));
 
     // Combine with taking a view
     {
       const auto put_scalar = [](Core::LinAlg::MultiVector<double>& v, double s)
-      { v.PutScalar(s); };
+      { v.put_scalar(s); };
       Core::LinAlg::View view_mv2((Epetra_MultiVector&)mv2);
       put_scalar(view_mv2, 4.0);
     }
@@ -282,7 +282,7 @@ namespace
     a.put_scalar(1.0);
 
     const Core::LinAlg::MultiVector<double>& b = a;
-    ASSERT_EQ(b.NumVectors(), 1);
+    ASSERT_EQ(b.num_vectors(), 1);
     const Core::LinAlg::Vector<double>& c = b(0);
 
     // New map where elements are distributed differently

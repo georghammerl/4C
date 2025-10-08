@@ -681,7 +681,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingPair<dis_type_artery,
           is_active_ = true;
           // include jacobian
           gp_weights_[gp_id] = gauss_points_per_patch.qwgt[i_gp] * patch_size / 4.0;
-          gauss_point_vector.SumIntoMyValue(my_lid, gp_id, 1.0);
+          gauss_point_vector.sum_into_local_value(my_lid, gp_id, 1.0);
         }
         else
         {

@@ -607,7 +607,7 @@ void Core::FE::Discretization::evaluate_scalars(
   Core::LinAlg::MultiVector<double>& sca = scalars;
 
   // number of scalars
-  const int numscalars = scalars.NumVectors();
+  const int numscalars = scalars.num_vectors();
   if (numscalars <= 0) FOUR_C_THROW("scalars vector of interest has size <=0");
 
   // define element matrices and vectors

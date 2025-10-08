@@ -64,9 +64,9 @@ void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::Spars
     crsA = std::make_shared<Core::LinAlg::SparseMatrix>(projector_->to_reduced(A_view));
 
 
-    FOUR_C_ASSERT_ALWAYS(b->NumVectors() == 1,
+    FOUR_C_ASSERT_ALWAYS(b->num_vectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
-        b->NumVectors());
+        b->num_vectors());
     (*b)(0) = projector_->to_reduced((*b)(0));
   }
 
@@ -164,9 +164,9 @@ int Core::LinearSolver::DirectSolver::solve()
 
   if (projector_ != nullptr)
   {
-    FOUR_C_ASSERT_ALWAYS(x_->NumVectors() == 1,
+    FOUR_C_ASSERT_ALWAYS(x_->num_vectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
-        x_->NumVectors());
+        x_->num_vectors());
     (*x_)(0) = projector_->to_full((*x_)(0));
   }
 

@@ -166,7 +166,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_structure_li
 
         std::shared_ptr<Core::LinAlg::MultiVector<double>> c =
             krylov_projector->get_non_const_kernel();
-        c->PutScalar(0.0);
+        c->put_scalar(0.0);
 
         Core::LinAlg::Map nullspace_map(*actdis.dof_row_map());
 

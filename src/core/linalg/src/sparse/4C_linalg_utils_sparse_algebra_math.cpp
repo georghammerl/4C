@@ -408,13 +408,13 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_sparse_inverse(
 Core::LinAlg::MultiVector<double> Core::LinAlg::multiply_multi_vector_dense_matrix(
     const Core::LinAlg::MultiVector<double>& mv, const Core::LinAlg::SerialDenseMatrix& dm)
 {
-  Core::LinAlg::MultiVector<double> mvout(mv.get_map(), mv.NumVectors());
+  Core::LinAlg::MultiVector<double> mvout(mv.get_map(), mv.num_vectors());
 
-  for (int rr = 0; rr < mv.NumVectors(); ++rr)
+  for (int rr = 0; rr < mv.num_vectors(); ++rr)
   {
     auto& mvouti = mvout(rr);
 
-    for (int mm = 0; mm < mv.NumVectors(); ++mm)
+    for (int mm = 0; mm < mv.num_vectors(); ++mm)
     {
       mvouti.update(dm(mm, rr), mv(mm), 1.0);
     }
@@ -441,7 +441,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
   }();
 
   Core::LinAlg::Vector<double> prod(get_multi_vector(0));
-  for (int i = 1; i < mv1.NumVectors(); ++i) prod.multiply(1.0, get_multi_vector(i), prod, 1.0);
+  for (int i = 1; i < mv1.num_vectors(); ++i) prod.multiply(1.0, get_multi_vector(i), prod, 1.0);
   int numnonzero = 0;
   for (int i = 0; i < prod.local_length(); ++i)
     if (prod[i] != 0.0) numnonzero++;
@@ -458,8 +458,8 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
   // make mv2 redundant on all procs:
   //-------------------------------
   // auxiliary variables
-  const int nummyrows = mv1.MyLength();
-  const int numvals = mv2.GlobalLength();
+  const int nummyrows = mv1.local_length();
+  const int numvals = mv2.global_length();
 
   Core::LinAlg::Map mv2map(mv2.get_map().num_global_elements(), mv2.get_map().num_my_elements(),
       mv2.get_map().my_global_elements(), 0, mv2.get_map().get_comm());
@@ -467,11 +467,11 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
   // fully redundant/overlapping map
   std::shared_ptr<Core::LinAlg::Map> redundant_map = Core::LinAlg::allreduce_e_map(mv2map);
   // initialize global mv2 without setting to 0
-  Core::LinAlg::MultiVector<double> mv2glob(*redundant_map, mv2.NumVectors());
+  Core::LinAlg::MultiVector<double> mv2glob(*redundant_map, mv2.num_vectors());
   // create importer with redundant target map and distributed source map
   Core::LinAlg::Import importer(*redundant_map, mv2.get_map());
   // import values to global mv2
-  mv2glob.Import(mv2, importer, Insert);
+  mv2glob.import(mv2, importer, Insert);
 
   //--------------------------------------------------------
   // compute mat by multiplying upright mv1 with lying mv2^T:
@@ -490,7 +490,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
     {
       double sum = 0.0;
 
-      for (int vv = 0; vv < mv1.NumVectors(); ++vv)
+      for (int vv = 0; vv < mv1.num_vectors(); ++vv)
       {
         sum += mv1(vv)[rr] * mv2glob(vv)[mm];
       }
@@ -525,16 +525,16 @@ void Core::LinAlg::multiply_multi_vectors(Core::LinAlg::MultiVector<double>& mul
 {
   // initialize temporary Core::LinAlg::MultiVector<double> (redundant_map: all procs hold all
   // elements/rows)
-  Core::LinAlg::MultiVector<double> multivect_temp(redundant_map, multivect2.NumVectors(), true);
+  Core::LinAlg::MultiVector<double> multivect_temp(redundant_map, multivect2.num_vectors(), true);
 
   // do the multiplication: (all procs hold the full result)
   int err =
-      multivect_temp.Multiply(multivect1Trans, multivect2Trans, 1.0, multivect1, multivect2, 0.0);
+      multivect_temp.multiply(multivect1Trans, multivect2Trans, 1.0, multivect1, multivect2, 0.0);
   if (err) FOUR_C_THROW("Multiplication failed.");
 
   // import the result to a Core::LinAlg::MultiVector<double> whose elements/rows are distributed
   // over all procs
-  result.Import(multivect_temp, impo, Insert, nullptr);
+  result.import(multivect_temp, impo, Insert, nullptr);
 }
 
 FOUR_C_NAMESPACE_CLOSE

@@ -369,7 +369,7 @@ void PostVtuWriterNode::write_nodal_result_step(std::ofstream& file,
   else
   {
     ghostedData =
-        std::make_shared<Core::LinAlg::MultiVector<double>>(*colmap, data->NumVectors(), false);
+        std::make_shared<Core::LinAlg::MultiVector<double>>(*colmap, data->num_vectors(), false);
     Core::LinAlg::export_to(*data, *ghostedData);
   }
 

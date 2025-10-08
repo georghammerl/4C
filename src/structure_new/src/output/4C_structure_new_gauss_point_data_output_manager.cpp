@@ -159,7 +159,7 @@ void Solid::ModelEvaluator::GaussPointDataOutputManager::post_evaluate()
       Core::LinAlg::MultiVector<double>& nodal_data = *data_nodes_[name];
       const Core::LinAlg::Vector<int>& nodal_count = *data_nodes_count_[name];
 
-      for (int col = 0; col < nodal_data.NumVectors(); ++col)
+      for (int col = 0; col < nodal_data.num_vectors(); ++col)
       {
         auto& data_item = nodal_data(col);
 

@@ -136,7 +136,7 @@ void Constraints::SubmodelEvaluator::NullspaceConstraintManager::evaluate_coupli
     }
   }
 
-  Q_dL_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dof_map, constraint_space.NumVectors());
+  Q_dL_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dof_map, constraint_space.num_vectors());
 
   Core::LinAlg::multi_vector_to_linalg_sparse_matrix(
       constraint_space, *dof_map, *constraint_map_, *Q_dL_);

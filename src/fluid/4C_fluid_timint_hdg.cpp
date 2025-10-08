@@ -483,7 +483,7 @@ namespace
     Core::LinAlg::SerialDenseVector dummyVec;
     Core::LinAlg::SerialDenseVector interpolVec;
     std::vector<unsigned char> touchCount(dis.num_my_row_nodes());
-    velocity->PutScalar(0.);
+    velocity->put_scalar(0.);
     pressure->put_scalar(0.);
     for (int el = 0; el < dis.num_my_col_elements(); ++el)
     {

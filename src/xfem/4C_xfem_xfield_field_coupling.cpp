@@ -84,7 +84,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::
       return ::FourC::Coupling::Adapter::Coupling::master_to_slave(mv);
       break;
     case XFEM::map_nodes:
-      sv = std::make_shared<Core::LinAlg::MultiVector<double>>(*slavenodemap_, mv.NumVectors());
+      sv = std::make_shared<Core::LinAlg::MultiVector<double>>(*slavenodemap_, mv.num_vectors());
       break;
   }
 
@@ -104,7 +104,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::
       return ::FourC::Coupling::Adapter::Coupling::slave_to_master(sv);
       break;
     case XFEM::map_nodes:
-      mv = std::make_shared<Core::LinAlg::MultiVector<double>>(*masternodemap_, sv.NumVectors());
+      mv = std::make_shared<Core::LinAlg::MultiVector<double>>(*masternodemap_, sv.num_vectors());
       break;
   }
 
@@ -131,14 +131,15 @@ void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVecto
         FOUR_C_THROW("master node map vector expected");
       if (not sv.get_map().point_same_as(*slavenodemap_))
         FOUR_C_THROW("slave node map vector expected");
-      if (sv.NumVectors() != mv.NumVectors())
-        FOUR_C_THROW("column number mismatch {}!={}", sv.NumVectors(), mv.NumVectors());
+      if (sv.num_vectors() != mv.num_vectors())
+        FOUR_C_THROW("column number mismatch {}!={}", sv.num_vectors(), mv.num_vectors());
 #endif
 
-      Core::LinAlg::MultiVector<double> perm(*permslavenodemap_, mv.NumVectors());
-      std::copy(mv.Values(), mv.Values() + (mv.MyLength() * mv.NumVectors()), perm.Values());
+      Core::LinAlg::MultiVector<double> perm(*permslavenodemap_, mv.num_vectors());
+      std::copy(mv.get_values(), mv.get_values() + (mv.local_length() * mv.num_vectors()),
+          perm.get_values());
 
-      const int err = sv.Export(perm, *nodal_slaveexport_, Insert);
+      const int err = sv.export_to(perm, *nodal_slaveexport_, Insert);
       if (err) FOUR_C_THROW("Export to nodal slave distribution returned err={}", err);
     }  // end: case XFEM::MultiFieldMapExtractor::map_nodes
   }  // end: switch (map_type)
@@ -163,14 +164,15 @@ void XFEM::XFieldField::Coupling::slave_to_master(const Core::LinAlg::MultiVecto
         FOUR_C_THROW("master node map vector expected");
       if (not sv.get_map().point_same_as(*slavenodemap_))
         FOUR_C_THROW("slave node map vector expected");
-      if (sv.NumVectors() != mv.NumVectors())
-        FOUR_C_THROW("column number mismatch {}!={}", sv.NumVectors(), mv.NumVectors());
+      if (sv.num_vectors() != mv.num_vectors())
+        FOUR_C_THROW("column number mismatch {}!={}", sv.num_vectors(), mv.num_vectors());
 #endif
 
-      Core::LinAlg::MultiVector<double> perm(*permmasternodemap_, sv.NumVectors());
-      std::copy(sv.Values(), sv.Values() + (sv.MyLength() * sv.NumVectors()), perm.Values());
+      Core::LinAlg::MultiVector<double> perm(*permmasternodemap_, sv.num_vectors());
+      std::copy(sv.get_values(), sv.get_values() + (sv.local_length() * sv.num_vectors()),
+          perm.get_values());
 
-      const int err = mv.Export(perm, *nodal_masterexport_, Insert);
+      const int err = mv.export_to(perm, *nodal_masterexport_, Insert);
       if (err) FOUR_C_THROW("Export to nodal master distribution returned err={}", err);
     }
   }

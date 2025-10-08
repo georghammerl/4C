@@ -237,7 +237,7 @@ namespace
     // Check the inf-norm of the nullspace vectors
     // norm is initialized with ones just to avoid having accidental zeros
     std::array<double, 6> inf_norm{1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    zero.NormInf(inf_norm.data());
+    zero.norm_inf(inf_norm.data());
 
     EXPECT_NEAR(inf_norm[0], 0.0, 1e-12);
     EXPECT_NEAR(inf_norm[1], 0.0, 1e-12);

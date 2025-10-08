@@ -679,17 +679,17 @@ void PoroPressureBased::PorofluidAlgorithm::collect_runtime_output_data()
       Core::LinAlg::MultiVector<double> flux_k(*noderowmap, 3, true);
 
       std::string name = "flux_" + std::to_string(k + 1);
-      for (int i = 0; i < flux_k.MyLength(); ++i)
+      for (int i = 0; i < flux_k.local_length(); ++i)
       {
         // get value for each component of flux vector
         for (int idim = 0; idim < dim; idim++)
         {
           double value = ((*flux_)(k * dim + idim))[i];
-          int err = flux_k.ReplaceMyValue(i, idim, value);
+          int err = flux_k.replace_local_value(i, idim, value);
           if (err != 0) FOUR_C_THROW("Detected error in ReplaceMyValue");
         }
       }
-      std::vector<std::optional<std::string>> context(flux_k.NumVectors(), name);
+      std::vector<std::optional<std::string>> context(flux_k.num_vectors(), name);
       visualization_writer_->append_result_data_vector_with_context(
           flux_k, Core::IO::OutputEntity::node, context);
     }
@@ -706,18 +706,18 @@ void PoroPressureBased::PorofluidAlgorithm::collect_runtime_output_data()
     {
       Core::LinAlg::MultiVector<double> velocity_k(*element_row_map, num_dim, true);
 
-      for (int i = 0; i < velocity_k.MyLength(); ++i)
+      for (int i = 0; i < velocity_k.local_length(); ++i)
       {
         for (int idim = 0; idim < num_dim; idim++)
         {
           double value = ((*phase_velocities_)(k * num_dim + idim))[i];
-          int err = velocity_k.ReplaceMyValue(i, idim, value);
+          int err = velocity_k.replace_local_value(i, idim, value);
           if (err != 0) FOUR_C_THROW("Detected error in ReplaceMyValue");
         }
       }
 
       std::string output_name = "velocity_" + std::to_string(k + 1);
-      std::vector<std::optional<std::string>> context(velocity_k.NumVectors(), output_name);
+      std::vector<std::optional<std::string>> context(velocity_k.num_vectors(), output_name);
       visualization_writer_->append_result_data_vector_with_context(
           velocity_k, Core::IO::OutputEntity::element, context);
     }
@@ -1524,7 +1524,7 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_flux()
 
 void PoroPressureBased::PorofluidAlgorithm::calculate_phase_velocities()
 {
-  phase_velocities_->PutScalar(0.0);
+  phase_velocities_->put_scalar(0.0);
 
   Teuchos::ParameterList eleparams;
   eleparams.set<PoroPressureBased::Action>("action", PoroPressureBased::calc_phase_velocities);

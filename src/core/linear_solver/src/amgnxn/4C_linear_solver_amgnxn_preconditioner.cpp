@@ -223,10 +223,10 @@ Core::LinearSolver::AmGnxnInterface::AmGnxnInterface(Teuchos::ParameterList& par
     std::shared_ptr<Core::LinAlg::MultiVector<double>> nullspace =
         mllist.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullptr);
     if (nullspace == nullptr) FOUR_C_THROW("Nullspace vector is null!");
-    null_spaces_dim_[block] = nullspace->NumVectors();
+    null_spaces_dim_[block] = nullspace->num_vectors();
 
     std::shared_ptr<std::vector<double>> ns =
-        std::make_shared<std::vector<double>>(nullspace->MyLength() * nullspace->NumVectors());
+        std::make_shared<std::vector<double>>(nullspace->local_length() * nullspace->num_vectors());
 
     Core::LinAlg::multi_vector_to_std_vector(*nullspace, *ns, null_spaces_dim_[block]);
     null_spaces_data_[block] = ns;

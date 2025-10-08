@@ -962,7 +962,7 @@ void FLD::Utils::project_gradient_and_set_param(Core::FE::Discretization& discre
   if (projected_velgrad != nullptr)
   {
     auto tmp = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        *discret.node_col_map(), projected_velgrad->NumVectors());
+        *discret.node_col_map(), projected_velgrad->num_vectors());
     Core::LinAlg::export_to(*projected_velgrad, *tmp);
     eleparams.set(paraname, tmp);
   }

@@ -225,8 +225,8 @@ void FS3I::BiofilmFSI::setup()
 
   struct_growth_disp_->put_scalar(0.0);
   fluid_growth_disp_->put_scalar(0.0);
-  scatra_struct_growth_disp_->PutScalar(0.0);
-  scatra_fluid_growth_disp_->PutScalar(0.0);
+  scatra_struct_growth_disp_->put_scalar(0.0);
+  scatra_fluid_growth_disp_->put_scalar(0.0);
 
   norminflux_ = std::make_shared<Core::LinAlg::Vector<double>>(
       *(fsi_->structure_field()->discretization()->node_row_map()));
@@ -901,7 +901,7 @@ void FS3I::BiofilmFSI::vec_to_scatravec(Core::FE::Discretization& scatradis,
       double vecval = (vec)[index + numdim * lnodeid];
 
       // insert value into node-based vector
-      err = scatravec.ReplaceMyValue(lnodeid, index, vecval);
+      err = scatravec.replace_local_value(lnodeid, index, vecval);
 
       if (err != 0) FOUR_C_THROW("Error while inserting value into vector scatravec!");
     }
@@ -909,7 +909,7 @@ void FS3I::BiofilmFSI::vec_to_scatravec(Core::FE::Discretization& scatradis,
     // for 1- and 2-D problems: set all unused vector components to zero
     for (int index = numdim; index < 3; ++index)
     {
-      err = scatravec.ReplaceMyValue(lnodeid, index, 0.0);
+      err = scatravec.replace_local_value(lnodeid, index, 0.0);
       if (err != 0) FOUR_C_THROW("Error while inserting value into vector scatravec!");
     }
   }

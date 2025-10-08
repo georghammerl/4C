@@ -1135,7 +1135,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
 
     std::shared_ptr<Core::LinAlg::MultiVector<double>> iterinc =
         std::make_shared<Core::LinAlg::MultiVector<double>>(*dofrowmap, 9);
-    iterinc->PutScalar(0.0);
+    iterinc->put_scalar(0.0);
 
     switch (solvertype)
     {
@@ -1152,7 +1152,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
       case Core::LinearSolver::SolverType::umfpack:
       {
         // solve for 9 rhs iteratively
-        for (int i = 0; i < rhs_->NumVectors(); i++)
+        for (int i = 0; i < rhs_->num_vectors(); i++)
         {
           Core::LinAlg::SolverParams solver_params;
           solver_params.refactor = true;
@@ -1173,7 +1173,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
     stiff_dirich_->multiply(false, *iterinc, temp);
 
     Core::LinAlg::MultiVector<double> fexp(*pdof_, 9);
-    int err = fexp.Import(temp, *importp_, Insert);
+    int err = fexp.import(temp, *importp_, Insert);
     if (err) FOUR_C_THROW("Export of boundary 'forces' failed with err={}", err);
 
     // multiply manually d_matrix_ and fexp because d_matrix_ is not distributed as usual
@@ -1182,12 +1182,12 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
     // (corresponding to pdof_). fexp is distributed normally with 9 vectors (=cols) and np_ rows.
     // result is saved as a std::vector<double> to ease subsequent communication
     std::vector<double> val(81, 0.0);
-    int d_matrix_rows = d_matrix_->NumVectors();
+    int d_matrix_rows = d_matrix_->num_vectors();
     for (int i = 0; i < d_matrix_rows; i++)
     {
-      for (int j = 0; j < fexp.NumVectors(); j++)
+      for (int j = 0; j < fexp.num_vectors(); j++)
       {
-        for (int k = 0; k < d_matrix_->MyLength(); k++)
+        for (int k = 0; k < d_matrix_->local_length(); k++)
         {
           val[i * d_matrix_rows + j] += (((*d_matrix_)(i))[k]) * ((fexp(j))[k]);
         }
@@ -1205,7 +1205,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
         for (int j = 0; j < 9; j++) ((cmatpf(j))).get_values()[i] = sum[i * 9 + j];
 
       // scale with inverse of RVE volume
-      cmatpf.Scale(1.0 / initial_volume_);
+      cmatpf.scale(1.0 / initial_volume_);
 
       // We now have to transform the calculated constitutive tensor
       // relating first Piola-Kirchhoff stresses to the deformation

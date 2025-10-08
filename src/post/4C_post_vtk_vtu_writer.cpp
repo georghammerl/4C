@@ -380,7 +380,7 @@ void PostVtuWriter::write_nodal_result_step(std::ofstream& file,
   else
   {
     ghostedData =
-        std::make_shared<Core::LinAlg::MultiVector<double>>(*colmap, data->NumVectors(), false);
+        std::make_shared<Core::LinAlg::MultiVector<double>>(*colmap, data->num_vectors(), false);
     Core::LinAlg::export_to(*data, *ghostedData);
   }
 
@@ -468,7 +468,7 @@ void PostVtuWriter::write_element_result_step(std::ofstream& file,
   std::vector<double> solution;
   solution.reserve(ncomponents * neles);
 
-  const int numcol = data->NumVectors();
+  const int numcol = data->num_vectors();
   if (numdf + from > numcol)
     FOUR_C_THROW("violated column range of Core::LinAlg::MultiVector<double>: {}", numcol);
 
@@ -478,7 +478,7 @@ void PostVtuWriter::write_element_result_step(std::ofstream& file,
   else
   {
     importedData = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        *dis->element_row_map(), data->NumVectors(), false);
+        *dis->element_row_map(), data->num_vectors(), false);
     Core::LinAlg::export_to(*data, *importedData);
   }
 

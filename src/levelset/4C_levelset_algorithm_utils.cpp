@@ -48,7 +48,7 @@ void ScaTra::LevelSetAlgorithm::add_problem_specific_parameters_and_vectors(
       [&](const std::string& name, std::shared_ptr<const Core::LinAlg::MultiVector<double>> vec)
   {
     auto tmp = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        *discret_->node_col_map(), vec->NumVectors());
+        *discret_->node_col_map(), vec->num_vectors());
     Core::LinAlg::export_to(*vec, *tmp);
     params.set(name, tmp);
   };
