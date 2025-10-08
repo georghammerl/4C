@@ -11,19 +11,7 @@
         "FOUR_C_ENABLE_NATIVE_OPTIMIZATIONS": "ON",
         "FOUR_C_WITH_ARBORX": "ON",
         "FOUR_C_WITH_FFTW": "ON",
-        "FOUR_C_WITH_GOOGLETEST": "OFF",
-        "FOUR_C_TRILINOS_ROOT": "/opt/trilinos/2025-03/",
-        "MPI_C_COMPILER": "/opt/openmpi/4.1.8/gcc/bin/mpicc",
-        "MPI_CXX_COMPILER": "/opt/openmpi/4.1.8/gcc/bin/mpicxx",
-        "MPIEXEC_EXECUTABLE": "/opt/openmpi/4.1.8/gcc/bin/orterun",
-        "FOUR_C_QHULL_ROOT": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/qhull-2012.1-52nebni444m47tb7wxonn23bbbvlcapb",
-        "QHULL_INCLUDE_DIR": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/qhull-2012.1-52nebni444m47tb7wxonn23bbbvlcapb/include",
-        "QHULL_LIBRARY": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/qhull-2012.1-52nebni444m47tb7wxonn23bbbvlcapb/lib/libqhull.so"
-      },
-      "environment": {
-        "PATH": "/opt/trlinos/2025-03/bin:/opt/openmpi/4.1.8/gcc/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-        "LD_LIBRARY_PATH": "/opt/trilinos/2025-03/lib:/opt/openmpi/4.1.8/gcc/lib:/usr/local/cuda/lib64",
-        "MPI_HOME": "/opt/openmpi/4.1.8/gcc"
+        "FOUR_C_WITH_GOOGLETEST": "OFF"
       }
     },
     {
@@ -39,16 +27,28 @@
       }
     },
     {
-      "name": "imcs_charon_debug",
-      "displayName": "Debug build for charon at IMCS",
+      "name": "imcs_charon_debug_clion",
+      "displayName": "Debug build on charon for CLion-Users at IMCS",
+      "description": "Out of the box solution to build a debug version of 4C on charon at IMCS",
       "inherits": [
         ".imcs_cluster"
       ],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "DEBUG",
+        "CMAKE_BUILD_TYPE": "RELWITHDEBINFO",
+        "FOUR_C_WITH_ARBORX": "ON",
+        "FOUR_C_WITH_BOOST": "ON",
+        "FOUR_C_WITH_FFTW": "ON",
+        "FOUR_C_WITH_GOOGLETEST": "ON",
         "FOUR_C_ENABLE_ADDRESS_SANITIZER": "ON",
         "FOUR_C_ENABLE_ASSERTIONS": "ON",
-        "FOUR_C_ENABLE_WARNINGS_AS_ERRORS": "ON"
+        "FOUR_C_BUILD_SHARED_LIBS": "OFF",
+        "FOUR_C_ENABLE_WARNINGS_AS_ERRORS": "ON",
+        "MPI_C_COMPILER": "/opt/openmpi/4.1.8/gcc/bin/mpicc",
+        "MPI_CXX_COMPILER": "/opt/openmpi/4.1.8/gcc/bin/mpicxx",
+        "MPIEXEC_EXECUTABLE": "/opt/openmpi/4.1.8/gcc/bin/orterun",
+        "FOUR_C_QHULL_ROOT": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/qhull-2012.1-52nebni444m47tb7wxonn23bbbvlcapb",
+        "FOUR_C_BOOST_ROOT": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/boost-1.86.0-ozobi6er2oftu56mkjsqsuvuqtdv6hf7",
+        "FOUR_C_TRILINOS_ROOT": "/opt/trilinos/2025-04/"
       }
     }
   ]
