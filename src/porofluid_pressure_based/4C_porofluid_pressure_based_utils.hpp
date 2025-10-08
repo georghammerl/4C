@@ -43,27 +43,6 @@ namespace PoroPressureBased
   void setup_material(
       MPI_Comm comm, const std::string& struct_disname, const std::string& fluid_disname);
 
-
-  /// convert a dof based vector to a node based multi vector
-  /*!
-    For postprocessing, only vectors based on the primary dof set
-    of the discretization can be used. Hence, all other vectors
-    based on secondary dof sets are copied to multi vectors with one
-    node based vector for each component.
-
-    This method can be deleted, if the post processors would be adapted to
-    handle secondary dof sets.
-
-    \param dis              : discretization, the vector is based on
-    \param vector           : vector to convert
-    \param nds              : number of the dof set the map of the vector corresponds to
-    \param numdofpernode    : number of dofs per node of the vector (assumed to be equal for all
-    nodes)
-   */
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> convert_dof_vector_to_node_based_multi_vector(
-      const Core::FE::Discretization& dis, const Core::LinAlg::Vector<double>& vector,
-      const int nds, const int numdofpernode);
-
   /// create solution algorithm depending on input file
   std::shared_ptr<Adapter::PoroFluidMultiphase> create_algorithm(
       PoroPressureBased::TimeIntegrationScheme timintscheme,  //!< time discretization scheme
