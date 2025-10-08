@@ -68,7 +68,7 @@ namespace NOX
 
         \return Integer error code, set to 0 if successful.
 
-        \warning In order to work with AztecOO, any implementation of this method must
+        \warning In order to work with an iterative solver, any implementation of this method must
         support the case where X and Y are the same object.
       */
       int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;

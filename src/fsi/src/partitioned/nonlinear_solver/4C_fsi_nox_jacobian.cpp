@@ -34,7 +34,7 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
   perturbY.init(0.0);
 
   // Epetra_Operators require Epetra_Maps, so anyone using block maps
-  // (Core::LinAlg::Map) won't be able to directly use the AztecOO solver.
+  // (Core::LinAlg::Map) won't be able to directly use the iterative solver.
   // We get around this by creating an Epetra_Map from the Core::LinAlg::Map.
   const Epetra_Map* testMap = nullptr;
   testMap = dynamic_cast<const Epetra_Map*>(&currentX.getEpetraVector().Map());
