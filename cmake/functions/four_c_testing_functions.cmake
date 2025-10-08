@@ -640,13 +640,20 @@ function(
   # remove file ending of input file for reference file
   get_filename_component(name_of_reference_file ${name_of_input_file} NAME_WE)
 
+  set(RUNCOMPARISON_SER
+      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_SER_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
+      )
+  set(RUNCOMPARISON_PAR
+      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_PAR_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
+      )
+
   # specify test case
   if(FOUR_C_WITH_PYTHON)
     add_test(
       NAME "${name_of_test}"
       COMMAND
         sh -c
-        " ${RUNPOSTFILTER_PAR} && ${RUNPOSTFILTER_SER} && ${FOUR_C_PVPYTHON} ${PROJECT_SOURCE_DIR}/utilities/four_c_python/src/four_c_building_testing/post_processing_comparison.py ${test_directory}/xxx${IDENTIFIER}_PAR_${name_of_input_file}${FIELD}*.case ${test_directory}/xxx${IDENTIFIER}_SER_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv ${test_directory}"
+        " ${RUNPOSTFILTER_PAR} && ${RUNPOSTFILTER_SER} && ${RUNCOMPARISON_SER} && ${RUNCOMPARISON_PAR}"
       )
   else()
     skip_test(

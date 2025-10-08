@@ -1,5 +1,8 @@
 # for testing:
 vtk
+pyvista
+scipy
+numpy
 
 # for sphinx documentation:
 jinja2

@@ -23,16 +23,6 @@ four_c_process_cache_variable(
 math(EXPR FOUR_C_TEST_GLOBAL_TIMEOUT "120*${FOUR_C_TEST_TIMEOUT_SCALE}")
 message(STATUS "The scaled global test timeout is ${FOUR_C_TEST_GLOBAL_TIMEOUT} s.")
 
-four_c_process_cache_variable(
-  FOUR_C_PVPYTHON
-  TYPE
-  FILEPATH
-  DESCRIPTION
-  "Path to the pvpython executable used for post-processing tests"
-  DEFAULT
-  "pvpython-not-set"
-  )
-
 # Fetch GoogleTest and setup the unit tests if option is enabled
 four_c_process_global_option(
   FOUR_C_WITH_GOOGLETEST
