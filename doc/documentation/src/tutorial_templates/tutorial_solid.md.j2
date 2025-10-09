@@ -2,13 +2,12 @@
 {% set inputfile_content = load_input_file(solid_tutorial_file) %}
 
 (3d_solidtutorial)=
-# 3D Solid Tutorial with Coreform Cubit&reg;
+# 3D Solid Tutorial;
 
 ## Introduction
 
 This tutorial gives an introduction to the usage of 4C for simulating plastic material behaviour.
 It is assumed that 4C has been built on your machine according to the instructions and has passed the tests without error messages.
-In addition, the pre-processing of the finite element model is built with Coreform Cubit, but the input file can also be generated without this software.
 
 The analyzed structure is a simple tensile bar, which can be used to identify the material’s parameters by comparing the stress-strain curve of the simulation with the respective experiment.
 Instead of the stress-strain curve, we will compare the reaction force over time for a given constant displacement rate to ease the analysis.
@@ -75,7 +74,7 @@ The mesh of the fine discretization used in this tutorial is shown in the figure
 Symmetry boundary conditions are applied to the three symmetry planes, denoted with $\text{X}_\text{symm}$, $\text{Y}_\text{symm}$, and $\text{Z}_\text{symm}$ in the figure above.
 The top surface (`Top`) is subject to a Dirichlet boundary condition with linearly increasing displacement in the positive $y$-direction, as displayed in the figure.
 
-The geometry, finite element mesh and node sets for the boundary conditions are created using Coreform Cubit&reg; .
+The geometry, finite element mesh and node sets for the boundary conditions have been created using Coreform Cubit&reg; .
 The corresponding journal file can be run to reproduce this mesh and output a binary EXODUS mesh information file, e.g., ``tutorial_solid_geo_coarse.e``.
 The geometry dimensions (actually mainly the radius, all other dimensions depend on it) and element size can be varied, since they are parametrized in the journal file `tutorial_solid.jou`.
 
@@ -95,7 +94,7 @@ The file ending of the 4C input files is `.4C.yaml`.
 ```
 
 ```{note}
-The documentation of the [input parameters](https://4c-multiphysics.github.io/4C/documentation/input_parameter_reference/parameterreference.html#input-parameter-reference) can also be very helpful to adapt the input files.
+The documentation of the {ref}`input parameters <inputparameterreference>` can also be very helpful to adapt the input files.
 ```
 
 The template input file begins with the following lines
@@ -168,7 +167,7 @@ Furthermore, two linear solvers are defined in the template as follows
 The `SOLVER 1` is the direct solver `Superlu`.
 In addition, an iterative solver, that usually outperforms direct solvers especially for larger systems, is defined as `SOLVER 2`.
 However, a proper setup of an iterative solver is more intricate than just defining a direct solver.
-If you want more information on iterative solvers, please refer to the [respective tutorial](https://4c-multiphysics.github.io/4C/documentation/tutorials/tutorial_preconditioning.html#).
+If you want more information on iterative solvers, please refer to the {ref}`respective tutorial <preconditioningtutorial>`.
 
 At this stage, everything besides the boundary conditions is defined.
 This is done using the following lines of the input file
