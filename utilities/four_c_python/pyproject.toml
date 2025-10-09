@@ -31,6 +31,7 @@ create-schema-files = "four_c_metadata.json_schema:cli"
 validate-test-files = "four_c_metadata.validate_test_input_files:cli"
 diff-with-tolerance = "four_c_building_testing.diff_with_tolerance:cli"
 vtk-compare = "four_c_building_testing.vtk_compare:cli"
+post-processing-comparison = "four_c_building_testing.post_processing_comparison:main"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }

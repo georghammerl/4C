@@ -4,303 +4,143 @@
 # See the LICENSE.md file in the top-level for license information.
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
+"""
+Script for comparing result of the post_ensight filter with reference data provided in a csv file.
 
-# Script for comparing result of the parallel and serial post processing by the post_ensight filter
+Point-wise quantities are compared by first finding the closest point in the output data set
+using a KDTree and then comparing the values of the quantities at that point.
+"""
 
-from paraview import servermanager as sm
 import sys
+import pyvista as pv
+import argparse
 import csv
-import operator
+import scipy.spatial as sp
 import numpy as np
+import math
 
 
-def isEqual(ref, line, tol):
-    if len(ref) != len(line):
-        print("check your reference csv-file")
-        sys.exit(1)
-    for j in range(0, len(ref)):
-        if abs(float(line[j]) - float(ref[j])) > float(tol):
-            print("not equal in column {0}".format(j + 1))
-            return False
-    return True
+def read_results(path):
+    # Read output file
+    print(f"Reading output file: {path}")
+    reader = pv.get_reader(path)
+
+    # Check if the file is time-dependent
+    if not hasattr(reader, "time_values") or reader.time_values is None:
+        datasets = reader.read()
+        return datasets[0]
+    else:
+        timesteps = reader.time_values
+        print(f"Found {len(timesteps)} timesteps: {timesteps}")
+        last_time = timesteps[-1]
+        print(f"Extracting last timestep: {last_time}")
+
+        # Set the reader to the last timestep
+        reader.set_active_time_value(last_time)
+        datasets = reader.read()
+        return datasets[0]
+
+
+def iter_reference(path):
+    with open(path, newline="") as f:
+        reader = csv.reader(f, delimiter=",")
+
+        keys = None
+        for i, row in enumerate(reader):
+            if i == 0:
+                keys = row
+            else:
+                assert keys is not None
+                yield {k: v for k, v in zip(keys, row)}
+
+
+def get_num_digits(float_str):
+    if "." in float_str:
+        return len(float_str.split(".")[-1])
+    else:
+        return 0
 
 
 def main():
-
-    sm.Connect()
-
-    # read in of parallel calculated case file
-    ens_reader1 = sm.sources.EnSightReader()
-    # p1 = ['displacement', '1']
-    # p2 = ['nodal_EA_strains_xyz', '1']
-    # p3 = ['nodal_cauchy_stresses_xyz', '1']
-
-    c1 = ["element_EA_strains_xyz", "0"]
-    c2 = ["element_cauchy_stresses_xyz", "0"]
-
-    ens_reader1.CaseFileName = sys.argv[1]
-    # ens_reader1.PointArrayStatus = p1+p2+p3
-    ens_reader1.CellArrays = c1 + c2
-
-    ens_reader1.UpdatePipelineInformation()
-
-    converter1 = sm.filters.ExtractAttributes(
-        Input=ens_reader1, FieldAssociation="Points", AddMetaData=1
+    parser = argparse.ArgumentParser(
+        description="Compare results of parallel and serial post processing by the post_ensight filter"
     )
-
-    csvWriter1 = sm.writers.CSVWriter(Input=converter1)
-    csvWriter1.FileName = sys.argv[4] + "/xxx_par.csv"
-    csvWriter1.UpdatePipeline()
-
-    csv_reader1 = csv.reader(open(sys.argv[4] + "/xxx_par0.csv", "r"), delimiter=",")
-    head1 = csv_reader1.next()
-    index1 = head1.index("Points:0")
-
-    # read in of serial calculated case file
-    ens_reader2 = sm.sources.EnSightReader()
-
-    ens_reader2.CaseFileName = sys.argv[2]
-    # ens_reader2.PointArrayStatus = p1+p2+p3
-    ens_reader2.CellArrays = c1 + c2
-
-    ens_reader2.UpdatePipelineInformation()
-
-    converter2 = sm.filters.ExtractAttributes(
-        Input=ens_reader2, FieldAssociation="Points", AddMetaData=1
+    parser.add_argument(
+        "case_file",
+        type=str,
+        help="Path to the parallel case file (e.g., xxx_PAR_constr3D_MPC_direct.4C.yaml_structure.case)",
     )
+    parser.add_argument(
+        "ref_file",
+        type=str,
+        help="Reference csv file",
+    )
+    args = parser.parse_args()
+    data_set = read_results(args.case_file)
 
-    csvWriter2 = sm.writers.CSVWriter(Input=converter2)
-    csvWriter2.FileName = sys.argv[4] + "/xxx_ser.csv"
-    csvWriter2.UpdatePipeline()
+    tree = sp.KDTree(data_set.points)
 
-    csv_reader2 = csv.reader(open(sys.argv[4] + "/xxx_ser0.csv", "r"), delimiter=",")
-    head2 = csv_reader2.next()
-    index2 = head2.index("Points:0")
+    ignore_keys = ["Points:0", "Points:1", "Points:2"]
 
-    # read in of reference file
-    ref_sortlist_name = sys.argv[3]
-    csv_reader_ref = csv.reader(open(ref_sortlist_name, "r"), delimiter=",")
-    head_ref = csv_reader_ref.next()
-    index_ref = head_ref.index("Points:0")
+    num_error = 0
 
-    # sorting of data according to xyz coordinates of the points
-    # sortlist* are lists with values of the corresponding csv-files. Each list contains further lists for each line in the csv-file.
-    # In scalar transport problems involving scatra-scatra interface coupling, several nodes may be located at
-    # exactly the same position. For the sorting to still be unique, we include the concentration values 'phi_1'
-    # or 'c_1', and possibly also the flux components 'flux_phi_1:{0;1;2}', as additional sorting criteria.
-    if (
-        "phi_1"
-        and "flux_domain_phi_1:0"
-        and "flux_domain_phi_1:1"
-        and "flux_domain_phi_1:2" in head1
-    ):
-        sortlist1 = sorted(
-            csv_reader1,
-            key=operator.itemgetter(
-                index1,
-                index1 + 1,
-                index1 + 2,
-                head1.index("phi_1"),
-                head1.index("flux_domain_phi_1:0"),
-                head1.index("flux_domain_phi_1:1"),
-                head1.index("flux_domain_phi_1:2"),
-            ),
+    for quantities in iter_reference(args.ref_file):
+        x = np.array(
+            [quantities["Points:0"], quantities["Points:1"], quantities["Points:2"]]
         )
-    elif (
-        "phi_1"
-        and "flux_boundary_phi_1:0"
-        and "flux_boundary_phi_1:1"
-        and "flux_boundary_phi_1:2" in head1
-    ):
-        sortlist1 = sorted(
-            csv_reader1,
-            key=operator.itemgetter(
-                index1,
-                index1 + 1,
-                index1 + 2,
-                head1.index("phi_1"),
-                head1.index("flux_boundary_phi_1:0"),
-                head1.index("flux_boundary_phi_1:1"),
-                head1.index("flux_boundary_phi_1:2"),
-            ),
+        num_digits_points = min(
+            get_num_digits(quantities["Points:0"]),
+            get_num_digits(quantities["Points:1"]),
+            get_num_digits(quantities["Points:2"]),
         )
-    elif "phi_1" in head1:
-        sortlist1 = sorted(
-            csv_reader1,
-            key=operator.itemgetter(
-                index1, index1 + 1, index1 + 2, head1.index("phi_1")
-            ),
-        )
-    elif "c_1" in head1:
-        sortlist1 = sorted(
-            csv_reader1,
-            key=operator.itemgetter(index1, index1 + 1, index1 + 2, head1.index("c_1")),
-        )
-    else:
-        sortlist1 = sorted(
-            csv_reader1, key=operator.itemgetter(index1, index1 + 1, index1 + 2)
-        )
+        _, i = tree.query(x, distance_upper_bound=10**-num_digits_points)
 
-    if (
-        "phi_1"
-        and "flux_domain_phi_1:0"
-        and "flux_domain_phi_1:1"
-        and "flux_domain_phi_1:2" in head2
-    ):
-        sortlist2 = sorted(
-            csv_reader2,
-            key=operator.itemgetter(
-                index2,
-                index2 + 1,
-                index2 + 2,
-                head2.index("phi_1"),
-                head2.index("flux_domain_phi_1:0"),
-                head2.index("flux_domain_phi_1:1"),
-                head2.index("flux_domain_phi_1:2"),
-            ),
-        )
-    elif (
-        "phi_1"
-        and "flux_boundary_phi_1:0"
-        and "flux_boundary_phi_1:1"
-        and "flux_boundary_phi_1:2" in head2
-    ):
-        sortlist2 = sorted(
-            csv_reader2,
-            key=operator.itemgetter(
-                index2,
-                index2 + 1,
-                index2 + 2,
-                head2.index("phi_1"),
-                head2.index("flux_boundary_phi_1:0"),
-                head2.index("flux_boundary_phi_1:1"),
-                head2.index("flux_boundary_phi_1:2"),
-            ),
-        )
-    elif "phi_1" in head2:
-        sortlist2 = sorted(
-            csv_reader2,
-            key=operator.itemgetter(
-                index2, index2 + 1, index2 + 2, head2.index("phi_1")
-            ),
-        )
-    elif "c_1" in head2:
-        sortlist2 = sorted(
-            csv_reader2,
-            key=operator.itemgetter(index2, index2 + 1, index2 + 2, head2.index("c_1")),
-        )
-    else:
-        sortlist2 = sorted(
-            csv_reader2, key=operator.itemgetter(index2, index2 + 1, index2 + 2)
-        )
-
-    if (
-        "phi_1"
-        and "flux_domain_phi_1:0"
-        and "flux_domain_phi_1:1"
-        and "flux_domain_phi_1:2" in head_ref
-    ):
-        sortlist_ref = sorted(
-            csv_reader_ref,
-            key=operator.itemgetter(
-                index_ref,
-                index_ref + 1,
-                index_ref + 2,
-                head_ref.index("phi_1"),
-                head_ref.index("flux_domain_phi_1:0"),
-                head_ref.index("flux_domain_phi_1:1"),
-                head_ref.index("flux_domain_phi_1:2"),
-            ),
-        )
-    elif (
-        "phi_1"
-        and "flux_boundary_phi_1:0"
-        and "flux_boundary_phi_1:1"
-        and "flux_boundary_phi_1:2" in head_ref
-    ):
-        sortlist_ref = sorted(
-            csv_reader_ref,
-            key=operator.itemgetter(
-                index_ref,
-                index_ref + 1,
-                index_ref + 2,
-                head_ref.index("phi_1"),
-                head_ref.index("flux_boundary_phi_1:0"),
-                head_ref.index("flux_boundary_phi_1:1"),
-                head_ref.index("flux_boundary_phi_1:2"),
-            ),
-        )
-    elif "phi_1" in head_ref:
-        sortlist_ref = sorted(
-            csv_reader_ref,
-            key=operator.itemgetter(
-                index_ref, index_ref + 1, index_ref + 2, head_ref.index("phi_1")
-            ),
-        )
-    elif "c_1" in head_ref:
-        sortlist_ref = sorted(
-            csv_reader_ref,
-            key=operator.itemgetter(
-                index_ref, index_ref + 1, index_ref + 2, head_ref.index("c_1")
-            ),
-        )
-    else:
-        sortlist_ref = sorted(
-            csv_reader_ref,
-            key=operator.itemgetter(index_ref, index_ref + 1, index_ref + 2),
-        )
-
-    # remove last element (tolerance) in each list in sortlist_ref
-    tol = []
-    for i in range(0, len(sortlist_ref)):
-        index_tol = len(sortlist_ref[i]) - 1
-        tol.append(sortlist_ref[i][index_tol])
-        sortlist_ref[i] = sortlist_ref[i][0:index_tol]
-
-    # comparison
-    for ele1, ele2 in zip(sortlist1, sortlist2):
-        if ele1 != ele2:
-            print("csv lists are not equal for: ")
-            print(ele1)
-            print(ele2)
-            sys.exit(1)
-    print("files are identical")
-
-    if len(sortlist1) != len(sortlist_ref):
-        # remove all rows where the position does not exist in the reference file
-        def get_position_from_row(row):
-            return np.array(
-                [
-                    float(result_row[index1]),
-                    float(result_row[index1 + 1]),
-                    float(result_row[index1 + 2]),
-                ]
+        if i == len(data_set.points):
+            print(
+                f"No matching point found within distance bound for reference point {x} (distance_upper_bound={10**-num_digits_points})."
             )
+            num_error += 1
+            continue
 
-        rows_to_remove = []
-        for result_row in sortlist1:
-            position = get_position_from_row(result_row)
+        for key, ref_value in quantities.items():
+            if key in ignore_keys:
+                continue
 
-            for result_ref_row in sortlist_ref:
-                if (
-                    np.linalg.norm(position - get_position_from_row(result_ref_row))
-                    < 1e-8
-                ):
-                    rows_to_remove.append(result_row)
-                    break
+            if ":" in key:
+                name, component = key.split(":")
+                component = int(component)
 
-        for row_to_remove in rows_to_remove:
-            sortlist1.remove(row_to_remove)
+                if name not in data_set.point_data:
+                    print(
+                        f"Quantity '{name}' not found in output data. Available quantities are: {data_set.point_data.keys()}"
+                    )
+                    num_error += 1
+                    continue
+                value = data_set.point_data[name][i, component]
+            else:
+                if key not in data_set.point_data:
+                    print(
+                        f"Quantity '{key}' not found in output data. Available quantities are: {data_set.point_data.keys()}"
+                    )
+                    num_error += 1
+                    continue
+                value = data_set.point_data[key][i]
 
-    # verification of results
-    for i, (results_ref, results) in enumerate(zip(sortlist_ref, sortlist1)):
-        if not isEqual(results_ref, results, tol[i]):
-            print("results in csv-files are NOT correct")
-            print("reference: " + str(results_ref))
-            print("vs.")
-            print("actual:    " + str(results))
-            sys.exit(1)
-    print("results in csv-files are correct")
+            num_digits = get_num_digits(ref_value)
+
+            if not math.isclose(
+                value, float(ref_value), rel_tol=0, abs_tol=10**-num_digits
+            ):
+                num_error += 1
+                print(
+                    f"Mismatch at point {x} for quantity {key}: {value} != {float(ref_value)}"
+                )
+
+    if num_error == 0:
+        print("All quantities match the reference data.")
+    else:
+        print(f"Found {num_error} mismatches.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
