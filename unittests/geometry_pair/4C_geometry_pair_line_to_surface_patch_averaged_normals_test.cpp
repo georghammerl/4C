@@ -75,8 +75,9 @@ namespace
     const double eps = 1e-12;
 
     // Fill the discretization object with the geometry.
+    std::vector<std::shared_ptr<Core::Elements::Element>> core_elements;
     std::unordered_map<int, std::shared_ptr<GeometryPair::FaceElement>> face_elements_map;
-    xtest_surface_patch_quad4<face_element_type>(*discret_, face_elements_map);
+    xtest_surface_patch_quad4<face_element_type>(*discret_, face_elements_map, core_elements);
 
     // Load the result vectors.
     std::vector<double> reference_normals, current_normals, position;
