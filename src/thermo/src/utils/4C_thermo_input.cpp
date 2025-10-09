@@ -217,6 +217,10 @@ std::vector<Core::IO::InputSpec> Thermo::valid_parameters()
             parameter<bool>(
                 "TEMPERATURE", {.description = "write temperature output", .default_value = false}),
 
+            // whether to write temperature rate state
+            parameter<bool>("TEMPERATURE_RATE",
+                {.description = "write temperature rate output", .default_value = false}),
+
             // whether to write conductivity state
             parameter<bool>("CONDUCTIVITY",
                 {.description = "write conductivity output", .default_value = false}),
