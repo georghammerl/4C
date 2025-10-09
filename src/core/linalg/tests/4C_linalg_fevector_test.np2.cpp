@@ -133,8 +133,8 @@ namespace
 
   std::vector<double> means_multi_vector(const Core::LinAlg::MultiVector<double>& mv)
   {
-    std::vector<double> means(mv.NumVectors());
-    mv.MeanValue(means.data());
+    std::vector<double> means(mv.num_vectors());
+    mv.mean_value(means.data());
     return means;
   }
 
@@ -177,7 +177,7 @@ namespace
     a.put_scalar(1.0);
 
     Core::LinAlg::MultiVector<double>& mv = a;
-    mv.PutScalar(2.0);
+    mv.put_scalar(2.0);
     EXPECT_EQ(means_multi_vector(a)[0], 2.0);
 
     // Reassigning to a must keep mv valid: move assign

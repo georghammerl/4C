@@ -313,9 +313,9 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::Discretization::bui
     for (size_t dim = 0; dim < 3; ++dim)
     {
       if (dim >= n_dim())
-        coordinates->ReplaceMyValue(lid, dim, 0.0);
+        coordinates->replace_local_value(lid, dim, 0.0);
       else
-        coordinates->ReplaceMyValue(lid, dim, x[dim]);
+        coordinates->replace_local_value(lid, dim, x[dim]);
     }
   }
 

@@ -135,7 +135,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
     // We do not solve a global, linear system of equations (exact L2 projection with good
     // consistency), but perform mass matrix lumping, i.e., we divide by the values of the
     // integrated shape functions
-    if (flux_projected->ReciprocalMultiply(1., *integratedshapefcts, *flux, 0.))
+    if (flux_projected->reciprocal_multiply(1., *integratedshapefcts, *flux, 0.))
       FOUR_C_THROW("ReciprocalMultiply failed!");
   }
 
@@ -429,7 +429,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
               auto& normalcomp = (*normals_)(idim);
               double normalveccomp = normalcomp[lnodid];
               int err =
-                  flux->ReplaceGlobalValue(dofgid, idim, (*normalfluxes)[doflid] * normalveccomp);
+                  flux->replace_global_value(dofgid, idim, (*normalfluxes)[doflid] * normalveccomp);
               if (err != 0) FOUR_C_THROW("Detected error in ReplaceMyValue");
             }
           }
@@ -849,17 +849,17 @@ void ScaTra::ScaTraTimIntImpl::add_flux_approx_to_parameter_list(Teuchos::Parame
   for (int k = 0; k < num_scal(); ++k)
   {
     const std::string name = "flux_phi_" + std::to_string(k);
-    for (int i = 0; i < fluxk->MyLength(); ++i)
+    for (int i = 0; i < fluxk->local_length(); ++i)
     {
       Core::Nodes::Node* actnode = discret_->l_row_node(i);
       int dofgid = discret_->dof(0, actnode, k);
-      fluxk->ReplaceMyValue(i, 0, ((*flux)(0))[(flux->get_map()).lid(dofgid)]);
-      fluxk->ReplaceMyValue(i, 1, ((*flux)(1))[(flux->get_map()).lid(dofgid)]);
-      fluxk->ReplaceMyValue(i, 2, ((*flux)(2))[(flux->get_map()).lid(dofgid)]);
+      fluxk->replace_local_value(i, 0, ((*flux)(0))[(flux->get_map()).lid(dofgid)]);
+      fluxk->replace_local_value(i, 1, ((*flux)(1))[(flux->get_map()).lid(dofgid)]);
+      fluxk->replace_local_value(i, 2, ((*flux)(2))[(flux->get_map()).lid(dofgid)]);
     }
 
     auto tmp = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        *discret_->node_col_map(), fluxk->NumVectors());
+        *discret_->node_col_map(), fluxk->num_vectors());
     Core::LinAlg::export_to(*fluxk, *tmp);
     p.set(name, tmp);
   }
@@ -902,9 +902,9 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::com
     // form the unit normal vector
     if (norm > 1e-15)
     {
-      normal->ReplaceMyValue(i, 0, x / norm);
-      normal->ReplaceMyValue(i, 1, y / norm);
-      normal->ReplaceMyValue(i, 2, z / norm);
+      normal->replace_local_value(i, 0, x / norm);
+      normal->replace_local_value(i, 1, y / norm);
+      normal->replace_local_value(i, 2, z / norm);
     }
   }
 
@@ -930,7 +930,7 @@ void ScaTra::ScaTraTimIntImpl::compute_null_space_if_necessary() const
 
       std::shared_ptr<Core::LinAlg::MultiVector<double>> nullspace =
           std::make_shared<Core::LinAlg::MultiVector<double>>(*(discret_->dof_row_map()), 1, true);
-      nullspace->PutScalar(1.0);
+      nullspace->put_scalar(1.0);
 
       mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
 
@@ -1156,7 +1156,7 @@ void ScaTra::ScaTraTimIntImpl::collect_output_flux_data(
   for (int writefluxid : *writefluxids_)
   {
     std::string name = "flux_" + fluxtype + "_phi_" + std::to_string(writefluxid);
-    for (int i = 0; i < fluxk.MyLength(); ++i)
+    for (int i = 0; i < fluxk.local_length(); ++i)
     {
       Core::Nodes::Node* actnode = discret_->l_row_node(i);
       int dofgid = discret_->dof(0, actnode, writefluxid - 1);
@@ -1175,12 +1175,12 @@ void ScaTra::ScaTraTimIntImpl::collect_output_flux_data(
         yvalue = yvalue_rot;
       }
       // insert values
-      int err = fluxk.ReplaceMyValue(i, 0, xvalue);
-      err += fluxk.ReplaceMyValue(i, 1, yvalue);
-      err += fluxk.ReplaceMyValue(i, 2, zvalue);
+      int err = fluxk.replace_local_value(i, 0, xvalue);
+      err += fluxk.replace_local_value(i, 1, yvalue);
+      err += fluxk.replace_local_value(i, 2, zvalue);
       if (err != 0) FOUR_C_THROW("Detected error in ReplaceMyValue");
     }
-    std::vector<std::optional<std::string>> context(fluxk.NumVectors(), name);
+    std::vector<std::optional<std::string>> context(fluxk.num_vectors(), name);
     visualization_writer_->append_result_data_vector_with_context(
         fluxk, Core::IO::OutputEntity::node, context);
   }

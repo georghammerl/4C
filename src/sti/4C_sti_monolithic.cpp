@@ -645,7 +645,7 @@ void STI::Monolithic::output_vector_to_file(
     const Core::LinAlg::MultiVector<double>& vector, const int precision, const double tolerance)
 {
   // extract communicator
-  MPI_Comm comm = vector.Comm();
+  MPI_Comm comm = vector.get_comm();
 
   // extract vector map
   const Core::LinAlg::Map& map = vector.get_map();
@@ -672,7 +672,7 @@ void STI::Monolithic::output_vector_to_file(
       -1, static_cast<int>(gids.size()), gids.size() ? gids.data() : nullptr, 0, comm);
 
   // export vector to processor with ID 0
-  Core::LinAlg::MultiVector<double> fullvector(fullmap, vector.NumVectors(), true);
+  Core::LinAlg::MultiVector<double> fullvector(fullmap, vector.num_vectors(), true);
   Core::LinAlg::export_to(vector, fullvector);
 
   // let processor with ID 0 output vector to file
@@ -690,23 +690,23 @@ void STI::Monolithic::output_vector_to_file(
     file << std::setprecision(precision) << std::scientific << "GIDs,Values" << std::endl;
 
     // write vector to file
-    for (int lid = 0; lid < fullvector.MyLength(); ++lid)
+    for (int lid = 0; lid < fullvector.local_length(); ++lid)
     {
       // inner loop index
       int j(-1);
 
       // check output omission tolerance
-      for (j = 0; j < fullvector.NumVectors(); ++j)
+      for (j = 0; j < fullvector.num_vectors(); ++j)
         if (std::abs(fullvector(j)[lid]) > tolerance) break;
 
       // perform output if applicable
-      if (j < fullvector.NumVectors())
+      if (j < fullvector.num_vectors())
       {
         // write global ID of current vector component
         file << fullmap.gid(lid);
 
         // loop over all subvectors
-        for (j = 0; j < fullvector.NumVectors(); ++j)
+        for (j = 0; j < fullvector.num_vectors(); ++j)
           // write current vector component to file
           file << "," << fullvector(j)[lid];
 
@@ -1237,7 +1237,7 @@ void STI::Monolithic::compute_null_space_if_necessary(Teuchos::ParameterList& so
 
     std::shared_ptr<Core::LinAlg::MultiVector<double>> nullspace =
         std::make_shared<Core::LinAlg::MultiVector<double>>(dof_row_map().operator*(), 1, true);
-    nullspace->PutScalar(1.0);
+    nullspace->put_scalar(1.0);
 
     mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
 

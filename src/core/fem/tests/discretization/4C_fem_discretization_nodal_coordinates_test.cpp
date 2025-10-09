@@ -48,11 +48,11 @@ namespace
     std::shared_ptr<Core::LinAlg::MultiVector<double>> nodal_test_coordinates =
         test_discretization_->build_node_coordinates();
 
-    EXPECT_EQ(nodal_test_coordinates->MyLength(), test_discretization_->num_my_row_nodes());
-    EXPECT_EQ(nodal_test_coordinates->NumVectors(), 3);
+    EXPECT_EQ(nodal_test_coordinates->local_length(), test_discretization_->num_my_row_nodes());
+    EXPECT_EQ(nodal_test_coordinates->num_vectors(), 3);
 
     std::array<double, 81> coords;
-    nodal_test_coordinates->ExtractCopy(coords.data(), nodal_test_coordinates->MyLength());
+    nodal_test_coordinates->extract_copy(coords.data(), nodal_test_coordinates->local_length());
 
     // first coordinate
     EXPECT_NEAR(coords[0], 0.0, 1e-14);
@@ -75,11 +75,11 @@ namespace
       std::shared_ptr<Core::LinAlg::MultiVector<double>> nodal_test_coordinates =
           test_discretization_->build_node_coordinates(node_row_map);
 
-      EXPECT_EQ(nodal_test_coordinates->MyLength(), 4);
-      EXPECT_EQ(nodal_test_coordinates->NumVectors(), 3);
+      EXPECT_EQ(nodal_test_coordinates->local_length(), 4);
+      EXPECT_EQ(nodal_test_coordinates->num_vectors(), 3);
 
       std::array<double, 12> coords;
-      nodal_test_coordinates->ExtractCopy(coords.data(), nodal_test_coordinates->MyLength());
+      nodal_test_coordinates->extract_copy(coords.data(), nodal_test_coordinates->local_length());
 
       // first coordinate
       EXPECT_DOUBLE_EQ(coords[0], 0.0);

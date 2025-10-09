@@ -165,7 +165,7 @@ void Constraints::EmbeddedMesh::SolidToSolidMortarManager::setup(
         lagrange_gid = lambda_dof_rowmap_->gid(i_node * n_lambda_node_ + i_lambda);
 
         // Set the global Lagrange multiplier id for this node.
-        error_code = node_gid_to_lambda_gid_->ReplaceMyValue(i_node, i_lambda, lagrange_gid);
+        error_code = node_gid_to_lambda_gid_->replace_local_value(i_node, i_lambda, lagrange_gid);
         if (error_code != 0) FOUR_C_THROW("Got error code {}!", error_code);
       }
   }

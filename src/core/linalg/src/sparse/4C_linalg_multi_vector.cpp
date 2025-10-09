@@ -12,11 +12,6 @@
 #include "4C_utils_exceptions.hpp"
 
 
-// Do not lint the file for identifier names, since the naming of the Wrapper functions follow the
-// naming of the Core::LinAlg::MultiVector<double>
-
-// NOLINTBEGIN(readability-identifier-naming)
-
 FOUR_C_NAMESPACE_OPEN
 template <typename T>
 Core::LinAlg::MultiVector<T>::MultiVector(const Epetra_BlockMap& Map, int num_columns, bool zeroOut)
@@ -58,87 +53,87 @@ Core::LinAlg::MultiVector<T>& Core::LinAlg::MultiVector<T>::operator=(const Mult
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Norm1(double* Result) const
+int Core::LinAlg::MultiVector<T>::norm_1(double* Result) const
 {
   return vector_->Norm1(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Norm2(double* Result) const
+int Core::LinAlg::MultiVector<T>::norm_2(double* Result) const
 {
   return vector_->Norm2(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::NormInf(double* Result) const
+int Core::LinAlg::MultiVector<T>::norm_inf(double* Result) const
 {
   return vector_->NormInf(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::MinValue(double* Result) const
+int Core::LinAlg::MultiVector<T>::min_value(double* Result) const
 {
   return vector_->MinValue(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::MaxValue(double* Result) const
+int Core::LinAlg::MultiVector<T>::max_value(double* Result) const
 {
   return vector_->MaxValue(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::MeanValue(double* Result) const
+int Core::LinAlg::MultiVector<T>::mean_value(double* Result) const
 {
   return vector_->MeanValue(Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Dot(const MultiVector& A, double* Result) const
+int Core::LinAlg::MultiVector<T>::dot(const MultiVector& A, double* Result) const
 {
   return vector_->Dot(A, Result);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Abs(const MultiVector& A)
+int Core::LinAlg::MultiVector<T>::abs(const MultiVector& A)
 {
   return vector_->Abs(A);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Scale(double ScalarA, const MultiVector& A)
+int Core::LinAlg::MultiVector<T>::scale(double ScalarA, const MultiVector& A)
 {
   return vector_->Scale(ScalarA, A);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Update(double ScalarA, const MultiVector& A, double ScalarThis)
+int Core::LinAlg::MultiVector<T>::update(double ScalarA, const MultiVector& A, double ScalarThis)
 {
   return vector_->Update(ScalarA, A, ScalarThis);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::Update(
+int Core::LinAlg::MultiVector<T>::update(
     double ScalarA, const MultiVector& A, double ScalarB, const MultiVector& B, double ScalarThis)
 {
   return vector_->Update(ScalarA, A, ScalarB, *B.vector_, ScalarThis);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::PutScalar(double ScalarConstant)
+int Core::LinAlg::MultiVector<T>::put_scalar(double ScalarConstant)
 {
   return vector_->PutScalar(ScalarConstant);
 }
 
 template <typename T>
-int Core::LinAlg::MultiVector<T>::ReplaceMap(const Core::LinAlg::Map& map)
+int Core::LinAlg::MultiVector<T>::replace_map(const Core::LinAlg::Map& map)
 {
   column_vector_view_.clear();
   return vector_->ReplaceMap(map.get_epetra_block_map());
 }
 
 template <typename T>
-MPI_Comm Core::LinAlg::MultiVector<T>::Comm() const
+MPI_Comm Core::LinAlg::MultiVector<T>::get_comm() const
 {
   return Core::Communication::unpack_epetra_comm(vector_->Comm());
 }
@@ -185,5 +180,3 @@ std::unique_ptr<const Core::LinAlg::MultiVector<T>> Core::LinAlg::MultiVector<T>
 template class Core::LinAlg::MultiVector<double>;
 
 FOUR_C_NAMESPACE_CLOSE
-
-// NOLINTEND(readability-identifier-naming)

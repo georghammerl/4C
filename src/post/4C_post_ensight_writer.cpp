@@ -1568,7 +1568,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
 
     // would be nice to have an int vector, instead of casting to doubles
     Core::LinAlg::MultiVector<double> dofgidpernodelid(*nodemap, numdf);
-    dofgidpernodelid.PutScalar(-1.0);
+    dofgidpernodelid.put_scalar(-1.0);
 
     const int mynumnp = nodemap->num_my_elements();
     for (int idf = 0; idf < numdf; ++idf)
@@ -1580,7 +1580,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
         const double dofgid = (double)dis->dof(n, frompid + idf) + offset;
         if (dofgid > -1.0)
         {
-          dofgidpernodelid.ReplaceMyValue(inode, idf, dofgid);
+          dofgidpernodelid.replace_local_value(inode, idf, dofgid);
         }
         else
         {
@@ -1594,7 +1594,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
     // empty)
     Core::LinAlg::MultiVector<double> dofgidpernodelid_proc0(*proc0map_, numdf);
     Core::LinAlg::Import proc0dofimporter(*proc0map_, *nodemap);
-    err = dofgidpernodelid_proc0.Import(dofgidpernodelid, proc0dofimporter, Insert);
+    err = dofgidpernodelid_proc0.import(dofgidpernodelid, proc0dofimporter, Insert);
     if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
 
@@ -1611,7 +1611,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
       std::map<int, double>::iterator iter;
       if (numdf > 1) FLD::get_relevant_slave_nodes_of_rot_sym_pbc(pbcslavenodemap, dis);
 
-      double* dofgids = (dofgidpernodelid_proc0.Values());  // columnwise data storage
+      double* dofgids = (dofgidpernodelid_proc0.get_values());  // columnwise data storage
       for (int idf = 0; idf < numdf; ++idf)
       {
         for (int inode = 0; inode < finalnumnode;
@@ -1730,7 +1730,7 @@ void EnsightWriter::write_nodal_result_step(std::ofstream& file,
     // empty)
     Core::LinAlg::MultiVector<double> data_proc0(*proc0map_, numdf);
     Core::LinAlg::Import proc0dofimporter(*proc0map_, datamap);
-    int err = data_proc0.Import(*data, proc0dofimporter, Insert);
+    int err = data_proc0.import(*data, proc0dofimporter, Insert);
     if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
     //---------------
@@ -1832,7 +1832,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
   //------------------------------------------------------------------
 
   Core::LinAlg::MultiVector<double> dofgidperelementlid(*elementmap, numdof);
-  dofgidperelementlid.PutScalar(-1.0);
+  dofgidperelementlid.put_scalar(-1.0);
 
   const int nummyelem = elementmap->num_my_elements();
   for (int idof = 0; idof < numdof; ++idof)
@@ -1843,7 +1843,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
       const double dofgid = (double)dis->dof(n, from + idof);
       if (dofgid > -1.0)
       {
-        dofgidperelementlid.ReplaceMyValue(ielem, idof, dofgid);
+        dofgidperelementlid.replace_local_value(ielem, idof, dofgid);
       }
       else
       {
@@ -1855,7 +1855,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
   // contract Core::LinAlg::MultiVector<double> on proc0 (proc0 gets everything, other procs empty)
   Core::LinAlg::MultiVector<double> dofgidperelementlid_proc0(*proc0map_, numdof);
   Core::LinAlg::Import proc0dofimporter(*proc0map_, *elementmap);
-  err = dofgidperelementlid_proc0.Import(dofgidperelementlid, proc0dofimporter, Insert);
+  err = dofgidperelementlid_proc0.import(dofgidperelementlid, proc0dofimporter, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   const int numglobelem = elementmap->num_global_elements();
@@ -1884,7 +1884,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
 
     if (myrank_ == 0)  // ensures pointer dofgids is valid
     {
-      double* dofgids = (dofgidperelementlid_proc0.Values());  // columnwise data storage
+      double* dofgids = (dofgidperelementlid_proc0.get_values());  // columnwise data storage
       for (int idof = 0; idof < numdof; ++idof)
       {
         for (int ielem = 0; ielem < numelepertype;
@@ -1971,7 +1971,7 @@ void EnsightWriter::write_element_result_step(std::ofstream& file,
   write(file, field_->field_pos() + 1);
 
   const Core::LinAlg::Map& datamap = data->get_map();
-  const int numcol = data->NumVectors();
+  const int numcol = data->num_vectors();
 
   //------------------------------------------------------
   // each processor provides its result values for proc 0
@@ -1983,7 +1983,7 @@ void EnsightWriter::write_element_result_step(std::ofstream& file,
   // contract result values on proc0 (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0dataimporter(*proc0datamap, datamap);
   Core::LinAlg::MultiVector<double> proc0data(*proc0datamap, numcol);
-  int err = proc0data.Import(*data, proc0dataimporter, Insert);
+  int err = proc0data.import(*data, proc0dataimporter, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   const Core::LinAlg::Map& finaldatamap = proc0data.get_map();
@@ -2335,7 +2335,7 @@ void EnsightWriter::write_coordinates_for_polynomial_shapefunctions(std::ofstrea
     auto x = actnode->x();
     for (size_t isd = 0; isd < x.size(); ++isd)
     {
-      nodecoords->ReplaceMyValue(inode, isd, x[isd]);
+      nodecoords->replace_local_value(inode, isd, x[isd]);
     }
   }
 
@@ -2345,7 +2345,7 @@ void EnsightWriter::write_coordinates_for_polynomial_shapefunctions(std::ofstrea
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map, *nodemap);
   Core::LinAlg::MultiVector<double> allnodecoords(*proc0map, 3);
-  int err = allnodecoords.Import(*nodecoords, proc0importer, Insert);
+  int err = allnodecoords.import(*nodecoords, proc0importer, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   // write the node coordinates (only proc 0)
@@ -2354,8 +2354,8 @@ void EnsightWriter::write_coordinates_for_polynomial_shapefunctions(std::ofstrea
   // writing data)
   if (myrank_ == 0)
   {
-    double* coords = allnodecoords.Values();
-    int numentries = (3 * (allnodecoords.GlobalLength()));
+    double* coords = allnodecoords.get_values();
+    int numentries = (3 * (allnodecoords.global_length()));
     FOUR_C_ASSERT(numentries == (3 * nodemap->num_global_elements()),
         "proc 0 has not all of the node coordinates");
     if (nodeidgiven_)

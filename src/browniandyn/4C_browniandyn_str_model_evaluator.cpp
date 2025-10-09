@@ -672,8 +672,8 @@ void Solid::ModelEvaluator::BrownianDyn::generate_gaussian_random_numbers()
   std::shared_ptr<Core::LinAlg::MultiVector<double>> randomnumbersrow =
       eval_browniandyn_ptr_->get_random_forces();
 
-  int numele = randomnumbersrow->MyLength();
-  int numperele = randomnumbersrow->NumVectors();
+  int numele = randomnumbersrow->local_length();
+  int numperele = randomnumbersrow->num_vectors();
   int count = numele * numperele;
 
   // Start out with zeros

@@ -2897,7 +2897,7 @@ void FLD::XFluid::check_matrix_nullspace()
   {
     std::shared_ptr<Core::LinAlg::MultiVector<double>> c = projector_->get_non_const_kernel();
     projector_->fill_complete();
-    int nsdim = c->NumVectors();
+    int nsdim = c->num_vectors();
     if (nsdim != 1) FOUR_C_THROW("Only one mode, namely the constant pressure mode, expected.");
 
     Core::LinAlg::Vector<double> result(c->get_map(), false);

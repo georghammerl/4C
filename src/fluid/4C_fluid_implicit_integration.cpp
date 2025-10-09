@@ -2253,7 +2253,7 @@ void FLD::FluidImplicitTimeInt::check_matrix_nullspace()
   {
     std::shared_ptr<Core::LinAlg::MultiVector<double>> c = projector_->get_non_const_kernel();
     projector_->fill_complete();
-    int nsdim = c->NumVectors();
+    int nsdim = c->num_vectors();
     if (nsdim != 1) FOUR_C_THROW("Only one mode, namely the constant pressure mode, expected.");
 
     Core::LinAlg::Vector<double> result(c->get_map(), false);
@@ -4909,8 +4909,8 @@ std::shared_ptr<double> FLD::FluidImplicitTimeInt::evaluate_div_u()
 
     double maxdivu = 0.0;
     std::shared_ptr<double> sumdivu = std::make_shared<double>(0.0);
-    divu.Norm1(&(*sumdivu));
-    divu.NormInf(&maxdivu);
+    divu.norm_1(&(*sumdivu));
+    divu.norm_inf(&maxdivu);
 
     if (myrank_ == 0)
     {
@@ -4990,7 +4990,7 @@ double FLD::FluidImplicitTimeInt::evaluate_dt_via_cfl_if_applicable()
 
     double min_h_u = 0.0;
 
-    h_u.MinValue(&min_h_u);
+    h_u.min_value(&min_h_u);
 
     if (cfl_estimator_ == Inpar::FLUID::only_print_cfl_number && myrank_ == 0)
     {

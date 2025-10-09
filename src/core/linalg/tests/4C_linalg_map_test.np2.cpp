@@ -78,7 +78,7 @@ namespace
     auto new_map = std::make_shared<Core::LinAlg::Map>(NumGlobalElements, 1, comm);
 
     // check if map replacement is successfully
-    EXPECT_EQ(vector.ReplaceMap(*new_map), 0);
+    EXPECT_EQ(vector.replace_map(*new_map), 0);
 
     // compare if the wrapper returns the correct map
     EXPECT_TRUE(vector.get_map().same_as(*new_map));

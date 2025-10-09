@@ -32,7 +32,7 @@ namespace Core::FE
     // later on breaks things ...
     if (dimns == 1)
     {
-      nullspace->PutScalar(1.0);
+      nullspace->put_scalar(1.0);
       return nullspace;
     }
 
@@ -98,7 +98,7 @@ namespace Core::FE
       for (int dim = 0; dim < dimns; ++dim)
       {
         double** arrayOfPointers;
-        nullspace->ExtractView(&arrayOfPointers);
+        nullspace->extract_view(&arrayOfPointers);
         double* data = arrayOfPointers[dim];
         Teuchos::ArrayRCP<double> dataVector(data, dofmap.lid(dofs[0]), number_of_dofs, false);
 

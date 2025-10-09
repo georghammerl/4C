@@ -20,7 +20,7 @@ FOUR_C_NAMESPACE_OPEN
 void Core::LinearSolver::AMGNxN::BlockedVector::update(
     double a_V, const BlockedVector& V, double a_this)
 {
-  for (int i = 0; i < get_num_blocks(); i++) get_vector(i)->Update(a_V, *(V.get_vector(i)), a_this);
+  for (int i = 0; i < get_num_blocks(); i++) get_vector(i)->update(a_V, *(V.get_vector(i)), a_this);
 }
 
 /*------------------------------------------------------------------------------*/
@@ -79,7 +79,7 @@ Core::LinearSolver::AMGNxN::BlockedVector::new_rcp(bool ZeroIt) const
 void Core::LinearSolver::AMGNxN::BlockedVector::put_scalar(double a)
 {
   TEUCHOS_FUNC_TIME_MONITOR("Core::LinAlg::SOLVER::AMGNxN::BlockedVector::PutScalar");
-  for (int i = 0; i < get_num_blocks(); i++) get_vector(i)->PutScalar(a);
+  for (int i = 0; i < get_num_blocks(); i++) get_vector(i)->put_scalar(a);
 }
 
 /*------------------------------------------------------------------------------*/
@@ -147,8 +147,8 @@ void Core::LinearSolver::AMGNxN::BlockedMatrix::apply(
     if (out.get_vector(i) == Teuchos::null) FOUR_C_THROW("Have you set your output error?");
 
     Teuchos::RCP<Core::LinAlg::MultiVector<double>> Yi = out.get_vector(i);
-    Yi->PutScalar(0.0);
-    Core::LinAlg::MultiVector<double> Yitmp(Yi->get_map(), Yi->NumVectors(), true);
+    Yi->put_scalar(0.0);
+    Core::LinAlg::MultiVector<double> Yitmp(Yi->get_map(), Yi->num_vectors(), true);
 
     for (int j = 0; j < get_num_cols(); j++)
     {
@@ -158,7 +158,7 @@ void Core::LinearSolver::AMGNxN::BlockedMatrix::apply(
       if (get_matrix(i, j) == Teuchos::null) FOUR_C_THROW("Have you set all the blocks?");
 
       get_matrix(i, j)->Apply(*Xj, Yitmp);
-      Yi->Update(1.0, Yitmp, 1.0);
+      Yi->update(1.0, Yitmp, 1.0);
     }
   }
 

@@ -783,7 +783,7 @@ void Solid::TimIntImpl::update_krylov_space_projection()
   // get std::shared_ptr to kernel vector of projector
   // since we are in 'pointvalue' mode, weights are changed implicitly
   std::shared_ptr<Core::LinAlg::MultiVector<double>> c = projector_->get_non_const_kernel();
-  c->PutScalar(0.0);
+  c->put_scalar(0.0);
 
   // get number of modes and their ids
   std::vector<int> modeids = projector_->modes();
@@ -3141,7 +3141,7 @@ void Solid::TimIntImpl::cmt_linear_solve()
             std::make_shared<Core::LinAlg::MultiVector<double>>(dofmap, dim_nullspace, true);
         for (int ldof = 0; ldof < dofmap.num_my_elements(); ++ldof)
         {
-          nullspace->ReplaceMyValue(ldof, ldof % dim_nullspace, 1.0);
+          nullspace->replace_local_value(ldof, ldof % dim_nullspace, 1.0);
         }
 
         // add the nullspace to the parameter list

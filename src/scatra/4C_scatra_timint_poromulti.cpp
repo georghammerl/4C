@@ -50,10 +50,10 @@ void ScaTra::ScaTraTimIntPoroMulti::set_l2_flux_of_multi_fluid(
   if (nds_vel() >= discret_->num_dof_sets())
     FOUR_C_THROW("Too few dofsets on scatra discretization!");
 
-  if (multiflux->NumVectors() % nsd_ != 0)
-    FOUR_C_THROW("Unexpected length of flux vector: {}", multiflux->NumVectors());
+  if (multiflux->num_vectors() % nsd_ != 0)
+    FOUR_C_THROW("Unexpected length of flux vector: {}", multiflux->num_vectors());
 
-  const int totalnumdof = multiflux->NumVectors() / nsd_;
+  const int totalnumdof = multiflux->num_vectors() / nsd_;
 
   std::string stateprefix = "flux";
 

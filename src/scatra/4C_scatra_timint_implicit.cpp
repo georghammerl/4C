@@ -1841,7 +1841,7 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
   if (scfldgrdisp_ != nullptr)
   {
     std::vector<std::optional<std::string>> context(
-        scfldgrdisp_->NumVectors(), "scfld_growth_displ");
+        scfldgrdisp_->num_vectors(), "scfld_growth_displ");
     visualization_writer_->append_result_data_vector_with_context(
         *scfldgrdisp_, Core::IO::OutputEntity::node, context);
   }
@@ -1850,7 +1850,7 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
   if (scstrgrdisp_ != nullptr)
   {
     std::vector<std::optional<std::string>> context(
-        scstrgrdisp_->NumVectors(), "scstr_growth_displ");
+        scstrgrdisp_->num_vectors(), "scstr_growth_displ");
     visualization_writer_->append_result_data_vector_with_context(
         *scstrgrdisp_, Core::IO::OutputEntity::node, context);
   }
@@ -2377,7 +2377,7 @@ void ScaTra::ScaTraTimIntImpl::update_krylov_space_projection()
 
   // get std::shared_ptr to kernel vector of projector
   std::shared_ptr<Core::LinAlg::MultiVector<double>> c = projector_->get_non_const_kernel();
-  c->PutScalar(0.0);
+  c->put_scalar(0.0);
 
   const std::string* weighttype = projector_->weight_type();
   // compute w_ as defined in input file
@@ -2389,7 +2389,7 @@ void ScaTra::ScaTraTimIntImpl::update_krylov_space_projection()
   {
     // get std::shared_ptr to weight vector of projector
     std::shared_ptr<Core::LinAlg::MultiVector<double>> w = projector_->get_non_const_weights();
-    w->PutScalar(0.0);
+    w->put_scalar(0.0);
 
     // get number of modes and their ids
     int nummodes = projector_->nsdim();
@@ -2445,7 +2445,7 @@ void ScaTra::ScaTraTimIntImpl::update_krylov_space_projection()
       {
         Core::Nodes::Node* node = discret_->l_row_node(inode);
         std::vector<int> gdof = discret_->dof(0, node);
-        int err = c->ReplaceGlobalValue(gdof[modeids[imode]], imode, 1);
+        int err = c->replace_global_value(gdof[modeids[imode]], imode, 1);
         if (err != 0) FOUR_C_THROW("error while inserting value into c");
       }
 

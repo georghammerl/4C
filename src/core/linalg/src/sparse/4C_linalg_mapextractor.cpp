@@ -175,7 +175,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::LinAlg::MultiMapExtract
 {
   if (maps_[block] == nullptr) FOUR_C_THROW("null map at block {}", block);
   std::shared_ptr<Core::LinAlg::MultiVector<double>> vec =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*maps_[block], full.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*maps_[block], full.num_vectors());
   extract_vector(full, block, *vec);
   return vec;
 }
@@ -187,7 +187,7 @@ void Core::LinAlg::MultiMapExtractor::extract_vector(const Core::LinAlg::MultiVe
     int block, Core::LinAlg::MultiVector<double>& partial) const
 {
   if (maps_[block] == nullptr) FOUR_C_THROW("null map at block {}", block);
-  int err = partial.Import(full, *importer_[block], Insert);
+  int err = partial.import(full, *importer_[block], Insert);
   if (err) FOUR_C_THROW("Import using importer returned err={}", err);
 }
 
@@ -210,7 +210,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::LinAlg::MultiMapExtract
     const Core::LinAlg::MultiVector<double>& partial, int block) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> full =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*fullmap_, partial.NumVectors());
+      std::make_shared<Core::LinAlg::MultiVector<double>>(*fullmap_, partial.num_vectors());
   insert_vector(partial, block, *full);
   return full;
 }
@@ -223,7 +223,7 @@ void Core::LinAlg::MultiMapExtractor::insert_vector(
     Core::LinAlg::MultiVector<double>& full) const
 {
   if (maps_[block] == nullptr) FOUR_C_THROW("null map at block {}", block);
-  int err = full.Export(partial, *importer_[block], Insert);
+  int err = full.export_to(partial, *importer_[block], Insert);
   if (err) FOUR_C_THROW("Export using importer returned err={}", err);
 }
 
@@ -236,7 +236,7 @@ void Core::LinAlg::MultiMapExtractor::add_vector(const Core::LinAlg::MultiVector
   std::shared_ptr<Core::LinAlg::MultiVector<double>> v = extract_vector(full, block);
   if (not v->get_map().same_as(partial.get_map()))
     FOUR_C_THROW("The maps of the vectors must be the same!");
-  v->Update(scale, partial, 1.0);
+  v->update(scale, partial, 1.0);
   insert_vector(*v, block, full);
 }
 
@@ -315,7 +315,7 @@ void Core::LinAlg::MultiMapExtractor::scale(
 void Core::LinAlg::MultiMapExtractor::scale(
     Core::LinAlg::MultiVector<double>& full, int block, double scalar) const
 {
-  for (int i = 0; i < full.NumVectors(); ++i) scale(full(i), block, scalar);
+  for (int i = 0; i < full.num_vectors(); ++i) scale(full(i), block, scalar);
 }
 
 

@@ -1352,7 +1352,7 @@ void EnsightWriter::write_coordinates_for_nurbs_shapefunctions(std::ofstream& ge
     for (int isd = 0; isd < 3; ++isd)
     {
       double val = (local_vis_point_x[inode])[isd];
-      nodecoords->ReplaceMyValue(inode, isd, val);
+      nodecoords->replace_local_value(inode, isd, val);
     }
   }
 
@@ -1362,7 +1362,7 @@ void EnsightWriter::write_coordinates_for_nurbs_shapefunctions(std::ofstream& ge
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map, *vispointmap_);
   Core::LinAlg::MultiVector<double> allnodecoords(*proc0map, 3);
-  int err = allnodecoords.Import(*nodecoords, proc0importer, Insert);
+  int err = allnodecoords.import(*nodecoords, proc0importer, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   // write the node coordinates (only proc 0)
@@ -1371,8 +1371,8 @@ void EnsightWriter::write_coordinates_for_nurbs_shapefunctions(std::ofstream& ge
   // writing data)
   if (myrank_ == 0)
   {
-    double* coords = allnodecoords.Values();
-    int numentries = (3 * (allnodecoords.GlobalLength()));
+    double* coords = allnodecoords.get_values();
+    int numentries = (3 * (allnodecoords.global_length()));
 
     if (nodeidgiven_)
     {
@@ -2114,7 +2114,7 @@ void EnsightWriter::write_dof_result_step_for_nurbs(std::ofstream& file, const i
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map_, *vispointmap_);
   Core::LinAlg::MultiVector<double> allsols(*proc0map_, numdf);
-  int err = allsols.Import(*idata, proc0importer, Insert);
+  int err = allsols.import(*idata, proc0importer, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   // write the node results (only proc 0)
@@ -2123,8 +2123,8 @@ void EnsightWriter::write_dof_result_step_for_nurbs(std::ofstream& file, const i
   // writing data)
   if (myrank_ == 0)
   {
-    double* solvals = allsols.Values();
-    int numentries = (numdf * (allsols.GlobalLength()));
+    double* solvals = allsols.get_values();
+    int numentries = (numdf * (allsols.global_length()));
 
     // now write the solution
     for (int i = 0; i < numentries; ++i)
@@ -2208,7 +2208,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid((ele_cart_id[1]) * (nvpu) + ele_cart_id[0]);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -2224,7 +2224,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid((ele_cart_id[1]) * (nvpu) + ele_cart_id[0] + 1);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
 
@@ -2241,7 +2241,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid((ele_cart_id[1] + 1) * (nvpu) + ele_cart_id[0]);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -2257,7 +2257,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid((ele_cart_id[1] + 1) * (nvpu) + ele_cart_id[0] + 1);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
       break;
@@ -2299,7 +2299,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -2318,7 +2318,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idv + idu);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
 
@@ -2338,7 +2338,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -2357,7 +2357,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
       // top line
@@ -2391,7 +2391,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
           int lid =
               (*vispointmap_)
                   .lid(vpoff[npatch] + (2 * ele_cart_id[1] + 2) * (nvpu) + 2 * ele_cart_id[0]);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 6
@@ -2409,7 +2409,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
           int lid =
               (*vispointmap_)
                   .lid(vpoff[npatch] + (2 * ele_cart_id[1] + 2) * (nvpu) + 2 * ele_cart_id[0] + 1);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -2442,7 +2442,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
           int lid =
               (*vispointmap_)
                   .lid(vpoff[npatch] + (2 * ele_cart_id[1]) * (nvpu) + 2 * ele_cart_id[0] + 2);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 6
@@ -2460,7 +2460,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
           int lid =
               (*vispointmap_)
                   .lid(vpoff[npatch] + (2 * ele_cart_id[1] + 1) * (nvpu) + 2 * ele_cart_id[0] + 2);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -2493,7 +2493,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
           int lid =
               (*vispointmap_)
                   .lid(vpoff[npatch] + (2 * ele_cart_id[1] + 2) * (nvpu) + 2 * ele_cart_id[0] + 2);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
       break;
@@ -2550,7 +2550,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -2573,7 +2573,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 3
@@ -2596,7 +2596,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -2619,7 +2619,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 5
@@ -2642,7 +2642,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 6
@@ -2665,7 +2665,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 7
@@ -2688,7 +2688,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 8
@@ -2711,7 +2711,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -2756,7 +2756,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -2779,7 +2779,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 3
@@ -2802,7 +2802,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -2825,7 +2825,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -2871,7 +2871,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
 
@@ -2895,7 +2895,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 3
@@ -2918,7 +2918,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -2941,7 +2941,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -2987,7 +2987,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -3010,7 +3010,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -3058,7 +3058,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -3081,7 +3081,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 3
@@ -3104,7 +3104,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 4
@@ -3127,7 +3127,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -3176,7 +3176,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -3199,7 +3199,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -3247,7 +3247,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
 
         // point 2
@@ -3270,7 +3270,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -3318,7 +3318,7 @@ void EnsightWriter::interpolate_nurbs_result_to_viz_points(Core::LinAlg::MultiVe
             val += my_data[numdf * inode + isd] * nurbs_shape_funct(inode);
           }
           int lid = (*vispointmap_).lid(vpoff[npatch] + idu + idv + idw);
-          (idata).ReplaceMyValue(lid, isd, val);
+          (idata).replace_local_value(lid, isd, val);
         }
       }
 
@@ -3431,7 +3431,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
 
   // create an importer and import the data
   Core::LinAlg::Import importer((coldata).get_map(), (data).get_map());
-  int imerr = (coldata).Import((data), importer, Insert);
+  int imerr = (coldata).import((data), importer, Insert);
   if (imerr)
   {
     FOUR_C_THROW("import failed\n");
@@ -3514,7 +3514,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map_, *vispointmap_);
   Core::LinAlg::MultiVector<double> allsols(*proc0map_, numdf);
-  int err = allsols.Import(*idata, proc0importer, Insert);
+  int err = allsols.import(*idata, proc0importer, Insert);
   if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
 
   //---------------

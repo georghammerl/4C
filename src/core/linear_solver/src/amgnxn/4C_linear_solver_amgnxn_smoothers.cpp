@@ -225,16 +225,16 @@ void Core::LinearSolver::AMGNxN::MergeAndSolve::solve(
   const Core::LinAlg::MultiMapExtractor& range_ex = block_sparse_matrix_->range_extractor();
   const Core::LinAlg::MultiMapExtractor& domain_ex = block_sparse_matrix_->domain_extractor();
 
-  int NV = X.get_vector(0)->NumVectors();
+  int NV = X.get_vector(0)->num_vectors();
   Core::LinAlg::MultiVector<double> Xmv(*(range_ex.full_map()), NV);
   Core::LinAlg::MultiVector<double> Ymv(*(domain_ex.full_map()), NV);
 
   for (int i = 0; i < X.get_num_blocks(); i++) range_ex.insert_vector(*(X.get_vector(i)), i, Xmv);
 
-  b_->Update(1., Xmv, 0.);
+  b_->update(1., Xmv, 0.);
   Core::LinAlg::SolverParams solver_params;
   solver_->solve_with_multi_vector(sparse_matrix_, x_, b_, solver_params);
-  Ymv.Update(1., *x_, 0.);
+  Ymv.update(1., *x_, 0.);
 
   for (int i = 0; i < X.get_num_blocks(); i++) domain_ex.extract_vector(Ymv, i, *(Y.get_vector(i)));
 }
@@ -366,8 +366,8 @@ void Core::LinearSolver::AMGNxN::MueluSmootherWrapper::apply(
     bool InitialGuessIsZero) const
 {
   if (InitialGuessIsZero)
-    Y.PutScalar(0.0);  // I am not sure what is the meaning of InitialGuessIsZero in MueLu. This is
-                       // for safety
+    Y.put_scalar(0.0);  // I am not sure what is the meaning of InitialGuessIsZero in MueLu. This is
+                        // for safety
 
   // Convert to Tpetra
   Core::LinAlg::MultiVector<double> X_rcp(X);
@@ -395,7 +395,7 @@ void Core::LinearSolver::AMGNxN::MueluSmootherWrapper::apply(
   // Convert to Epetra
   const auto& Ye = MueLu::Utilities<double, int, int, Node>::MV2NonConstEpetraMV(Yx);
 
-  Y.Update(1.0, Core::LinAlg::MultiVector<double>(*Ye), 0.0);
+  Y.update(1.0, Core::LinAlg::MultiVector<double>(*Ye), 0.0);
 }
 
 
@@ -416,7 +416,7 @@ void Core::LinearSolver::AMGNxN::MueluHierarchyWrapper::apply(
     bool InitialGuessIsZero) const
 {
   if (InitialGuessIsZero)
-    Y.PutScalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
+    Y.put_scalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
   p_->ApplyInverse(X, Y);
 }
 
@@ -524,7 +524,7 @@ void Core::LinearSolver::AMGNxN::MueluAMGWrapper::apply(const Core::LinAlg::Mult
     Core::LinAlg::MultiVector<double>& Y, bool InitialGuessIsZero) const
 {
   if (InitialGuessIsZero)
-    Y.PutScalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
+    Y.put_scalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
   p_->ApplyInverse(X, Y);
 }
 
@@ -678,7 +678,7 @@ void Core::LinearSolver::AMGNxN::SingleFieldAMG::apply(const Core::LinAlg::Multi
     Core::LinAlg::MultiVector<double>& Y, bool InitialGuessIsZero) const
 {
   if (InitialGuessIsZero)
-    Y.PutScalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
+    Y.put_scalar(0.0);  // TODO Remove when you are sure that ApplyInverse will zero out Y.
   v_->apply(X, Y, InitialGuessIsZero);
 }
 
@@ -743,12 +743,12 @@ void Core::LinearSolver::AMGNxN::IfpackWrapper::apply(const Core::LinAlg::MultiV
   }
   else
   {
-    Core::LinAlg::MultiVector<double> DX(X.get_map(), X.NumVectors(), false);
+    Core::LinAlg::MultiVector<double> DX(X.get_map(), X.num_vectors(), false);
     a_->Apply(Y, DX);
-    DX.Update(1.0, X, -1.0);
-    Core::LinAlg::MultiVector<double> DY(Y.get_map(), X.NumVectors(), false);
+    DX.update(1.0, X, -1.0);
+    Core::LinAlg::MultiVector<double> DY(Y.get_map(), X.num_vectors(), false);
     prec_->ApplyInverse(DX, DY);
-    Y.Update(1.0, DY, 1.0);
+    Y.update(1.0, DY, 1.0);
   }
 }
 
@@ -807,10 +807,10 @@ void Core::LinearSolver::AMGNxN::DirectSolverWrapper::apply(
   if (not(is_set_up_))
     FOUR_C_THROW("The DirectSolverWrapper class should be set up before calling Apply");
 
-  b_->Update(1., X, 0.);
+  b_->update(1., X, 0.);
   Core::LinAlg::SolverParams solver_params;
   solver_->solve_with_multi_vector(matrix_, x_, b_, solver_params);
-  Y.Update(1., *x_, 0.);
+  Y.update(1., *x_, 0.);
 }
 
 

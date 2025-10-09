@@ -275,7 +275,7 @@ bool Beam3ContactOctTree::intersect_b_boxes_with(
     {
       if (octants[ibox][oct] != -1)
       {
-        for (int i = 0; i < bboxesinoctants_->NumVectors(); i++)
+        for (int i = 0; i < bboxesinoctants_->num_vectors(); i++)
         {
           // take only values of existing bounding boxes and not the filler values (-9)
           if ((int)(*bboxesinoctants_)(i)[octants[ibox][oct]] > -0.9)
@@ -387,9 +387,9 @@ void Beam3ContactOctTree::octree_output(
       else
         filename << "BoundingBoxCoordsInit.dat" << std::endl;
       std::ofstream out(filename.str());
-      for (int u = 0; u < allbboxes_->MyLength(); u++)
+      for (int u = 0; u < allbboxes_->local_length(); u++)
       {
-        for (int v = 0; v < allbboxes_->NumVectors(); v++)
+        for (int v = 0; v < allbboxes_->num_vectors(); v++)
           out << std::scientific << std::setprecision(10) << (*allbboxes_)(v)[u] << " ";
         out << (*diameter_)[u] << '\n';
       }
@@ -564,7 +564,7 @@ void Beam3ContactOctTree::create_bounding_boxes(
   }
   // communication of findings
   Core::LinAlg::MultiVector<double> allbboxesrow(
-      *(searchdis_.element_row_map()), allbboxes_->NumVectors(), true);
+      *(searchdis_.element_row_map()), allbboxes_->num_vectors(), true);
   communicate_multi_vector(allbboxesrow, *allbboxes_);
 
   if (periodic_bc_)
@@ -686,11 +686,11 @@ void Beam3ContactOctTree::create_aabb(Core::LinAlg::SerialDenseMatrix& coord, co
   }
 
   if (periodic_bc_ && numshifts < 3)
-    for (int i = allbboxes_->NumVectors() - 1; i > (numshifts + 1) * 6 - 1; i--)
+    for (int i = allbboxes_->num_vectors() - 1; i > (numshifts + 1) * 6 - 1; i--)
       (*allbboxes_)(i).get_values()[elecolid] = -1e9;
 
   // store GID (=box number)
-  (*allbboxes_)(allbboxes_->NumVectors() - 1).get_values()[elecolid] = elegid;
+  (*allbboxes_)(allbboxes_->num_vectors() - 1).get_values()[elecolid] = elegid;
 
   return;
 }
@@ -791,11 +791,11 @@ void Beam3ContactOctTree::create_cobb(Core::LinAlg::SerialDenseMatrix& coord, co
     //    std::cout<<std::endl;
   }
   if (periodic_bc_ && numshifts < 3)
-    for (int i = allbboxes_->NumVectors() - 1; i > (numshifts + 1) * 6 - 1; i--)
+    for (int i = allbboxes_->num_vectors() - 1; i > (numshifts + 1) * 6 - 1; i--)
       (*allbboxes_)(i).get_values()[elecolid] = -1e9;
 
   // last entry: element GID
-  (*allbboxes_)(allbboxes_->NumVectors() - 1).get_values()[elecolid] = elegid;
+  (*allbboxes_)(allbboxes_->num_vectors() - 1).get_values()[elecolid] = elegid;
 
   return;
 }
@@ -909,11 +909,11 @@ void Beam3ContactOctTree::create_spbb(Core::LinAlg::SerialDenseMatrix& coord, co
   }
 
   if (periodic_bc_ && shift < 3)
-    for (int i = allbboxes_->NumVectors() - 1; i > (shift + 1) * 3 - 1; i--)
+    for (int i = allbboxes_->num_vectors() - 1; i > (shift + 1) * 3 - 1; i--)
       (*allbboxes_)(i).get_values()[elecolid] = -1e9;
 
   // last entry: element GID
-  (*allbboxes_)(allbboxes_->NumVectors() - 1).get_values()[elecolid] = elegid;
+  (*allbboxes_)(allbboxes_->num_vectors() - 1).get_values()[elecolid] = elegid;
   return;
 }
 /*-----------------------------------------------------------------------------------------*
@@ -937,7 +937,7 @@ bool Beam3ContactOctTree::locate_all()
   // Convert Core::LinAlg::MultiVector<double> allbboxes_ to vector(std::vector<double>)
   //  std::cout<<allbboxes_->MyLength()<<", "<<allbboxes_->NumVectors()<<std::endl;
   std::vector<std::vector<double>> allbboxesstdvec(
-      allbboxes_->MyLength(), std::vector<double>(allbboxes_->NumVectors(), 0.0));
+      allbboxes_->local_length(), std::vector<double>(allbboxes_->num_vectors(), 0.0));
   epetra_multi_vec_to_std_vec(*allbboxes_, allbboxesstdvec);
 
   // initial tree depth value (will be incremented with each recursive call of locate_box()
@@ -950,7 +950,7 @@ bool Beam3ContactOctTree::locate_all()
 
   // explanation: bbox2octant[i][j]: bounding box i has a vector of octants j, to which the bounding
   // box belongs
-  std::vector<std::vector<int>> bbox2octant(allbboxes_->MyLength(), std::vector<int>());
+  std::vector<std::vector<int>> bbox2octant(allbboxes_->local_length(), std::vector<int>());
 
   // Recursively construct octree; Proc 0 only (parallel computing impossible)
   // max depth of OctreeMap
@@ -986,7 +986,7 @@ bool Beam3ContactOctTree::locate_all()
   // fill vector
   if (!Core::Communication::my_mpi_rank(searchdis_.get_comm()))
   {
-    bbox2octant_->PutScalar(-9.0);
+    bbox2octant_->put_scalar(-9.0);
     std_vec_to_epetra_multi_vec(bbox2octant, *bbox2octant_);
   }
 
@@ -1021,7 +1021,7 @@ bool Beam3ContactOctTree::locate_all()
     // fill bboxinoct for Proc 0
     if (Core::Communication::my_mpi_rank(searchdis_.get_comm()) == 0)
     {
-      bboxesinoctants_->PutScalar(-9.0);
+      bboxesinoctants_->put_scalar(-9.0);
       //      for (int i=0 ; i<(int)bboxesinoctants.size(); i++ )
       //        for(int j=0; j<(int)bboxesinoctants[i].size(); j++)
       //          (*bboxesinoctants_)[j][i] = bboxesinoctants[i][j];
@@ -1217,7 +1217,7 @@ Core::LinAlg::Matrix<6, 1> Beam3ContactOctTree::get_root_box()
 
   // number of shifts due to periodic BCs (if present, else 0)
   int numshifts = 0;
-  for (int i = 0; i < allbboxes_->MyLength(); i++)
+  for (int i = 0; i < allbboxes_->local_length(); i++)
   {
     if (periodic_bc_) numshifts = (int)(*numshifts_)[i];
     for (int j = 0; j < entriesperbbox * numshifts + entriesperbbox; j++)
@@ -1456,16 +1456,16 @@ void Beam3ContactOctTree::bounding_box_intersection(
   std::map<int, std::vector<int>> contactpairmap;
   // create contact pair vector, redundant on all Procs; including redundant pairs
   // for-loop lines of map
-  for (int i = 0; i < bboxesinoctants_->MyLength(); i++)
+  for (int i = 0; i < bboxesinoctants_->local_length(); i++)
   {
     // for-loop index first box
-    for (int j = 0; j < bboxesinoctants_->NumVectors(); j++)
+    for (int j = 0; j < bboxesinoctants_->num_vectors(); j++)
     {
       // first box ID
       std::vector<int> bboxIDs(2, 0);
       bboxIDs[0] = (int)(*bboxesinoctants_)(j)[i];
       // for-loop second box
-      for (int k = j + 1; k < bboxesinoctants_->NumVectors(); k++)
+      for (int k = j + 1; k < bboxesinoctants_->num_vectors(); k++)
       {
         bboxIDs[1] = (int)(*bboxesinoctants_)(k)[i];
 
@@ -1829,10 +1829,11 @@ void Beam3ContactOctTree::communicate_multi_vector(Core::LinAlg::MultiVector<dou
   if (doexport)
   {
     // zero out all vectors which are not Proc 0. Then, export Proc 0 data to InVec map.
-    if (Core::Communication::my_mpi_rank(discret_.get_comm()) != 0 && zerofy) OutVec.PutScalar(0.0);
-    InVec.Export(OutVec, exporter, Add);
+    if (Core::Communication::my_mpi_rank(discret_.get_comm()) != 0 && zerofy)
+      OutVec.put_scalar(0.0);
+    InVec.export_to(OutVec, exporter, Add);
   }
-  if (doimport) OutVec.Import(InVec, importer, Insert);
+  if (doimport) OutVec.import(InVec, importer, Insert);
   return;
 }
 

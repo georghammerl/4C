@@ -132,14 +132,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
     {
       double val = elevector1(j);
 
-      int err = elevec_toberecovered.ReplaceMyValue(i, j, val);
+      int err = elevec_toberecovered.replace_local_value(i, j, val);
       if (err < 0) FOUR_C_THROW("multi vector insertion failed");
     }
 
     // store corresponding element centroid
     for (int d = 0; d < dim; ++d)
     {
-      int err = centercoords.ReplaceMyValue(i, d, elevector2(d));
+      int err = centercoords.replace_local_value(i, d, elevector2(d));
       if (err < 0) FOUR_C_THROW("multi vector insertion failed");
     }
   }  // end element loop
@@ -541,12 +541,13 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
       const int mastergid = slavemasterpair->second;
       const int masterlid = noderowmap.lid(mastergid);
       for (int j = 0; j < numvec; ++j)
-        fullnodevec->ReplaceMyValue(i, j, ((*(nodevec)(j))[masterlid]));
+        fullnodevec->replace_local_value(i, j, ((*(nodevec)(j))[masterlid]));
     }
     else
     {
       const int lid = noderowmap.lid(nodeid);
-      for (int j = 0; j < numvec; ++j) fullnodevec->ReplaceMyValue(i, j, ((*(nodevec)(j))[lid]));
+      for (int j = 0; j < numvec; ++j)
+        fullnodevec->replace_local_value(i, j, ((*(nodevec)(j))[lid]));
     }
   }
 

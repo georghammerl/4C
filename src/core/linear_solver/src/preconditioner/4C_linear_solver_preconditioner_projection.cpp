@@ -27,8 +27,8 @@ Core::LinearSolver::ProjectionPreconditioner::ProjectionPreconditioner(
 void Core::LinearSolver::ProjectionPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
     const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
 {
-  FOUR_C_ASSERT_ALWAYS(b.NumVectors() == 1,
-      "Expecting only one solution vector during projector call! Got {} vectors.", b.NumVectors());
+  FOUR_C_ASSERT_ALWAYS(b.num_vectors() == 1,
+      "Expecting only one solution vector during projector call! Got {} vectors.", b.num_vectors());
   b(0) = projector_->to_reduced(b(0));
 
   // setup wrapped preconditioner

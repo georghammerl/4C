@@ -391,7 +391,7 @@ void Thermo::TimInt::write_runtime_output()
 
     if (runtime_vtk_params_.output_conductivity_state)
     {
-      std::vector<std::optional<std::string>> context(conductivity_->NumVectors(), "conductivity");
+      std::vector<std::optional<std::string>> context(conductivity_->num_vectors(), "conductivity");
       runtime_vtk_writer_->append_result_data_vector_with_context(
           *conductivity_, Core::IO::OutputEntity::node, context);
     }

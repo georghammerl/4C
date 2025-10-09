@@ -53,8 +53,8 @@ namespace
     std::shared_ptr<Core::LinAlg::MultiVector<double>> nodal_test_coordinates =
         test_discretization_->build_node_coordinates();
 
-    EXPECT_EQ(nodal_test_coordinates->MyLength(), test_discretization_->num_my_row_nodes());
-    EXPECT_EQ(nodal_test_coordinates->NumVectors(), 3);
+    EXPECT_EQ(nodal_test_coordinates->local_length(), test_discretization_->num_my_row_nodes());
+    EXPECT_EQ(nodal_test_coordinates->num_vectors(), 3);
 
     const auto& nodal_coordinates = *nodal_test_coordinates;
 

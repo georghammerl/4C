@@ -96,8 +96,8 @@ void SSI::SSIPart1WC::do_scatra_step()
         std::shared_ptr<Core::LinAlg::MultiVector<double>> phinptemp = reader.read_vector("phinp");
 
         Core::LinAlg::MultiVector<double> tmp(
-            *scatra_field()->dof_row_map(), phinptemp->NumVectors());
-        std::copy_n(phinptemp->Values(), phinptemp->MyLength(), tmp.Values());
+            *scatra_field()->dof_row_map(), phinptemp->num_vectors());
+        std::copy_n(phinptemp->get_values(), phinptemp->local_length(), tmp.get_values());
 
         // update phinp
         scatra_field()->phinp()->update(1.0, tmp, 0.0);

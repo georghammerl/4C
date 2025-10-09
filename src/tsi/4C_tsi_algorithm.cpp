@@ -258,7 +258,7 @@ void TSI::Algorithm::output(bool forced_writerestart)
           // get value of corresponding displacement component
           double disp = (*dummy)[slid];
           // insert velocity value into node-based vector
-          err = dispnp_->ReplaceMyValue(lnodeid, index, disp);
+          err = dispnp_->replace_local_value(lnodeid, index, disp);
           if (err != 0) FOUR_C_THROW("error while inserting a value into dispnp_");
         }
 
@@ -266,7 +266,7 @@ void TSI::Algorithm::output(bool forced_writerestart)
         // set zeros for all unused velocity components
         for (int index = numdim; index < 3; ++index)
         {
-          err = dispnp_->ReplaceMyValue(lnodeid, index, 0.0);
+          err = dispnp_->replace_local_value(lnodeid, index, 0.0);
           if (err != 0) FOUR_C_THROW("error while inserting a value into dispnp_");
         }
       }  // for lnodid
@@ -306,7 +306,7 @@ void TSI::Algorithm::output(bool forced_writerestart)
         // get value of corresponding displacement component
         double temp = (*dummy1)[slid];
         // insert velocity value into node-based vector
-        int err = tempnp_->ReplaceMyValue(lnodeid, 0, temp);
+        int err = tempnp_->replace_local_value(lnodeid, 0, temp);
         if (err != 0) FOUR_C_THROW("error while inserting a value into tempnp_");
       }  // for lnodid
 
@@ -360,7 +360,7 @@ void TSI::Algorithm::output_deformation_in_thermo(
       // get value of corresponding displacement component
       double disp = (*dispnp)[slid];
       // insert velocity value into node-based vector
-      err = dispnp_->ReplaceMyValue(lnodeid, index, disp);
+      err = dispnp_->replace_local_value(lnodeid, index, disp);
       if (err != 0) FOUR_C_THROW("error while inserting a value into dispnp_");
     }
 
@@ -368,7 +368,7 @@ void TSI::Algorithm::output_deformation_in_thermo(
     // set zeros for all unused velocity components
     for (int index = numdim; index < 3; ++index)
     {
-      err = dispnp_->ReplaceMyValue(lnodeid, index, 0.0);
+      err = dispnp_->replace_local_value(lnodeid, index, 0.0);
       if (err != 0) FOUR_C_THROW("error while inserting a value into dispnp_");
     }
 

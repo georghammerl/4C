@@ -3691,7 +3691,7 @@ void ScaTra::MeshtyingStrategyS2I::equip_extended_solver_with_null_space_info() 
 
     const auto nullspace = std::make_shared<Core::LinAlg::MultiVector<double>>(
         *(scatratimint_->dof_row_map(2)), 1, true);
-    nullspace->PutScalar(1.0);
+    nullspace->put_scalar(1.0);
 
     // build the coordinate object related to the growth dofs
     const auto growth_cond_node_row_map = Core::Conditions::condition_node_row_map(
@@ -4929,7 +4929,7 @@ void ScaTra::MortarCellAssemblyStrategy::assemble_cell_vector(
   {
     case Inpar::S2I::side_slave:
     {
-      if (systemvector.NumVectors() != 1)
+      if (systemvector.num_vectors() != 1)
         FOUR_C_THROW("Invalid number of vectors inside Core::LinAlg::MultiVector<double>!");
       Core::LinAlg::assemble((systemvector)(nds_rows_), cellvector, la_slave[nds_rows_].lm_,
           la_slave[nds_rows_].lmowner_);
@@ -4939,7 +4939,7 @@ void ScaTra::MortarCellAssemblyStrategy::assemble_cell_vector(
 
     case Inpar::S2I::side_master:
     {
-      if (assembler_pid_master == Core::Communication::my_mpi_rank(systemvector.Comm()))
+      if (assembler_pid_master == Core::Communication::my_mpi_rank(systemvector.get_comm()))
       {
         FOUR_C_ASSERT(false, "Don't know what to do! Need a FEVector.");
       }

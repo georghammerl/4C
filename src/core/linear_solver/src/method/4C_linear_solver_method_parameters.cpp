@@ -123,9 +123,9 @@ void Core::LinearSolver::Parameters::fix_null_space(std::string field,
       params.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullptr);
   if (nullspace == nullptr) FOUR_C_THROW("List does not contain nullspace");
 
-  const int ndim = nullspace->NumVectors();
+  const int ndim = nullspace->num_vectors();
 
-  const int nullspaceLength = nullspace->MyLength();
+  const int nullspaceLength = nullspace->local_length();
   const int newmapLength = newmap.num_my_elements();
 
   if (nullspaceLength == newmapLength) return;

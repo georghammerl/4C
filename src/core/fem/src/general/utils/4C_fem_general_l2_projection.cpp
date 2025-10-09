@@ -186,12 +186,13 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_nodal_l2_pr
     {
       const int mastergid = slavemasterpair->second;
       const int masterlid = noderowmap.lid(mastergid);
-      for (int j = 0; j < numvec; ++j) fullnodevec->ReplaceMyValue(i, j, (*nodevec)(j)[masterlid]);
+      for (int j = 0; j < numvec; ++j)
+        fullnodevec->replace_local_value(i, j, (*nodevec)(j)[masterlid]);
     }
     else
     {
       const int lid = noderowmap.lid(nodeid);
-      for (int j = 0; j < numvec; ++j) fullnodevec->ReplaceMyValue(i, j, (*nodevec)(j)[lid]);
+      for (int j = 0; j < numvec; ++j) fullnodevec->replace_local_value(i, j, (*nodevec)(j)[lid]);
     }
   }
 
@@ -229,7 +230,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::solve_nodal_l2_proj
 
         std::shared_ptr<Core::LinAlg::MultiVector<double>> nullspace =
             std::make_shared<Core::LinAlg::MultiVector<double>>(noderowmap, 1, true);
-        nullspace->PutScalar(1.0);
+        nullspace->put_scalar(1.0);
 
         preclist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
       }

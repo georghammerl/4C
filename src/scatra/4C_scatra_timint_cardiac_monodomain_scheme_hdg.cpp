@@ -96,7 +96,7 @@ void ScaTra::TimIntCardiacMonodomainHDG::collect_runtime_output_data()
 
   if (nb_max_mat_int_state_vars_)
   {
-    material_internal_state_np_->PutScalar(0.0);
+    material_internal_state_np_->put_scalar(0.0);
     Teuchos::ParameterList params;
     Core::Utils::add_enum_class_to_parameter_list<ScaTra::Action>(
         "action", ScaTra::Action::get_material_internal_state, params);
@@ -109,11 +109,11 @@ void ScaTra::TimIntCardiacMonodomainHDG::collect_runtime_output_data()
       FOUR_C_THROW("Cannot get state vector material internal state");
 
     std::vector<std::optional<std::string>> context(
-        material_internal_state_np_->NumVectors(), "ionic_currents");
+        material_internal_state_np_->num_vectors(), "ionic_currents");
     visualization_writer().append_result_data_vector_with_context(
         *material_internal_state_np_, Core::IO::OutputEntity::element, context);
 
-    for (int k = 0; k < material_internal_state_np_->NumVectors(); ++k)
+    for (int k = 0; k < material_internal_state_np_->num_vectors(); ++k)
     {
       material_internal_state_np_component_ =
           std::make_shared<Core::LinAlg::Vector<double>>((*material_internal_state_np_)(k));

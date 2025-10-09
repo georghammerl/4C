@@ -511,7 +511,7 @@ void Core::Binstrategy::BinningStrategy::get_all_bin_centers(
     // get coordinates of bin center
     Core::LinAlg::Matrix<3, 1> center = get_bin_centroid(gidofbin);
 
-    for (int dim = 0; dim < 3; ++dim) bincenters.ReplaceMyValue(i, dim, center(dim));
+    for (int dim = 0; dim < 3; ++dim) bincenters.replace_local_value(i, dim, center(dim));
   }
 }
 

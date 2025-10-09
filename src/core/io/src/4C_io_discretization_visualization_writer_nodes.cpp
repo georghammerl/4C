@@ -103,12 +103,12 @@ namespace Core::IO
         (unsigned int)result_data_nodebased.get_map().num_my_elements();
 
     // safety check
-    if ((unsigned int)result_data_nodebased.NumVectors() != result_num_components_per_node)
+    if ((unsigned int)result_data_nodebased.num_vectors() != result_num_components_per_node)
       FOUR_C_THROW(
           "DiscretizationVisualizationWriterNodes: expected Core::LinAlg::MultiVector<double> with "
           "{} columns but "
           "got {}",
-          result_num_components_per_node, result_data_nodebased.NumVectors());
+          result_num_components_per_node, result_data_nodebased.num_vectors());
 
 
     std::vector<double> point_result_data;

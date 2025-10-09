@@ -594,7 +594,7 @@ void Discret::Elements::ScaTraEleBoundaryCalc<distype, probdim>::calc_normal_vec
       // about the number of boundary elements adjacent to a node
       for (int dim = 0; dim < nsd_; dim++)
       {
-        normals->SumIntoGlobalValue(nodegid, dim, normal_(dim));
+        normals->sum_into_global_value(nodegid, dim, normal_(dim));
       }
     }
   }

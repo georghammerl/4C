@@ -294,7 +294,7 @@ void ElCh::MovingBoundaryAlgorithm::update()
   // perform time shift of interface displacement
   idispn_->update(1.0, *idispnp_, 0.0);
   // perform time shift of interface mass flux vectors
-  fluxn_->Update(1.0, *fluxnp_, 0.0);
+  fluxn_->update(1.0, *fluxnp_, 0.0);
 }
 
 
