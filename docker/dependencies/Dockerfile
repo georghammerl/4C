@@ -98,9 +98,6 @@ RUN mkdir ${FOUR_C_TESTING_DEPENDENCIES_DIR}
 # Install Mathjax
 RUN /dependencies/testing/mathjax/install.sh ${FOUR_C_TESTING_DEPENDENCIES_DIR}
 
-# Install Paraview
-RUN /dependencies/testing/paraview/install.sh ${FOUR_C_TESTING_DEPENDENCIES_DIR}
-
 # Add dependencies hash
 # The label is added at the end because the label causes a cache miss
 ARG DEPENDENCIES_HASH
