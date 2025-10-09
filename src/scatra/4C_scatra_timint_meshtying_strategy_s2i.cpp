@@ -2294,12 +2294,13 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           Core::LinAlg::Vector<int> impltypes_row(*interface.slave_row_elements());
           for (int iele = 0; iele < interface.slave_row_elements()->num_my_elements(); ++iele)
           {
-            impltypes_row.get_values()[iele] = dynamic_cast<const Discret::Elements::Transport*>(
-                std::dynamic_pointer_cast<const Core::Elements::FaceElement>(
-                    kinetics_slave_cond.second->geometry().at(
-                        interface.slave_row_elements()->gid(iele)))
-                    ->parent_element())
-                                                   ->impl_type();
+            impltypes_row.get_local_values()[iele] =
+                dynamic_cast<const Discret::Elements::Transport*>(
+                    std::dynamic_pointer_cast<const Core::Elements::FaceElement>(
+                        kinetics_slave_cond.second->geometry().at(
+                            interface.slave_row_elements()->gid(iele)))
+                        ->parent_element())
+                    ->impl_type();
           }
 
           // perform parallel redistribution if desired
@@ -2433,7 +2434,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
                 FOUR_C_THROW("Invalid discretization type of master-side element!");
 
               // projected node lies inside master-side element
-              (*islavenodestomasterelements).get_values()[inode] = master_mortar_ele->id();
+              (*islavenodestomasterelements).get_local_values()[inode] = master_mortar_ele->id();
               break;
             }
 
@@ -2443,7 +2444,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
 
             // determine physical implementation type of slave-side node based on first associated
             // element
-            (*islavenodesimpltypes).get_values()[inode] =
+            (*islavenodesimpltypes).get_local_values()[inode] =
                 dynamic_cast<Discret::Elements::Transport*>(
                     std::dynamic_pointer_cast<Core::Elements::FaceElement>(
                         kinetics_slave_cond.second->geometry().at(
@@ -2463,7 +2464,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           for (int ielement = 0; ielement < elecolmap_slave.num_my_elements(); ++ielement)
           {
             // determine physical implementation type of current slave-side element
-            islaveelementsimpltypes.get_values()[ielement] =
+            islaveelementsimpltypes.get_local_values()[ielement] =
                 dynamic_cast<Discret::Elements::Transport*>(
                     std::dynamic_pointer_cast<Core::Elements::FaceElement>(
                         kinetics_slave_cond.second->geometry().at(elecolmap_slave.gid(ielement)))
@@ -3568,7 +3569,7 @@ void ScaTra::MeshtyingStrategyS2I::init_meshtying()
     {
       if (conditioned_node_ids.contains(inode))
         // add one degree of freedom for scatra-scatra interface layer thickness to current node
-        (*numdofpernode).get_values()[inode] = 1;
+        (*numdofpernode).get_local_values()[inode] = 1;
     }
 
     int number_dofsets = scatratimint_->get_max_dof_set_number();

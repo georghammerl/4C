@@ -78,9 +78,10 @@ int Core::DOFSets::PBCDofSet::assign_degrees_of_freedom(
 
       if (slave_lid > -1)
       {
-        (numdfcolnodes_->get_values())[slave_lid] =
+        (numdfcolnodes_->get_local_values())[slave_lid] =
             (numdfcolnodes_->get_local_values())[master_lid];
-        (idxcolnodes_->get_values())[slave_lid] = (idxcolnodes_->get_local_values())[master_lid];
+        (idxcolnodes_->get_local_values())[slave_lid] =
+            (idxcolnodes_->get_local_values())[master_lid];
       }
       else
       {

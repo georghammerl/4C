@@ -315,16 +315,13 @@ namespace Core::LinAlg
     //! returns the values (data) as span
     std::span<int> get_local_values()
     {
-      return {get_values(), static_cast<size_t>(local_length())};
+      return {vector_->Values(), static_cast<size_t>(local_length())};
     };
 
     std::span<const int> get_local_values() const
     {
       return {vector_->Values(), static_cast<size_t>(local_length())};
     };
-
-
-    int* get_values() { return vector_->Values(); };
 
     int local_length() const { return vector_->MyLength(); };
 

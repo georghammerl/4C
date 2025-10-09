@@ -521,7 +521,7 @@ void XFEM::ConditionManager::update_level_set_field()
     //    }
 
     // take the one with the lowest coupling index!
-    (ele_lsc_coup_idx).get_values()[leleid] = *(lsc_coupling_indices.begin());
+    (ele_lsc_coup_idx).get_local_values()[leleid] = *(lsc_coupling_indices.begin());
   }
 
   Core::LinAlg::export_to(ele_lsc_coup_idx, *ele_lsc_coup_idx_col_);
@@ -582,7 +582,8 @@ void XFEM::ConditionManager::set_minimum(Core::LinAlg::Vector<double>& vec1,
     double final_val = XFEM::argmin(val1, val2, arg);
 
     if (arg == 2)
-      (node_lsc_coup_idx).get_values()[lnodeid] = lsc_index_2;  // else keep the old lsc coupling
+      (node_lsc_coup_idx).get_local_values()[lnodeid] =
+          lsc_index_2;  // else keep the old lsc coupling
 
     // now copy the values
     err = vec1.replace_local_value(lnodeid, final_val);
@@ -610,7 +611,8 @@ void XFEM::ConditionManager::set_maximum(Core::LinAlg::Vector<double>& vec1,
     double final_val = XFEM::argmax(val1, val2, arg);
 
     if (arg == 2)
-      (node_lsc_coup_idx).get_values()[lnodeid] = lsc_index_2;  // else keep the old lsc coupling
+      (node_lsc_coup_idx).get_local_values()[lnodeid] =
+          lsc_index_2;  // else keep the old lsc coupling
 
     // now copy the values
     err = vec1.replace_local_value(lnodeid, final_val);
@@ -638,7 +640,8 @@ void XFEM::ConditionManager::set_difference(Core::LinAlg::Vector<double>& vec1,
     double final_val = XFEM::argmax(val1, -val2, arg);
 
     if (arg == 2)
-      (node_lsc_coup_idx).get_values()[lnodeid] = lsc_index_2;  // else keep the old lsc coupling
+      (node_lsc_coup_idx).get_local_values()[lnodeid] =
+          lsc_index_2;  // else keep the old lsc coupling
 
     // now copy the values
     err = vec1.replace_local_value(lnodeid, final_val);
@@ -670,11 +673,13 @@ void XFEM::ConditionManager::set_symmetric_difference(Core::LinAlg::Vector<doubl
 
     if (arg_tmp3 == 2)
       if (arg_tmp2 == 2)
-        (node_lsc_coup_idx).get_values()[lnodeid] = lsc_index_2;  // else keep the old lsc coupling
+        (node_lsc_coup_idx).get_local_values()[lnodeid] =
+            lsc_index_2;  // else keep the old lsc coupling
 
     if (arg_tmp3 == 1)
       if (arg_tmp1 == 2)
-        (node_lsc_coup_idx).get_values()[lnodeid] = lsc_index_2;  // else keep the old lsc coupling
+        (node_lsc_coup_idx).get_local_values()[lnodeid] =
+            lsc_index_2;  // else keep the old lsc coupling
 
 
     // now copy the values

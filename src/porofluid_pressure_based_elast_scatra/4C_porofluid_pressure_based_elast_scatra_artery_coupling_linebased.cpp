@@ -903,7 +903,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::de
 {
   // mark this node visited and add it to this connected component
   const int lid = checked_nodes->get_map().lid(current_node->id());
-  (*checked_nodes).get_values()[lid] = 1;
+  (*checked_nodes).get_local_values()[lid] = 1;
   current_connected_component.push_back(current_node->id());
 
   // check all adjacent elements (edges)

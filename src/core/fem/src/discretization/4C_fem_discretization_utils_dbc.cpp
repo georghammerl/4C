@@ -318,7 +318,7 @@ void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& param
         if (hierarchical_order < current_order)
         {
           // no DBC on this dof, set toggle zero
-          info.toggle.get_values()[lid] = 0;
+          info.toggle.get_local_values()[lid] = 0;
 
           // get rid of entry in row DBC map - if it exists
           if (isrow and (dbcgids[set_row])) (*dbcgids[set_row]).erase(gid);
@@ -327,7 +327,7 @@ void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& param
           if (dbcgids[set_col]) (*dbcgids[set_col]).erase(gid);
 
           // record the current hierarchical order of the DBC dof
-          info.hierarchy.get_values()[lid] = hierarchical_order;
+          info.hierarchy.get_local_values()[lid] = hierarchical_order;
         }
       }
       else  // if (onoff[onesetj]==1)
@@ -391,7 +391,7 @@ void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& param
               "This couldn't happen, except if you try to read DBC not in descending order.");
 
         // dof has DBC, set toggle vector one
-        info.toggle.get_values()[lid] = 1;
+        info.toggle.get_local_values()[lid] = 1;
 
         // amend set of row DOF-IDs which are dirichlet BCs
         if (isrow and (dbcgids[set_row])) (*dbcgids[set_row]).insert(gid);
@@ -404,13 +404,13 @@ void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& param
 
         // record the lowest hierarchical order of the DBC dof
         if (hierarchical_order < current_order)
-          info.hierarchy.get_values()[lid] = hierarchical_order;
+          info.hierarchy.get_local_values()[lid] = hierarchical_order;
 
         // record the prescribed value of dof if it is fixed
         info.values.get_values()[lid] = value;
 
         // record the condition that assign the value
-        info.condition.get_values()[lid] = cond.id();
+        info.condition.get_local_values()[lid] = cond.id();
       }
     }  // loop over nodal DOFs
   }  // loop over nodes
