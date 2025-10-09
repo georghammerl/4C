@@ -73,19 +73,14 @@ SCALAR TRANSPORT DYNAMIC:
 SCALAR TRANSPORT DYNAMIC/STABILIZATION:
   DEFINITION_TAU: "Taylor_Hughes_Zarins_wo_dt"
 SOLVER 1:
-  SOLVER: "Belos"
-  IFPACK_XML_FILE: "xfluid_ifpack.xml"
-  AZTOL: 1e-05
-  AZOUTPUT: 50
-  AZREUSE: 1
-  THROW_IF_UNCONVERGED: false
   NAME: "Fluid_Solver"
+  SOLVER: "Superlu"
 SOLVER 2:
-  SOLVER: "UMFPACK"
   NAME: "Scatra_Solver"
-SOLVER 3:
   SOLVER: "UMFPACK"
+SOLVER 3:
   NAME: "L2_Projection"
+  SOLVER: "UMFPACK"
 MATERIALS:
   - MAT: 1
     MAT_fluid:
