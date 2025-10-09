@@ -26,9 +26,5 @@ if(Boost_FOUND)
 
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE Boost::graph)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/Boost.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/Boost.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(BOOST_INCLUDEDIR BOOST_LIBRARYDIR)
 endif()

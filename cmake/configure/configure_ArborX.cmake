@@ -42,8 +42,4 @@ else() # Fetch ArborX from GIT repository
   four_c_add_external_dependency(four_c_all_enabled_external_dependencies ArborX::ArborX)
 endif()
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/ArborX.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/ArborX.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_ARBORX_FIND_INSTALLED FOUR_C_ARBORX_ROOT)

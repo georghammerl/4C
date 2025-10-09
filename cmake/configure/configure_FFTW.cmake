@@ -13,9 +13,5 @@ if(FFTW_FOUND)
 
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE fftw::fftw)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/FFTW.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/FFTW.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(FFTW_INCLUDE_DIR FFTW_LIBRARY)
 endif()

@@ -20,8 +20,4 @@ set(FOUR_C_MAGIC_ENUM_ROOT "${CMAKE_INSTALL_PREFIX}")
 
 four_c_add_external_dependency(four_c_all_enabled_external_dependencies magic_enum::magic_enum)
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/magic_enum.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/magic_enum.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_MAGIC_ENUM_ROOT)

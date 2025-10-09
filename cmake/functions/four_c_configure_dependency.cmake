@@ -314,3 +314,15 @@ function(four_c_configure_dependency _package_name)
 
   message(STATUS "Processed dependency ${_package_name}.\n")
 endfunction()
+
+# Remember a variable and its value for installation.
+# These variables will be exported to the installation configuration file.
+#
+# Usage: four_c_remember_variable_for_install(<var1> <var2> ...)
+#
+function(four_c_remember_variable_for_install)
+  foreach(_arg IN LISTS ARGN)
+    # Resolve the variable now since it might go out of scope later.
+    set_property(GLOBAL APPEND PROPERTY FOUR_C_SET_VARIABLES_FOR_INSTALL "set(${_arg} ${${_arg}})")
+  endforeach()
+endfunction()

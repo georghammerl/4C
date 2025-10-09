@@ -30,8 +30,4 @@ endif()
 include(${DEAL_II_GIT_CONFIG})
 set(FOUR_C_deal.II_GIT_HASH "${DEAL_II_GIT_REVISION}")
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/cmake/templates/deal.II.cmake.in"
-  "${PROJECT_BINARY_DIR}/cmake/templates/deal.II.cmake"
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_DEAL_II_ROOT)

@@ -20,8 +20,4 @@ set(FOUR_C_RYML_ROOT "${CMAKE_INSTALL_PREFIX}")
 
 four_c_add_external_dependency(four_c_all_enabled_external_dependencies ryml::ryml)
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/ryml.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/ryml.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_RYML_ROOT)

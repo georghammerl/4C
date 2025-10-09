@@ -46,8 +46,4 @@ else() # Fetch MIRCO from GIT repository
   four_c_add_external_dependency(four_c_all_enabled_external_dependencies mirco::mirco_lib)
 endif()
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/MIRCO.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/MIRCO.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_MIRCO_ROOT)

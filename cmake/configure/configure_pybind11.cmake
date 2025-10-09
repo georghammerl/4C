@@ -25,8 +25,4 @@ four_c_add_external_dependency(
   four_c_all_enabled_external_dependencies pybind11::module pybind11::embed
   )
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/pybind11.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/pybind11.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(FOUR_C_PYBIND11_ROOT)

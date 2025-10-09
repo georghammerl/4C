@@ -13,9 +13,5 @@ if(QHULL_FOUND)
 
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE qhull::qhull)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/Qhull.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/Qhull.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(QHULL_INCLUDE_DIR QHULL_LIBRARY)
 endif()

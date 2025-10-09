@@ -13,9 +13,5 @@ if(Backtrace_FOUND)
 
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE Backtrace::Backtrace)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/Backtrace.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/Backtrace.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(Backtrace_INCLUDE_DIR Backtrace_LIBRARY)
 endif()

@@ -13,9 +13,5 @@ if(CLN_FOUND)
 
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE cln::cln)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/CLN.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/CLN.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(CLN_INCLUDE_DIR CLN_LIBRARY)
 endif()

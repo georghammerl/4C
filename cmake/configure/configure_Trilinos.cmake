@@ -39,8 +39,10 @@ target_link_libraries(
   four_c_all_enabled_external_dependencies INTERFACE Trilinos::all_selected_libs
   )
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/Trilinos.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/Trilinos.cmake
-  @ONLY
+four_c_remember_variable_for_install(
+  Trilinos_ROOT
+  Kokkos_ROOT
+  Kokkos_FIND_QUIETLY
+  Trilinos_INCLUDE_DIRS
+  Trilinos_LIBRARIES
   )
