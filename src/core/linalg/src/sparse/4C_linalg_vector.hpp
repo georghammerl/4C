@@ -312,11 +312,19 @@ namespace Core::LinAlg
 
     int min_value();
 
-    int& operator[](int index) { return (*vector_)[index]; }
+    //! returns the values (data) as span
+    std::span<int> get_local_values()
+    {
+      return {get_values(), static_cast<size_t>(local_length())};
+    };
 
-    const int& operator[](int index) const { return (*vector_)[index]; }
+    std::span<const int> get_local_values() const
+    {
+      return {vector_->Values(), static_cast<size_t>(local_length())};
+    };
 
-    int* get_values() const { return vector_->Values(); };
+
+    int* get_values() { return vector_->Values(); };
 
     int local_length() const { return vector_->MyLength(); };
 

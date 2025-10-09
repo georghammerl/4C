@@ -71,7 +71,7 @@ int Mortar::DofSet::assign_degrees_of_freedom(
     }
     if (numDofsOfNode > 0)
     {
-      (*idxcolnodes_)[i] = newdofs[0];
+      (*idxcolnodes_).get_values()[i] = newdofs[0];
     }
   }
 
