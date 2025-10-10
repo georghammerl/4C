@@ -1,3 +1,0 @@
-set(Backtrace_INCLUDE_DIR "@Backtrace_INCLUDE_DIR@")
-
-set(Backtrace_LIBRARY "@Backtrace_LIBRARY@")

@@ -20,9 +20,12 @@ if(HDF5_FOUND)
   message(STATUS "HDF5 libraries: ${HDF5_LIBRARIES}")
   message(STATUS "HDF5 HL libraries: ${HDF5_HL_LIBRARIES}")
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE HDF5::HDF5 hdf5::hdf5_hl)
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/HDF5.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/HDF5.cmake
-    @ONLY
+  four_c_remember_variable_for_install(
+    HDF5_PREFER_PARALLEL
+    HDF5_IS_PARALLEL
+    HDF5_INCLUDE_DIRS
+    HDF5_LIBRARIES
+    HDF5_HL_LIBRARIES
     )
+
 endif()

@@ -15,9 +15,5 @@ if(VTK_FOUND)
     INTERFACE VTK::CommonCore VTK::CommonDataModel VTK::IOXML
     )
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/VTK.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/VTK.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(FOUR_C_VTK_ROOT)
 endif()

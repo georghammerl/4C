@@ -29,8 +29,4 @@ if(NOT FOUR_C_MPI_LINKAGE_OK)
   endif()
 endif()
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/cmake/templates/MPI.cmake.in
-  ${PROJECT_BINARY_DIR}/cmake/templates/MPI.cmake
-  @ONLY
-  )
+four_c_remember_variable_for_install(MPI_CXX_SKIP_MPICXX MPIEXEC_EXECUTABLE)

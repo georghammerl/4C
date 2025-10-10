@@ -11,12 +11,7 @@ find_package(ZLIB REQUIRED)
 if(ZLIB_FOUND)
   message(STATUS "ZLIB include directory: ${ZLIB_INCLUDE_DIRS}")
   message(STATUS "ZLIB libraries: ${ZLIB_LIBRARIES}")
-  message(STATUS "ZLIB HL libraries: ${ZLIB_HL_LIBRARIES}")
   target_link_libraries(four_c_all_enabled_external_dependencies INTERFACE ZLIB::ZLIB)
 
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/templates/ZLIB.cmake.in
-    ${PROJECT_BINARY_DIR}/cmake/templates/ZLIB.cmake
-    @ONLY
-    )
+  four_c_remember_variable_for_install(ZLIB_INCLUDE_DIRS ZLIB_LIBRARIES)
 endif()

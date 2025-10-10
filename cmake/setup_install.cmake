@@ -16,20 +16,6 @@ macro(_add_dependency_to_config _package_name)
     FOUR_C_ACTIVATED_DEPENDENCIES_CONFIG
     "set(FOUR_C_WITH_${_package_name_SANITIZED} ${FOUR_C_WITH_${_package_name_SANITIZED}})\n"
     )
-
-  # Append the dependency info to the target settings
-  if(FOUR_C_WITH_${_package_name_SANITIZED})
-    # Append a tab at the start of each line of content
-    file(READ ${PROJECT_BINARY_DIR}/cmake/templates/${_package_name}.cmake _content)
-    string(REPLACE "\n" "\n\t" _content_with_tab "${_content}")
-    string(
-      APPEND
-      FOUR_C_ACTIVATED_DEPENDENCIES_CONFIG
-      "\nif(FOUR_C_WITH_${_package_name_SANITIZED})\n\t"
-      )
-    string(APPEND FOUR_C_ACTIVATED_DEPENDENCIES_CONFIG "${_content_with_tab}")
-    string(APPEND FOUR_C_ACTIVATED_DEPENDENCIES_CONFIG "\nendif()\n")
-  endif()
 endmacro()
 
 include(GNUInstallDirs)
@@ -68,6 +54,12 @@ install(
   NAMESPACE 4C::
   DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/4C
   )
+
+# add all variables that are needed by the config file
+get_property(_var_setters GLOBAL PROPERTY FOUR_C_SET_VARIABLES_FOR_INSTALL)
+foreach(_var_setter IN LISTS _var_setters)
+  string(APPEND FOUR_C_ACTIVATED_DEPENDENCIES_CONFIG "${_var_setter}\n")
+endforeach()
 
 # add the dependency info to settings
 _add_dependency_to_config(HDF5)
