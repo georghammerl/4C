@@ -316,6 +316,11 @@ namespace GeometryPair
           connected_faces_(),
           evaluate_current_normals_(evaluate_current_normals)
     {
+      static_assert(Surface::n_val_ == 1,
+          "Patch face elements only work when nodal values are direct displacements, not when "
+          "nodal values include tangent information (e.g., Hermitian elements).");
+      static_assert(IsSurfaceAveragedNormalsElement<Surface>::value_,
+          "Patch face elements only work for elements with averaged nodal values.");
     }
 
     /**
