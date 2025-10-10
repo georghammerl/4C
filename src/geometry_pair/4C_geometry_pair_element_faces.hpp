@@ -39,30 +39,6 @@ namespace GeometryPair
 namespace GeometryPair
 {
   /**
-   * \brief This structure "converts" a face element type to the underlying volume element.
-   */
-  template <Core::FE::CellType discretization>
-  struct FaceDiscretizationTypeToVolumeElement
-  {
-    using volume_type_ = void;
-  };
-  template <>
-  struct FaceDiscretizationTypeToVolumeElement<Core::FE::CellType::quad4>
-  {
-    using volume_type_ = t_hex8;
-  };
-  template <>
-  struct FaceDiscretizationTypeToVolumeElement<Core::FE::CellType::quad8>
-  {
-    using volume_type_ = t_hex20;
-  };
-  template <>
-  struct FaceDiscretizationTypeToVolumeElement<Core::FE::CellType::quad9>
-  {
-    using volume_type_ = t_hex27;
-  };
-
-  /**
    * \brief Utility structure to represent the connection of faces to a patch.
    */
   struct ConnectedFace
