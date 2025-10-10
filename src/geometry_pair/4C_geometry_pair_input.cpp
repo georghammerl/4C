@@ -12,7 +12,7 @@
 FOUR_C_NAMESPACE_OPEN
 
 
-void GeometryPair::valid_parameters_line_to3_d(std::vector<Core::IO::InputSpec>& list)
+void GeometryPair::valid_parameters_line_to_3d(std::vector<Core::IO::InputSpec>& list)
 {
   using namespace Core::IO::InputSpecBuilders;
 

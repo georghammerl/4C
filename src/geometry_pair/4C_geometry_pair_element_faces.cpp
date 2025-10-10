@@ -234,8 +234,7 @@ void GeometryPair::FaceElementPatchTemplate<Surface, ScalarType>::setup(
   // If we only want to calculate dependencies on the face DOF and not the patch, we do not need the
   // GID of the connected faces in the GID vector of this face. The connectivity to the other patch
   // faces is still required for the calculation of the averaged reference normals.
-  if (not evaluate_current_normals_)
-    this->patch_dof_gid_.resize(3 * this->core_element_->num_node());
+  if (not evaluate_current_normals_) this->patch_dof_gid_.resize(Surface::n_dof_);
 }
 
 
@@ -667,32 +666,26 @@ std::shared_ptr<GeometryPair::FaceElement> GeometryPair::face_element_factory(
       case Core::FE::CellType::quad4:
         return std::make_shared<
             FaceElementPatchTemplate<t_quad4, line_to_surface_scalar_type<t_hermite, t_quad4>>>(
-
             core_element, false);
       case Core::FE::CellType::quad8:
         return std::make_shared<
             FaceElementPatchTemplate<t_quad8, line_to_surface_scalar_type<t_hermite, t_quad8>>>(
-
             core_element, false);
       case Core::FE::CellType::quad9:
         return std::make_shared<
             FaceElementPatchTemplate<t_quad9, line_to_surface_scalar_type<t_hermite, t_quad9>>>(
-
             core_element, false);
       case Core::FE::CellType::tri3:
         return std::make_shared<
             FaceElementPatchTemplate<t_tri3, line_to_surface_scalar_type<t_hermite, t_tri3>>>(
-
             core_element, false);
       case Core::FE::CellType::tri6:
         return std::make_shared<
             FaceElementPatchTemplate<t_tri6, line_to_surface_scalar_type<t_hermite, t_tri6>>>(
-
             core_element, false);
       case Core::FE::CellType::nurbs9:
         return std::make_shared<
             FaceElementTemplate<t_nurbs9, line_to_surface_scalar_type<t_hermite, t_nurbs9>>>(
-
             core_element);
       default:
         FOUR_C_THROW("Wrong discretization type given.");
@@ -723,12 +716,10 @@ std::shared_ptr<GeometryPair::FaceElement> GeometryPair::face_element_factory(
             case Core::FE::CellType::tri3:
               return std::make_shared<
                   FaceElementPatchTemplate<t_tri3, line_to_surface_patch_scalar_type_1st_order>>(
-
                   core_element, true);
             case Core::FE::CellType::tri6:
               return std::make_shared<
                   FaceElementPatchTemplate<t_tri6, line_to_surface_patch_scalar_type_1st_order>>(
-
                   core_element, true);
             case Core::FE::CellType::nurbs9:
               return std::make_shared<FaceElementTemplate<t_nurbs9,
@@ -746,27 +737,22 @@ std::shared_ptr<GeometryPair::FaceElement> GeometryPair::face_element_factory(
             case Core::FE::CellType::quad4:
               return std::make_shared<
                   FaceElementPatchTemplate<t_quad4, line_to_surface_patch_scalar_type>>(
-
                   core_element, true);
             case Core::FE::CellType::quad8:
               return std::make_shared<
                   FaceElementPatchTemplate<t_quad8, line_to_surface_patch_scalar_type>>(
-
                   core_element, true);
             case Core::FE::CellType::quad9:
               return std::make_shared<
                   FaceElementPatchTemplate<t_quad9, line_to_surface_patch_scalar_type>>(
-
                   core_element, true);
             case Core::FE::CellType::tri3:
               return std::make_shared<
                   FaceElementPatchTemplate<t_tri3, line_to_surface_patch_scalar_type>>(
-
                   core_element, true);
             case Core::FE::CellType::tri6:
               return std::make_shared<
                   FaceElementPatchTemplate<t_tri6, line_to_surface_patch_scalar_type>>(
-
                   core_element, true);
             case Core::FE::CellType::nurbs9:
               return std::make_shared<FaceElementTemplate<t_nurbs9,
