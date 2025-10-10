@@ -499,7 +499,7 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
   const enum NOX::Nln::LinSystem::OperatorType jac_type =
       nln_lin_system->get_jacobian_operator_type();
 
-  Teuchos::RCP<const Epetra_Operator> jac_ptr = nln_lin_system->getJacobianOperator();
+  Teuchos::RCP<const Epetra_Operator> jac_ptr = nln_lin_system->get_jacobian_operator();
 
   switch (jac_type)
   {

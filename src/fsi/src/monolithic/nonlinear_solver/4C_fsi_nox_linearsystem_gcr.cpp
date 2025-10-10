@@ -62,7 +62,7 @@ void NOX::FSI::LinearSystemGCR::reset(Teuchos::ParameterList& linearSolverParams
 }
 
 
-bool NOX::FSI::LinearSystemGCR::applyJacobian(
+bool NOX::FSI::LinearSystemGCR::apply_jacobian(
     const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
 {
   jacPtr->SetUseTranspose(false);
@@ -71,7 +71,7 @@ bool NOX::FSI::LinearSystemGCR::applyJacobian(
 }
 
 
-bool NOX::FSI::LinearSystemGCR::applyJacobianTranspose(
+bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
     const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
 {
   jacPtr->SetUseTranspose(true);
@@ -82,7 +82,7 @@ bool NOX::FSI::LinearSystemGCR::applyJacobianTranspose(
 }
 
 
-bool NOX::FSI::LinearSystemGCR::applyJacobianInverse(
+bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
     Teuchos::ParameterList& p, const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result)
 {
   double startTime = timer.wallTime();
@@ -127,7 +127,7 @@ bool NOX::FSI::LinearSystemGCR::applyJacobianInverse(
     status = solve_gcr(input, result, maxit, tol);
   else
   {
-    utils.out() << "ERROR: NOX::FSI::LinearSystemGCR::applyJacobianInverse" << std::endl
+    utils.out() << "ERROR: NOX::FSI::LinearSystemGCR::apply_jacobian_inverse()" << std::endl
                 << "\"Solver\" parameter \"" << linearSolver << "\" is invalid!" << std::endl;
     throw "NOX Error";
   }
@@ -165,7 +165,7 @@ int NOX::FSI::LinearSystemGCR::solve_gcr(
   if (not zeroInitialGuess)
   {
     // calculate initial residual
-    if (not applyJacobian(x, r)) throw_error("SolveGCR", "applyJacobian failed");
+    if (not apply_jacobian(x, r)) throw_error("SolveGCR", "apply_jacobian() failed");
     r.update(1., b, -1.);
   }
   else
@@ -199,7 +199,7 @@ int NOX::FSI::LinearSystemGCR::solve_gcr(
   {
     // this is GCR, not GMRESR
     u.push_back(std::make_shared<::NOX::Epetra::Vector>(r));
-    if (not applyJacobian(r, tmp)) throw_error("SolveGCR", "applyJacobian failed");
+    if (not apply_jacobian(r, tmp)) throw_error("SolveGCR", "apply_jacobian() failed");
     c.push_back(std::make_shared<::NOX::Epetra::Vector>(tmp));
 
     for (int i = 0; i < k; ++i)
@@ -246,7 +246,7 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
   if (not zeroInitialGuess)
   {
     // calculate initial residual
-    if (not applyJacobian(x, r)) throw_error("SolveGMRES", "applyJacobian failed");
+    if (not apply_jacobian(x, r)) throw_error("SolveGMRES", "apply_jacobian() failed");
     r.update(1., b, -1.);
   }
   else
@@ -282,7 +282,7 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
     {
       Teuchos::Time t("GMRES", true);
       // w = M.solve(A * v[i]);
-      if (not applyJacobian(*v[i], w)) throw_error("SolveGMRES", "applyJacobian failed");
+      if (not apply_jacobian(*v[i], w)) throw_error("SolveGMRES", "apply_jacobian() failed");
       for (int k = 0; k <= i; k++)
       {
         H(k, i) = w.innerProduct(*v[k]);
@@ -335,7 +335,7 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
     for (int k = 0; k <= m - 1; k++) x.update(y(k), *v[k], 1.);
 
     // Isn't there a cheaper way to calculate that?
-    if (not applyJacobian(x, r)) throw_error("SolveGMRES", "applyJacobian failed");
+    if (not apply_jacobian(x, r)) throw_error("SolveGMRES", "apply_jacobian() failed");
     r.update(1., b, -1.);
     beta = r.norm();
     if ((resid = beta / normb) < tol)
@@ -382,20 +382,20 @@ void NOX::FSI::LinearSystemGCR::apply_plane_rotation(double& dx, double& dy, dou
 }
 
 
-bool NOX::FSI::LinearSystemGCR::computeJacobian(const ::NOX::Epetra::Vector& x)
+bool NOX::FSI::LinearSystemGCR::compute_jacobian(const ::NOX::Epetra::Vector& x)
 {
   bool success = jacInterfacePtr->computeJacobian(x.getEpetraVector(), *jacPtr);
   return success;
 }
 
 
-Teuchos::RCP<const Epetra_Operator> NOX::FSI::LinearSystemGCR::getJacobianOperator() const
+Teuchos::RCP<const Epetra_Operator> NOX::FSI::LinearSystemGCR::get_jacobian_operator() const
 {
   return Teuchos::rcpFromRef(*jacPtr);
 }
 
 
-Teuchos::RCP<Epetra_Operator> NOX::FSI::LinearSystemGCR::getJacobianOperator()
+Teuchos::RCP<Epetra_Operator> NOX::FSI::LinearSystemGCR::get_jacobian_operator()
 {
   return Teuchos::rcpFromRef(*jacPtr);
 }

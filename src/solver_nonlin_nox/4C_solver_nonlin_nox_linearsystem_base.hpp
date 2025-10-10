@@ -32,39 +32,44 @@ namespace NOX
     {
      public:
       /**
+       * \brief Virtual destructor.
+       */
+      virtual ~LinearSystemBase() {};
+
+      /**
        * \brief Applies Jacobian to the given input vector and puts the answer in the result.
        */
-      virtual bool applyJacobian(
+      virtual bool apply_jacobian(
           const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const = 0;
 
       /**
        * \brief Applies Jacobian-Transpose to the given input vector and puts the answer in the
        *  result.
        */
-      virtual bool applyJacobianTranspose(
+      virtual bool apply_jacobian_transpose(
           const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const = 0;
 
       /**
        * \brief Applies the inverse of the Jacobian matrix to the given input vector and puts the
        * answer in result.
        */
-      virtual bool applyJacobianInverse(Teuchos::ParameterList& params,
+      virtual bool apply_jacobian_inverse(Teuchos::ParameterList& params,
           const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) = 0;
 
       /**
        * \brief Evaluates the Jacobian based on the solution vector x.
        */
-      virtual bool computeJacobian(const ::NOX::Epetra::Vector& x) = 0;
+      virtual bool compute_jacobian(const ::NOX::Epetra::Vector& x) = 0;
 
       /**
        * \brief Return Jacobian operator
        */
-      virtual Teuchos::RCP<const Epetra_Operator> getJacobianOperator() const = 0;
+      virtual Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const = 0;
 
       /**
        * \brief Return Jacobian operator
        */
-      virtual Teuchos::RCP<Epetra_Operator> getJacobianOperator() = 0;
+      virtual Teuchos::RCP<Epetra_Operator> get_jacobian_operator() = 0;
     };
   }  // namespace Nln
 }  // namespace NOX

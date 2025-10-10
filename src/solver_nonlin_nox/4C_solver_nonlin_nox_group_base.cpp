@@ -156,7 +156,7 @@ void NOX::Nln::GroupBase::computeX(
 {
   if (isJacobian()) return ::NOX::Abstract::Group::Ok;
 
-  isValidJacobian = linearSystemPtr->computeJacobian(xVector);
+  isValidJacobian = linearSystemPtr->compute_jacobian(xVector);
 
   FOUR_C_ASSERT(isValidJacobian, "NOX::Nln::GroupBase::computeJacobian() - failed");
 
@@ -171,7 +171,7 @@ void NOX::Nln::GroupBase::computeX(
   FOUR_C_ASSERT(
       isJacobian(), "NOX::Nln::GroupBase::computeGradient() - Jacobian is out of date wrt X!");
 
-  isValidGrad = linearSystemPtr->applyJacobianTranspose(RHSVector, gradVector);
+  isValidGrad = linearSystemPtr->apply_jacobian_transpose(RHSVector, gradVector);
 
   return ::NOX::Abstract::Group::Ok;
 }
@@ -207,7 +207,7 @@ void NOX::Nln::GroupBase::computeX(
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
-  const bool status = linearSystemPtr->applyJacobian(epetra_input, epetra_result);
+  const bool status = linearSystemPtr->apply_jacobian(epetra_input, epetra_result);
 
   return status ? ::NOX::Abstract::Group::Ok : ::NOX::Abstract::Group::Failed;
 }
@@ -222,7 +222,8 @@ void NOX::Nln::GroupBase::computeX(
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
   // Save linear solve stats
-  lastLinearSolveConverged = linearSystemPtr->applyJacobianInverse(p, epetra_input, epetra_result);
+  lastLinearSolveConverged =
+      linearSystemPtr->apply_jacobian_inverse(p, epetra_input, epetra_result);
   lastNumIterations = p.sublist("Output").get("Number of Linear Iterations", 0);
   lastAchievedTol = p.sublist("Output").get("Achieved Tolerance", 0.0);
 
@@ -238,7 +239,7 @@ void NOX::Nln::GroupBase::computeX(
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
-  const bool status = linearSystemPtr->applyJacobianTranspose(epetra_input, epetra_result);
+  const bool status = linearSystemPtr->apply_jacobian_transpose(epetra_input, epetra_result);
 
   return status ? ::NOX::Abstract::Group::Ok : ::NOX::Abstract::Group::Failed;
 }
