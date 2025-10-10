@@ -212,8 +212,8 @@ namespace Mat
     virtual double get_young();
 
     /// evaluate strain energy function
-    [[nodiscard]] double strain_energy(
-        const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, int gp,
+    [[nodiscard]] double strain_energy(const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
+        const EvaluationContext& context, int gp,
         int eleGID  ///< Element GID
     ) const override;
 
@@ -230,7 +230,8 @@ namespace Mat
      */
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     double evaluate_cauchy_n_dir_and_derivatives(const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
@@ -238,8 +239,8 @@ namespace Mat
         Core::LinAlg::Matrix<3, 1>* d_cauchyndir_dn, Core::LinAlg::Matrix<3, 1>* d_cauchyndir_ddir,
         Core::LinAlg::Matrix<9, 1>* d_cauchyndir_dF, Core::LinAlg::Matrix<9, 9>* d2_cauchyndir_dF2,
         Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_dn,
-        Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, int gp, int eleGID,
-        const double* concentration, const double* temp, double* d_cauchyndir_dT,
+        Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, const EvaluationContext& context,
+        int eleGID, const double* concentration, const double* temp, double* d_cauchyndir_dT,
         Core::LinAlg::Matrix<9, 1>* d2_cauchyndir_dF_dT) override;
 
     /**

@@ -329,7 +329,8 @@ void Mat::ThermoPlasticLinElast::update()
  *----------------------------------------------------------------------*/
 void Mat::ThermoPlasticLinElast::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   Core::LinAlg::Matrix<6, 1> stress_view = Core::LinAlg::make_stress_like_voigt_view(stress);
@@ -839,7 +840,7 @@ void Mat::ThermoPlasticLinElast::stress_temperature_modulus_and_deriv(
 Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::ThermoPlasticLinElast::evaluate_d_stress_d_scalar(
     const Core::LinAlg::Tensor<double, 3, 3>& defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int gp, int eleGID)
 {
   // get the temperature-dependent material tangent
   Core::LinAlg::SymmetricTensor<double, 3, 3> ctemp;

@@ -260,21 +260,23 @@ namespace Mat
 
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> evaluate_d_stress_d_scalar(
         const Core::LinAlg::Tensor<double, 3, 3>& defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, int gp, int eleGID) override;
+        const Teuchos::ParameterList& params, const EvaluationContext& context, int gp,
+        int eleGID) override;
 
     double evaluate_cauchy_n_dir_and_derivatives(const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
         const Core::LinAlg::Tensor<double, 3>& n, const Core::LinAlg::Tensor<double, 3>& dir,
         Core::LinAlg::Matrix<3, 1>* d_cauchyndir_dn, Core::LinAlg::Matrix<3, 1>* d_cauchyndir_ddir,
         Core::LinAlg::Matrix<9, 1>* d_cauchyndir_dF, Core::LinAlg::Matrix<9, 9>* d2_cauchyndir_dF2,
         Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_dn,
-        Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, int gp, int eleGID,
-        const double* concentration, const double* temp, double* d_cauchyndir_dT,
+        Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, const EvaluationContext& context,
+        int eleGID, const double* concentration, const double* temp, double* d_cauchyndir_dT,
         Core::LinAlg::Matrix<9, 1>* d2_cauchyndir_dF_dT) override;
 
     void evaluate_linearization_od(const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
@@ -433,7 +435,8 @@ namespace Mat
      * @param[in] gp      current gauss point
      * @param[in] eleGID  Element ID
      */
-    void pre_evaluate(const Teuchos::ParameterList& params, int gp, int eleGID) const;
+    void pre_evaluate(const Teuchos::ParameterList& params, const EvaluationContext& context,
+        int gp, int eleGID) const;
 
     /*!
      * @brief set the gauss point concentration to the respective parameter class of the inelastic

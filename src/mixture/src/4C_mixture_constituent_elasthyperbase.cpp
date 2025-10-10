@@ -187,9 +187,9 @@ void Mixture::MixtureConstituentElastHyperBase::read_element(int numgp,
 // Updates all summands
 void Mixture::MixtureConstituentElastHyperBase::update(
     Core::LinAlg::Tensor<double, 3, 3> const& defgrd, const Teuchos::ParameterList& params,
-    const int gp, const int eleGID)
+    const Mat::EvaluationContext& context, const int gp, const int eleGID)
 {
-  MixtureConstituent::update(defgrd, params, gp, eleGID);
+  MixtureConstituent::update(defgrd, params, context, gp, eleGID);
 
   // loop map of associated potential summands
   for (auto& summand : potsum_) summand->update();
@@ -198,7 +198,7 @@ void Mixture::MixtureConstituentElastHyperBase::update(
   if (params_->get_prestressing_mat_id() > 0)
   {
     prestress_strategy_->update(cosy_anisotropy_extension_.get_coordinate_system_provider(gp),
-        *this, defgrd, prestretch_[gp], params, gp, eleGID);
+        *this, defgrd, prestretch_[gp], params, context, gp, eleGID);
   }
 }
 
@@ -214,15 +214,15 @@ void Mixture::MixtureConstituentElastHyperBase::setup(
   }
 }
 
-void Mixture::MixtureConstituentElastHyperBase::pre_evaluate(
-    MixtureRule& mixtureRule, const Teuchos::ParameterList& params, int gp, int eleGID)
+void Mixture::MixtureConstituentElastHyperBase::pre_evaluate(MixtureRule& mixtureRule,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp, int eleGID)
 {
   // do nothing in the default case
   if (params_->get_prestressing_mat_id() > 0)
   {
     prestress_strategy_->evaluate_prestress(mixtureRule,
         cosy_anisotropy_extension_.get_coordinate_system_provider(gp), *this, prestretch_[gp],
-        params, gp, eleGID);
+        params, context, gp, eleGID);
   }
 }
 

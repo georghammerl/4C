@@ -52,7 +52,7 @@ void Mixture::ConstantPrestressStrategy::setup(Mixture::MixtureConstituent& cons
 void Mixture::ConstantPrestressStrategy::evaluate_prestress(const MixtureRule& mixtureRule,
     const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
     Mixture::MixtureConstituent& constituent, Core::LinAlg::SymmetricTensor<double, 3, 3>& G,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp, int eleGID)
 {
   // setup prestretch
   const Core::LinAlg::Matrix<6, 1> prestretch_vector(params_->prestretch_.data(), true);
@@ -63,8 +63,8 @@ void Mixture::ConstantPrestressStrategy::evaluate_prestress(const MixtureRule& m
 void Mixture::ConstantPrestressStrategy::update(
     const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
     Mixture::MixtureConstituent& constituent, const Core::LinAlg::Tensor<double, 3, 3>& F,
-    Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params, int gp,
-    int eleGID)
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params,
+    const Mat::EvaluationContext& context, int gp, int eleGID)
 {
 }
 FOUR_C_NAMESPACE_CLOSE

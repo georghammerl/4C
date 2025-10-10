@@ -368,7 +368,7 @@ void Mat::MuscleGiantesio::setup(int numgp, const Discret::Elements::Fibers& fib
 }
 
 void Mat::MuscleGiantesio::update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd, int const gp,
-    const Teuchos::ParameterList& params, int const eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int const eleGID)
 {
   // compute the current fibre stretch using the deformation gradient and the structural tensor
   // right Cauchy Green tensor C= F^T F
@@ -385,7 +385,8 @@ void Mat::MuscleGiantesio::update(Core::LinAlg::Tensor<double, 3, 3> const& defg
 
 void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrd,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
   Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrd);
@@ -402,14 +403,12 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   const double omega0 = params_->omega0_;
 
   // save current simulation time
-  double currentTime = get_or<double>(params, "total time", -1);
-  if (std::abs(currentTime + 1.0) < 1e-14)
-    FOUR_C_THROW("No total time given for muscle Giantesio material!");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  double currentTime = *context.total_time;
 
   // save (time) step size
-  double timeStepSize = get_or<double>(params, "delta time", -1);
-  if (std::abs(timeStepSize + 1.0) < 1e-14)
-    FOUR_C_THROW("No time step size given for muscle Giantesio material!");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double timeStepSize = *context.time_step_size;
 
   // compute matrices
   // right Cauchy Green tensor C

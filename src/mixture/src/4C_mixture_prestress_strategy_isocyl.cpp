@@ -16,6 +16,7 @@
 #include "4C_mat_elast_isoneohooke.hpp"
 #include "4C_mat_elast_volsussmanbathe.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mixture_constituent_elasthyperbase.hpp"
 #include "4C_mixture_rule.hpp"
 #include "4C_mixture_rule_growthremodel.hpp"
@@ -56,7 +57,7 @@ void Mixture::IsotropicCylinderPrestressStrategy::setup(Mixture::MixtureConstitu
 void Mixture::IsotropicCylinderPrestressStrategy::evaluate_prestress(const MixtureRule& mixtureRule,
     const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
     Mixture::MixtureConstituent& constituent, Core::LinAlg::SymmetricTensor<double, 3, 3>& G,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp, int eleGID)
 {
   // We evaluate the stress in the reference configuration with a prestretch. Hence, the
   // deformation gradient is the identity matrix and the inverse inelastic deformation gradient is
@@ -109,8 +110,10 @@ void Mixture::IsotropicCylinderPrestressStrategy::evaluate_prestress(const Mixtu
         "No cylinder coordinate system is defined but required by the cylinder prestress "
         "strategy!");
   }
-
-  const auto& reference_coordinates = params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
+  FOUR_C_ASSERT(context.ref_coords,
+      "Reference coordinates not set in EvaluationContext, but required for function-based "
+      "mixture rule!");
+  const auto& reference_coordinates = *context.ref_coords;
 
   double r = 0;
   for (unsigned i = 0; i < 3; ++i)
@@ -179,7 +182,8 @@ void Mixture::IsotropicCylinderPrestressStrategy::evaluate_prestress(const Mixtu
 double Mixture::IsotropicCylinderPrestressStrategy::evaluate_mue_frac(MixtureRule& mixtureRule,
     const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
     Mixture::MixtureConstituent& constituent, ElastinMembraneEvaluation& membraneEvaluation,
-    const Teuchos::ParameterList& params, int gp, int eleGID) const
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp,
+    int eleGID) const
 {
   std::shared_ptr<const Mat::CylinderCoordinateSystemProvider> cylinderCosy =
       cosy->get_cylinder_coordinate_system();
@@ -198,7 +202,7 @@ double Mixture::IsotropicCylinderPrestressStrategy::evaluate_mue_frac(MixtureRul
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat{};
 
 
-  mixtureRule.evaluate(F, E_strain, params, S_stress, cmat, gp, eleGID);
+  mixtureRule.evaluate(F, E_strain, params, context, S_stress, cmat, gp, eleGID);
 
   Core::LinAlg::SymmetricTensor<double, 3, 3> Acir =
       Core::LinAlg::self_dyadic(cylinderCosy->get_cir());
@@ -228,8 +232,8 @@ double Mixture::IsotropicCylinderPrestressStrategy::evaluate_mue_frac(MixtureRul
 void Mixture::IsotropicCylinderPrestressStrategy::update(
     const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
     Mixture::MixtureConstituent& constituent, const Core::LinAlg::Tensor<double, 3, 3>& F,
-    Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params, int gp,
-    int eleGID)
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params,
+    const Mat::EvaluationContext& context, int gp, int eleGID)
 {
 }
 FOUR_C_NAMESPACE_CLOSE

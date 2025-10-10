@@ -236,8 +236,9 @@ void Mat::MembraneActiveStrain::setup(int numgp, const Discret::Elements::Fibers
  *----------------------------------------------------------------------*/
 void Mat::MembraneActiveStrain::evaluate_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
     const Core::LinAlg::Matrix<3, 3>& cauchygreen, const Teuchos::ParameterList& params,
-    const Core::LinAlg::Matrix<3, 3>& Q_trafo, Core::LinAlg::Matrix<3, 1>& stress,
-    Core::LinAlg::Matrix<3, 3>& cmat, const int gp, const int eleGID)
+    const EvaluationContext& context, const Core::LinAlg::Matrix<3, 3>& Q_trafo,
+    Core::LinAlg::Matrix<3, 1>& stress, Core::LinAlg::Matrix<3, 3>& cmat, const int gp,
+    const int eleGID)
 {
   // blank resulting quantities
   stress.clear();
@@ -317,7 +318,7 @@ void Mat::MembraneActiveStrain::evaluate_membrane(const Core::LinAlg::Matrix<3, 
   Core::LinAlg::Matrix<3, 3> cmatpassive_loc(Core::LinAlg::Initialization::zero);
   Core::LinAlg::Matrix<3, 1> S_passive_loc_voigt(Core::LinAlg::Initialization::zero);
   std::dynamic_pointer_cast<Mat::MembraneElastHyper>(matpassive_)
-      ->evaluate_membrane(defgrd_passive_local, cauchygreen_passive_local, params, Q_trafo,
+      ->evaluate_membrane(defgrd_passive_local, cauchygreen_passive_local, params, context, Q_trafo,
           S_passive_loc_voigt, cmatpassive_loc, gp, eleGID);
 
   //******************

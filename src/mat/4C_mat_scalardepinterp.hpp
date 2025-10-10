@@ -181,7 +181,8 @@ namespace Mat
     /// hyperelastic stress response plus elasticity tensor
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     /// setup
@@ -200,7 +201,7 @@ namespace Mat
 
     /// evaluate strain energy function
     [[nodiscard]] double strain_energy(const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const int gp, const int eleGID) const override;
+        const EvaluationContext& context, const int gp, const int eleGID) const override;
 
    private:
     /// my material parameters

@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_fixedsizematrix.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -44,8 +45,8 @@ namespace Mat
      * @param eleGID (in) : Global element id
      */
     virtual void update_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
-        const Teuchos::ParameterList& params, const Core::LinAlg::Matrix<3, 3>& Q_trafo, int gp,
-        int eleGID) = 0;
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        const Core::LinAlg::Matrix<3, 3>& Q_trafo, int gp, int eleGID) = 0;
 
     /*!
      * @brief Evaluate stress response plus elasticity tensor for membranes assuming
@@ -64,8 +65,9 @@ namespace Mat
      */
     virtual void evaluate_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
         const Core::LinAlg::Matrix<3, 3>& cauchygreen, const Teuchos::ParameterList& params,
-        const Core::LinAlg::Matrix<3, 3>& Q_trafo, Core::LinAlg::Matrix<3, 1>& stress,
-        Core::LinAlg::Matrix<3, 3>& cmat, int gp, int eleGID) = 0;
+        const EvaluationContext& context, const Core::LinAlg::Matrix<3, 3>& Q_trafo,
+        Core::LinAlg::Matrix<3, 1>& stress, Core::LinAlg::Matrix<3, 3>& cmat, int gp,
+        int eleGID) = 0;
   };
 
   /*!
@@ -94,8 +96,9 @@ namespace Mat
      * @param eleGID (in) : Global element id
      */
     virtual void evaluate_membrane(const Core::LinAlg::Matrix<3, 3>& defgrd,
-        const Teuchos::ParameterList& params, Core::LinAlg::Matrix<3, 3>& stress,
-        Core::LinAlg::Matrix<6, 6>& cmat, int gp, int eleGID) = 0;
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::Matrix<3, 3>& stress, Core::LinAlg::Matrix<6, 6>& cmat, int gp,
+        int eleGID) = 0;
   };
 
   /*!
@@ -126,7 +129,8 @@ namespace Mat
      * @return Adapted stretch in thickness direction
      */
     virtual double evaluate_membrane_thickness_stretch(const Core::LinAlg::Matrix<3, 3>& defgrd,
-        const Teuchos::ParameterList& params, int gp, int eleGID) = 0;
+        const Teuchos::ParameterList& params, const EvaluationContext& context, int gp,
+        int eleGID) = 0;
   };
 
 }  // namespace Mat

@@ -176,7 +176,8 @@ void Mat::IterativePrestressMaterial::post_setup(const Teuchos::ParameterList& p
 void Mat::IterativePrestressMaterial::update() { child_material_->update(); }
 
 void Mat::IterativePrestressMaterial::update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd,
-    const int gp, const Teuchos::ParameterList& params, const int eleGID)
+    const int gp, const Teuchos::ParameterList& params, const EvaluationContext& context,
+    const int eleGID)
 {
   if (params_->is_prestress_active_)
   {
@@ -186,7 +187,7 @@ void Mat::IterativePrestressMaterial::update(Core::LinAlg::Tensor<double, 3, 3> 
   Core::LinAlg::Tensor<double, 3, 3> elastic_deformation_gradient =
       get_elastic_deformation_gradient(defgrd, prestretch_tensor_[gp]);
 
-  child_material_->update(elastic_deformation_gradient, gp, params, eleGID);
+  child_material_->update(elastic_deformation_gradient, gp, params, context, eleGID);
 }
 
 void Mat::IterativePrestressMaterial::setup(const int numgp,
@@ -222,14 +223,16 @@ bool Mat::IterativePrestressMaterial::evaluate_output_data(
 }
 
 double Mat::IterativePrestressMaterial::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, int gp, int eleGID) const
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,
+    int gp, int eleGID) const
 {
   FOUR_C_THROW("Strain energy computation is currently not implemented for prestressing materials");
 }
 
 void Mat::IterativePrestressMaterial::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   Core::LinAlg::Tensor<double, 3, 3> elastic_deformation_gradient =
@@ -244,7 +247,7 @@ void Mat::IterativePrestressMaterial::evaluate(const Core::LinAlg::Tensor<double
 
 
   // evaluate child material
-  child_material_->evaluate(&elastic_deformation_gradient, elastic_gl_strain, params,
+  child_material_->evaluate(&elastic_deformation_gradient, elastic_gl_strain, params, context,
       elastic_stress, elastic_cmat, gp, eleGID);
 
   // push-forward operation

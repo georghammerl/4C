@@ -811,8 +811,8 @@ Mat::InelasticDefgradScalar::InelasticDefgradScalar(Core::Mat::PAR::Parameter* p
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradScalar::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+void Mat::InelasticDefgradScalar::pre_evaluate(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp, const int eleGID)
 {
   // store scalars of current gauss point
   concentrations_ = params.get<std::shared_ptr<std::vector<double>>>("scalars");
@@ -1456,8 +1456,8 @@ Mat::InelasticDefgradLinTempIso::InelasticDefgradLinTempIso(Core::Mat::PAR::Para
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradLinTempIso::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+void Mat::InelasticDefgradLinTempIso::pre_evaluate(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp, const int eleGID)
 {
   temperature_ = params.get<double>("temperature");
 }
@@ -1589,8 +1589,8 @@ Mat::InelasticDefgradNoGrowth::InelasticDefgradNoGrowth(Core::Mat::PAR::Paramete
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradNoGrowth::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+void Mat::InelasticDefgradNoGrowth::pre_evaluate(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp, const int eleGID)
 {
 }
 
@@ -1625,13 +1625,14 @@ Mat::InelasticDefgradTimeFunct::InelasticDefgradTimeFunct(Core::Mat::PAR::Parame
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradTimeFunct::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+void Mat::InelasticDefgradTimeFunct::pre_evaluate(const Teuchos::ParameterList& params,
+    const EvaluationContext& context, const int gp, const int eleGID)
 {
   // evaluate function value for current time step.
   auto& funct = Global::Problem::instance()->function_by_id<Core::Utils::FunctionOfTime>(
       parameter()->funct_num());
-  const double time = params.get<double>("total time");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  const double time = *context.total_time;
   funct_value_ = funct.evaluate(time);
 }
 
@@ -1686,7 +1687,8 @@ Mat::InelasticDefgradTransvIsotropElastViscoplast::InelasticDefgradTransvIsotrop
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
 void Mat::InelasticDefgradTransvIsotropElastViscoplast::pre_evaluate(
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, const int gp,
+    const int eleGID)
 {
   // set Gauss Point
   gp_ = gp;
@@ -1695,7 +1697,8 @@ void Mat::InelasticDefgradTransvIsotropElastViscoplast::pre_evaluate(
   ele_gid_ = eleGID;
 
   // set time step
-  time_step_settings_.dt_ = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  time_step_settings_.dt_ = *context.time_step_size;
   // set minimum substep length
   time_step_settings_.min_dt_ =
       time_step_settings_.dt_ / std::pow(2.0, parameter()->max_halve_number());

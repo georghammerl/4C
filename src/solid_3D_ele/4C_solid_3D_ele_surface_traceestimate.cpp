@@ -144,8 +144,14 @@ void Discret::Elements::SolidSurface::trace_estimate_vol_matrix(
       *scalar_values_at_xi = Core::FE::interpolate_to_xi<dt_vol>(xi, parent_scalar);
       params.set("scalars", scalar_values_at_xi);
     }
+
+    Core::LinAlg::Tensor<double, 3> xi_t = {{xi(0), xi(1), xi(2)}};
+    Mat::EvaluationContext context{.total_time = nullptr,  // Do not have the time here
+        .time_step_size = nullptr,                         // Do not have the time-step here
+        .xi = &xi_t,
+        .ref_coords = nullptr};
     std::dynamic_pointer_cast<Mat::So3Material>(parent_element()->material())
-        ->evaluate(&defgrd, glstrain, params, stress, cmat, gp, parent_element()->id());
+        ->evaluate(&defgrd, glstrain, params, context, stress, cmat, gp, parent_element()->id());
     bc.multiply_tn(bop, Core::LinAlg::make_stress_like_voigt_view(cmat));
     vol.multiply(ip.ip().qwgt[gp] * jac, bc, bop, 1.);
   }
@@ -211,8 +217,14 @@ void Discret::Elements::SolidSurface::trace_estimate_surf_matrix(
       *scalar_values_at_xi = Core::FE::interpolate_to_xi<dt_vol>(xi, parent_scalar);
       params.set("scalars", scalar_values_at_xi);
     }
+
+    Core::LinAlg::Tensor<double, 3> xi_t = {{xi(0), xi(1), xi(2)}};
+    Mat::EvaluationContext context{.total_time = nullptr,  // Do not have the time here
+        .time_step_size = nullptr,                         // Do not have the time-step here
+        .xi = &xi_t,
+        .ref_coords = nullptr};
     std::dynamic_pointer_cast<Mat::So3Material>(parent_element()->material())
-        ->evaluate(&defgrd, glstrain, params, stress, cmat, gp, parent_element()->id());
+        ->evaluate(&defgrd, glstrain, params, context, stress, cmat, gp, parent_element()->id());
 
     double normalfac = 1.0;
     if (shape() == Core::FE::CellType::nurbs9)

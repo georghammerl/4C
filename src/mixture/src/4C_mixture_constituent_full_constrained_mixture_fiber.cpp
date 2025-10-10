@@ -13,6 +13,7 @@
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_mat_elast_aniso_structuraltensor_strategy.hpp"
 #include "4C_mat_par_bundle.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mixture_constituent_remodelfiber_lib.hpp"
 #include "4C_mixture_growth_evolution_linear_cauchy_poisson_turnover.hpp"
 #include "4C_utils_function_of_time.hpp"
@@ -31,18 +32,6 @@ namespace
       const Core::LinAlg::Tensor<double, 3, 3>& F)
   {
     return Core::LinAlg::assume_symmetry(Core::LinAlg::transpose(F) * F);
-  }
-
-  [[nodiscard]] static inline double get_total_time(const Teuchos::ParameterList& params)
-  {
-    double time = params.get<double>("total time");
-    if (time < 0) return 0.0;  // Time has not been set by the time integrator during setup
-    return time;
-  }
-
-  [[nodiscard]] static inline double get_delta_time(const Teuchos::ParameterList& params)
-  {
-    return params.get<double>("delta time");
   }
 
   Mixture::HistoryAdaptionStrategy get_history_adaption_strategy_from_input(
@@ -202,12 +191,13 @@ void Mixture::MixtureConstituentFullConstrainedMixtureFiber::setup(
 }
 
 void Mixture::MixtureConstituentFullConstrainedMixtureFiber::update(
-    const Core::LinAlg::Tensor<double, 3, 3>& F, const Teuchos::ParameterList& params, const int gp,
-    const int eleGID)
+    const Core::LinAlg::Tensor<double, 3, 3>& F, const Teuchos::ParameterList& params,
+    const Mat::EvaluationContext& context, const int gp, const int eleGID)
 {
-  MixtureConstituent::update(F, params, gp, eleGID);
+  MixtureConstituent::update(F, params, context, gp, eleGID);
 
-  const double time = get_total_time(params);
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  const double time = *context.total_time;
   full_constrained_mixture_fiber_[gp].set_deposition_stretch(
       evaluate_initial_deposition_stretch(time));
   last_lambda_f_[gp] = evaluate_lambdaf(evaluate_c(F), gp, eleGID);
@@ -298,11 +288,14 @@ Mixture::MixtureConstituentFullConstrainedMixtureFiber::evaluate_current_cmat(
 void Mixture::MixtureConstituentFullConstrainedMixtureFiber::evaluate(
     const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
-  const double time = get_total_time(params);
-  const double delta_time = get_delta_time(params);
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  const double time = *context.total_time;
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  const double delta_time = *context.time_step_size;
 
   Core::LinAlg::SymmetricTensor<double, 3, 3> C = evaluate_c(F);
 
@@ -315,7 +308,8 @@ void Mixture::MixtureConstituentFullConstrainedMixtureFiber::evaluate(
 
 void Mixture::MixtureConstituentFullConstrainedMixtureFiber::evaluate_elastic_part(
     const Core::LinAlg::Tensor<double, 3, 3>& FM, const Core::LinAlg::Tensor<double, 3, 3>& iFextin,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   FOUR_C_THROW(

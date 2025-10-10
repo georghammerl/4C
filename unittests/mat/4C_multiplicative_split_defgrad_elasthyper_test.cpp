@@ -324,7 +324,7 @@ namespace
 
 
       // call pre evaluate to have concentration during actual call
-      multiplicative_split_defgrad_->pre_evaluate(params, 0, 0);
+      multiplicative_split_defgrad_->pre_evaluate(params, {}, 0, 0);
     }
 
     void set_ref_values_evaluated_sdi_fin()
@@ -489,10 +489,17 @@ namespace
     Core::LinAlg::Matrix<3, 1> d_cauchyndir_ddir(Core::LinAlg::Initialization::zero);
     Core::LinAlg::Matrix<9, 1> d_cauchyndir_dF(Core::LinAlg::Initialization::zero);
 
+
+    double total_time = 0.0;
+    double time_step_size = 1.0;
+    Mat::EvaluationContext context{.total_time = &total_time,
+        .time_step_size = &time_step_size,
+        .xi = {},
+        .ref_coords = nullptr};
     const double cauchy_n_dir =
         multiplicative_split_defgrad_->evaluate_cauchy_n_dir_and_derivatives(F_, n, dir,
-            &d_cauchyndir_dn, &d_cauchyndir_ddir, &d_cauchyndir_dF, nullptr, nullptr, nullptr, 0, 0,
-            &concentration, nullptr, nullptr, nullptr);
+            &d_cauchyndir_dn, &d_cauchyndir_ddir, &d_cauchyndir_dF, nullptr, nullptr, nullptr,
+            context, 0, &concentration, nullptr, nullptr, nullptr);
 
     const double cauchy_n_dir_ref(6.019860168755);
     Core::LinAlg::Matrix<3, 1> d_cauchyndir_dn_ref(Core::LinAlg::Initialization::zero);

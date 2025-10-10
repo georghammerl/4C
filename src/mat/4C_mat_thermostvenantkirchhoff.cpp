@@ -142,7 +142,8 @@ void Mat::ThermoStVenantKirchhoff::unpack(Core::Communication::UnpackBuffer& buf
  *----------------------------------------------------------------------*/
 void Mat::ThermoStVenantKirchhoff::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // fixme this backwards compatibility modification should be moved outside
@@ -179,8 +180,8 @@ void Mat::ThermoStVenantKirchhoff::evaluate(const Core::LinAlg::Tensor<double, 3
  | calculates strain energy                                 seitz 11/15 |
  *----------------------------------------------------------------------*/
 double Mat::ThermoStVenantKirchhoff::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const int gp,
-    const int eleGID) const
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,
+    const int gp, const int eleGID) const
 {
   if (youngs_is_temp_dependent())
     FOUR_C_THROW("Calculation of strain energy only for constant Young's modulus");
@@ -260,7 +261,7 @@ Core::LinAlg::SymmetricTensor<double, 3, 3>
 Mat::ThermoStVenantKirchhoff::evaluate_d_stress_d_scalar(
     const Core::LinAlg::Tensor<double, 3, 3>& defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, int gp, int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int gp, int eleGID)
 {
   const double temperature = [&]()
   {

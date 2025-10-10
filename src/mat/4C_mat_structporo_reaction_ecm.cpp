@@ -11,6 +11,7 @@
 #include "4C_global_data.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_poro_law.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_utils_enum.hpp"
 
 #include <vector>
@@ -223,7 +224,8 @@ void Mat::StructPoroReactionECM::chem_potential(
   // dummy parameter list
   Teuchos::ParameterList params;
 
-  double psi = mat_->strain_energy(glstrain, gp, EleID);
+  EvaluationContext context{};  // We have nothing available
+  double psi = mat_->strain_energy(glstrain, context, gp, EleID);
 
   // derivative of
   double dpsidphiref = 0.0;

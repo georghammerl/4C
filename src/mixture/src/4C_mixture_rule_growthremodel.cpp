@@ -86,16 +86,18 @@ void Mixture::GrowthRemodelMixtureRule::setup(
 }
 
 void Mixture::GrowthRemodelMixtureRule::update(Core::LinAlg::Tensor<double, 3, 3> const& F,
-    const Teuchos::ParameterList& params, const int gp, const int eleGID)
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp,
+    const int eleGID)
 {
   // Update base mixture rule, which also updates the constituents.
-  MixtureRule::update(F, params, gp, eleGID);
+  MixtureRule::update(F, params, context, gp, eleGID);
 
 
   // Evaluate inverse growth deformation gradient
   if (growth_strategy_->has_inelastic_growth_deformation_gradient())
   {
-    const double dt = params.get<double>("delta time");
+    FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+    const double dt = *context.time_step_size;
 
     // Evaluate inverse growth deformation gradient
     Core::LinAlg::Tensor<double, 3, 3> iFg;
@@ -104,14 +106,15 @@ void Mixture::GrowthRemodelMixtureRule::update(Core::LinAlg::Tensor<double, 3, 3
 
     for (const auto& constituent : constituents())
     {
-      constituent->update_elastic_part(F, iFg, params, dt, gp, eleGID);
+      constituent->update_elastic_part(F, iFg, params, context, dt, gp, eleGID);
     }
   }
 }
 
 void Mixture::GrowthRemodelMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
   Core::LinAlg::Tensor<double, 3, 3> iF_gM;  // growth deformation gradient
@@ -136,9 +139,9 @@ void Mixture::GrowthRemodelMixtureRule::evaluate(const Core::LinAlg::Tensor<doub
     cstress = {};
     ccmat = {};
     if (growth_strategy_->has_inelastic_growth_deformation_gradient())
-      constituent.evaluate_elastic_part(F, iF_gM, params, cstress, ccmat, gp, eleGID);
+      constituent.evaluate_elastic_part(F, iF_gM, params, context, cstress, ccmat, gp, eleGID);
     else
-      constituent.evaluate(F, E_strain, params, cstress, ccmat, gp, eleGID);
+      constituent.evaluate(F, E_strain, params, context, cstress, ccmat, gp, eleGID);
 
 
     // Add stress contribution to global stress

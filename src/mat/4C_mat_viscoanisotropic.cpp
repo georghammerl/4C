@@ -387,7 +387,8 @@ void Mat::ViscoAnisotropic::update_fiber_dirs(const int gp, Core::LinAlg::Matrix
  *----------------------------------------------------------------------*/
 void Mat::ViscoAnisotropic::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<6, 1> glstrain_mat =
@@ -617,7 +618,8 @@ void Mat::ViscoAnisotropic::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* d
   const double tau_fib = params_->relax_[1];  // assume same tau for both fibers
 
   // get time algorithmic parameters
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
 
   /* Time integration according Zien/Taylor and the viscoNeoHooke */

@@ -55,7 +55,8 @@ namespace
           deformation_gradient,
       const Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>&
           gl_strain,
-      Teuchos::ParameterList& params, const int gp, const int eleGID)
+      Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp,
+      const int eleGID)
   {
     auto* monolithic_material = dynamic_cast<Mat::MonolithicSolidScalarMaterial*>(&solid_material);
 
@@ -65,7 +66,7 @@ namespace
     // The derivative of the solid stress w.r.t. the scalar is implemented in the normal
     // material Evaluate call by not passing the linearization matrix.
     return monolithic_material->evaluate_d_stress_d_scalar(
-        deformation_gradient, gl_strain, params, gp, eleGID);
+        deformation_gradient, gl_strain, params, context, gp, eleGID);
   }
 
   template <Core::FE::CellType celltype>
@@ -199,6 +200,7 @@ namespace
   template <Core::FE::CellType celltype, typename SolidFormulation>
   double evaluate_cauchy_n_dir_at_xi(Mat::So3Material& mat,
       Discret::Elements::ShapeFunctionsAndDerivatives<celltype> shape_functions,
+      const Core::LinAlg::Tensor<double, 3>& xi,
       const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>&
           deformation_gradient,
       const std::vector<double>& scalars_at_xi, const Core::LinAlg::Tensor<double, 3>& n,
@@ -211,13 +213,17 @@ namespace
         Discret::Elements::get_initialized_cauchy_n_dir_linearization_dependencies(
             evaluator, linearizations);
 
+    Mat::EvaluationContext context{.total_time = nullptr,
+        .time_step_size = nullptr,
+        .xi = &xi,
+        .ref_coords = nullptr};  // maybe compute ref_coords?
     double cauchy_n_dir = mat.evaluate_cauchy_n_dir_and_derivatives(deformation_gradient, n, dir,
         linearizations.solid.d_cauchyndir_dn, linearizations.solid.d_cauchyndir_ddir,
         get_ptr(linearization_dependencies.d_cauchyndir_dF),
         get_ptr(linearization_dependencies.d2_cauchyndir_dF2),
         get_ptr(linearization_dependencies.d2_cauchyndir_dF_dn),
-        get_ptr(linearization_dependencies.d2_cauchyndir_dF_ddir), -1, eleGID, scalars_at_xi.data(),
-        nullptr, nullptr, nullptr);
+        get_ptr(linearization_dependencies.d2_cauchyndir_dF_ddir), context, eleGID,
+        scalars_at_xi.data(), nullptr, nullptr, nullptr);
 
     // Evaluate pure solid linearizations
     Discret::Elements::evaluate_cauchy_n_dir_linearizations<celltype>(
@@ -310,14 +316,15 @@ void Discret::Elements::SolidScatraEleCalc<celltype,
 
   double element_mass = 0.0;
   double element_volume = 0.0;
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   for_each_gauss_point(nodal_coordinates, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
       {
-        evaluate_gp_coordinates_and_add_to_parameter_list(
-            nodal_coordinates, shape_functions, params);
-
         prepare_scalar_in_parameter_list(params, "scalars", shape_functions, nodal_scalars);
         prepare_scalar_in_parameter_list(
             params, "temperature", shape_functions, nodal_temperatures);
@@ -329,8 +336,15 @@ void Discret::Elements::SolidScatraEleCalc<celltype,
                 const Core::LinAlg::SymmetricTensor<double, 3, 3>& gl_strain,
                 const auto& linearization)
             {
+              auto gp_ref_coord = evaluate_reference_coordinate<celltype>(
+                  nodal_coordinates.reference_coordinates, shape_functions.shapefunctions_);
+
+              Mat::EvaluationContext context{.total_time = total_time,
+                  .time_step_size = time_step_size,
+                  .xi = &xi,
+                  .ref_coords = &gp_ref_coord};
               const Stress<celltype> stress = evaluate_material_stress<celltype>(
-                  solid_material, deformation_gradient, gl_strain, params, gp, ele.id());
+                  solid_material, deformation_gradient, gl_strain, params, context, gp, ele.id());
 
               if constexpr (has_condensed_contribution<SolidFormulation>)
               {
@@ -438,14 +452,15 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::evaluate
   // Check for negative Jacobian determinants
   ensure_positive_jacobian_determinant_at_element_nodes(nodal_coordinates);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   for_each_gauss_point(nodal_coordinates, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
       {
-        evaluate_gp_coordinates_and_add_to_parameter_list(
-            nodal_coordinates, shape_functions, params);
-
         prepare_scalar_in_parameter_list(params, "scalars", shape_functions, nodal_scalars);
         prepare_scalar_in_parameter_list(
             params, "temperature", shape_functions, nodal_temperatures);
@@ -458,9 +473,14 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::evaluate
                     Core::FE::dim<celltype>>& gl_strain,
                 const auto& linearization)
             {
+              Mat::EvaluationContext context{.total_time = total_time,
+                  .time_step_size = time_step_size,
+                  .xi = &xi,
+                  .ref_coords = &xi};
+
               Core::LinAlg::SymmetricTensor<double, 3, 3> dSdc =
-                  evaluate_d_material_stress_d_scalar<celltype>(
-                      solid_material, deformation_gradient, gl_strain, params, gp, ele.id());
+                  evaluate_d_material_stress_d_scalar<celltype>(solid_material,
+                      deformation_gradient, gl_strain, params, context, gp, ele.id());
 
               constexpr int num_dof_per_ele =
                   Core::FE::dim<celltype> * Core::FE::num_nodes(celltype);
@@ -542,25 +562,34 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::update(
   const PreparationData<SolidFormulation> preparation_data =
       prepare(ele, nodal_coordinates, history_data_);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   Discret::Elements::for_each_gauss_point(nodal_coordinates, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
       {
-        evaluate_gp_coordinates_and_add_to_parameter_list(
-            nodal_coordinates, shape_functions, params);
-
         prepare_scalar_in_parameter_list(params, "scalars", shape_functions, nodal_scalars);
         prepare_scalar_in_parameter_list(
             params, "temperature", shape_functions, nodal_temperatures);
 
+
+        auto gp_ref_coord = evaluate_reference_coordinate<celltype>(
+            nodal_coordinates.reference_coordinates, shape_functions.shapefunctions_);
+
+        Mat::EvaluationContext context{.total_time = total_time,
+            .time_step_size = time_step_size,
+            .xi = &xi,
+            .ref_coords = &gp_ref_coord};
         evaluate(ele, nodal_coordinates, xi, shape_functions, jacobian_mapping, preparation_data,
             history_data_, gp,
             [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>,
                     Core::FE::dim<celltype>>& deformation_gradient,
                 const Core::LinAlg::SymmetricTensor<double, 3, 3>& gl_strain,
                 const auto& linearization)
-            { solid_material.update(deformation_gradient, gp, params, ele.id()); });
+            { solid_material.update(deformation_gradient, gp, params, context, ele.id()); });
       });
 
   solid_material.update();
@@ -591,14 +620,15 @@ double Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calcul
       prepare(ele, nodal_coordinates, history_data_);
 
   double intenergy = 0;
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   Discret::Elements::for_each_gauss_point(nodal_coordinates, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
       {
-        evaluate_gp_coordinates_and_add_to_parameter_list(
-            nodal_coordinates, shape_functions, params);
-
         prepare_scalar_in_parameter_list(params, "scalars", shape_functions, nodal_scalars);
         prepare_scalar_in_parameter_list(
             params, "temperature", shape_functions, nodal_temperatures);
@@ -611,7 +641,14 @@ double Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calcul
                     Core::FE::dim<celltype>>& gl_strain,
                 const auto& linearization)
             {
-              double psi = solid_material.strain_energy(gl_strain, gp, ele.id());
+              auto gp_ref_coord = evaluate_reference_coordinate<celltype>(
+                  nodal_coordinates.reference_coordinates, shape_functions.shapefunctions_);
+
+              Mat::EvaluationContext context{.total_time = total_time,
+                  .time_step_size = time_step_size,
+                  .xi = &xi,
+                  .ref_coords = &gp_ref_coord};
+              double psi = solid_material.strain_energy(gl_strain, context, gp, ele.id());
               intenergy += psi * integration_factor;
             });
       });
@@ -648,14 +685,15 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calculat
   const PreparationData<SolidFormulation> preparation_data =
       prepare(ele, nodal_coordinates, history_data_);
 
+  const double* total_time =
+      params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
+  const double* time_step_size =
+      params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
   Discret::Elements::for_each_gauss_point(nodal_coordinates, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
       {
-        evaluate_gp_coordinates_and_add_to_parameter_list(
-            nodal_coordinates, shape_functions, params);
-
         prepare_scalar_in_parameter_list(params, "scalars", shape_functions, nodal_scalars);
         prepare_scalar_in_parameter_list(
             params, "temperature", shape_functions, nodal_temperatures);
@@ -668,8 +706,15 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calculat
                     Core::FE::dim<celltype>>& gl_strain,
                 const auto& linearization)
             {
+              auto gp_ref_coord = evaluate_reference_coordinate<celltype>(
+                  nodal_coordinates.reference_coordinates, shape_functions.shapefunctions_);
+
+              Mat::EvaluationContext context{.total_time = total_time,
+                  .time_step_size = time_step_size,
+                  .xi = &xi,
+                  .ref_coords = &gp_ref_coord};
               const Stress<celltype> stress = evaluate_material_stress<celltype>(
-                  solid_material, deformation_gradient, gl_strain, params, gp, ele.id());
+                  solid_material, deformation_gradient, gl_strain, params, context, gp, ele.id());
 
               assemble_strain_type_to_matrix_row<celltype>(
                   gl_strain, deformation_gradient, strainIO.type, strain_data, gp);
@@ -728,7 +773,7 @@ Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::get_normal_ca
               element_nodes, xi, shape_functions, jacobian_mapping, deformation_gradient,
               preparation_data, history_data_);
 
-          return evaluate_cauchy_n_dir_at_xi<celltype>(solid_material, shape_functions,
+          return evaluate_cauchy_n_dir_at_xi<celltype>(solid_material, shape_functions, xi,
               deformation_gradient, scalar_values_at_xi, n, dir, ele.id(), evaluator,
               linearizations);
         });

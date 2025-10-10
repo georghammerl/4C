@@ -174,11 +174,13 @@ namespace Mat
     bool uses_extended_update() override { return true; };
 
     void update(const Core::LinAlg::Tensor<double, 3, 3>& defgrd, int const gp,
-        const Teuchos::ParameterList& params, int const eleGID) override;
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        int const eleGID) override;
 
     void evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-        const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+        const Teuchos::ParameterList& params, const EvaluationContext& context,
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
     using ActivationEvaluatorVariant =
@@ -197,8 +199,9 @@ namespace Mat
      * \param[out] Pa Active nominal stress
      * \param[out] derivPa Derivative of active nominal stress w.r.t. the fiber stretch
      */
-    void evaluate_active_nominal_stress(const Teuchos::ParameterList& params, const int eleGID,
-        const double lambdaM, double& intPa, double& Pa, double& derivPa);
+    void evaluate_active_nominal_stress(const Teuchos::ParameterList& params,
+        const EvaluationContext& context, const int eleGID, const double lambdaM, double& intPa,
+        double& Pa, double& derivPa);
 
     /*!
      * \brief Evaluate activation level omegaa and its first and second derivatives w.r.t. the

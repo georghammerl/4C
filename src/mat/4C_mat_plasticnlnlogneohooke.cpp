@@ -387,7 +387,8 @@ void Mat::PlasticNlnLogNeoHooke::update()
  *----------------------------------------------------------------------*/
 void Mat::PlasticNlnLogNeoHooke::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -409,7 +410,8 @@ void Mat::PlasticNlnLogNeoHooke::evaluate(const Core::LinAlg::Tensor<double, 3, 
 
   const double detF = defgrd_mat.determinant();
 
-  const double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  const double dt = *context.time_step_size;
   // check, if errors are tolerated or should throw a FOUR_C_THROW
   bool error_tol = false;
   if (params.isParameter("tolerate_errors")) error_tol = params.get<bool>("tolerate_errors");

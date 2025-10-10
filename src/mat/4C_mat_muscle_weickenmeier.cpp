@@ -171,7 +171,7 @@ void Mat::MuscleWeickenmeier::setup(int numgp, const Discret::Elements::Fibers& 
 }
 
 void Mat::MuscleWeickenmeier::update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd, int const gp,
-    const Teuchos::ParameterList& params, int const eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int const eleGID)
 {
   // compute the current fibre stretch using the deformation gradient and the structural tensor
   // right Cauchy Green tensor C= F^T F
@@ -188,7 +188,8 @@ void Mat::MuscleWeickenmeier::update(Core::LinAlg::Tensor<double, 3, 3> const& d
 
 void Mat::MuscleWeickenmeier::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -251,7 +252,7 @@ void Mat::MuscleWeickenmeier::evaluate(const Core::LinAlg::Tensor<double, 3, 3>*
   double derivPa = 0.0;
   if (params_->muTypesNum_ != 0)
   {  // if active material
-    evaluate_active_nominal_stress(params, lambdaM, Pa, derivPa);
+    evaluate_active_nominal_stress(params, context, lambdaM, Pa, derivPa);
   }  // else: Pa and derivPa remain 0.0
 
   // computation of activation level omegaa and derivative w.r.t. fiber stretch
@@ -328,13 +329,15 @@ void Mat::MuscleWeickenmeier::evaluate(const Core::LinAlg::Tensor<double, 3, 3>*
   cmat_view.update(1.0, ccmat, 1.0);
 }
 
-void Mat::MuscleWeickenmeier::evaluate_active_nominal_stress(
-    const Teuchos::ParameterList& params, const double lambdaM, double& Pa, double& derivPa)
+void Mat::MuscleWeickenmeier::evaluate_active_nominal_stress(const Teuchos::ParameterList& params,
+    const Mat::EvaluationContext& context, const double lambdaM, double& Pa, double& derivPa)
 {
   // save current simulation time
-  double t_tot = params.get<double>("total time");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  double t_tot = *context.total_time;
   // save (time) step size
-  double timestep = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double timestep = *context.time_step_size;
 
   // approximate first time derivative of lambdaM through BW Euler
   // dotLambdaM = (lambdaM_n - lambdaM_{n-1})/dt

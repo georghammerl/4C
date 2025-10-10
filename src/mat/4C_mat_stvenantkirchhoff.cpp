@@ -104,7 +104,8 @@ void Mat::StVenantKirchhoff::unpack(Core::Communication::UnpackBuffer& buffer)
  *----------------------------------------------------------------------*/
 void Mat::StVenantKirchhoff::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   cmat = StVenantKirchhoff::evaluate_stress_linearization(params_->youngs_, params_->poissonratio_);
@@ -117,8 +118,8 @@ void Mat::StVenantKirchhoff::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* 
  |  Calculate strain energy                                    gee 10/09|
  *----------------------------------------------------------------------*/
 double Mat::StVenantKirchhoff::strain_energy(
-    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const int gp,
-    const int eleGID) const
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,
+    const int gp, const int eleGID) const
 {
   auto stress =
       StVenantKirchhoff::evaluate_stress(glstrain, params_->youngs_, params_->poissonratio_);

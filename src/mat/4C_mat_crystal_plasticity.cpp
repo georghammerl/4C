@@ -530,7 +530,8 @@ void Mat::CrystalPlasticity::update()
  *-------------------------------------------------------------------------------*/
 void Mat::CrystalPlasticity::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // simulation parameters
@@ -538,7 +539,8 @@ void Mat::CrystalPlasticity::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* 
   if (eleGID == -1) FOUR_C_THROW("no element provided in material");
 
   // extract time increment
-  dt_ = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  dt_ = *context.time_step_size;
 
   // get current deformation gradient
   (*deform_grad_current_)[gp] = Core::LinAlg::make_matrix(*defgrad);

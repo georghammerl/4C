@@ -263,21 +263,22 @@ void Mat::Mixture::update()
 
 // This method is called between two timesteps
 void Mat::Mixture::update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd, const int gp,
-    const Teuchos::ParameterList& params, const int eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, const int eleGID)
 {
   // Update all constituents
   for (const auto& constituent : *constituents_)
   {
-    constituent->update(defgrd, params, gp, eleGID);
+    constituent->update(defgrd, params, context, gp, eleGID);
   }
 
-  mixture_rule_->update(defgrd, params, gp, eleGID);
+  mixture_rule_->update(defgrd, params, context, gp, eleGID);
 }
 
 // Evaluates the material
 void Mat::Mixture::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   // check, whether the post_setup method was already called
@@ -288,14 +289,14 @@ void Mat::Mixture::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     for (const auto& constituent : *constituents_)
     {
       is_pre_evaluated_[gp] = true;
-      constituent->pre_evaluate(*mixture_rule_, params, gp, eleGID);
+      constituent->pre_evaluate(*mixture_rule_, params, context, gp, eleGID);
     }
 
-    mixture_rule_->pre_evaluate(params, gp, eleGID);
+    mixture_rule_->pre_evaluate(params, context, gp, eleGID);
   }
 
   // Evaluate mixturerule
-  mixture_rule_->evaluate(*defgrad, glstrain, params, stress, cmat, gp, eleGID);
+  mixture_rule_->evaluate(*defgrad, glstrain, params, context, stress, cmat, gp, eleGID);
 }
 
 void Mat::Mixture::register_output_data_names(

@@ -77,7 +77,8 @@ void Mixture::FunctionMixtureRule::unpack_mixture_rule(Core::Communication::Unpa
 
 void Mixture::FunctionMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3, 3>& F,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& E_strain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
+    const Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& S_stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
   // define temporary matrices
@@ -94,9 +95,12 @@ void Mixture::FunctionMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3
     // coordinates (and the current time)
 
     // get gauss point reference coordinates and current time
-    const auto& reference_coordinates =
-        params.get<Core::LinAlg::Tensor<double, 3>>("gp_coords_ref");
-    const double time = params.get<double>("total time");
+    FOUR_C_ASSERT(context.ref_coords,
+        "Reference coordinates not set in EvaluationContext, but required for function-based "
+        "mixture rule!");
+    const auto& reference_coordinates = *context.ref_coords;
+    FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+    const double time = *context.total_time;
 
     // evaluate the mass fraction function at the gauss point reference coordinates and current time
     const double massfrac =
@@ -108,7 +112,7 @@ void Mixture::FunctionMixtureRule::evaluate(const Core::LinAlg::Tensor<double, 3
     MixtureConstituent& constituent = *constituents()[i];
     cstress = {};
     ccmat = {};
-    constituent.evaluate(F, E_strain, params, cstress, ccmat, gp, eleGID);
+    constituent.evaluate(F, E_strain, params, context, cstress, ccmat, gp, eleGID);
 
     S_stress += constituent_density * cstress;
     cmat += constituent_density * ccmat;

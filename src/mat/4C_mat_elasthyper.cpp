@@ -313,7 +313,7 @@ void Mat::ElastHyper::evaluate_fiber_vecs(const double newgamma,
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 double Mat::ElastHyper::strain_energy(const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const int gp, const int eleGID) const
+    const EvaluationContext& context, const int gp, const int eleGID) const
 {
   Core::LinAlg::SymmetricTensor<double, 3, 3> C_strain{};
   static Core::LinAlg::Matrix<3, 1> prinv(Core::LinAlg::Initialization::zero);
@@ -342,7 +342,8 @@ double Mat::ElastHyper::strain_energy(const Core::LinAlg::SymmetricTensor<double
 /*----------------------------------------------------------------------*/
 void Mat::ElastHyper::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   bool checkpolyconvexity = (params_ != nullptr and params_->polyconvex_ != 0);
@@ -376,7 +377,7 @@ double Mat::ElastHyper::evaluate_cauchy_n_dir_and_derivatives(
     const Core::LinAlg::Tensor<double, 3>& dir, Core::LinAlg::Matrix<3, 1>* d_cauchyndir_dn,
     Core::LinAlg::Matrix<3, 1>* d_cauchyndir_ddir, Core::LinAlg::Matrix<9, 1>* d_cauchyndir_dF,
     Core::LinAlg::Matrix<9, 9>* d2_cauchyndir_dF2, Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_dn,
-    Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, int gp, int eleGID,
+    Core::LinAlg::Matrix<9, 3>* d2_cauchyndir_dF_ddir, const EvaluationContext& context, int eleGID,
     const double* concentration, const double* temp, double* d_cauchyndir_dT,
     Core::LinAlg::Matrix<9, 1>* d2_cauchyndir_dF_dT)
 {
@@ -415,7 +416,8 @@ double Mat::ElastHyper::evaluate_cauchy_n_dir_and_derivatives(
   dPI.clear();
   ddPII.clear();
   dddPIII.clear();
-  evaluate_cauchy_derivs(prinv, gp, eleGID, dPI, ddPII, dddPIII, temp);
+  constexpr int dummy_gp_id = -1;
+  evaluate_cauchy_derivs(prinv, dummy_gp_id, eleGID, dPI, ddPII, dddPIII, temp);
 
   const double prefac = 2.0 / std::sqrt(prinv(2));
 

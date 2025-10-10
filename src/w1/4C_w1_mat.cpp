@@ -12,6 +12,7 @@
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_utils_densematrix_inverse.hpp"
 #include "4C_mat_elasthyper.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_mat_structporo.hpp"
 #include "4C_mat_stvenantkirchhoff.hpp"
 #include "4C_poroelast_utils.hpp"
@@ -35,6 +36,7 @@ void Discret::Elements::Wall1::w1_call_matgeononl(
     const int numeps,                                     ///< number of strains
     std::shared_ptr<const Core::Mat::Material> material,  ///< the material data
     Teuchos::ParameterList& params,                       ///< element parameter list
+    const Mat::EvaluationContext& context,                ///< evaluation context
     const int gp                                          ///< Gauss point
 )
 {
@@ -168,7 +170,7 @@ void Discret::Elements::Wall1::w1_call_matgeononl(
                                          // case Core::Materials::m_stvenant:  //
                                          // st.venant-kirchhoff-material
     {
-      material_response3d_plane(stress, C, strain, params, gp);
+      material_response3d_plane(stress, C, strain, params, context, gp);
       break;
     }
 
@@ -186,7 +188,7 @@ void Discret::Elements::Wall1::w1_call_matgeononl(
 /*----------------------------------------------------------------------*/
 void Discret::Elements::Wall1::material_response3d_plane(Core::LinAlg::SerialDenseMatrix& stress,
     Core::LinAlg::SerialDenseMatrix& C, const Core::LinAlg::SerialDenseVector& strain,
-    Teuchos::ParameterList& params, const int gp)
+    Teuchos::ParameterList& params, const Mat::EvaluationContext& context, const int gp)
 {
   // make 3d equivalent of Green-Lagrange strain
   Core::LinAlg::SymmetricTensor<double, 3, 3> gl{};
@@ -195,7 +197,7 @@ void Discret::Elements::Wall1::material_response3d_plane(Core::LinAlg::SerialDen
   // call 3d stress response
   Core::LinAlg::SymmetricTensor<double, 3, 3> pk2{};         // must be zerofied!!!
   Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat{};  // must be zerofied!!!
-  material_response3d(pk2, cmat, gl, params, gp);
+  material_response3d(pk2, cmat, gl, params, context, gp);
 
   // dimension reduction type
   if (wtype_ == plane_strain)
@@ -254,7 +256,7 @@ void Discret::Elements::Wall1::material_response3d_plane(Core::LinAlg::SerialDen
       // call for new 3d stress response
       pk2 = {};
       cmat = {};
-      material_response3d(pk2, cmat, gl, params, gp);
+      material_response3d(pk2, cmat, gl, params, context, gp);
 
       // current plane stress error
       pserr = std::sqrt(pk2(2, 2) * pk2(2, 2) + pk2(1, 2) * pk2(1, 2) + pk2(0, 2) * pk2(0, 2));
@@ -344,9 +346,9 @@ void Discret::Elements::Wall1::material_response3d(
     Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, Teuchos::ParameterList& params,
-    const int gp)
+    const Mat::EvaluationContext& context, const int gp)
 {
-  solid_material()->evaluate(nullptr, glstrain, params, stress, cmat, gp, id());
+  solid_material()->evaluate(nullptr, glstrain, params, context, stress, cmat, gp, id());
 
   return;
 }
@@ -356,7 +358,7 @@ void Discret::Elements::Wall1::material_response3d(
 *-----------------------------------------------------------------------------*/
 double Discret::Elements::Wall1::energy_internal(
     std::shared_ptr<const Core::Mat::Material> material, Teuchos::ParameterList& params,
-    const Core::LinAlg::SerialDenseVector& Ev, const int gp)
+    const Mat::EvaluationContext& context, const Core::LinAlg::SerialDenseVector& Ev, const int gp)
 {
   // switch material type
   switch (material->material_type())
@@ -365,7 +367,7 @@ double Discret::Elements::Wall1::energy_internal(
     {
       Core::LinAlg::SerialDenseMatrix Cm(Wall1::numnstr_, Wall1::numnstr_);  // elasticity matrix
       Core::LinAlg::SerialDenseMatrix Sm(Wall1::numnstr_, Wall1::numnstr_);  // 2nd PK stress matrix
-      w1_call_matgeononl(Ev, Sm, Cm, Wall1::numnstr_, material, params, gp);
+      w1_call_matgeononl(Ev, Sm, Cm, Wall1::numnstr_, material, params, context, gp);
       Core::LinAlg::SerialDenseVector Sv(Wall1::numnstr_);  // 2nd PK stress vector
       Sv(0) = Sm(0, 0);
       Sv(1) = Sm(1, 1);
@@ -380,7 +382,7 @@ double Discret::Elements::Wall1::energy_internal(
       green_lagrange_plane3d(Ev, glstrain);
 
       // strain energy
-      double psi = solid_material()->strain_energy(glstrain, gp, id());
+      double psi = solid_material()->strain_energy(glstrain, context, gp, id());
 
       return psi;
     }
@@ -394,7 +396,7 @@ double Discret::Elements::Wall1::energy_internal(
       green_lagrange_plane3d(Ev, glstrain);
 
       // strain energy
-      double psi = solid_material()->strain_energy(glstrain, gp, id());
+      double psi = solid_material()->strain_energy(glstrain, context, gp, id());
 
       return psi;
     }

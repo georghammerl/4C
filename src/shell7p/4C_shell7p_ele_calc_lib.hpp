@@ -158,7 +158,8 @@ namespace Discret::Elements::Shell
    */
   template <int dim>
   Stress<Mat::NUM_STRESS_3D> evaluate_material_stress_cartesian_system(Mat::So3Material& material,
-      const Strains& strains, Teuchos::ParameterList& params, int gp, int eleGID)
+      const Strains& strains, Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
+      int gp, int eleGID)
   {
     if (dim != 3) FOUR_C_THROW("stop: this currently only works for 3D");
     Discret::Elements::Shell::Stress<Mat::NUM_STRESS_3D> stress;
@@ -172,8 +173,7 @@ namespace Discret::Elements::Shell
     Core::LinAlg::SymmetricTensor<double, 3, 3> gl_strain =
         Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(gl_stress);
 
-
-    material.evaluate(&defgrd, gl_strain, params, pk2, cmat, gp, eleGID);
+    material.evaluate(&defgrd, gl_strain, params, context, pk2, cmat, gp, eleGID);
 
     stress.pk2_ = {Core::LinAlg::make_stress_like_voigt_view(pk2), false};
     stress.cmat_ = {Core::LinAlg::make_stress_like_voigt_view(cmat), false};

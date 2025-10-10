@@ -218,7 +218,8 @@ void Mat::ViscoNeoHooke::update()
  *----------------------------------------------------------------------*/
 void Mat::ViscoNeoHooke::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<6, 1> glstrain_mat =
@@ -237,7 +238,8 @@ void Mat::ViscoNeoHooke::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defg
   // get time algorithmic parameters
   // NOTE: dt can be zero (in restart of STI) for Generalized Maxwell model
   // there is no special treatment required. Adaptation for Kelvin-Voigt were necessary.
-  double dt = params.get<double>("delta time");
+  FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
+  double dt = *context.time_step_size;
 
   // compute algorithmic relaxation time
   double tau1 = tau;

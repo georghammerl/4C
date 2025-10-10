@@ -20,6 +20,7 @@
 #include "4C_mat_muscle_utils.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
+#include "4C_mat_so3_material.hpp"
 #include "4C_utils_enum.hpp"
 #include "4C_utils_exceptions.hpp"
 
@@ -217,13 +218,14 @@ void Mat::MuscleCombo::setup(int numgp, const Discret::Elements::Fibers& fibers,
 }
 
 void Mat::MuscleCombo::update(Core::LinAlg::Tensor<double, 3, 3> const& defgrd, int const gp,
-    const Teuchos::ParameterList& params, int const eleGID)
+    const Teuchos::ParameterList& params, const EvaluationContext& context, int const eleGID)
 {
 }
 
 void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
-    const Teuchos::ParameterList& params, Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
+    const Teuchos::ParameterList& params, const EvaluationContext& context,
+    Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
@@ -286,7 +288,7 @@ void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
   double derivPa = 0.0;
   if (params_->Popt_ != 0)
   {  // if active material
-    evaluate_active_nominal_stress(params, eleGID, lambdaM, intPa, Pa, derivPa);
+    evaluate_active_nominal_stress(params, context, eleGID, lambdaM, intPa, Pa, derivPa);
   }  // else: intPa, Pa and derivPa remain 0.0
 
   // computation of activation level omegaa and derivative \frac{\partial omegaa}{\partial C}
@@ -384,15 +386,12 @@ void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
 }
 
 void Mat::MuscleCombo::evaluate_active_nominal_stress(const Teuchos::ParameterList& params,
-    const int eleGID, const double lambdaM, double& intPa, double& Pa, double& derivPa)
+    const EvaluationContext& context, const int eleGID, const double lambdaM, double& intPa,
+    double& Pa, double& derivPa)
 {
   // save current simulation time
-  double t_tot = get_or<double>(params, "total time", -1);
-  if (abs(t_tot + 1.0) < 1e-14) FOUR_C_THROW("No total time given for muscle Combo material!");
-  // save (time) step size
-  double timestep = get_or<double>(params, "delta time", -1);
-  if (abs(timestep + 1.0) < 1e-14)
-    FOUR_C_THROW("No time step size given for muscle Combo material!");
+  FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
+  double t_tot = *context.total_time;
 
   // get active parameters from params_
   const double lambdaMin = params_->lambdaMin_;
