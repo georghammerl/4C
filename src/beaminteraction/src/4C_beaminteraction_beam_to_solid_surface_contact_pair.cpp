@@ -120,8 +120,8 @@ void BeamInteraction::BeamToSolidSurfaceContactPairGapVariation<ScalarType, Beam
       }
 
       // Get the contact force.
-      ScalarType force =
-          penalty_force(gap, *this->params()->beam_to_solid_surface_contact_params());
+      ScalarType force = penalty_force(
+          gap, this->params()->beam_to_solid_surface_contact_params()->get_penalty_law());
 
       // Add the Gauss point contributions to the pair force vector.
       gap_variation_times_normal.scale(
@@ -221,7 +221,8 @@ void BeamInteraction::BeamToSolidSurfaceContactPairPotential<ScalarType, Beam,
 
       // Get the contact force.
       potential += projected_gauss_point.get_gauss_weight() * segment_jacobian *
-                   penalty_potential(gap, *this->params()->beam_to_solid_surface_contact_params());
+                   penalty_potential(gap,
+                       this->params()->beam_to_solid_surface_contact_params()->get_penalty_law());
     }
   }
 
