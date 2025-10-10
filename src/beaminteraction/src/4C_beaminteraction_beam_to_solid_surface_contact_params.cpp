@@ -22,8 +22,7 @@ FOUR_C_NAMESPACE_OPEN
 BeamInteraction::BeamToSolidSurfaceContactParams::BeamToSolidSurfaceContactParams()
     : BeamToSolidParamsBase(),
       contact_type_(Inpar::BeamToSolid::BeamToSolidSurfaceContact::none),
-      penalty_law_(Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none),
-      penalty_parameter_g0_(0.0),
+      penalty_law_data_{},
       mortar_contact_configuration_(
           Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::none),
       output_params_ptr_(nullptr)
@@ -50,11 +49,13 @@ void BeamInteraction::BeamToSolidSurfaceContactParams::init()
     contact_type_ = Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContact>(
         beam_to_solid_contact_params_list, "CONTACT_TYPE");
 
-    penalty_law_ =
+    penalty_law_data_.type =
         Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw>(
             beam_to_solid_contact_params_list, "PENALTY_LAW");
-
-    penalty_parameter_g0_ = beam_to_solid_contact_params_list.get<double>("PENALTY_PARAMETER_G0");
+    penalty_law_data_.penalty_parameter =
+        beam_to_solid_contact_params_list.get<double>("PENALTY_PARAMETER");
+    penalty_law_data_.penalty_parameter_g0 =
+        beam_to_solid_contact_params_list.get<double>("PENALTY_PARAMETER_G0");
 
     mortar_contact_configuration_ =
         Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn>(

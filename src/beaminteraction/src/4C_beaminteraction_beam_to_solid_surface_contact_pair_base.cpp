@@ -154,7 +154,8 @@ void BeamInteraction::BeamToSolidSurfaceContactPairBase<ScalarType, Beam, Surfac
 
     u_beam = r_beam;
     u_beam -= X_beam;
-    const auto force = penalty_force(gap, *this->params()->beam_to_solid_surface_contact_params());
+    const auto force = penalty_force(
+        gap, this->params()->beam_to_solid_surface_contact_params()->get_penalty_law());
 
     for (unsigned int dim = 0; dim < 3; dim++)
     {

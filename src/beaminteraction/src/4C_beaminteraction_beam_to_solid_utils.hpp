@@ -14,6 +14,7 @@
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_faces.hpp"
+#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_fevector.hpp"
 
 #include <memory>
@@ -72,13 +73,23 @@ namespace BeamInteraction
       typename Core::FADUtils::HigherOrderFadType<1, Sacado::ELRFad::SLFad<double, 2>>::type;
 
   /**
+   * \brief Structure containing all parameters required for beam-to-solid penalty laws
+   */
+  struct PenaltyLawParameters
+  {
+    Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw type{
+        Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none};
+    double penalty_parameter = 0.0;
+    double penalty_parameter_g0 = 0.0;
+  };
+
+  /**
    * \brief Evaluate the penalty force depending on the gap function.
    * @param gap (in) Gap function value.
    * @return Penalty force.
    */
   template <typename ScalarType>
-  ScalarType penalty_force(
-      const ScalarType& gap, const BeamToSolidSurfaceContactParams& contact_params);
+  ScalarType penalty_force(const ScalarType& gap, const PenaltyLawParameters& penalty_law);
 
   /**
    * \brief Evaluate the penalty potential depending on the gap function.
@@ -86,8 +97,7 @@ namespace BeamInteraction
    * @return Penalty potential.
    */
   template <typename ScalarType>
-  ScalarType penalty_potential(
-      const ScalarType& gap, const BeamToSolidSurfaceContactParams& contact_params);
+  ScalarType penalty_potential(const ScalarType& gap, const PenaltyLawParameters& penalty_law);
 
   /**
    * \brief Get the number of Lagrange multiplicator values corresponding to the beam nodes and beam

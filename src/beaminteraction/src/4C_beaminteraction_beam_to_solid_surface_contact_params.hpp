@@ -12,6 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_beam_to_solid_params_base.hpp"
+#include "4C_beaminteraction_beam_to_solid_utils.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -60,17 +61,9 @@ namespace BeamInteraction
     }
 
     /**
-     * \brief Returns the type of penalty law.
+     * \brief Returns the information for the penalty law.
      */
-    inline Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw get_penalty_law() const
-    {
-      return penalty_law_;
-    }
-
-    /**
-     * \brief Returns the regularization parameter of the penalty law.
-     */
-    inline double get_penalty_parameter_g0() const { return penalty_parameter_g0_; }
+    inline const PenaltyLawParameters& get_penalty_law() const { return penalty_law_data_; }
 
     /**
      * \brief Returns the configuration where the mortar contact is defined in.
@@ -95,11 +88,8 @@ namespace BeamInteraction
     //! Type of contact constraints.
     Inpar::BeamToSolid::BeamToSolidSurfaceContact contact_type_;
 
-    //! Type of penalty law.
-    Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw penalty_law_;
-
-    //! Regularization parameter for the penalty law.
-    double penalty_parameter_g0_;
+    //! Penalty law parameters
+    PenaltyLawParameters penalty_law_data_;
 
     //! Configuration where the mortar contact is defined
     Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_contact_configuration_;
