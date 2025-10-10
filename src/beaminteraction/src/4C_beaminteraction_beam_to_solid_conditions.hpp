@@ -43,6 +43,14 @@ namespace Inpar
 namespace BeamInteraction
 {
   /**
+   * \brief Structure to hold parameters for beam-to-solid conditions.
+   */
+  struct BeamToSolidConditionData
+  {
+    bool is_indirect_assembly_manager;
+  };
+
+  /**
    * \brief This base class represents a single beam-to-solid interaction condition.
    */
   class BeamToSolidCondition : public BeamInteractionConditionBase
@@ -128,6 +136,9 @@ namespace BeamInteraction
 
     //! Pointer to the beam-to-solid parameters.
     std::shared_ptr<const BeamToSolidParamsBase> beam_to_solid_params_;
+
+    //! Data for this condition.
+    BeamToSolidConditionData condition_data_;
   };
 
   /**

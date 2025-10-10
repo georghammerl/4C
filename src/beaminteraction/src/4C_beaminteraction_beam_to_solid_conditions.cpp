@@ -54,6 +54,12 @@ BeamInteraction::BeamToSolidCondition::BeamToSolidCondition(
       condition_contact_pairs_(),
       beam_to_solid_params_(beam_to_solid_params)
 {
+  condition_data_ = BeamToSolidConditionData{
+      .is_indirect_assembly_manager =
+          beam_to_solid_params_->get_contact_discretization() ==
+              Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar ||
+          beam_to_solid_params_->get_contact_discretization() ==
+              Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section};
 }
 
 /**
@@ -115,10 +121,7 @@ std::shared_ptr<BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManager>
 BeamInteraction::BeamToSolidCondition::create_indirect_assembly_manager(
     const std::shared_ptr<const Core::FE::Discretization>& discret)
 {
-  if (beam_to_solid_params_->get_contact_discretization() ==
-          Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar ||
-      beam_to_solid_params_->get_contact_discretization() ==
-          Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section)
+  if (condition_data_.is_indirect_assembly_manager)
   {
     // Create the mortar manager. We add 1 to the MaxAllGID since this gives the maximum GID and NOT
     // the length of the GIDs.
