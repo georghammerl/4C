@@ -674,9 +674,9 @@ namespace Core::IO
       from_mesh,
     };
 
-    template <typename T>
+    template <typename T, template <typename...> typename InputField, typename... Args>
     auto make_input_field_data_transform(
-        std::string name, InputSpecBuilders::StoreFunction<InputField<T>> store)
+        std::string name, InputSpecBuilders::StoreFunction<InputField<T, Args...>> store)
     {
       return InputSpecBuilders::StoreFunction<InputSpecBuilders::DefaultStorage>(
           [=](InputSpecBuilders::Storage& out, InputSpecBuilders::DefaultStorage&& in)
@@ -689,14 +689,14 @@ namespace Core::IO
                 std::unordered_map<int, T> map_data;
                 std::filesystem::path file_path = in.get<std::filesystem::path>("from_file");
                 IO::read_value_from_yaml(file_path, name, map_data);
-                auto field = IO::InputField<T>(std::move(map_data));
+                auto field = InputField<T, Args...>(std::move(map_data));
                 return store(out, std::move(field));
                 break;
               }
               case InputFieldType::constant:
               {
                 T data = in.get<T>("constant");
-                auto field = IO::InputField<T>(data);
+                auto field = InputField<T, Args...>(data);
                 return store(out, std::move(field));
                 break;
               }
@@ -705,7 +705,7 @@ namespace Core::IO
                 const auto& array_name = in.get<std::string>("from_mesh");
                 MeshDataReference ref =
                     global_mesh_data_input_field_registry().register_field_reference(array_name);
-                auto field = IO::InputField<T>(ref);
+                auto field = InputField<T, Args...>(ref);
                 return store(out, std::move(field));
                 break;
               }
@@ -714,7 +714,7 @@ namespace Core::IO
                 std::string field_name = in.get<std::string>("field_reference");
                 InputFieldReference ref =
                     global_input_field_registry().register_field_reference(field_name);
-                auto field = IO::InputField<T>(ref);
+                auto field = InputField<T, Args...>(ref);
                 return store(out, std::move(field));
                 break;
               }
@@ -971,9 +971,9 @@ namespace Core::IO
     };
 
     /**
-     * Data for an InputField. Note that T is the type of the data stored inside the InputField.
+     * Data for an InputField.
      */
-    template <typename T>
+    template <typename InputField>
     struct InputFieldData
     {
       /**
@@ -986,7 +986,7 @@ namespace Core::IO
        * an InputParameterContainer. See the in_struct() function for more details on how to
        * store the InputField in a struct.
        */
-      StoreFunction<InputField<T>> store{nullptr};
+      StoreFunction<InputField> store{nullptr};
     };
 
     template <typename Number, Utils::CompileTimeString... variables>
@@ -1656,7 +1656,31 @@ namespace Core::IO
      * in_struct() function to store the InputField in an appropriate struct member.
      */
     template <typename T>
-    [[nodiscard]] InputSpec input_field(std::string name, InputFieldData<T> data = {});
+    [[nodiscard]] InputSpec input_field(std::string name, InputFieldData<InputField<T>> data = {});
+
+    /**
+     * Defines an interpolated input field for spatially dependent parameters.
+     *
+     * The input field allows a parameter of a certain type to be specified as either a constant, an
+     * element-wise value, or a point-based value. This is useful for cases where the changes of a
+     * parameter within an element are not negligible.
+     *
+     * Data can be read analogously to @p input_field, but it can additionally handle point-based
+     * data.
+     *
+     * After matching, the data can be retrieved as an InterpolatedInputField<T, Interpolation>,
+     * either from an InputParameterContainer or from a struct. For the latter, you need use the
+     * in_struct() function to store the InputField in an appropriate struct member.
+     *
+     * The template parameter @p Interpolation allows to specify a custom interpolation scheme. It
+     * must be a callable type that takes two ranges, the first is the weights, and the second are
+     * the corresponding values. Default is the component-wise interpolation. @p Interpolation is
+     * useful for cases where the interpolation requires to account for internal invariants, such as
+     * a unit vector field which must remain a unit vector after interpolation.
+     */
+    template <typename T, InputFieldInterpolator<T> Interpolation = ComponentInterpolator<T>>
+    [[nodiscard]] InputSpec interpolated_input_field(
+        std::string name, InputFieldData<InterpolatedInputField<T, Interpolation>> data = {});
 
     /**
      * @brief Define an input parameter that is a SymbolicExpression.
@@ -1677,8 +1701,8 @@ namespace Core::IO
      * @endcode
      *
      * Note that the SymbolicExpression is parsed right away, and you will need to retrieve the
-     * parameter as a SymbolicExpression<double, "x", "y"> from the InputParameterContainer or store
-     * it in an appropriate struct member using the in_struct() function.
+     * parameter as a SymbolicExpression<double, "x", "y"> from the InputParameterContainer or
+     * store it in an appropriate struct member using the in_struct() function.
      */
     template <typename Number, Utils::CompileTimeString... variables>
     [[nodiscard]] InputSpec symbolic_expression(
@@ -2689,9 +2713,32 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::selection(
 
 template <typename T>
 Core::IO::InputSpec Core::IO::InputSpecBuilders::input_field(
-    const std::string name, InputFieldData<T> data)
+    const std::string name, InputFieldData<InputField<T>> data)
 {
   auto store = data.store ? data.store : in_container<InputField<T>>(name);
+  auto spec = selection<Internal::InputFieldType>(name,
+      {
+          parameter<T>("constant", {.description = "Constant value for the field."}),
+          parameter<std::filesystem::path>(
+              "from_file", {.description = "Path to a file containing the input field data."}),
+          parameter<std::string>("from_mesh",
+              {.description = "Refer to a field defined in the input mesh by a name."}),
+          parameter<std::string>(
+              "field_reference", {.description = "Refer to a globally defined field by a name."}),
+      },
+      {
+          .description = data.description,
+          .transform_data = Internal::make_input_field_data_transform<T>(name, std::move(store)),
+      });
+  return spec;
+};
+
+template <typename T, Core::IO::InputFieldInterpolator<T> Interpolation>
+Core::IO::InputSpec Core::IO::InputSpecBuilders::interpolated_input_field(
+    const std::string name, InputFieldData<InterpolatedInputField<T, Interpolation>> data)
+{
+  auto store =
+      data.store ? data.store : in_container<InterpolatedInputField<T, Interpolation>>(name);
   auto spec = selection<Internal::InputFieldType>(name,
       {
           parameter<T>("constant", {.description = "Constant value for the field."}),

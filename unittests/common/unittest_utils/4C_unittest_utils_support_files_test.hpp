@@ -8,9 +8,8 @@
 #ifndef FOUR_C_UNITTEST_UTILS_SUPPORT_FILES_TEST_HPP
 #define FOUR_C_UNITTEST_UTILS_SUPPORT_FILES_TEST_HPP
 
-#include "4C_config.hpp"
-
 #include <filesystem>
+
 
 namespace TESTING
 {
