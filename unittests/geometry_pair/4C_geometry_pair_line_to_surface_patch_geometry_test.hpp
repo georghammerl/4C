@@ -28,7 +28,8 @@ namespace
    */
   template <typename FaceElementType>
   void xtest_surface_patch_quad4(Core::FE::Discretization& discret,
-      std::unordered_map<int, std::shared_ptr<GeometryPair::FaceElement>>& face_elements_map)
+      std::unordered_map<int, std::shared_ptr<GeometryPair::FaceElement>>& face_elements_map,
+      std::vector<std::shared_ptr<Core::Elements::Element>>& core_elements)
   {
     using namespace FourC;
 
@@ -149,11 +150,12 @@ namespace
         }
 
         // Create the Core::Elements::FaceElement.
-        auto face_element = std::make_shared<Discret::Elements::SolidSurface>(i_el, 0, n_nodes_face,
-            node_ids.data(), element_nodes.data(), discret.g_element(parent_id), 0);
+        core_elements.emplace_back(std::make_shared<Discret::Elements::SolidSurface>(i_el, 0,
+            n_nodes_face, node_ids.data(), element_nodes.data(), discret.g_element(parent_id), 0));
 
         // Create the geometry pair face element.
-        face_elements_map[parent_id] = std::make_shared<FaceElementType>(face_element, true);
+        face_elements_map[parent_id] =
+            std::make_shared<FaceElementType>(core_elements.back().get(), true);
       }
     }
   }
