@@ -11,8 +11,6 @@
 
 #include "4C_config.hpp"
 
-#include "4C_utils_parameter_list.fwd.hpp"
-
 FOUR_C_NAMESPACE_OPEN
 
 namespace GeometryPair
@@ -25,10 +23,8 @@ namespace GeometryPair
    public:
     /**
      * \brief Constructor.
-     *
-     * \param input_parameter_list (in) Parameter list with the geometry evaluation parameters.
      */
-    GeometryEvaluationDataBase(const Teuchos::ParameterList& input_parameter_list) {};
+    GeometryEvaluationDataBase() = default;
 
     /**
      * \brief Destructor.

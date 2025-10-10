@@ -16,7 +16,7 @@ FOUR_C_NAMESPACE_OPEN
  */
 GeometryPair::LineTo3DEvaluationData::LineTo3DEvaluationData(
     const Teuchos::ParameterList& input_parameter_list)
-    : GeometryEvaluationDataBase(input_parameter_list),
+    : GeometryEvaluationDataBase(),
       strategy_(GeometryPair::LineTo3DStrategy::none),
       gauss_rule_(Core::FE::GaussRule1D::undefined),
       integration_points_circumference_(-1),
