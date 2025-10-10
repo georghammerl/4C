@@ -17,7 +17,6 @@
 #include <Epetra_Operator.h>
 #include <Epetra_RowMatrix.h>
 #include <Epetra_VbrMatrix.h>
-#include <NOX_Epetra_Scaling.H>
 #include <Teuchos_ParameterList.hpp>
 
 #include <vector>

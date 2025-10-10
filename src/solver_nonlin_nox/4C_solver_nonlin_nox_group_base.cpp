@@ -16,7 +16,7 @@ FOUR_C_NAMESPACE_OPEN
 
 NOX::Nln::GroupBase::GroupBase(Teuchos::ParameterList& printParams,
     const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
-    const Teuchos::RCP<::NOX::Epetra::LinearSystem>& linSys)
+    const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys)
     : utils(printParams),
       xVector(x, ::NOX::DeepCopy),
       RHSVector(x, ::NOX::ShapeCopy),
@@ -271,12 +271,12 @@ Teuchos::RCP<::NOX::Epetra::Interface::Required> NOX::Nln::GroupBase::get_requir
   return userInterfacePtr;
 }
 
-Teuchos::RCP<const ::NOX::Epetra::LinearSystem> NOX::Nln::GroupBase::get_linear_system() const
+Teuchos::RCP<const NOX::Nln::LinearSystemBase> NOX::Nln::GroupBase::get_linear_system() const
 {
   return linearSystemPtr;
 }
 
-Teuchos::RCP<::NOX::Epetra::LinearSystem> NOX::Nln::GroupBase::get_linear_system()
+Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::GroupBase::get_linear_system()
 {
   return linearSystemPtr;
 }
