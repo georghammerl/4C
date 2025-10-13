@@ -4002,10 +4002,8 @@ std::unordered_map<Core::Materials::MaterialType, Core::IO::InputSpec> Global::v
     known_materials[Core::Materials::mix_prestress_strategy_constant] =
         group("MIX_Prestress_Strategy_Constant",
             {
-                parameter<std::vector<double>>("PRESTRETCH",
-                    {.description =
-                            "Definition of the prestretch as a 6x1 vector [xx, yy, zz, xy, yz, xz]",
-                        .size = 6}),
+                parameter<Core::LinAlg::SymmetricTensor<double, 3, 3>>("PRESTRETCH",
+                    {.description = "Definition of the (symmetric) prestretch tensor"}),
             },
             {.description = "Simple predefined prestress"});
   }
