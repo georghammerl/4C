@@ -1,0 +1,63 @@
+name: Analyze compile time tracing output
+description: Analyze the compile time tracing output and optionally remove all individual files
+inputs:
+  build-directory:
+    description: Path to the build directory
+    required: true
+  aggregated-tracing-file:
+    description: Path to the output file with the aggregated tracing information
+    required: true
+  report-summary-file:
+    description: Path to the output file with the report summary
+    required: true
+  cleanup-individual-files:
+    description: Remove individual ninja tracing files after aggregation
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    # Analyze compile time with ClangBuildAnalyzer
+    - uses: actions/checkout@v5
+      with:
+        repository: aras-p/ClangBuildAnalyzer
+        ref: bae0cb488cce944bfc3da9850a69ad621701ebef # version 1.6.0
+        path: ClangBuildAnalyzer
+    - shell: bash
+      name: Build ClangBuildAnalyzer
+      run: |
+        cd $GITHUB_WORKSPACE/ClangBuildAnalyzer
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+    - shell: bash
+      name: Analyze compile time
+      run: |
+        $GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer --all $BUILD_DIRECTORY time_trace.bin
+        $GITHUB_WORKSPACE/ClangBuildAnalyzer/build/ClangBuildAnalyzer --analyze time_trace.bin > $SUMMARY_FILE
+        cat $SUMMARY_FILE
+      env:
+        BUILD_DIRECTORY: ${{ inputs.build-directory }}
+        SUMMARY_FILE: ${{ inputs.report-summary-file }}
+
+    # Aggregate individual tracing files with ninjatracing
+    - uses: actions/checkout@v5
+      with:
+        repository: nico/ninjatracing
+        ref: a669e3644cf22b29cbece31dbed2cfbf34e5f48e # no releases for this repo, this is a stable commit
+        path: ${{ github.workspace }}/ninjatracing
+    - shell: bash
+      name: Aggregate trace
+      run: |
+        $GITHUB_WORKSPACE/ninjatracing/ninjatracing -e $BUILD_DIRECTORY/.ninja_log > $TRACING_FILE
+      env:
+        BUILD_DIRECTORY: ${{ inputs.build-directory }}
+        TRACING_FILE: ${{ inputs.aggregated-tracing-file }}
+
+    # Optionally cleanup individual tracing files
+    - name: Cleanup individual tracing files
+      if: ${{ inputs.cleanup-individual-files == 'true' }}
+      shell: bash
+      run: |
+        find $BUILD_DIRECTORY -name '*.cpp.json' -type f -delete
+      env:
+        BUILD_DIRECTORY: ${{ inputs.build-directory }}
