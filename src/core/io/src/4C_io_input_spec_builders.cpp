@@ -181,11 +181,6 @@ namespace
 Core::IO::Internal::MatchTree::MatchTree(const Core::IO::InputSpec& root, ConstYamlNodeRef node)
     : node_(node)
 {
-  // The number of nodes in the tree is known in advance as it is exactly equal to the
-  // number of specs. This is why we can reserve the space for the entries and do not need
-  // to deal with reallocations, which would invalidate MatchEntry references.
-  const auto total_nodes = root.impl().data.n_specs;
-  entries_.reserve(total_nodes);
   entries_.emplace_back(this, &root);
 }
 
@@ -542,8 +537,6 @@ namespace
 Core::IO::Internal::MatchEntry& Core::IO::Internal::MatchTree::append_child(
     const Core::IO::InputSpec* spec)
 {
-  FOUR_C_ASSERT(
-      entries_.size() < entries_.capacity(), "Internal error: too many entries in MatchTree.");
   return entries_.emplace_back(this, spec);
 }
 
@@ -574,8 +567,8 @@ void Core::IO::Internal::MatchTree::erase_everything_after(const MatchEntry& ent
 {
   // We know that the entry must be stored in the memory of entries_. This means we can find the
   // entry by pointer comparison.
-  auto it = std::find_if(entries_.begin(), entries_.end(),
-      [&entry](const MatchEntry& stored_entry) { return &stored_entry == &entry; });
+  auto it = std::ranges::find_if(
+      entries_, [&entry](const MatchEntry& stored_entry) { return &stored_entry == &entry; });
   FOUR_C_ASSERT(it != entries_.end(), "Internal error: entry not found in MatchTree.");
 
   // Erase everything that follows the entry.
@@ -1199,13 +1192,6 @@ namespace
             .wrapped.on_parse_callback)};
   }
 
-  std::size_t count_contained_specs(const std::vector<Core::IO::InputSpec>& specs)
-  {
-    return std::accumulate(specs.begin(), specs.end(), 0u,
-        [](std::size_t acc, const auto& spec) { return acc + spec.impl().data.n_specs; });
-  }
-
-
   [[nodiscard]] Core::IO::InputSpec make_all_of(std::vector<InputSpec> specs)
   {
     specs = pull_up_internals<Internal::AllOfSpec>(std::move(specs));
@@ -1250,7 +1236,6 @@ namespace
         .description = "",
         .required = any_required,
         .has_default_value = all_have_default_values(specs),
-        .n_specs = count_contained_specs(specs) + 1,
         .type = InputSpecType::all_of,
         .stores_to = specs.empty() ? nullptr : specs[0].impl().data.stores_to,
     };
@@ -1325,7 +1310,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::one_of(std::vector<InputSpec> s
       .description = "",
       .required = true,
       .has_default_value = false,
-      .n_specs = count_contained_specs(flattened_specs) + 1,
       .type = InputSpecType::one_of,
       .stores_to = &typeid(InputParameterContainer),
   };
@@ -1347,7 +1331,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::list(
       // We can only set a default value if the size is fixed and the contained spec has
       // a default value.
       .has_default_value = spec.impl().has_default_value() && data.size != dynamic_size,
-      .n_specs = spec.impl().data.n_specs + 1,
       .type = InputSpecType::list,
       .stores_to = &typeid(InputParameterContainer),
   };
