@@ -1348,6 +1348,129 @@ t: [[[[1,1,1],[1,1,2],[1,3,1]], [[2,2,2],[2,2,1],[2,2,9]]], [[[3,3,3],[3,2,3],[3
     ASSERT_EQ(outer_vector[1][1][2][2], 6);
   }
 
+  TEST(InputSpecTest, MatchTensor)
+  {
+    auto spec = parameter<Core::LinAlg::Tensor<int, 3>>("a", {});
+
+    {
+      SCOPED_TRACE("Matches");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+
+      ryml::parse_in_arena("a: [1, 2, 3]", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      spec.match(node, container);
+    }
+
+    {
+      SCOPED_TRACE("Too few elements");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+
+      ryml::parse_in_arena("a: [1, 2 ]", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      FOUR_C_EXPECT_THROW_WITH_MESSAGE(spec.match(node, container), Core::Exception,
+          "Candidate parameter 'a' has incorrect size");
+    }
+
+    {
+      SCOPED_TRACE("Too many elements");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+
+      ryml::parse_in_arena("a: [1, 2, 3, 4]", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      FOUR_C_EXPECT_THROW_WITH_MESSAGE(spec.match(node, container), Core::Exception,
+          "Candidate parameter 'a' has incorrect size");
+    }
+  }
+
+  TEST(InputSpecTest, MatchSymmetricTensor)
+  {
+    auto spec = parameter<Core::LinAlg::SymmetricTensor<int, 2, 2>>("a", {});
+
+    {
+      SCOPED_TRACE("Matches");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+
+      ryml::parse_in_arena("a: [[1, 2], [2, 3]]", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      spec.match(node, container);
+    }
+    {
+      SCOPED_TRACE("Invalid nonsymmetric match");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+
+      ryml::parse_in_arena("a: [[1, 2], [3, 3]]", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      EXPECT_THROW(spec.match(node, container), Core::Exception);
+    }
+  }
+
+  TEST(InputSpecTest, MatchYamlHigherOrderTensor)
+  {
+    using namespace Core::IO::InputSpecBuilders::Validators;
+
+    auto spec = parameter<Core::LinAlg::Tensor<int, 2, 2, 3, 3>>("t", {.description = ""});
+    auto tree = init_yaml_tree_with_exceptions();
+    ryml::NodeRef root = tree.rootref();
+
+    // YAML input matching the nested structure:
+    ryml::parse_in_arena(R"(
+t: [[[[1,1,1],[1,1,2],[1,3,1]], [[2,2,2],[2,2,1],[2,2,9]]], [[[3,3,3],[3,2,3],[3,1,3]], [[4,4,4],[4,4,5],[4,4,6]]]])",
+        root);
+
+    ConstYamlNodeRef node(root, "");
+    InputParameterContainer container;
+    spec.match(node, container);
+
+    const auto& outer_vector = container.get<Core::LinAlg::Tensor<int, 2, 2, 3, 3>>("t");
+
+    ASSERT_EQ(outer_vector(0, 0, 0, 0), 1);
+    ASSERT_EQ(outer_vector(0, 1, 2, 1), 2);
+    ASSERT_EQ(outer_vector(1, 1, 2, 2), 6);
+  }
+
+  TEST(InputSpecTest, MatchYamlSymmetricTensor)
+  {
+    using namespace Core::IO::InputSpecBuilders::Validators;
+
+    auto spec = parameter<Core::LinAlg::SymmetricTensor<int, 2, 2>>("t", {.description = ""});
+
+    {
+      SCOPED_TRACE("Valid Match");
+      auto tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+      // YAML input matching the nested structure:
+      ryml::parse_in_arena(R"(
+t: [[1, 2], [2, 3]])",
+          root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      spec.match(node, container);
+
+      const auto& outer_vector = container.get<Core::LinAlg::SymmetricTensor<int, 2, 2>>("t");
+
+      ASSERT_EQ(outer_vector(0, 0), 1);
+      ASSERT_EQ(outer_vector(0, 1), 2);
+      ASSERT_EQ(outer_vector(1, 0), 2);
+      ASSERT_EQ(outer_vector(1, 1), 3);
+    }
+  }
+
   TEST(InputSpecTest, MatchYamlGroup)
   {
     auto spec = group("group", {

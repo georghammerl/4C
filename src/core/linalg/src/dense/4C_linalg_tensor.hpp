@@ -373,6 +373,12 @@ namespace Core::LinAlg
              !is_compressed_tensor<decltype(tensor)>);
 
   /*!
+   * @brief Print a pretty short and name of the tensor
+   */
+  template <typename T, std::size_t... n>
+  void print_pretty_tensor_name(std::ostream& os, const std::string& base_name);
+
+  /*!
    * @brief Write tensor values to an output stream
    */
   void print_values(std::ostream& os, const auto& tensor)
@@ -809,6 +815,19 @@ namespace Core::LinAlg
     return result;
   }
 
+  template <typename Number, std::size_t... n>
+  void print_pretty_tensor_name(std::ostream& os, const std::string& base_name)
+  {
+    constexpr std::array shape = {n...};
+
+    const std::string shape_str =
+        std::accumulate(std::next(shape.begin()), shape.end(), std::to_string(shape[0]),
+            [](const std::string& a, const std::size_t b) { return a + ", " + std::to_string(b); });
+
+    os << base_name << "<" << Core::Utils::try_demangle(typeid(Number).name()) << ", " << shape_str
+       << ">";
+  }
+
   namespace Internal
   {
     void print_sub_values_helper(std::ostream& os, const auto& tensor, auto index_to_print)
@@ -865,18 +884,7 @@ namespace Core::LinAlg
         FOUR_C_THROW("Unknown tensor type!");
     }();
 
-    auto make_array_from_tuple = [](auto&&... args) constexpr
-    { return std::array<std::size_t, sizeof...(args)>{args...}; };
-
-    constexpr std::array shape =
-        std::apply(make_array_from_tuple, std::remove_cvref_t<decltype(tensor)>::shape());
-
-    const std::string shape_str =
-        std::accumulate(std::next(shape.begin()), shape.end(), std::to_string(shape[0]),
-            [](const std::string& a, const std::size_t b) { return a + ", " + std::to_string(b); });
-
-    os << tensor_type << "<" << Core::Utils::try_demangle(typeid(Number).name()) << ", "
-       << shape_str << ">";
+    print_pretty_tensor_name<Number, n...>(os, tensor_type);
     print_values(os, tensor);
 
     return os;

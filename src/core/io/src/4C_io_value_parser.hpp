@@ -267,6 +267,15 @@ namespace Core::IO
       size_info_--;
     }
 
+    template <ProxyTypeConcept T>
+    void read_internal(T& value)
+    {
+      using ReadType = typename ProxyType<T>::type;
+      ReadType v;
+      read_internal(v);
+      value = ProxyType<T>::to_value(v);
+    }
+
     //! The data to parse from.
     std::string_view line_;
 

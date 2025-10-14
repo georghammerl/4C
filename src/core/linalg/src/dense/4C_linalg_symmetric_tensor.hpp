@@ -511,18 +511,7 @@ namespace Core::LinAlg
         FOUR_C_THROW("Unknown tensor type!");
     }();
 
-    auto make_array_from_tuple = [](auto&&... args) constexpr
-    { return std::array<std::size_t, sizeof...(args)>{args...}; };
-
-    constexpr std::array shape =
-        std::apply(make_array_from_tuple, std::remove_cvref_t<decltype(tensor)>::shape());
-
-    const std::string shape_str =
-        std::accumulate(std::next(shape.begin()), shape.end(), std::to_string(shape[0]),
-            [](const std::string& a, const std::size_t b) { return a + ", " + std::to_string(b); });
-
-    os << tensor_type << "<" << Core::Utils::try_demangle(typeid(Number).name()) << ", "
-       << shape_str << ">";
+    print_pretty_tensor_name<Number, n...>(os, tensor_type);
     print_values(os, get_full(tensor));
 
     return os;

@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_fixedsizematrix.hpp"
+#include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_mixture_elastin_membrane_prestress_strategy.hpp"
 #include "4C_mixture_prestress_strategy.hpp"
 
@@ -40,7 +41,7 @@ namespace Mixture
 
       /// @name parameters of the prestress strategy
       /// @{
-      std::array<double, 6> prestretch_;
+      Core::LinAlg::SymmetricTensor<double, 3, 3> prestretch_;
       /// @}
     };
   }  // namespace PAR
