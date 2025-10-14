@@ -8,6 +8,7 @@
 #include "4C_rebalance.hpp"
 
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_utils.hpp"
 #include "4C_rebalance_graph_based.hpp"
 #include "4C_rebalance_print.hpp"
 
@@ -54,7 +55,7 @@ do_rebalance_discretization(const Core::LinAlg::Graph& graph,
           {.fill_complete = Core::FE::OptionsFillComplete::none()});
 
       std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
-          discretization.build_node_coordinates();
+          extract_node_coordinates(discretization);
 
       std::tie(rowmap, colmap) = Core::Rebalance::rebalance_node_maps(
           graph, rebalanceParams, nullptr, nullptr, coordinates);

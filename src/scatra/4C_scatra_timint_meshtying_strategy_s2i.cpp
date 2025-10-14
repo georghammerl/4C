@@ -13,6 +13,7 @@
 #include "4C_coupling_adapter_mortar.hpp"
 #include "4C_coupling_volmortar_shape.hpp"
 #include "4C_fem_condition_utils.hpp"
+#include "4C_fem_discretization_utils.hpp"
 #include "4C_fem_dofset_predefineddofnumber.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fem_general_extract_values.hpp"
@@ -3702,7 +3703,7 @@ void ScaTra::MeshtyingStrategyS2I::equip_extended_solver_with_null_space_info() 
     const auto growth_cond_node_row_map = Core::Conditions::condition_node_row_map(
         *scatratimint_->discretization(), "S2IKineticsGrowth");
     const auto coordinates =
-        scatratimint_->discretization()->build_node_coordinates(growth_cond_node_row_map);
+        extract_node_coordinates(*scatratimint_->discretization(), *growth_cond_node_row_map);
     mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates", coordinates);
 
     mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);

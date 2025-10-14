@@ -936,7 +936,7 @@ void ScaTra::ScaTraTimIntImpl::compute_null_space_if_necessary() const
       mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
 
       std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
-          discret_->build_node_coordinates();
+          extract_node_coordinates(*discret_);
 
       mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates", coordinates);
     }

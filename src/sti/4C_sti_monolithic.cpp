@@ -11,6 +11,7 @@
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
 #include "4C_fem_discretization_nullspace.hpp"
+#include "4C_fem_discretization_utils.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
@@ -1244,7 +1245,7 @@ void STI::Monolithic::compute_null_space_if_necessary(Teuchos::ParameterList& so
     mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
 
     std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
-        scatra_field()->discretization()->build_node_coordinates();
+        extract_node_coordinates(*scatra_field()->discretization());
 
     mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates", coordinates);
   }

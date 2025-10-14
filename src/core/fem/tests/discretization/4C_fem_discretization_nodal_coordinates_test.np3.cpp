@@ -9,6 +9,7 @@
 
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_utils.hpp"
 #include "4C_io_gridgenerator.hpp"
 #include "4C_io_input_parameter_container.templates.hpp"
 #include "4C_io_pstream.hpp"
@@ -51,7 +52,7 @@ namespace
   {
     // build node coordinates based on the node row map of the whole discretization
     std::shared_ptr<Core::LinAlg::MultiVector<double>> nodal_test_coordinates =
-        test_discretization_->build_node_coordinates();
+        extract_node_coordinates(*test_discretization_);
 
     EXPECT_EQ(nodal_test_coordinates->local_length(), test_discretization_->num_my_row_nodes());
     EXPECT_EQ(nodal_test_coordinates->num_vectors(), 3);
@@ -76,7 +77,7 @@ namespace
       std::shared_ptr<Core::LinAlg::Map> node_row_map =
           std::make_shared<Core::LinAlg::Map>(-1, nodeList.size(), nodeList.data(), 0, comm_);
       std::shared_ptr<Core::LinAlg::MultiVector<double>> nodal_test_coordinates =
-          test_discretization_->build_node_coordinates(node_row_map);
+          extract_node_coordinates(*test_discretization_, *node_row_map);
 
       const auto& nodal_coordinates = *nodal_test_coordinates;
 
