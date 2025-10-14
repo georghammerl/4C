@@ -13,6 +13,7 @@ Developer guide
     debugging_profiling
     doxygen
     coverage_report
+    compile_time_trace
     developer_ccache
     developer_cluster
     petra_object_model
