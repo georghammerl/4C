@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_multi_vector.hpp"
+#include "4C_utils_parameter_list.fwd.hpp"
 
 #include <memory>
 
@@ -19,6 +20,21 @@ FOUR_C_NAMESPACE_OPEN
 namespace Core::FE
 {
   class Discretization;
+
+  /*!
+  \brief Compute the nullspace of a discretization
+
+  This method looks in the solver parameters whether algebraic multigrid (AMG)
+  is used as preconditioner. AMG desires the nullspace of the
+  system of equations which is then computed here if it does not already exist
+  in the parameter list.
+
+  \param discretization (in): discretization to compute the nullspace for
+  \param solveparams (in, out): List of parameters
+  \param recompute (in)  : force method to recompute the nullspace
+  */
+  void compute_null_space_if_necessary(const Discretization& discretization,
+      Teuchos::ParameterList& solveparams, bool recompute = false);
 
   /*!
    \brief Calculate the nullspace based on a given discretization

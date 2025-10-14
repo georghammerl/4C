@@ -9,6 +9,7 @@
 
 #include "4C_cut_cutwizard.hpp"
 #include "4C_fem_condition_utils.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fluid_utils_mapextractor.hpp"
 #include "4C_fluid_xfluid_fluid_state.hpp"
 #include "4C_fluid_xfluid_state.hpp"
@@ -218,7 +219,7 @@ void FLD::XFluidStateCreator::create_new_cut_state(
   //--------------------------------------------------------------------------------------
   // recompute nullspace based on new number of dofs per node
   // REMARK: this has to be done after replacing the discret' dofset (via discret_->ReplaceDofSet)
-  xdiscret->compute_null_space_if_necessary(solver_params, true);
+  compute_null_space_if_necessary(*xdiscret, solver_params, true);
 }
 
 FOUR_C_NAMESPACE_CLOSE

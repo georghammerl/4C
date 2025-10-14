@@ -17,6 +17,7 @@
 #include "4C_elch_input.hpp"
 #include "4C_fem_condition_periodic.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fluid_implicit_integration.hpp"
 #include "4C_fluid_timint_hdg.hpp"
 #include "4C_fluid_timint_hdg_weak_comp.hpp"
@@ -213,7 +214,7 @@ void Adapter::FluidBaseAlgorithm::setup_fluid(const Teuchos::ParameterList& prbd
           Global::Problem::instance()->x_fluid_dynamic_params().sublist("GENERAL").get<bool>(
               "XFLUIDFLUID")))
   {
-    actdis->compute_null_space_if_necessary(solver->params(), true);
+    compute_null_space_if_necessary(*actdis, solver->params(), true);
   }
 
   // -------------------------------------------------------------------
@@ -1085,7 +1086,7 @@ void Adapter::FluidBaseAlgorithm::setup_inflow_fluid(
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
 
-  discret->compute_null_space_if_necessary(solver->params(), true);
+  compute_null_space_if_necessary(*discret, solver->params(), true);
 
   // -------------------------------------------------------------------
   // set parameters in list required for all schemes

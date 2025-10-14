@@ -7,6 +7,7 @@
 
 #include "4C_red_airways_dyn_drt.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
 #include "4C_io_pstream.hpp"
@@ -77,7 +78,7 @@ std::shared_ptr<Airway::RedAirwayImplicitTimeInt> dyn_red_airways_drt(bool Coupl
       Global::Problem::instance()->solver_params_callback(),
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
-  actdis->compute_null_space_if_necessary(solver->params());
+  compute_null_space_if_necessary(*actdis, solver->params());
 
   // 5. Set parameters in list required for all schemes
   Teuchos::ParameterList airwaystimeparams;

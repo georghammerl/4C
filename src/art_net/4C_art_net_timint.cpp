@@ -10,6 +10,7 @@
 #include "4C_art_net_artery_resulttest.hpp"
 #include "4C_art_net_input.hpp"
 #include "4C_comm_mpi_utils.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 
@@ -79,7 +80,7 @@ void Arteries::TimInt::init(const Teuchos::ParameterList& globaltimeparams,
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
 
-  discret_->compute_null_space_if_necessary(solver_->params());
+  compute_null_space_if_necessary(*discret_, solver_->params());
 
   return;
 }

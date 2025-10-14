@@ -8,6 +8,7 @@
 #include "4C_lubrication_adapter.hpp"
 
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
@@ -58,7 +59,7 @@ void Lubrication::LubricationBaseAlgorithm::setup(
       solverparams, actdis->get_comm(), Global::Problem::instance()->solver_params_callback(),
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
-  actdis->compute_null_space_if_necessary(solver->params());
+  compute_null_space_if_necessary(*actdis, solver->params());
 
   // -------------------------------------------------------------------
   // set parameters in list required for all schemes

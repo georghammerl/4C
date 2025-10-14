@@ -11,6 +11,7 @@
 #include "4C_adapter_str_ssiwrapper.hpp"
 #include "4C_adapter_str_structure_new.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
 #include "4C_linalg_equilibrate.hpp"
@@ -155,7 +156,7 @@ void SSTI::SSTIMono::build_null_spaces()
 
       // equip smoother for scatra matrix block with null space associated with all degrees of
       // freedom on scatra discretization
-      scatra_field()->discretization()->compute_null_space_if_necessary(blocksmootherparamsscatra);
+      compute_null_space_if_necessary(*scatra_field()->discretization(), blocksmootherparamsscatra);
 
       std::ostringstream thermoblockstr;
       thermoblockstr << get_block_positions(Subproblem::thermo).at(0) + 1;
@@ -166,7 +167,7 @@ void SSTI::SSTIMono::build_null_spaces()
 
       // equip smoother for scatra matrix block with null space associated with all degrees of
       // freedom on scatra discretization
-      thermo_field()->discretization()->compute_null_space_if_necessary(blocksmootherparamsthermo);
+      compute_null_space_if_necessary(*thermo_field()->discretization(), blocksmootherparamsthermo);
       break;
     }
     default:
@@ -190,7 +191,7 @@ void SSTI::SSTIMono::build_null_spaces()
 
     // equip smoother for structural matrix block with null space associated with all degrees of
     // freedom on structural discretization
-    structure_field()->discretization()->compute_null_space_if_necessary(blocksmootherparams);
+    compute_null_space_if_necessary(*structure_field()->discretization(), blocksmootherparams);
   }
 }  // SSTI::SSTI_Mono::build_null_spaces
 

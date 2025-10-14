@@ -13,6 +13,7 @@
 #include "4C_fem_condition_utils.hpp"
 #include "4C_fem_discretization_faces.hpp"
 #include "4C_fem_discretization_hdg.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_discretization_utils.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fem_nurbs_discretization.hpp"
@@ -152,7 +153,7 @@ void FLD::FluidImplicitTimeInt::init()
   // -------------------------------------------------------------------
   nonlinearbc_ = params_->get<bool>("Nonlinear boundary conditions", false);
 
-  discret_->compute_null_space_if_necessary(solver_->params(), true);
+  compute_null_space_if_necessary(*discret_, solver_->params(), true);
 
   // ensure that degrees of freedom in the discretization have been set
   if (!discret_->filled() || !discret_->have_dofs()) discret_->fill_complete();

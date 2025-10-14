@@ -15,6 +15,7 @@
 #include "4C_contact_meshtying_contact_bridge.hpp"
 #include "4C_contact_node.hpp"
 #include "4C_fem_condition_locsys.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fem_general_elements_paramsminimal.hpp"
 #include "4C_fem_general_extract_values.hpp"
@@ -283,16 +284,16 @@ void TSI::Monolithic::create_linear_solver()
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           get_comm());
-      structure_field()->discretization()->compute_null_space_if_necessary(
-          solver_->params().sublist("Inverse1"));
+      compute_null_space_if_necessary(
+          *structure_field()->discretization(), solver_->params().sublist("Inverse1"));
 
       solver_->put_solver_params_to_sub_params("Inverse2", tsisolverparams,
           Global::Problem::instance()->solver_params_callback(),
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           get_comm());
-      thermo_field()->discretization()->compute_null_space_if_necessary(
-          solver_->params().sublist("Inverse2"));
+      compute_null_space_if_necessary(
+          *thermo_field()->discretization(), solver_->params().sublist("Inverse2"));
 
       break;
     }

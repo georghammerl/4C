@@ -2138,19 +2138,6 @@ namespace Core::FE
         std::shared_ptr<Core::LinAlg::Vector<double>> systemvector3, const std::string& condstring,
         const int condid = -1);
 
-    /*!
-    \brief Compute the nullspace of the discretization
-
-    This method looks in the solver parameters whether algebraic multigrid (AMG)
-    is used as preconditioner. AMG desires the nullspace of the
-    system of equations which is then computed here if it does not already exist
-    in the parameter list.
-
-    \param solveparams (in): List of parameters
-    \param recompute (in)  : force method to recompute the nullspace
-    */
-    void compute_null_space_if_necessary(
-        Teuchos::ParameterList& solveparams, bool recompute = false);
 
     /*!
      * \brief Assemble scalar quantities across elements

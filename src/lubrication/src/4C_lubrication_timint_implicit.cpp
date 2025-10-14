@@ -7,6 +7,7 @@
 
 #include "4C_lubrication_timint_implicit.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_global_data.hpp"
@@ -95,7 +96,7 @@ void Lubrication::TimIntImpl::init()
   // -------------------------------------------------------------------
   incremental_ = true;
 
-  discret_->compute_null_space_if_necessary(solver_->params(), true);
+  compute_null_space_if_necessary(*discret_, solver_->params(), true);
 
   // ensure that degrees of freedom in the discretization have been set
   if ((not discret_->filled()) or (not discret_->have_dofs()))

@@ -16,6 +16,7 @@
 #include "4C_ale_input.hpp"
 #include "4C_fem_condition_periodic.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_inpar_fpsi.hpp"
 #include "4C_inpar_fsi.hpp"
@@ -94,7 +95,7 @@ void Adapter::AleBaseAlgorithm::setup_ale(
       Global::Problem::instance()->solver_params_callback(),
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
-  actdis->compute_null_space_if_necessary(solver->params());
+  compute_null_space_if_necessary(*actdis, solver->params());
 
   // ---------------------------------------------------------------------------
   // overwrite certain parameters when ALE is part of a multi-field problem

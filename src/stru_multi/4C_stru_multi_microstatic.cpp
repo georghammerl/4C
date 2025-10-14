@@ -11,6 +11,7 @@
 #include "4C_comm_utils.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
@@ -74,7 +75,7 @@ MultiScale::MicroStatic::MicroStatic(const int microdisnum, const double V0)
       Global::Problem::instance()->solver_params_callback(),
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
-  discret_->compute_null_space_if_necessary(solver_->params());
+  compute_null_space_if_necessary(*discret_, solver_->params());
 
   auto pred = Teuchos::getIntegralValue<Inpar::Solid::PredEnum>(sdyn_micro, "PREDICT");
   pred_ = pred;
@@ -1131,7 +1132,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
             Global::Problem::instance()->io_params(), "VERBOSITY"));
 
     // prescribe rigid body modes
-    discret_->compute_null_space_if_necessary(solver.params());
+    compute_null_space_if_necessary(*discret_, solver.params());
 
     std::shared_ptr<Core::LinAlg::MultiVector<double>> iterinc =
         std::make_shared<Core::LinAlg::MultiVector<double>>(*dofrowmap, 9);

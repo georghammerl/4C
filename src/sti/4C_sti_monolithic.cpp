@@ -10,6 +10,7 @@
 #include "4C_constraint_framework_embeddedmesh_solid_to_solid_mortar_manager.hpp"
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
@@ -1190,7 +1191,8 @@ void STI::Monolithic::build_null_spaces() const
 
       // equip smoother for scatra matrix block with null space associated with all degrees of
       // freedom on scatra discretization
-      scatra_field()->discretization()->compute_null_space_if_necessary(blocksmootherparams);
+      Core::FE::compute_null_space_if_necessary(
+          *scatra_field()->discretization(), blocksmootherparams);
 
       break;
     }
@@ -1215,7 +1217,7 @@ void STI::Monolithic::build_null_spaces() const
 
   // equip smoother for thermo matrix block with null space associated with all degrees of freedom
   // on thermo discretization
-  thermo_field()->discretization()->compute_null_space_if_necessary(blocksmootherparams);
+  Core::FE::compute_null_space_if_necessary(*thermo_field()->discretization(), blocksmootherparams);
 
   // reduce full null space to match degrees of freedom associated with thermo matrix block if
   // necessary

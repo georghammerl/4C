@@ -7,6 +7,7 @@
 
 #include "4C_fem_nurbs_discretization.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_utils_boundary_integration.hpp"
 #include "4C_fem_general_utils_integration.hpp"
 #include "4C_fem_general_utils_nurbs_shapefunctions.hpp"
@@ -480,7 +481,7 @@ void Core::FE::DbcNurbs::do_dirichlet_condition(const Teuchos::ParameterList& pa
       ls_dbc_solver_params, discret.get_comm(), nullptr, Core::IO::Verbositylevel::standard);
   // FixMe actually the const qualifier could stay, if someone adds to each single
   // related ComputeNullSpace routine a "const"....
-  const_cast<Core::FE::Discretization&>(discret).compute_null_space_if_necessary(solver.params());
+  compute_null_space_if_necessary(discret, solver.params());
 
   // solve for control point values
   // always refactor and reset the matrix before a single new solver call

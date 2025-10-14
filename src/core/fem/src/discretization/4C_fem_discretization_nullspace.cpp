@@ -12,13 +12,49 @@
 #include "4C_fem_general_elementtype.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_io_pstream.hpp"
+#include "4C_linear_solver_method_parameters.hpp"
 
 #include <Teuchos_ArrayRCP.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
 namespace Core::FE
 {
+
+  void compute_null_space_if_necessary(
+      const Discretization& discretization, Teuchos::ParameterList& solveparams, bool recompute)
+  {
+    // see whether we have a list for an iterative solver
+    if (!solveparams.isSublist("Belos Parameters") || solveparams.isSublist("IFPACK Parameters"))
+    {
+      return;
+    }
+
+    // adapt multigrid settings (if a multigrid preconditioner is used)
+    if (!solveparams.isSublist("MueLu Parameters") && !solveparams.isSublist("Teko Parameters"))
+      return;
+    Teuchos::ParameterList* mllist_ptr = nullptr;
+    if (solveparams.isSublist("MueLu Parameters"))
+      mllist_ptr = &(solveparams.sublist("MueLu Parameters"));
+    else if (solveparams.isSublist("Teko Parameters"))
+      mllist_ptr = &(solveparams);
+    else
+      return;
+
+    // see whether we have previously computed the nullspace
+    // and recomputation is enforced
+    Teuchos::ParameterList& mllist = *mllist_ptr;
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> ns =
+        mllist.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullptr);
+    if (ns != nullptr && !recompute) return;
+
+    // compute solver parameters and set them into list
+    Core::LinearSolver::Parameters::compute_solver_parameters(discretization, mllist);
+  }
+
+
+
   std::shared_ptr<Core::LinAlg::MultiVector<double>> compute_null_space(
       const Core::FE::Discretization& dis, const int dimns, const Core::LinAlg::Map& dofmap)
   {
