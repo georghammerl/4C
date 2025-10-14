@@ -721,12 +721,6 @@ void Core::IO::Internal::GroupSpec::set_default_value(InputSpecBuilders::Storage
 }
 
 
-void Core::IO::Internal::GroupSpec::print(std::ostream& stream, std::size_t indent) const
-{
-  stream << "// " << std::string(indent, ' ') << name << ":\n";
-  spec.impl().print(stream, indent);
-}
-
 void Core::IO::Internal::GroupSpec::emit_metadata(YamlNodeRef node) const
 {
   node.node |= ryml::MAP;
@@ -800,22 +794,6 @@ void Core::IO::Internal::AllOfSpec::set_default_value(InputSpecBuilders::Storage
   }
 }
 
-
-void Core::IO::Internal::AllOfSpec::print(std::ostream& stream, std::size_t indent) const
-{
-  // Only print an "<all_of>" header if it is not present at the top-level.
-  // Also do not print it if there is only one spec, as this would be redundant.
-  if (indent > 0 && specs.size() > 1)
-  {
-    stream << "// " << std::string(indent, ' ') << "<all_of>:\n";
-    indent += 2;
-  }
-
-  for (const auto& spec : specs)
-  {
-    spec.impl().print(stream, indent);
-  }
-}
 
 void Core::IO::Internal::AllOfSpec::emit_metadata(YamlNodeRef node) const
 {
@@ -960,15 +938,6 @@ void Core::IO::Internal::OneOfSpec::set_default_value(InputSpecBuilders::Storage
 }
 
 
-void Core::IO::Internal::OneOfSpec::print(std::ostream& stream, std::size_t indent) const
-{
-  stream << "// " << std::string(indent, ' ') << "<one_of>:\n";
-  for (const auto& spec : specs)
-  {
-    spec.impl().print(stream, indent + 2);
-  }
-}
-
 void Core::IO::Internal::OneOfSpec::emit_metadata(YamlNodeRef node) const
 {
   node.node |= ryml::MAP;
@@ -1096,13 +1065,6 @@ void Core::IO::Internal::ListSpec::set_default_value(InputSpecBuilders::Storage&
   std::any_cast<InputParameterContainer>(container).add_list(name, std::move(default_list));
 }
 
-
-void Core::IO::Internal::ListSpec::print(std::ostream& stream, std::size_t indent) const
-{
-  stream << "// " << std::string(indent, ' ') << "list '" << name << "'"
-         << " with entries:\n";
-  spec.impl().print(stream, indent + 2);
-}
 
 void Core::IO::Internal::ListSpec::emit_metadata(YamlNodeRef node) const
 {

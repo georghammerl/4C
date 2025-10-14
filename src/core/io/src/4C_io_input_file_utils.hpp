@@ -38,31 +38,6 @@ namespace Core::IO
 
 namespace Core::IO
 {
-
-  /**
-   * Print a section header padded with dashes to 67 characters.
-   */
-  void print_section_header(std::ostream& out, const std::string& header);
-
-  /**
-   * Print @p spec into a dat file section with given @p header.
-   */
-  void print_section(std::ostream& out, const std::string& header, const InputSpec& spec);
-
-  /**
-   * Split the given @p line into a key-value pair. Key and value are normally separated by
-   * whitespace. In case there are multiple distinct whitespace groups in one line, the first of
-   * these is assumed to be the separator and all the other whitespace is assumed to be part of
-   * the value. Key and value may also be separated by an equals sign "=" and at least one
-   * whitespace character on both sides. In this case, key and value may contain spaces
-   * internally. Leading and trailing whitespace is trimmed from both key and value.
-   *
-   * @throws Core::Exception If the @p line cannot be read.
-   *
-   * @return A pair of key and value.
-   */
-  std::pair<std::string, std::string> read_key_value(const std::string& line);
-
   void read_parameters_in_section(
       InputFile& input, const std::string& section_name, Teuchos::ParameterList& list);
 

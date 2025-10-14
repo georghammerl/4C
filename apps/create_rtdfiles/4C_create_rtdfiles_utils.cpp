@@ -9,13 +9,8 @@
 
 #include "4C_fem_general_cell_type_traits.hpp"
 #include "4C_fem_general_utils_createdis.hpp"
-#include "4C_global_legacy_module.hpp"
-#include "4C_io_input_file_utils.hpp"
-#include "4C_io_input_spec_builders.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_utils_string.hpp"
-
-#include <Teuchos_StrUtils.hpp>
 
 #include <format>
 

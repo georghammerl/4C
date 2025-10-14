@@ -30,50 +30,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-void Core::IO::print_section_header(std::ostream& out, const std::string& header)
-{
-  constexpr std::size_t max_padding = 65ul;
-  const std::size_t padding = (header.length() < max_padding) ? (max_padding - header.length()) : 0;
-
-  out << "--" << std::string(padding, '-') << header << '\n';
-}
-
-
-
-void Core::IO::print_section(std::ostream& out, const std::string& header, const InputSpec& spec)
-{
-  print_section_header(out, header);
-  spec.print_as_dat(out);
-}
-
-
-std::pair<std::string, std::string> Core::IO::read_key_value(const std::string& line)
-{
-  std::string::size_type separator_index = line.find('=');
-  // The equals sign is only treated as a separator when surrounded by whitespace.
-  if (separator_index != std::string::npos &&
-      !(std::isspace(line[separator_index - 1]) && std::isspace(line[separator_index + 1])))
-    separator_index = std::string::npos;
-
-  // In case we didn't find an "=" separator, look for a space instead
-  if (separator_index == std::string::npos)
-  {
-    separator_index = line.find(' ');
-
-    if (separator_index == std::string::npos)
-      FOUR_C_THROW("Line '{}' with just one word in parameter section", line);
-  }
-
-  std::string key = Core::Utils::trim(line.substr(0, separator_index));
-  std::string value = Core::Utils::trim(line.substr(separator_index + 1));
-
-  if (key.empty()) FOUR_C_THROW("Cannot get key from line '{}'", line);
-  if (value.empty()) FOUR_C_THROW("Cannot get value from line '{}'", line);
-
-  return {std::move(key), std::move(value)};
-}
-
-
 namespace
 {
   /*----------------------------------------------------------------------*/

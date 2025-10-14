@@ -601,14 +601,43 @@ choices:
     {
       // Verify that all entries got pulled to the highest level.
       std::ostringstream out;
-      spec.print_as_dat(out);
-      EXPECT_EQ(out.str(), R"(// <one_of>:
-//   a <int>
-//   b <double>
-//   c <string>
-//   d <double>
-//   e <int>
-//   f <string>
+      ryml::Tree tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+      YamlNodeRef yaml(root, "");
+      spec.emit_metadata(yaml);
+      out << tree;
+      EXPECT_EQ(out.str(), R"(type: one_of
+specs:
+  - type: all_of
+    specs:
+      - name: a
+        type: int
+        required: true
+  - type: all_of
+    specs:
+      - name: b
+        type: double
+        required: true
+  - type: all_of
+    specs:
+      - name: c
+        type: string
+        required: true
+  - type: all_of
+    specs:
+      - name: d
+        type: double
+        required: true
+  - type: all_of
+    specs:
+      - name: e
+        type: int
+        required: true
+  - type: all_of
+    specs:
+      - name: f
+        type: string
+        required: true
 )");
     }
   }
@@ -748,33 +777,6 @@ specs:
     EXPECT_EQ(out.str(), expected);
   }
 
-  TEST(InputSpecTest, PrintAsDat)
-  {
-    enum class Options
-    {
-      c1,
-      c2,
-    };
-    auto spec = group("g",
-        {
-            // Note: the all_of entries will be pulled into the parent group.
-            all_of({
-                parameter<int>("a", {.description = "An integer"}),
-                parameter<Options>("c", {.description = "Selection", .default_value = Options::c1}),
-            }),
-            parameter<int>("d", {.description = "Another\n integer ", .default_value = 42}),
-        });
-
-    {
-      std::ostringstream out;
-      spec.print_as_dat(out);
-      EXPECT_EQ(out.str(), R"(// g:
-// a <int> "An integer"
-// c <Options> (default: c1) "Selection"
-// d <int> (default: 42) "Another integer"
-)");
-    }
-  }
 
   TEST(InputSpecTest, EmitMetadata)
   {
