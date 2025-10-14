@@ -38,90 +38,14 @@ namespace Core::IO
 {
   namespace Internal
   {
-    /**
-     * Helper to print values in the format of a dat file.
-     */
-    struct DatPrinter
-    {
-      template <typename T>
-      void operator()(std::ostream& out, const T& val) const
-      {
-        out << "<unprintable>";
-      }
-
-      template <SupportedType T>
-      void operator()(std::ostream& out, const T& val) const
-      {
-        using EnumTools::operator<<;
-        out << val;
-      }
-
-      void operator()(std::ostream& out, bool val) const { out << " " << (val ? "true" : "false"); }
-
-      template <typename T>
-      void operator()(std::ostream& out, const std::optional<T>& val) const
-      {
-        if (val.has_value())
-          (*this)(out, *val);
-        else
-          out << "none";
-      }
-
-      template <typename T>
-      void operator()(std::ostream& out, const std::vector<T>& val) const
-      {
-        for (const auto& v : val)
-        {
-          (*this)(out, v);
-          out << " ";
-        }
-      }
-
-      template <typename T, std::size_t n>
-      void operator()(std::ostream& out, const std::array<T, n>& val) const
-      {
-        for (const auto& v : val)
-        {
-          (*this)(out, v);
-          out << " ";
-        }
-      }
-
-      template <typename T>
-      void operator()(std::ostream& out, const std::map<std::string, T>& val) const
-      {
-        for (const auto& [key, v] : val)
-        {
-          out << key << " ";
-          (*this)(out, v);
-          out << " ";
-        }
-      }
-
-      template <typename... Ts>
-      void operator()(std::ostream& out, const std::tuple<Ts...>& vals) const
-      {
-        std::apply([&](const auto&... vals) { (((*this)(out, vals), out << " "), ...); }, vals);
-      }
-
-      template <typename T1, typename T2>
-      void operator()(std::ostream& out, const std::pair<T1, T2>& val) const
-      {
-        (*this)(out, val.first);
-        out << " ";
-        (*this)(out, val.second);
-        out << " ";
-      }
-    };
-
-    template <typename T, typename AlwaysVoid = void>
-    constexpr bool has_set_default_value = false;
+    inline std::string_view as_string(const std::string& s) { return s; }
 
     template <typename T>
-    constexpr bool has_set_default_value<T,
-        std::void_t<decltype(std::declval<const std::decay_t<T>>().set_default_value(
-            std::declval<Core::IO::InputParameterContainer&>()))>> = true;
-
+      requires std::is_enum_v<T>
+    std::string_view as_string(T e)
+    {
+      return EnumTools::enum_name(e);
+    }
 
     template <typename T>
     struct PrettyTypeName
@@ -541,8 +465,6 @@ namespace Core::IO
       [[nodiscard]] const std::string& name() const { return data.name; }
 
       [[nodiscard]] const std::string& description() const { return data.description; }
-
-      [[nodiscard]] std::string description_one_line() const;
 
       [[nodiscard]] bool required() const { return data.required; }
 
@@ -2143,6 +2065,7 @@ bool Core::IO::Internal::ParameterSpec<T>::has_correct_size(
 }
 
 
+
 template <typename T>
 void Core::IO::Internal::DeprecatedSelectionSpec<T>::parse(
     ValueParser& parser, InputParameterContainer& container) const
@@ -2169,11 +2092,9 @@ void Core::IO::Internal::DeprecatedSelectionSpec<T>::parse(
       return;
     }
   }
-  std::stringstream parsed_value_str;
-  IO::Internal::DatPrinter{}(parsed_value_str, value);
 
   FOUR_C_THROW("Could not parse parameter '{}': invalid value '{}'. Valid options are: {}",
-      name.c_str(), parsed_value_str.str(), choices_string);
+      name.c_str(), as_string(value), choices_string);
 }
 
 
@@ -2532,10 +2453,8 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::parameter(
       !Internal::validate_helper(std::get<1>(internal_data.default_value), data.validator))
   {
     std::stringstream validation_error_stream;
-    validation_error_stream << "Default value '";
-    Core::IO::Internal::DatPrinter{}(
-        validation_error_stream, std::get<1>(internal_data.default_value));
-    validation_error_stream << "' does not pass validation: ";
+    validation_error_stream << "Parameter '" << name
+                            << "' has a default value that does not pass the given validation: ";
     data.validator->describe(validation_error_stream);
 
     FOUR_C_THROW("{}", validation_error_stream.str());
@@ -2748,16 +2667,14 @@ Core::IO::InputSpec Core::IO::Internal::selection_internal(std::string name,
   // Check that we have a default value that is in the choices.
   if (has_default_value)
   {
-    const auto& default_value = std::get<1>(internal_data.default_value);
+    const T& default_value = std::get<1>(internal_data.default_value);
     auto default_value_it = std::find_if(modified_choices.begin(), modified_choices.end(),
         [&](const auto& choice) { return choice.second == default_value; });
 
     if (default_value_it == modified_choices.end())
     {
-      std::stringstream default_value_stream;
-      Core::IO::Internal::DatPrinter{}(default_value_stream, default_value);
       FOUR_C_THROW("Default value '{}' of selection not found in choices '{}'.",
-          default_value_stream.str(), choices_string);
+          as_string(default_value), choices_string);
     }
   }
 
