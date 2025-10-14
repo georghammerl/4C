@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <deque>
 #include <functional>
 #include <optional>
 #include <ostream>
@@ -442,7 +443,7 @@ namespace Core::IO
       void erase_everything_after(const MatchEntry& entry);
 
      private:
-      std::vector<MatchEntry> entries_;
+      std::deque<MatchEntry> entries_;
       ConstYamlNodeRef node_;
     };
 
@@ -490,12 +491,6 @@ namespace Core::IO
          * Whether the spec has a default value.
          */
         bool has_default_value;
-
-        /**
-         * The total number of specs that make up this spec. This includes the spec itself, meaning,
-         * that the minimum value is 1. This value can be used to reserve memory ahead of time.
-         */
-        std::size_t n_specs;
 
         /**
          * The type of the spec.
@@ -2553,7 +2548,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::parameter(
           .description = data.description,
           .required = !(internal_data.default_value.index() == 1),
           .has_default_value = internal_data.default_value.index() == 1,
-          .n_specs = 1,
           .type = Internal::InputSpecType::parameter,
           .stores_to = &internal_data.store.stores_to(),
       });
@@ -2598,11 +2592,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::selection(
         EnumTools::enum_type_name<Selector>(), EnumTools::enum_name(e));
   }
 
-  std::size_t max_specs_for_choices = std::ranges::max_element(
-      choices_map, {}, [](const auto& spec) { return spec.second.impl().data.n_specs; })
-                                          ->second.impl()
-                                          .data.n_specs;
-
   StoreFunction<Storage> move_my_storage;
   if constexpr (std::is_same_v<StorageType, DefaultStorage>)
   {
@@ -2619,8 +2608,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::selection(
       .description = data.description,
       .required = true,
       .has_default_value = false,
-      // one for the group plus the number of specs for the choices.
-      .n_specs = 1 + max_specs_for_choices,
       .type = Internal::InputSpecType::selection,
       .stores_to =
           data.transform_data ? &data.transform_data.stores_to() : &move_my_storage.stores_to(),
@@ -2786,7 +2773,6 @@ Core::IO::InputSpec Core::IO::Internal::selection_internal(std::string name,
           .description = data.description,
           .required = !has_default_value,
           .has_default_value = has_default_value,
-          .n_specs = 1,
           .type = InputSpecType::deprecated_selection,
           .stores_to = &internal_data.store.stores_to(),
       });
@@ -2866,7 +2852,6 @@ Core::IO::InputSpec Core::IO::InputSpecBuilders::group(std::string name,
       .description = data.description,
       .required = data.required,
       .has_default_value = defaultable,
-      .n_specs = internal_all_of.impl().data.n_specs + 1,
       .type = Internal::InputSpecType::group,
       .stores_to = &move_my_storage.stores_to(),
   };
