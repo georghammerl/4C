@@ -111,11 +111,6 @@ namespace Core::IO
       }
     };
 
-    template <typename T>
-    concept CustomDatPrintable = requires(const T& t, std::ostream& stream, std::size_t indent) {
-      { t.print(stream, indent) } -> std::same_as<void>;
-    };
-
     template <typename T, typename AlwaysVoid = void>
     constexpr bool has_set_default_value = false;
 
@@ -531,8 +526,6 @@ namespace Core::IO
 
       [[nodiscard]] virtual std::unique_ptr<InputSpecImpl> clone() const = 0;
 
-      void print(std::ostream& stream, std::size_t indent) const { do_print(stream, indent); }
-
       [[nodiscard]] const std::string& name() const { return data.name; }
 
       [[nodiscard]] const std::string& description() const { return data.description; }
@@ -551,9 +544,6 @@ namespace Core::IO
       InputSpecImpl& operator=(const InputSpecImpl&) = default;
       InputSpecImpl(InputSpecImpl&&) noexcept = default;
       InputSpecImpl& operator=(InputSpecImpl&&) noexcept = default;
-
-     private:
-      virtual void do_print(std::ostream& stream, std::size_t indent) const = 0;
     };
 
     template <typename T>
@@ -590,34 +580,6 @@ namespace Core::IO
           const InputSpecEmitOptions& options) const override
       {
         return wrapped.emit(node, container, options);
-      }
-
-      void do_print(std::ostream& stream, std::size_t indent) const override
-      {
-        if constexpr (CustomDatPrintable<T>)
-        {
-          wrapped.print(stream, indent);
-        }
-        else
-        {
-          stream << "// " << std::string(indent, ' ') << name();
-
-          // pretty printed type of the parameter
-          stream << " <" << pretty_type_name() << ">";
-
-          if (has_default_value())
-          {
-            stream << " (default: ";
-            Internal::DatPrinter{}(stream, std::get<1>(wrapped.data.default_value));
-            stream << ")";
-          }
-
-          if (!description().empty())
-          {
-            stream << " " << std::quoted(description_one_line());
-          }
-          stream << "\n";
-        }
       }
 
       [[nodiscard]] std::string pretty_type_name() const override
@@ -1066,7 +1028,6 @@ namespace Core::IO
       void parse(ValueParser& parser, InputParameterContainer& container) const;
       bool match(ConstYamlNodeRef node, InputSpecBuilders::Storage& container,
           IO::Internal::MatchEntry& match_entry) const;
-      void print(std::ostream& stream, std::size_t indent) const;
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -1093,7 +1054,6 @@ namespace Core::IO
       void parse(ValueParser& parser, InputParameterContainer& container) const;
       bool match(ConstYamlNodeRef node, InputSpecBuilders::Storage& container,
           IO::Internal::MatchEntry& match_entry) const;
-      void print(std::ostream& stream, std::size_t indent) const;
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -1108,7 +1068,6 @@ namespace Core::IO
       bool match(ConstYamlNodeRef node, InputSpecBuilders::Storage& container,
           IO::Internal::MatchEntry& match_entry) const;
       void set_default_value(InputSpecBuilders::Storage& container) const;
-      void print(std::ostream& stream, std::size_t indent) const;
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -1133,7 +1092,6 @@ namespace Core::IO
       bool match(ConstYamlNodeRef node, InputSpecBuilders::Storage& container,
           IO::Internal::MatchEntry& match_entry) const;
       void set_default_value(InputSpecBuilders::Storage& container) const;
-      void print(std::ostream& stream, std::size_t indent) const;
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -1155,8 +1113,6 @@ namespace Core::IO
 
       void set_default_value(InputSpecBuilders::Storage& container) const;
 
-      void print(std::ostream& stream, std::size_t indent) const;
-
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -1175,7 +1131,6 @@ namespace Core::IO
       bool match(ConstYamlNodeRef node, InputSpecBuilders::Storage& container,
           IO::Internal::MatchEntry& match_entry) const;
       void set_default_value(InputSpecBuilders::Storage& container) const;
-      void print(std::ostream& stream, std::size_t indent) const;
       void emit_metadata(YamlNodeRef node) const;
       bool emit(YamlNodeRef node, const InputParameterContainer& container,
           const InputSpecEmitOptions& options) const;
@@ -2252,35 +2207,6 @@ bool Core::IO::Internal::DeprecatedSelectionSpec<T>::match(ConstYamlNodeRef node
   return false;
 }
 
-template <typename T>
-void Core::IO::Internal::DeprecatedSelectionSpec<T>::print(
-    std::ostream& stream, std::size_t indent) const
-{
-  stream << "// " << std::string(indent, ' ') << name;
-
-  if (data.default_value.index() == 1)
-  {
-    // Find the choice that corresponds to the default value.
-    auto default_value_it = std::find_if(choices.begin(), choices.end(),
-        [&](const auto& choice) { return choice.second == std::get<1>(data.default_value); });
-    FOUR_C_ASSERT(
-        default_value_it != choices.end(), "Internal error: default value not found in choices.");
-
-    stream << " (default: ";
-    IO::Internal::DatPrinter{}(stream, default_value_it->first);
-    stream << ")";
-  }
-  {
-    stream << " (choices: ";
-    stream << choices_string;
-    stream << ")";
-  }
-  if (!data.description.empty())
-  {
-    stream << " " << std::quoted(Core::Utils::trim(data.description));
-  }
-  stream << "\n";
-}
 
 template <typename T>
 void Core::IO::Internal::DeprecatedSelectionSpec<T>::emit_metadata(YamlNodeRef node) const
@@ -2468,19 +2394,6 @@ bool Core::IO::Internal::SelectionSpec<T>::match(ConstYamlNodeRef node,
   return true;
 }
 
-template <typename T>
-  requires(std::is_enum_v<T>)
-void Core::IO::Internal::SelectionSpec<T>::print(std::ostream& stream, std::size_t indent) const
-{
-  stream << "// " << std::string(indent, ' ') << group_name;
-  stream << "// " << std::string(indent + 2, ' ') << "<choices>\n";
-  for (const auto& [selector_value, spec] : choices)
-  {
-    stream << "\n";
-    spec.impl().print(stream, indent + 4);
-  }
-  stream << "\n";
-}
 
 template <typename T>
   requires(std::is_enum_v<T>)

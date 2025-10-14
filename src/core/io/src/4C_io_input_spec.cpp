@@ -73,17 +73,12 @@ void Core::IO::InputSpec::emit(YamlNodeRef yaml, Core::IO::InputParameterContain
     std::stringstream ss;
     ss << "Failed to emit this data\n";
     container.print(ss);
-    ss << "under the following specification\n";
-    print_as_dat(ss);
+    ss << "under the following specification\n\n";
+    auto tmp_tree = init_yaml_tree_with_exceptions();
+    emit_metadata(YamlNodeRef{tmp_tree.rootref(), ""});
+    ss << tmp_tree;
     FOUR_C_THROW("{}", ss.str());
   }
-}
-
-void Core::IO::InputSpec::print_as_dat(std::ostream& stream) const
-{
-  FOUR_C_ASSERT(pimpl_, "InputSpec is empty.");
-
-  pimpl_->print(stream, 0u);
 }
 
 void Core::IO::InputSpec::emit_metadata(YamlNodeRef yaml) const

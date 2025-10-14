@@ -72,11 +72,6 @@ namespace Core::IO
         InputSpecEmitOptions options = {}) const;
 
     /**
-     * Print the expected input format of this InputSpec to @p stream in dat format.
-     */
-    void print_as_dat(std::ostream& stream) const;
-
-    /**
      * Emit metadata about the InputSpec to the @p yaml emitter.
      */
     void emit_metadata(YamlNodeRef yaml) const;
