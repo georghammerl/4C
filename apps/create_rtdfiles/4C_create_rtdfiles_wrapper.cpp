@@ -9,20 +9,9 @@
 
 #include "4C_create_rtdfiles_wrapper.hpp"
 
-#include "4C_comm_utils.hpp"
-#include "4C_contact_constitutivelaw_valid_laws.hpp"
 #include "4C_create_rtdfiles_utils.hpp"
-#include "4C_fem_general_element_definition.hpp"
 #include "4C_fem_general_utils_createdis.hpp"
-#include "4C_global_data.hpp"
-#include "4C_global_legacy_module_validconditions.hpp"
-#include "4C_global_legacy_module_validmaterials.hpp"
-#include "4C_global_legacy_module_validparameters.hpp"
 #include "4C_utils_exceptions.hpp"
-#include "4C_utils_function.hpp"
-#include "4C_utils_string.hpp"
-
-#include <Teuchos_StrUtils.hpp>
 
 #include <iostream>
 
