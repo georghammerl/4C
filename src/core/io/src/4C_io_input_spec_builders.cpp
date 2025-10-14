@@ -637,11 +637,6 @@ InputSpecImpl::InputSpecImpl(InputSpecImpl::CommonData data) : data(std::move(da
   check_for_unprintable_chars(this->data.name, "name");
 }
 
-std::string Core::IO::Internal::InputSpecImpl::description_one_line() const
-{
-  return Core::Utils::trim(data.description);
-}
-
 
 void Core::IO::Internal::GroupSpec::parse(
     Core::IO::ValueParser& parser, Core::IO::InputParameterContainer& container) const

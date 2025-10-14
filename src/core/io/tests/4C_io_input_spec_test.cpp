@@ -2400,7 +2400,8 @@ parameters:
           parameter<int>("a", {.default_value = 42, .validator = in_range(excl(0), 10)});
     };
     FOUR_C_EXPECT_THROW_WITH_MESSAGE(construct(), Core::Exception,
-        "Default value '42' does not pass validation: in_range(0,10]");
+        "Parameter 'a' has a default value that does not pass the given validation: "
+        "in_range(0,10]");
   }
 
   TEST(InputSpecTest, OptionalParameterValidation)
