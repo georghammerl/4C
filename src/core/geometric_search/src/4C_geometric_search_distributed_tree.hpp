@@ -45,7 +45,6 @@ namespace Core::GeometricSearch
    * @param primitives Bounding volumes to search for intersections
    * @param predicates Bounding volumes to intersect with
    * @param comm Communicator object of the discretization
-   * @param verbosity Enabling printout of the geometric search information
    * @return Collision pairs found with their global and local IDs
    *
    * D. Lebrun-Grandie, A. Prokopenko, B. Turcksin, and S. R. Slattery. 2020.
@@ -55,7 +54,20 @@ namespace Core::GeometricSearch
    */
   std::vector<GlobalCollisionSearchResult> global_collision_search(
       const std::vector<std::pair<int, BoundingVolume>>& primitives,
-      const std::vector<std::pair<int, BoundingVolume>>& predicates, MPI_Comm comm,
+      const std::vector<std::pair<int, BoundingVolume>>& predicates, const MPI_Comm comm);
+
+  /*! \brief Performs a global collision search between two sets of bounding volumes and prints the
+   * results.
+   *
+   * @param primitives Bounding volumes to search for intersections
+   * @param predicates Bounding volumes to intersect with
+   * @param comm Communicator object of the discretization
+   * @param verbosity Enabling printout of the geometric search information
+   * @return Collision pairs found with their global and local IDs
+   */
+  std::vector<GlobalCollisionSearchResult> global_collision_search_print_results(
+      const std::vector<std::pair<int, BoundingVolume>>& primitives,
+      const std::vector<std::pair<int, BoundingVolume>>& predicates, const MPI_Comm comm,
       const Core::IO::Verbositylevel verbosity);
 
 }  // namespace Core::GeometricSearch

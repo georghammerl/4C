@@ -24,12 +24,10 @@ namespace
   class GeometricSearch : public ::testing::Test
   {
    public:
-    GeometricSearch() { verbosity_ = Core::IO::minimal; }
+    GeometricSearch() = default;
 
    protected:
     std::vector<std::pair<int, Core::GeometricSearch::BoundingVolume>> primitives_, predicates_;
-    MPI_Comm comm_{MPI_COMM_WORLD};
-    Core::IO::Verbositylevel verbosity_;
   };
 
   /**
@@ -48,8 +46,7 @@ namespace
     EXPECT_EQ(primitives_.size(), 2);
     EXPECT_EQ(predicates_.size(), 1);
 
-    const auto pairs =
-        Core::GeometricSearch::collision_search(primitives_, predicates_, comm_, verbosity_);
+    const auto pairs = Core::GeometricSearch::collision_search(primitives_, predicates_);
 
     EXPECT_EQ(pairs.size(), 1);
     EXPECT_EQ(pairs[0].gid_primitive, 0);
@@ -71,8 +68,7 @@ namespace
     EXPECT_EQ(primitives_.size(), 0);
     EXPECT_EQ(predicates_.size(), 3);
 
-    const auto& pairs =
-        Core::GeometricSearch::collision_search(primitives_, predicates_, comm_, verbosity_);
+    const auto& pairs = Core::GeometricSearch::collision_search(primitives_, predicates_);
 
     EXPECT_EQ(pairs.size(), 0);
   }
@@ -92,8 +88,7 @@ namespace
     EXPECT_EQ(primitives_.size(), 3);
     EXPECT_EQ(predicates_.size(), 0);
 
-    const auto& pairs =
-        Core::GeometricSearch::collision_search(primitives_, predicates_, comm_, verbosity_);
+    const auto& pairs = Core::GeometricSearch::collision_search(primitives_, predicates_);
 
     EXPECT_EQ(pairs.size(), 0);
   }
@@ -106,8 +101,7 @@ namespace
     EXPECT_EQ(primitives_.size(), 0);
     EXPECT_EQ(predicates_.size(), 0);
 
-    const auto pairs =
-        Core::GeometricSearch::collision_search(primitives_, predicates_, comm_, verbosity_);
+    const auto pairs = Core::GeometricSearch::collision_search(primitives_, predicates_);
 
     EXPECT_EQ(pairs.size(), 0);
   }

@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_geometric_search_bounding_volume.hpp"
+#include "4C_io_pstream.hpp"
 
 #include <mpi.h>
 
@@ -24,14 +25,15 @@ namespace Core::GeometricSearch
    */
   struct GeometricSearchInfo
   {
-    int primitive_size;
-    int predicate_size;
-    int coupling_pair_size;
+    size_t primitive_size;
+    size_t predicate_size;
+    size_t coupling_pair_size;
   };
 
   /*! \brief Prints details on the geometric search algorithm
    */
-  void print_geometric_search_details(MPI_Comm comm, const GeometricSearchInfo info);
+  void print_geometric_search_details(const MPI_Comm comm, const GeometricSearchInfo info,
+      const Core::IO::Verbositylevel verbosity);
 
   /*! \brief Get the polyhedron representation of a k-DOP
    *
