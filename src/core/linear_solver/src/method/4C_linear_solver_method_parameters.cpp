@@ -10,6 +10,7 @@
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_discretization_nullspace.hpp"
+#include "4C_fem_discretization_utils.hpp"
 #include "4C_fem_general_elementtype.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_utils_exceptions.hpp"
@@ -80,9 +81,9 @@ void Core::LinearSolver::Parameters::compute_solver_parameters(
   {
     std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates;
     if (nullspace_node_map == nullptr)
-      coordinates = dis.build_node_coordinates();
+      coordinates = extract_node_coordinates(dis);
     else
-      coordinates = dis.build_node_coordinates(nullspace_node_map);
+      coordinates = extract_node_coordinates(dis, *nullspace_node_map);
 
     solverlist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates", coordinates);
   }

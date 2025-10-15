@@ -8,6 +8,7 @@
 #include "4C_fem_nurbs_discretization_initial_condition.hpp"
 
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_utils_integration.hpp"
 #include "4C_fem_general_utils_nurbs_shapefunctions.hpp"
 #include "4C_fem_nurbs_discretization.hpp"
@@ -574,7 +575,7 @@ void Core::FE::Nurbs::apply_nurbs_initial_condition(Core::FE::Discretization& di
 
   Core::LinAlg::Solver lssolver(
       solverparams, dis.get_comm(), nullptr, Core::IO::Verbositylevel::standard);
-  dis.compute_null_space_if_necessary(lssolver.params());
+  compute_null_space_if_necessary(dis, lssolver.params());
 
   apply_nurbs_initial_condition_solve(dis, lssolver, start_function, initialvals);
 }

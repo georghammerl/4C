@@ -7,6 +7,7 @@
 
 #include "4C_porofluid_pressure_based_algorithm.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fem_general_l2_projection.hpp"
 #include "4C_fem_general_node.hpp"
@@ -317,7 +318,7 @@ void PoroPressureBased::PorofluidAlgorithm::init(bool isale, int nds_disp, int n
   {
     meshtying_->initialize_linear_solver(*solver_);
   }
-  discretization()->compute_null_space_if_necessary(solver_->params());
+  compute_null_space_if_necessary(*discretization(), solver_->params());
 }
 
 

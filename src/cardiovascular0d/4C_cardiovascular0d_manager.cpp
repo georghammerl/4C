@@ -17,6 +17,7 @@
 #include "4C_cardiovascular0d_resulttest.hpp"
 #include "4C_cardiovascular0d_syspulcirculation.hpp"
 #include "4C_fem_condition.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
 #include "4C_linalg_mapextractor.hpp"
@@ -1090,7 +1091,7 @@ int Utils::Cardiovascular0DManager::solve(Core::LinAlg::SparseMatrix& mat_struct
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           actdisc_->get_comm());
-      actdisc_->compute_null_space_if_necessary(solver_->params().sublist("Inverse1"), true);
+      compute_null_space_if_necessary(*actdisc_, solver_->params().sublist("Inverse1"), true);
 
       solver_->put_solver_params_to_sub_params("Inverse2",
           Global::Problem::instance()->solver_params(linsolvernumber),
@@ -1098,7 +1099,7 @@ int Utils::Cardiovascular0DManager::solve(Core::LinAlg::SparseMatrix& mat_struct
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           actdisc_->get_comm());
-      actdisc_->compute_null_space_if_necessary(solver_->params().sublist("Inverse2"), true);
+      compute_null_space_if_necessary(*actdisc_, solver_->params().sublist("Inverse2"), true);
       break;
     }
     default:

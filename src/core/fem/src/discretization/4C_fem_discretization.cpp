@@ -814,35 +814,4 @@ void Core::FE::Discretization::unpack_my_nodes(std::vector<char>& e)
 }
 
 
-void Core::FE::Discretization::compute_null_space_if_necessary(
-    Teuchos::ParameterList& solveparams, bool recompute)
-{
-  // see whether we have a list for an iterative solver
-  if (!solveparams.isSublist("Belos Parameters") || solveparams.isSublist("IFPACK Parameters"))
-  {
-    return;
-  }
-
-  // adapt multigrid settings (if a multigrid preconditioner is used)
-  if (!solveparams.isSublist("MueLu Parameters") && !solveparams.isSublist("Teko Parameters"))
-    return;
-  Teuchos::ParameterList* mllist_ptr = nullptr;
-  if (solveparams.isSublist("MueLu Parameters"))
-    mllist_ptr = &(solveparams.sublist("MueLu Parameters"));
-  else if (solveparams.isSublist("Teko Parameters"))
-    mllist_ptr = &(solveparams);
-  else
-    return;
-
-  // see whether we have previously computed the nullspace
-  // and recomputation is enforced
-  Teuchos::ParameterList& mllist = *mllist_ptr;
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> ns =
-      mllist.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullptr);
-  if (ns != nullptr && !recompute) return;
-
-  // compute solver parameters and set them into list
-  Core::LinearSolver::Parameters::compute_solver_parameters(*this, mllist);
-}
-
 FOUR_C_NAMESPACE_CLOSE

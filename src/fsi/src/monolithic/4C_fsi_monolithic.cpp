@@ -15,6 +15,7 @@
 #include "4C_constraint_manager.hpp"
 #include "4C_coupling_adapter.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fluid_utils_mapextractor.hpp"
 #include "4C_fsi_nox_group.hpp"
 #include "4C_fsi_nox_linearsystem.hpp"
@@ -1154,8 +1155,8 @@ std::shared_ptr<NOX::Nln::LinearSystemBase> FSI::BlockMonolithic::create_linear_
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           get_comm());
-      structure_field()->discretization()->compute_null_space_if_necessary(
-          solver->params().sublist("Inverse1"));
+      compute_null_space_if_necessary(
+          *structure_field()->discretization(), solver->params().sublist("Inverse1"));
       Core::LinearSolver::Parameters::fix_null_space("Structure",
           *structure_field()->discretization()->dof_row_map(),
           Core::LinAlg::Map(system_matrix()->matrix(0, 0).row_map()),
@@ -1166,8 +1167,8 @@ std::shared_ptr<NOX::Nln::LinearSystemBase> FSI::BlockMonolithic::create_linear_
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           get_comm());
-      fluid_field()->discretization()->compute_null_space_if_necessary(
-          solver->params().sublist("Inverse2"));
+      compute_null_space_if_necessary(
+          *fluid_field()->discretization(), solver->params().sublist("Inverse2"));
       Core::LinearSolver::Parameters::fix_null_space("Fluid",
           *fluid_field()->discretization()->dof_row_map(),
           Core::LinAlg::Map(system_matrix()->matrix(1, 1).row_map()),
@@ -1178,8 +1179,8 @@ std::shared_ptr<NOX::Nln::LinearSystemBase> FSI::BlockMonolithic::create_linear_
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           get_comm());
-      const_cast<Core::FE::Discretization&>(*(ale_field()->discretization()))
-          .compute_null_space_if_necessary(solver->params().sublist("Inverse3"));
+      compute_null_space_if_necessary(
+          *ale_field()->discretization(), solver->params().sublist("Inverse3"));
       Core::LinearSolver::Parameters::fix_null_space("Ale",
           *ale_field()->discretization()->dof_row_map(),
           Core::LinAlg::Map(system_matrix()->matrix(2, 2).row_map()),

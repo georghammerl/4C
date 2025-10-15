@@ -7,6 +7,7 @@
 
 #include "4C_thermo_timint.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_io_control.hpp"
 #include "4C_io_discretization_visualization_writer_mesh.hpp"
@@ -238,7 +239,7 @@ void Thermo::TimInt::determine_capa_consist_temp_rate()
     // blank RHS on DBC DOFs
     dbcmaps_->insert_cond_vector(*dbcmaps_->extract_cond_vector(*zeros_), *rhs);
 
-    discret_->compute_null_space_if_necessary(solver_->params());
+    compute_null_space_if_necessary(*discret_, solver_->params());
 
     Core::LinAlg::SolverParams solver_params;
     solver_params.refactor = true;

@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "4C_coupling_adapter.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_utils_superconvergent_patch_recovery.hpp"
 #include "4C_fem_nurbs_discretization.hpp"
@@ -935,7 +936,7 @@ void ScaTra::ScaTraTimIntImpl::compute_null_space_if_necessary() const
       mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace", nullspace);
 
       std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
-          discret_->build_node_coordinates();
+          extract_node_coordinates(*discret_);
 
       mllist.set<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates", coordinates);
     }
@@ -951,7 +952,7 @@ void ScaTra::ScaTraTimIntImpl::compute_null_space_if_necessary() const
   else
   {
     // compute standard, vector-based null space information if applicable
-    discret_->compute_null_space_if_necessary(solverparams, true);
+    Core::FE::compute_null_space_if_necessary(*discret_, solverparams, true);
   }
 }
 

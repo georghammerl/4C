@@ -11,6 +11,7 @@
 #include "4C_contact_nitsche_strategy_ssi.hpp"
 #include "4C_fem_condition_periodic.hpp"
 #include "4C_fem_condition_selector.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fem_nurbs_discretization.hpp"
 #include "4C_fem_nurbs_discretization_initial_condition.hpp"
@@ -3659,7 +3660,7 @@ void ScaTra::ScaTraTimIntImpl::build_block_null_spaces(
 
       // equip smoother for the current matrix block with null space associated with all degrees of
       // freedom on discretization
-      discret_->compute_null_space_if_necessary(block_smoother_parameters);
+      Core::FE::compute_null_space_if_necessary(*discret_, block_smoother_parameters);
     }
     // Implementation for Teko
     else

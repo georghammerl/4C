@@ -12,6 +12,7 @@
 #include "4C_adapter_str_structure_new.hpp"
 #include "4C_contact_nitsche_strategy_ssi.hpp"
 #include "4C_fem_condition_locsys.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
@@ -401,7 +402,7 @@ void SSI::SsiMono::build_null_spaces() const
 
       // equip smoother for scatra matrix block with null space associated with all degrees of
       // freedom on scatra discretization
-      scatra_field()->discretization()->compute_null_space_if_necessary(blocksmootherparamsscatra);
+      compute_null_space_if_necessary(*scatra_field()->discretization(), blocksmootherparamsscatra);
 
       if (is_scatra_manifold())
       {
@@ -414,8 +415,8 @@ void SSI::SsiMono::build_null_spaces() const
 
         // equip smoother for scatra matrix block with null space associated with all degrees of
         // freedom on scatra discretization
-        scatra_manifold()->discretization()->compute_null_space_if_necessary(
-            blocksmootherparamsscatramanifold);
+        compute_null_space_if_necessary(
+            *scatra_manifold()->discretization(), blocksmootherparamsscatramanifold);
       }
 
       break;
@@ -440,7 +441,7 @@ void SSI::SsiMono::build_null_spaces() const
 
   // equip smoother for structural matrix block with null space associated with all degrees of
   // freedom on structural discretization
-  structure_field()->discretization()->compute_null_space_if_necessary(blocksmootherparams);
+  compute_null_space_if_necessary(*structure_field()->discretization(), blocksmootherparams);
 }
 
 /*--------------------------------------------------------------------------*

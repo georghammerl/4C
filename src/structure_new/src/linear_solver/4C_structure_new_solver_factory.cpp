@@ -217,7 +217,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_structure_li
   {
     case Core::LinearSolver::PreconditionerType::multigrid_muelu:
     {
-      actdis.compute_null_space_if_necessary(linsolver->params());
+      compute_null_space_if_necessary(actdis, linsolver->params());
       break;
     }
     case Core::LinearSolver::PreconditionerType::block_teko:
@@ -352,7 +352,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_meshtying_co
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"));
 
-      actdis.compute_null_space_if_necessary(linsolver->params());
+      compute_null_space_if_necessary(actdis, linsolver->params());
 
       // feed the solver object with additional information
       if (onlycontact or meshtyingandcontact)
@@ -393,7 +393,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_meshtying_co
           Global::Problem::instance()->solver_params_callback(),
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"));
-      actdis.compute_null_space_if_necessary(linsolver->params());
+      compute_null_space_if_necessary(actdis, linsolver->params());
     }
     break;
   }
@@ -531,7 +531,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_cardiovascul
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           actdis.get_comm());
-      actdis.compute_null_space_if_necessary(linsolver->params().sublist("Inverse1"), true);
+      compute_null_space_if_necessary(actdis, linsolver->params().sublist("Inverse1"), true);
 
       linsolver->put_solver_params_to_sub_params("Inverse2",
           Global::Problem::instance()->solver_params(linsolvernumber),
@@ -539,7 +539,7 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_cardiovascul
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"),
           actdis.get_comm());
-      actdis.compute_null_space_if_necessary(linsolver->params().sublist("Inverse2"), true);
+      compute_null_space_if_necessary(actdis, linsolver->params().sublist("Inverse2"), true);
       break;
     }
     default:

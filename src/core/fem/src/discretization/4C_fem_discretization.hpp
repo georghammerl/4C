@@ -1760,22 +1760,6 @@ namespace Core::FE
     */
     std::shared_ptr<Core::LinAlg::Graph> build_node_graph() const;
 
-    /*!
-    \brief Build nodal coordinate vector of this discretization based on a nodal rowmap
-
-    Per default the node map of the underlying discretization is used to build the nodal
-    coordinate vector. The user can specify a node rowmap to calculate the coordinate vector on.
-    The map has to be a submap of the overall full node rowmap of this discretization.
-
-    \pre discretization does have to be fill_complete().
-
-    @param[in] noderowmap Map representing the nodal distribution of the discretization (can be a
-               submap of the full node rowmap returned from NodeRowMap())
-    @return Vector containing the coordinates of all nodes which are present in the given noderowmap
-     */
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> build_node_coordinates(
-        std::shared_ptr<const Core::LinAlg::Map> noderowmap = nullptr) const;
-
     //@}
 
     //! @name Evaluate methods
@@ -2138,19 +2122,6 @@ namespace Core::FE
         std::shared_ptr<Core::LinAlg::Vector<double>> systemvector3, const std::string& condstring,
         const int condid = -1);
 
-    /*!
-    \brief Compute the nullspace of the discretization
-
-    This method looks in the solver parameters whether algebraic multigrid (AMG)
-    is used as preconditioner. AMG desires the nullspace of the
-    system of equations which is then computed here if it does not already exist
-    in the parameter list.
-
-    \param solveparams (in): List of parameters
-    \param recompute (in)  : force method to recompute the nullspace
-    */
-    void compute_null_space_if_necessary(
-        Teuchos::ParameterList& solveparams, bool recompute = false);
 
     /*!
      * \brief Assemble scalar quantities across elements

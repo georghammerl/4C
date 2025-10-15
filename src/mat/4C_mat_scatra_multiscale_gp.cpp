@@ -8,6 +8,7 @@
 #include "4C_mat_scatra_multiscale_gp.hpp"
 
 #include "4C_comm_pack_helpers.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_dofset_predefineddofnumber.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
@@ -235,7 +236,7 @@ void Mat::ScatraMultiScaleGP::init()
             Global::Problem::instance()->io_params(), "VERBOSITY"));
 
     // provide solver with null space information if necessary
-    microdis->compute_null_space_if_necessary(solver->params());
+    compute_null_space_if_necessary(*microdis, solver->params());
 
     // supplementary parameter list
     std::shared_ptr<Teuchos::ParameterList> extraparams =

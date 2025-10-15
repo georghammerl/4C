@@ -16,6 +16,7 @@
 #include "4C_adapter_str_wrapper.hpp"
 #include "4C_comm_utils.hpp"
 #include "4C_contact_input.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_inpar_structure.hpp"
@@ -365,7 +366,7 @@ std::shared_ptr<Core::LinAlg::Solver> Adapter::StructureBaseAlgorithm::create_li
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
 
-  actdis->compute_null_space_if_necessary(solver->params());
+  compute_null_space_if_necessary(*actdis, solver->params());
 
   return solver;
 }
@@ -436,7 +437,7 @@ Adapter::StructureBaseAlgorithm::create_contact_meshtying_solver(
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"));
 
-      actdis.compute_null_space_if_necessary(solver->params());
+      compute_null_space_if_necessary(actdis, solver->params());
 
       // feed the solver object with additional information
       if (onlycontact or meshtyingandcontact)
@@ -484,7 +485,7 @@ Adapter::StructureBaseAlgorithm::create_contact_meshtying_solver(
           Global::Problem::instance()->solver_params_callback(),
           Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
               Global::Problem::instance()->io_params(), "VERBOSITY"));
-      actdis.compute_null_space_if_necessary(solver->params());
+      compute_null_space_if_necessary(actdis, solver->params());
     }
     break;
   }

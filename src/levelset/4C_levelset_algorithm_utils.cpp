@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_extract_values.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
@@ -527,7 +528,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   // Now update all vectors and matrices to the new dofmap
   //--------------------------------------------------------------------
 
-  discret_->compute_null_space_if_necessary(solver_->params(), true);
+  Core::FE::compute_null_space_if_necessary(*discret_, solver_->params(), true);
 
   // -------------------------------------------------------------------
   // get a vector layout from the discretization to construct matching

@@ -40,6 +40,27 @@ namespace Core::FE
   class DiscretizationFaces;
   class Dbc;
 
+
+  /*!
+   * \brief Extract nodal coordinate vector of a discretization based on a nodal rowmap
+   *
+   * \pre @p discretization does have to be fill_complete().
+   *
+   * @return Vector containing the coordinates of all nodes which are present in the given
+   * noderowmap
+   */
+  std::shared_ptr<Core::LinAlg::MultiVector<double>> extract_node_coordinates(
+      const Core::FE::Discretization& discretization);
+
+  /**
+   * Similar to the other extract_node_coordinates function, but allows to specify a node row map.
+   *
+   * The map has to be a submap of the overall full node rowmap of this discretization.
+   */
+  std::shared_ptr<Core::LinAlg::MultiVector<double>> extract_node_coordinates(
+      const Core::FE::Discretization& discretization, const Core::LinAlg::Map& node_row_map);
+
+
   /** \brief Evaluate the elements of the given discretization and fill the
    *         system matrix and vector
    *

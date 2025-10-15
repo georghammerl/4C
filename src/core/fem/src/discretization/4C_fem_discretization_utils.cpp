@@ -16,6 +16,38 @@
 
 FOUR_C_NAMESPACE_OPEN
 
+std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::extract_node_coordinates(
+    const Discretization& discretization)
+{
+  return extract_node_coordinates(discretization, *discretization.node_row_map());
+}
+
+
+
+std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::extract_node_coordinates(
+    const Discretization& discretization, const Core::LinAlg::Map& node_row_map)
+{
+  std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
+      std::make_shared<Core::LinAlg::MultiVector<double>>(node_row_map, 3, true);
+
+  for (int lid = 0; lid < node_row_map.num_my_elements(); ++lid)
+  {
+    const int gid = node_row_map.gid(lid);
+    if (!discretization.have_global_node(gid)) continue;
+
+    auto x = discretization.g_node(gid)->x();
+    for (size_t dim = 0; dim < 3; ++dim)
+    {
+      if (dim >= discretization.n_dim())
+        coordinates->replace_local_value(lid, dim, 0.0);
+      else
+        coordinates->replace_local_value(lid, dim, x[dim]);
+    }
+  }
+
+  return coordinates;
+}
+
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/

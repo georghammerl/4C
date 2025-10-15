@@ -294,33 +294,6 @@ std::shared_ptr<Core::LinAlg::Graph> Core::FE::Discretization::build_node_graph(
   return graph;
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::Discretization::build_node_coordinates(
-    std::shared_ptr<const Core::LinAlg::Map> noderowmap) const
-{
-  // get nodal row map if not given
-  if (noderowmap == nullptr)
-    noderowmap = Core::Utils::shared_ptr_from_ref<const Core::LinAlg::Map>(*node_row_map());
-
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> coordinates =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*noderowmap, 3, true);
-
-  for (int lid = 0; lid < noderowmap->num_my_elements(); ++lid)
-  {
-    if (!node_.contains(noderowmap->gid(lid))) continue;
-    auto x = node_.at(noderowmap->gid(lid))->x();
-    for (size_t dim = 0; dim < 3; ++dim)
-    {
-      if (dim >= n_dim())
-        coordinates->replace_local_value(lid, dim, 0.0);
-      else
-        coordinates->replace_local_value(lid, dim, x[dim]);
-    }
-  }
-
-  return coordinates;
-}
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/

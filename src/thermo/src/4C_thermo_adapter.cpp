@@ -7,6 +7,7 @@
 
 #include "4C_thermo_adapter.hpp"
 
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_pstream.hpp"
 #include "4C_thermo_input.hpp"
@@ -57,7 +58,7 @@ Thermo::BaseAlgorithm::BaseAlgorithm(
       Global::Problem::instance()->solver_params_callback(),
       Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
           Global::Problem::instance()->io_params(), "VERBOSITY"));
-  actdis->compute_null_space_if_necessary(solver->params());
+  compute_null_space_if_necessary(*actdis, solver->params());
 
   // create marching time integrator
   auto timinttype = Teuchos::getIntegralValue<Thermo::DynamicType>(parameters, "DYNAMICTYPE");

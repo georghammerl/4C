@@ -11,6 +11,7 @@
 #include "4C_fem_condition.hpp"
 #include "4C_fem_condition_utils.hpp"
 #include "4C_fem_discretization.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
@@ -50,7 +51,7 @@ namespace ReducedLung
         actdis->get_comm(), Global::Problem::instance()->solver_params_callback(),
         Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
             Global::Problem::instance()->io_params(), "VERBOSITY"));
-    actdis->compute_null_space_if_necessary(solver.params());
+    compute_null_space_if_necessary(*actdis, solver.params());
     // Create runtime output writer
     Core::IO::DiscretizationVisualizationWriterMesh visualization_writer(
         actdis, Core::IO::visualization_parameters_factory(

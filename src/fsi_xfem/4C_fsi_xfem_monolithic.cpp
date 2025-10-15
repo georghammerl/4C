@@ -15,6 +15,7 @@
 #include "4C_contact_meshtying_contact_bridge.hpp"
 #include "4C_contact_nitsche_strategy_fsi.hpp"
 #include "4C_coupling_adapter.hpp"
+#include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fluid_xfluid.hpp"
 #include "4C_fsi_xfem_XFAcoupling_manager.hpp"
 #include "4C_fsi_xfem_XFFcoupling_manager.hpp"
@@ -2219,8 +2220,8 @@ void FSI::MonolithicXFEM::linear_solve()
     // Infnormscaling: scale system before solving
     scale_system(*systemmatrix_, *rhs_);
 
-    fluid_field()->discretization()->compute_null_space_if_necessary(
-        solver_->params().sublist("Inverse2"), true);
+    compute_null_space_if_necessary(
+        *fluid_field()->discretization(), solver_->params().sublist("Inverse2"), true);
 
     // solve the problem, work is done here!
     solver_params.refactor = true;
