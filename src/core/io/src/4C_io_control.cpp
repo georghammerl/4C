@@ -172,48 +172,6 @@ Core::IO::OutputControl::OutputControl(MPI_Comm comm, std::string problemtype,
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-Core::IO::OutputControl::OutputControl(const OutputControl& ocontrol, const char* new_prefix)
-    : problemtype_(ocontrol.problemtype_),
-      inputfile_(ocontrol.inputfile_),
-      ndim_(ocontrol.ndim_),
-      filename_(ocontrol.filename_),
-      restartname_(ocontrol.restartname_),
-      filesteps_(ocontrol.filesteps_),
-      restart_step_(ocontrol.restart_step_),
-      myrank_(ocontrol.myrank_),
-      write_binary_output_(ocontrol.write_binary_output_)
-{
-  // replace file names if provided
-  if (new_prefix)
-  {
-    // modify file name
-    {
-      std::string filename_path;
-      std::string filename_suffix;
-      size_t pos = filename_.rfind('/');
-
-      if (pos != std::string::npos) filename_path = filename_.substr(0, pos + 1);
-
-      filename_suffix = filename_.substr(pos + 1);
-      filename_ = filename_path + new_prefix + filename_suffix;
-    }
-
-    // modify restart name
-    {
-      std::string restartname_path;
-      std::string restartname_suffix;
-      size_t pos = restartname_.rfind('/');
-
-      if (pos != std::string::npos) restartname_path = restartname_.substr(0, pos + 1);
-
-      restartname_suffix = restartname_.substr(pos + 1);
-      restartname_ = restartname_path + new_prefix + restartname_suffix;
-    }
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
 void Core::IO::OutputControl::overwrite_result_file(
     const Core::FE::ShapeFunctionType& spatial_approx)
 {

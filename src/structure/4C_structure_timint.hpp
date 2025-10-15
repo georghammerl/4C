@@ -1032,8 +1032,6 @@ namespace Solid
     int printscreen_;                            //!< print infos to standard out every n steps
     bool printlogo_;                             //!< print the logo (or not)?
     bool printiter_;                             //!< print intermediate iterations during solution
-    bool outputeveryiter_;                       //!< switch
-    int oei_filecounter_;                        //!< filename counter
     int outputcounter_;                          //!< output counter for OutputEveryIter
     int writerestartevery_;                      //!< write restart every given step;
                                                  //!< if 0, restart is not written

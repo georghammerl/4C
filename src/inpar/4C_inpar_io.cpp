@@ -31,14 +31,6 @@ std::vector<Core::IO::InputSpec> Inpar::IO::valid_parameters()
           parameter<bool>("OUTPUT_BIN",
               {.description = "Do you want to have binary output?", .default_value = true}),
 
-          // Output every iteration (for debugging purposes)
-          parameter<bool>("OUTPUT_EVERY_ITER",
-              {.description = "Do you desire structural displ. output every Newton iteration",
-                  .default_value = false}),
-          parameter<int>("OEI_FILE_COUNTER",
-              {.description = "Add an output name affix by introducing a additional number",
-                  .default_value = 0}),
-
           parameter<bool>("ELEMENT_MAT_ID",
               {.description = "Output of the material id of each element", .default_value = false}),
 
@@ -180,32 +172,6 @@ std::vector<Core::IO::InputSpec> Inpar::IO::valid_parameters()
                   .default_value = -1.0}),
           parameter<int>("RESTARTEVERY",
               {.description = "write restart every RESTARTEVERY steps", .default_value = -1})},
-      {.required = false}));
-  specs.push_back(group("IO/EVERY ITERATION",
-      {
-
-          // Output every iteration (for debugging purposes)
-          parameter<bool>(
-              "OUTPUT_EVERY_ITER", {.description = "Do you wish output every Newton iteration?",
-                                       .default_value = false}),
-
-          parameter<int>("RUN_NUMBER",
-              {.description = "Create a new folder for different runs of the same simulation. "
-                              "If equal -1, no folder is created.",
-                  .default_value = -1}),
-
-          parameter<int>("STEP_NP_NUMBER",
-              {.description =
-                      "Give the number of the step (i.e. step_{n+1}) for which you want to write "
-                      "the debug output. If a negative step number is provided, all steps will"
-                      "be written.",
-                  .default_value = -1}),
-
-          parameter<bool>("WRITE_OWNER_EACH_NEWTON_ITER",
-              {.description =
-                      "If yes, the ownership of elements and nodes are written each Newton step, "
-                      "instead of only once per time/load step.",
-                  .default_value = false})},
       {.required = false}));
   return specs;
 }

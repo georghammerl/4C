@@ -112,10 +112,6 @@ namespace CONTACT
         bool& Searchele_AllProc, std::vector<bool>& isactive, std::vector<bool>& isslave,
         std::vector<bool>& isself, const std::vector<const Core::Conditions::Condition*>& cond_grp);
 
-    /// write conservation data to an output file
-    void write_conservation_data_to_file(const int mypid, const int interface_id,
-        const int nln_iter, const Core::LinAlg::SerialDenseMatrix& conservation_data,
-        const std::string& ofile_path, const std::string& prefix);
   }  // namespace Utils
 }  // namespace CONTACT
 
