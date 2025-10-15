@@ -335,12 +335,9 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
         if (abs((*diagS)[i]) < 1e-12) (*diagS).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diagV->reciprocal(*diagV);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagE->reciprocal(*diagE);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagS->reciprocal(*diagS);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diagV->reciprocal(*diagV);
+      diagE->reciprocal(*diagE);
+      diagS->reciprocal(*diagS);
 
       // re-insert inverted diagonal into invd
       err = invdV.replace_diagonal_values(*diagV);
@@ -413,8 +410,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
         if ((*diag)[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diag->reciprocal(*diag);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
           Core::LinAlg::create_vector(*gsdofrowmap_, true);
@@ -1730,18 +1726,17 @@ void CONTACT::LagrangeStrategy::add_master_contributions(Core::LinAlg::SparseOpe
 
   // store fLTL values for time integration
   fLTL_ = std::make_shared<Core::LinAlg::Vector<double>>(fc->get_map());
-  if (fLTL_->update(1.0, *fc, 0.0)) FOUR_C_THROW("Update went wrong");
+  fLTL_->update(1.0, *fc, 0.0);
 
   if (add_time_integration)
-    if (fLTLOld_ != nullptr)
-      if (feff.update(alphaf_, *fLTLOld_, 1.)) FOUR_C_THROW("Update went wrong");
+    if (fLTLOld_ != nullptr) feff.update(alphaf_, *fLTLOld_, 1.);
 
   double fac = 0.;
   if (add_time_integration)
     fac = 1. - alphaf_;
   else
     fac = 1.;
-  if (feff.update(fac, *fc, 1.)) FOUR_C_THROW("Update went wrong");
+  feff.update(fac, *fc, 1.);
 
   // stiffness
   kc.complete();
@@ -1784,18 +1779,17 @@ void CONTACT::LagrangeStrategy::add_line_to_lin_contributions(Core::LinAlg::Spar
 
   // store fLTL values for time integration
   fLTL_ = std::make_shared<Core::LinAlg::Vector<double>>(fc->get_map());
-  if (fLTL_->update(1.0, *fc, 0.0)) FOUR_C_THROW("Update went wrong");
+  fLTL_->update(1.0, *fc, 0.0);
 
   if (add_time_integration)
-    if (fLTLOld_ != nullptr)
-      if (feff->update(alphaf_, *fLTLOld_, 1.)) FOUR_C_THROW("Update went wrong");
+    if (fLTLOld_ != nullptr) feff->update(alphaf_, *fLTLOld_, 1.);
 
   double fac = 0.;
   if (add_time_integration)
     fac = 1. - alphaf_;
   else
     fac = 1.;
-  if (feff->update(fac, *fc, 1.)) FOUR_C_THROW("Update went wrong");
+  feff->update(fac, *fc, 1.);
 
   // stiffness
   kc.complete();
@@ -1832,7 +1826,7 @@ void CONTACT::LagrangeStrategy::add_line_to_lin_contributions_friction(
 
   // store normal forces
   fLTLn_ = std::make_shared<Core::LinAlg::Vector<double>>(fc->get_map());
-  if (fLTLn_->update(1.0, *fc, 0.0)) FOUR_C_THROW("Update went wrong");
+  fLTLn_->update(1.0, *fc, 0.0);
 
   // loop over interface and assemble force and stiffness
   for (int i = 0; i < (int)interface_.size(); ++i)
@@ -1846,26 +1840,25 @@ void CONTACT::LagrangeStrategy::add_line_to_lin_contributions_friction(
 
   // store tangential forces
   fLTLt_ = std::make_shared<Core::LinAlg::Vector<double>>(fc->get_map());
-  if (fLTLt_->update(1.0, *fc, 0.0)) FOUR_C_THROW("Update went wrong");
-  if (fLTLt_->update(-1.0, *fLTLn_, 1.0)) FOUR_C_THROW("Update went wrong");
+  fLTLt_->update(1.0, *fc, 0.0);
+  fLTLt_->update(-1.0, *fLTLn_, 1.0);
 
   // force
   fc->complete();
 
   // store fLTL values for time integration
   fLTL_ = std::make_shared<Core::LinAlg::Vector<double>>(fc->get_map());
-  if (fLTL_->update(1.0, *fc, 0.0)) FOUR_C_THROW("Update went wrong");
+  fLTL_->update(1.0, *fc, 0.0);
 
   if (add_time_integration)
-    if (fLTLOld_ != nullptr)
-      if (feff->update(alphaf_, *fLTLOld_, 1.)) FOUR_C_THROW("Update went wrong");
+    if (fLTLOld_ != nullptr) feff->update(alphaf_, *fLTLOld_, 1.);
 
   double fac = 0.;
   if (add_time_integration)
     fac = 1. - alphaf_;
   else
     fac = 1.;
-  if (feff->update(fac, *fc, 1.)) FOUR_C_THROW("Update went wrong");
+  feff->update(fac, *fc, 1.);
 
   // stiffness
   kc.complete();
@@ -2104,12 +2097,9 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         if (abs((*diagS)[i]) < 1e-12) (*diagS).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diagV->reciprocal(*diagV);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagE->reciprocal(*diagE);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagS->reciprocal(*diagS);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diagV->reciprocal(*diagV);
+      diagE->reciprocal(*diagE);
+      diagS->reciprocal(*diagS);
 
       // re-insert inverted diagonal into invd
       err = invdV.replace_diagonal_values(*diagV);
@@ -2181,8 +2171,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         if ((*diag)[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diag->reciprocal(*diag);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
           Core::LinAlg::create_vector(*gsdofrowmap_, true);
@@ -3147,7 +3136,7 @@ void CONTACT::LagrangeStrategy::build_saddle_point_system(
 
       Core::LinAlg::Vector<double> lmDBCexp(*mergedmap);
       Core::LinAlg::export_to(*lmDBC, lmDBCexp);
-      if (dirichtoggleexp.update(1., lmDBCexp, 1.)) FOUR_C_THROW("Update failed.");
+      dirichtoggleexp.update(1., lmDBCexp, 1.);
       trkzd->apply_dirichlet(*lmDBC, false);
 
       trkzz->complete();
@@ -3606,12 +3595,9 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
         if (abs((*diagS)[i]) < 1e-12) (*diagS).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diagV->reciprocal(*diagV);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagE->reciprocal(*diagE);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagS->reciprocal(*diagS);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diagV->reciprocal(*diagV);
+      diagE->reciprocal(*diagE);
+      diagS->reciprocal(*diagS);
 
       // re-insert inverted diagonal into invd
       err = invdV.replace_diagonal_values(*diagV);
@@ -3684,8 +3670,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
         if ((*diag)[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diag->reciprocal(*diag);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
           Core::LinAlg::create_vector(*gsdofrowmap_, true);
@@ -3868,12 +3853,9 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
         if (abs((*diagS)[i]) < 1e-12) (*diagS).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diagV->reciprocal(*diagV);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagE->reciprocal(*diagE);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
-      err = diagS->reciprocal(*diagS);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diagV->reciprocal(*diagV);
+      diagE->reciprocal(*diagE);
+      diagS->reciprocal(*diagS);
 
       // re-insert inverted diagonal into invd
       err = invdV.replace_diagonal_values(*diagV);
@@ -3945,8 +3927,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
         if ((*diag)[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
-      err = diag->reciprocal(*diag);
-      if (err != 0) FOUR_C_THROW("Reciprocal: Zero diagonal entry!");
+      diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
           Core::LinAlg::create_vector(*gsdofrowmap_, true);
@@ -5109,7 +5090,7 @@ void CONTACT::LagrangeStrategy::update(std::shared_ptr<const Core::LinAlg::Vecto
   {
     // store fLTL values for time integration
     fLTLOld_ = std::make_shared<Core::LinAlg::Vector<double>>(fLTL_->get_map());
-    if (fLTLOld_->update(1.0, *fLTL_, 0.0)) FOUR_C_THROW("Update went wrong");
+    fLTLOld_->update(1.0, *fLTL_, 0.0);
   }
 
   // abstract routine
