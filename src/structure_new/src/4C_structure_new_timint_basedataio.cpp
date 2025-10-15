@@ -9,7 +9,6 @@
 
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
-#include "4C_io_every_iteration_writer.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
 #include "4C_solver_nonlin_nox_linesearch_generic.hpp"
 #include "4C_solver_nonlin_nox_linesearch_prepostoperator.hpp"
@@ -36,7 +35,6 @@ Solid::TimeInt::BaseDataIO::BaseDataIO()
     : isinit_(false),
       issetup_(false),
       output_(nullptr),
-      writer_every_iter_(nullptr),
       params_runtime_vtk_output_(nullptr),
       params_runtime_vtp_output_(nullptr),
       params_monitor_dbc_(nullptr),
@@ -44,7 +42,6 @@ Solid::TimeInt::BaseDataIO::BaseDataIO()
       gmsh_out_(false),
       printlogo_(false),
       printiter_(false),
-      outputeveryiter_(false),
       writesurfactant_(false),
       writestate_(false),
       writejac2matlab_(false),
@@ -82,9 +79,6 @@ void Solid::TimeInt::BaseDataIO::init(const Teuchos::ParameterList& ioparams,
     printlogo_ = printscreen_ > 0;
     gmsh_out_ = ioparams.get<bool>("OUTPUT_GMSH");
     printiter_ = true;
-    p_io_every_iteration_ =
-        std::make_shared<Teuchos::ParameterList>(ioparams.sublist("EVERY ITERATION"));
-    outputeveryiter_ = p_io_every_iteration_->get<bool>("OUTPUT_EVERY_ITER");
     writerestartevery_ = sdynparams.get<int>("RESTARTEVERY");
     writetimestepoffset_ = sdynparams.get<int>("OUTPUT_STEP_OFFSET");
     writestate_ = ioparams.get<bool>("STRUCT_DISP");
@@ -133,8 +127,6 @@ void Solid::TimeInt::BaseDataIO::setup()
   // safety check
   FOUR_C_ASSERT(is_init(), "init() has not been called, yet!");
 
-  if (outputeveryiter_) writer_every_iter_ = std::make_shared<Core::IO::EveryIterationWriter>();
-
   issetup_ = true;
 }
 
@@ -145,36 +137,6 @@ void Solid::TimeInt::BaseDataIO::check_init_setup() const
   FOUR_C_ASSERT(is_init() and is_setup(), "Call init() and setup() first!");
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void Solid::TimeInt::BaseDataIO::init_setup_every_iteration_writer(
-    Core::IO::EveryIterationWriterInterface* interface, Teuchos::ParameterList& p_nox)
-{
-  if (not outputeveryiter_) return;
-
-  writer_every_iter_->init(output_.get(), interface, *p_io_every_iteration_);
-  writer_every_iter_->setup();
-
-  // insert the every_iter output writer as ppo for the solver object
-  Teuchos::ParameterList& p_sol_opt = p_nox.sublist("Solver Options");
-
-  Teuchos::RCP<::NOX::Observer> prepost_solver_ptr =
-      Teuchos::make_rcp<NOX::Nln::Solver::PrePostOp::TimeInt::WriteOutputEveryIteration>(
-          *writer_every_iter_);
-
-  NOX::Nln::Aux::add_to_pre_post_op_vector(p_sol_opt, prepost_solver_ptr);
-
-  // insert the every_iter output writer as ppo for the linesearch object
-  Teuchos::ParameterList& p_linesearch = p_nox.sublist("Line Search");
-
-  // Get the current map. If there is no map, return a new empty one. (reference)
-  NOX::Nln::LineSearch::PrePostOperator::map& prepostls_map =
-      NOX::Nln::LineSearch::PrePostOperator::get_map(p_linesearch);
-
-  // insert/replace the old pointer in the map
-  prepostls_map[NOX::Nln::LineSearch::prepost_output_every_iter] =
-      Teuchos::rcp_dynamic_cast<NOX::Nln::Abstract::PrePostOperator>(prepost_solver_ptr);
-}
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
@@ -259,40 +221,5 @@ void Solid::TimeInt::BaseDataIO::set_last_written_results(const int step)
   lastwrittenresultsstep_ = step;
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-NOX::Nln::Solver::PrePostOp::TimeInt::WriteOutputEveryIteration::WriteOutputEveryIteration(
-    Core::IO::EveryIterationWriter& every_iter_writer)
-    : every_iter_writer_(every_iter_writer)
-{ /* empty */
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void NOX::Nln::Solver::PrePostOp::TimeInt::WriteOutputEveryIteration::runPreSolve(
-    const ::NOX::Solver::Generic& solver)
-{
-  every_iter_writer_.init_newton_iteration();
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void NOX::Nln::Solver::PrePostOp::TimeInt::WriteOutputEveryIteration::runPostIterate(
-    const ::NOX::Solver::Generic& solver)
-{
-  const int newton_iteration = solver.getNumIterations();
-  every_iter_writer_.add_newton_iteration(newton_iteration);
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void NOX::Nln::Solver::PrePostOp::TimeInt::WriteOutputEveryIteration::run_pre_modify_step_length(
-    const ::NOX::Solver::Generic& solver, const ::NOX::LineSearch::Generic& linesearch)
-{
-  const int newton_iteration = solver.getNumIterations();
-  const int ls_iteration =
-      dynamic_cast<const NOX::Nln::LineSearch::Generic&>(linesearch).get_num_iterations();
-  every_iter_writer_.add_line_search_iteration(newton_iteration, ls_iteration);
-}
 
 FOUR_C_NAMESPACE_CLOSE

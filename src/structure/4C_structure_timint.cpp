@@ -91,8 +91,6 @@ Solid::TimInt::TimInt(const Teuchos::ParameterList& timeparams,
       printscreen_(ioparams.get<int>("STDOUTEVERY")),
       printlogo_(bool(printscreen_)),  // no std out no logo
       printiter_(true),                // ADD INPUT PARAMETER
-      outputeveryiter_(ioparams.get<bool>("OUTPUT_EVERY_ITER")),
-      oei_filecounter_(ioparams.get<int>("OEI_FILE_COUNTER")),
       writerestartevery_(timeparams.get<int>("RESTARTEVERY")),
       writeele_(ioparams.get<bool>("STRUCT_ELE")),
       writestate_(ioparams.get<bool>("STRUCT_DISP")),
@@ -1869,74 +1867,12 @@ void Solid::TimInt::prepare_output(bool force_prepare_timestep)
   determine_energy();
 }
 
-/*----------------------------------------------------------------------*
- *   Write Output while the Newton Iteration         by hiermeier 09/13 *
- *   (useful for debugging purposes)                                    */
-void Solid::TimInt::output_every_iter(bool nw, bool ls)
-{
-  // prevents repeated initialization of output writer
-  bool datawritten = false;
-
-  // Reinitialize the result file in the initial step
-  if (outputcounter_ == 0)
-  {
-    firstoutputofrun_ = true;
-    /*--------------------------------------------------------------------------------*
-     | We modify the maximum number of steps per output file here, because we use the |
-     | step number as indicator for the differentiation between time-,Newton- and     |
-     | Line Search-steps. This is the minimal invasive change to prevent the output   |
-     | routine to generate too many output files. We assume that the Newton method    |
-     | needs an average cumulated number of 5 Newton/Line-Search steps per time step. |
-     *--------------------------------------------------------------------------------*/
-    int newFileSteps = 0;
-    if (output_->output()->file_steps() >= std::numeric_limits<int>::max() / 50000)
-      newFileSteps = std::numeric_limits<int>::max();
-    else
-      newFileSteps = output_->output()->file_steps() * 50000;
-
-    output_->output()->set_file_steps(newFileSteps);
-
-    std::string resultname = output_->output()->file_name() + "_EveryIter";
-    output_->new_result_file(resultname, oei_filecounter_);
-    output_->write_mesh(0, 0.0);
-  }
-
-  // increase counter value
-  if (ls)
-  {
-    // for line search steps the outputcounter_ is increased by one
-    outputcounter_++;
-  }
-  else if (nw)
-  {
-    // for Newton steps the outputcounter_ is increased by 100
-    outputcounter_ += 100 - (outputcounter_ % 100);
-  }
-  else
-  {
-    // for time steps the outputcounter_ is increased by 100 000
-    outputcounter_ += 100000 - (outputcounter_ % 100000);
-  }
-
-  // time and step number
-  output_->write_mesh(outputcounter_, (double)outputcounter_);  //(*time_)[0]
-
-  //  output_->overwrite_result_file();
-  output_state(datawritten);
-}
 
 /*----------------------------------------------------------------------*/
 /* output to file
  * originally by mwgee 03/07 */
 void Solid::TimInt::output_step(const bool forced_writerestart)
 {
-  // print iterations instead of steps
-  if (outputeveryiter_)
-  {
-    output_every_iter();
-    return;
-  }
-
   // special treatment is necessary when restart is forced
   if (forced_writerestart)
   {
@@ -2141,12 +2077,6 @@ void Solid::TimInt::output_state(bool& datawritten)
   datawritten = true;
 
   // write now
-  if (outputeveryiter_)
-  {
-    output_->new_step(outputcounter_, (double)outputcounter_);
-    output_->write_vector("displacement", disn_);
-  }
-  else
   {
     output_->new_step(step_, (*time_)[0]);
     output_->write_vector("displacement", (*dis_)(0));

@@ -11,7 +11,6 @@
 #include "4C_config.hpp"
 
 #include "4C_adapter_str_structure_new.hpp"
-#include "4C_io_every_iteration_writer.hpp"
 #include "4C_structure_new_timint_basedataglobalstate.hpp"
 #include "4C_structure_new_timint_basedataio.hpp"
 #include "4C_structure_new_timint_basedatasdyn.hpp"
@@ -51,7 +50,7 @@ namespace Solid
     /** \brief Abstract class for all time integration strategies
      *
      *  */
-    class Base : public Adapter::StructureNew, Core::IO::EveryIterationWriterInterface
+    class Base : public Adapter::StructureNew
     {
       friend class Adapter::StructureTimeAda;
 
@@ -800,10 +799,6 @@ namespace Solid
 
       /** \brief output of the current state */
       void output_state(Core::IO::DiscretizationWriter& iowriter, bool write_owner) const;
-
-      /** \brief output of the debug state */
-      void output_debug_state(
-          Core::IO::DiscretizationWriter& iowriter, bool write_owner) const override;
 
       /// output during runtime
       void runtime_output_state() const;

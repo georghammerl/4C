@@ -13,7 +13,6 @@
 #include "4C_fem_general_node.hpp"
 #include "4C_global_data.hpp"
 #include "4C_inpar_mortar.hpp"
-#include "4C_io_every_iteration_writer.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_utils_enum.hpp"
 
@@ -367,67 +366,6 @@ void CONTACT::Utils::get_initialization_info(bool& Two_half_pass,
         "non-smooth contact surfaces, but flag 'NONSMOOTH_CONTACT_SURFACE' in the 'CONTACT "
         "DYNAMIC' section is not true!");
   }
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void CONTACT::Utils::write_conservation_data_to_file(const int mypid, const int interface_id,
-    const int nln_iter, const Core::LinAlg::SerialDenseMatrix& conservation_data,
-    const std::string& ofile_path, const std::string& prefix)
-{
-  if (mypid != 0) return;
-
-  static std::vector<std::string> done_prefixes;
-
-  const std::string path(Core::IO::extract_path(ofile_path));
-  const std::string dir_name(
-      Core::IO::remove_restart_step_from_file_name(
-          Core::IO::extract_file_name(ofile_path), Global::Problem::instance()->restart()) +
-      "_conservation");
-
-  std::string full_filepath(path + dir_name);
-  Core::IO::create_directory(full_filepath, mypid);
-  full_filepath += "/" + prefix + "_" + "conservation.data";
-
-  bool is_done = false;
-  for (const std::string& done_prefix : done_prefixes)
-  {
-    if (done_prefix == prefix)
-    {
-      is_done = true;
-      break;
-    }
-  }
-
-  // first attempt: clear file content and write header
-  if (not is_done)
-  {
-    done_prefixes.push_back(prefix);
-
-    std::ofstream of(full_filepath, std::ios_base::out);
-    of << std::setw(24) << "it" << std::setw(24) << "interface" << std::setw(24) << "Fsl_X"
-       << std::setw(24) << "Fsl_Y" << std::setw(24) << "Fsl_Z" << std::setw(24) << "Fma_X"
-       << std::setw(24) << "Fma_Y" << std::setw(24) << "Fma_Z" << std::setw(24) << "Fb_X"
-       << std::setw(24) << "Fb_Y" << std::setw(24) << "Fb_Z" << std::setw(24) << "Mosl_X"
-       << std::setw(24) << "Mosl_Y" << std::setw(24) << "Mosl_Z" << std::setw(24) << "Moma_X"
-       << std::setw(24) << "Moma_Y" << std::setw(24) << "Moma_Z" << std::setw(24) << "Mob_X"
-       << std::setw(24) << "Mob_Y" << std::setw(24) << "Mob_Z\n";
-    of.close();
-  }
-
-  std::ofstream of(full_filepath, std::ios_base::out | std::ios_base::app);
-
-  if (conservation_data.numRows() < 18)
-    FOUR_C_THROW("The conservation_data has insufficient size!");
-
-  of << std::setw(24) << nln_iter << std::setw(24) << interface_id;
-  of << std::setprecision(16);
-  for (int i = 0; i < conservation_data.numRows(); ++i)
-  {
-    of << std::setw(24) << std::setw(24) << std::scientific << conservation_data(i, 0);
-  }
-  of << "\n";
-  of.close();
 }
 
 

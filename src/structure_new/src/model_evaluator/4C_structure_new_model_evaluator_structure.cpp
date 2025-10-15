@@ -1712,16 +1712,7 @@ void Solid::ModelEvaluator::Structure::output_step_state(
 {
   check_init_setup();
 
-  // write output every iteration for debug purposes
-  if (global_in_output().is_output_every_iter())
-  {
-    iowriter.write_vector("displacement", global_state().get_dis_np());
-  }
-  else
-  {
-    // write default output...
-    iowriter.write_vector("displacement", global_state().get_dis_n());
-  }
+  iowriter.write_vector("displacement", global_state().get_dis_n());
 }
 
 /*----------------------------------------------------------------------------*

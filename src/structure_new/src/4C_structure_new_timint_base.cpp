@@ -17,7 +17,6 @@
 #include "4C_io_control.hpp"
 #include "4C_io_gmsh.hpp"
 #include "4C_io_pstream.hpp"
-#include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
@@ -102,8 +101,6 @@ void Solid::TimeInt::Base::setup()
   int_ptr_->init(data_s_dyn_ptr(), data_global_state_ptr(), data_io_ptr(), dbc_ptr_,
       Core::Utils::shared_ptr_from_ref(*this));
   int_ptr_->setup();
-  //   Initialize and Setup the input/output writer for every Newton iteration
-  dataio_->init_setup_every_iteration_writer(this, data_sdyn().get_nox_params());
 
   // Initialize the output of system energy
   if (dataio_->get_write_energy_every_n_step())
@@ -581,13 +578,6 @@ void Solid::TimeInt::Base::output_state()
   dataio_->set_first_output_of_run(false);
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-void Solid::TimeInt::Base::output_debug_state(
-    Core::IO::DiscretizationWriter& iowriter, bool write_owner) const
-{
-  output_state(iowriter, write_owner);
-}
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/

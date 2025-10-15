@@ -67,14 +67,6 @@ namespace Core::IO
         int filesteps, bool write_binary_output, bool adaptname = true);
 
     /*!
-     * @brief copy constructor
-     *
-     * @param[in] ocontrol   Copy this object of same type
-     * @param[in] new_prefix Add the prefix to restart and file names (optional)
-     */
-    OutputControl(const OutputControl& ocontrol, const char* new_prefix = nullptr);
-
-    /*!
      * @brief output prefix we write to
      *
      * In case of restart this will be different from the read prefix.

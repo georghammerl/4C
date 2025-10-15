@@ -31,8 +31,6 @@ FOUR_C_NAMESPACE_OPEN
 namespace Core::IO
 {
   class DiscretizationWriter;
-  class EveryIterationWriterInterface;
-  class EveryIterationWriter;
 }  // namespace Core::IO
 
 namespace Solid
@@ -173,13 +171,6 @@ namespace Solid
         return printiter_;
       };
 
-      /// Shall we write output every iteration?
-      const bool& is_output_every_iter() const
-      {
-        check_init_setup();
-        return outputeveryiter_;
-      };
-
       /// Shall we write surfactant output?
       const bool& is_surfactant_output() const
       {
@@ -286,10 +277,6 @@ namespace Solid
         firstoutputofrun_ = firstoutputofrun;
       }
 
-      /// Initialize and setup the every iteration output writer
-      void init_setup_every_iteration_writer(
-          Core::IO::EveryIterationWriterInterface* interface, Teuchos::ParameterList& p_nox);
-
       /// initialize the output of system energy
       void setup_energy_output_file();
 
@@ -308,9 +295,6 @@ namespace Solid
 
       /// binary output
       std::shared_ptr<Core::IO::DiscretizationWriter> output_;
-
-      /// additional output writer for the Newton steps
-      std::shared_ptr<Core::IO::EveryIterationWriter> writer_every_iter_;
 
       /// data container for input parameters related to VTK output at runtime
       std::shared_ptr<ParamsRuntimeOutput> params_runtime_vtk_output_;
@@ -331,9 +315,6 @@ namespace Solid
 
       /// print intermediate iterations during solution
       bool printiter_;
-
-      /// write output every iteration (Newton, line search, load step, etc.)
-      bool outputeveryiter_;
 
       /// write surfactant output
       bool writesurfactant_;
@@ -379,57 +360,10 @@ namespace Solid
 
       Inpar::Solid::ConditionNumber conditionnumbertype_;
 
-      std::shared_ptr<Teuchos::ParameterList> p_io_every_iteration_;
-
       ///@}
     };  // class BaseDataIO
   }  // namespace TimeInt
 }  // namespace Solid
-
-namespace NOX
-{
-  namespace Nln
-  {
-    namespace Solver
-    {
-      namespace PrePostOp
-      {
-        namespace TimeInt
-        {
-          /*! \brief Helper class to write the output each Newton step
-           *
-           *  This class is an implementation of the ::NOX::Abstract::PrePostOperator
-           *  and is used to modify the step() routine of the given ::NOX::Solver::Generic
-           *  class.
-           *  It's called by the wrapper classes ::NOX::Solver::PrePostOperator and
-           *  NOX::PrePostOperatorVector.
-           *
-           *  */
-          class WriteOutputEveryIteration : public NOX::Nln::Abstract::PrePostOperator
-          {
-           public:
-            /// constructor
-            WriteOutputEveryIteration(Core::IO::EveryIterationWriter& every_iter_writer);
-
-
-            /// called at the very beginning of a Newton loop
-            void runPreSolve(const ::NOX::Solver::Generic& solver) override;
-
-            /// called in the end of each Newton step
-            void runPostIterate(const ::NOX::Solver::Generic& solver) override;
-
-            /// called before the step is reduced in a line search routine
-            void run_pre_modify_step_length(const ::NOX::Solver::Generic& solver,
-                const ::NOX::LineSearch::Generic& linesearch) override;
-
-           private:
-            Core::IO::EveryIterationWriter& every_iter_writer_;
-          };
-        }  // namespace TimeInt
-      }  // namespace PrePostOp
-    }  // namespace Solver
-  }  // namespace Nln
-}  // namespace NOX
 
 FOUR_C_NAMESPACE_CLOSE
 

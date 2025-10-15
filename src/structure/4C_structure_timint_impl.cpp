@@ -1435,13 +1435,6 @@ int Solid::TimIntImpl::newton_full()
     FOUR_C_THROW("Effective stiffness matrix must be filled here");
   }
 
-  if (outputeveryiter_)
-  {
-    int restart = Global::Problem::instance()->restart();
-    if (stepn_ == (restart + 1)) outputcounter_ = 0;
-    output_every_iter(true);
-  }
-
   // initialise equilibrium loop
   iter_ = 1;
   normfres_ = calc_ref_norm_force();
@@ -1518,8 +1511,6 @@ int Solid::TimIntImpl::newton_full()
 
     // update end-point displacements etc
     update_iter(iter_);
-
-    if (outputeveryiter_) output_every_iter(true);
 
     // create empty parameter list
     Teuchos::ParameterList params;
@@ -1821,13 +1812,6 @@ int Solid::TimIntImpl::newton_ls()
   // check whether we have a sanely filled stiffness matrix
   if (not stiff_->filled()) FOUR_C_THROW("Effective stiffness matrix must be filled here");
 
-  if (outputeveryiter_)
-  {
-    int restart = Global::Problem::instance()->restart();
-    if (stepn_ == (restart + 1)) outputcounter_ = 0;
-    output_every_iter(true);
-  }
-
   // initialize equilibrium loop (outer Full Newton loop)
   iter_ = 1;
   normfres_ = calc_ref_norm_force();
@@ -1949,8 +1933,6 @@ int Solid::TimIntImpl::newton_ls()
     int err = ls_eval_merit_fct(merit_fct[1]);
     eval_error = (eval_error || err);
 
-    if (outputeveryiter_) output_every_iter(true);
-
     /**************************************************************
     ***          1st inner LINE SEARCH loop                     ***
     ***************************************************************/
@@ -1991,8 +1973,6 @@ int Solid::TimIntImpl::newton_ls()
       ***           Display line search information               ***
       ***************************************************************/
       ls_print_line_search_iter(merit_fct.data(), iter_ls, step_red);
-
-      if (!(eval_error) && (outputeveryiter_)) output_every_iter(true, true);
     }
 
     if (iter_ls != 0)
@@ -3251,13 +3231,6 @@ int Solid::TimIntImpl::ptc()
     FOUR_C_THROW("Effective stiffness matrix must be filled here");
   }
 
-  if (outputeveryiter_)
-  {
-    int restart = Global::Problem::instance()->restart();
-    if (stepn_ == (restart + 1)) outputcounter_ = 0;
-    output_every_iter(true);
-  }
-
   // initialise equilibrium loop
   iter_ = 1;
   normfres_ = calc_ref_norm_force();
@@ -3345,8 +3318,6 @@ int Solid::TimIntImpl::ptc()
 
     // update end-point displacements etc
     update_iter(iter_);
-
-    if (outputeveryiter_) output_every_iter(true);
 
     // create parameter list
     Teuchos::ParameterList params;
