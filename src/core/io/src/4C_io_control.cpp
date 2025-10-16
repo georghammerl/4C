@@ -26,66 +26,19 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-Core::IO::OutputControl::OutputControl(MPI_Comm comm, std::string problemtype,
-    const Core::FE::ShapeFunctionType type_of_spatial_approx, std::string inputfile,
-    const std::string& outputname, const int ndim, const int restart_step, const int filesteps,
-    const bool write_binary_output)
-    : problemtype_(std::move(problemtype)),
-      inputfile_(std::move(inputfile)),
-      ndim_(ndim),
-      filename_(outputname),
-      restartname_(outputname),
-      filesteps_(filesteps),
-      restart_step_(restart_step),
-      myrank_(Core::Communication::my_mpi_rank(comm)),
-      write_binary_output_(write_binary_output)
+/// find position of restart number in filename (if existing):
+/// for "outname-5" will return position of the "-"
+/// returns std::string::npos if not found
+static size_t restart_finder(const std::string& filename)
 {
-  if (restart_step)
+  size_t pos;
+  for (pos = filename.size(); pos > 0; --pos)
   {
-    if (myrank_ == 0)
-    {
-      int number = 0;
-      size_t pos = restart_finder(filename_);
-      if (pos != std::string::npos)
-      {
-        number = atoi(filename_.substr(pos + 1).c_str());
-        filename_ = filename_.substr(0, pos);
-      }
+    if (filename[pos - 1] == '-') return pos - 1;
 
-      for (;;)
-      {
-        number += 1;
-        std::stringstream name;
-        name << filename_ << "-" << number << ".control";
-        std::ifstream file(name.str().c_str());
-        if (not file)
-        {
-          filename_ = name.str();
-          filename_ = filename_.substr(0, filename_.length() - 8);
-          std::cout << "restart with new output file: " << filename_ << "\n";
-          break;
-        }
-      }
-    }
-
-    if (Core::Communication::num_mpi_ranks(comm) > 1)
-    {
-      int length = static_cast<int>(filename_.length());
-      std::vector<int> name(filename_.begin(), filename_.end());
-      Core::Communication::broadcast(&length, 1, 0, comm);
-      name.resize(length);
-      Core::Communication::broadcast(name.data(), length, 0, comm);
-      filename_.assign(name.begin(), name.end());
-    }
+    if (not std::isdigit(filename[pos - 1]) or filename[pos - 1] == '/') return std::string::npos;
   }
-
-  std::stringstream name;
-  name << filename_ << ".control";
-  write_header(name.str(), type_of_spatial_approx);
-
-  insert_restart_back_reference(restart_step, outputname);
+  return std::string::npos;
 }
 
 
@@ -98,11 +51,12 @@ Core::IO::OutputControl::OutputControl(MPI_Comm comm, std::string problemtype,
     : problemtype_(std::move(problemtype)),
       inputfile_(std::move(inputfile)),
       ndim_(ndim),
+      myrank_(Core::Communication::my_mpi_rank(comm)),
       filename_(std::move(outputname)),
       restartname_(restartname),
+      control_file_(myrank_ == 0),
       filesteps_(filesteps),
       restart_step_(restart_step),
-      myrank_(Core::Communication::my_mpi_rank(comm)),
       write_binary_output_(write_binary_output)
 {
   if (restart_step)
@@ -164,122 +118,111 @@ Core::IO::OutputControl::OutputControl(MPI_Comm comm, std::string problemtype,
     std::stringstream name;
     name << filename_ << ".control";
 
-    write_header(name.str(), type_of_spatial_approx);
+    control_file().open_and_write_header(name.str());
 
-    insert_restart_back_reference(restart_step, restartname);
+    control_file().write("input_file", inputfile_);
+    control_file().write("problem_type", problemtype_);
+    control_file().write(
+        "spatial_approximation", Core::FE::shape_function_type_to_string(type_of_spatial_approx));
+    control_file().write("ndim", ndim_);
+
+    // insert back reference
+    if (restart_step)
+    {
+      size_t pos = outputname.rfind('/');
+      control_file().write(
+          "restarted_run", ((pos != std::string::npos) ? outputname.substr(pos + 1) : outputname));
+    }
   }
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::OutputControl::overwrite_result_file(
-    const Core::FE::ShapeFunctionType& spatial_approx)
-{
-  std::stringstream name;
-  name << filename_ << ".control";
 
-  write_header(name.str(), spatial_approx);
+
+Core::IO::ControlFile::ControlFile(bool do_write) : do_write_(do_write) {}
+
+
+void Core::IO::ControlFile::open_and_write_header(const std::string& control_file_name)
+{
+  if (!do_write_) return;
+
+  FOUR_C_ASSERT(!file_.is_open(), "Internal error: control file already opened");
+
+  file_.open(control_file_name.c_str(), std::ios_base::out);
+  if (not file_) FOUR_C_THROW("Could not open control file '{}' for writing", control_file_name);
+
+  time_t time_value;
+  time_value = time(nullptr);
+
+  std::array<char, 256> hostname;
+  struct passwd* user_entry;
+  user_entry = getpwuid(getuid());
+  gethostname(hostname.data(), 256);
+
+  file_ << "# 4C output control file\n"
+        << "# created by " << user_entry->pw_name << " on " << hostname.data() << " at "
+        << ctime(&time_value) << "# using code version (git SHA1) " << VersionControl::git_hash
+        << " \n\n";
 }
 
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::OutputControl::new_result_file(
-    int numb_run, const Core::FE::ShapeFunctionType& spatial_approx)
+Core::IO::ControlFile& Core::IO::ControlFile::write(
+    std::string_view key, const std::string_view& value)
 {
-  if (filename_.rfind("_run_") != std::string::npos)
-  {
-    size_t pos = filename_.rfind("_run_");
-    if (pos == std::string::npos) FOUR_C_THROW("inconsistent file name");
-    filename_ = filename_.substr(0, pos);
-  }
+  if (!do_write_) return *this;
 
-  std::stringstream name;
-  name << filename_ << "_run_" << numb_run;
-  filename_ = name.str();
-  name << ".control";
-
-
-  write_header(name.str(), spatial_approx);
+  file_ << indent() << key << " = \"" << value << "\"\n";
+  file_ << std::flush;
+  return *this;
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::OutputControl::new_result_file(const std::string& name_appendix, int numb_run,
-    const Core::FE::ShapeFunctionType& spatial_approx)
+Core::IO::ControlFile& Core::IO::ControlFile::write(std::string_view key, int value)
 {
-  std::stringstream name;
-  name << name_appendix;
-  name << "_run_" << numb_run;
+  if (!do_write_) return *this;
 
-  new_result_file(name.str(), spatial_approx);
+  file_ << indent() << key << " = " << value << "\n";
+  file_ << std::flush;
+  return *this;
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::OutputControl::new_result_file(
-    std::string name, const Core::FE::ShapeFunctionType& spatial_approx)
+Core::IO::ControlFile& Core::IO::ControlFile::write(std::string_view key, double value)
 {
-  filename_ = name;
-  name += ".control";
+  if (!do_write_) return *this;
 
-  write_header(name, spatial_approx);
+  file_ << indent() << key << " = " << std::scientific << std::setprecision(16) << value << "\n";
+  file_ << std::flush;
+  return *this;
 }
 
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-void Core::IO::OutputControl::write_header(
-    const std::string& control_file_name, const Core::FE::ShapeFunctionType& spatial_approx)
+Core::IO::ControlFile& Core::IO::ControlFile::start_group(const std::string& group_name)
 {
-  if (myrank_ == 0)
-  {
-    if (controlfile_.is_open()) controlfile_.close();
+  if (!do_write_) return *this;
 
-    controlfile_.open(control_file_name.c_str(), std::ios_base::out);
-    if (not controlfile_)
-      FOUR_C_THROW("Could not open control file '{}' for writing", control_file_name);
-
-    time_t time_value;
-    time_value = time(nullptr);
-
-    std::array<char, 256> hostname;
-    struct passwd* user_entry;
-    user_entry = getpwuid(getuid());
-    gethostname(hostname.data(), 256);
-
-    controlfile_ << "# 4C output control file\n"
-                 << "# created by " << user_entry->pw_name << " on " << hostname.data() << " at "
-                 << ctime(&time_value) << "# using code version (git SHA1) "
-                 << VersionControl::git_hash << " \n\n"
-                 << "input_file = \"" << inputfile_ << "\"\n"
-                 << "problem_type = \"" << problemtype_ << "\"\n"
-                 << "spatial_approximation = \""
-                 << Core::FE::shape_function_type_to_string(spatial_approx) << "\"\n"
-                 << "ndim = " << ndim_ << "\n"
-                 << "\n";
-
-    controlfile_ << std::flush;
-  }
+  file_ << indent() << group_name << ":\n";
+  indent_ += indent_increment_;
+  return *this;
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::OutputControl::insert_restart_back_reference(
-    int restart, const std::string& outputname)
+Core::IO::ControlFile& Core::IO::ControlFile::end_group()
 {
-  if (myrank_ != 0) return;
+  if (!do_write_) return *this;
 
-  // insert back reference
-  if (restart)
-  {
-    size_t pos = outputname.rfind('/');
-    controlfile_ << "restarted_run = \""
-                 << ((pos != std::string::npos) ? outputname.substr(pos + 1) : outputname)
-                 << "\"\n\n";
-
-    controlfile_ << std::flush;
-  }
+  FOUR_C_ASSERT(
+      indent_ >= indent_increment_, "Internal error: end_group() is missing a start_group()");
+  indent_ -= indent_increment_;
+  // Print an extra newline after ending a group for better readability
+  file_ << "\n";
+  file_ << std::flush;
+  return *this;
 }
+
+Core::IO::ControlFile& Core::IO::ControlFile::try_end_group()
+{
+  if (!do_write_) return *this;
+
+  if (indent_ >= indent_increment_) return end_group();
+  return *this;
+}
+
+std::string Core::IO::ControlFile::indent() const { return std::string(indent_, ' '); }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
@@ -333,19 +276,6 @@ Core::IO::InputControl::InputControl(const std::string& filename, MPI_Comm comm)
 Core::IO::InputControl::~InputControl() { destroy_map(&table_); }
 
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-size_t Core::IO::restart_finder(const std::string& filename)
-{
-  size_t pos;
-  for (pos = filename.size(); pos > 0; --pos)
-  {
-    if (filename[pos - 1] == '-') return pos - 1;
-
-    if (not std::isdigit(filename[pos - 1]) or filename[pos - 1] == '/') return std::string::npos;
-  }
-  return std::string::npos;
-}
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
