@@ -964,8 +964,8 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::find_and_store_neighboring
     }
 
     // Get colliding pairs.
-    const auto& collision_pairs = collision_search(other_bounding_boxes, beam_bounding_boxes,
-        discret().get_comm(), geometric_search_params_ptr_->verbosity_);
+    const auto& collision_pairs = collision_search_print_results(other_bounding_boxes,
+        beam_bounding_boxes, discret().get_comm(), geometric_search_params_ptr_->verbosity_);
 
     // Create the beam-to-xxx pair pointers according to the search.
     for (const auto& pair : collision_pairs)

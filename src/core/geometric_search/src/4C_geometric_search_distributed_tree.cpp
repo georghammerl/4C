@@ -24,8 +24,7 @@ namespace Core::GeometricSearch
 {
   std::vector<GlobalCollisionSearchResult> global_collision_search(
       const std::vector<std::pair<int, BoundingVolume>>& primitives,
-      const std::vector<std::pair<int, BoundingVolume>>& predicates, MPI_Comm comm,
-      const Core::IO::Verbositylevel verbosity)
+      const std::vector<std::pair<int, BoundingVolume>>& predicates, const MPI_Comm comm)
   {
 #ifndef FOUR_C_WITH_ARBORX
     FOUR_C_THROW(
@@ -77,15 +76,22 @@ namespace Core::GeometricSearch
       }
     }
 
-    if (verbosity == Core::IO::verbose)
-    {
-      Core::GeometricSearch::GeometricSearchInfo info = {static_cast<int>(primitives.size()),
-          static_cast<int>(predicates.size()), static_cast<int>(pairs.size())};
-      Core::GeometricSearch::print_geometric_search_details(comm, info);
-    }
-
     return pairs;
 #endif
+  }
+
+  std::vector<GlobalCollisionSearchResult> global_collision_search_print_results(
+      const std::vector<std::pair<int, BoundingVolume>>& primitives,
+      const std::vector<std::pair<int, BoundingVolume>>& predicates, const MPI_Comm comm,
+      const Core::IO::Verbositylevel verbosity)
+  {
+    auto pairs = global_collision_search(primitives, predicates, comm);
+    print_geometric_search_details(comm,
+        {.primitive_size = primitives.size(),
+            .predicate_size = predicates.size(),
+            .coupling_pair_size = pairs.size()},
+        verbosity);
+    return pairs;
   }
 }  // namespace Core::GeometricSearch
 

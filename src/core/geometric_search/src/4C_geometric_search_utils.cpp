@@ -12,49 +12,54 @@
 #include "4C_io_pstream.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_utils_densematrix_inverse.hpp"
-#include "4C_utils_fad.hpp"
+
+#include <cstddef>
 
 FOUR_C_NAMESPACE_OPEN
 
 namespace Core::GeometricSearch
 {
-  void print_geometric_search_details(MPI_Comm comm, const GeometricSearchInfo info)
+  void print_geometric_search_details(
+      const MPI_Comm comm, const GeometricSearchInfo info, const Core::IO::Verbositylevel verbosity)
   {
-    const int numproc = Core::Communication::num_mpi_ranks(comm);
-    const int myrank = Core::Communication::my_mpi_rank(comm);
-
-    std::vector<int> primitive_size(numproc, 0), my_primitive_size(numproc, 0);
-    std::vector<int> predicate_size(numproc, 0), my_predicate_size(numproc, 0);
-    std::vector<int> coupling_pair_size(numproc, 0), my_coupling_pair_size(numproc, 0);
-
-    my_primitive_size[myrank] = info.primitive_size;
-    my_predicate_size[myrank] = info.predicate_size;
-    my_coupling_pair_size[myrank] = info.coupling_pair_size;
-
-    primitive_size = Core::Communication::sum_all(my_primitive_size, comm);
-    predicate_size = Core::Communication::sum_all(my_predicate_size, comm);
-    coupling_pair_size = Core::Communication::sum_all(my_coupling_pair_size, comm);
-
-    if (myrank == 0)
+    if (verbosity == Core::IO::verbose)
     {
-      Core::IO::cout(Core::IO::verbose) << "\n   Collision search:" << Core::IO::endl;
-      Core::IO::cout(Core::IO::verbose)
-          << "   +-----+------------+------------+--------------+" << Core::IO::endl;
-      Core::IO::cout(Core::IO::verbose)
-          << "   | PID | primitives | predicates |  found pairs |" << Core::IO::endl;
-      Core::IO::cout(Core::IO::verbose)
-          << "   +-----+------------+------------+--------------+" << Core::IO::endl;
+      const int numproc = Core::Communication::num_mpi_ranks(comm);
+      const int myrank = Core::Communication::my_mpi_rank(comm);
 
-      for (int npid = 0; npid < numproc; ++npid)
+      std::vector<size_t> primitive_size(numproc, 0), my_primitive_size(numproc, 0);
+      std::vector<size_t> predicate_size(numproc, 0), my_predicate_size(numproc, 0);
+      std::vector<size_t> coupling_pair_size(numproc, 0), my_coupling_pair_size(numproc, 0);
+
+      my_primitive_size[myrank] = info.primitive_size;
+      my_predicate_size[myrank] = info.predicate_size;
+      my_coupling_pair_size[myrank] = info.coupling_pair_size;
+
+      primitive_size = Core::Communication::sum_all(my_primitive_size, comm);
+      predicate_size = Core::Communication::sum_all(my_predicate_size, comm);
+      coupling_pair_size = Core::Communication::sum_all(my_coupling_pair_size, comm);
+
+      if (myrank == 0)
       {
-        Core::IO::cout(Core::IO::verbose)
-            << "   | " << std::setw(3) << npid << " | " << std::setw(10) << primitive_size[npid]
-            << " | " << std::setw(10) << predicate_size[npid] << " | " << std::setw(12)
-            << coupling_pair_size[npid] << " | " << Core::IO::endl;
+        Core::IO::cout(Core::IO::verbose) << "\n   Collision search:" << Core::IO::endl;
         Core::IO::cout(Core::IO::verbose)
             << "   +-----+------------+------------+--------------+" << Core::IO::endl;
+        Core::IO::cout(Core::IO::verbose)
+            << "   | PID | primitives | predicates |  found pairs |" << Core::IO::endl;
+        Core::IO::cout(Core::IO::verbose)
+            << "   +-----+------------+------------+--------------+" << Core::IO::endl;
+
+        for (int npid = 0; npid < numproc; ++npid)
+        {
+          Core::IO::cout(Core::IO::verbose)
+              << "   | " << std::setw(3) << npid << " | " << std::setw(10) << primitive_size[npid]
+              << " | " << std::setw(10) << predicate_size[npid] << " | " << std::setw(12)
+              << coupling_pair_size[npid] << " | " << Core::IO::endl;
+          Core::IO::cout(Core::IO::verbose)
+              << "   +-----+------------+------------+--------------+" << Core::IO::endl;
+        }
+        Core::IO::cout(Core::IO::verbose) << Core::IO::endl;
       }
-      Core::IO::cout(Core::IO::verbose) << Core::IO::endl;
     }
   }
 

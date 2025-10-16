@@ -354,7 +354,7 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
         element.user_element()->get_bounding_volume(dis, zero_vector, params)));
   }
 
-  auto result = Core::GeometricSearch::global_collision_search(
+  auto result = Core::GeometricSearch::global_collision_search_print_results(
       bounding_boxes, bounding_boxes, dis.get_comm(), params.verbosity_);
 
   // 2. Get nodal connectivity of each element
