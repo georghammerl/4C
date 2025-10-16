@@ -664,52 +664,6 @@ void Core::IO::DiscretizationWriter::create_result_file(const int step)
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::new_result_file(int numb_run)
-{
-  if (binio_)
-  {
-    create_new_result_and_mesh_file();
-    output_->new_result_file(numb_run, spatial_approx_);
-  }
-}
-
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::new_result_file(std::string name_appendix, int numb_run)
-{
-  if (binio_)
-  {
-    create_new_result_and_mesh_file();
-    output_->new_result_file(name_appendix, numb_run, spatial_approx_);
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::new_result_file(std::string name)
-{
-  if (binio_)
-  {
-    create_new_result_and_mesh_file();
-    output_->new_result_file(name, spatial_approx_);
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::overwrite_result_file()
-{
-  if (binio_)
-  {
-    create_new_result_and_mesh_file();
-    output_->overwrite_result_file(spatial_approx_);
-  }
-}
-
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
 void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
 {
   if (binio_)
@@ -751,17 +705,20 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
 
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file() << "result:\n"
-                              << "    field = \"" << dis_->name() << "\"\n"
-                              << std::setprecision(16) << "    time = " << time << "\n"
-                              << "    step = " << step << "\n\n";
+      output_->control_file().try_end_group();
+
+      output_->control_file()
+          .start_group("result")
+          .write("field", dis_->name())
+          .write("time", time)
+          .write("step", step);
 
       if (write_file)
       {
         if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
         {
-          output_->control_file() << "    num_output_proc = "
-                                  << Core::Communication::num_mpi_ranks(get_comm()) << "\n";
+          output_->control_file().write(
+              "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
         }
         std::string filename;
         const std::string::size_type pos = resultfilename_.find_last_of('/');
@@ -769,9 +726,11 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
           filename = resultfilename_;
         else
           filename = resultfilename_.substr(pos + 1);
-        output_->control_file() << "    result_file = \"" << filename << "\"\n\n";
+        output_->control_file().write("result_file", filename);
       }
-      output_->control_file() << std::flush;
+
+      // N.B. We do not end the group here!
+      // Other data may be appended to the current group later by means of write_int, etc.
     }
     const herr_t status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
     if (status < 0)
@@ -790,12 +749,7 @@ void Core::IO::DiscretizationWriter::write_double(const std::string name, const 
   {
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      // using a local stringstream we make sure that we do not change
-      // the output formatting of control file permanently
-      std::stringstream s;
-      s << "    " << name << " = " << std::scientific << std::setprecision(16) << value << "\n\n"
-        << std::flush;
-      output_->control_file() << s.str() << std::flush;
+      output_->control_file().write(name, value);
     }
   }
 }
@@ -809,7 +763,7 @@ void Core::IO::DiscretizationWriter::write_int(const std::string name, const int
   {
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file() << "    " << name << " = " << value << "\n\n" << std::flush;
+      output_->control_file().write(name, value);
     }
   }
 }
@@ -926,13 +880,13 @@ void Core::IO::DiscretizationWriter::write_multi_vector(
           FOUR_C_THROW("unknown vector type {}", vt);
           break;
       }
-      output_->control_file() << "    " << name << ":\n"
-                              << "        type = \"" << vectortype << "\"\n"
-                              << "        columns = " << vec.num_vectors() << "\n"
-                              << "        values = \"" << valuename.c_str() << "\"\n"
-                              << "        ids = \"" << idname.c_str()
-                              << "\"\n\n"  // different names + other information?
-                              << std::flush;
+      output_->control_file()
+          .start_group(name)
+          .write("type", vectortype)
+          .write("columns", vec.num_vectors())
+          .write("values", valuename)
+          .write("ids", idname)
+          .end_group();
     }
     const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1040,13 +994,14 @@ void Core::IO::DiscretizationWriter::write_vector(const std::string name,
           FOUR_C_THROW("unknown vector type {}", vt);
           break;
       }
-      output_->control_file() << "    " << name << ":\n"
-                              << "        type = \"" << vectortype << "\"\n"
-                              << "        columns = 1\n"
-                              << "        values = \"" << valuename << "\"\n"
-                              << "        ids = \"" << idname
-                              << "\"\n\n"  // different names + other information?
-                              << std::flush;
+
+      output_->control_file()
+          .start_group(name)
+          .write("type", vectortype)
+          .write("columns", 1)
+          .write("values", valuename)
+          .write("ids", idname)
+          .end_group();
     }
     const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1116,24 +1071,25 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file() << "field:\n"
-                              << "    field = \"" << dis_->name() << "\"\n"
-                              << std::setprecision(16) << "    time = " << time << "\n"
-                              << "    step = " << step << "\n\n"
-                              << "    num_nd = " << dis_->num_global_nodes() << "\n"
-                              << "    max_nodeid = " << max_nodeid << "\n"
-                              << "    num_ele = " << dis_->num_global_elements() << "\n"
-                              << "    num_dof = " << dis_->dof_row_map(0)->num_global_elements()
-                              << "\n"
-                              << "    num_dim = " << dis_->n_dim() << "\n\n";
+      output_->control_file().try_end_group();
+      output_->control_file()
+          .start_group("field")
+          .write("field", dis_->name())
+          .write("time", time)
+          .write("step", step)
+          .write("num_nd", dis_->num_global_nodes())
+          .write("max_nodeid", max_nodeid)
+          .write("num_ele", dis_->num_global_elements())
+          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_->n_dim()));
 
       // knotvectors for nurbs-discretisation
       write_knotvector();
 
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file() << "    num_output_proc = "
-                                << Core::Communication::num_mpi_ranks(get_comm()) << "\n";
+        output_->control_file().write(
+            "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
       std::string::size_type pos = meshfilename_.find_last_of('/');
@@ -1141,8 +1097,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file() << "    mesh_file = \"" << filename << "\"\n\n";
-      output_->control_file() << std::flush;
+      output_->control_file().write("mesh_file", filename);
     }
     const herr_t flush_status = H5Fflush(meshgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1167,15 +1122,16 @@ void Core::IO::DiscretizationWriter::write_mesh(
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file() << "field:\n"
-                              << "    field = \"" << dis_->name() << "\"\n"
-                              << std::setprecision(16) << "    time = " << time << "\n"
-                              << "    step = " << step << "\n\n"
-                              << "    num_nd = " << dis_->num_global_nodes() << "\n"
-                              << "    num_ele = " << dis_->num_global_elements() << "\n"
-                              << "    num_dof = " << dis_->dof_row_map(0)->num_global_elements()
-                              << "\n"
-                              << "    num_dim = " << dis_->n_dim() << "\n\n";
+      output_->control_file().try_end_group();
+      output_->control_file()
+          .start_group("field")
+          .write("field", dis_->name())
+          .write("time", time)
+          .write("step", step)
+          .write("num_nd", dis_->num_global_nodes())
+          .write("num_ele", dis_->num_global_elements())
+          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_->n_dim()));
 
       // knotvectors for nurbs-discretisation
       // write_knotvector();
@@ -1187,8 +1143,8 @@ void Core::IO::DiscretizationWriter::write_mesh(
 
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file() << "    num_output_proc = "
-                                << Core::Communication::num_mpi_ranks(get_comm()) << "\n";
+        output_->control_file().write(
+            "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
       std::string::size_type pos = meshfilename_.find_last_of('/');
@@ -1196,10 +1152,7 @@ void Core::IO::DiscretizationWriter::write_mesh(
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file() << "    mesh_file = \"" << filename << "\"\n\n";
-      // << "    mesh_file = \"" << name_base_file << "\"\n\n";
-
-      output_->control_file() << std::flush;
+      output_->control_file().write("mesh_file", filename);
     }
   }
 }
@@ -1254,23 +1207,24 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
     {
       /* number of nodes and elements is set to zero to suppress reading of
        * nodes during post-processing only maxnodeid is important */
-      output_->control_file() << "field:\n"
-                              << "    field = \"" << dis_->name() << "\"\n"
-                              << std::setprecision(16) << "    time = " << time << "\n"
-                              << "    step = " << step << "\n\n"
-                              << "    num_nd = " << 0 << "\n"
-                              << "    max_nodeid = " << max_nodeid << "\n"
-                              << "    num_ele = " << 0 << "\n"
-                              << "    num_dof = " << dis_->dof_row_map(0)->num_global_elements()
-                              << "\n"
-                              << "    num_dim = " << dis_->n_dim() << "\n\n";
+      output_->control_file().try_end_group();
+      output_->control_file()
+          .start_group("field")
+          .write("field", dis_->name())
+          .write("time", time)
+          .write("step", step)
+          .write("num_nd", 0)
+          .write("max_nodeid", max_nodeid)
+          .write("num_ele", 0)
+          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_->n_dim()));
 
       /* name of the output file must be specified for changing geometries in
        * each time step */
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file() << "    num_output_proc = "
-                                << Core::Communication::num_mpi_ranks(get_comm()) << "\n";
+        output_->control_file().write(
+            "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
       std::string::size_type pos = meshfilename_.find_last_of('/');
@@ -1278,9 +1232,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file() << "    mesh_file = \"" << filename << "\"\n\n";
-
-      output_->control_file() << std::flush;
+      output_->control_file().write("mesh_file", filename);
     }
     const herr_t flush_status = H5Fflush(meshgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1494,9 +1446,7 @@ void Core::IO::DiscretizationWriter::write_char_data(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file() << "    " << name << ":\n"
-                              << "        values = \"" << valuename.c_str() << "\"\n\n"
-                              << std::flush;
+      output_->control_file().start_group(name).write("values", valuename).end_group();
     }
 
     const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
@@ -1541,9 +1491,7 @@ void Core::IO::DiscretizationWriter::write_redundant_double_vector(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file() << "    " << name << ":\n"
-                              << "        values = \"" << valuename.c_str() << "\"\n\n"
-                              << std::flush;
+      output_->control_file().start_group(name).write("values", valuename).end_group();
 
       const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
       if (flush_status < 0) FOUR_C_THROW("Failed to flush HDF file {}", resultfilename_);
@@ -1588,9 +1536,7 @@ void Core::IO::DiscretizationWriter::write_redundant_int_vector(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file() << "    " << name << ":\n"
-                              << "        values = \"" << valuename.c_str() << "\"\n\n"
-                              << std::flush;
+      output_->control_file().start_group(name).write("values", valuename).end_group();
 
       const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
       if (flush_status < 0) FOUR_C_THROW("Failed to flush HDF file {}", resultfilename_);

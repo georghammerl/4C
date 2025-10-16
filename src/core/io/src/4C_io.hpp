@@ -349,18 +349,6 @@ namespace Core::IO
      */
     void write_redundant_int_vector(const std::string name, std::vector<int>& vectorint);
 
-    /// overwrite result files
-    void overwrite_result_file();
-
-    /// creating new result files
-    void new_result_file(int numb_run);
-
-    /// creating new result files for the mlmc
-    void new_result_file(std::string name_appendix, int numb_run);
-
-    /// creating new result files using the provided name
-    void new_result_file(std::string name);
-
     //@}
 
     //!@name Data management

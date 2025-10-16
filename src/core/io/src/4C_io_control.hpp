@@ -24,28 +24,67 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Core::IO
 {
+  /**
+   * Wrap functionality related to reading and writing control files.
+   */
+  class ControlFile
+  {
+   public:
+    /**
+     * Initialize the control file object. If @p do_write is false, no write will be performed.
+     * This is useful for non-root MPI ranks.
+     */
+    ControlFile(bool do_write);
+
+    /**
+     * Write the header of a control file of given name.
+     */
+    void open_and_write_header(const std::string& control_file_name);
+
+    /**
+     * Write a key-value pair to the control file. The value can be a string, integer, or double.
+     * The value is added to the current group with the current indentation.
+     */
+    ControlFile& write(std::string_view key, const std::string_view& value);
+    ControlFile& write(std::string_view key, int value);
+    ControlFile& write(std::string_view key, double value);
+
+    /**
+     * Start a new group in the control file with increased indentation.
+     */
+    ControlFile& start_group(const std::string& group_name);
+
+    /**
+     * End the previously opened group in the control file and decrease indentation.
+     */
+    ControlFile& end_group();
+
+    /**
+     * End the previously opened group if one is open. Otherwise, do nothing.
+     */
+    ControlFile& try_end_group();
+
+   private:
+    //! current indentation as string of spaces
+    std::string indent() const;
+
+    //! output stream for the control file
+    std::fstream file_;
+
+    //! flag indicating if we write to the control file
+    bool do_write_;
+
+    //! current indent (in spaces)
+    size_t indent_ = 0;
+
+    //! amount of indent (in spaces) added per level of indentation
+    constexpr static int indent_increment_ = 4;
+  };
+
   /// control class to manage a control file for output
   class OutputControl
   {
    public:
-    /*!
-     * @brief construct output control object
-     *
-     * @param[in] comm                    communicator
-     * @param[in] problemtype             problem type
-     * @param[in] type_of_spatial_approx  spatial approximation type of the fe discretization
-     * @param[in] inputfile               file name of input file
-     * @param[in] outputname           output file name prefix
-     * @param[in] ndim                 number of space dimensions
-     * @param[in] restart_step         step from which restart is performed
-     * @param[in] filesteps            number of output steps per binary file
-     * @param[in] write_binary_output  flag indicating if output is written in binary format
-     */
-    OutputControl(MPI_Comm comm, std::string problemtype,
-        Core::FE::ShapeFunctionType type_of_spatial_approx, std::string inputfile,
-        const std::string& outputname, int ndim, int restart_step, int filesteps,
-        bool write_binary_output);
-
     /*!
      * @brief construct output control object
      *
@@ -95,7 +134,7 @@ namespace Core::IO
     std::string new_output_file_name() const { return filename_; }
 
     /// open control file
-    std::fstream& control_file() { return controlfile_; }
+    ControlFile& control_file() { return control_file_; }
 
     /// number of output steps per binary file
     int file_steps() const { return filesteps_; }
@@ -112,38 +151,19 @@ namespace Core::IO
 
     bool write_binary_output() const { return write_binary_output_; }
 
-    /// overwrites result files
-    void overwrite_result_file(const Core::FE::ShapeFunctionType& spatial_approx);
-
-    /// creates new result files
-    void new_result_file(int numb_run, const Core::FE::ShapeFunctionType& spatial_approx);
-
-    /// creates new result files for the mlmc
-    void new_result_file(const std::string& name_appendix, int numb_run,
-        const Core::FE::ShapeFunctionType& spatial_approx);
-
-    /// creates new result files
-    void new_result_file(std::string name, const Core::FE::ShapeFunctionType& spatial_approx);
-
     /// return my processor ID
     inline int my_rank() const { return myrank_; };
-
-   private:
-    void write_header(
-        const std::string& control_file_name, const Core::FE::ShapeFunctionType& spatial_approx);
-
-    void insert_restart_back_reference(int restart, const std::string& outputname);
 
    private:
     std::string problemtype_;
     std::string inputfile_;  ///< input file name
     const int ndim_;
+    const int myrank_;
     std::string filename_;  ///< prefix of outputfiles (might contain path)
     std::string restartname_;
-    std::fstream controlfile_;
+    ControlFile control_file_;
     int filesteps_;
     const int restart_step_;
-    const int myrank_;
     const bool write_binary_output_;
   };
 
@@ -169,11 +189,6 @@ namespace Core::IO
     MAP table_;
   };
 
-
-  /// find position of restart number in filename (if existing):
-  /// for "outname-5" will return position of the "-"
-  /// returns std::string::npos if not found
-  size_t restart_finder(const std::string& filename);
 
   /// find the last possible restart step in the control file
   int get_last_possible_restart_step(Core::IO::InputControl& inputcontrol);
