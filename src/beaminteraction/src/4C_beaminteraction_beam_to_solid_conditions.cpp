@@ -9,6 +9,7 @@
 
 #include "4C_beam3_euler_bernoulli.hpp"
 #include "4C_beam3_reissner.hpp"
+#include "4C_beaminteraction_beam_to_solid_edge_contact_pair.hpp"
 #include "4C_beaminteraction_beam_to_solid_mortar_manager_contact.hpp"
 #include "4C_beaminteraction_beam_to_solid_surface_contact_pair.hpp"
 #include "4C_beaminteraction_beam_to_solid_surface_contact_pair_mortar.hpp"
@@ -33,9 +34,11 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_faces.hpp"
+#include "4C_geometry_pair_evaluation_data_base.hpp"
 #include "4C_geometry_pair_line_to_3D_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_surface_evaluation_data.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
+#include "4C_utils_exceptions.hpp"
 #include "4C_utils_std23_unreachable.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -54,12 +57,15 @@ BeamInteraction::BeamToSolidCondition::BeamToSolidCondition(
       condition_contact_pairs_(),
       beam_to_solid_params_(beam_to_solid_params)
 {
-  condition_data_ = BeamToSolidConditionData{
-      .is_indirect_assembly_manager =
-          beam_to_solid_params_->get_contact_discretization() ==
-              Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar ||
-          beam_to_solid_params_->get_contact_discretization() ==
-              Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section};
+  if (beam_to_solid_params_ != nullptr)
+  {
+    condition_data_ = BeamToSolidConditionData{
+        .is_indirect_assembly_manager =
+            beam_to_solid_params_->get_contact_discretization() ==
+                Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar ||
+            beam_to_solid_params_->get_contact_discretization() ==
+                Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section};
+  }
 }
 
 /**
@@ -857,6 +863,59 @@ BeamInteraction::BeamToSolidConditionSurface::create_contact_pair_internal(
     }
   }
   std23::unreachable();
+}
+
+/**
+ *
+ */
+BeamInteraction::BeamToLineCondition::BeamToLineCondition(
+    const Core::Conditions::Condition& condition_line,
+    const Core::Conditions::Condition& condition_other,
+    std::shared_ptr<BeamToSolidEdgeContactParameters> beam_to_edge_parameters)
+    : BeamToSolidCondition(condition_line, condition_other, nullptr)
+{
+  condition_data_ = BeamToSolidConditionData{.is_indirect_assembly_manager = false};
+  beam_to_edge_parameters_ = beam_to_edge_parameters;
+
+  // Create the geometry evaluation data for this condition.
+  geometry_evaluation_data_ = std::make_shared<GeometryPair::GeometryEvaluationDataBase>();
+}
+
+/**
+ *
+ */
+void BeamInteraction::BeamToLineCondition::build_id_sets(
+    const std::shared_ptr<const Core::FE::Discretization>& discretization)
+{
+  // Call the parent method to build the line maps.
+  BeamToSolidCondition::build_id_sets(discretization);
+
+  // Build the other line map.
+  other_line_map_ = condition_to_element_id_map(*condition_other_);
+}
+
+/**
+ *
+ */
+std::shared_ptr<BeamInteraction::BeamContactPair>
+BeamInteraction::BeamToLineCondition::create_contact_pair_internal(
+    const std::vector<Core::Elements::Element const*>& ele_ptrs)
+{
+  using namespace GeometryPair;
+
+  const auto* beam_element = dynamic_cast<const Discret::Elements::Beam3Base*>(ele_ptrs[0]);
+  const bool beam_is_hermite = beam_element->hermite_centerline_interpolation();
+  const auto& core_element = other_line_map_[ele_ptrs[1]->id()];
+  const auto shape = core_element->shape();
+
+  if (beam_is_hermite and shape == Core::FE::CellType::line2)
+  {
+    return std::make_shared<BeamToSolidEdgeContactPair<t_hermite, t_line2>>(
+        beam_to_edge_parameters_, core_element);
+  }
+  FOUR_C_THROW(
+      "Got unexpected element input shapes {} and {}, could not create BeamToSolidEdgeContactPair",
+      Core::FE::cell_type_to_string(beam_element->shape()), Core::FE::cell_type_to_string(shape));
 }
 
 FOUR_C_NAMESPACE_CLOSE
