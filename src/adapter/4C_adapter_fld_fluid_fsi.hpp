@@ -155,7 +155,7 @@ namespace Adapter
     void proj_vel_to_div_zero();
 
     /// reset state vectors
-    void reset(bool completeReset = false, int numsteps = 1, int iter = -1) override;
+    void reset(int numsteps = 1, int iter = -1) override;
 
     /// calculate error in comparison to analytical solution
     void calculate_error() override;

@@ -624,9 +624,9 @@ FLD::TimIntHDGWeakComp::evaluate_error_compared_to_analytical_sol()
 /*------------------------------------------------------------------------------------------------*
  |
  *------------------------------------------------------------------------------------------------*/
-void FLD::TimIntHDGWeakComp::reset(bool completeReset, int numsteps, int iter)
+void FLD::TimIntHDGWeakComp::reset(int numsteps, int iter)
 {
-  FluidImplicitTimeInt::reset(completeReset, numsteps, iter);
+  FluidImplicitTimeInt::reset(numsteps, iter);
   const Core::LinAlg::Map* intdofrowmap = discret_->dof_row_map(1);
   intvelnp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
   intvelaf_ = Core::LinAlg::create_vector(*intdofrowmap, true);

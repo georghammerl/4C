@@ -469,10 +469,7 @@ namespace Adapter
     {
       return fluid_->create_field_test();
     }
-    void reset(bool completeReset = false, int numsteps = 1, int iter = -1) override
-    {
-      return fluid_->reset(completeReset, numsteps, iter);
-    };
+    void reset(int numsteps = 1, int iter = -1) override { return fluid_->reset(numsteps, iter); };
     void set_fld_gr_disp(std::shared_ptr<Core::LinAlg::Vector<double>> fluid_growth_disp) override
     {
       return fluid_->set_fld_gr_disp(fluid_growth_disp);
