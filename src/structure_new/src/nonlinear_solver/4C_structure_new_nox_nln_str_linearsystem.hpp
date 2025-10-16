@@ -31,7 +31,7 @@ namespace NOX
             const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
-            const ::NOX::Epetra::Vector& cloneVector,
+            const NOX::Nln::Vector& cloneVector,
             const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
         //! Constructor without scaling object
@@ -42,7 +42,7 @@ namespace NOX
             const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
-            const ::NOX::Epetra::Vector& cloneVector);
+            const NOX::Nln::Vector& cloneVector);
 
         //! Constructor without preconditioner
         LinearSystem(Teuchos::ParameterList& printParams,
@@ -51,7 +51,7 @@ namespace NOX
             const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
             const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-            const ::NOX::Epetra::Vector& cloneVector,
+            const NOX::Nln::Vector& cloneVector,
             const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
         //! Constructor without preconditioner and scaling object
@@ -61,7 +61,7 @@ namespace NOX
             const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
             const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-            const ::NOX::Epetra::Vector& cloneVector);
+            const NOX::Nln::Vector& cloneVector);
 
 
         //! sets the options of the underlying solver

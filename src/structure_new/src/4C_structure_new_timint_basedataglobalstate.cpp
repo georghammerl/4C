@@ -23,6 +23,7 @@
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_model_evaluator_generic.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
 #include "4C_structure_new_model_evaluator_meshtying.hpp"
@@ -30,7 +31,6 @@
 #include "4C_structure_new_utils.hpp"
 #include "4C_utils_enum.hpp"
 
-#include <NOX_Epetra_Vector.H>
 #include <Teuchos_RCPStdSharedPtrConversions.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -246,8 +246,7 @@ void Solid::TimeInt::BaseDataGlobalState::set_initial_fields()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<::NOX::Epetra::Vector> Solid::TimeInt::BaseDataGlobalState::create_global_vector()
-    const
+std::shared_ptr<NOX::Nln::Vector> Solid::TimeInt::BaseDataGlobalState::create_global_vector() const
 {
   return create_global_vector(VecInitType::zero, nullptr);
 }
@@ -603,7 +602,7 @@ const Core::LinAlg::MultiMapExtractor& Solid::TimeInt::BaseDataGlobalState::bloc
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<::NOX::Epetra::Vector> Solid::TimeInt::BaseDataGlobalState::create_global_vector(
+std::shared_ptr<NOX::Nln::Vector> Solid::TimeInt::BaseDataGlobalState::create_global_vector(
     const enum VecInitType& vecinittype,
     const std::shared_ptr<const Solid::ModelEvaluatorManager>& modeleval) const
 {
@@ -656,9 +655,9 @@ std::shared_ptr<::NOX::Epetra::Vector> Solid::TimeInt::BaseDataGlobalState::crea
   }  // end of the switch-case statement
 
   // Copy the content of our vector into a vector that NOX can use
-  return std::make_shared<::NOX::Epetra::Vector>(
+  return std::make_shared<NOX::Nln::Vector>(
       Teuchos::make_rcp<Epetra_Vector>(xvec_ptr.get_ref_of_epetra_vector()),
-      ::NOX::Epetra::Vector::CreateView);
+      NOX::Nln::Vector::MemoryType::View);
 }
 
 /*----------------------------------------------------------------------------*
@@ -1132,7 +1131,7 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
     const NOX::Nln::Group& input_grp, const Core::LinAlg::Vector<double>& dir, const double& step,
     const NOX::Nln::Group& curr_grp)
 {
-  const auto& xold = dynamic_cast<const ::NOX::Epetra::Vector&>(input_grp.getX()).getEpetraVector();
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
 
   // cast the const away so that the new x vector can be set after the update
   NOX::Nln::Group& curr_grp_mutable = const_cast<NOX::Nln::Group&>(curr_grp);
@@ -1180,8 +1179,8 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
   // now replace the rotvec entries by the correct value computed before
   Core::LinAlg::assemble_my_vector(0.0, *xnew, 1.0, x_rotvec);
 
-  ::NOX::Epetra::Vector wrapper(Teuchos::make_rcp<Epetra_Vector>(xnew->get_ref_of_epetra_vector()),
-      ::NOX::Epetra::Vector::CreateView);
+  NOX::Nln::Vector wrapper(Teuchos::make_rcp<Epetra_Vector>(xnew->get_ref_of_epetra_vector()),
+      NOX::Nln::Vector::MemoryType::View);
   curr_grp_mutable.setX(wrapper);
 
   /* tell the NOX::Nln::Group that the x vector has already been updated in

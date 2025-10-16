@@ -12,7 +12,6 @@
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 
 #include <iostream>
@@ -21,7 +20,7 @@ FOUR_C_NAMESPACE_OPEN
 
 
 NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x)
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x)
     : label("FSI-Matrix-Free"),
       interface(i),
       currentX(x),
@@ -80,12 +79,12 @@ int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVect
   // the fluid field on the interface displacements.
 
   // Convert X and Y from an Epetra_MultiVector to a Core::LinAlg::Vectors
-  // and NOX::epetra::Vectors.  This is done so we use a consistent
+  // and NOX::Nln::Vectors.  This is done so we use a consistent
   // vector space for norms and inner products.
   Teuchos::RCP<Epetra_Vector> wrappedX = Teuchos::make_rcp<Epetra_Vector>(View, X, 0);
   Teuchos::RCP<Epetra_Vector> wrappedY = Teuchos::make_rcp<Epetra_Vector>(View, Y, 0);
-  ::NOX::Epetra::Vector nevX(wrappedX, ::NOX::Epetra::Vector::CreateView);
-  ::NOX::Epetra::Vector nevY(wrappedY, ::NOX::Epetra::Vector::CreateView);
+  NOX::Nln::Vector nevX(wrappedX, NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector nevY(wrappedY, NOX::Nln::Vector::MemoryType::View);
 
   // The trial vector x is not guaranteed to be a suitable interface
   // displacement. It might be much too large to fit the ALE

@@ -10,11 +10,12 @@
 
 #include "4C_config.hpp"
 
+#include "4C_solver_nonlin_nox_vector.hpp"
+
 #include <Epetra_Operator.h>
 #include <NOX_Abstract_Group.H>
 #include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 
 #include <memory>
@@ -26,6 +27,11 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace NOX
 {
+  namespace Nln
+  {
+    class Vector;
+  }  // namespace Nln
+
   namespace FSI
   {
     /// Matrix Free Newton Krylov based on an approximation of the residuum derivatives
@@ -37,8 +43,7 @@ namespace NOX
         The vector \c x is used to clone the solution vector.
       */
       FSIMatrixFree(Teuchos::ParameterList& printParams,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i,
-          const ::NOX::Epetra::Vector& x);
+          const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x);
 
 
       //! If set true, transpose of this operator will be applied.
@@ -115,13 +120,13 @@ namespace NOX
       Teuchos::RCP<::NOX::Epetra::Interface::Required> interface;
 
       //! The current solution vector
-      ::NOX::Epetra::Vector currentX;
+      NOX::Nln::Vector currentX;
 
       //! Perturbed solution vector
-      mutable ::NOX::Epetra::Vector perturbX;
+      mutable NOX::Nln::Vector perturbX;
 
       //! Perturbed solution vector
-      mutable ::NOX::Epetra::Vector perturbY;
+      mutable NOX::Nln::Vector perturbY;
 
       //! Core::LinAlg::Map object used in the returns of the Epetra_Operator derived methods.
       /*! If the user is using Core::LinAlg::Maps, then ::NOX::Epetra::MatrixFree must create an

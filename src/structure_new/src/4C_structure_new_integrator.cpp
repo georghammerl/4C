@@ -16,6 +16,7 @@
 #include "4C_linalg_vector.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
@@ -232,9 +233,9 @@ void Solid::Integrator::compute_mass_matrix_and_init_acc()
 
   // create a copy of the initial displacement vector
   Core::LinAlg::Vector<double> soln(*global_state().dof_row_map_view(), true);
-  // wrap the soln_ptr in a nox_epetra_Vector
-  ::NOX::Epetra::Vector nox_soln(
-      Teuchos::rcpFromRef(soln.get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
+  // wrap the soln_ptr in a NOX::Nln::Vector
+  NOX::Nln::Vector nox_soln(
+      Teuchos::rcpFromRef(soln.get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
 
   // Check if we are using a Newton direction
   std::string dir_str = p_nox.sublist("Direction").get<std::string>("Method");

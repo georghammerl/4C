@@ -17,7 +17,7 @@ FOUR_C_NAMESPACE_OPEN
  *----------------------------------------------------------------------------*/
 NOX::Nln::CONSTRAINT::Group::Group(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& grpOptionParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x,
     const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys,
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr)
     : NOX::Nln::Group(printParams, grpOptionParams, i, x, linSys),
@@ -161,7 +161,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::CONSTRAINT::Group::get_solution_upda
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -211,7 +211,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::CONSTRAINT::Group::get_previous_solu
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -260,7 +260,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::CONSTRAINT::Group::get_solution_upda
     const std::vector<double>& rTol, const std::vector<NOX::Nln::StatusTest::QuantityType>& chQ,
     const std::vector<bool>& disable_implicit_weighting) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   Teuchos::RCP<std::vector<double>> rms = Teuchos::make_rcp<std::vector<double>>(0);
 
   double rval = -1.0;

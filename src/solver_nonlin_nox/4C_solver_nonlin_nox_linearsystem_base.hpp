@@ -11,7 +11,6 @@
 #include "4C_config.hpp"
 
 #include <Epetra_Operator.h>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 #include <Teuchos_ParameterList.hpp>
 
@@ -21,6 +20,8 @@ namespace NOX
 {
   namespace Nln
   {
+    class Vector;
+
     /**
      * \brief Base class for NOX linear systems.
      *
@@ -40,26 +41,26 @@ namespace NOX
        * \brief Applies Jacobian to the given input vector and puts the answer in the result.
        */
       virtual bool apply_jacobian(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const = 0;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const = 0;
 
       /**
        * \brief Applies Jacobian-Transpose to the given input vector and puts the answer in the
        *  result.
        */
       virtual bool apply_jacobian_transpose(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const = 0;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const = 0;
 
       /**
        * \brief Applies the inverse of the Jacobian matrix to the given input vector and puts the
        * answer in result.
        */
       virtual bool apply_jacobian_inverse(Teuchos::ParameterList& params,
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) = 0;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) = 0;
 
       /**
        * \brief Evaluates the Jacobian based on the solution vector x.
        */
-      virtual bool compute_jacobian(const ::NOX::Epetra::Vector& x) = 0;
+      virtual bool compute_jacobian(const NOX::Nln::Vector& x) = 0;
 
       /**
        * \brief Return Jacobian operator

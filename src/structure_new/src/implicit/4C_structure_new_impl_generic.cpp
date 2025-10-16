@@ -12,6 +12,7 @@
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
 #include "4C_solver_nonlin_nox_solver_linesearchbased.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
 #include "4C_structure_new_timint_implicit.hpp"
@@ -24,18 +25,18 @@ namespace
 {
   Epetra_Vector& extract_epetra_vector(::NOX::Abstract::Vector& vec)
   {
-    ::NOX::Epetra::Vector* epetra_vec = dynamic_cast<::NOX::Epetra::Vector*>(&vec);
+    auto* epetra_vec = dynamic_cast<NOX::Nln::Vector*>(&vec);
     FOUR_C_ASSERT(
-        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no ::NOX::Epetra::Vector!");
+        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no NOX::Nln::Vector!");
 
     return epetra_vec->getEpetraVector();
   }
 
   Core::LinAlg::Vector<double> copy_to_our_vector(const ::NOX::Abstract::Vector& vec)
   {
-    const ::NOX::Epetra::Vector* epetra_vec = dynamic_cast<const ::NOX::Epetra::Vector*>(&vec);
+    const auto* epetra_vec = dynamic_cast<const NOX::Nln::Vector*>(&vec);
     FOUR_C_ASSERT(
-        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no ::NOX::Epetra::Vector!");
+        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no NOX::Nln::Vector!");
 
     return Core::LinAlg::Vector<double>(epetra_vec->getEpetraVector());
   }
@@ -192,7 +193,7 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_pre_compute_x(const NOX::Nln::G
     const Core::LinAlg::Vector<double>& dir, const double& step, const NOX::Nln::Group& curr_grp)
 {
   // set the evaluation parameters
-  const auto& xold = dynamic_cast<const ::NOX::Epetra::Vector&>(input_grp.getX()).getEpetraVector();
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
   Core::LinAlg::Vector<double>& dir_mutable = const_cast<Core::LinAlg::Vector<double>&>(dir);
 
   const bool isdefaultstep = (step == default_step_);
@@ -206,8 +207,8 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_post_compute_x(const NOX::Nln::
     const Core::LinAlg::Vector<double>& dir, const double& step, const NOX::Nln::Group& curr_grp)
 {
   // set the evaluation parameters
-  const auto& xold = dynamic_cast<const ::NOX::Epetra::Vector&>(input_grp.getX()).getEpetraVector();
-  const auto& xnew = dynamic_cast<const ::NOX::Epetra::Vector&>(curr_grp.getX()).getEpetraVector();
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
+  const auto& xnew = dynamic_cast<const NOX::Nln::Vector&>(curr_grp.getX()).getEpetraVector();
 
   bool isdefaultstep = (step == default_step_);
   impl_.model_eval().run_post_compute_x(Core::LinAlg::Vector<double>(xold), dir, step,
@@ -248,7 +249,7 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_pre_apply_jacobian_inverse(
 
   impl_.model_eval().run_pre_apply_jacobian_inverse(
       rhs_our, result_view, copy_to_our_vector(xold), grp);
-  const ::NOX::Epetra::Vector* epetra_rhs = dynamic_cast<const ::NOX::Epetra::Vector*>(&rhs);
+  const auto* epetra_rhs = dynamic_cast<const NOX::Nln::Vector*>(&rhs);
   const_cast<Epetra_Vector&>(epetra_rhs->getEpetraVector()).Update(1.0, rhs_our, 0.0);
 }
 

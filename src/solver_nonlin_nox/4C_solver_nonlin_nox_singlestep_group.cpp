@@ -15,7 +15,7 @@ FOUR_C_NAMESPACE_OPEN
  *----------------------------------------------------------------------------*/
 NOX::Nln::SINGLESTEP::Group::Group(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& grpOptionParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x,
     const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys)
     : NOX::Nln::Group(printParams, grpOptionParams, i, x, linSys)
 {
@@ -46,7 +46,7 @@ void NOX::Nln::SINGLESTEP::Group::computeX(
   const NOX::Nln::SINGLESTEP::Group* nlngrp =
       dynamic_cast<const NOX::Nln::SINGLESTEP::Group*>(&grp);
   if (nlngrp == nullptr) throw_error("computeX", "dyn_cast to nox_nln_group failed!");
-  const ::NOX::Epetra::Vector& epetrad = dynamic_cast<const ::NOX::Epetra::Vector&>(d);
+  const auto& epetrad = dynamic_cast<const NOX::Nln::Vector&>(d);
 
   computeX(*nlngrp, epetrad, step);
   return;
@@ -55,7 +55,7 @@ void NOX::Nln::SINGLESTEP::Group::computeX(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void NOX::Nln::SINGLESTEP::Group::computeX(
-    const NOX::Nln::SINGLESTEP::Group& grp, const ::NOX::Epetra::Vector& d, double step)
+    const NOX::Nln::SINGLESTEP::Group& grp, const NOX::Nln::Vector& d, double step)
 {
   Core::LinAlg::View d_view(const_cast<Epetra_Vector&>(d.getEpetraVector()));
   prePostOperatorPtr_->run_pre_compute_x(grp, d_view, step, *this);

@@ -12,11 +12,11 @@
 #include "4C_global_data.hpp"
 #include "4C_io_control.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Abstract_Vector.H>
 #include <NOX_Common.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_GlobalData.H>
 #include <NOX_Solver_Generic.H>
 #include <Teuchos_ParameterList.hpp>
@@ -117,8 +117,7 @@ bool NOX::FSI::AitkenRelaxation::compute(::NOX::Abstract::Group& grp, double& st
 
   if (utils_->isPrintType(::NOX::Utils::InnerIteration))
   {
-    utils_->out() << std::setw(3) << "1"
-                  << ":";
+    utils_->out() << std::setw(3) << "1" << ":";
     utils_->out() << " step = " << utils_->sciformat(step);
     utils_->out() << " orth = " << utils_->sciformat(checkOrthogonality);
     utils_->out() << "\n" << ::NOX::Utils::fill(72) << "\n" << std::endl;
@@ -127,7 +126,7 @@ bool NOX::FSI::AitkenRelaxation::compute(::NOX::Abstract::Group& grp, double& st
   // write omega
   double fnorm = grp.getF().norm();
   if (Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(
-          dynamic_cast<const ::NOX::Epetra::Vector&>(F).getEpetraVector().Comm())) == 0)
+          dynamic_cast<const NOX::Nln::Vector&>(F).getEpetraVector().Comm())) == 0)
   {
     static int count;
     static std::ofstream* out;

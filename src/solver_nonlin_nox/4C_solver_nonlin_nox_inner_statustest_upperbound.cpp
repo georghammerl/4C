@@ -13,7 +13,6 @@
 #include "4C_utils_exceptions.hpp"
 
 #include <NOX_Abstract_Vector.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Solver_Generic.H>
 #include <NOX_Utils.H>
 

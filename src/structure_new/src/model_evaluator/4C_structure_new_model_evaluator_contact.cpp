@@ -17,6 +17,7 @@
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
 #include "4C_solver_nonlin_nox_solver_linesearchbased.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
 #include "4C_structure_new_impl_generic.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
@@ -745,8 +746,7 @@ void Solid::ModelEvaluator::Contact::run_post_iterate(const ::NOX::Solver::Gener
 {
   check_init_setup();
 
-  const ::NOX::Epetra::Vector& nox_x =
-      dynamic_cast<const ::NOX::Epetra::Vector&>(solver.getSolutionGroup().getX());
+  const auto& nox_x = dynamic_cast<const NOX::Nln::Vector&>(solver.getSolutionGroup().getX());
 
   // displacement vector after the predictor call
   std::shared_ptr<Core::LinAlg::Vector<double>> curr_disp =
@@ -776,8 +776,7 @@ void Solid::ModelEvaluator::Contact::run_pre_apply_jacobian_inverse(
 void Solid::ModelEvaluator::Contact::run_pre_solve(const ::NOX::Solver::Generic& solver)
 {
   check_init_setup();
-  const ::NOX::Epetra::Vector& nox_x =
-      dynamic_cast<const ::NOX::Epetra::Vector&>(solver.getSolutionGroup().getX());
+  const auto& nox_x = dynamic_cast<const NOX::Nln::Vector&>(solver.getSolutionGroup().getX());
 
   // displacement vector after the predictor call
   std::shared_ptr<Core::LinAlg::Vector<double>> curr_disp =
@@ -827,7 +826,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 Solid::ModelEvaluator::Contact::assemble_force_of_models(
     const std::vector<Inpar::Solid::ModelType>* without_these_models, const bool apply_dbc) const
 {
-  std::shared_ptr<::NOX::Epetra::Vector> force_nox = global_state().create_global_vector();
+  std::shared_ptr<NOX::Nln::Vector> force_nox = global_state().create_global_vector();
   {
     Core::LinAlg::View force_view(force_nox->getEpetraVector());
     integrator().assemble_force(force_view, without_these_models);

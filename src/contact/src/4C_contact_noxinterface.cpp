@@ -11,9 +11,9 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_enum.hpp"
 
-#include <NOX_Epetra_Vector.H>
 #include <Teuchos_RCPStdSharedPtrConversions.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -83,7 +83,7 @@ double CONTACT::NoxInterface::get_constraint_rhs_norms(const Core::LinAlg::Vecto
   constrRhs_red->replace_map(strategy().slave_dof_row_map(true));
 
   double constrNorm = -1.0;
-  Teuchos::RCP<const ::NOX::Epetra::Vector> constrRhs_nox = Teuchos::null;
+  Teuchos::RCP<const NOX::Nln::Vector> constrRhs_nox = Teuchos::null;
   switch (checkQuantity)
   {
     case NOX::Nln::StatusTest::quantity_contact_normal:
@@ -223,7 +223,7 @@ double CONTACT::NoxInterface::get_previous_lagrange_multiplier_norms(
   std::shared_ptr<Core::LinAlg::Vector<double>> zold_ptr =
       std::make_shared<Core::LinAlg::Vector<double>>(*strategy().lagrange_multiplier_np(true));
   zold_ptr->update(-1.0, *strategy().lagrange_multiplier_increment(), 1.0);
-  std::shared_ptr<::NOX::Epetra::Vector> zold_nox_ptr = nullptr;
+  std::shared_ptr<NOX::Nln::Vector> zold_nox_ptr = nullptr;
   switch (checkQuantity)
   {
     case NOX::Nln::StatusTest::quantity_contact_normal:

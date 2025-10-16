@@ -19,7 +19,6 @@
 #include <NOX_Common.H>
 #include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 #include <Teuchos_Time.hpp>
 
@@ -43,8 +42,8 @@ namespace NOX::FSI
         const std::shared_ptr<::NOX::Epetra::Interface::Jacobian>&
             iJac,  ///< NOX interface to Jacobian
         const std::shared_ptr<Core::LinAlg::SparseOperator>&
-            J,                                     ///< the Jacobian or stiffness matrix
-        const ::NOX::Epetra::Vector& cloneVector,  ///< initial guess of the solution process
+            J,                                ///< the Jacobian or stiffness matrix
+        const NOX::Nln::Vector& cloneVector,  ///< initial guess of the solution process
         std::shared_ptr<Core::LinAlg::Solver>
             structure_solver,  ///< (used-defined) linear algebraic solver
         const std::shared_ptr<NOX::Nln::Scaling> scalingObject =
@@ -54,20 +53,19 @@ namespace NOX::FSI
     void reset(Teuchos::ParameterList& linearSolverParams);
 
     /// Applies Jacobian to the given input vector and puts the answer in the result.
-    bool apply_jacobian(
-        const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+    bool apply_jacobian(const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
     /// Applies Jacobian-Transpose to the given input vector and puts the answer in the result.
     bool apply_jacobian_transpose(
-        const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+        const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
     /// Applies the inverse of the Jacobian matrix to the given input vector and puts the answer
     /// in result.
-    bool apply_jacobian_inverse(Teuchos::ParameterList& params, const ::NOX::Epetra::Vector& input,
-        ::NOX::Epetra::Vector& result) override;
+    bool apply_jacobian_inverse(Teuchos::ParameterList& params, const NOX::Nln::Vector& input,
+        NOX::Nln::Vector& result) override;
 
     /// Evaluates the Jacobian based on the solution vector x.
-    bool compute_jacobian(const ::NOX::Epetra::Vector& x) override;
+    bool compute_jacobian(const NOX::Nln::Vector& x) override;
 
     /// Return Jacobian operator.
     Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const override;
@@ -85,7 +83,7 @@ namespace NOX::FSI
     mutable std::shared_ptr<Epetra_Operator> jac_ptr_;
     mutable std::shared_ptr<Core::LinAlg::SparseOperator> operator_;
     std::shared_ptr<NOX::Nln::Scaling> scaling_;
-    mutable std::shared_ptr<::NOX::Epetra::Vector> tmp_vector_ptr_;
+    mutable std::shared_ptr<NOX::Nln::Vector> tmp_vector_ptr_;
 
     bool output_solve_details_;
     bool zero_initial_guess_;

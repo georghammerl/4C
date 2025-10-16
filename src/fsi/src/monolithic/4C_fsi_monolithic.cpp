@@ -30,6 +30,7 @@
 #include "4C_linear_solver_method.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_linear_solver_method_parameters.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_aux.hpp"
 
 #include <NOX_Direction_UserDefinedFactory.H>
@@ -627,8 +628,8 @@ void FSI::Monolithic::time_step(
       std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   initial_guess(initial_guess_v);
 
-  ::NOX::Epetra::Vector noxSoln(Teuchos::rcpFromRef(initial_guess_v->get_ref_of_epetra_vector()),
-      ::NOX::Epetra::Vector::CreateView);
+  NOX::Nln::Vector noxSoln(Teuchos::rcpFromRef(initial_guess_v->get_ref_of_epetra_vector()),
+      NOX::Nln::Vector::MemoryType::View);
 
   // Create the linear system
   std::shared_ptr<NOX::Nln::LinearSystemBase> linSys =
@@ -1113,7 +1114,7 @@ void FSI::BlockMonolithic::create_system_matrix(
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 std::shared_ptr<NOX::Nln::LinearSystemBase> FSI::BlockMonolithic::create_linear_system(
-    Teuchos::ParameterList& nlParams, ::NOX::Epetra::Vector& noxSoln,
+    Teuchos::ParameterList& nlParams, NOX::Nln::Vector& noxSoln,
     std::shared_ptr<::NOX::Utils> utils)
 {
   Teuchos::ParameterList& printParams = nlParams.sublist("Printing");

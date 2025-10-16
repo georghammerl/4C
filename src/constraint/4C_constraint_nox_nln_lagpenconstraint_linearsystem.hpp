@@ -34,7 +34,7 @@ namespace NOX
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
-            const ::NOX::Epetra::Vector& cloneVector,
+            const NOX::Nln::Vector& cloneVector,
             const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
         //! Constructor without scaling object
@@ -46,7 +46,7 @@ namespace NOX
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
-            const ::NOX::Epetra::Vector& cloneVector);
+            const NOX::Nln::Vector& cloneVector);
 
         //! Sets the options of the underlying solver
         Core::LinAlg::SolverParams set_solver_options(Teuchos::ParameterList& p,

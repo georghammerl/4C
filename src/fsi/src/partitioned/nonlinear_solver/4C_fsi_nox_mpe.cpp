@@ -12,9 +12,9 @@
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <NOX_Abstract_Group.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_GlobalData.H>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_RCP.hpp>
@@ -55,7 +55,7 @@ bool NOX::FSI::MinimalPolynomial::compute(
 
   const ::NOX::Abstract::Vector& x = group.getX();
 
-  std::vector<Teuchos::RCP<::NOX::Epetra::Vector>> q;
+  std::vector<Teuchos::RCP<NOX::Nln::Vector>> q;
   Core::LinAlg::SerialDenseMatrix r(kmax_ + 1, kmax_ + 1, true);
   Core::LinAlg::SerialDenseVector c(kmax_ + 1, true);
   Core::LinAlg::SerialDenseVector gamma(kmax_ + 1, true);
@@ -71,10 +71,10 @@ bool NOX::FSI::MinimalPolynomial::compute(
     if (status != ::NOX::Abstract::Group::Ok) throw_error("compute", "Unable to compute F");
 
     // get f = d(k+1) - d(k)
-    const ::NOX::Epetra::Vector& f = dynamic_cast<const ::NOX::Epetra::Vector&>(group.getF());
+    const auto& f = dynamic_cast<const NOX::Nln::Vector&>(group.getF());
 
     // We have to work on the scaled residual here.
-    Teuchos::RCP<::NOX::Epetra::Vector> y = Teuchos::make_rcp<::NOX::Epetra::Vector>(f);
+    Teuchos::RCP<NOX::Nln::Vector> y = Teuchos::make_rcp<NOX::Nln::Vector>(f);
     y->scale(omega_);
 
     // modified Gram-Schmidt
@@ -192,7 +192,7 @@ bool NOX::FSI::MinimalPolynomial::compute(
     xi(j) = xi(j - 1) - gamma(j);
   }
 
-  ::NOX::Epetra::Vector s(dynamic_cast<const ::NOX::Epetra::Vector&>(x));
+  NOX::Nln::Vector s(dynamic_cast<const NOX::Nln::Vector&>(x));
   for (int j = 0; j < k; ++j)
   {
     double hp = 0.;

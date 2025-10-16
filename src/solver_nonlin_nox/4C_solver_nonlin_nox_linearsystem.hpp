@@ -47,6 +47,7 @@ namespace NOX
       class PrePostOperator;
     }  // namespace LinSystem
     class Scaling;
+    class Vector;
 
     class LinearSystem : public NOX::Nln::LinearSystemBase
     {
@@ -60,7 +61,7 @@ namespace NOX
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
-          const ::NOX::Epetra::Vector& cloneVector,
+          const NOX::Nln::Vector& cloneVector,
           const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
       //! Constructor without scaling object
@@ -69,22 +70,20 @@ namespace NOX
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
-          const ::NOX::Epetra::Vector& cloneVector);
+          const NOX::Nln::Vector& cloneVector);
 
       //! Constructor without preconditioner
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-          const ::NOX::Epetra::Vector& cloneVector,
+          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
           const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
       //! Constructor without preconditioner and scaling object
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-          const ::NOX::Epetra::Vector& cloneVector);
+          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector);
 
       //! reset the linear solver parameters
       void reset(Teuchos::ParameterList& p);
@@ -93,31 +92,28 @@ namespace NOX
       void reset_pre_post_operator(Teuchos::ParameterList& p);
 
       //! Evaluate the Jacobian
-      bool compute_jacobian(const ::NOX::Epetra::Vector& x) override;
+      bool compute_jacobian(const NOX::Nln::Vector& x) override;
 
       //! Evaluate the Jacobian and the right hand side based on the solution vector x at once.
-      virtual bool compute_f_and_jacobian(
-          const ::NOX::Epetra::Vector& x, ::NOX::Epetra::Vector& rhs);
+      virtual bool compute_f_and_jacobian(const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
       bool compute_correction_system(const enum NOX::Nln::CorrectionType type,
-          const ::NOX::Abstract::Group& grp, const ::NOX::Epetra::Vector& x,
-          ::NOX::Epetra::Vector& rhs);
+          const ::NOX::Abstract::Group& grp, const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
-      bool apply_jacobian_block(const ::NOX::Epetra::Vector& input,
-          Teuchos::RCP<::NOX::Epetra::Vector>& result, unsigned rbid, unsigned cbid) const;
+      bool apply_jacobian_block(const NOX::Nln::Vector& input,
+          Teuchos::RCP<NOX::Nln::Vector>& result, unsigned rbid, unsigned cbid) const;
 
-      bool apply_jacobian(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+      bool apply_jacobian(const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       bool apply_jacobian_transpose(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       bool apply_jacobian_inverse(Teuchos::ParameterList& linearSolverParams,
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) override;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) override;
 
       //! adjust the pseudo time step (using a least squares approximation)
       void adjust_pseudo_time_step(double& delta, const double& stepSize,
-          const ::NOX::Epetra::Vector& dir, const ::NOX::Epetra::Vector& rhs,
+          const NOX::Nln::Vector& dir, const NOX::Nln::Vector& rhs,
           const NOX::Nln::Solver::PseudoTransient& ptcsolver);
 
       //! ::NOX::Epetra::Interface::Required accessor

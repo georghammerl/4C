@@ -12,12 +12,12 @@
 #include "4C_io_control.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Abstract_Vector.H>
 #include <NOX_Common.H>
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_GlobalData.H>
 #include <NOX_Solver_Generic.H>
 #include <NOX_Utils.H>
@@ -75,8 +75,7 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
 
   if (utils_->isPrintType(::NOX::Utils::InnerIteration))
   {
-    utils_->out() << std::setw(3) << "1"
-                  << ":";
+    utils_->out() << std::setw(3) << "1" << ":";
     utils_->out() << " step = " << utils_->sciformat(step);
     utils_->out() << " orth = " << utils_->sciformat(checkOrthogonality);
     utils_->out() << "\n" << ::NOX::Utils::fill(72) << "\n" << std::endl;
@@ -85,7 +84,7 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
   // write omega
   double fnorm = oldgrp.getF().norm();
   if (Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(
-          dynamic_cast<const ::NOX::Epetra::Vector&>(oldgrp.getF()).getEpetraVector().Comm())) == 0)
+          dynamic_cast<const NOX::Nln::Vector&>(oldgrp.getF()).getEpetraVector().Comm())) == 0)
   {
     static int count;
     static std::ofstream* out;
@@ -110,8 +109,8 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
   // Allocate space for vecPtr and grpPtr if necessary
   if (!(vec_ptr_)) vec_ptr_ = dir.clone(::NOX::ShapeCopy);
 
-  const ::NOX::Epetra::Vector& edir = dynamic_cast<const ::NOX::Epetra::Vector&>(dir);
-  ::NOX::Epetra::Vector& evec = dynamic_cast<::NOX::Epetra::Vector&>(*vec_ptr_);
+  const auto& edir = dynamic_cast<const NOX::Nln::Vector&>(dir);
+  auto& evec = dynamic_cast<NOX::Nln::Vector&>(*vec_ptr_);
 
   // we do not want the group to remember this solution
   // and we want to set our own flag

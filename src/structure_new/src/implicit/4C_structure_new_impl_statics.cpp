@@ -12,14 +12,13 @@
 #include "4C_linalg_sparseoperator.hpp"
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
 #include "4C_structure_new_model_evaluator_structure.hpp"
 #include "4C_structure_new_predict_generic.hpp"
 #include "4C_structure_new_timint_implicit.hpp"
-
-#include <NOX_Epetra_Vector.H>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -150,13 +149,13 @@ double Solid::IMPLICIT::Statics::calc_ref_norm_force(
   const std::shared_ptr<Core::LinAlg::Vector<double>> freactnp =
       std::const_pointer_cast<Core::LinAlg::Vector<double>>(global_state().get_freact_np());
 
-  // switch from Core::LinAlg::Vector<double> to ::NOX::Epetra::Vector (view but read-only)
-  const ::NOX::Epetra::Vector fintnp_nox_ptr(
-      Teuchos::rcpFromRef(fintnp->get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
-  const ::NOX::Epetra::Vector fextnp_nox_ptr(
-      Teuchos::rcpFromRef(fextnp->get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
-  const ::NOX::Epetra::Vector freactnp_nox_ptr(
-      Teuchos::rcpFromRef(freactnp->get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
+  // switch from Core::LinAlg::Vector<double> to NOX::Nln::Vector (view but read-only)
+  const NOX::Nln::Vector fintnp_nox_ptr(
+      Teuchos::rcpFromRef(fintnp->get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
+  const NOX::Nln::Vector fextnp_nox_ptr(
+      Teuchos::rcpFromRef(fextnp->get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
+  const NOX::Nln::Vector freactnp_nox_ptr(Teuchos::rcpFromRef(freactnp->get_ref_of_epetra_vector()),
+      NOX::Nln::Vector::MemoryType::View);
 
   // norm of the internal forces
   double fintnorm = fintnp_nox_ptr.norm(type);

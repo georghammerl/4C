@@ -26,13 +26,6 @@ namespace Teuchos
 {
   class Time;
 }
-namespace NOX
-{
-  namespace Epetra
-  {
-    class Vector;
-  }  // namespace Epetra
-}  // namespace NOX
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -54,6 +47,11 @@ namespace Core::LinAlg
   class SparseOperator;
   class SparseMatrix;
 }  // namespace Core::LinAlg
+
+namespace NOX::Nln
+{
+  class Vector;
+}  // namespace NOX::Nln
 
 namespace Solid
 {
@@ -222,9 +220,8 @@ namespace Solid
       std::shared_ptr<Core::LinAlg::SparseMatrix> jacobian_displ_block();
 
       /// Create the global solution vector
-      std::shared_ptr<::NOX::Epetra::Vector> create_global_vector() const;
-      std::shared_ptr<::NOX::Epetra::Vector> create_global_vector(
-          const enum VecInitType& vecinittype,
+      std::shared_ptr<NOX::Nln::Vector> create_global_vector() const;
+      std::shared_ptr<NOX::Nln::Vector> create_global_vector(const enum VecInitType& vecinittype,
           const std::shared_ptr<const Solid::ModelEvaluatorManager>& modeleval) const;
 
       /// Create the structural stiffness matrix block

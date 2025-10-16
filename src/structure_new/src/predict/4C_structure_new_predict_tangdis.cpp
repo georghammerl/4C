@@ -12,6 +12,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
 #include "4C_structure_new_impl_generic.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
@@ -20,7 +21,6 @@
 #include "4C_structure_new_utils.hpp"
 #include "4C_utils_exceptions.hpp"
 
-#include <NOX_Epetra_Vector.H>
 #include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -73,7 +73,7 @@ void Solid::Predict::TangDis::compute(::NOX::Abstract::Group& grp)
   // We create at this point a new solution vector and initialize it
   // with the values of the last converged time step.
   // ---------------------------------------------------------------------------
-  std::shared_ptr<::NOX::Epetra::Vector> x_ptr = global_state().create_global_vector(
+  std::shared_ptr<NOX::Nln::Vector> x_ptr = global_state().create_global_vector(
       TimeInt::BaseDataGlobalState::VecInitType::last_time_step, impl_int().model_eval_ptr());
   // Set the solution vector in the nox group. This will reset all isValid
   // flags.
@@ -121,8 +121,7 @@ void Solid::Predict::TangDis::compute(::NOX::Abstract::Group& grp)
   Core::LinAlg::export_to(*dbc_incr_ptr_, *dbc_incr_exp_ptr);
   grp_ptr->computeX(*grp_ptr, dbc_incr_exp_ptr->get_ref_of_epetra_vector(), 1.0);
   // Reset the state variables
-  const ::NOX::Epetra::Vector& x_eptra =
-      dynamic_cast<const ::NOX::Epetra::Vector&>(grp_ptr->getX());
+  const auto& x_eptra = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
   // set the consistent state in the models (e.g. structure and contact models)
   impl_int().reset_model_states(Core::LinAlg::Vector<double>(x_eptra.getEpetraVector()));
 

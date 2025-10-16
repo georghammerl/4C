@@ -15,6 +15,7 @@
 #include "4C_linalg_utils_sparse_algebra_print.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_linearsystem.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_impl_generic.hpp"
 #include "4C_structure_new_nln_solver_factory.hpp"
 #include "4C_structure_new_nln_solver_generic.hpp"
@@ -80,8 +81,8 @@ void Solid::TimeInt::Implicit::setup()
 void Solid::TimeInt::Implicit::set_state(const std::shared_ptr<Core::LinAlg::Vector<double>>& x)
 {
   integrator_ptr()->set_state(*x);
-  ::NOX::Epetra::Vector x_nox(
-      Teuchos::rcpFromRef(x->get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
+  NOX::Nln::Vector x_nox(
+      Teuchos::rcpFromRef(x->get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
   nln_solver().get_solution_group().setX(x_nox);
   set_state_in_sync_with_nox_group(true);
 }
@@ -166,16 +167,16 @@ void Solid::TimeInt::Implicit::update_state_incrementally(
       Core::Utils::shared_ptr_from_ref(
           *const_cast<Core::LinAlg::Vector<double>*>(disiterinc.get()));
 
-  // wrap the displacement vector in a nox_epetra_Vector
-  const ::NOX::Epetra::Vector nox_disiterinc_ptr(
+  // wrap the displacement vector in a NOX::Nln::Vector
+  const NOX::Nln::Vector nox_disiterinc_ptr(
       Teuchos::rcpFromRef(mutable_disiterinc->get_ref_of_epetra_vector()),
-      ::NOX::Epetra::Vector::CreateView);
+      NOX::Nln::Vector::MemoryType::View);
 
   // updated the state vector in the nox group
   grp_ptr->computeX(*grp_ptr, nox_disiterinc_ptr, 1.0);
 
   // Reset the state variables
-  const auto& x_eptra = dynamic_cast<const ::NOX::Epetra::Vector&>(grp_ptr->getX());
+  const auto& x_eptra = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
   // set the consistent state in the models (e.g. structure and contact models)
   impl_int().reset_model_states(Core::LinAlg::Vector<double>(x_eptra.getEpetraVector()));
 }
@@ -283,8 +284,8 @@ Inpar::Solid::ConvergenceStatus Solid::TimeInt::Implicit::perform_error_action(
       if (myrank == 0)
       {
         Core::IO::cout << "Nonlinear solver failed to converge at time t= " << get_time_np()
-                       << ". Divide timestep in half. "
-                       << "Old time step: " << get_delta_time() << Core::IO::endl
+                       << ". Divide timestep in half. " << "Old time step: " << get_delta_time()
+                       << Core::IO::endl
                        << "New time step: " << 0.5 * get_delta_time() << Core::IO::endl
                        << Core::IO::endl;
       }
@@ -312,8 +313,8 @@ Inpar::Solid::ConvergenceStatus Solid::TimeInt::Implicit::perform_error_action(
       if (myrank == 0)
       {
         Core::IO::cout << "Nonlinear solver failed to converge at time t= " << get_time_np()
-                       << ". Divide timestep in half. "
-                       << "Old time step: " << get_delta_time() << Core::IO::endl
+                       << ". Divide timestep in half. " << "Old time step: " << get_delta_time()
+                       << Core::IO::endl
                        << "New time step: " << 0.5 * get_delta_time() << Core::IO::endl
                        << Core::IO::endl;
       }
@@ -480,8 +481,7 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
   // create file name
   std::stringstream filebase;
 
-  filebase << "str_jacobian"
-           << "_step-" << get_data_global_state().get_step_np() << "_nlniter-"
+  filebase << "str_jacobian" << "_step-" << get_data_global_state().get_step_np() << "_nlniter-"
            << nlnsolver_ptr_->get_num_nln_iterations();
 
   std::stringstream filename;

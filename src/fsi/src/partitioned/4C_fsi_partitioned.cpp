@@ -28,6 +28,7 @@
 #include "4C_inpar_fsi.hpp"
 #include "4C_io_control.hpp"
 #include "4C_solver_nonlin_nox_group_base.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_aux.hpp"
 #include "4C_utils_enum.hpp"
 
@@ -403,8 +404,8 @@ void FSI::Partitioned::timeloop(const Teuchos::RCP<::NOX::Epetra::Interface::Req
     // Get initial guess
     std::shared_ptr<Core::LinAlg::Vector<double>> soln = initial_guess();
 
-    ::NOX::Epetra::Vector noxSoln(
-        Teuchos::rcpFromRef(soln->get_ref_of_epetra_vector()), ::NOX::Epetra::Vector::CreateView);
+    NOX::Nln::Vector noxSoln(
+        Teuchos::rcpFromRef(soln->get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
 
     // Create the linear system
     Teuchos::RCP<NOX::Nln::LinearSystemBase> linSys =
@@ -490,8 +491,8 @@ void FSI::Partitioned::timeloop(const Teuchos::RCP<::NOX::Epetra::Interface::Req
 /*----------------------------------------------------------------------*/
 Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
     Teuchos::ParameterList& nlParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& interface,
-    ::NOX::Epetra::Vector& noxSoln, ::NOX::Utils& utils)
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& interface, NOX::Nln::Vector& noxSoln,
+    ::NOX::Utils& utils)
 {
   Teuchos::ParameterList& printParams = nlParams.sublist("Printing");
 
