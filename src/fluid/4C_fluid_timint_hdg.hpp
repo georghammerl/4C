@@ -117,7 +117,7 @@ namespace FLD
     /*!
     \brief Reset state vectors
      */
-    void reset(bool completeReset = false, int numsteps = 1, int iter = -1) override;
+    void reset(int numsteps = 1, int iter = -1) override;
 
     /*!
     \brief update configuration and output to file/screen

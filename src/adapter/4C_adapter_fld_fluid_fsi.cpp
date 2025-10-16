@@ -517,10 +517,10 @@ void Adapter::FluidFSI::proj_vel_to_div_zero()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Adapter::FluidFSI::reset(bool completeReset, int numsteps, int iter)
+void Adapter::FluidFSI::reset(int numsteps, int iter)
 
 {
-  FluidWrapper::reset(completeReset, numsteps, iter);
+  FluidWrapper::reset(numsteps, iter);
   return;
 }
 

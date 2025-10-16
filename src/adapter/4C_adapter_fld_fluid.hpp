@@ -266,7 +266,7 @@ namespace Adapter
     virtual std::shared_ptr<FLD::Vreman> vreman() = 0;
 
     /// reset state vectors (needed for biofilm simulations)
-    virtual void reset(bool completeReset = false, int numsteps = 1, int iter = -1) = 0;
+    virtual void reset(int numsteps = 1, int iter = -1) = 0;
 
     /// set fluid displacement vector due to biofilm growth
     virtual void set_fld_gr_disp(

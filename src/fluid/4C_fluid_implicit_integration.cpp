@@ -6169,73 +6169,48 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FLD::FluidImplicitTimeInt::calc_di
 /*------------------------------------------------------------------------------------------------*
  |
  *------------------------------------------------------------------------------------------------*/
-void FLD::FluidImplicitTimeInt::reset(bool completeReset, int numsteps, int iter)
+void FLD::FluidImplicitTimeInt::reset(int numsteps, int iter)
 {
-  if (completeReset)
+  const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
+
+  // Vectors passed to the element
+  // -----------------------------
+  // velocity/pressure at time n+1, n and n-1
+  velnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  veln_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  velnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // acceleration/(scalar time derivative) at time n+1 and n
+  accnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  accn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  accnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // velocity/pressure at time n+alpha_F
+  velaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // velocity/pressure at time n+alpha_M
+  velam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // acceleration/(scalar time derivative) at time n+alpha_M/(n+alpha_M/n)
+  accam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // scalar at time n+alpha_F/n+1 and n+alpha_M/n
+  // (only required for low-Mach-number case)
+  scaaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  scaam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  // history vector
+  hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
+
+  if (alefluid_)
   {
-    time_ = 0.0;
-    step_ = 0;
+    const Core::LinAlg::Map* aledofrowmap = discret_->dof_row_map(ndsale_);
 
-    if (numsteps == 1)  // just save last solution
-      output_->overwrite_result_file();
-    else if (numsteps == 0)  // save all steps
-    {
-      if (iter < 0) FOUR_C_THROW("iteration number <0");
-      output_->new_result_file(iter);
-    }
-    else if (numsteps > 1)  // save numstep steps
-    {
-      if (iter < 0) FOUR_C_THROW("iteration number <0");
-      output_->new_result_file(iter % numsteps);
-    }
-    else
-      FOUR_C_THROW("cannot save output for a negative number of steps");
-
-    output_->write_mesh(0, 0.0);
-  }
-  else
-  {
-    const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
-
-    // Vectors passed to the element
-    // -----------------------------
-    // velocity/pressure at time n+1, n and n-1
-    velnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    veln_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    velnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // acceleration/(scalar time derivative) at time n+1 and n
-    accnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    accn_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    accnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // velocity/pressure at time n+alpha_F
-    velaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // velocity/pressure at time n+alpha_M
-    velam_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // acceleration/(scalar time derivative) at time n+alpha_M/(n+alpha_M/n)
-    accam_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // scalar at time n+alpha_F/n+1 and n+alpha_M/n
-    // (only required for low-Mach-number case)
-    scaaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    scaam_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    // history vector
-    hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
-
-    if (alefluid_)
-    {
-      const Core::LinAlg::Map* aledofrowmap = discret_->dof_row_map(ndsale_);
-
-      if (!dispnp_) dispnp_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-      if (!dispn_) dispn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-      dispnm_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-      gridv_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-      gridvn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-    }
+    if (!dispnp_) dispnp_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+    if (!dispn_) dispn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+    dispnm_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+    gridv_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+    gridvn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
   }
 }
 

@@ -95,9 +95,9 @@ void FLD::TimIntStationaryHDG::init()
 }
 
 
-void FLD::TimIntStationaryHDG::reset(bool completeReset, int numsteps, int iter)
+void FLD::TimIntStationaryHDG::reset(int numsteps, int iter)
 {
-  FluidImplicitTimeInt::reset(completeReset, numsteps, iter);
+  FluidImplicitTimeInt::reset(numsteps, iter);
   const Core::LinAlg::Map* intdofrowmap = discret_->dof_row_map(1);
   intvelnp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
   if (Core::Communication::my_mpi_rank(discret_->get_comm()) == 0)
