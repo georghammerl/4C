@@ -12,6 +12,12 @@
 
 #include "4C_io_pstream.hpp"
 
+#ifdef FOUR_C_WITH_ARBORX
+#include <ArborX.hpp>
+#endif
+
+#include "4C_geometric_search_access_traits.hpp"
+
 #include <vector>
 
 FOUR_C_NAMESPACE_OPEN
@@ -28,6 +34,58 @@ namespace Core::GeometricSearch
     int gid_predicate;
     //! Global ID of the primitive
     int gid_primitive;
+  };
+
+  /*!
+   * \brief Wrapper class for the ArborX bounding volume hierarchy.
+   */
+  class BoundingVolumeHierarchy
+  {
+   public:
+    // Primitives placeholder
+    using Primitives = BoundingVolumeVectorPlaceholder<PrimitivesTag>;
+
+#ifndef FOUR_C_WITH_ARBORX
+    /*! \brief This class can not be used without ArborX, add empty methods and a controlled error.
+     */
+    explicit BoundingVolumeHierarchy(Primitives const& values)
+    {
+      FOUR_C_THROW(
+          "The class 'Core::GeometricSearch::BoundingVolumeHierarchy' can only be used with ArborX."
+          "To use it, enable ArborX during the configure process.");
+    }
+    template <class Predicates>
+    std::vector<CollisionSearchResult> query(Predicates const& predicates) const
+    {
+      FOUR_C_THROW(
+          "The class 'Core::GeometricSearch::BoundingVolumeHierarchy' can only be used with ArborX."
+          "To use it, enable ArborX during the configure process.");
+    }
+#else
+
+    using ExecutionSpace = Kokkos::DefaultExecutionSpace;
+    using ArborXBoundingVolumeHierarchy =
+        ArborX::BoundingVolumeHierarchy<typename ExecutionSpace::memory_space,
+            ArborX::Details::AccessValues<Primitives>::value_type>;
+
+    /*
+     * @brief Generate the bounding volume hierarchy from a vector of primitives.
+     */
+    explicit BoundingVolumeHierarchy(const Primitives& values)
+        : execution_{}, arborx_bounding_volume_hierarchy_(execution_, values)
+    {
+    }
+
+    /*
+     * @brief Query the bounding volume hierarchy with a given vector of predicates.
+     */
+    template <class Predicates>
+    auto query(Predicates const& predicates) const;
+
+   private:
+    ExecutionSpace execution_;
+    ArborXBoundingVolumeHierarchy arborx_bounding_volume_hierarchy_;
+#endif
   };
 
   /*! \brief Finds all primitives meeting the predicates and record results in {indices, offsets}.

@@ -12,8 +12,8 @@
 
 #include "4C_geometric_search_bounding_volume.hpp"
 
-#ifdef FOUR_C_WITH_ARBORX
-#include <ArborX.hpp>
+#include <utility>
+#include <vector>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -36,6 +36,8 @@ namespace Core::GeometricSearch
 
 FOUR_C_NAMESPACE_CLOSE
 
+#ifdef FOUR_C_WITH_ARBORX
+#include <ArborX.hpp>
 
 namespace ArborX
 {
@@ -57,8 +59,9 @@ namespace ArborX
     {
       // We are interested in the gid of the primitive, not the id in the bounding volume vector,
       // thus we attach the gid here.
-      return ArborX::PairValueIndex{placeholder.bounding_volumes_[i].second.bounding_volume_,
-          placeholder.bounding_volumes_[i].first};
+      return ArborX::PairValueIndex{
+          .value = placeholder.bounding_volumes_[i].second.bounding_volume_,
+          .index = placeholder.bounding_volumes_[i].first};
     }
 
     static KOKKOS_FUNCTION auto get(
