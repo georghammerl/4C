@@ -21,8 +21,6 @@
 #include "4C_structure_new_timint_base.hpp"
 #include "4C_structure_new_utils.hpp"
 
-#include <NOX_Epetra_Vector.H>
-
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------------*
@@ -535,8 +533,7 @@ void Solid::TimeInt::NoxInterface::find_constraint_models(const ::NOX::Abstract:
 double Solid::TimeInt::NoxInterface::calc_ref_norm_force()
 {
   check_init_setup();
-  const ::NOX::Epetra::Vector::NormType& nox_normtype =
-      timint_ptr_->get_data_sdyn().get_nox_norm_type();
+  const auto& nox_normtype = timint_ptr_->get_data_sdyn().get_nox_norm_type();
   return int_ptr_->calc_ref_norm_force(nox_normtype);
 }
 

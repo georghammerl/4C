@@ -10,6 +10,7 @@
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
 
 #include <Epetra_CrsMatrix.h>
@@ -28,7 +29,7 @@ NOX::FSI::LinearSystemGCR::LinearSystemGCR(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
     const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
-    const Teuchos::RCP<Epetra_Operator>& jacobian, const ::NOX::Epetra::Vector& cloneVector,
+    const Teuchos::RCP<Epetra_Operator>& jacobian, const NOX::Nln::Vector& cloneVector,
     const Teuchos::RCP<::NOX::Epetra::Scaling> s)
     : utils(printParams),
       jacInterfacePtr(iJac),
@@ -40,7 +41,7 @@ NOX::FSI::LinearSystemGCR::LinearSystemGCR(Teuchos::ParameterList& printParams,
       timeApplyJacbianInverse(0.0)
 {
   // Allocate solver
-  tmpVectorPtr = std::make_shared<::NOX::Epetra::Vector>(cloneVector);
+  tmpVectorPtr = std::make_shared<NOX::Nln::Vector>(cloneVector);
 
   reset(linearSolverParams);
 }
@@ -63,7 +64,7 @@ void NOX::FSI::LinearSystemGCR::reset(Teuchos::ParameterList& linearSolverParams
 
 
 bool NOX::FSI::LinearSystemGCR::apply_jacobian(
-    const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
+    const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jacPtr->SetUseTranspose(false);
   int status = jacPtr->Apply(input.getEpetraVector(), result.getEpetraVector());
@@ -72,7 +73,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian(
 
 
 bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
-    const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
+    const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jacPtr->SetUseTranspose(true);
   int status = jacPtr->Apply(input.getEpetraVector(), result.getEpetraVector());
@@ -83,14 +84,14 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
 
 
 bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
-    Teuchos::ParameterList& p, const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result)
+    Teuchos::ParameterList& p, const NOX::Nln::Vector& input, NOX::Nln::Vector& result)
 {
   double startTime = timer.wallTime();
 
   // Need non-const version of the input vector
   // Epetra_LinearProblem requires non-const versions so we can perform
   // scaling of the linear problem.
-  ::NOX::Epetra::Vector& nonConstInput = const_cast<::NOX::Epetra::Vector&>(input);
+  NOX::Nln::Vector& nonConstInput = const_cast<NOX::Nln::Vector&>(input);
 
   // Zero out the delta X of the linear problem if requested by user.
   if (zeroInitialGuess) result.init(0.0);
@@ -158,10 +159,10 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
 
 
 int NOX::FSI::LinearSystemGCR::solve_gcr(
-    const ::NOX::Epetra::Vector& b, ::NOX::Epetra::Vector& x, int& maxit, double& tol)
+    const NOX::Nln::Vector& b, NOX::Nln::Vector& x, int& maxit, double& tol)
 {
-  ::NOX::Epetra::Vector r(x, ::NOX::ShapeCopy);
-  ::NOX::Epetra::Vector tmp(x, ::NOX::ShapeCopy);
+  NOX::Nln::Vector r(x, ::NOX::ShapeCopy);
+  NOX::Nln::Vector tmp(x, ::NOX::ShapeCopy);
   if (not zeroInitialGuess)
   {
     // calculate initial residual
@@ -176,8 +177,8 @@ int NOX::FSI::LinearSystemGCR::solve_gcr(
   double normb = b.norm();
   double error0 = r.norm() / normb;
 
-  std::vector<std::shared_ptr<::NOX::Epetra::Vector>>& u = u_;
-  std::vector<std::shared_ptr<::NOX::Epetra::Vector>>& c = c_;
+  std::vector<std::shared_ptr<NOX::Nln::Vector>>& u = u_;
+  std::vector<std::shared_ptr<NOX::Nln::Vector>>& c = c_;
 
   // reset krylov space
   u.clear();
@@ -198,9 +199,9 @@ int NOX::FSI::LinearSystemGCR::solve_gcr(
   while (error / normb >= tol)
   {
     // this is GCR, not GMRESR
-    u.push_back(std::make_shared<::NOX::Epetra::Vector>(r));
+    u.push_back(std::make_shared<NOX::Nln::Vector>(r));
     if (not apply_jacobian(r, tmp)) throw_error("SolveGCR", "apply_jacobian() failed");
-    c.push_back(std::make_shared<::NOX::Epetra::Vector>(tmp));
+    c.push_back(std::make_shared<NOX::Nln::Vector>(tmp));
 
     for (int i = 0; i < k; ++i)
     {
@@ -233,7 +234,7 @@ int NOX::FSI::LinearSystemGCR::solve_gcr(
 
 
 int NOX::FSI::LinearSystemGCR::solve_gmres(
-    const ::NOX::Epetra::Vector& b, ::NOX::Epetra::Vector& x, int& max_iter, double& tol, int m)
+    const NOX::Nln::Vector& b, NOX::Nln::Vector& x, int& max_iter, double& tol, int m)
 {
   double resid = 0;
   Core::LinAlg::SerialDenseVector s(m + 1, true);
@@ -241,8 +242,8 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
   Core::LinAlg::SerialDenseVector sn(m + 1, true);
   Core::LinAlg::SerialDenseMatrix H(m + 1, m, true);
 
-  ::NOX::Epetra::Vector r(x, ::NOX::ShapeCopy);
-  ::NOX::Epetra::Vector w(x, ::NOX::ShapeCopy);
+  NOX::Nln::Vector r(x, ::NOX::ShapeCopy);
+  NOX::Nln::Vector w(x, ::NOX::ShapeCopy);
   if (not zeroInitialGuess)
   {
     // calculate initial residual
@@ -266,14 +267,14 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
     return 0;
   }
 
-  std::vector<std::shared_ptr<::NOX::Epetra::Vector>> v;
+  std::vector<std::shared_ptr<NOX::Nln::Vector>> v;
   v.reserve(m + 1);
 
   int j = 1;
   while (j <= max_iter)
   {
     v.clear();
-    v.push_back(std::make_shared<::NOX::Epetra::Vector>(r, ::NOX::ShapeCopy));
+    v.push_back(std::make_shared<NOX::Nln::Vector>(r, ::NOX::ShapeCopy));
     v[0]->update(1. / beta, r, 0.);
     s.putScalar(0.0);
     s(0) = beta;
@@ -289,7 +290,7 @@ int NOX::FSI::LinearSystemGCR::solve_gmres(
         w.update(H(k, i), *v[k], -1.);
       }
       H(i + 1, i) = w.norm();
-      v.push_back(std::make_shared<::NOX::Epetra::Vector>(w));
+      v.push_back(std::make_shared<NOX::Nln::Vector>(w));
       v.back()->scale(1.0 / H(i + 1, i));
 
       for (int k = 0; k < i; k++) apply_plane_rotation(H(k, i), H(k + 1, i), cs(k), sn(k));
@@ -382,7 +383,7 @@ void NOX::FSI::LinearSystemGCR::apply_plane_rotation(double& dx, double& dy, dou
 }
 
 
-bool NOX::FSI::LinearSystemGCR::compute_jacobian(const ::NOX::Epetra::Vector& x)
+bool NOX::FSI::LinearSystemGCR::compute_jacobian(const NOX::Nln::Vector& x)
 {
   bool success = jacInterfacePtr->computeJacobian(x.getEpetraVector(), *jacPtr);
   return success;

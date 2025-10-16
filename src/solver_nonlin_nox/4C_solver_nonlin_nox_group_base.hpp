@@ -11,10 +11,10 @@
 #include "4C_config.hpp"
 
 #include "4C_solver_nonlin_nox_linearsystem_base.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 #include <Teuchos_RCP.hpp>
 
@@ -28,7 +28,7 @@ namespace NOX
     {
      public:
       GroupBase(Teuchos::ParameterList& printParams,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
+          const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x,
           const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys);
 
       GroupBase(const NOX::Nln::GroupBase& source, ::NOX::CopyType type);
@@ -133,13 +133,13 @@ namespace NOX
       /** @name Vectors */
       //@{
       //! Solution vector.
-      ::NOX::Epetra::Vector xVector;
+      NOX::Nln::Vector xVector;
       //! Right-hand-side vector (function evaluation).
-      ::NOX::Epetra::Vector RHSVector;
+      NOX::Nln::Vector RHSVector;
       //! Gradient vector (steepest descent vector).
-      ::NOX::Epetra::Vector gradVector;
+      NOX::Nln::Vector gradVector;
       //! Newton direction vector.
-      ::NOX::Epetra::Vector NewtonVector;
+      NOX::Nln::Vector NewtonVector;
       //@}
 
       /** @name IsValid flags

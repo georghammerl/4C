@@ -29,8 +29,8 @@ namespace NOX
         Group(Teuchos::ParameterList& printParams,  //!< printing parameters
             Teuchos::ParameterList& grpOptionParams,
             const Teuchos::RCP<::NOX::Epetra::Interface::Required>&
-                i,                           //!< basically the NOXified time integrator
-            const ::NOX::Epetra::Vector& x,  //!< current solution vector
+                i,                      //!< basically the NOXified time integrator
+            const NOX::Nln::Vector& x,  //!< current solution vector
             const Teuchos::RCP<NOX::Nln::LinearSystemBase>&
                 linSys  //!< linear system, matrix and RHS etc.
         );
@@ -44,7 +44,7 @@ namespace NOX
 
         //! compute/update the current state variables
         void computeX(
-            const NOX::Nln::SINGLESTEP::Group& grp, const ::NOX::Epetra::Vector& d, double step);
+            const NOX::Nln::SINGLESTEP::Group& grp, const NOX::Nln::Vector& d, double step);
         void computeX(const ::NOX::Abstract::Group& grp, const ::NOX::Abstract::Vector& d,
             double step) override;
 

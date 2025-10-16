@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 NOX::Nln::Group::Group(Teuchos::ParameterList& printParams, Teuchos::ParameterList& grpOptionParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x,
     const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys)
     : GroupBase(printParams, i, x, linSys),
       skipUpdateX_(false),
@@ -75,7 +75,7 @@ void NOX::Nln::Group::computeX(
   // Cast to appropriate type, then call the "native" computeX
   const NOX::Nln::Group* nlngrp = dynamic_cast<const NOX::Nln::Group*>(&grp);
   if (nlngrp == nullptr) throw_error("computeX", "dyn_cast to nox_nln_group failed!");
-  const ::NOX::Epetra::Vector& epetrad = dynamic_cast<const ::NOX::Epetra::Vector&>(d);
+  const auto& epetrad = dynamic_cast<const NOX::Nln::Vector&>(d);
 
   computeX(*nlngrp, epetrad, step);
   return;
@@ -83,8 +83,7 @@ void NOX::Nln::Group::computeX(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void NOX::Nln::Group::computeX(
-    const NOX::Nln::Group& grp, const ::NOX::Epetra::Vector& d, double step)
+void NOX::Nln::Group::computeX(const NOX::Nln::Group& grp, const NOX::Nln::Vector& d, double step)
 {
   skipUpdateX_ = false;
 
@@ -103,7 +102,7 @@ void NOX::Nln::Group::computeX(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-::NOX::Abstract::Group::ReturnType NOX::Nln::Group::set_f(Teuchos::RCP<::NOX::Epetra::Vector> Fptr)
+::NOX::Abstract::Group::ReturnType NOX::Nln::Group::set_f(Teuchos::RCP<NOX::Nln::Vector> Fptr)
 {
   if (Fptr == Teuchos::null or Fptr->getEpetraVector().Map().NumGlobalElements() == 0)
     return ::NOX::Abstract::Group::BadDependency;
@@ -277,7 +276,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_solution_update_rms(
     const std::vector<double>& rTol, const std::vector<NOX::Nln::StatusTest::QuantityType>& chQ,
     const std::vector<bool>& disable_implicit_weighting) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   Teuchos::RCP<std::vector<double>> rms = Teuchos::make_rcp<std::vector<double>>(0);
 
   double rval = -1.0;
@@ -321,10 +320,10 @@ double NOX::Nln::Group::get_trial_update_norm(const ::NOX::Abstract::Vector& dir
     tmp_vector_ptr_->Scale(1.0, xVector.getEpetraVector());
 
   // change the internally stored x-vector for the norm evaluation
-  ::NOX::Epetra::Vector& x_mutable = const_cast<::NOX::Epetra::Vector&>(xVector);
+  auto& x_mutable = const_cast<NOX::Nln::Vector&>(xVector);
   x_mutable.update(1.0, dir, 1.0);
 
-  ::NOX::Epetra::Vector xold(tmp_vector_ptr_, ::NOX::Epetra::Vector::CreateView);
+  NOX::Nln::Vector xold(tmp_vector_ptr_, NOX::Nln::Vector::MemoryType::View);
 
   const double rval =
       get_solution_update_norms(xold, normtypes, quantities, Teuchos::rcpFromRef(scales))->at(0);
@@ -342,7 +341,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_solution_update_norms(
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -380,7 +379,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_previous_solution_norms(
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const ::NOX::Epetra::Vector& xOldEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(xOld);
+  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -443,14 +442,14 @@ void NOX::Nln::Group::reset_lin_sys_pre_post_operator(
 void NOX::Nln::Group::adjust_pseudo_time_step(double& delta, const double& stepSize,
     const ::NOX::Abstract::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver)
 {
-  const ::NOX::Epetra::Vector& dirEpetra = dynamic_cast<const ::NOX::Epetra::Vector&>(dir);
+  const auto& dirEpetra = dynamic_cast<const NOX::Nln::Vector&>(dir);
   adjust_pseudo_time_step(delta, stepSize, dirEpetra, ptcsolver);
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void NOX::Nln::Group::adjust_pseudo_time_step(double& delta, const double& stepSize,
-    const ::NOX::Epetra::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver)
+    const NOX::Nln::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver)
 {
   if (!isF() or !isJacobian())
     throw_error("AdjustPseudoTimeStep", "F and/or the jacobian are not evaluated!");

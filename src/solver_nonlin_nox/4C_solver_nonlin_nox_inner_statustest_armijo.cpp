@@ -12,7 +12,6 @@
 #include "4C_utils_exceptions.hpp"
 
 #include <NOX_Abstract_Group.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_MeritFunction_Generic.H>
 #include <NOX_Utils.H>
 

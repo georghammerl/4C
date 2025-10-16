@@ -57,6 +57,8 @@ namespace NOX
     class AdaptiveNewtonNormF;
     class Group;
   }  // namespace FSI
+
+  class Vector;
 }  // namespace NOX
 
 namespace TimeStepping
@@ -405,7 +407,7 @@ namespace FSI
 
     /// setup solver for global block system
     virtual std::shared_ptr<NOX::Nln::LinearSystemBase> create_linear_system(
-        Teuchos::ParameterList& nlParams, ::NOX::Epetra::Vector& noxSoln,
+        Teuchos::ParameterList& nlParams, NOX::Nln::Vector& noxSoln,
         std::shared_ptr<::NOX::Utils> utils) = 0;
 
     //! setup of NOX convergence tests
@@ -1055,7 +1057,7 @@ namespace FSI
     /// setup solver for global block system
     std::shared_ptr<NOX::Nln::LinearSystemBase> create_linear_system(
         Teuchos::ParameterList& nlParams,    ///< parameter list
-        ::NOX::Epetra::Vector& noxSoln,      ///< solution vector in NOX format
+        NOX::Nln::Vector& noxSoln,           ///< solution vector in NOX format
         std::shared_ptr<::NOX::Utils> utils  ///< NOX utils
         ) override;
 

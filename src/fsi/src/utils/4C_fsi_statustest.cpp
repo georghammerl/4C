@@ -10,11 +10,11 @@
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
 #include "4C_fsi_nox_newton.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Abstract_Vector.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Solver_Generic.H>
 
 FOUR_C_NAMESPACE_OPEN
@@ -174,7 +174,7 @@ double NOX::FSI::PartialNormF::compute_norm(const ::NOX::Abstract::Group& grp)
   // extract the block epetra vector
 
   const ::NOX::Abstract::Vector& abstract_f = grp.getF();
-  const ::NOX::Epetra::Vector& f = Teuchos::dyn_cast<const ::NOX::Epetra::Vector>(abstract_f);
+  const auto& f = Teuchos::dyn_cast<const NOX::Nln::Vector>(abstract_f);
 
   Core::LinAlg::Vector<double> f_copy(f.getEpetraVector());
   // extract the inner vector elements we are interested in
@@ -307,8 +307,7 @@ NOX::FSI::GenericNormUpdate::GenericNormUpdate(std::string name, double tol, Sca
 
   update_vector_ptr_->update(1.0, curSoln, -1.0, oldSoln, 0.0);
 
-  compute_norm(
-      std::dynamic_pointer_cast<::NOX::Epetra::Vector>(update_vector_ptr_)->getEpetraVector());
+  compute_norm(std::dynamic_pointer_cast<NOX::Nln::Vector>(update_vector_ptr_)->getEpetraVector());
 
   status_ =
       (norm_update_ < tolerance_) ? ::NOX::StatusTest::Converged : ::NOX::StatusTest::Unconverged;
@@ -320,7 +319,7 @@ NOX::FSI::GenericNormUpdate::GenericNormUpdate(std::string name, double tol, Sca
 /*----------------------------------------------------------------------*/
 double NOX::FSI::GenericNormUpdate::compute_norm(const Epetra_Vector& v)
 {
-  ::NOX::Epetra::Vector vec(v);
+  NOX::Nln::Vector vec(v);
   int n = (scale_type_ == Scaled) ? vec.length() : 0;
 
   switch (norm_type_)

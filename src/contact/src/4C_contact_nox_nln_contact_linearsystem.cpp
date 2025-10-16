@@ -17,6 +17,7 @@
 #include "4C_solver_nonlin_nox_aux.hpp"
 #include "4C_solver_nonlin_nox_interface_jacobian.hpp"
 #include "4C_solver_nonlin_nox_interface_required.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -29,7 +30,7 @@ NOX::Nln::CONTACT::LinearSystem::LinearSystem(Teuchos::ParameterList& printParam
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
     const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const ::NOX::Epetra::Vector& cloneVector,
+    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector,
     const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector, scalingObject),
@@ -49,7 +50,7 @@ NOX::Nln::CONTACT::LinearSystem::LinearSystem(Teuchos::ParameterList& printParam
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
     const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const ::NOX::Epetra::Vector& cloneVector)
+    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector),
       i_constr_(iConstr),

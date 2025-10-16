@@ -13,6 +13,7 @@
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_Operator.h>
@@ -28,9 +29,8 @@ FOUR_C_NAMESPACE_OPEN
 NOX::FSI::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::shared_ptr<::NOX::Epetra::Interface::Jacobian>& iJac,
-    const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
-    const ::NOX::Epetra::Vector& cloneVector, std::shared_ptr<Core::LinAlg::Solver> solver,
-    const std::shared_ptr<NOX::Nln::Scaling> s)
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
+    std::shared_ptr<Core::LinAlg::Solver> solver, const std::shared_ptr<NOX::Nln::Scaling> s)
     : utils_(printParams),
       jac_interface_ptr_(iJac),
       jac_ptr_(J),
@@ -40,7 +40,7 @@ NOX::FSI::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
       solver_(solver),
       timer_("", true)
 {
-  tmp_vector_ptr_ = std::make_shared<::NOX::Epetra::Vector>(cloneVector);
+  tmp_vector_ptr_ = std::make_shared<NOX::Nln::Vector>(cloneVector);
 
   reset(linearSolverParams);
 }
@@ -59,7 +59,7 @@ void NOX::FSI::LinearSystem::reset(Teuchos::ParameterList& linearSolverParams)
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 bool NOX::FSI::LinearSystem::apply_jacobian(
-    const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
+    const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jac_ptr_->SetUseTranspose(false);
   int status = jac_ptr_->Apply(input.getEpetraVector(), result.getEpetraVector());
@@ -71,7 +71,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 bool NOX::FSI::LinearSystem::apply_jacobian_transpose(
-    const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const
+    const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jac_ptr_->SetUseTranspose(true);
   int status = jac_ptr_->Apply(input.getEpetraVector(), result.getEpetraVector());
@@ -84,7 +84,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian_transpose(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 bool NOX::FSI::LinearSystem::apply_jacobian_inverse(
-    Teuchos::ParameterList& p, const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result)
+    Teuchos::ParameterList& p, const NOX::Nln::Vector& input, NOX::Nln::Vector& result)
 {
   // Zero out the delta X of the linear problem if requested by user.
   if (zero_initial_guess_) result.init(0.0);
@@ -128,7 +128,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian_inverse(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-bool NOX::FSI::LinearSystem::compute_jacobian(const ::NOX::Epetra::Vector& x)
+bool NOX::FSI::LinearSystem::compute_jacobian(const NOX::Nln::Vector& x)
 {
   bool success = jac_interface_ptr_->computeJacobian(x.getEpetraVector(), *jac_ptr_);
   return success;

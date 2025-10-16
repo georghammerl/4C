@@ -11,8 +11,6 @@
 #include "4C_linalg_vector.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
 
-#include <NOX_Epetra_Vector.H>
-
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------------*

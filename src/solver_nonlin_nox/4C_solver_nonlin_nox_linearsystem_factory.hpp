@@ -33,6 +33,7 @@ namespace NOX
   {
     class GlobalData;
     class Scaling;
+    class Vector;
 
     namespace LinSystem
     {
@@ -46,8 +47,7 @@ namespace NOX
         Teuchos::RCP<NOX::Nln::LinearSystemBase> build_linear_system(
             const NOX::Nln::LinSystem::LinearSystemType& linsystype,
             NOX::Nln::GlobalData& noxNlnGlobalData,
-            const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac,
-            ::NOX::Epetra::Vector& cloneVector,
+            const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& precMat,
             const std::shared_ptr<NOX::Nln::Scaling>& scalingObject) const;
       };
@@ -60,7 +60,7 @@ namespace NOX
       Teuchos::RCP<NOX::Nln::LinearSystemBase> build_linear_system(
           const NOX::Nln::LinSystem::LinearSystemType& linsystype,
           NOX::Nln::GlobalData& noxNlnGlobalData,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac, ::NOX::Epetra::Vector& cloneVector,
+          const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& precMat,
           const std::shared_ptr<NOX::Nln::Scaling>& scalingObject);
     }  // namespace LinSystem

@@ -40,6 +40,8 @@ namespace NOX
       }  // namespace StatusTest
     }  // namespace Inner
 
+    class Vector;
+
     class Problem
     {
      public:
@@ -48,11 +50,11 @@ namespace NOX
 
       //! standard constructor
       Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGlobalData,
-          const Teuchos::RCP<::NOX::Epetra::Vector>& x,
+          const Teuchos::RCP<NOX::Nln::Vector>& x,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& A);
 
       //! initialize stuff
-      void initialize(const Teuchos::RCP<::NOX::Epetra::Vector>& x,
+      void initialize(const Teuchos::RCP<NOX::Nln::Vector>& x,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& A);
 
       //! create the linear system for the NOX framework
@@ -95,7 +97,7 @@ namespace NOX
 
       /** ptr to the state vector RCP. In this way the strong_count is neither lost
        *  nor increased. */
-      const Teuchos::RCP<::NOX::Epetra::Vector>* x_vector_;
+      const Teuchos::RCP<NOX::Nln::Vector>* x_vector_;
 
       /** ptr to the state matrix RCP. In this way the strong_count is neither lost
        *  nor increased. */

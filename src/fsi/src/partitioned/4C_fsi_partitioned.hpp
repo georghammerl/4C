@@ -216,7 +216,7 @@ namespace FSI
     /// create linear solver framework
     Teuchos::RCP<NOX::Nln::LinearSystemBase> create_linear_system(Teuchos::ParameterList& nlParams,
         const Teuchos::RCP<::NOX::Epetra::Interface::Required>& interface,
-        ::NOX::Epetra::Vector& noxSoln, ::NOX::Utils& utils);
+        NOX::Nln::Vector& noxSoln, ::NOX::Utils& utils);
 
     /// create convergence tests including testing framework
     Teuchos::RCP<::NOX::StatusTest::Combo> create_status_test(

@@ -20,7 +20,6 @@
 #include "4C_structure_new_utils.hpp"
 
 #include <NOX_Abstract_Group.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Solver_Generic.H>
 #include <Teuchos_RCPStdSharedPtrConversions.hpp>
 
@@ -92,8 +91,7 @@ Solid::Nln::SOLVER::Nox::Nox(const Teuchos::ParameterList& default_params,
   // -------------------------------------------------------------------------
   // Create NOX control class: NoxProblem()
   // -------------------------------------------------------------------------
-  Teuchos::RCP<::NOX::Epetra::Vector> soln =
-      Teuchos::rcp(data_global_state().create_global_vector());
+  Teuchos::RCP<NOX::Nln::Vector> soln = Teuchos::rcp(data_global_state().create_global_vector());
   Teuchos::RCP<Core::LinAlg::SparseOperator> jac =
       Teuchos::rcp(data_global_state().create_jacobian());
   problem_ = Teuchos::make_rcp<NOX::Nln::Problem>(nlnglobaldata_, soln, jac);

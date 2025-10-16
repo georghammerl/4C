@@ -18,7 +18,6 @@
 #include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Epetra_Interface_Required.H>
 #include <NOX_Epetra_Scaling.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_Utils.H>
 #include <Teuchos_Time.hpp>
 
@@ -58,7 +57,7 @@ namespace NOX
           Teuchos::ParameterList& linearSolverParams,
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
-          const Teuchos::RCP<Epetra_Operator>& J, const ::NOX::Epetra::Vector& cloneVector,
+          const Teuchos::RCP<Epetra_Operator>& J, const NOX::Nln::Vector& cloneVector,
           const Teuchos::RCP<::NOX::Epetra::Scaling> scalingObject = Teuchos::null);
 
       //! Reset the linear solver parameters.
@@ -72,8 +71,7 @@ namespace NOX
         where \f$J\f$ is the Jacobian, \f$u\f$ is the input vector,
         and \f$v\f$ is the result vector.  Returns true if successful.
       */
-      bool apply_jacobian(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+      bool apply_jacobian(const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       /*!
         \brief Applies Jacobian-Transpose to the given input vector and puts the answer in the
@@ -86,7 +84,7 @@ namespace NOX
 
       */
       bool apply_jacobian_transpose(
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) const override;
+          const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       /*!
         \brief Applies the inverse of the Jacobian matrix to the given
@@ -99,11 +97,11 @@ namespace NOX
 
         The parameter list contains the linear solver options.
       */
-      bool apply_jacobian_inverse(Teuchos::ParameterList& params,
-          const ::NOX::Epetra::Vector& input, ::NOX::Epetra::Vector& result) override;
+      bool apply_jacobian_inverse(Teuchos::ParameterList& params, const NOX::Nln::Vector& input,
+          NOX::Nln::Vector& result) override;
 
       //! Evaluates the Jacobian based on the solution vector x.
-      bool compute_jacobian(const ::NOX::Epetra::Vector& x) override;
+      bool compute_jacobian(const NOX::Nln::Vector& x) override;
 
       //! Return Jacobian operator
       Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const override;
@@ -120,8 +118,7 @@ namespace NOX
         GMRES methods, Num. Lin. Alg. Appl., 1 (1994),
         pp. 369--386. http://citeseer.ist.psu.edu/vandervorst91gmresr.html
        */
-      int solve_gcr(
-          const ::NOX::Epetra::Vector& b, ::NOX::Epetra::Vector& x, int& maxit, double& tol);
+      int solve_gcr(const NOX::Nln::Vector& b, NOX::Nln::Vector& x, int& maxit, double& tol);
 
       /// GMRES solver
       /*!
@@ -133,8 +130,8 @@ namespace NOX
         Linear Systems: Building Blocks for Iterative Methods, SIAM
         (1993)
       */
-      int solve_gmres(const ::NOX::Epetra::Vector& b, ::NOX::Epetra::Vector& x, int& max_iter,
-          double& tol, int m);
+      int solve_gmres(
+          const NOX::Nln::Vector& b, NOX::Nln::Vector& x, int& max_iter, double& tol, int m);
 
       /// helper for GMRES
       void apply_plane_rotation(double& dx, double& dy, double& cs, double& sn);
@@ -161,7 +158,7 @@ namespace NOX
       Teuchos::RCP<::NOX::Epetra::Scaling> scaling;
 
       //! An extra temporary vector, only allocated if needed.
-      mutable std::shared_ptr<::NOX::Epetra::Vector> tmpVectorPtr;
+      mutable std::shared_ptr<NOX::Nln::Vector> tmpVectorPtr;
 
       mutable double conditionNumberEstimate;
 
@@ -182,9 +179,9 @@ namespace NOX
       //! Total time spent in apply_jacobian_inverse() (sec.).
       mutable double timeApplyJacbianInverse;
 
-      std::vector<std::shared_ptr<::NOX::Epetra::Vector>> u_;
+      std::vector<std::shared_ptr<NOX::Nln::Vector>> u_;
 
-      std::vector<std::shared_ptr<::NOX::Epetra::Vector>> c_;
+      std::vector<std::shared_ptr<NOX::Nln::Vector>> c_;
     };
 
   }  // namespace FSI

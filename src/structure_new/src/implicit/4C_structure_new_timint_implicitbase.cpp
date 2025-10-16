@@ -9,10 +9,10 @@
 
 #include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linalg_sparsematrix.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_integrator.hpp"
 
 #include <NOX_Abstract_Group.H>
-#include <NOX_Epetra_Vector.H>
 #include <Teuchos_Time.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -29,7 +29,7 @@ Solid::TimeInt::ImplicitBase::ImplicitBase()
 std::shared_ptr<const Core::LinAlg::Vector<double>> Solid::TimeInt::ImplicitBase::get_f() const
 {
   const ::NOX::Abstract::Group& solgrp = get_solution_group();
-  const ::NOX::Epetra::Vector& F = dynamic_cast<const ::NOX::Epetra::Vector&>(solgrp.getF());
+  const auto& F = dynamic_cast<const NOX::Nln::Vector&>(solgrp.getF());
   return get_data_global_state().extract_displ_entries(
       Core::LinAlg::Vector<double>(F.getEpetraVector()));
 }

@@ -90,7 +90,7 @@ void Solid::Predict::Generic::post_predict(::NOX::Abstract::Group& grp)
       global_state().get_vel_np(), global_state().get_acc_np(), false);
 
   // Create the new solution vector
-  std::shared_ptr<::NOX::Epetra::Vector> x_vec = global_state().create_global_vector(
+  std::shared_ptr<NOX::Nln::Vector> x_vec = global_state().create_global_vector(
       TimeInt::BaseDataGlobalState::VecInitType::init_current_state, impl_int().model_eval_ptr());
   // resets all isValid flags
   grp.setX(*x_vec);

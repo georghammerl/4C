@@ -13,8 +13,8 @@
 #include "4C_solver_nonlin_nox_enum_lists.hpp"
 #include "4C_utils_exceptions.hpp"
 
+#include <NOX_Abstract_Vector.H>
 #include <NOX_Epetra_Interface_Required.H>  // base class
-#include <NOX_Epetra_Vector.H>
 
 #include <set>
 #include <vector>

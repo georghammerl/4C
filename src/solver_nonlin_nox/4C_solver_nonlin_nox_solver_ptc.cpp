@@ -19,10 +19,10 @@
 #include "4C_solver_nonlin_nox_linearsystem_prepostoperator.hpp"
 #include "4C_solver_nonlin_nox_linesearch_factory.hpp"
 #include "4C_solver_nonlin_nox_statustest_normf.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <NOX_Direction_Generic.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_GlobalData.H>
 #include <NOX_LineSearch_Generic.H>
 #include <NOX_MeritFunction_Generic.H>
@@ -139,7 +139,7 @@ void NOX::Nln::Solver::PseudoTransient::create_scaling_operator()
     case NOX::Nln::Solver::PseudoTransient::scale_op_identity:
     {
       // identity matrix
-      const auto& epetraXPtr = dynamic_cast<const ::NOX::Epetra::Vector&>(solnPtr->getX());
+      const auto& epetraXPtr = dynamic_cast<const NOX::Nln::Vector&>(solnPtr->getX());
       scalingDiagOpPtr_ = Teuchos::make_rcp<Core::LinAlg::Vector<double>>(
           epetraXPtr.getEpetraVector().Map(), false);
 
@@ -497,7 +497,7 @@ void NOX::Nln::Solver::PseudoTransient::update_pseudo_time_step()
         else
         {
           Teuchos::RCP<::NOX::Abstract::Vector> scaledRHS = solnPtr->getF().clone(::NOX::DeepCopy);
-          ::NOX::Epetra::Vector& epetraScaledRHS = dynamic_cast<::NOX::Epetra::Vector&>(*scaledRHS);
+          auto& epetraScaledRHS = dynamic_cast<NOX::Nln::Vector&>(*scaledRHS);
           epetraScaledRHS.getEpetraVector().ReciprocalMultiply(
               1.0, *scalingDiagOpPtr_, epetraScaledRHS.getEpetraVector(), 0.0);
           normF = epetraScaledRHS.norm(normType_);
@@ -889,17 +889,17 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::PseudoTransient(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-Teuchos::RCP<::NOX::Epetra::Vector>
+Teuchos::RCP<NOX::Nln::Vector>
 NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
     const NOX::Nln::Group& grp)
 {
   // get the current trial point
-  Teuchos::RCP<::NOX::Epetra::Vector> xUpdate =
-      Teuchos::rcp_dynamic_cast<::NOX::Epetra::Vector>(grp.getX().clone(::NOX::DeepCopy));
+  Teuchos::RCP<NOX::Nln::Vector> xUpdate =
+      Teuchos::rcp_dynamic_cast<NOX::Nln::Vector>(grp.getX().clone(::NOX::DeepCopy));
 
   // get the old x vector
   const ::NOX::Abstract::Group& oldGrp = ptcsolver_.getPreviousSolutionGroup();
-  const ::NOX::Epetra::Vector xOld = dynamic_cast<const ::NOX::Epetra::Vector&>(oldGrp.getX());
+  const auto& xOld = dynamic_cast<const NOX::Nln::Vector&>(oldGrp.getX());
 
   /* Calculate the difference between the old and the new solution vector.
    * This is equivalent to the search direction scaled with the
@@ -912,8 +912,7 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
   {
     case NOX::Nln::Solver::PseudoTransient::scale_op_identity:
     {
-      ::NOX::Epetra::Vector v = ::NOX::Epetra::Vector(
-          Teuchos::rcpFromRef(scaling_diag_op_ptr_->get_ref_of_epetra_vector()));
+      NOX::Nln::Vector v(Teuchos::rcpFromRef(scaling_diag_op_ptr_->get_ref_of_epetra_vector()));
       v.scale(ptcsolver_.get_inverse_pseudo_time_step());
       xUpdate->scale(v);
 
@@ -949,7 +948,7 @@ void NOX::Nln::GROUP::PrePostOp::PseudoTransient::run_post_compute_f(
    * has already been added, we can skip this function. */
   if (not use_pseudo_transient_residual or is_pseudo_transient_residual_) return;
 
-  Teuchos::RCP<::NOX::Epetra::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
+  Teuchos::RCP<NOX::Nln::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
 
   // add the transient part
   F.update(1.0, fUpdate->getEpetraVector(), 1.0);
@@ -978,7 +977,7 @@ void NOX::Nln::GROUP::PrePostOp::PseudoTransient::run_pre_compute_f(
    * has already been modified, though we need the static residual. */
   if (ptcsolver_.use_pseudo_transient_residual() or !is_pseudo_transient_residual_) return;
 
-  Teuchos::RCP<::NOX::Epetra::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
+  Teuchos::RCP<NOX::Nln::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
 
   // subtract the transient part
   F.update(-1.0, fUpdate->getEpetraVector(), 1.0);

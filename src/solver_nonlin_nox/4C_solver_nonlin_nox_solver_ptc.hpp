@@ -30,6 +30,8 @@ namespace NOX
   namespace Nln
   {
     class LinearSystem;
+    class Vector;
+
     namespace Solver
     {
       /*! \brief Pseudo Transient Continuation (PTC) non-linear solver
@@ -435,8 +437,7 @@ namespace NOX
               Core::LinAlg::Vector<double>& F, const NOX::Nln::Group& grp) override;
 
          protected:
-          Teuchos::RCP<::NOX::Epetra::Vector> eval_pseudo_transient_f_update(
-              const NOX::Nln::Group& grp);
+          Teuchos::RCP<NOX::Nln::Vector> eval_pseudo_transient_f_update(const NOX::Nln::Group& grp);
 
          private:
           //! read-only access

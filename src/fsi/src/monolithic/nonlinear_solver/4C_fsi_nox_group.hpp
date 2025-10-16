@@ -32,7 +32,7 @@ namespace NOX
       Group(FourC::FSI::MonolithicInterface& mfsi,                    ///< monolithic FSI interface
           Teuchos::ParameterList& printParams,                        ///< printing parameters
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i,  ///< NOX interface
-          const ::NOX::Epetra::Vector& x,                             ///< initial guess
+          const NOX::Nln::Vector& x,                                  ///< initial guess
           const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys      ///< linear system
       );
 

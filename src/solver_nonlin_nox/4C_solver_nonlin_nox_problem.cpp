@@ -21,9 +21,9 @@
 #include "4C_solver_nonlin_nox_linearsystem_factory.hpp"
 #include "4C_solver_nonlin_nox_scaling.hpp"
 #include "4C_solver_nonlin_nox_singlestep_group.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <NOX_Epetra_Interface_Required.H>
-#include <NOX_Epetra_Vector.H>
 #include <NOX_StatusTest_Generic.H>
 #include <Teuchos_ParameterList.hpp>
 
@@ -45,8 +45,7 @@ NOX::Nln::Problem::Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGloba
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 NOX::Nln::Problem::Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGlobalData,
-    const Teuchos::RCP<::NOX::Epetra::Vector>& x,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
+    const Teuchos::RCP<NOX::Nln::Vector>& x, const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
     : isinit_(false),
       nox_global_data_(noxNlnGlobalData),
       x_vector_(nullptr),
@@ -58,8 +57,8 @@ NOX::Nln::Problem::Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGloba
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void NOX::Nln::Problem::initialize(const Teuchos::RCP<::NOX::Epetra::Vector>& x,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
+void NOX::Nln::Problem::initialize(
+    const Teuchos::RCP<NOX::Nln::Vector>& x, const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
 {
   // in the standard case, we use the input rhs and matrix
   // ToDo Check if CreateView is sufficient

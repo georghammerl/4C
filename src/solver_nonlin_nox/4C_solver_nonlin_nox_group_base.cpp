@@ -15,7 +15,7 @@
 FOUR_C_NAMESPACE_OPEN
 
 NOX::Nln::GroupBase::GroupBase(Teuchos::ParameterList& printParams,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const ::NOX::Epetra::Vector& x,
+    const Teuchos::RCP<::NOX::Epetra::Interface::Required>& i, const NOX::Nln::Vector& x,
     const Teuchos::RCP<NOX::Nln::LinearSystemBase>& linSys)
     : utils(printParams),
       xVector(x, ::NOX::DeepCopy),
@@ -127,14 +127,14 @@ Teuchos::RCP<const ::NOX::Abstract::Vector> NOX::Nln::GroupBase::getNewtonPtr() 
 void NOX::Nln::GroupBase::setX(const ::NOX::Abstract::Vector& y)
 {
   reset_is_valid();
-  xVector = dynamic_cast<const ::NOX::Epetra::Vector&>(y);
+  xVector = dynamic_cast<const NOX::Nln::Vector&>(y);
 }
 
 void NOX::Nln::GroupBase::computeX(
     const ::NOX::Abstract::Group& grp, const ::NOX::Abstract::Vector& d, double step)
 {
   const auto& grp_base = dynamic_cast<const GroupBase&>(grp);
-  const auto& epetra_d = dynamic_cast<const ::NOX::Epetra::Vector&>(d);
+  const auto& epetra_d = dynamic_cast<const NOX::Nln::Vector&>(d);
 
   reset_is_valid();
   xVector.update(1.0, grp_base.xVector, step, epetra_d);
@@ -202,8 +202,8 @@ void NOX::Nln::GroupBase::computeX(
 ::NOX::Abstract::Group::ReturnType NOX::Nln::GroupBase::applyJacobian(
     const ::NOX::Abstract::Vector& input, ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const ::NOX::Epetra::Vector&>(input);
-  auto& epetra_result = dynamic_cast<::NOX::Epetra::Vector&>(result);
+  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
@@ -216,8 +216,8 @@ void NOX::Nln::GroupBase::computeX(
     Teuchos::ParameterList& p, const ::NOX::Abstract::Vector& input,
     ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const ::NOX::Epetra::Vector&>(input);
-  auto& epetra_result = dynamic_cast<::NOX::Epetra::Vector&>(result);
+  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
@@ -234,8 +234,8 @@ void NOX::Nln::GroupBase::computeX(
 ::NOX::Abstract::Group::ReturnType NOX::Nln::GroupBase::applyJacobianTranspose(
     const ::NOX::Abstract::Vector& input, ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const ::NOX::Epetra::Vector&>(input);
-  auto& epetra_result = dynamic_cast<::NOX::Epetra::Vector&>(result);
+  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 

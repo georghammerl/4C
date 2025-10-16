@@ -10,6 +10,7 @@
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
 #include "4C_structure_new_impl_generic.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
@@ -129,7 +130,7 @@ Solid::ModelEvaluator::PartitionedFSI::solve_relaxation_linear(
   Teuchos::ParameterList& noxparams = ti_impl->data_sdyn().get_nox_params();
 
   // create new state vector
-  std::shared_ptr<::NOX::Epetra::Vector> x_ptr =
+  std::shared_ptr<NOX::Nln::Vector> x_ptr =
       global_state().create_global_vector(TimeInt::BaseDataGlobalState::VecInitType::last_time_step,
           ti_impl->impl_int_ptr()->model_eval_ptr());
   // Set the solution vector in the nox group. This will reset all isValid
@@ -144,7 +145,7 @@ Solid::ModelEvaluator::PartitionedFSI::solve_relaxation_linear(
   // overwrite F with boundary force
   interface_force_np_ptr_->scale(-(ti_impl->tim_int_param()));
   ti_impl->dbc_ptr()->apply_dirichlet_to_rhs(*interface_force_np_ptr_);
-  Teuchos::RCP<::NOX::Epetra::Vector> nox_force = Teuchos::make_rcp<::NOX::Epetra::Vector>(
+  Teuchos::RCP<NOX::Nln::Vector> nox_force = Teuchos::make_rcp<NOX::Nln::Vector>(
       Teuchos::rcpFromRef(interface_force_np_ptr_->get_ref_of_epetra_vector()));
   grp_ptr->set_f(nox_force);
 
@@ -173,8 +174,7 @@ Solid::ModelEvaluator::PartitionedFSI::solve_relaxation_linear(
   grp_ptr->computeNewton(p);
 
   // get the increment from the previous solution step
-  const ::NOX::Epetra::Vector& increment =
-      dynamic_cast<const ::NOX::Epetra::Vector&>(grp_ptr->getNewton());
+  const auto& increment = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getNewton());
 
   // return the increment
   return std::make_shared<Core::LinAlg::Vector<double>>(increment.getEpetraVector());

@@ -16,9 +16,8 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_solver_nonlin_nox_linearsystem_prepostoperator.hpp"
+#include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_timint_base.hpp"
-
-#include <NOX_Epetra_Vector.H>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -496,7 +495,7 @@ void NOX::Nln::LinSystem::PrePostOp::Dbc::run_pre_apply_jacobian_inverse(
     ::NOX::Abstract::Vector& rhs, Core::LinAlg::SparseOperator& jac,
     const NOX::Nln::LinearSystem& linsys)
 {
-  ::NOX::Epetra::Vector& rhs_epetra = dynamic_cast<::NOX::Epetra::Vector&>(rhs);
+  auto& rhs_epetra = dynamic_cast<NOX::Nln::Vector&>(rhs);
   Core::LinAlg::View rhs_view(rhs_epetra.getEpetraVector());
   std::shared_ptr<Core::LinAlg::SparseOperator> jac_ptr = Core::Utils::shared_ptr_from_ref(jac);
   // apply the dirichlet condition and rotate the system if desired

@@ -55,8 +55,8 @@ namespace NOX
       Group(Teuchos::ParameterList& printParams,    //!< printing parameters
           Teuchos::ParameterList& grpOptionParams,  //!< group option parameters
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>&
-              i,                           //!< basically the NOXified user interface
-          const ::NOX::Epetra::Vector& x,  //!< current solution vector
+              i,                      //!< basically the NOXified user interface
+          const NOX::Nln::Vector& x,  //!< current solution vector
           const Teuchos::RCP<NOX::Nln::LinearSystemBase>&
               linSys  //!< linear system, matrix and RHS etc.
       );
@@ -72,7 +72,7 @@ namespace NOX
           ::NOX::CopyType type = ::NOX::DeepCopy) const override;
 
       //! compute/update the current state variables
-      void computeX(const NOX::Nln::Group& grp, const ::NOX::Epetra::Vector& d, double step);
+      void computeX(const NOX::Nln::Group& grp, const NOX::Nln::Vector& d, double step);
       void computeX(const ::NOX::Abstract::Group& grp, const ::NOX::Abstract::Vector& d,
           double step) override;
 
@@ -87,7 +87,7 @@ namespace NOX
       virtual ::NOX::Abstract::Group::ReturnType compute_f_and_jacobian();
 
       //! set right hand side
-      ::NOX::Abstract::Group::ReturnType set_f(Teuchos::RCP<::NOX::Epetra::Vector> Fptr);
+      ::NOX::Abstract::Group::ReturnType set_f(Teuchos::RCP<NOX::Nln::Vector> Fptr);
 
 #if !(FOUR_C_TRILINOS_INTERNAL_VERSION_GE(2025, 4))
       //! set the solution vector to zero
@@ -179,7 +179,7 @@ namespace NOX
       void adjust_pseudo_time_step(double& delta, const double& stepSize,
           const ::NOX::Abstract::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver);
       void adjust_pseudo_time_step(double& delta, const double& stepSize,
-          const ::NOX::Epetra::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver);
+          const NOX::Nln::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver);
 
       // Get element based scaling operator
       Teuchos::RCP<Core::LinAlg::SparseMatrix> get_contributions_from_element_level();

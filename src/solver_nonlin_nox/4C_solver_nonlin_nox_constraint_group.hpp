@@ -36,8 +36,8 @@ namespace NOX
         Group(Teuchos::ParameterList& printParams,  //!< printing parameters
             Teuchos::ParameterList& grpOptionParams,
             const Teuchos::RCP<::NOX::Epetra::Interface::Required>&
-                i,                           //!< basically the NOXified time integrator
-            const ::NOX::Epetra::Vector& x,  //!< current solution vector
+                i,                      //!< basically the NOXified time integrator
+            const NOX::Nln::Vector& x,  //!< current solution vector
             const Teuchos::RCP<NOX::Nln::LinearSystemBase>&
                 linSys,  //!< linear system, matrix and RHS etc.
             const std::map<enum NOX::Nln::SolutionType,
