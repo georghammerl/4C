@@ -12,7 +12,7 @@
 #include "4C_poroelast_utils_clonestrategy.hpp"
 #include "4C_poroelast_utils_setup.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -53,9 +53,6 @@ void poroelast_drt()
 
   // solve the whole problem
   poroalgo->time_loop();
-
-  // summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
 
   // perform the result test
   poroalgo->test_results(comm);

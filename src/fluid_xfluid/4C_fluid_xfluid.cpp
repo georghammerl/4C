@@ -48,8 +48,6 @@
 #include "4C_xfem_xfluid_timeInt_base.hpp"
 #include "4C_xfem_xfluid_timeInt_std_SemiLagrange.hpp"
 
-#include <Teuchos_Time.hpp>
-
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*
@@ -2242,9 +2240,6 @@ void FLD::XFluid::time_loop()
         maxtime_, stepmax_);
 
   FluidImplicitTimeInt::time_loop();
-
-  // print the results of time measurements
-  Teuchos::TimeMonitor::summarize();
 }
 
 

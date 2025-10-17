@@ -13,7 +13,7 @@
 #include "4C_poroelast_scatra_utils_setup.hpp"
 #include "4C_poroelast_utils_clonestrategy.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -54,9 +54,6 @@ void poro_scatra_drt()
 
   // 4.2.- Solve the whole problem
   poro_scatra->timeloop();
-
-  // 4.3.- Summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
 
   // 5. - perform the result test
   poro_scatra->test_results(comm);

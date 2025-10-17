@@ -13,7 +13,6 @@
 #include "4C_porofluid_pressure_based_elast_scatra_utils.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -112,9 +111,6 @@ void porofluid_pressure_based_elast_scatra_dyn(int restart)
 
   // Solve the whole problem
   algo->time_loop();
-
-  // Summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
 
   // perform the result test if required
   algo->create_field_test();

@@ -20,7 +20,6 @@
 #include "4C_utils_enum.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -94,15 +93,10 @@ void tsi_dyn_drt()
   // solve the whole tsi problem
   tsi->time_loop();
 
-  // summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
-
   // perform the result test
   Global::Problem::instance()->add_field_test(tsi->structure_field()->create_field_test());
   Global::Problem::instance()->add_field_test(tsi->thermo_field()->create_field_test());
   Global::Problem::instance()->test_all(comm);
-
-  return;
 }  // tsi_dyn_drt()
 
 

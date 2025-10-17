@@ -11,7 +11,7 @@
 #include "4C_global_data.hpp"
 #include "4C_particle_algorithm.hpp"
 
-#include <Teuchos_RCPStdSharedPtrConversions.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 #include <memory>
 
@@ -62,11 +62,6 @@ void particle_drt()
     // perform all tests
     problem->test_all(comm);
   }
-
-  // print summary statistics for all timers
-  std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
-      Core::Communication::to_teuchos_comm<int>(comm);
-  Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
 }
 
 FOUR_C_NAMESPACE_CLOSE

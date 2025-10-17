@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
+#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -386,13 +387,6 @@ void Airway::RedAirwayImplicitTimeInt::integrate(
 
   // Start time loop
   time_loop(CoupledTo3D, CouplingParams);
-
-  // Print the results of time measurements at the end of the simulation
-  {
-    Teuchos::TimeMonitor::summarize();
-  }
-
-  return;
 }  // RedAirwayImplicitTimeInt::Integrate
 
 

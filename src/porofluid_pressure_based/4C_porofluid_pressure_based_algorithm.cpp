@@ -510,8 +510,6 @@ void PoroPressureBased::PorofluidAlgorithm::time_loop()
 
     output();
   }
-
-  Teuchos::TimeMonitor::summarize();
 }
 
 

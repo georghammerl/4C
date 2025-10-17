@@ -14,6 +14,7 @@
 #include "4C_io_pstream.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
+#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -296,6 +297,13 @@ void parse_restart_definition(const std::vector<std::string>& inout, const int i
   {
     FOUR_C_THROW("You need to specify a restart step when using restartfrom.");
   }
+}
+
+void write_timemonitor(MPI_Comm comm)
+{
+  std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
+      Core::Communication::to_teuchos_comm<int>(comm);
+  Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
 }
 
 

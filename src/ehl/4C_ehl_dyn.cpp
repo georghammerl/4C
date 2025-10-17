@@ -14,7 +14,6 @@
 #include "4C_global_data.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -132,9 +131,6 @@ void ehl_dyn()
 
   // 4.2.- Solve the whole problem
   ehl->timeloop();
-
-  // 4.3.- Summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
 
   // 5. - perform the result test
   ehl->test_results(comm);

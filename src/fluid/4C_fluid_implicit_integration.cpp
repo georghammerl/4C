@@ -550,12 +550,6 @@ void FLD::FluidImplicitTimeInt::integrate()
 
   // TimeLoop() calls solve_stationary_problem() in stationary case
   time_loop();
-
-  // print the results of time measurements
-  std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
-      Core::Communication::to_teuchos_comm<int>(discret_->get_comm());
-  Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
-
 }  // FluidImplicitTimeInt::Integrate
 
 //<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>//

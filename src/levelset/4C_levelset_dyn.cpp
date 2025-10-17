@@ -115,14 +115,8 @@ void levelset_dyn(int restart)
   // enter time loop
   levelsetalgo->time_loop();
 
-  // summarize performance measurements
-  Teuchos::TimeMonitor::summarize();
-
   // perform result test if required
   std::dynamic_pointer_cast<ScaTra::LevelSetAlgorithm>(levelsetalgo)->test_results();
-
-  return;
-
 }  // end of levelset_dyn()
 
 FOUR_C_NAMESPACE_CLOSE

@@ -26,7 +26,6 @@
 #include "4C_utils_function_of_time.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 #include <cmath>
 
@@ -771,8 +770,6 @@ namespace ReducedLung
         visualization_writer.write_to_disk(dt * n, n);
       }
     }
-    // Print time monitor
-    Teuchos::TimeMonitor::summarize(std::cout, false, true, false);
   }
 }  // namespace ReducedLung
 

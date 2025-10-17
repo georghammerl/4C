@@ -156,9 +156,6 @@ void ssi_drt()
   // 4.2.- Solve the whole problem
   ssi->timeloop();
 
-  // 4.3.- Summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
-
   // 5. - perform the result test
   ssi->test_results(comm);
 }
