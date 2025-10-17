@@ -11,8 +11,7 @@
 
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_comm_utils.hpp"
-
-
+#include "4C_utils_epetra_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -57,7 +56,6 @@ Core::LinAlg::Map::Map::Map(const Map& Source)
   }
 }
 
-
 Core::LinAlg::Map& Core::LinAlg::Map::operator=(const Map& other)
 {
   if (this != &other)
@@ -97,6 +95,7 @@ std::unique_ptr<const Core::LinAlg::Map> Core::LinAlg::Map::create_view(const Ep
 
   return ret;
 }
+
 std::unique_ptr<Core::LinAlg::Map> Core::LinAlg::Map::create_view(Epetra_BlockMap& view)
 {
   std::unique_ptr<Map> ret(new Map);
@@ -106,7 +105,6 @@ std::unique_ptr<Core::LinAlg::Map> Core::LinAlg::Map::create_view(Epetra_BlockMa
 
   return ret;
 }
-
 
 std::unique_ptr<const Core::LinAlg::Map> Core::LinAlg::Map::create_view(const Epetra_BlockMap& view)
 {
@@ -130,5 +128,9 @@ Core::LinAlg::Map::Map(const Epetra_BlockMap& Source)
 {
 }
 
+void Core::LinAlg::Map::my_global_elements(int* MyGlobalElementList) const
+{
+  CHECK_EPETRA_CALL(wrapped().MyGlobalElements(MyGlobalElementList));
+}
 
 FOUR_C_NAMESPACE_CLOSE

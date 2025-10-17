@@ -22,8 +22,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-
-
 namespace Core::LinAlg
 {
   class Map
@@ -77,10 +75,8 @@ namespace Core::LinAlg
       return **map;
     }
 
-
     //! Returns a const reference to the underlying Epetra_BlockMap.
     const Epetra_BlockMap& get_epetra_block_map() const { return wrapped(); }
-
 
     //! Returns a reference to the underlying Epetra_BlockMap.
     Epetra_BlockMap& get_epetra_block_map() { return wrapped(); }
@@ -102,13 +98,6 @@ namespace Core::LinAlg
 
     //! returns the index base for this map.
     int index_base() const { return wrapped().IndexBase(); }
-
-    //! Pointer to internal array containing a mapping between the local elements and the first
-    //! local point number in each element.
-    int first_point_in_element_list(int* LID) const
-    {
-      return wrapped().FirstPointInElementList(LID);
-    }
 
     //! Returns true if map is defined across more than one processor.
     bool distributed_global() const { return wrapped().DistributedGlobal(); }
@@ -172,10 +161,7 @@ namespace Core::LinAlg
     int max_element_size(void) const { return wrapped().MaxElementSize(); }
 
     //! Puts list of global elements on this processor into the user-provided array.
-    int my_global_elements(int* MyGlobalElementList) const
-    {
-      return wrapped().MyGlobalElements(MyGlobalElementList);
-    }
+    void my_global_elements(int* MyGlobalElementList) const;
 
     //! Number of local points for this map; equals the sum of all element sizes on the calling
     //! processor.
