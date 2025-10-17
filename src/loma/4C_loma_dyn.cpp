@@ -16,8 +16,8 @@
 #include "4C_scatra_utils_clonestrategy.hpp"
 #include "4C_utils_enum.hpp"
 
+#include <Teuchos_ParameterList.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 #include <iostream>
 #include <string>
@@ -185,9 +185,6 @@ void loma_dyn(int restart)
 
       // enter LOMA algorithm
       loma.time_loop();
-
-      // summarize performance measurements
-      Teuchos::TimeMonitor::summarize();
 
       // perform result test if required
       problem->add_field_test(loma.fluid_field()->create_field_test());

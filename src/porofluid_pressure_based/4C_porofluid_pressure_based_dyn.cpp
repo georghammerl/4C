@@ -17,7 +17,6 @@
 #include "4C_porofluid_pressure_based_utils.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -143,14 +142,9 @@ void porofluid_pressure_based_dyn(int restart)
   // 4.- Run of the actual problem.
   algo->time_loop();
 
-  // 4.3.- Summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
-
   // perform the result test if required
   problem->add_field_test(algo->create_field_test());
   problem->test_all(comm);
-
-  return;
 
 }  // poromultiphase_dyn
 

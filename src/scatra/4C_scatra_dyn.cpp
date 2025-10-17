@@ -20,7 +20,6 @@
 #include "4C_utils_parameter_list.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 #include <iostream>
 
@@ -349,9 +348,6 @@ void scatra_dyn(int restart)
 
       // solve the whole scalar transport problem
       algo.time_loop();
-
-      // summarize the performance measurements
-      Teuchos::TimeMonitor::summarize();
 
       // perform the result test
       algo.test_results();

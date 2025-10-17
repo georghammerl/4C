@@ -75,6 +75,11 @@ std::vector<std::string> parse_input_output_files(const int argc, char** argv, c
 void parse_restart_definition(const std::vector<std::string>& inout, int in_out_args,
     std::string& restart_file_identifier, const std::string& outfile_identifier, int restart_group,
     CommandlineArguments& arguments);
+
+/**
+ * \brief Writes the Teuchos::TimeMonitor information to std::cout
+ */
+void write_timemonitor(MPI_Comm comm);
 FOUR_C_NAMESPACE_CLOSE
 
 #endif

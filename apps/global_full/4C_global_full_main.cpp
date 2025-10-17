@@ -486,6 +486,7 @@ void run(CommandlineArguments& arguments)
 
   entrypoint_switch();
 
+  write_timemonitor(arguments.comms.local_comm());
 
   const double tc = walltime_in_seconds() - t0;
   if (Core::Communication::my_mpi_rank(arguments.comms.global_comm()) == 0)

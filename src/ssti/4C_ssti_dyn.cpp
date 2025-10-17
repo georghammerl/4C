@@ -16,7 +16,6 @@
 #include "4C_ssti_utils.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -50,8 +49,6 @@ void ssti_drt()
   ssti->setup_system();
 
   ssti->timeloop();
-
-  Teuchos::TimeMonitor::summarize();
 
   ssti->test_results(comm);
 }

@@ -17,8 +17,6 @@
 #include "4C_global_data.hpp"
 #include "4C_utils_enum.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
-
 FOUR_C_NAMESPACE_OPEN
 
 
@@ -77,10 +75,6 @@ void fs3i_dyn()
   fs3i->timeloop();
 
   fs3i->test_results(comm);
-
-  std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
-      Core::Communication::to_teuchos_comm<int>(comm);
-  Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
 }
 
 FOUR_C_NAMESPACE_CLOSE

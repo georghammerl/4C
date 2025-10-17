@@ -62,7 +62,7 @@
 #include "4C_utils_result_test.hpp"
 #include "4C_xfem_discretization.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 #include <functional>
 #include <set>
@@ -355,7 +355,6 @@ void fsi_immersed_drt()
 
   // do the actual testing
   Global::Problem::instance()->test_all(comm);
-  Teuchos::TimeMonitor::summarize(std::cout, false, true, false);
 }
 /*----------------------------------------------------------------------*/
 // entry point for FSI using ALE in discretization management
@@ -676,8 +675,6 @@ void fsi_ale_drt()
       break;
     }
   }
-
-  Teuchos::TimeMonitor::summarize(std::cout, false, true, false);
 }
 
 /*----------------------------------------------------------------------*/
@@ -831,8 +828,6 @@ void xfsi_drt()
       break;
     }
   }
-
-  Teuchos::TimeMonitor::summarize();
 }
 
 /*----------------------------------------------------------------------*/
@@ -953,7 +948,6 @@ void xfpsi_drt()
       break;
     }
   }
-  Teuchos::TimeMonitor::summarize();
 }
 
 FOUR_C_NAMESPACE_CLOSE

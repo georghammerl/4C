@@ -20,7 +20,6 @@
 #include "4C_utils_enum.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -227,9 +226,6 @@ void elch_dyn(int restart)
         // solve the whole electrochemistry problem
         elch.time_loop();
 
-        // summarize the performance measurements
-        Teuchos::TimeMonitor::summarize();
-
         // perform the result test
         elch.test_results();
       }
@@ -271,9 +267,6 @@ void elch_dyn(int restart)
 
         // solve the whole electrochemistry problem
         elch.time_loop();
-
-        // summarize the performance measurements
-        Teuchos::TimeMonitor::summarize();
 
         // perform the result test
         elch.test_results();

@@ -47,6 +47,8 @@
 #include "4C_utils_function.hpp"
 #include "4C_utils_parameter_list.hpp"
 
+#include <Teuchos_TimeMonitor.hpp>
+
 #include <unordered_set>
 #include <utility>
 
@@ -1584,9 +1586,6 @@ void ScaTra::ScaTraTimIntImpl::time_loop()
     check_and_write_output_and_restart();
 
   }  // while
-
-  // print the results of time measurements
-  Teuchos::TimeMonitor::summarize();
 }
 
 /*----------------------------------------------------------------------*

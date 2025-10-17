@@ -11,7 +11,7 @@
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_utils_exceptions.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
+#include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -116,11 +116,6 @@ void FLD::TurbulentFlowAlgorithm::time_loop()
     std::cout << "#     -> problem ready for restart              #" << std::endl;
     std::cout << "#-----------------------------------------------#\n" << std::endl;
   }
-
-  // summarize the performance measurements
-  Teuchos::TimeMonitor::summarize();
-
-  return;
 }
 
 

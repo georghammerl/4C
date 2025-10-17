@@ -109,14 +109,6 @@ void Arteries::TimInt::integrate(
   prepare_time_loop();
 
   time_loop(CoupledTo3D, CouplingParams);
-
-  // print the results of time measurements
-  if (!coupledTo3D_)
-  {
-    Teuchos::TimeMonitor::summarize();
-  }
-
-  return;
 }  // ArtNetExplicitTimeInt::Integrate
 
 //<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>//

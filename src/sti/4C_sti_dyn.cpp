@@ -19,7 +19,6 @@
 #include "4C_sti_resulttest.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
-#include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -181,9 +180,6 @@ void sti_dyn(const int& restartstep  //! time step for restart
 
   // enter time loop and solve scatra-thermo interaction problem
   sti_algorithm->time_loop();
-
-  // summarize performance measurements
-  Teuchos::TimeMonitor::summarize();
 
   // perform result tests
   problem->add_field_test(

@@ -16,6 +16,7 @@
 #include "4C_pasi_partitioned_twowaycoup.hpp"
 #include "4C_pasi_utils.hpp"
 
+#include <Teuchos_ParameterList.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -101,11 +102,6 @@ void pasi_dyn()
 
   // perform result tests
   algo->test_results(comm);
-
-  // print summary statistics for all timers
-  std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
-      Core::Communication::to_teuchos_comm<int>(comm);
-  Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
 }
 
 FOUR_C_NAMESPACE_CLOSE

@@ -14,8 +14,6 @@
 #include "4C_global_data.hpp"
 #include "4C_inpar_fpsi.hpp"
 
-#include <Teuchos_TimeMonitor.hpp>
-
 FOUR_C_NAMESPACE_OPEN
 
 /*------------------------------------------------------------------------------------------------*
@@ -104,13 +102,11 @@ void fpsi_drt()
   fpsi->setup_solver();
   // 4.2.- Solve the whole problem
   fpsi->timeloop();
-  Teuchos::TimeMonitor::summarize();
 
   // 5. - perform the result test
   fpsi->test_results(comm);
 
 
-  return;
 }  // fpsi_drt()
 
 /*----------------------------------------------------------------------*/

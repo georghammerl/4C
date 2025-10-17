@@ -389,11 +389,6 @@ void Lubrication::TimIntImpl::time_loop()
     output();
 
   }  // while
-
-  // print the results of time measurements
-  Teuchos::TimeMonitor::summarize();
-
-  return;
 }  // TimIntImpl::TimeLoop
 
 
