@@ -493,8 +493,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNonConformingAlgorithm
     evaluate_additional_linearization_of_integrated_diameter();
   }
 
-  if (coupling_rhs_vector_->complete() != 0)
-    FOUR_C_THROW("GlobalAssemble of right hand side failed");
+  coupling_rhs_vector_->complete();
   rhs->update(1.0, *coupling_rhs_vector_, 0.0);
 
   coupling_matrix_->complete();
@@ -581,7 +580,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNonConformingAlgorithm
         const std::shared_ptr<Core::LinAlg::Vector<double>> rhs) const
 {
   // invert kappa
-  if (mortar_kappa_inv_->complete() != 0) FOUR_C_THROW("GlobalAssemble of kappaInv_ failed");
+  mortar_kappa_inv_->complete();
 
   // invert (pay attention to protruding elements)
   for (int i = 0; i < artery_dis_->dof_row_map()->num_my_elements(); ++i)

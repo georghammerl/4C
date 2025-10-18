@@ -660,9 +660,7 @@ void ScaTra::MeshtyingStrategyS2I::evaluate_meshtying()
           lmside_ == Inpar::S2I::side_master or couplingtype_ == Inpar::S2I::coupling_nts_standard)
       {
         imastermatrix_->complete(*interfacemaps_->full_map(), *interfacemaps_->map(2));
-        if (imasterresidual_->complete(Add, true))
-          FOUR_C_THROW(
-              "Assembly of auxiliary residual vector for master residuals not successful!");
+        imasterresidual_->complete(Add, true);
       }
 
       // assemble global system of equations depending on matrix type
@@ -4983,10 +4981,9 @@ void ScaTra::MortarCellAssemblyStrategy::assemble_cell_vector(
     {
       if (assembler_pid_master == Core::Communication::my_mpi_rank(systemvector->get_comm()))
       {
-        if (std::dynamic_pointer_cast<Core::LinAlg::FEVector<double>>(systemvector)
-                ->sum_into_global_values(static_cast<int>(la_master[nds_rows_].lm_.size()),
-                    la_master[nds_rows_].lm_.data(), cellvector.values()))
-          FOUR_C_THROW("Assembly into master-side system vector not successful!");
+        std::dynamic_pointer_cast<Core::LinAlg::FEVector<double>>(systemvector)
+            ->sum_into_global_values(static_cast<int>(la_master[nds_rows_].lm_.size()),
+                la_master[nds_rows_].lm_.data(), cellvector.values());
       }
 
       break;

@@ -405,8 +405,7 @@ void BeamInteraction::BeamToFluidMortarManager::evaluate_global_dm(
   if (linalg_error != 0) FOUR_C_THROW("Error in PutScalar!");
   linalg_error = global_m_->put_scalar(0.);
   if (linalg_error != 0) FOUR_C_THROW("Error in PutScalar!");
-  linalg_error = global_kappa_->put_scalar(0.);
-  if (linalg_error != 0) FOUR_C_THROW("Error in PutScalar!");
+  global_kappa_->put_scalar(0.);
 
   // Local mortar matrices that will be filled up by EvaluateDM.
   Core::LinAlg::SerialDenseMatrix local_D_centerlineDOFs;
@@ -484,8 +483,8 @@ void BeamInteraction::BeamToFluidMortarManager::evaluate_global_dm(
   global_m_->complete(*fluid_dof_rowmap_, *lambda_dof_rowmap_);
 
   // Complete the global scaling vector.
-  if (global_kappa_->complete()) FOUR_C_THROW("Error in GlobalAssemble!");
-  if (global_active_lambda_->complete()) FOUR_C_THROW("Error in GlobalAssemble!");
+  global_kappa_->complete();
+  global_active_lambda_->complete();
 }
 
 /**
@@ -540,27 +539,22 @@ void BeamInteraction::BeamToFluidMortarManager::add_global_force_stiffness_contr
     Core::LinAlg::Vector<double> fluid_temp(*fluid_dof_rowmap_);
 
     // Set the values in the global force vector to 0.
-    linalg_error = fluid_force->put_scalar(0.);
-    if (linalg_error != 0) FOUR_C_THROW("Error in PutScalar!");
+    fluid_force->put_scalar(0.);
 
     linalg_error = Dt_kappa_M->multiply(true, *beam_vel, fluid_temp);
     if (linalg_error != 0) FOUR_C_THROW("Error in Multiply!");
-    linalg_error = fluid_force->update(-1.0, fluid_temp, 1.0);
-    if (linalg_error != 0) FOUR_C_THROW("Error in Update!");
+    fluid_force->update(-1.0, fluid_temp, 1.0);
   }
 
   Core::LinAlg::Vector<double> beam_temp(*beam_dof_rowmap_);
-  linalg_error = beam_force.put_scalar(0.);
-  if (linalg_error != 0) FOUR_C_THROW("Error in PutScalar!");
+  beam_force.put_scalar(0.);
   // Get the force acting on the beam.
   linalg_error = Dt_kappa_D->multiply(false, *beam_vel, beam_temp);
   if (linalg_error != 0) FOUR_C_THROW("Error in Multiply!");
-  linalg_error = beam_force.update(1.0, beam_temp, 1.0);
-  if (linalg_error != 0) FOUR_C_THROW("Error in Update!");
+  beam_force.update(1.0, beam_temp, 1.0);
   linalg_error = Dt_kappa_M->multiply(false, *fluid_vel, beam_temp);
   if (linalg_error != 0) FOUR_C_THROW("Error in Multiply!");
-  linalg_error = beam_force.update(-1.0, beam_temp, 1.0);
-  if (linalg_error != 0) FOUR_C_THROW("Error in Update!");
+  beam_force.update(-1.0, beam_temp, 1.0);
 }
 
 

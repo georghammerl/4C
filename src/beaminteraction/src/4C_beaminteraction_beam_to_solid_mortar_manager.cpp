@@ -594,10 +594,9 @@ void BeamInteraction::BeamToSolidMortarManager::evaluate_and_assemble_global_cou
   kappa_lin_solid_->complete(*solid_dof_rowmap_, *lambda_dof_rowmap_);
 
   // Complete the global scaling vector.
-  if (0 != kappa_->complete()) FOUR_C_THROW("Failed to perform FE assembly of kappa_.");
-  if (0 != lambda_active_->complete())
-    FOUR_C_THROW("Failed to perform FE assembly of lambda_active_.");
-  if (0 != constraint_->complete()) FOUR_C_THROW("Failed to perform FE assembly of constraint_.");
+  kappa_->complete();
+  lambda_active_->complete();
+  constraint_->complete();
 }
 
 /**
@@ -687,8 +686,7 @@ void BeamInteraction::BeamToSolidMortarManager::add_global_force_stiffness_penal
     Core::LinAlg::export_to(solid_force, global_temp);
 
     // Add force contributions to global vector.
-    linalg_error = force->update(-1.0 * rhs_factor, global_temp, 1.0);
-    if (linalg_error != 0) FOUR_C_THROW("Error in Update");
+    force->update(-1.0 * rhs_factor, global_temp, 1.0);
   }
 
   // Add the force and stiffness contributions that are assembled directly by the pairs.

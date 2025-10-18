@@ -1887,8 +1887,7 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
           {
             double value = (p.second) * ftan[dim];
             const int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -1914,8 +1913,7 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
           {
             double value = -(p.second) * ftan[dim];
             const int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2397,8 +2395,7 @@ void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& f
             double value =
                 penalty * (p.second) * cnode->data().getgnts() * cnode->mo_data().n()[dim];
             int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2425,8 +2422,7 @@ void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& f
             double value =
                 -penalty * (p.second) * cnode->data().getgnts() * cnode->mo_data().n()[dim];
             int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2481,8 +2477,7 @@ void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& f
             double value =
                 penaltyLts * (p.second) * cnode->data().getglts() * cnode->mo_data().n()[dim];
             int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2509,8 +2504,7 @@ void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& f
             double value =
                 -penaltyLts * (p.second) * cnode->data().getglts() * cnode->mo_data().n()[dim];
             int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2560,8 +2554,7 @@ void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
           {
             double value = penalty * (p.second) * cnode->data().getgltl()[dim];
             int ltlid = csnode->dofs()[dim];
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }
@@ -2587,8 +2580,7 @@ void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
           {
             double value = -penalty * (p.second) * cnode->data().getgltl()[dim];
             int ltlid = {csnode->dofs()[dim]};
-            int err = feff.sum_into_global_values(1, &ltlid, &value);
-            if (err < 0) FOUR_C_THROW("stop");
+            feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
       }

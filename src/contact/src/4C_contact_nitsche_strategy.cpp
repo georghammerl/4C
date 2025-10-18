@@ -56,7 +56,7 @@ void CONTACT::NitscheStrategy::apply_force_stiff_cmt(
   // now we also did this state
   curr_state_eval_ = true;
 
-  if (fc->complete() != 0) FOUR_C_THROW("GlobalAssemble failed");
+  fc->complete();
   // add negative contact force here since the time integrator handed me a rhs!
   if (f->update(-1., *fc, 1.)) FOUR_C_THROW("update went wrong");
   kc->complete();
@@ -275,7 +275,7 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::create
       nitsche_container.assemble_rhs(mele, bt, fc);
     }
   }
-  if (fc->complete() != 0) FOUR_C_THROW("GlobalAssemble failed");
+  fc->complete();
 
   return fc;
 }
