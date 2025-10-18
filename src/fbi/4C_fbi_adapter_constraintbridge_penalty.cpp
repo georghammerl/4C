@@ -79,8 +79,7 @@ void Adapter::FBIConstraintBridgePenalty::scale_penalty_structure_contributions(
 {
   if (!structure_scaled_)
   {
-    if (fs_->scale(get_params()->get_penalty_parameter()))
-      FOUR_C_THROW("Scaling of the penalty force was unsuccessful!\n");
+    fs_->scale(get_params()->get_penalty_parameter());
     structure_scaled_ = true;
   }
 }
@@ -91,9 +90,8 @@ void Adapter::FBIConstraintBridgePenalty::scale_penalty_fluid_contributions()
 {
   if (!fluid_scaled_)
   {
-    if (cff_->scale(get_params()->get_penalty_parameter()) ||
-        ff_->scale(get_params()->get_penalty_parameter()))
-      FOUR_C_THROW("Scaling of the penalty force was unsuccessful!\n");
+    cff_->scale(get_params()->get_penalty_parameter());
+    ff_->scale(get_params()->get_penalty_parameter());
     fluid_scaled_ = true;
   }
 }

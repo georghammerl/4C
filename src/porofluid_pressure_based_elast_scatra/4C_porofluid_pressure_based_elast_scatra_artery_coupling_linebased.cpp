@@ -371,8 +371,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::
     }
   }
 
-  if (unaffected_artery_segment_lengths_->complete() != 0)
-    FOUR_C_THROW("GlobalAssemble of unaffected_artery_segment_lengths_ failed.");
+  unaffected_artery_segment_lengths_->complete();
 
   // subtract the segment lengths only if we evaluate in current configuration
   if (!evaluate_in_ref_config_)
@@ -392,8 +391,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::
       unaffected_artery_segment_lengths_->sum_into_global_values(
           1, &segment_length_dofs[segment_id], &(initial_segment_length));
     }
-    if (unaffected_artery_segment_lengths_->complete() != 0)
-      FOUR_C_THROW("GlobalAssemble of unaffected_seg_lengths_artery_ failed");
+    unaffected_artery_segment_lengths_->complete();
   }
   // the current length is simply the unaffected length
   else
@@ -443,8 +441,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::
   }
 
   // global assembly and export
-  if (unaffected_artery_diameters_row.complete() != 0)
-    FOUR_C_THROW("GlobalAssemble of unaffected_artery_diameters_row failed");
+  unaffected_artery_diameters_row.complete();
   Core::LinAlg::export_to(Core::LinAlg::Vector<double>(unaffected_artery_diameters_row),
       *unaffected_integrated_artery_diameters_col_);
 }
@@ -665,8 +662,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::
     set_artery_diameter_in_material()
 {
   // assemble
-  if (integrated_artery_diameters_row_->complete() != 0)
-    FOUR_C_THROW("GlobalAssemble of integrated_integrated_diams_artery_row_ failed");
+  integrated_artery_diameters_row_->complete();
 
   // export to column format
   Core::LinAlg::export_to(Core::LinAlg::Vector<double>(*integrated_artery_diameters_row_),
@@ -1072,8 +1068,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingLineBasedAlgorithm::ap
           1, &segment_length_dofs[segment_id], &(new_segment_length));
     }
 
-    if (current_artery_segment_lengths_->complete() != 0)
-      FOUR_C_THROW("GlobalAssemble of current_seg_lengths_artery_ failed");
+    current_artery_segment_lengths_->complete();
   }
 
   // set state on artery discretization

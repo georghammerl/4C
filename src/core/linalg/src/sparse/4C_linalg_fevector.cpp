@@ -8,21 +8,15 @@
 #include "4C_linalg_fevector.hpp"
 
 #include "4C_comm_mpi_utils.hpp"
-#include "4C_linalg_fevector.hpp"
 #include "4C_linalg_multi_vector.hpp"
-#include "4C_utils_exceptions.hpp"
-
 
 FOUR_C_NAMESPACE_OPEN
-
-
 
 template <typename T>
 Core::LinAlg::FEVector<T>::FEVector(const Map& Map, bool zeroOut)
     : vector_(Utils::make_owner<Epetra_FEVector>(Map.get_epetra_block_map(), zeroOut))
 {
 }
-
 
 template <typename T>
 Core::LinAlg::FEVector<T>::FEVector(const Map& Map, int numVectors, bool ignoreNonLocalEntries)
@@ -37,14 +31,11 @@ Core::LinAlg::FEVector<T>::FEVector(const Epetra_FEVector& Source)
 {
 }
 
-
-
 template <typename T>
 Core::LinAlg::FEVector<T>::FEVector(const FEVector& other)
     : vector_(Utils::make_owner<Epetra_FEVector>(other.get_ref_of_epetra_fevector()))
 {
 }
-
 
 template <typename T>
 Core::LinAlg::FEVector<T>& Core::LinAlg::FEVector<T>::operator=(const FEVector& other)
@@ -53,8 +44,6 @@ Core::LinAlg::FEVector<T>& Core::LinAlg::FEVector<T>::operator=(const FEVector& 
   return *this;
 }
 
-
-
 template <typename T>
 Core::LinAlg::FEVector<T>::operator const Core::LinAlg::MultiVector<T>&() const
 {
@@ -62,13 +51,11 @@ Core::LinAlg::FEVector<T>::operator const Core::LinAlg::MultiVector<T>&() const
   return multi_vector_view_.sync(const_cast<Epetra_FEVector&>(*vector_));
 }
 
-
 template <typename T>
 Core::LinAlg::FEVector<T>::operator Core::LinAlg::MultiVector<T>&()
 {
   return multi_vector_view_.sync(*vector_);
 }
-
 
 template <typename T>
 const Core::LinAlg::MultiVector<T>& Core::LinAlg::FEVector<T>::as_multi_vector() const
@@ -76,121 +63,123 @@ const Core::LinAlg::MultiVector<T>& Core::LinAlg::FEVector<T>::as_multi_vector()
   return static_cast<const Core::LinAlg::MultiVector<T>&>(*this);
 }
 
-
 template <typename T>
 Core::LinAlg::MultiVector<T>& Core::LinAlg::FEVector<T>::as_multi_vector()
 {
   return static_cast<Core::LinAlg::MultiVector<T>&>(*this);
 }
 
-
 template <typename T>
-int Core::LinAlg::FEVector<T>::norm_1(double* Result) const
+void Core::LinAlg::FEVector<T>::norm_1(double* Result) const
 {
-  return vector_->Norm1(Result);
+  CHECK_EPETRA_CALL(vector_->Norm1(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::norm_2(double* Result) const
+void Core::LinAlg::FEVector<T>::norm_2(double* Result) const
 {
-  return vector_->Norm2(Result);
+  CHECK_EPETRA_CALL(vector_->Norm2(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::norm_inf(double* Result) const
+void Core::LinAlg::FEVector<T>::norm_inf(double* Result) const
 {
-  return vector_->NormInf(Result);
+  CHECK_EPETRA_CALL(vector_->NormInf(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::min_value(double* Result) const
+void Core::LinAlg::FEVector<T>::min_value(double* Result) const
 {
-  return vector_->MinValue(Result);
+  CHECK_EPETRA_CALL(vector_->MinValue(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::max_value(double* Result) const
+void Core::LinAlg::FEVector<T>::max_value(double* Result) const
 {
-  return vector_->MaxValue(Result);
+  CHECK_EPETRA_CALL(vector_->MaxValue(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::mean_value(double* Result) const
+void Core::LinAlg::FEVector<T>::mean_value(double* Result) const
 {
-  return vector_->MeanValue(Result);
+  CHECK_EPETRA_CALL(vector_->MeanValue(Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::dot(const Epetra_MultiVector& A, double* Result) const
+void Core::LinAlg::FEVector<T>::scale(double ScalarValue)
 {
-  return vector_->Dot(A, Result);
+  CHECK_EPETRA_CALL(vector_->Scale(ScalarValue));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::abs(const Epetra_MultiVector& A)
+void Core::LinAlg::FEVector<T>::dot(const Epetra_MultiVector& A, double* Result) const
 {
-  return vector_->Abs(A);
+  CHECK_EPETRA_CALL(vector_->Dot(A, Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::scale(double ScalarA, const Epetra_MultiVector& A)
+void Core::LinAlg::FEVector<T>::abs(const Epetra_MultiVector& A)
 {
-  return vector_->Scale(ScalarA, A);
+  CHECK_EPETRA_CALL(vector_->Abs(A));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::update(
+void Core::LinAlg::FEVector<T>::scale(double ScalarA, const Epetra_MultiVector& A)
+{
+  CHECK_EPETRA_CALL(vector_->Scale(ScalarA, A));
+}
+
+template <typename T>
+void Core::LinAlg::FEVector<T>::update(
     double ScalarA, const Epetra_MultiVector& A, double ScalarThis)
 {
-  return vector_->Update(ScalarA, A, ScalarThis);
+  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::update(double ScalarA, const Epetra_MultiVector& A, double ScalarB,
+void Core::LinAlg::FEVector<T>::update(double ScalarA, const Epetra_MultiVector& A, double ScalarB,
     const Epetra_MultiVector& B, double ScalarThis)
 {
-  return vector_->Update(ScalarA, A, ScalarB, B, ScalarThis);
+  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarB, B, ScalarThis));
 }
 
-
 template <typename T>
-int Core::LinAlg::FEVector<T>::dot(const FEVector& A, double* Result) const
+void Core::LinAlg::FEVector<T>::dot(const FEVector& A, double* Result) const
 {
-  return vector_->Dot(A, Result);
+  CHECK_EPETRA_CALL(vector_->Dot(A, Result));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::abs(const FEVector& A)
+void Core::LinAlg::FEVector<T>::abs(const FEVector& A)
 {
-  return vector_->Abs(A);
+  CHECK_EPETRA_CALL(vector_->Abs(A));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::scale(double ScalarA, const FEVector& A)
+void Core::LinAlg::FEVector<T>::scale(double ScalarA, const FEVector& A)
 {
-  return vector_->Scale(ScalarA, A);
+  CHECK_EPETRA_CALL(vector_->Scale(ScalarA, A));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::update(double ScalarA, const FEVector& A, double ScalarThis)
+void Core::LinAlg::FEVector<T>::update(double ScalarA, const FEVector& A, double ScalarThis)
 {
-  return vector_->Update(ScalarA, A, ScalarThis);
+  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::update(
+void Core::LinAlg::FEVector<T>::update(
     double ScalarA, const FEVector& A, double ScalarB, const FEVector& B, double ScalarThis)
 {
-  return vector_->Update(ScalarA, A, ScalarB, B.get_ref_of_epetra_fevector(), ScalarThis);
+  CHECK_EPETRA_CALL(
+      vector_->Update(ScalarA, A, ScalarB, B.get_ref_of_epetra_fevector(), ScalarThis));
 }
 
 template <typename T>
-int Core::LinAlg::FEVector<T>::put_scalar(double ScalarConstant)
+void Core::LinAlg::FEVector<T>::put_scalar(double ScalarConstant)
 {
-  return vector_->PutScalar(ScalarConstant);
+  CHECK_EPETRA_CALL(vector_->PutScalar(ScalarConstant));
 }
-
-
 
 template <typename T>
 int Core::LinAlg::FEVector<T>::replace_map(const Map& map)
@@ -232,10 +221,7 @@ const Core::LinAlg::Map& Core::LinAlg::FEVector<T>::get_map() const
   return map_.sync(vector_->Map());
 }
 
-
 // explicit instantiation
 template class Core::LinAlg::FEVector<double>;
-
-
 
 FOUR_C_NAMESPACE_CLOSE
