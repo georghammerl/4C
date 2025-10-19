@@ -342,6 +342,8 @@ void Core::LinAlg::EquilibrationBlock::equilibrate_matrix(
           // extract current block of global system matrix
           const Core::LinAlg::SparseMatrix& matrix = blocksparsematrix->matrix(i, j);
 
+          Core::LinAlg::Vector<double> overlap(matrix.col_map(), true);
+
           // loop over all rows of current matrix block
           for (int irow = 0; irow < matrix.row_map().num_my_elements(); ++irow)
           {
@@ -360,10 +362,15 @@ void Core::LinAlg::EquilibrationBlock::equilibrate_matrix(
 
               // add entries of current matrix row to column sums
               for (int ientry = 0; ientry < numentries; ++ientry)
-                invcolsums->sum_into_global_value(
-                    matrix.col_map().gid(indices[ientry]), std::abs(values[ientry]));
+              {
+                const int lid = indices[ientry];  // local to blk.col_map()
+                overlap.get_values()[lid] += std::abs(values[ientry]);
+              }
             }
           }
+          // combine this block's overlap into the owning DomainMap vector invcolsums
+          Core::LinAlg::Import to_dom(invcolsums->get_map(), overlap.get_map());
+          invcolsums->import(overlap, to_dom, Add);
         }
 
         // invert column sums

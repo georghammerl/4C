@@ -2580,7 +2580,31 @@ void ScaTra::ScaTraTimIntImpl::scaling_and_neumann()
 {
   // scaling to get true residual vector for all time integration schemes
   // in incremental case: boundary flux values can be computed from trueresidual
-  if (incremental_) trueresidual_->update(residual_scaling(), *residual_, 0.0);
+  if (incremental_)
+  {
+    const auto& res_map = trueresidual_->get_map();
+    const Core::LinAlg::Vector<double>& res_src = *residual_;
+
+    // update the trueresidual_ depending on matching maps
+    if (!res_src.get_map().same_as(res_map))
+    {
+      // temporary and importer caches
+      static std::unique_ptr<Core::LinAlg::Vector<double>> residual_owned =
+          std::make_unique<Core::LinAlg::Vector<double>>(res_map);
+      static std::unique_ptr<Core::LinAlg::Import> import_residual =
+          std::make_unique<Core::LinAlg::Import>(res_map, res_src.get_map());
+
+      residual_owned->put_scalar(0.0);
+      residual_owned->import(res_src, *import_residual, Insert);
+      trueresidual_->update(residual_scaling(), *residual_owned, 0.0);
+    }
+    else
+    {
+      // simple update if maps match
+      trueresidual_->update(residual_scaling(), res_src, 0.0);
+    }
+  }
+
 
   // add Neumann b.c. scaled with a factor due to time discretization
   add_neumann_to_residual();

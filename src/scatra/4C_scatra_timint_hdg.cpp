@@ -25,6 +25,7 @@
 
 FOUR_C_NAMESPACE_OPEN
 
+
 /*----------------------------------------------------------------------*
  |  Constructor (public)                                 hoermann 09/15 |
  *----------------------------------------------------------------------*/
@@ -237,7 +238,32 @@ void ScaTra::TimIntHDG::gen_alpha_intermediate_values()
   //       n+alphaM                n+1                      n
   //  dtphi       = alpha_M * dtphi    + (1-alpha_M) * dtphi
   //       (i)                     (i)
-  phidtam_->update((alphaM_), *phidtnp_, (1.0 - alphaM_), *phidtn_, 0.0);
+
+  // Create temporary Vectors and Importers for phidtam_
+  static std::unique_ptr<Core::LinAlg::Vector<double>> tmp_dtnp_for_dtam, tmp_dtn_for_dtam;
+
+  // Create temporary Vectors and Importers for phiaf_/phiam_
+  static std::unique_ptr<Core::LinAlg::Vector<double>> tmp_pin_for_phiaf, tmp_pin_for_phiam;
+  static std::unique_ptr<Core::LinAlg::Vector<double>> tmp_for_phiaf, tmp_for_phiam;
+
+  auto get_vector_with_target_map =
+      [](const Core::LinAlg::Vector<double>& src, const Core::LinAlg::Map& target_map,
+          std::unique_ptr<Core::LinAlg::Vector<double>>& dst) -> const Core::LinAlg::Vector<double>&
+  {
+    if (src.get_map().same_as(target_map)) return src;
+
+    dst = std::make_unique<Core::LinAlg::Vector<double>>(target_map, true);
+    auto importer = std::make_unique<Core::LinAlg::Import>(target_map, src.get_map());
+    dst->import(src, *importer, Insert);
+    return *dst;
+  };
+
+  // target: phidtam_->map()
+  const auto& a = get_vector_with_target_map(*phidtnp_, phidtam_->get_map(), tmp_dtnp_for_dtam);
+  const auto& b = get_vector_with_target_map(*phidtn_, phidtam_->get_map(), tmp_dtn_for_dtam);
+
+  phidtam_->update(alphaM_, a, (1.0 - alphaM_), b, 0.0);
+
 
   // set intermediate values for concentration, concentration gradient
   //
@@ -247,9 +273,17 @@ void ScaTra::TimIntHDG::gen_alpha_intermediate_values()
   //
   // note that its af-genalpha with mid-point treatment of the pressure,
   // not implicit treatment as for the genalpha according to Whiting
-  phiaf_->update((alphaF_), *phinp_, (1.0 - alphaF_), *phin_, 0.0);
 
-  phiam_->update(alphaM_, *phinp_, (1.0 - alphaM_), *phin_, 0.0);
+  const auto& c = get_vector_with_target_map(*phinp_, phiaf_->get_map(), tmp_pin_for_phiaf);
+  const auto& d = get_vector_with_target_map(*phin_, phiaf_->get_map(), tmp_for_phiaf);
+
+  phiaf_->update(alphaF_, c, (1.0 - alphaF_), d, 0.0);
+
+  const auto& e = get_vector_with_target_map(*phinp_, phiam_->get_map(), tmp_pin_for_phiam);
+  const auto& f = get_vector_with_target_map(*phin_, phiam_->get_map(), tmp_for_phiam);
+
+  phiam_->update(alphaM_, e, (1.0 - alphaM_), f, 0.0);
+
 
 }  // gen_alpha_intermediate_values
 
@@ -630,8 +664,26 @@ void ScaTra::TimIntHDG::gen_alpha_compute_time_derivative()
   const double fact1 = 1.0 / (gamma_ * dta_);
   const double fact2 = 1.0 - (1.0 / gamma_);
 
+  // for some reason the map of phidtnp_ is not the same
+  // as the one's from phinp_ and phin_
+  // start conversion of vectors with target map(phidtnp_)
+  Core::LinAlg::Vector<double> phinp_owned(phidtnp_->get_map());
+  phinp_owned.put_scalar(0.0);
+  Core::LinAlg::Vector<double> phin_owned(phidtnp_->get_map());
+  phin_owned.put_scalar(0.0);
+
+  // Build Importers
+  Core::LinAlg::Import importer_phinp(phidtnp_->get_map(), phinp_->get_map());
+  Core::LinAlg::Import importer_phin(phidtnp_->get_map(), phin_->get_map());
+
+  // Bring data over
+  phinp_owned.import(*phinp_, importer_phinp, Insert);
+  phin_owned.import(*phin_, importer_phin, Insert);
+
+  // Now maps match and any update is safe
   phidtnp_->update(fact2, *phidtn_, 0.0);
-  phidtnp_->update(fact1, *phinp_, -fact1, *phin_, 1.0);
+  phidtnp_->update(fact1, phinp_owned, 1.0);
+  phidtnp_->update(-fact1, phin_owned, 1.0);
 
 }  // gen_alpha_compute_time_derivative
 
