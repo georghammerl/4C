@@ -14,6 +14,29 @@ function(four_c_sanitize_package_name _package_name _output_var)
       )
 endfunction()
 
+# Helper macro to propagate internal version variables to parent scope.
+# Note that since it is a macro, it executes within the scope of the caller.
+macro(_propagate_internal_version_to_parent_scope _package_name_sanitized)
+  if(DEFINED FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION)
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION
+        ${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION}
+        PARENT_SCOPE
+        )
+  endif()
+  if(DEFINED FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR)
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR
+        ${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR}
+        PARENT_SCOPE
+        )
+  endif()
+  if(DEFINED FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR)
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR
+        ${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR}
+        PARENT_SCOPE
+        )
+  endif()
+endmacro()
+
 # This function checks for the existence of a file dependencies/supported_version/${_package_name}.txt and reports
 # whether the given hash is supported.
 function(four_c_check_dependency_version _package_name _package_name_sanitized _sha)
@@ -36,17 +59,10 @@ function(four_c_check_dependency_version _package_name _package_name_sanitized _
           "The version number ${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION} you supplied for ${_package_name} is not of the form 'major.minor'."
         )
     endif()
-    set(_major ${CMAKE_MATCH_1})
-    set(_minor ${CMAKE_MATCH_2})
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR ${CMAKE_MATCH_1})
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR ${CMAKE_MATCH_2})
+    _propagate_internal_version_to_parent_scope(${_package_name_sanitized})
 
-    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR
-        ${_major}
-        PARENT_SCOPE
-        )
-    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR
-        ${_minor}
-        PARENT_SCOPE
-        )
     return()
   endif()
   if(EXISTS "${PROJECT_SOURCE_DIR}/dependencies/supported_version/${_package_name}.txt")
@@ -102,27 +118,15 @@ function(four_c_check_dependency_version _package_name _package_name_sanitized _
               "NOTE: This is not the latest supported version of ${_package_name}. Check the file 'dependencies/supported_version/${_package_name}.txt' for more information."
             )
         endif()
-        set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION
-            ${_supported_internal_version}
-            PARENT_SCOPE
-            )
 
         string(REGEX MATCH "^([0-9]+)\\.([0-9]+)$" _dummy ${_supported_internal_version})
-        set(_major ${CMAKE_MATCH_1})
-        set(_minor ${CMAKE_MATCH_2})
-
+        set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR ${CMAKE_MATCH_1})
+        set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR ${CMAKE_MATCH_2})
         set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION
-            ${_supported_internal_version}
-            PARENT_SCOPE
+            "${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR}.${FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR}"
             )
-        set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR
-            ${_major}
-            PARENT_SCOPE
-            )
-        set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR
-            ${_minor}
-            PARENT_SCOPE
-            )
+        _propagate_internal_version_to_parent_scope(${_package_name_sanitized})
+
         return()
       endif()
       math(EXPR _index "${_index} + 1")
@@ -153,18 +157,10 @@ function(four_c_check_dependency_version _package_name _package_name_sanitized _
     set(_minor ${CMAKE_MATCH_2})
     math(EXPR _minor "${_minor} + 1")
 
-    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION
-        "${_major}.${_minor}"
-        PARENT_SCOPE
-        )
-    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR
-        ${_major}
-        PARENT_SCOPE
-        )
-    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR
-        ${_minor}
-        PARENT_SCOPE
-        )
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION "${_major}.${_minor}")
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MAJOR ${_major})
+    set(FOUR_C_${_package_name_sanitized}_INTERNAL_VERSION_MINOR ${_minor})
+    _propagate_internal_version_to_parent_scope(${_package_name_sanitized})
 
     # Make an assumption that the package is newer than the latest supported version.
     message(
@@ -297,6 +293,8 @@ function(four_c_configure_dependency _package_name)
           "  >= ((major) * 1000 + (minor)))\n"
           "#define FOUR_C_${_package_name_sanitized}_HASH \"${FOUR_C_${_package_name}_GIT_HASH}\"\n"
           )
+        # Ensure that internal versions are available globally
+        _propagate_internal_version_to_parent_scope(${_package_name_sanitized})
       endif()
     else()
       message(
