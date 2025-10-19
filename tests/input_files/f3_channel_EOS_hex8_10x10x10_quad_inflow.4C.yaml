@@ -39,11 +39,6 @@ MATERIALS:
       DYNVISCOSITY: 1
       DENSITY: 1
       GAMMA: 1
-  - MAT: 2
-    MAT_Struct_StVenantKirchhoff:
-      YOUNG: 1
-      NUE: 0
-      DENS: 1
 FUNCT1:
   - COMPONENT: 0
     SYMBOLIC_FUNCTION_OF_SPACE_TIME: "20.0*(y*y-0.25)*(z*z-0.25)"
