@@ -104,68 +104,68 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 38
       QUANTITY: "dispx"
-      VALUE: -6.27126657170236773e-06
+      VALUE: 3.55177421492147262e-07
       TOLERANCE: 6.3e-12
   - STRUCTURE:
       DIS: "structure"
       NODE: 38
       QUANTITY: "dispy"
-      VALUE: -6.06181087803168072e-04
+      VALUE: -3.13805359932336114e-04
       TOLERANCE: 6.1e-10
   - FLUID:
       DIS: "fluid"
       NODE: 841
       QUANTITY: "velx"
-      VALUE: -1.03652508258828381e-03
+      VALUE: -1.67124024126594678e-04
       TOLERANCE: 1.0e-09
   - FLUID:
       DIS: "fluid"
       NODE: 841
       QUANTITY: "vely"
-      VALUE: -2.27521015075906295e-03
+      VALUE: -1.33482110742765133e-03
       TOLERANCE: 2.3e-09
   - FLUID:
       DIS: "fluid"
       NODE: 841
       QUANTITY: "pressure"
-      VALUE: 5.01067520324289736e-04
+      VALUE: -1.19613084554637886e-02
       TOLERANCE: 5.0e-10
   - ALE:
       DIS: "ale"
       NODE: 841
       QUANTITY: "dispx"
-      VALUE: -1.34034553661112063e-06
+      VALUE: 4.79096692560384464e-07
       TOLERANCE: 1.3e-12
   - ALE:
       DIS: "ale"
       NODE: 841
       QUANTITY: "dispy"
-      VALUE: -4.75545015804762462e-04
+      VALUE: -2.31274376867632271e-04
       TOLERANCE: 4.8e-10
   - FSI:
       NODE: 37
       QUANTITY: "lambdax"
-      VALUE: -2.62159268539973280e-04
+      VALUE: -1.01347975249890858e-04
       TOLERANCE: 2.6e-10
   - FSI:
       NODE: 37
       QUANTITY: "lambday"
-      VALUE: 1.23279181402521009e-03
+      VALUE: 1.28780690029191795e-02
       TOLERANCE: 1.2e-09
   - FSI:
       SPECIAL: true
       QUANTITY: "dt"
-      VALUE: 7.94359473594046239e-02
+      VALUE: 2.00000000000000004e-3
       TOLERANCE: 7.9e-08
   - FSI:
       SPECIAL: true
       QUANTITY: "time"
-      VALUE: 7.43126548280137134e-01
+      VALUE: 5.03272722244047288e-01
       TOLERANCE: 7.4e-07
   - FSI:
       SPECIAL: true
       QUANTITY: "adasteps"
-      VALUE: 2
+      VALUE: 5
       TOLERANCE: 1.0e-16
 DESIGN POINT DIRICH CONDITIONS:
   - E: 1
