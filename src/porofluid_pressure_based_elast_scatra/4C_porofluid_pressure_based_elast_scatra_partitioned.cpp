@@ -146,10 +146,39 @@ void PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::iter_update_st
   porofluid_inc_np_->update(1.0, *porofluid_elast_algo()->fluid_phinp(), 0.0);
   if (artery_coupling_active_)
   {
-    artery_pressure_inc_np_->update(
-        1.0, *(porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()), 0.0);
-    artery_scatra_inc_np_->update(
-        1.0, *(scatra_meshtying_strategy_->art_scatra_field()->phinp()), 0.0);
+    auto target_pressure_map = artery_pressure_inc_np_->get_map();
+    auto source_pressure_map =
+        porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()->get_map();
+    if (target_pressure_map.same_as(source_pressure_map))
+    {
+      artery_pressure_inc_np_->update(
+          1.0, *(porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()), 0.0);
+    }
+    else
+    {
+      Core::LinAlg::Vector<double> tmp_pressure_vector(target_pressure_map, true);
+      Core::LinAlg::Import pressure_import(target_pressure_map, source_pressure_map);
+      tmp_pressure_vector.import(
+          *porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp(),
+          pressure_import, Insert);
+      artery_pressure_inc_np_->update(1.0, tmp_pressure_vector, 0.0);
+    }
+
+    auto artery_scatra_inc_np_map = artery_scatra_inc_np_->get_map();
+    auto phinp_map = scatra_meshtying_strategy_->art_scatra_field()->phinp()->get_map();
+
+    if (artery_scatra_inc_np_map.same_as(phinp_map))
+    {
+      artery_scatra_inc_np_->update(
+          1.0, *scatra_meshtying_strategy_->art_scatra_field()->phinp(), 0.0);
+    }
+    else
+    {
+      Core::LinAlg::Vector<double> tmp_phinp(artery_scatra_inc_np_map, /*zeroOut=*/true);
+      Core::LinAlg::Import imp(artery_scatra_inc_np_map, phinp_map);
+      tmp_phinp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp, Insert);
+      artery_scatra_inc_np_->update(1.0, tmp_phinp, 0.0);
+    }
   }
 
 }  // iter_update_states()
@@ -186,10 +215,39 @@ bool PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::convergence_ch
   porofluid_inc_np_->update(1.0, *(porofluid_elast_algo()->fluid_phinp()), -1.0);
   if (artery_coupling_active_)
   {
-    artery_pressure_inc_np_->update(
-        1.0, *(porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()), -1.0);
-    artery_scatra_inc_np_->update(
-        1.0, *(scatra_meshtying_strategy_->art_scatra_field()->phinp()), -1.0);
+    auto target_pressure_map = artery_pressure_inc_np_->get_map();
+    auto source_pressure_map =
+        porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()->get_map();
+    if (target_pressure_map.same_as(source_pressure_map))
+    {
+      artery_pressure_inc_np_->update(
+          1.0, *(porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()), -1.0);
+    }
+    else
+    {
+      Core::LinAlg::Vector<double> tmp_pressure_vector(target_pressure_map, true);
+      Core::LinAlg::Import pressure_import(target_pressure_map, source_pressure_map);
+      tmp_pressure_vector.import(
+          *porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp(),
+          pressure_import, Insert);
+      artery_pressure_inc_np_->update(1.0, tmp_pressure_vector, -1.0);
+    }
+
+    auto artery_scatra_inc_np_map = artery_scatra_inc_np_->get_map();
+    auto phinp_map = scatra_meshtying_strategy_->art_scatra_field()->phinp()->get_map();
+
+    if (artery_scatra_inc_np_map.same_as(phinp_map))
+    {
+      artery_scatra_inc_np_->update(
+          1.0, *scatra_meshtying_strategy_->art_scatra_field()->phinp(), -1.0);
+    }
+    else
+    {
+      Core::LinAlg::Vector<double> tmp(artery_scatra_inc_np_map, true);
+      Core::LinAlg::Import imp(artery_scatra_inc_np_map, phinp_map);
+      tmp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp, Insert);
+      artery_scatra_inc_np_->update(1.0, tmp, -1.0);
+    }
   }
 
   // build the L2-norm of the scalar increment and the scalar
@@ -205,8 +263,7 @@ bool PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::convergence_ch
     porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()->norm_2(
         &artery_pressure_norm);
     artery_scatra_inc_np_->norm_2(&artery_scatra_inc_norm);
-    porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp()->norm_2(
-        &artery_scatra_norm);
+    scatra_meshtying_strategy_->art_scatra_field()->phinp()->norm_2(&artery_scatra_norm);
   }
 
   // care for the case that there is (almost) zero scalar
