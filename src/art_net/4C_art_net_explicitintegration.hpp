@@ -172,7 +172,7 @@ namespace Arteries
     std::shared_ptr<Core::LinAlg::SparseOperator> massmat_;
 
     /// maps for scatra Dirichlet and free DOF sets
-    std::shared_ptr<Core::LinAlg::Vector<double>> nodeIds_;
+    std::shared_ptr<Core::LinAlg::Vector<double>> dofIds_;
     std::shared_ptr<Core::LinAlg::Vector<double>> scatra_bcval_;
     std::shared_ptr<Core::LinAlg::Vector<double>> scatra_dbctog_;
 

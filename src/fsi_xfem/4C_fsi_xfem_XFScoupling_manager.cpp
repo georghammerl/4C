@@ -236,11 +236,26 @@ void XFEM::XfsCouplingManager::output(Core::IO::DiscretizationWriter& writer)
   // output for Lagrange multiplier field (ie forces onto the structure, Robin-type forces
   // consisting of fluid forces and the Nitsche penalty term contribution)
   //--------------------------------
-  std::shared_ptr<Core::LinAlg::Vector<double>> lambdafull =
-      std::make_shared<Core::LinAlg::Vector<double>>(*get_map_extractor(0)->full_map(), true);
-  insert_vector(0, lambda_, 0, lambdafull, CouplingCommManager::partial_to_full);
+  auto multi_map_extractor_block_0 = get_map_extractor(0);
+  if (!multi_map_extractor_block_0) FOUR_C_THROW("get_map_extractor(0) returned nullptr.");
+
+  auto fullmap = multi_map_extractor_block_0->full_map();
+  if (!fullmap) FOUR_C_THROW("extractor->full_map() is null.");
+
+  auto lambdafull = std::make_shared<Core::LinAlg::Vector<double>>(*fullmap, true);
+
+  // only do the costly insert if maps differ
+  if (lambda_->get_map().same_as(*fullmap))
+  {
+    lambdafull->update(1.0, *lambda_, 0.0);
+  }
+  else
+  {
+    insert_vector(0, lambda_, 0, lambdafull, CouplingCommManager::partial_to_full);
+  }
+
+  // finally write the result
   writer.write_vector("fsilambda", lambdafull);
-  return;
 }
 /*----------------------------------------------------------------------*/
 /* Read Restart on the interface                            ager 06/2016 |
@@ -251,7 +266,6 @@ void XFEM::XfsCouplingManager::read_restart(Core::IO::DiscretizationReader& read
       std::make_shared<Core::LinAlg::Vector<double>>(*get_map_extractor(0)->full_map(), true);
   reader.read_vector(lambdafull, "fsilambda");
   insert_vector(0, lambdafull, 0, lambda_, CouplingCommManager::full_to_partial);
-  return;
 }
 
 /*-----------------------------------------------------------------------------------------*
