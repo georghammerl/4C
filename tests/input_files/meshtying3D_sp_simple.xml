@@ -138,8 +138,8 @@
     <!-- Build Schur Complement factory (for being used in SIMPLE type block smoother)-->
     <ParameterList name="mySchurCompFact">
       <Parameter name="factory" type="string" value="SchurComplementFactory"/>
+      <!-- omega should be the same as the Simple damping factor -->
       <Parameter name="omega" type="double" value="0.8"/>
-      <!-- should be the same as the Simple damping factor-->
       <Parameter name="lumping" type="bool" value="false"/>
     </ParameterList>
     <!-- block smoother for block A_{11} respective the Schur complement operator -->
