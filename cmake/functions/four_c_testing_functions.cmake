@@ -143,6 +143,10 @@ endfunction()
 # CSV_YAML_COMPARISON_TOL_R:           Relative tolerances for comparison
 # CSV_YAML_COMPARISON_TOL_A:           Absolute tolerances for comparison
 # REQUIRED_DEPENDENCIES:          Any required external dependencies. The test will be skipped if the dependencies are not met.
+#                                 Either a dependency, e.g. "Trilinos", or a dependency with a version constraint, e.g. "Trilinos>=2025.2".
+#                                 The supported version constraint operators are: >=, <=, >, <, ==
+#                                 If multiple dependencies are provided, all must be met for the test to run.
+#                                 Note that the version is the _internal_ version that 4C assigns to the dependency.
 function(four_c_test)
   set(options "")
   set(oneValueArgs RESTART_STEP TIMEOUT OMP_THREADS)
@@ -273,17 +277,56 @@ function(four_c_test)
 
   if(DEFINED _parsed_REQUIRED_DEPENDENCIES)
     foreach(dep IN LISTS _parsed_REQUIRED_DEPENDENCIES)
-      four_c_sanitize_package_name(${dep} dep_sanitized)
+      # Check if this is a dependency with version
+
+      if(dep MATCHES "^([^><=]+)([><=]+)([0-9\\.]+)$")
+        set(dep_name "${CMAKE_MATCH_1}")
+        set(dep_version "${CMAKE_MATCH_3}")
+        if(CMAKE_MATCH_2 STREQUAL ">=")
+          set(dep_version_constraint "VERSION_GREATER_EQUAL")
+        elseif(CMAKE_MATCH_2 STREQUAL "<=")
+          set(dep_version_constraint "VERSION_LESS_EQUAL")
+        elseif(CMAKE_MATCH_2 STREQUAL ">")
+          set(dep_version_constraint "VERSION_GREATER")
+        elseif(CMAKE_MATCH_2 STREQUAL "<")
+          set(dep_version_constraint "VERSION_LESS")
+        elseif(CMAKE_MATCH_2 STREQUAL "==")
+          set(dep_version_constraint "VERSION_EQUAL")
+        else()
+          message(
+            FATAL_ERROR "Unsupported version constraint '${CMAKE_MATCH_2}' for dependency '${dep}'"
+            )
+        endif()
+      else()
+        set(dep_name "${dep}")
+        unset(dep_version)
+        unset(dep_version_constraint)
+      endif()
+
+      four_c_sanitize_package_name(${dep_name} dep_sanitized)
 
       # Check that we even know this dependency
       if(NOT DEFINED "FOUR_C_WITH_${dep_sanitized}")
-        message(FATAL_ERROR "Unknown dependency ${dep}")
+        message(FATAL_ERROR "Unknown dependency ${dep_name} requested for test")
       endif()
 
       if(NOT FOUR_C_WITH_${dep_sanitized})
         string(
           APPEND skip_message "Skipping because FOUR_C_WITH_${dep_sanitized} is not enabled.\n"
           )
+      elseif(DEFINED dep_version)
+        if(NOT DEFINED "FOUR_C_${dep_sanitized}_INTERNAL_VERSION")
+          message(FATAL_ERROR "Requiring '${dep}' but no internal version is known for ${dep_name}")
+        endif()
+
+        set(actual_version "${FOUR_C_${dep_sanitized}_INTERNAL_VERSION}")
+        if(NOT actual_version ${dep_version_constraint} ${dep_version})
+          string(
+            APPEND
+            skip_message
+            "Skipping because ${dep_name} version ${actual_version} does not satisfy constraint ${dep}.\n"
+            )
+        endif()
       endif()
     endforeach()
 
