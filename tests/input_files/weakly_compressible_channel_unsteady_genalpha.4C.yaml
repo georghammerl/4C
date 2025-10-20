@@ -35,11 +35,6 @@ MATERIALS:
       REFBULKMODULUS: 100
       MATPARAMETER: 1
       GAMMA: 1
-  - MAT: 2
-    MAT_Struct_StVenantKirchhoff:
-      YOUNG: 1
-      NUE: 0
-      DENS: 1
 FUNCT1:
   - COMPONENT: 0
     SYMBOLIC_FUNCTION_OF_SPACE_TIME: "(1.0-(y/0.5)^2.0)*v"
