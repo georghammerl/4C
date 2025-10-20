@@ -80,7 +80,8 @@ void SSI::ScatraStructureOffDiagCoupling::evaluate_off_diag_block_scatra_structu
   Core::FE::AssembleStrategy strategyscatrastructure(
       0,  // row assembly based on number of dofset associated with scalar transport dofs on
           // scalar transport discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on scalar
+      scatra_field()->nds_disp(),  // column assembly based on number of dofset associated with
+                                   // structural dofs on scalar
       // transport discretization
       scatrastructureblock,  // scatra-structure matrix block
       nullptr,               // no additional matrices or vectors
@@ -118,7 +119,8 @@ void SSI::ScatraManifoldStructureOffDiagCoupling::
   Core::FE::AssembleStrategy strategyscatrastructure(
       0,  // row assembly based on number of dofset associated with scalar transport dofs on
           // scalar transport discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on scalar
+      scatra_field()->nds_disp(),  // column assembly based on number of dofset associated with
+                                   // structural dofs on scalar
       // transport discretization
       scatramanifoldstructureblock,  // scatra-structure matrix block
       nullptr,                       // no additional matrices or vectors
@@ -379,8 +381,9 @@ void SSI::ScatraStructureOffDiagCoupling::
   Core::FE::AssembleStrategy strategyscatras2istructure(
       0,  // row assembly based on number of dofset associated with scalar transport dofs on
           // scalar transport discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on
-      // structural discretization
+      scatra_field()->nds_disp(),  // column assembly based on number of dofset associated with
+                                   // structural dofs on
+      // scalar transport discretization
       scatra_slave_flux_structure_slave_dofs_on_scatra_slave_matrix,
       scatra_master_flux_on_scatra_slave_structure_slave_dofs_on_scatra_slave_matrix,
       // no additional vectors
@@ -615,10 +618,10 @@ void SSI::ScatraStructureOffDiagCoupling::
   Core::FE::AssembleStrategy strategyscatrastructures2i(
       0,  // row assembly based on number of dofset associated with scalar transport dofs on
           // scalar transport discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on
-          // structural discretization
-      evaluate_matrix,  // auxiliary system matrix
-      nullptr,          // no additional matrices of vectors
+      scatra_field()->nds_disp(),  // column assembly based on number of dofset associated with
+                                   // structural dofs on scalar transport discretization
+      evaluate_matrix,             // auxiliary system matrix
+      nullptr,                     // no additional matrices of vectors
       nullptr, nullptr, nullptr);
 
   // evaluate scatra-scatra interface coupling

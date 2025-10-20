@@ -436,7 +436,7 @@ void SSI::ScaTraManifoldScaTraFluxEvaluator::evaluate_bulk_side(
       auto matrix_scatra_structure_cond_slave_side_disp_evaluate =
           std::make_shared<Core::LinAlg::SparseMatrix>(*full_map_scatra_, 27, false, true);
 
-      Core::FE::AssembleStrategy strategyscatra(0, 1,
+      Core::FE::AssembleStrategy strategyscatra(0, scatra_->scatra_field()->nds_disp(),
           matrix_scatra_structure_cond_slave_side_disp_evaluate, nullptr, nullptr, nullptr,
           nullptr);
 
