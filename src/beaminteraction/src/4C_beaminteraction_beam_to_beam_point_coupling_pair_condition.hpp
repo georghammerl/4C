@@ -34,7 +34,7 @@ namespace BeamInteraction
     /**
      * \brief Check if a combination of beam ids is in this condition.
      */
-    bool ids_in_condition(const int id_line, const int id_other) const override;
+    bool ids_in_condition(const int id_line, const int id_other) const override { return false; };
 
     /**
      * \brief Clear not reusable data (derived).
@@ -45,15 +45,18 @@ namespace BeamInteraction
      * \brief Create the beam contact pairs needed for this condition (derived).
      */
     std::shared_ptr<BeamInteraction::BeamContactPair> create_contact_pair(
-        const std::vector<Core::Elements::Element const*>& ele_ptrs) override;
+        const std::vector<Core::Elements::Element const*>& ele_ptrs) override
+    {
+      return nullptr;
+    }
 
     /**
-     * \brief Build the ID sets for this condition. The ID sets will be used to check if an element
-     * is in this condition.
+     * \brief Create the contact pairs directly, i.e., not depending on given element pointers
+     * (derived).
      */
-    void build_id_sets(
-        const std::shared_ptr<const Core::FE::Discretization>& discretization) override;
-
+    void create_contact_pairs_direct(std::vector<std::shared_ptr<BeamContactPair>>& contact_pairs,
+        const Core::FE::Discretization& discretization,
+        const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr) override;
 
    private:
     /// Penalty parameter used to couple the positional DoFs

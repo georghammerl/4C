@@ -1093,6 +1093,14 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::create_beam_contact_elemen
     }
   }
 
+  auto directly_created_pairs = beam_interaction_conditions_ptr_->create_contact_pairs_direct(
+      discret(), beam_contact_params_ptr_);
+  for (auto& pair : directly_created_pairs)
+  {
+    contact_elepairs_.push_back(pair);
+  }
+
+
   // Setup the geometry evaluation data.
   beam_interaction_conditions_ptr_->setup(discret_ptr());
 

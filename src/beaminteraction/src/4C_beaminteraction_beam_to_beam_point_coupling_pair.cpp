@@ -65,6 +65,8 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam>::evaluate_and_assemble(
     const std::shared_ptr<Core::LinAlg::SparseMatrix>& stiffness_matrix,
     const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement_vector)
 {
+  check_init_setup();
+
   const std::array<const Core::Elements::Element*, 2> beam_ele = {
       this->element1(), this->element2()};
 

@@ -298,6 +298,25 @@ void BeamInteraction::BeamInteractionConditions::create_contact_pairs(
 /**
  *
  */
+std::vector<std::shared_ptr<BeamInteraction::BeamContactPair>>
+BeamInteraction::BeamInteractionConditions::create_contact_pairs_direct(
+    const Core::FE::Discretization& discretization,
+    const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr)
+{
+  std::vector<std::shared_ptr<BeamInteraction::BeamContactPair>> created_pairs;
+  for (auto& map_pair : condition_map_)
+  {
+    for (auto& condition : map_pair.second)
+    {
+      condition->create_contact_pairs_direct(created_pairs, discretization, params_ptr);
+    }
+  }
+  return created_pairs;
+}
+
+/**
+ *
+ */
 void BeamInteraction::BeamInteractionConditions::create_indirect_assembly_managers(
     const std::shared_ptr<const Core::FE::Discretization>& discret,
     std::vector<std::shared_ptr<SubmodelEvaluator::BeamContactAssemblyManager>>& assembly_managers)

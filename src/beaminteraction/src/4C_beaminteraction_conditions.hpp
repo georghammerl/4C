@@ -85,6 +85,14 @@ namespace BeamInteraction
         const std::vector<Core::Elements::Element const*>& ele_ptrs) = 0;
 
     /**
+     * \brief Create the contact pairs directly, i.e., not depending on given element pointers.
+     */
+    virtual void create_contact_pairs_direct(
+        std::vector<std::shared_ptr<BeamContactPair>>& contact_pairs,
+        const Core::FE::Discretization& discretization,
+        const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr) {};
+
+    /**
      * \brief Build the ID sets for this condition. The ID sets will be used to check if an element
      * is in this condition.
      */
@@ -206,6 +214,13 @@ namespace BeamInteraction
     void create_contact_pairs(
         std::vector<std::shared_ptr<BeamInteraction::BeamContactPair>>& created_pairs,
         const std::vector<Core::Elements::Element const*>& ele_ptrs);
+
+    /**
+     * \brief Create the contact pairs directly, i.e., not depending on given element pointers.
+     */
+    std::vector<std::shared_ptr<BeamContactPair>> create_contact_pairs_direct(
+        const Core::FE::Discretization& discretization,
+        const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr);
 
     /**
      * Create all needed indirect assembly managers.

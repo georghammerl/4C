@@ -8,6 +8,7 @@
 #include "4C_beaminteraction_beam_to_beam_point_coupling_pair_condition.hpp"
 
 #include "4C_beaminteraction_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element.hpp"
@@ -18,47 +19,15 @@ FOUR_C_NAMESPACE_OPEN
 /**
  *
  */
-bool BeamInteraction::BeamToBeamPointCouplingCondition::ids_in_condition(
-    const int id_line, const int id_other) const
-{
-  if (line_ids_.find(id_line) != line_ids_.end() and line_ids_.find(id_other) != line_ids_.end())
-  {
-    return true;
-  }
-  return false;
-}
-
-/**
- *
- */
 void BeamInteraction::BeamToBeamPointCouplingCondition::clear() {}
 
 /**
  *
  */
-std::shared_ptr<BeamInteraction::BeamContactPair>
-BeamInteraction::BeamToBeamPointCouplingCondition::create_contact_pair(
-    const std::vector<Core::Elements::Element const*>& ele_ptrs)
-{
-  {
-    // Check if the given elements are in this condition.
-    if (!ids_in_condition(ele_ptrs[0]->id(), ele_ptrs[1]->id())) return nullptr;
-
-    // Create the beam contact pair.
-    std::shared_ptr<BeamInteraction::BeamContactPair> contact_pair =
-        std::make_shared<BeamToBeamPointCouplingPair<GeometryPair::t_hermite>>(
-            rotational_penalty_parameter_, positional_penalty_parameter_,
-            local_parameter_coordinates_);
-    // Return the newly created pair.
-    return contact_pair;
-  }
-}
-
-/**
- *
- */
-void BeamInteraction::BeamToBeamPointCouplingCondition::build_id_sets(
-    const std::shared_ptr<const Core::FE::Discretization>& discretization)
+void BeamInteraction::BeamToBeamPointCouplingCondition::create_contact_pairs_direct(
+    std::vector<std::shared_ptr<BeamContactPair>>& contact_pairs,
+    const Core::FE::Discretization& discretization,
+    const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr)
 {
   // Set the IDs of the nodes to be coupled
   const std::vector<int> node_ids = *(condition_line_->get_nodes());
@@ -66,33 +35,89 @@ void BeamInteraction::BeamToBeamPointCouplingCondition::build_id_sets(
   if (node_ids.size() != 2)
     FOUR_C_THROW(
         "The Penalty Point Coupling Condition can only handle 2 nodes per condition! If you want "
-        "to couple multiple nodes, please split them into multiple conditions, each coupling two "
-        "of the beam nodes.");
+        "to couple multiple nodes, split them into multiple conditions, each coupling two of the "
+        "beam nodes.");
 
-  std::vector<int> element_ids(node_ids.size());
-  std::vector<double> position_in_parameter_space(node_ids.size());
-
-  int i = 0;
-  for (auto node_id : node_ids)
+  // Get the element with the lowest GID among the adjacent elements of a node
+  auto get_lowest_gid_element = [](const auto* node) -> const Core::Elements::Element*
   {
-    i++;
+    const auto& adj_elements = node->adjacent_elements();
 
-    // This means that the node is not in the column map of this proc and the element pair will thus
-    // be created on a different processor
-    if (!discretization->have_global_node(node_id)) return;
+    const Core::Elements::Element* lowest = nullptr;
+    int lowest_gid = std::numeric_limits<int>::max();
 
-    Core::Nodes::Node* node = discretization->g_node(node_id);
+    for (const auto& adj_elem : adj_elements)
+    {
+      const Core::Elements::Element* element = adj_elem.user_element();
+      if (element && element->id() < lowest_gid)
+      {
+        lowest_gid = element->id();
+        lowest = element;
+      }
+    }
+    return lowest;
+  };
 
-    Core::Elements::Element* element = node->adjacent_elements()[0].user_element();
-    element_ids[i - 1] = element->id();
-    if (element->node_ids()[0] == node_id)
-      position_in_parameter_space[i - 1] = -1;
-    else
-      position_in_parameter_space[i - 1] = 1;
+  // We create the pair on the processor that owns the beam element with the lowest GID connected to
+  // the first node.
+  std::array<const Core::Elements::Element*, 2> element_ptrs{};
+  for (size_t i_node = 0; i_node < 2; i_node++)
+  {
+    if (discretization.have_global_node(node_ids[i_node]))
+    {
+      element_ptrs[i_node] = get_lowest_gid_element(discretization.g_node(node_ids[i_node]));
+    }
   }
 
-  line_ids_ = std::set<int>(element_ids.begin(), element_ids.end());
-  local_parameter_coordinates_ = {position_in_parameter_space[0], position_in_parameter_space[1]};
+  // We check if the first element pointer is valid and if that element is owned by this processor.
+  int pairs_created = 0;
+  if (element_ptrs[0] != nullptr)
+  {
+    const auto my_rank = Core::Communication::my_mpi_rank(discretization.get_comm());
+    if (element_ptrs[0]->owner() == my_rank)
+    {
+      // Check that the second element also exists on this processor (can be a ghosted element)
+      if (element_ptrs[1] != nullptr)
+      {
+        // Get the parameter coordinates for evaluating the coupling constraint
+        for (size_t i_node = 0; i_node < 2; i_node++)
+        {
+          const Core::Nodes::Node* node = discretization.g_node(node_ids[i_node]);
+          if (element_ptrs[i_node]->node_ids()[0] == node->id())
+            local_parameter_coordinates_[i_node] = -1;
+          else
+            local_parameter_coordinates_[i_node] = 1;
+        }
+
+        // Create the pair
+        contact_pairs.emplace_back(
+            std::make_shared<BeamToBeamPointCouplingPair<GeometryPair::t_hermite>>(
+                rotational_penalty_parameter_, positional_penalty_parameter_,
+                local_parameter_coordinates_));
+        contact_pairs.back()->init(params_ptr, {element_ptrs[0], element_ptrs[1]});
+        contact_pairs.back()->setup();
+        pairs_created += 1;
+      }
+      else
+      {
+        FOUR_C_THROW(
+            "The element for node {} is owned by rank {}, but the element for the node {} could "
+            "not be found on this rank.",
+            node_ids[0], my_rank, node_ids[1]);
+      }
+    }
+  }
+
+  const auto total_created_pairs =
+      Core::Communication::sum_all(pairs_created, discretization.get_comm());
+  if (total_created_pairs != 1)
+  {
+    FOUR_C_THROW(
+        "BeamToBeamPointCouplingCondition: Expected exactly one contact pair to be created across "
+        "all MPI ranks, but found {}.",
+        total_created_pairs);
+  }
 }
+
 
 FOUR_C_NAMESPACE_CLOSE
