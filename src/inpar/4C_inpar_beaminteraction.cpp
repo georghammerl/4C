@@ -11,6 +11,8 @@
 #include "4C_fem_condition_definition.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io_input_spec_builders.hpp"
+#include "4C_legacy_enum_definitions_conditions.hpp"
+
 FOUR_C_NAMESPACE_OPEN
 
 
@@ -18,7 +20,8 @@ void Inpar::BeamInteraction::beam_interaction_conditions_get_all(
     std::vector<Inpar::BeamInteraction::BeamInteractionConditions>& interactions)
 {
   interactions = {Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling,
+      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_direct,
+      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_indirect,
       Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_volume_meshtying,
       Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_meshtying,
       Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact,
@@ -221,22 +224,44 @@ void Inpar::BeamInteraction::set_valid_conditions(
   condlist.push_back(beam_filament_condition);
 
   /*-------------------------------------------------------------------*/
-  Core::Conditions::ConditionDefinition penalty_coupling_condition(
-      "DESIGN POINT PENALTY COUPLING CONDITIONS", "PenaltyPointCouplingCondition",
+  Core::Conditions::ConditionDefinition penalty_coupling_condition_direct(
+      "DESIGN POINT PENALTY COUPLING CONDITIONS", "PenaltyPointCouplingConditionDirect",
       "Couples beam nodes that lie on the same position",
-      Core::Conditions::PenaltyPointCouplingCondition, false,
+      Core::Conditions::PenaltyPointCouplingConditionDirect, false,
       Core::Conditions::geometry_type_point);
 
-  penalty_coupling_condition.add_component(parameter<double>("POSITIONAL_PENALTY_PARAMETER"));
-  penalty_coupling_condition.add_component(parameter<double>("ROTATIONAL_PENALTY_PARAMETER"));
+  penalty_coupling_condition_direct.add_component(
+      parameter<double>("POSITIONAL_PENALTY_PARAMETER"));
+  penalty_coupling_condition_direct.add_component(
+      parameter<double>("ROTATIONAL_PENALTY_PARAMETER"));
 
-  condlist.push_back(penalty_coupling_condition);
+  condlist.push_back(penalty_coupling_condition_direct);
 
   // beam-to-beam interactions
   BeamContact::set_valid_conditions(condlist);
 
   // beam-to-solid interactions
   Inpar::BeamToSolid::set_valid_conditions(condlist);
+
+  // Beam-to-beam point couplings based on CPP conditions.
+  {
+    Core::Conditions::ConditionDefinition penalty_coupling_condition_indirect(
+        "BEAM INTERACTION/BEAM TO BEAM POINT COUPLING CONDITIONS",
+        "PenaltyPointCouplingConditionIndirect",
+        "Coupling conditions between beams based on closest point projections.",
+        Core::Conditions::PenaltyPointCouplingConditionIndirect, true,
+        Core::Conditions::geometry_type_line);
+    penalty_coupling_condition_indirect.add_component(parameter<int>("COUPLING_ID"));
+    penalty_coupling_condition_indirect.add_component(group("PARAMETERS",
+        {parameter<double>("POSITIONAL_PENALTY_PARAMETER"),
+            parameter<double>("ROTATIONAL_PENALTY_PARAMETER"),
+            parameter<double>("PROJECTION_VALID_FACTOR",
+                {.description = "Factor multiplied with sum of cross section "
+                                "radii to define valid projection distance",
+                    .default_value = 2.0})},
+        {.required = false}));
+    condlist.push_back(penalty_coupling_condition_indirect);
+  }
 }
 
 FOUR_C_NAMESPACE_CLOSE

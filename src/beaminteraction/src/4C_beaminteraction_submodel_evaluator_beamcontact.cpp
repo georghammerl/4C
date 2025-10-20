@@ -118,9 +118,17 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   }
 
   // conditions for beam penalty point coupling
-  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions;
-  discret().get_condition("PenaltyPointCouplingCondition", beampenaltycouplingconditions);
-  if (beampenaltycouplingconditions.size() > 0)
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_direct;
+  discret().get_condition(
+      "PenaltyPointCouplingConditionDirect", beampenaltycouplingconditions_direct);
+  if (beampenaltycouplingconditions_direct.size() > 0)
+  {
+    contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
+  }
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
+  discret().get_condition(
+      "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
+  if (beampenaltycouplingconditions_indirect.size() > 0)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
   }

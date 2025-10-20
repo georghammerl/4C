@@ -20,6 +20,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_evaluation_data_base.hpp"
+#include "4C_geometry_pair_utility_functions.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -79,14 +80,29 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
   // Loop over interaction types.
   for (const auto& interaction_type : interaction_types)
   {
-    if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact)
+    if (interaction_type ==
+            Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact or
+        interaction_type ==
+            Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_indirect)
     {
       // Add all beam-to-beam conditions.
       std::vector<std::shared_ptr<BeamInteractionConditionBase>>& interaction_vector =
           condition_map_[interaction_type];
 
       // Get the names for the conditions of this type.
-      std::string condition_name = "BeamToBeamContact";
+      std::string condition_name;
+      if (interaction_type ==
+          Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact)
+      {
+        condition_name = "BeamToBeamContact";
+      }
+      else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
+                                       beam_to_beam_point_coupling_indirect)
+      {
+        condition_name = "PenaltyPointCouplingConditionIndirect";
+      }
+      else
+        FOUR_C_THROW("Got unexpected beam-to-beam interaction type.");
 
       // Get the line conditions from the discretization.
       std::vector<const Core::Conditions::Condition*> condition_lines;
@@ -116,9 +132,22 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
         if (condition_1 != nullptr && condition_2 != nullptr)
         {
           // We found the matching conditions, now create the beam-to-beam condition objects.
-          interaction_vector.push_back(
-              std::make_shared<BeamInteraction::BeamToBeamContactCondition>(
-                  *condition_1, *condition_2));
+          if (interaction_type ==
+              Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact)
+          {
+            interaction_vector.push_back(
+                std::make_shared<BeamInteraction::BeamToBeamContactCondition>(
+                    *condition_1, *condition_2));
+          }
+          else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
+                                           beam_to_beam_point_coupling_indirect)
+          {
+            interaction_vector.push_back(
+                std::make_shared<BeamInteraction::BeamToBeamPointCouplingConditionIndirect>(
+                    *condition_1, *condition_2));
+          }
+          else
+            FOUR_C_THROW("Got unexpected beam-to-beam interaction type.");
         }
         else
           FOUR_C_THROW("Could not find both conditions ({}) for the COUPLING_ID {}", condition_name,
@@ -210,20 +239,20 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
             condition_names[0], condition_names[1]);
     }
     else if (interaction_type ==
-             Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling)
+             Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_direct)
     {
       std::vector<std::shared_ptr<BeamInteractionConditionBase>>& interaction_vector =
           condition_map_[interaction_type];
 
       // Get the conditions from the discretization.
       std::vector<const Core::Conditions::Condition*> coupling_conditions;
-      discret.get_condition("PenaltyPointCouplingCondition", coupling_conditions);
+      discret.get_condition("PenaltyPointCouplingConditionDirect", coupling_conditions);
       for (const auto& condition : coupling_conditions)
       {
         // We found the matching conditions, now create the beam-to-beam coupling condition object
         std::shared_ptr<BeamInteractionConditionBase> new_condition;
 
-        new_condition = std::make_shared<BeamInteraction::BeamToBeamPointCouplingCondition>(
+        new_condition = std::make_shared<BeamInteraction::BeamToBeamPointCouplingConditionDirect>(
             *condition, condition->parameters().get<double>("POSITIONAL_PENALTY_PARAMETER"),
             condition->parameters().get<double>("ROTATIONAL_PENALTY_PARAMETER"));
 
@@ -340,63 +369,10 @@ void BeamInteraction::BeamInteractionConditions::create_indirect_assembly_manage
 void BeamInteraction::condition_to_element_ids(
     const Core::Conditions::Condition& condition, std::vector<int>& element_ids)
 {
-  const auto element_id_map = condition_to_element_id_map(condition);
+  const auto element_id_map = GeometryPair::condition_to_element_id_map(condition);
   element_ids.clear();
   element_ids.reserve(element_id_map.size());
   for (const auto& [key, _] : element_id_map) element_ids.push_back(key);
-}
-
-/**
- *
- */
-std::unordered_map<int, const Core::Elements::Element*>
-BeamInteraction::condition_to_element_id_map(const Core::Conditions::Condition& condition)
-{
-  std::unordered_map<int, const Core::Elements::Element*> element_id_map;
-
-  for (const auto& [_, element] : condition.geometry())
-  {
-    if (element->is_face_element())
-    {
-      // For a face element it is easy as we can directly get the parent element ID.
-      const std::shared_ptr<const Core::Elements::FaceElement> face_element =
-          std::dynamic_pointer_cast<const Core::Elements::FaceElement>(element);
-      const int parent_element_id = face_element->parent_element_id();
-      element_id_map[parent_element_id] = face_element.get();
-    }
-    else
-    {
-      const size_t n_nodes = element->num_node();
-
-      // Create the node sets and store the node IDs from the condition element in it.
-      std::set<int> nodes_condition;
-      std::set<int> nodes_element;
-      for (size_t i = 0; i < n_nodes; i++) nodes_condition.insert(element->nodes()[i]->id());
-
-      // Loop over all elements connected to a node and check if the nodal IDs are the same.
-      const size_t local_node_id = n_nodes - 1;
-      for (auto ele : element->nodes()[local_node_id]->adjacent_elements())
-      {
-        if (ele.num_nodes() != n_nodes) continue;
-
-        // Fill up the node ID map.
-        nodes_element.clear();
-        for (auto node : ele.nodes()) nodes_element.insert(node.global_id());
-
-        // Check if the maps are equal.
-        if (std::equal(nodes_condition.begin(), nodes_condition.end(), nodes_element.begin()))
-        {
-          element_id_map[ele.global_id()] = ele.user_element();
-          break;
-        }
-      }
-    }
-  }
-
-  if (element_id_map.size() != condition.geometry().size())
-    FOUR_C_THROW("Could not create all element ID to element pointer mappings for the condition!");
-
-  return element_id_map;
 }
 
 FOUR_C_NAMESPACE_CLOSE

@@ -108,6 +108,9 @@ GeometryPair::ProjectionResult GeometryPair::line_to_line_closest_point_projecti
  */
 namespace GeometryPair
 {
+  template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_hermite>(
+      const ElementData<t_hermite, double>&, const ElementData<t_hermite, double>&, double&,
+      double&, const bool);
   template ProjectionResult line_to_line_closest_point_projection<Sacado::ELRFad::DFad<double>,
       t_hermite, t_line2>(const ElementData<t_hermite, Sacado::ELRFad::DFad<double>>&,
       const ElementData<t_line2, Sacado::ELRFad::DFad<double>>&, Sacado::ELRFad::DFad<double>&,

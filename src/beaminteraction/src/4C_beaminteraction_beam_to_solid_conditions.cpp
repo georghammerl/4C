@@ -37,6 +37,7 @@
 #include "4C_geometry_pair_evaluation_data_base.hpp"
 #include "4C_geometry_pair_line_to_3D_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_surface_evaluation_data.hpp"
+#include "4C_geometry_pair_utility_functions.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_utils_std23_unreachable.hpp"
@@ -397,7 +398,7 @@ void BeamInteraction::BeamToSolidConditionSurface::build_id_sets(
   BeamToSolidCondition::build_id_sets(discretization);
 
   // Build the surface map.
-  surface_ids_ = condition_to_element_id_map(*condition_other_);
+  surface_ids_ = GeometryPair::condition_to_element_id_map(*condition_other_);
 }
 
 /**
@@ -891,7 +892,7 @@ void BeamInteraction::BeamToLineCondition::build_id_sets(
   BeamToSolidCondition::build_id_sets(discretization);
 
   // Build the other line map.
-  other_line_map_ = condition_to_element_id_map(*condition_other_);
+  other_line_map_ = GeometryPair::condition_to_element_id_map(*condition_other_);
 }
 
 /**

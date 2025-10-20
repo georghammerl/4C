@@ -13,18 +13,15 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element.hpp"
 
+#include <array>
+
 FOUR_C_NAMESPACE_OPEN
 
 
 /**
  *
  */
-void BeamInteraction::BeamToBeamPointCouplingCondition::clear() {}
-
-/**
- *
- */
-void BeamInteraction::BeamToBeamPointCouplingCondition::create_contact_pairs_direct(
+void BeamInteraction::BeamToBeamPointCouplingConditionDirect::create_contact_pairs_direct(
     std::vector<std::shared_ptr<BeamContactPair>>& contact_pairs,
     const Core::FE::Discretization& discretization,
     const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr)
@@ -38,24 +35,16 @@ void BeamInteraction::BeamToBeamPointCouplingCondition::create_contact_pairs_dir
         "to couple multiple nodes, split them into multiple conditions, each coupling two of the "
         "beam nodes.");
 
-  // Get the element with the lowest GID among the adjacent elements of a node
+  // Get the element pointer with the lowest GID among the adjacent elements of a node
   auto get_lowest_gid_element = [](const auto* node) -> const Core::Elements::Element*
   {
     const auto& adj_elements = node->adjacent_elements();
 
-    const Core::Elements::Element* lowest = nullptr;
-    int lowest_gid = std::numeric_limits<int>::max();
+    auto min_element_iterator =
+        std::ranges::min_element(adj_elements, {}, [](const auto& a) { return a.global_id(); });
 
-    for (const auto& adj_elem : adj_elements)
-    {
-      const Core::Elements::Element* element = adj_elem.user_element();
-      if (element && element->id() < lowest_gid)
-      {
-        lowest_gid = element->id();
-        lowest = element;
-      }
-    }
-    return lowest;
+    return (min_element_iterator != adj_elements.end()) ? min_element_iterator->user_element()
+                                                        : nullptr;
   };
 
   // We create the pair on the processor that owns the beam element with the lowest GID connected to
@@ -113,11 +102,59 @@ void BeamInteraction::BeamToBeamPointCouplingCondition::create_contact_pairs_dir
   if (total_created_pairs != 1)
   {
     FOUR_C_THROW(
-        "BeamToBeamPointCouplingCondition: Expected exactly one contact pair to be created across "
+        "BeamToBeamPointCouplingConditionDirect: Expected exactly one contact pair to be created "
+        "across "
         "all MPI ranks, but found {}.",
         total_created_pairs);
   }
 }
 
+
+/**
+ *
+ */
+void BeamInteraction::BeamToBeamPointCouplingConditionIndirect::build_id_sets(
+    const std::shared_ptr<const Core::FE::Discretization>& discretization)
+{
+  // Call the parent method to build the line maps.
+  BeamInteractionConditionBase::build_id_sets(discretization);
+
+  // Build the other line map.
+  std::vector<int> line_ids;
+  condition_to_element_ids(*condition_other_, line_ids);
+  other_line_ids_ = std::set<int>(line_ids.begin(), line_ids.end());
+
+  // Setup the geometry pair evaluation data
+  geometry_evaluation_data_ = std::make_shared<GeometryPair::LineToLineEvaluationData>(
+      *discretization, condition_line_, condition_other_);
+}
+
+/**
+ *
+ */
+bool BeamInteraction::BeamToBeamPointCouplingConditionIndirect::ids_in_condition(
+    const int id_line, const int id_other) const
+{
+  if (id_is_in_condition(line_ids_, id_line) and id_is_in_condition(other_line_ids_, id_other))
+    return true;
+  if (id_is_in_condition(line_ids_, id_other) and id_is_in_condition(other_line_ids_, id_line))
+    return true;
+  return false;
+}
+
+/**
+ *
+ */
+std::shared_ptr<BeamInteraction::BeamContactPair>
+BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_contact_pair(
+    const std::vector<Core::Elements::Element const*>& ele_ptrs)
+{
+  // Check if the given elements are in this condition.
+  if (!ids_in_condition(ele_ptrs[0]->id(), ele_ptrs[1]->id())) return nullptr;
+
+  return std::make_shared<BeamToBeamPointCouplingPair<GeometryPair::t_hermite>>(
+      rotational_penalty_parameter_, positional_penalty_parameter_, projection_valid_factor_,
+      geometry_evaluation_data_);
+}
 
 FOUR_C_NAMESPACE_CLOSE

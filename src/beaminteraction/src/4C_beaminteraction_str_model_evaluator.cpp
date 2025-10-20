@@ -303,9 +303,15 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   // ---------------------------------------------------------------------------
 
   // conditions for beam penalty point coupling
-  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions;
-  discret_ptr_->get_condition("PenaltyPointCouplingCondition", beampenaltycouplingconditions);
-  if (beampenaltycouplingconditions.size() > 0)
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_direct;
+  discret_ptr_->get_condition(
+      "PenaltyPointCouplingConditionDirect", beampenaltycouplingconditions_direct);
+  if (beampenaltycouplingconditions_direct.size() > 0)
+    submodeltypes_->insert(Inpar::BeamInteraction::submodel_beamcontact);
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
+  discret_ptr_->get_condition(
+      "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
+  if (beampenaltycouplingconditions_indirect.size() > 0)
     submodeltypes_->insert(Inpar::BeamInteraction::submodel_beamcontact);
 
   // ---------------------------------------------------------------------------
@@ -347,7 +353,7 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
 
   // Ensure that no point coupling condition connects two beams that are possibly in contact with
   // each other.
-  for (auto beam_point_coupling_condition : beampenaltycouplingconditions)
+  for (auto beam_point_coupling_condition : beampenaltycouplingconditions_direct)
   {
     // get all nodes of beam to beam point coupling condition
     const std::vector<int>& nodes = *(beam_point_coupling_condition->get_nodes());

@@ -218,8 +218,12 @@ std::string_view Core::Conditions::to_string(const Core::Conditions::ConditionTy
       return "line condition for polymer networks";
     case Core::Conditions::PointCoupling:
       return "Multi point constraint coupling";
-    case Core::Conditions::PenaltyPointCouplingCondition:
-      return "condition for beam-to-beam point coupling based on a penalty potential";
+    case Core::Conditions::PenaltyPointCouplingConditionDirect:
+      return "condition for beam-to-beam point coupling based on a penalty potential (direct pair "
+             "creation)";
+    case Core::Conditions::PenaltyPointCouplingConditionIndirect:
+      return "condition for beam-to-beam point coupling based on a penalty potential (indirect "
+             "pair creation with closest point projection)";
     case Core::Conditions::PointLinearCoupledEquation:
       return "Point linear coupling equation";
     case Core::Conditions::RigidspherePotential_PointCharge:

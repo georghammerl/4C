@@ -12,6 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_contact_pair.hpp"
+#include "4C_geometry_pair_line_to_line_evaluation_data.hpp"
 
 #include <Sacado.hpp>
 
@@ -42,15 +43,29 @@ namespace BeamInteraction
 
    public:
     /**
-     * \brief Standard Constructor.
-     *
-     * @param penalty_parameter_rot (in) Penalty parameter for rotational coupling.
-     * @param penalty_parameter_pos (in) Penalty parameter for positional coupling.
-     * @param pos_in_parameterspace (in) Coupling positions in the beam parameter spaces.
+     * \brief Standard Constructor with given projection coordinates.
      */
     BeamToBeamPointCouplingPair(double penalty_parameter_rot, double penalty_parameter_pos,
-        std::array<double, 2> pos_in_parameterspace);
+        std::array<double, 2> pos_in_parameterspace)
+        : BeamContactPair(),
+          penalty_parameter_pos_(penalty_parameter_pos),
+          penalty_parameter_rot_(penalty_parameter_rot),
+          use_closest_point_projection_(false),
+          position_in_parameterspace_(pos_in_parameterspace) {};
 
+    /**
+     * \brief Standard Constructor for closes point projection variant.
+     */
+    BeamToBeamPointCouplingPair(const double penalty_parameter_rot,
+        const double penalty_parameter_pos, const double projection_valid_factor,
+        std::shared_ptr<GeometryPair::LineToLineEvaluationData>& line_to_line_evaluation_data)
+        : BeamContactPair(),
+          penalty_parameter_pos_(penalty_parameter_pos),
+          penalty_parameter_rot_(penalty_parameter_rot),
+          use_closest_point_projection_(true),
+          position_in_parameterspace_({0, 0}),
+          projection_valid_factor_(projection_valid_factor),
+          line_to_line_evaluation_data_(line_to_line_evaluation_data) {};
 
     /**
      * \brief Setup the beam coupling pair.
@@ -195,8 +210,18 @@ namespace BeamInteraction
     //! Penalty parameter for rotational coupling.
     double penalty_parameter_rot_;
 
+    //! If this the interacting points are computed via closest point projection or not.
+    bool use_closest_point_projection_ = false;
+
     //! Coupling point positions in the element parameter spaces.
     std::array<double, 2> position_in_parameterspace_;
+
+    //! Factor to determine valid projection
+    double projection_valid_factor_ = -1.0;
+
+    //! Line to line evaluation data for closest point projection
+    const std::shared_ptr<GeometryPair::LineToLineEvaluationData> line_to_line_evaluation_data_ =
+        nullptr;
   };  // namespace BeamInteraction
 }  // namespace BeamInteraction
 
