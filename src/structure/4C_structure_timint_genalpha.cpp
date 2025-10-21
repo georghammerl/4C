@@ -410,7 +410,7 @@ void Solid::TimIntGenAlpha::evaluate_force_stiff_residual(Teuchos::ParameterList
   Teuchos::ParameterList psprdash;
   psprdash.set("time_fac", gamma_ / (beta_ * (*dt_)[0]));
   psprdash.set("dt", (*dt_)[0]);  // needed only for cursurfnormal option!!
-  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, veln_, predict, psprdash);
+  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, *veln_, predict, psprdash);
 
   // total internal mid-forces F_{int;n+1-alpha_f} ----> TR-like
   // F_{int;n+1-alpha_f} := (1.-alphaf) * F_{int;n+1} + alpha_f * F_{int;n}

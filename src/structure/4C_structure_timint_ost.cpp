@@ -323,7 +323,7 @@ void Solid::TimIntOneStepTheta::evaluate_force_stiff_residual(Teuchos::Parameter
   Teuchos::ParameterList psprdash;
   psprdash.set("time_fac", 1. / (theta_ * (*dt_)[0]));
   psprdash.set("dt", (*dt_)[0]);  // needed only for cursurfnormal option!!
-  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, veln_, predict, psprdash);
+  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, *veln_, predict, psprdash);
 
   // apply forces and stiffness due to constraints
   Teuchos::ParameterList pcon;

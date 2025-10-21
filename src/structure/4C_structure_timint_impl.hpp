@@ -329,7 +329,7 @@ namespace Solid
         std::shared_ptr<Core::LinAlg::SparseOperator> stiff,  //!< stiffness is modified
         std::shared_ptr<Core::LinAlg::Vector<double>> fint,   //!< internal forces are modified
         std::shared_ptr<Core::LinAlg::Vector<double>> dis,    //!< current displacement state
-        std::shared_ptr<Core::LinAlg::Vector<double>> vel,    //!< current velocity state
+        Core::LinAlg::Vector<double>& vel,                    //!< current velocity state
         bool predict,                                         //!< flag indicating predictor step
         Teuchos::ParameterList
             psprdash  //!< parameter list containing scale factors for matrix entries

@@ -980,16 +980,15 @@ void Solid::TimIntImpl::apply_force_stiff_cardiovascular0_d(const double time,
 void Solid::TimIntImpl::apply_force_stiff_spring_dashpot(
     std::shared_ptr<Core::LinAlg::SparseOperator> stiff,
     std::shared_ptr<Core::LinAlg::Vector<double>> fint,
-    std::shared_ptr<Core::LinAlg::Vector<double>> disn,
-    std::shared_ptr<Core::LinAlg::Vector<double>> veln, bool predict,
-    Teuchos::ParameterList psprdash)
+    std::shared_ptr<Core::LinAlg::Vector<double>> disn, Core::LinAlg::Vector<double>& veln,
+    bool predict, Teuchos::ParameterList psprdash)
 {
   psprdash.set("total time", time());
   if (springman_->have_spring_dashpot())
   {
     auto stiff_sparse = std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(stiff);
     if (stiff_sparse == nullptr) FOUR_C_THROW("Cannot cast stiffness matrix to sparse matrix!");
-    springman_->stiffness_and_internal_forces(stiff_sparse, fint, disn, *veln, psprdash);
+    springman_->stiffness_and_internal_forces(stiff_sparse, fint, disn, veln, psprdash);
   }
 
   return;

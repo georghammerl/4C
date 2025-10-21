@@ -221,7 +221,7 @@ void Solid::TimIntStatics::evaluate_force_stiff_residual(Teuchos::ParameterList&
 
   // add forces and stiffness due to spring dashpot condition
   Teuchos::ParameterList psprdash;
-  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, veln_, predict, psprdash);
+  apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, *veln_, predict, psprdash);
 
   // ************************** (3) INERTIAL FORCES ***************************
   // This is statics, so there are no inertial forces.
