@@ -693,7 +693,7 @@ void Solid::TimIntOneStepTheta::update_step_element()
 void Solid::TimIntOneStepTheta::read_restart_force()
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step_);
+      *discret_, Global::Problem::instance()->input_control_file(), step_);
   reader.read_vector(fext_, "fexternal");
   reader.read_vector(fint_, "fint");
   reader.read_vector(finert_, "finert");

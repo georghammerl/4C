@@ -870,7 +870,7 @@ std::shared_ptr<Core::IO::DiscretizationReader> PARTICLEENGINE::ParticleEngine::
     int restartstep) const
 {
   return std::make_shared<Core::IO::DiscretizationReader>(
-      binstrategy_->bin_discret(), Global::Problem::instance()->input_control_file(), restartstep);
+      *binstrategy_->bin_discret(), Global::Problem::instance()->input_control_file(), restartstep);
 }
 
 int PARTICLEENGINE::ParticleEngine::get_number_of_particles() const

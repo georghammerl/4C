@@ -201,7 +201,7 @@ void XFEM::LevelSetCoupling::prepare_cutter_output()
 
   if (cutter_output_ == nullptr)
   {
-    cutter_dis_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(cutter_dis_,
+    cutter_dis_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*cutter_dis_,
         Global::Problem::instance()->output_control_file(),
         Global::Problem::instance()->spatial_approximation_type()));
   }
@@ -343,7 +343,7 @@ void XFEM::LevelSetCoupling::read_restart(const int step, const int lsc_idx)
 
   //-------- boundary discretization
   Core::IO::DiscretizationReader boundaryreader(
-      cutter_dis_, Global::Problem::instance()->input_control_file(), step);
+      *cutter_dis_, Global::Problem::instance()->input_control_file(), step);
 
   const double time = boundaryreader.read_double("time");
 

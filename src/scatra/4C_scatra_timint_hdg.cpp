@@ -394,7 +394,7 @@ void ScaTra::TimIntHDG::collect_runtime_output_data()
 void ScaTra::TimIntHDG::read_restart(const int step, std::shared_ptr<Core::IO::InputControl> input)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
 
   time_ = reader.read_double("time");
   step_ = reader.read_int("step");

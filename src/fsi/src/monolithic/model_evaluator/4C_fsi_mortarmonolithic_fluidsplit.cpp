@@ -1518,7 +1518,7 @@ void FSI::MortarMonolithicFluidSplit::read_restart(int step)
     std::shared_ptr<Core::LinAlg::Vector<double>> lambdafull =
         std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->dof_row_map(), true);
     Core::IO::DiscretizationReader reader =
-        Core::IO::DiscretizationReader(fluid_field()->discretization(), input_control_file, step);
+        Core::IO::DiscretizationReader(*fluid_field()->discretization(), input_control_file, step);
     reader.read_vector(lambdafull, "fsilambda");
     lambdaold_ = fluid_field()->interface()->extract_fsi_cond_vector(*lambdafull);
     // Note: the above is normally enough. However, we can use the restart in order to periodically
@@ -1531,7 +1531,7 @@ void FSI::MortarMonolithicFluidSplit::read_restart(int step)
   if (aleproj_ != Inpar::FSI::ALEprojection_none)
   {
     Core::IO::DiscretizationReader reader =
-        Core::IO::DiscretizationReader(fluid_field()->discretization(), input_control_file, step);
+        Core::IO::DiscretizationReader(*fluid_field()->discretization(), input_control_file, step);
     reader.read_vector(iprojdisp_, "slideALE");
     reader.read_vector(iprojdispinc_, "slideALEincr");
     slideale_->read_restart(reader);

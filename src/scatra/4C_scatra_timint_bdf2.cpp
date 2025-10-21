@@ -306,10 +306,10 @@ void ScaTra::TimIntBDF2::read_restart(const int step, std::shared_ptr<Core::IO::
   if (input == nullptr)
   {
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        discret_, Global::Problem::instance()->input_control_file(), step);
+        *discret_, Global::Problem::instance()->input_control_file(), step);
   }
   else
-    reader = std::make_shared<Core::IO::DiscretizationReader>(discret_, input, step);
+    reader = std::make_shared<Core::IO::DiscretizationReader>(*discret_, input, step);
   time_ = reader->read_double("time");
   step_ = reader->read_int("step");
 

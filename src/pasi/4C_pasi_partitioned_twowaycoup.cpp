@@ -84,7 +84,7 @@ void PaSI::PasiPartTwoWayCoup::read_restart(int restartstep)
   // call base class read restart
   PaSI::PartitionedAlgo::read_restart(restartstep);
 
-  Core::IO::DiscretizationReader reader(structurefield_->discretization(),
+  Core::IO::DiscretizationReader reader(*structurefield_->discretization(),
       Global::Problem::instance()->input_control_file(), restartstep);
   if (restartstep != reader.read_int("step"))
     FOUR_C_THROW("Time step on file not equal to given step");
@@ -611,7 +611,7 @@ void PaSI::PasiPartTwoWayCoupDispRelaxAitken::read_restart(int restartstep)
   // call base class read restart
   PaSI::PasiPartTwoWayCoupDispRelax::read_restart(restartstep);
 
-  Core::IO::DiscretizationReader reader(structurefield_->discretization(),
+  Core::IO::DiscretizationReader reader(*structurefield_->discretization(),
       Global::Problem::instance()->input_control_file(), restartstep);
   if (restartstep != reader.read_int("step"))
     FOUR_C_THROW("Time step on file not equal to given step");

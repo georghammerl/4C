@@ -64,8 +64,8 @@ namespace Core::IO
   {
    public:
     /// construct reader for a given discretization to read a particular time step
-    DiscretizationReader(std::shared_ptr<Core::FE::Discretization> dis,
-        std::shared_ptr<Core::IO::InputControl> input, int step);
+    DiscretizationReader(
+        Core::FE::Discretization& dis, std::shared_ptr<Core::IO::InputControl> input, int step);
 
     /// destructor
     ~DiscretizationReader() = default;
@@ -165,9 +165,6 @@ namespace Core::IO
         std::shared_ptr<std::vector<int>>& intvec, const std::string name);
 
    protected:
-    /// empty constructor (only used for the construction of derived classes)
-    DiscretizationReader();
-
     /// find control file entry to given time step
     void find_result_group(int step, MAP* file);
 
@@ -193,7 +190,7 @@ namespace Core::IO
     std::shared_ptr<HDFReader> open_files(const char* filestring, MAP* result_step);
 
     //! my discretization
-    std::shared_ptr<Core::FE::Discretization> dis_;
+    Core::FE::Discretization& dis_;
 
     /// my input control file
     std::shared_ptr<Core::IO::InputControl> input_;
@@ -224,18 +221,15 @@ namespace Core::IO
      * @param[in] output_control        output control file
      * @param[in] shape_function_type   shape function type of the underlying fe discretization
      */
-    DiscretizationWriter(std::shared_ptr<Core::FE::Discretization> dis,
+    DiscretizationWriter(Core::FE::Discretization& dis,
         std::shared_ptr<OutputControl> output_control,
         const Core::FE::ShapeFunctionType shape_function_type);
 
-    /** \brief copy constructor
-     *
-     *  \param[in] writer  copy the writer of same type
-     *  \param[in] output  use this control object if provided
-     *  \parma[in] type    copy type
-     */
-    DiscretizationWriter(const Core::IO::DiscretizationWriter& writer,
-        const std::shared_ptr<OutputControl>& control, enum CopyType type);
+    DiscretizationWriter(const DiscretizationWriter& other) = delete;
+    DiscretizationWriter operator=(const DiscretizationWriter& other) = delete;
+    DiscretizationWriter(DiscretizationWriter&& other) = delete;
+    DiscretizationWriter operator=(DiscretizationWriter&& other) = delete;
+
 
     /// cleanup, close hdf5 files
     ~DiscretizationWriter();
@@ -369,9 +363,6 @@ namespace Core::IO
     [[nodiscard]] const Core::FE::Discretization& get_discretization() const;
 
    protected:
-    /// empty constructor (only used for the construction of derived classes)
-    DiscretizationWriter();
-
     /// access the MPI_Comm object
     [[nodiscard]] MPI_Comm get_comm() const;
 
@@ -387,7 +378,7 @@ namespace Core::IO
     void create_result_file(const int step);
 
     //! my discretization
-    std::shared_ptr<Core::FE::Discretization> dis_;
+    Core::FE::Discretization& dis_;
 
     int step_;
     double time_;

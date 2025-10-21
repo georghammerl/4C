@@ -668,7 +668,7 @@ void PoroElast::MonolithicSplitNoPenetration::read_restart(const int step)
   if (step)
   {
     // get the structure reader (this is where the lagrange multiplier was saved)
-    Core::IO::DiscretizationReader reader(structure_field()->discretization(),
+    Core::IO::DiscretizationReader reader(*structure_field()->discretization(),
         Global::Problem::instance()->input_control_file(), structure_field()->step());
     std::shared_ptr<Core::LinAlg::Vector<double>> fulllambda =
         std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map());

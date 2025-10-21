@@ -71,7 +71,7 @@ void FLD::TimIntPoro::assemble_mat_and_rhs()
 void FLD::TimIntPoro::read_restart(int step)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   reader.read_vector(gridv_, "gridv");
 }
 

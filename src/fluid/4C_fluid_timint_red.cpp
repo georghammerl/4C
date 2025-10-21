@@ -73,7 +73,7 @@ void FLD::TimIntRedModels::init()
     // Check if one-dimensional artery network problem exist
     if (ART_timeInt_ != nullptr)
     {
-      Core::IO::DiscretizationWriter output_redD(ART_timeInt_->discretization(),
+      Core::IO::DiscretizationWriter output_redD(*ART_timeInt_->discretization(),
           Global::Problem::instance()->output_control_file(),
           Global::Problem::instance()->spatial_approximation_type());
       discret_->clear_state();
@@ -92,7 +92,7 @@ void FLD::TimIntRedModels::init()
     // Check if one-dimensional artery network problem exist
     if (airway_imp_timeInt_ != nullptr)
     {
-      Core::IO::DiscretizationWriter output_redD(airway_imp_timeInt_->discretization(),
+      Core::IO::DiscretizationWriter output_redD(*airway_imp_timeInt_->discretization(),
           Global::Problem::instance()->output_control_file(),
           Global::Problem::instance()->spatial_approximation_type());
       discret_->clear_state();
@@ -262,7 +262,7 @@ void FLD::TimIntRedModels::output_reduced_d()
 void FLD::TimIntRedModels::read_restart(int step)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
 
   vol_surf_flow_bc_->read_restart(reader);
 

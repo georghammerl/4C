@@ -386,7 +386,7 @@ void ElCh::MovingBoundaryAlgorithm::read_restart(int step)
 
   // finally read isdispn which was written to the fluid restart data
   Core::IO::DiscretizationReader reader(
-      fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
+      *fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
   reader.read_vector(idispn_, "idispn");
   // read same result into vector isdispnp_ as a 'good guess'
   reader.read_vector(idispnp_, "idispn");

@@ -124,7 +124,7 @@ PoroPressureBased::PorofluidAlgorithm::PorofluidAlgorithm(
   if (restart_step > 0)
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), restart_step);
+        *discret_, Global::Problem::instance()->input_control_file(), restart_step);
 
     time_ = reader.read_double("time");
   }
@@ -2091,7 +2091,7 @@ void PoroPressureBased::PorofluidAlgorithm::read_restart(const int step)
 
   std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
   reader = std::make_shared<Core::IO::DiscretizationReader>(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
 
   time_ = reader->read_double("time");
   step_ = reader->read_int("step");

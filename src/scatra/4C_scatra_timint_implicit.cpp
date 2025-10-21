@@ -205,7 +205,7 @@ ScaTra::ScaTraTimIntImpl::ScaTraTimIntImpl(std::shared_ptr<Core::FE::Discretizat
   if (restart_step > 0)
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), restart_step);
+        *discret_, Global::Problem::instance()->input_control_file(), restart_step);
 
     time_ = reader.read_double("time");
   }

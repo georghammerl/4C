@@ -23,18 +23,11 @@
 FOUR_C_NAMESPACE_OPEN
 
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-Core::IO::DiscretizationReader::DiscretizationReader() /* [PROTECTED] */
-    : dis_(nullptr), input_(nullptr), restart_step_(nullptr), reader_(nullptr), meshreader_(nullptr)
-{
-  // intentionally left blank
-}
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-Core::IO::DiscretizationReader::DiscretizationReader(std::shared_ptr<Core::FE::Discretization> dis,
-    std::shared_ptr<Core::IO::InputControl> input, int step)
+Core::IO::DiscretizationReader::DiscretizationReader(
+    Core::FE::Discretization& dis, std::shared_ptr<Core::IO::InputControl> input, int step)
     : dis_(dis), input_(input)
 {
   find_result_group(step, input_->control_file());
@@ -163,8 +156,8 @@ void Core::IO::DiscretizationReader::read_map_data_of_char_vector(
  *----------------------------------------------------------------------*/
 void Core::IO::DiscretizationReader::read_mesh(int step)
 {
-  dis_->delete_nodes();
-  dis_->delete_elements();
+  dis_.delete_nodes();
+  dis_.delete_elements();
 
   find_mesh_group(step, input_->control_file());
 
@@ -181,12 +174,12 @@ void Core::IO::DiscretizationReader::read_mesh(int step)
   // number of elements in dis_
   // the call to redistribute deletes the unnecessary elements,
   // so everything should be OK
-  dis_->unpack_my_nodes(*nodedata);
-  dis_->unpack_my_elements(*elementdata);
+  dis_.unpack_my_nodes(*nodedata);
+  dis_.unpack_my_elements(*elementdata);
 
-  dis_->setup_ghosting({true, false, false});
+  dis_.setup_ghosting({true, false, false});
 
-  dis_->fill_complete();
+  dis_.fill_complete();
 
   return;
 }
@@ -202,7 +195,7 @@ void Core::IO::DiscretizationReader::read_nodes_only(int step)
       Core::Communication::num_mpi_ranks(get_comm()), Core::Communication::my_mpi_rank(get_comm()));
 
   // unpack nodes; fill_complete() has to be called manually
-  dis_->unpack_my_nodes(*nodedata);
+  dis_.unpack_my_nodes(*nodedata);
   return;
 }
 
@@ -221,12 +214,12 @@ void Core::IO::DiscretizationReader::read_history_data(int step)
       Core::Communication::num_mpi_ranks(get_comm()), Core::Communication::my_mpi_rank(get_comm()));
 
   // before we unpack nodes/elements we store a copy of the nodal row/col map
-  Core::LinAlg::Map noderowmap(*dis_->node_row_map());
-  Core::LinAlg::Map nodecolmap(*dis_->node_col_map());
+  Core::LinAlg::Map noderowmap(*dis_.node_row_map());
+  Core::LinAlg::Map nodecolmap(*dis_.node_col_map());
 
   // before we unpack nodes/elements we store a copy of the nodal row/col map
-  Core::LinAlg::Map elerowmap(*dis_->element_row_map());
-  Core::LinAlg::Map elecolmap(*dis_->element_col_map());
+  Core::LinAlg::Map elerowmap(*dis_.element_row_map());
+  Core::LinAlg::Map elecolmap(*dis_.element_col_map());
 
   // unpack nodes and elements and redistributed to current layout
 
@@ -236,9 +229,9 @@ void Core::IO::DiscretizationReader::read_history_data(int step)
   // number of elements in dis_
   // the call to redistribute deletes the unnecessary elements,
   // so everything should be OK
-  dis_->unpack_my_nodes(*nodedata);
-  dis_->unpack_my_elements(*elementdata);
-  dis_->redistribute({noderowmap, nodecolmap}, {elerowmap, elecolmap});
+  dis_.unpack_my_nodes(*nodedata);
+  dis_.unpack_my_elements(*elementdata);
+  dis_.redistribute({noderowmap, nodecolmap}, {elerowmap, elecolmap});
 }
 
 /*----------------------------------------------------------------------*/
@@ -250,7 +243,7 @@ void Core::IO::DiscretizationReader::read_char_vector(
   MAP* result = map_read_map(restart_step_, name.c_str());
   std::string value_path = map_read_string(result, "values");
 
-  charvec = reader_->read_char_vector(value_path, dis_->get_comm());
+  charvec = reader_->read_char_vector(value_path, dis_.get_comm());
 
   return;
 }
@@ -341,7 +334,7 @@ void Core::IO::DiscretizationReader::find_group(int step, MAP* file, const char*
    * matches the given step. Note that this iteration starts from the
    * last result group and goes backward. */
 
-  std::string name = dis_->name();
+  std::string name = dis_.name();
 
   symbol = map_find_symbol(file, caption);
   while (symbol != nullptr)
@@ -417,7 +410,7 @@ void Core::IO::DiscretizationReader::find_result_group(int step, MAP* file)
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-MPI_Comm Core::IO::DiscretizationReader::get_comm() const { return dis_->get_comm(); }
+MPI_Comm Core::IO::DiscretizationReader::get_comm() const { return dis_.get_comm(); }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
@@ -470,32 +463,10 @@ std::shared_ptr<Core::IO::HDFReader> Core::IO::DiscretizationReader::open_files(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-Core::IO::DiscretizationWriter::DiscretizationWriter() /* PROTECTED */
-    : dis_(nullptr),
-      step_(-1),
-      time_(-1.0),
-      meshfile_(-1),
-      resultfile_(-1),
-      meshfilename_(),
-      resultfilename_(),
-      meshgroup_(-1),
-      resultgroup_(-1),
-      resultfile_changed_(-1),
-      meshfile_changed_(-1),
-      output_(nullptr),
-      binio_(false),
-      spatial_approx_(Core::FE::ShapeFunctionType::undefined)
-{
-  // intentionally left blank
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-Core::IO::DiscretizationWriter::DiscretizationWriter(std::shared_ptr<Core::FE::Discretization> dis,
+Core::IO::DiscretizationWriter::DiscretizationWriter(Core::FE::Discretization& dis,
     std::shared_ptr<OutputControl> output_control,
     const Core::FE::ShapeFunctionType shape_function_type)
-    : dis_(Core::Utils::shared_ptr_from_ref(
-          *dis.get())),  // no ownership to break circle discretization<>writer
+    : dis_(dis),
       step_(-1),
       time_(-1.0),
       meshfile_(-1),
@@ -513,43 +484,6 @@ Core::IO::DiscretizationWriter::DiscretizationWriter(std::shared_ptr<Core::FE::D
     binio_ = output_->write_binary_output();
   else
     binio_ = false;
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-Core::IO::DiscretizationWriter::DiscretizationWriter(const Core::IO::DiscretizationWriter& writer,
-    const std::shared_ptr<OutputControl>& control, enum CopyType type)
-    : dis_(Core::Utils::shared_ptr_from_ref(*writer.dis_.get())),
-      step_(-1),
-      time_(-1.0),
-      meshfile_(-1),
-      resultfile_(-1),
-      meshfilename_(),
-      resultfilename_(),
-      meshgroup_(-1),
-      resultgroup_(-1),
-      resultfile_changed_(-1),
-      meshfile_changed_(-1),
-      output_(nullptr),
-      binio_(false),
-      spatial_approx_(writer.spatial_approx_)
-{
-  output_ = (!control ? writer.output_ : control);
-  if (output_) binio_ = output_->write_binary_output();
-
-  if (type == CopyType::deep)
-  {
-    step_ = writer.step_;
-    time_ = writer.time_;
-    meshfile_ = writer.meshfile_;
-    resultfile_ = writer.resultfile_;
-    meshfilename_ = writer.resultfile_;
-    resultfilename_ = writer.resultfile_;
-    meshgroup_ = writer.resultfile_;
-    resultgroup_ = writer.resultfile_;
-    resultfile_changed_ = writer.resultfile_;
-    meshfile_changed_ = writer.resultfile_;
-  }
 }
 
 /*----------------------------------------------------------------------*/
@@ -595,7 +529,7 @@ Core::IO::DiscretizationWriter::~DiscretizationWriter()
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-MPI_Comm Core::IO::DiscretizationWriter::get_comm() const { return dis_->get_comm(); }
+MPI_Comm Core::IO::DiscretizationWriter::get_comm() const { return dis_.get_comm(); }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
@@ -605,7 +539,7 @@ void Core::IO::DiscretizationWriter::create_mesh_file(const int step)
   {
     std::ostringstream meshname;
 
-    meshname << output_->file_name() << ".mesh." << dis_->name() << ".s" << step;
+    meshname << output_->file_name() << ".mesh." << dis_.name() << ".s" << step;
     meshfilename_ = meshname.str();
     if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
     {
@@ -635,7 +569,7 @@ void Core::IO::DiscretizationWriter::create_result_file(const int step)
   if (binio_)
   {
     std::ostringstream resultname;
-    resultname << output_->file_name() << ".result." << dis_->name() << ".s" << step;
+    resultname << output_->file_name() << ".result." << dis_.name() << ".s" << step;
 
     resultfilename_ = resultname.str();
     if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
@@ -709,7 +643,7 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
 
       output_->control_file()
           .start_group("result")
-          .write("field", dis_->name())
+          .write("field", dis_.name())
           .write("time", time)
           .write("step", step);
 
@@ -1027,7 +961,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
     if (meshgroup_ < 0) FOUR_C_THROW("Failed to write group in HDF-meshfile");
 
     // only procs with row elements need to write data
-    std::shared_ptr<std::vector<char>> elementdata = dis_->pack_my_elements();
+    std::shared_ptr<std::vector<char>> elementdata = dis_.pack_my_elements();
     hsize_t dim = static_cast<hsize_t>(elementdata->size());
     if (dim != 0)
     {
@@ -1047,7 +981,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
     }
 
     // only procs with row nodes need to write data
-    std::shared_ptr<std::vector<char>> nodedata = dis_->pack_my_nodes();
+    std::shared_ptr<std::vector<char>> nodedata = dis_.pack_my_nodes();
     dim = static_cast<hsize_t>(nodedata->size());
     if (dim != 0)
     {
@@ -1066,7 +1000,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
             Core::Communication::my_mpi_rank(get_comm()));
     }
 
-    int max_nodeid = dis_->node_row_map()->max_all_gid();
+    int max_nodeid = dis_.node_row_map()->max_all_gid();
 
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
@@ -1074,14 +1008,14 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
       output_->control_file().try_end_group();
       output_->control_file()
           .start_group("field")
-          .write("field", dis_->name())
+          .write("field", dis_.name())
           .write("time", time)
           .write("step", step)
-          .write("num_nd", dis_->num_global_nodes())
+          .write("num_nd", dis_.num_global_nodes())
           .write("max_nodeid", max_nodeid)
-          .write("num_ele", dis_->num_global_elements())
-          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
-          .write("num_dim", static_cast<int>(dis_->n_dim()));
+          .write("num_ele", dis_.num_global_elements())
+          .write("num_dof", dis_.dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_.n_dim()));
 
       // knotvectors for nurbs-discretisation
       write_knotvector();
@@ -1125,20 +1059,20 @@ void Core::IO::DiscretizationWriter::write_mesh(
       output_->control_file().try_end_group();
       output_->control_file()
           .start_group("field")
-          .write("field", dis_->name())
+          .write("field", dis_.name())
           .write("time", time)
           .write("step", step)
-          .write("num_nd", dis_->num_global_nodes())
-          .write("num_ele", dis_->num_global_elements())
-          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
-          .write("num_dim", static_cast<int>(dis_->n_dim()));
+          .write("num_nd", dis_.num_global_nodes())
+          .write("num_ele", dis_.num_global_elements())
+          .write("num_dof", dis_.dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_.n_dim()));
 
       // knotvectors for nurbs-discretisation
       // write_knotvector();
       // create name for meshfile as in createmeshfile which is not called here
       std::ostringstream meshname;
 
-      meshname << name_base_file << ".mesh." << dis_->name() << ".s" << step;
+      meshname << name_base_file << ".mesh." << dis_.name() << ".s" << step;
       meshfilename_ = meshname.str();
 
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
@@ -1176,7 +1110,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
     if (writerestart)
     {
       // only for restart: procs with row nodes need to write data
-      std::shared_ptr<std::vector<char>> nodedata = dis_->pack_my_nodes();
+      std::shared_ptr<std::vector<char>> nodedata = dis_.pack_my_nodes();
       hsize_t dim = static_cast<hsize_t>(nodedata->size());
       if (dim != 0)
       {
@@ -1200,7 +1134,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
      * nodes is important more exactly: the maximum nodal id is used to
      * determine number of particles during output unused particles are
      * located at the origin and are waiting for activation */
-    int max_nodeid = dis_->node_row_map()->max_all_gid();
+    int max_nodeid = dis_.node_row_map()->max_all_gid();
 
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
@@ -1210,14 +1144,14 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
       output_->control_file().try_end_group();
       output_->control_file()
           .start_group("field")
-          .write("field", dis_->name())
+          .write("field", dis_.name())
           .write("time", time)
           .write("step", step)
           .write("num_nd", 0)
           .write("max_nodeid", max_nodeid)
           .write("num_ele", 0)
-          .write("num_dof", dis_->dof_row_map(0)->num_global_elements())
-          .write("num_dim", static_cast<int>(dis_->n_dim()));
+          .write("num_dof", dis_.dof_row_map(0)->num_global_elements())
+          .write("num_dim", static_cast<int>(dis_.n_dim()));
 
       /* name of the output file must be specified for changing geometries in
        * each time step */
@@ -1258,14 +1192,14 @@ void Core::IO::DiscretizationWriter::write_element_data(bool writeowner)
     // loop all elements and build map of data names and dimensions
     if (writeowner == true)
     {
-      for (auto ele : dis_->my_row_element_range())
+      for (auto ele : dis_.my_row_element_range())
       {
         // write owner of every element
         ele.user_element()->vis_owner(names);
       }
     }
 
-    for (auto ele : dis_->my_row_element_range())
+    for (auto ele : dis_.my_row_element_range())
     {
       // get names and dimensions from every element
       ele.user_element()->vis_names(names);
@@ -1285,10 +1219,10 @@ void Core::IO::DiscretizationWriter::write_element_data(bool writeowner)
       std::vector<double> eledata(dimension);
 
       // MultiVector stuff from the elements is put in
-      Core::LinAlg::MultiVector<double> sysdata(*dis_->element_row_map(), dimension, true);
+      Core::LinAlg::MultiVector<double> sysdata(*dis_.element_row_map(), dimension, true);
 
       int ele_counter = 0;
-      for (auto ele : dis_->my_row_element_range())
+      for (auto ele : dis_.my_row_element_range())
       {
         std::fill(eledata.begin(), eledata.end(), 0.0);
 
@@ -1317,20 +1251,20 @@ void Core::IO::DiscretizationWriter::write_node_data(bool writeowner)
     std::map<std::string, int> names;  // contains name and dimension of data
 
     // loop over all nodes and build map of data names and dimensions
-    const Core::LinAlg::Map* noderowmap = dis_->node_row_map();
+    const Core::LinAlg::Map* noderowmap = dis_.node_row_map();
     if (writeowner == true)
     {
       for (int i = 0; i < noderowmap->num_my_elements(); ++i)
       {
         // write owner of every node
-        dis_->l_row_node(i)->vis_owner(names);
+        dis_.l_row_node(i)->vis_owner(names);
       }
     }
 
     for (int i = 0; i < noderowmap->num_my_elements(); ++i)
     {
       // get names and dimensions from every node
-      dis_->l_row_node(i)->vis_names(names);
+      dis_.l_row_node(i)->vis_names(names);
     }
 
     /* By applying gather_all we get the combined map including all nodal values
@@ -1357,7 +1291,7 @@ void Core::IO::DiscretizationWriter::write_node_data(bool writeowner)
         for (int idim = 0; idim < dimension; ++idim) nodedata[idim] = 0.0;
 
         // get data for a given name from node and put in sysdata
-        dis_->l_row_node(i)->vis_data(fool->first, nodedata);
+        dis_.l_row_node(i)->vis_data(fool->first, nodedata);
         if ((int)nodedata.size() != dimension)
           FOUR_C_THROW("element manipulated size of visualization data");
 
@@ -1379,7 +1313,7 @@ void Core::IO::DiscretizationWriter::write_knotvector() const
   {
     // try a dynamic cast of the discretisation to a nurbs discretisation
     Core::FE::Nurbs::NurbsDiscretization* nurbsdis =
-        dynamic_cast<Core::FE::Nurbs::NurbsDiscretization*>(dis_.get());
+        dynamic_cast<Core::FE::Nurbs::NurbsDiscretization*>(&dis_);
 
     if (nurbsdis != nullptr)
     {
@@ -1436,7 +1370,7 @@ void Core::IO::DiscretizationWriter::write_char_data(
     }
 
     // ... write other mesh information
-    if (Core::Communication::my_mpi_rank(dis_->get_comm()) == 0)
+    if (Core::Communication::my_mpi_rank(dis_.get_comm()) == 0)
     {
       // do I need the following naming stuff?
       std::ostringstream groupname;
@@ -1567,8 +1501,7 @@ void Core::IO::DiscretizationWriter::clear_map_cache()
  *----------------------------------------------------------------------------*/
 const Core::FE::Discretization& Core::IO::DiscretizationWriter::get_discretization() const
 {
-  if (!dis_) FOUR_C_THROW("The discretization pointer has not been initialized!");
-  return *dis_;
+  return dis_;
 }
 
 FOUR_C_NAMESPACE_CLOSE

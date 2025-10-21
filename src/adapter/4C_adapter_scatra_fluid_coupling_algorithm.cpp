@@ -233,7 +233,7 @@ void Adapter::ScaTraFluidCouplingAlgorithm::read_restart(int step)
   if (fluid_field()->turbulence_statistic_manager() != nullptr)
   {
     Core::IO::DiscretizationReader reader(
-        scatra_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
+        *scatra_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
     fluid_field()->turbulence_statistic_manager()->read_restart_scatra(reader, step);
   }
 }

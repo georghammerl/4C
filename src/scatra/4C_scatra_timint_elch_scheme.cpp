@@ -151,9 +151,9 @@ void ScaTra::ScaTraTimIntElchOST::read_restart(
   std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
   if (input == nullptr)
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        discret_, Global::Problem::instance()->input_control_file(), step);
+        *discret_, Global::Problem::instance()->input_control_file(), step);
   else
-    reader = std::make_shared<Core::IO::DiscretizationReader>(discret_, input, step);
+    reader = std::make_shared<Core::IO::DiscretizationReader>(*discret_, input, step);
 
   // Initialize Nernst-BC
   init_nernst_bc();
@@ -435,9 +435,9 @@ void ScaTra::ScaTraTimIntElchBDF2::read_restart(
   std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
   if (input == nullptr)
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        discret_, Global::Problem::instance()->input_control_file(), step);
+        *discret_, Global::Problem::instance()->input_control_file(), step);
   else
-    reader = std::make_shared<Core::IO::DiscretizationReader>(discret_, input, step);
+    reader = std::make_shared<Core::IO::DiscretizationReader>(*discret_, input, step);
 
   // Initialize Nernst-BC
   init_nernst_bc();
@@ -731,9 +731,9 @@ void ScaTra::ScaTraTimIntElchGenAlpha::read_restart(
   std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
   if (input == nullptr)
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        discret_, Global::Problem::instance()->input_control_file(), step);
+        *discret_, Global::Problem::instance()->input_control_file(), step);
   else
-    reader = std::make_shared<Core::IO::DiscretizationReader>(discret_, input, step);
+    reader = std::make_shared<Core::IO::DiscretizationReader>(*discret_, input, step);
 
   // Initialize Nernst-BC
   init_nernst_bc();
@@ -967,9 +967,9 @@ void ScaTra::ScaTraTimIntElchStationary::read_restart(
   std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
   if (input == nullptr)
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        discret_, Global::Problem::instance()->input_control_file(), step);
+        *discret_, Global::Problem::instance()->input_control_file(), step);
   else
-    reader = std::make_shared<Core::IO::DiscretizationReader>(discret_, input, step);
+    reader = std::make_shared<Core::IO::DiscretizationReader>(*discret_, input, step);
 
   // Initialize Nernst-BC
   init_nernst_bc();

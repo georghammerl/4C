@@ -131,7 +131,7 @@ void Adapter::StructureTimeAda::setup_time_ada()
     stm_->read_restart(restart);
     timeinitial_ = stm_->time_old();
     timestepinitial_ = stm_->step_old();
-    Core::IO::DiscretizationReader ioreader(stm_->discretization(),
+    Core::IO::DiscretizationReader ioreader(*stm_->discretization(),
         Global::Problem::instance()->input_control_file(), timestepinitial_);
     stepsizepre_ = ioreader.read_double("next_delta_time");
     time_ = timeinitial_;

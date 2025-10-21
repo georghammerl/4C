@@ -907,14 +907,14 @@ void FSI::Partitioned::read_restart(int step)
       if (std::dynamic_pointer_cast<Adapter::FBIFluidMB>(mb_fluid_field()) != nullptr)
       {
         Core::IO::DiscretizationReader reader(
-            mb_fluid_field()->fluid_field()->discretization(), input_control_file, step);
+            *mb_fluid_field()->fluid_field()->discretization(), input_control_file, step);
         omega = reader.read_double("omega");
       }
       else if (std::dynamic_pointer_cast<Adapter::FluidAle>(mb_fluid_field()) != nullptr)
       {
         std::shared_ptr<Adapter::FluidAle> fluidale =
             std::dynamic_pointer_cast<Adapter::FluidAle>(mb_fluid_field());
-        Core::IO::DiscretizationReader reader(std::const_pointer_cast<Core::FE::Discretization>(
+        Core::IO::DiscretizationReader reader(*std::const_pointer_cast<Core::FE::Discretization>(
                                                   fluidale->ale_field()->discretization()),
             input_control_file, step);
         omega = reader.read_double("omega");

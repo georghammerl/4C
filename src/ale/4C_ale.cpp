@@ -499,7 +499,7 @@ void ALE::Ale::output_restart(bool& datawritten)
 void ALE::Ale::read_restart(const int step)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   time_ = reader.read_double("time");
   step_ = reader.read_int("step");
 

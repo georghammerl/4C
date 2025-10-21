@@ -47,7 +47,7 @@ Arteries::ArtNetExplicitTimeInt::ArtNetExplicitTimeInt(
   if (restart_step > 0)
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), restart_step);
+        *discret_, Global::Problem::instance()->input_control_file(), restart_step);
 
     time_ = reader.read_double("time");
   }
@@ -766,7 +766,7 @@ void Arteries::ArtNetExplicitTimeInt::read_restart(int step, bool coupledTo3D)
 {
   coupledTo3D_ = coupledTo3D;
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
 
   time_ = reader.read_double("time");
 
