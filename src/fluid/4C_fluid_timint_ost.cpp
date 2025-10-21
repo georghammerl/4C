@@ -272,7 +272,7 @@ void FLD::TimIntOneStepTheta::read_restart(int step)
   FLD::FluidImplicitTimeInt::read_restart(step);
 
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   // check whether external forces were written
   const int have_fexternal = reader.read_int("have_fexternal");
   if (have_fexternal != -1)

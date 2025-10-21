@@ -1694,7 +1694,7 @@ void Solid::TimInt::reset_step()
 void Solid::TimInt::read_restart(const int step)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   if (step != reader.read_int("step")) FOUR_C_THROW("Time step on file not equal to given step");
 
   step_ = step;
@@ -1754,7 +1754,7 @@ void Solid::TimInt::set_restart(int step, double time,
 void Solid::TimInt::read_restart_state()
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step_);
+      *discret_, Global::Problem::instance()->input_control_file(), step_);
 
   reader.read_vector(disn_, "displacement");
   dis_->update_steps(*disn_);
@@ -1797,7 +1797,7 @@ void Solid::TimInt::read_restart_constraint()
   if (conman_->have_constraint())
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), step_);
+        *discret_, Global::Problem::instance()->input_control_file(), step_);
     double uzawatemp = reader.read_double("uzawaparameter");
     consolv_->set_uzawa_parameter(uzawatemp);
 
@@ -1812,7 +1812,7 @@ void Solid::TimInt::read_restart_cardiovascular0_d()
   if (cardvasc0dman_->have_cardiovascular0_d())
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), step_);
+        *discret_, Global::Problem::instance()->input_control_file(), step_);
     cardvasc0dman_->read_restart(reader, (*time_)[0]);
   }
 }
@@ -1824,7 +1824,7 @@ void Solid::TimInt::read_restart_spring_dashpot()
   if (springman_->have_spring_dashpot())
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), step_);
+        *discret_, Global::Problem::instance()->input_control_file(), step_);
     springman_->read_restart(reader, (*time_)[0]);
   }
 }
@@ -1842,7 +1842,7 @@ void Solid::TimInt::read_restart_contact_meshtying()
   // in and contact / meshtying managers choose the correct state.
   //**********************************************************************
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step_);
+      *discret_, Global::Problem::instance()->input_control_file(), step_);
 
   if (have_contact_meshtying()) cmtbridge_->read_restart(reader, (*dis_)(0), zeros_);
 }
@@ -1854,7 +1854,7 @@ void Solid::TimInt::read_restart_beam_contact()
   if (have_beam_contact())
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), step_);
+        *discret_, Global::Problem::instance()->input_control_file(), step_);
     beamcman_->read_restart(reader);
   }
 }

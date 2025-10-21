@@ -844,7 +844,8 @@ std::unique_ptr<Core::IO::MeshReader> Global::read_discretization(
   // global data.
   for (const auto& dis : problem.discretization_range() | std::views::values)
   {
-    dis->set_writer(std::make_unique<Core::IO::DiscretizationWriter>(dis, output_control, distype));
+    dis->set_writer(
+        std::make_unique<Core::IO::DiscretizationWriter>(*dis, output_control, distype));
   }
 
   if (read_mesh)  // now read and allocate!
@@ -1107,7 +1108,7 @@ void Global::read_micro_fields(Global::Problem& problem, const std::filesystem::
 
         // create discretization writer - in constructor set into and owned by corresponding
         // discret
-        dis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(dis_micro,
+        dis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*dis_micro,
             micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
 
         micro_problem->add_dis(micro_dis_name, dis_micro);
@@ -1239,7 +1240,7 @@ void Global::read_microfields_np_support(Global::Problem& problem)
     std::shared_ptr<Core::FE::Discretization> structdis_micro =
         std::make_shared<Core::FE::Discretization>("structure", subgroupcomm, problem.n_dim());
 
-    structdis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(structdis_micro,
+    structdis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*structdis_micro,
         micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
 
     micro_problem->add_dis("structure", structdis_micro);

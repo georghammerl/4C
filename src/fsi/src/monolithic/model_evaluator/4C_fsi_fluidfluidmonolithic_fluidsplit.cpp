@@ -159,7 +159,7 @@ void FSI::FluidFluidMonolithicFluidSplit::read_restart(int step)
         std::make_shared<Core::LinAlg::Vector<double>>(
             *(fluid_field()->x_fluid_fluid_map_extractor()->fluid_map()), true);
     Core::IO::DiscretizationReader reader = Core::IO::DiscretizationReader(
-        fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
+        *fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
     reader.read_vector(lambdaemb, "fsilambda");
     // Insert into vector containing the whole merged fluid DOF
     std::shared_ptr<Core::LinAlg::Vector<double>> lambdafull =

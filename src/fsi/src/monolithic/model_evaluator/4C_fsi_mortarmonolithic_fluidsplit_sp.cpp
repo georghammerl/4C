@@ -1288,7 +1288,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::read_restart(int step)
   std::shared_ptr<Core::LinAlg::Vector<double>> lambdafull =
       std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->dof_row_map(), true);
   Core::IO::DiscretizationReader reader = Core::IO::DiscretizationReader(
-      fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
+      *fluid_field()->discretization(), Global::Problem::instance()->input_control_file(), step);
   reader.read_vector(lambdafull, "fsilambda");
   auto lag_mult_old_on_fluid_map = fluid_field()->interface()->extract_fsi_cond_vector(*lambdafull);
 

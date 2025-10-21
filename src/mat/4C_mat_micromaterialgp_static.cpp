@@ -198,7 +198,7 @@ void Mat::MicroMaterialGP::new_result_file(
 
     // initialize writer for restart output
     micro_output_ = std::make_shared<Core::IO::DiscretizationWriter>(
-        microdis, microcontrol, microproblem->spatial_approximation_type());
+        *microdis, microcontrol, microproblem->spatial_approximation_type());
     micro_output_->set_output(microcontrol);
     micro_output_->write_mesh(step_, time_);
 

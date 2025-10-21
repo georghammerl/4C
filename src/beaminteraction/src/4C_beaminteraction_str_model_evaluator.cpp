@@ -119,7 +119,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
   ia_discret_ = discloner->create_matching_discretization(
       *discret_ptr_, "ia_structure", true, true, false, true);
   // create discretization writer
-  ia_discret_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(ia_discret_,
+  ia_discret_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*ia_discret_,
       Global::Problem::instance()->output_control_file(),
       Global::Problem::instance()->spatial_approximation_type()));
 
@@ -846,14 +846,14 @@ void Solid::ModelEvaluator::BeamInteraction::read_restart(Core::IO::Discretizati
     (*some_iter)->pre_read_restart();
 
   // read interaction discretization
-  Core::IO::DiscretizationReader ia_reader(ia_discret_, input_control_file, stepn);
+  Core::IO::DiscretizationReader ia_reader(*ia_discret_, input_control_file, stepn);
   // includes fill_complete()
   ia_reader.read_history_data(stepn);
 
   // rebuild bin discret correctly in case crosslinker were present
   // Fixme: do just read history data like with ia discret
   // read correct nodes
-  Core::IO::DiscretizationReader bin_reader(bindis_, input_control_file, stepn);
+  Core::IO::DiscretizationReader bin_reader(*bindis_, input_control_file, stepn);
   bin_reader.read_nodes_only(stepn);
   bindis_->fill_complete(Core::FE::OptionsFillComplete::none());
 

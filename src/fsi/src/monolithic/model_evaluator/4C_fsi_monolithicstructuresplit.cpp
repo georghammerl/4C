@@ -255,7 +255,7 @@ void FSI::MonolithicStructureSplit::setup_system()
       std::shared_ptr<Core::LinAlg::Vector<double>> lambdafullfluid =
           std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->dof_row_map(), true);
       Core::IO::DiscretizationReader reader =
-          Core::IO::DiscretizationReader(fluid_field()->discretization(),
+          Core::IO::DiscretizationReader(*fluid_field()->discretization(),
               Global::Problem::instance()->input_control_file(), restart);
       reader.read_vector(lambdafullfluid, "fsilambda");
 
@@ -1190,7 +1190,7 @@ void FSI::MonolithicStructureSplit::read_restart(int step)
     std::shared_ptr<Core::LinAlg::Vector<double>> lambdafull =
         std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map(), true);
     Core::IO::DiscretizationReader reader =
-        Core::IO::DiscretizationReader(structure_field()->discretization(),
+        Core::IO::DiscretizationReader(*structure_field()->discretization(),
             Global::Problem::instance()->input_control_file(), step);
     reader.read_vector(lambdafull, "fsilambda");
     lambdaold_ = structure_field()->interface()->extract_fsi_cond_vector(*lambdafull);

@@ -575,7 +575,7 @@ void XFEM::MeshCouplingFPI::read_restart(const int step)
 
   //-------- boundary discretization
   Core::IO::DiscretizationReader boundaryreader(
-      cutter_dis_, Global::Problem::instance()->input_control_file(), step);
+      *cutter_dis_, Global::Problem::instance()->input_control_file(), step);
 
   const double time = boundaryreader.read_double("time");
   //  const int    step = boundaryreader.ReadInt("step");

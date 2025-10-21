@@ -53,7 +53,7 @@ Arteries::ArtNetImplStationary::ArtNetImplStationary(
   if (restart_step > 0)
   {
     Core::IO::DiscretizationReader reader(
-        discret_, Global::Problem::instance()->input_control_file(), restart_step);
+        *discret_, Global::Problem::instance()->input_control_file(), restart_step);
 
     time_ = reader.read_double("time");
   }
@@ -645,7 +645,7 @@ void Arteries::ArtNetImplStationary::read_restart(int step, bool coupledTo3D)
 {
   coupledTo3D_ = coupledTo3D;
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
 
   if (step != reader.read_int("step")) FOUR_C_THROW("Time step on file not equal to given step");
 

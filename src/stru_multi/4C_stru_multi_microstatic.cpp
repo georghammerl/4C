@@ -884,7 +884,7 @@ void MultiScale::MicroStatic::read_restart(const int step,
 {
   std::shared_ptr<Core::IO::InputControl> inputcontrol =
       std::make_shared<Core::IO::InputControl>(name, true);
-  Core::IO::DiscretizationReader reader(discret_, inputcontrol, step);
+  Core::IO::DiscretizationReader reader(*discret_, inputcontrol, step);
   double time = reader.read_double("time");
   int rstep = reader.read_int("step");
   if (rstep != step) FOUR_C_THROW("Time step on file not equal to given step");
@@ -926,7 +926,7 @@ void MultiScale::MicroStatic::read_restart(const int step,
 double MultiScale::MicroStatic::get_time_to_step(const int step, const std::string& name)
 {
   std::shared_ptr<Core::IO::InputControl> inputcontrol(new Core::IO::InputControl(name, true));
-  Core::IO::DiscretizationReader reader(discret_, inputcontrol, step);
+  Core::IO::DiscretizationReader reader(*discret_, inputcontrol, step);
   return reader.read_double("time");
 }
 

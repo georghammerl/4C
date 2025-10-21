@@ -728,7 +728,7 @@ void Solid::TimeInt::Base::read_restart(const int stepn)
 
   // create an input/output reader
   Core::IO::DiscretizationReader ioreader(
-      discretization(), Global::Problem::instance()->input_control_file(), stepn);
+      *discretization(), Global::Problem::instance()->input_control_file(), stepn);
   dataglobalstate_->get_step_n() = stepn;
   dataglobalstate_->get_step_np() = stepn + 1;
   dataglobalstate_->get_multi_time() =

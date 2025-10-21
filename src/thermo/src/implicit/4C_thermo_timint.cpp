@@ -338,7 +338,7 @@ void Thermo::TimInt::reset_step()
 void Thermo::TimInt::read_restart(const int step)
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   if (step != reader.read_int("step")) FOUR_C_THROW("Time step on file not equal to given step");
 
   step_ = step;
@@ -358,7 +358,7 @@ void Thermo::TimInt::read_restart(const int step)
 void Thermo::TimInt::read_restart_state()
 {
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step_);
+      *discret_, Global::Problem::instance()->input_control_file(), step_);
   reader.read_vector(tempn_, "temperature");
   temp_.update_steps(*tempn_);
   reader.read_vector(raten_, "rate");

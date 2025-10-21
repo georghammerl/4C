@@ -458,7 +458,7 @@ void PoroPressureBased::PorofluidElastPartitionedAlgorithm::read_restart(int res
     // call base class
     PoroPressureBased::PorofluidElastAlgorithm::read_restart(restart);
 
-    Core::IO::DiscretizationReader reader(porofluid_algo()->discretization(),
+    Core::IO::DiscretizationReader reader(*porofluid_algo()->discretization(),
         Global::Problem::instance()->input_control_file(), restart);
     if (restart != reader.read_int("step"))
       FOUR_C_THROW("Time step on file not equal to given step");

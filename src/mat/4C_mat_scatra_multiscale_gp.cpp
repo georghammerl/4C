@@ -479,7 +479,7 @@ void Mat::ScatraMultiScaleGP::new_result_file()
             adaptname);
 
     micro_output_ = std::make_shared<Core::IO::DiscretizationWriter>(
-        microdis, microcontrol, microproblem->spatial_approximation_type());
+        *microdis, microcontrol, microproblem->spatial_approximation_type());
     micro_output_->set_output(microcontrol);
     micro_output_->write_mesh(
         step_, Discret::Elements::ScaTraEleParameterTimInt::instance("scatra")->time());
@@ -617,12 +617,12 @@ void Mat::ScatraMultiScaleGP::read_restart()
   if (inputcontrol == nullptr)
   {
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        microtimint->discretization(), Global::Problem::instance()->input_control_file(), step_);
+        *microtimint->discretization(), Global::Problem::instance()->input_control_file(), step_);
   }
   else
   {
     reader = std::make_shared<Core::IO::DiscretizationReader>(
-        microtimint->discretization(), inputcontrol, step_);
+        *microtimint->discretization(), inputcontrol, step_);
   }
 
   if (is_ale_)

@@ -432,7 +432,7 @@ void Thermo::TimIntGenAlpha::read_restart_force()
 {
   // read the vectors that were written in WriteRestartForce()
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step_);
+      *discret_, Global::Problem::instance()->input_control_file(), step_);
   reader.read_vector(fext_, "fexternal");
   reader.read_vector(fint_, "fint");
   reader.read_vector(fcap_, "fcap");

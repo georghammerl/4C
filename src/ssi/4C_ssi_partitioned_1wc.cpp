@@ -83,7 +83,7 @@ void SSI::SSIPart1WC::do_scatra_step()
     int diffsteps = structure_field()->dt() / scatra_field()->dt();
     if (scatra_field()->step() % diffsteps == 0)
     {
-      Core::IO::DiscretizationReader reader(scatra_field()->discretization(),
+      Core::IO::DiscretizationReader reader(*scatra_field()->discretization(),
           Global::Problem::instance()->input_control_file(), scatra_field()->step());
 
       // check if this is a cardiac monodomain problem

@@ -3248,11 +3248,11 @@ void ScaTra::MeshtyingStrategyS2I::read_restart(
     // initialize reader
     std::shared_ptr<Core::IO::DiscretizationReader> reader(nullptr);
     if (input == nullptr)
-      reader = std::make_shared<Core::IO::DiscretizationReader>(
-          scatratimint_->discretization(), Global::Problem::instance()->input_control_file(), step);
+      reader = std::make_shared<Core::IO::DiscretizationReader>(*scatratimint_->discretization(),
+          Global::Problem::instance()->input_control_file(), step);
     else
       reader = std::make_shared<Core::IO::DiscretizationReader>(
-          scatratimint_->discretization(), input, step);
+          *scatratimint_->discretization(), input, step);
 
     // read state vector of discrete scatra-scatra interface layer thicknesses
     reader->read_vector(growthn_, "growthn");

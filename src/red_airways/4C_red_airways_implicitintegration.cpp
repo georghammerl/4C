@@ -1563,7 +1563,7 @@ void Airway::RedAirwayImplicitTimeInt::read_restart(int step, bool coupledTo3D)
 {
   coupledTo3D_ = coupledTo3D;
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   time_ = reader.read_double("time");
 
   if (coupledTo3D_)

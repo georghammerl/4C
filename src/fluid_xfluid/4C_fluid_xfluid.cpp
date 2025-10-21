@@ -5080,7 +5080,7 @@ void FLD::XFluid::read_restart(int step)
 {
   //-------- fluid discretization
   Core::IO::DiscretizationReader reader(
-      discret_, Global::Problem::instance()->input_control_file(), step);
+      *discret_, Global::Problem::instance()->input_control_file(), step);
   time_ = reader.read_double("time");
   step_ = reader.read_int("step");
 
