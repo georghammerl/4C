@@ -923,7 +923,7 @@ void FS3I::BiofilmFSI::struct_gmsh_output()
       scatravec_[1]->scatra_field()->discretization();
 
   const std::string filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("struct",
-      structdis->writer()->output()->file_name(), step_bio_, 701, false,
+      structdis->writer()->output().file_name(), step_bio_, 701, false,
       Core::Communication::my_mpi_rank(structdis->get_comm()));
   std::ofstream gmshfilecontent(filename.c_str());
 
@@ -974,7 +974,7 @@ void FS3I::BiofilmFSI::fluid_gmsh_output()
       scatravec_[0]->scatra_field()->discretization();
 
   const std::string filenamefluid = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("fluid",
-      fluiddis->writer()->output()->file_name(), step_bio_, 701, false,
+      fluiddis->writer()->output().file_name(), step_bio_, 701, false,
       Core::Communication::my_mpi_rank(fluiddis->get_comm()));
   std::ofstream gmshfilecontent(filenamefluid.c_str());
 

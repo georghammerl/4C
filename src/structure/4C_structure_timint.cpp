@@ -1940,7 +1940,7 @@ void Solid::TimInt::write_gmsh_struct_output_step()
   if (not gmsh_out_) return;
 
   const std::string filename = Core::IO::Gmsh::get_file_name(
-      "struct", discret_->writer()->output()->file_name(), stepn_, false, myrank_);
+      "struct", discret_->writer()->output().file_name(), stepn_, false, myrank_);
   std::ofstream gmshfilecontent(filename.c_str());
 
   // add 'View' to Gmsh postprocessing file

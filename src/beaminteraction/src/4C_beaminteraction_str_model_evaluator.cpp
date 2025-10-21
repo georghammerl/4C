@@ -120,7 +120,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
       *discret_ptr_, "ia_structure", true, true, false, true);
   // create discretization writer
   ia_discret_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*ia_discret_,
-      Global::Problem::instance()->output_control_file(),
+      *Global::Problem::instance()->output_control_file(),
       Global::Problem::instance()->spatial_approximation_type()));
 
   // init data container

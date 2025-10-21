@@ -3690,14 +3690,14 @@ void FLD::FluidImplicitTimeInt::output_to_gmsh(
   if (inflow)
   {
     filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("solution_velpres_inflow",
-        discret_->writer()->output()->file_name(), step, 20, screen_out,
+        discret_->writer()->output().file_name(), step, 20, screen_out,
         Core::Communication::my_mpi_rank(discret_->get_comm()));
     // std::ofstream gmshfilecontent(filename.c_str());
   }
   else
   {
     filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("solution_velpres",
-        discret_->writer()->output()->file_name(), step, 20, screen_out,
+        discret_->writer()->output().file_name(), step, 20, screen_out,
         Core::Communication::my_mpi_rank(discret_->get_comm()));
     // std::ofstream gmshfilecontent(filename.c_str());
   }

@@ -428,7 +428,7 @@ FLD::FluidDiscretExtractor::FluidDiscretExtractor(std::shared_ptr<Core::FE::Disc
 
     // set discretization writer
     childdiscret_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*childdiscret_,
-        Global::Problem::instance()->output_control_file(),
+        *Global::Problem::instance()->output_control_file(),
         Global::Problem::instance()->spatial_approximation_type()));
 
     // call fill_complete() to assign the dof

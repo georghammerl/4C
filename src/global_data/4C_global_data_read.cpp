@@ -24,6 +24,7 @@
 #include "4C_global_legacy_module_validmaterials.hpp"
 #include "4C_global_legacy_module_validparameters.hpp"
 #include "4C_io.hpp"
+#include "4C_io_control.hpp"
 #include "4C_io_exodus.hpp"
 #include "4C_io_input_field.hpp"
 #include "4C_io_input_file.hpp"
@@ -845,7 +846,7 @@ std::unique_ptr<Core::IO::MeshReader> Global::read_discretization(
   for (const auto& dis : problem.discretization_range() | std::views::values)
   {
     dis->set_writer(
-        std::make_unique<Core::IO::DiscretizationWriter>(*dis, output_control, distype));
+        std::make_unique<Core::IO::DiscretizationWriter>(*dis, *output_control, distype));
   }
 
   if (read_mesh)  // now read and allocate!
@@ -1106,10 +1107,14 @@ void Global::read_micro_fields(Global::Problem& problem, const std::filesystem::
             Core::Communication::NestedParallelismType::no_nested_parallelism)
           dis_micro->replace_dof_set(std::make_shared<Core::DOFSets::IndependentDofSet>());
 
-        // create discretization writer - in constructor set into and owned by corresponding
-        // discret
+        // We do not need a writer but the rest of the code wants us to have one.
+        // Thus, we create a dummy output control here and a writer which is set to not write ever.
+        micro_problem->set_output_control_file(std::make_shared<Core::IO::OutputControl>(
+            dis_micro->get_comm(), "dummy", micro_problem->spatial_approximation_type(),
+            "micro-input-file-not-known", "", "", dis_micro->n_dim(), false, 0,
+            /*write binary output: this flag makes the whole control useless*/ false, false));
         dis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*dis_micro,
-            micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
+            *micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
 
         micro_problem->add_dis(micro_dis_name, dis_micro);
 
@@ -1240,8 +1245,14 @@ void Global::read_microfields_np_support(Global::Problem& problem)
     std::shared_ptr<Core::FE::Discretization> structdis_micro =
         std::make_shared<Core::FE::Discretization>("structure", subgroupcomm, problem.n_dim());
 
+    // We do not need a writer but the rest of the code wants us to have one.
+    // Thus, we create a dummy output control here and a writer which is set to not write ever.
+    micro_problem->set_output_control_file(std::make_shared<Core::IO::OutputControl>(
+        structdis_micro->get_comm(), "dummy", micro_problem->spatial_approximation_type(),
+        "micro-input-file-not-known", "", "", structdis_micro->n_dim(), false, 0,
+        /*write binary output: this flag makes the whole control useless*/ false, false));
     structdis_micro->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*structdis_micro,
-        micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
+        *micro_problem->output_control_file(), micro_problem->spatial_approximation_type()));
 
     micro_problem->add_dis("structure", structdis_micro);
 

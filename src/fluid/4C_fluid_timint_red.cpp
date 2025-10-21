@@ -74,7 +74,7 @@ void FLD::TimIntRedModels::init()
     if (ART_timeInt_ != nullptr)
     {
       Core::IO::DiscretizationWriter output_redD(*ART_timeInt_->discretization(),
-          Global::Problem::instance()->output_control_file(),
+          *Global::Problem::instance()->output_control_file(),
           Global::Problem::instance()->spatial_approximation_type());
       discret_->clear_state();
       discret_->set_state("velaf", *zeros_);
@@ -93,7 +93,7 @@ void FLD::TimIntRedModels::init()
     if (airway_imp_timeInt_ != nullptr)
     {
       Core::IO::DiscretizationWriter output_redD(*airway_imp_timeInt_->discretization(),
-          Global::Problem::instance()->output_control_file(),
+          *Global::Problem::instance()->output_control_file(),
           Global::Problem::instance()->spatial_approximation_type());
       discret_->clear_state();
       discret_->set_state("velaf", *zeros_);

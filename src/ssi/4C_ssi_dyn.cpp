@@ -145,7 +145,7 @@ void ssi_drt()
     {
       std::string filename = Teuchos::getNumericStringParameter(ssiparams, "SCATRA_FILENAME");
       auto inputscatra = std::make_shared<Core::IO::InputControl>(filename, comm);
-      problem->set_input_control_file(inputscatra);
+      problem->set_input_control_file(std::move(inputscatra));
     }
 
     // 4.- Run of the actual problem.

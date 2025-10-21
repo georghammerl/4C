@@ -169,7 +169,7 @@ void ScaTra::ScaTraTimIntElch::setup()
       electrodecrates_.insert(conditioninitpair);
       runtime_csvwriter_soc_.insert(std::make_pair(cond_id, std::nullopt));
       runtime_csvwriter_soc_[cond_id].emplace(
-          myrank_, *disc_writer()->output(), "electrode_soc_" + std::to_string(cond_id));
+          myrank_, disc_writer()->output(), "electrode_soc_" + std::to_string(cond_id));
       runtime_csvwriter_soc_[cond_id]->register_data_vector("SOC", 1, 16);
       runtime_csvwriter_soc_[cond_id]->register_data_vector("CRate", 1, 16);
 
@@ -214,7 +214,7 @@ void ScaTra::ScaTraTimIntElch::setup()
         electrodevoltage_.insert({condid, 0.0});
       }
       // setup csv writer for cell voltage
-      runtime_csvwriter_cell_voltage_.emplace(myrank_, *disc_writer()->output(), "cell_voltage");
+      runtime_csvwriter_cell_voltage_.emplace(myrank_, disc_writer()->output(), "cell_voltage");
       runtime_csvwriter_cell_voltage_->register_data_vector("CellVoltage", 1, 16);
     }
   }

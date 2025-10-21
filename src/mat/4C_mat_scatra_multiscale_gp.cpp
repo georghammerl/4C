@@ -469,26 +469,22 @@ void Mat::ScatraMultiScaleGP::new_result_file()
 
     // in case of restart, the new output file name has already been adapted
     if (restart) adaptname = false;
-
-    std::shared_ptr<Core::IO::OutputControl> microcontrol =
-        std::make_shared<Core::IO::OutputControl>(microdis->get_comm(), "Scalar_Transport",
-            microproblem->spatial_approximation_type(), "micro-input-file-not-known", restartname_,
-            newfilename, ndim, restart,
-            Global::Problem::instance(microdisnum_)->io_params().get<int>("FILESTEPS"),
-            Global::Problem::instance(microdisnum_)->io_params().get<bool>("OUTPUT_BIN"),
-            adaptname);
+    micro_output_control_.emplace(microdis->get_comm(), "Scalar_Transport",
+        microproblem->spatial_approximation_type(), "micro-input-file-not-known", restartname_,
+        newfilename, ndim, restart,
+        Global::Problem::instance(microdisnum_)->io_params().get<int>("FILESTEPS"),
+        Global::Problem::instance(microdisnum_)->io_params().get<bool>("OUTPUT_BIN"), adaptname);
 
     micro_output_ = std::make_shared<Core::IO::DiscretizationWriter>(
-        *microdis, microcontrol, microproblem->spatial_approximation_type());
-    micro_output_->set_output(microcontrol);
+        *microdis, *micro_output_control_, microproblem->spatial_approximation_type());
     micro_output_->write_mesh(
         step_, Discret::Elements::ScaTraEleParameterTimInt::instance("scatra")->time());
 
     micro_visualization_writer_ = std::make_shared<Core::IO::DiscretizationVisualizationWriterMesh>(
-        microdis,
-        Core::IO::visualization_parameters_factory(
-            Global::Problem::instance()->io_params().sublist("RUNTIME VTK OUTPUT"), *microcontrol,
-            Discret::Elements::ScaTraEleParameterTimInt::instance("scatra")->time()));
+        microdis, Core::IO::visualization_parameters_factory(
+                      Global::Problem::instance()->io_params().sublist("RUNTIME VTK OUTPUT"),
+                      *micro_output_control_,
+                      Discret::Elements::ScaTraEleParameterTimInt::instance("scatra")->time()));
   }
 }
 
