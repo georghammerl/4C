@@ -103,17 +103,7 @@ namespace
       auto valid_conditions = global_legacy_module_callbacks().conditions();
       for (const auto& cond : valid_conditions)
       {
-        auto condition_spec = all_of({
-            parameter<int>(
-                "E", {.description = "ID of the condition. This ID refers to the respective "
-                                     "topological entity of the condition."}),
-            parameter<Core::Conditions::EntityType>(
-                "ENTITY_TYPE", {.description = "The type of entity that E refers to.",
-                                   .default_value = Core::Conditions::EntityType::legacy_id}),
-            all_of(cond.specs()),
-        });
-        // section_specs.emplace(cond.section_name(), std::move(condition_spec));
-        section_specs.push_back(list(cond.section_name(), condition_spec, {.required = false}));
+        section_specs.emplace_back(cond.spec());
       }
     }
 
@@ -1684,8 +1674,8 @@ void Global::read_conditions(
       {
         const std::vector<int>* nodes = condition->get_nodes();
         if (nodes->size() == 0)
-          FOUR_C_THROW("{} condition {} has no nodal cloud", condition_definition.description(),
-              condition->id());
+          FOUR_C_THROW(
+              "{} condition {} has no nodal cloud", condition_definition.name(), condition->id());
 
         int foundit = 0;
         for (int node : *nodes)

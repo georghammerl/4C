@@ -35,6 +35,15 @@ Core::Conditions::ConditionDefinition::ConditionDefinition(std::string sectionna
       buildgeometry_(buildgeometry),
       gtype_(gtype)
 {
+  using namespace Core::IO::InputSpecBuilders;
+  // Add common parameters to all conditions.
+
+  add_component(
+      parameter<int>("E", {.description = "ID of the condition. This ID refers to the respective "
+                                          "topological entity of the condition."}));
+  add_component(parameter<Core::Conditions::EntityType>(
+      "ENTITY_TYPE", {.description = "The type of entity that E refers to.",
+                         .default_value = Core::Conditions::EntityType::legacy_id}));
 }
 
 
@@ -85,6 +94,13 @@ void Core::Conditions::ConditionDefinition::read(Core::IO::InputFile& input,
 
     cmap.emplace(id, condition);
   }
+}
+
+
+Core::IO::InputSpec Core::Conditions::ConditionDefinition::spec() const
+{
+  using namespace Core::IO::InputSpecBuilders;
+  return list(section_name(), all_of(specs_), {.description = description_, .required = false});
 }
 
 FOUR_C_NAMESPACE_CLOSE
