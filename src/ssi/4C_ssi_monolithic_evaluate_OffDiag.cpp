@@ -14,7 +14,6 @@
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_linalg_sparseoperator.hpp"
-#include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_scatra_ele_action.hpp"
 #include "4C_scatra_timint_implicit.hpp"
@@ -513,6 +512,7 @@ void SSI::ScatraStructureOffDiagCoupling::
 
         // old slave dofs from input
         auto slave_map = slave_slave_transformation->slave_dof_map();
+        auto master_map = slave_slave_transformation->master_dof_map();
 
         for (int iblock = 0; iblock < scatra_field()->dof_block_maps()->num_maps(); ++iblock)
         {
@@ -540,7 +540,8 @@ void SSI::ScatraStructureOffDiagCoupling::
               *scatra_block_mapi, *slave_map, 1.0, nullptr, &slave_slave_converter,
               scatra_master_flux_on_scatra_slave_dofs_structure_slave_dofs_iblock, true, true);
 
-          scatra_master_flux_on_scatra_slave_dofs_structure_slave_dofs_iblock.complete();
+          scatra_master_flux_on_scatra_slave_dofs_structure_slave_dofs_iblock.complete(
+              *master_map, *scatra_block_mapi);
 
           auto slave_dof_map = meshtying->slave_master_coupling()->slave_dof_map();
           auto slave_side_converter_struct = meshtying->slave_side_converter();
