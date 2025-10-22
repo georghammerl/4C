@@ -842,23 +842,22 @@ void ScaTra::ScaTraTimIntImpl::add_flux_approx_to_parameter_list(Teuchos::Parame
 
   // get the noderowmap
   const Core::LinAlg::Map* noderowmap = discret_->node_row_map();
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> fluxk =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*noderowmap, 3, true);
+  Core::LinAlg::MultiVector<double> fluxk(*noderowmap, 3, true);
   for (int k = 0; k < num_scal(); ++k)
   {
     const std::string name = "flux_phi_" + std::to_string(k);
-    for (int i = 0; i < fluxk->local_length(); ++i)
+    for (int i = 0; i < fluxk.local_length(); ++i)
     {
       Core::Nodes::Node* actnode = discret_->l_row_node(i);
       int dofgid = discret_->dof(0, actnode, k);
-      fluxk->replace_local_value(i, 0, ((*flux)(0))[(flux->get_map()).lid(dofgid)]);
-      fluxk->replace_local_value(i, 1, ((*flux)(1))[(flux->get_map()).lid(dofgid)]);
-      fluxk->replace_local_value(i, 2, ((*flux)(2))[(flux->get_map()).lid(dofgid)]);
+      fluxk.replace_local_value(i, 0, ((*flux)(0))[(flux->get_map()).lid(dofgid)]);
+      fluxk.replace_local_value(i, 1, ((*flux)(1))[(flux->get_map()).lid(dofgid)]);
+      fluxk.replace_local_value(i, 2, ((*flux)(2))[(flux->get_map()).lid(dofgid)]);
     }
 
     auto tmp = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        *discret_->node_col_map(), fluxk->num_vectors());
-    Core::LinAlg::export_to(*fluxk, *tmp);
+        *discret_->node_col_map(), fluxk.num_vectors());
+    Core::LinAlg::export_to(fluxk, *tmp);
     p.set(name, tmp);
   }
 }

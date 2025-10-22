@@ -97,16 +97,14 @@ Cardiovascular0D::ProperOrthogonalDecomposition::reduce_diagonal(Core::LinAlg::S
   if (err) FOUR_C_THROW("Multiplication M * V failed.");
 
   // left multiply V^T * (M * V)
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> M_red_mvec =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*structmapr_, M_tmp.num_vectors(), true);
-  multiply_multi_vectors(
-      *projmatrix_, 'T', M_tmp, 'N', *redstructmapr_, *structrimpo_, *M_red_mvec);
+  Core::LinAlg::MultiVector<double> M_red_mvec(*structmapr_, M_tmp.num_vectors(), true);
+  multiply_multi_vectors(*projmatrix_, 'T', M_tmp, 'N', *redstructmapr_, *structrimpo_, M_red_mvec);
 
   // convert Core::LinAlg::MultiVector<double> to Core::LinAlg::SparseMatrix
   std::shared_ptr<Core::LinAlg::SparseMatrix> M_red =
       std::make_shared<Core::LinAlg::SparseMatrix>(*structmapr_, 0, false, true);
   Core::LinAlg::multi_vector_to_linalg_sparse_matrix(
-      *M_red_mvec, *structmapr_, *structmapr_, *M_red);
+      M_red_mvec, *structmapr_, *structmapr_, *M_red);
 
   return M_red;
 }
@@ -117,17 +115,15 @@ std::shared_ptr<Core::LinAlg::SparseMatrix>
 Cardiovascular0D::ProperOrthogonalDecomposition::reduce_off_diagonal(Core::LinAlg::SparseMatrix& M)
 {
   // right multiply M * V
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> M_tmp =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(
-          M.domain_map(), projmatrix_->num_vectors(), true);
-  int err = M.multiply(true, *projmatrix_, *M_tmp);
+  Core::LinAlg::MultiVector<double> M_tmp(M.domain_map(), projmatrix_->num_vectors(), true);
+  int err = M.multiply(true, *projmatrix_, M_tmp);
   if (err) FOUR_C_THROW("Multiplication V^T * M failed.");
 
   // convert Core::LinAlg::MultiVector<double> to Core::LinAlg::SparseMatrix
-  std::shared_ptr<Core::LinAlg::Map> rangemap = std::make_shared<Core::LinAlg::Map>(M.domain_map());
+  Core::LinAlg::Map rangemap(M.domain_map());
   std::shared_ptr<Core::LinAlg::SparseMatrix> M_red =
-      std::make_shared<Core::LinAlg::SparseMatrix>(*rangemap, 0, false, true);
-  Core::LinAlg::multi_vector_to_linalg_sparse_matrix(*M_tmp, *rangemap, *structmapr_, *M_red);
+      std::make_shared<Core::LinAlg::SparseMatrix>(rangemap, 0, false, true);
+  Core::LinAlg::multi_vector_to_linalg_sparse_matrix(M_tmp, rangemap, *structmapr_, *M_red);
 
   return M_red;
 }

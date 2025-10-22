@@ -1136,8 +1136,7 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
   // cast the const away so that the new x vector can be set after the update
   NOX::Nln::Group& curr_grp_mutable = const_cast<NOX::Nln::Group&>(curr_grp);
 
-  std::shared_ptr<Core::LinAlg::Vector<double>> xnew =
-      std::make_shared<Core::LinAlg::Vector<double>>(xold.Map(), true);
+  Core::LinAlg::Vector<double> xnew(xold.Map(), true);
 
   /* we do the multiplicative update only for those entries which belong to
    * rotation (pseudo-)vectors */
@@ -1174,12 +1173,12 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
   }
 
   // first update entire x vector in an additive manner
-  xnew->update(1.0, xold, step, dir, 0.0);
+  xnew.update(1.0, xold, step, dir, 0.0);
 
   // now replace the rotvec entries by the correct value computed before
-  Core::LinAlg::assemble_my_vector(0.0, *xnew, 1.0, x_rotvec);
+  Core::LinAlg::assemble_my_vector(0.0, xnew, 1.0, x_rotvec);
 
-  NOX::Nln::Vector wrapper(Teuchos::make_rcp<Epetra_Vector>(xnew->get_ref_of_epetra_vector()),
+  NOX::Nln::Vector wrapper(Teuchos::make_rcp<Epetra_Vector>(xnew.get_ref_of_epetra_vector()),
       NOX::Nln::Vector::MemoryType::View);
   curr_grp_mutable.setX(wrapper);
 
