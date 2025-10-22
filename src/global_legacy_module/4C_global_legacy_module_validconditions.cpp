@@ -825,9 +825,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   Inpar::Mortar::set_valid_conditions(condlist);
   Inpar::S2I::set_valid_conditions(condlist);
   Inpar::ScaTra::set_valid_conditions(condlist);
-  STI::set_valid_conditions(condlist);
   ElCh::set_valid_conditions(condlist);
-  Inpar::ElectroPhysiology::set_valid_conditions(condlist);
   Inpar::FLUID::set_valid_conditions(condlist);
   ALE::set_valid_conditions(condlist);
   Inpar::FSI::set_valid_conditions(condlist);

@@ -50,8 +50,6 @@ namespace STI
   //! valid parameters for scatra-thermo interaction
   std::vector<Core::IO::InputSpec> valid_parameters();
 
-  //! set valid conditions for scatra-thermo interaction
-  void set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist);
 }  // namespace STI
 
 FOUR_C_NAMESPACE_CLOSE

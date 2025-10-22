@@ -29,8 +29,6 @@ namespace Inpar
     /// elch parameters
     Core::IO::InputSpec valid_parameters();
 
-    /// set specific elch conditions
-    void set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist);
   }  // namespace ElectroPhysiology
 }  // namespace Inpar
 FOUR_C_NAMESPACE_CLOSE

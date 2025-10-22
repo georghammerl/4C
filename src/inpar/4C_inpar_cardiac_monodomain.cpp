@@ -33,9 +33,4 @@ Core::IO::InputSpec Inpar::ElectroPhysiology::valid_parameters()
 }
 
 
-void Inpar::ElectroPhysiology::set_valid_conditions(
-    std::vector<Core::Conditions::ConditionDefinition>& condlist)
-{
-}
-
 FOUR_C_NAMESPACE_CLOSE
