@@ -553,7 +553,7 @@ end:
 
 */
 /*----------------------------------------------------------------------*/
-void map_insert_string(MAP* map, char* string, char* key)
+static void map_insert_string(MAP* map, char* string, char* key)
 {
   SYMBOL* symbol;
 
@@ -572,7 +572,7 @@ void map_insert_string(MAP* map, char* string, char* key)
 
 */
 /*----------------------------------------------------------------------*/
-void map_insert_int(MAP* map, int integer, char* key)
+static void map_insert_int(MAP* map, int integer, char* key)
 {
   SYMBOL* symbol;
 
@@ -591,7 +591,7 @@ void map_insert_int(MAP* map, int integer, char* key)
 
 */
 /*----------------------------------------------------------------------*/
-void map_insert_real(MAP* map, double real, char* key)
+static void map_insert_real(MAP* map, double real, char* key)
 {
   SYMBOL* symbol;
 
@@ -610,7 +610,7 @@ void map_insert_real(MAP* map, double real, char* key)
 
 */
 /*----------------------------------------------------------------------*/
-void map_insert_map(MAP* map, MAP* dir, char* key)
+static void map_insert_map(MAP* map, MAP* dir, char* key)
 {
   SYMBOL* symbol;
 
