@@ -114,9 +114,4 @@ std::vector<Core::IO::InputSpec> STI::valid_parameters()
 }
 
 
-void STI::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist)
-{
-  return;
-}
-
 FOUR_C_NAMESPACE_CLOSE
