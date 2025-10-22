@@ -14,13 +14,8 @@
 #include "4C_io_input_parameter_container.hpp"
 #include "4C_io_input_spec.hpp"
 
-#include <Teuchos_Array.hpp>
-
-#include <iostream>
 #include <memory>
 #include <string>
-#include <type_traits>
-#include <variant>
 #include <vector>
 
 FOUR_C_NAMESPACE_OPEN
@@ -69,7 +64,6 @@ namespace Core::Conditions
 
     /// read all conditions from my input file section
     /*!
-      \param problem (i) global problem instance that manages the input
       \param input (i) the input file
       \param cmap (o) the conditions we read here
      */
@@ -82,13 +76,11 @@ namespace Core::Conditions
     /// my condition name
     std::string name() const { return conditionname_; }
 
-    /// my condition description
-    std::string description() const { return description_; }
-
     /// my GeometryType
     Core::Conditions::GeometryType geometry_type() const { return gtype_; }
 
-    const std::vector<Core::IO::InputSpec>& specs() const { return specs_; }
+    /// Get the InputSpec for this ConditionDefinition
+    [[nodiscard]] Core::IO::InputSpec spec() const;
 
    private:
     std::string sectionname_;
