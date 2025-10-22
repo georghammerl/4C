@@ -485,7 +485,7 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
            << nlnsolver_ptr_->get_num_nln_iterations();
 
   std::stringstream filename;
-  filename << get_data_io().get_output_ptr()->output()->file_name() << "_" << filebase.str()
+  filename << get_data_io().get_output_ptr()->output().file_name() << "_" << filebase.str()
            << ".mtl";
 
   if (get_data_global_state().get_my_rank() == 0)

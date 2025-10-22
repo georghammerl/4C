@@ -12,6 +12,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_io_control.hpp"
 #include "4C_io_discretization_visualization_writer_mesh.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_vector.hpp"
@@ -105,6 +106,8 @@ namespace Mat
 
     /// microstructure runtime output writer
     std::shared_ptr<Core::IO::DiscretizationVisualizationWriterMesh> micro_visualization_writer_;
+
+    std::optional<Core::IO::OutputControl> micro_output_control_;
 
     /// homogenized density
     double density_;

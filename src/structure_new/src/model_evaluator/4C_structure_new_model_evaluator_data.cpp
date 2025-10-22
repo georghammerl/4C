@@ -720,7 +720,7 @@ int Solid::ModelEvaluator::Data::get_step_np() const { return global_state().get
 std::string Solid::ModelEvaluator::ContactData::get_output_file_path() const
 {
   check_init();
-  return in_output().get_output_ptr()->output()->file_name();
+  return in_output().get_output_ptr()->output().file_name();
 }
 
 /*----------------------------------------------------------------------------*

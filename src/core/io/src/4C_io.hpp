@@ -221,8 +221,7 @@ namespace Core::IO
      * @param[in] output_control        output control file
      * @param[in] shape_function_type   shape function type of the underlying fe discretization
      */
-    DiscretizationWriter(Core::FE::Discretization& dis,
-        std::shared_ptr<OutputControl> output_control,
+    DiscretizationWriter(Core::FE::Discretization& dis, OutputControl& output_control,
         const Core::FE::ShapeFunctionType shape_function_type);
 
     DiscretizationWriter(const DiscretizationWriter& other) = delete;
@@ -354,10 +353,7 @@ namespace Core::IO
     //@}
 
     /// get output control
-    [[nodiscard]] std::shared_ptr<OutputControl> output() const { return output_; }
-
-    /// set output control
-    void set_output(std::shared_ptr<OutputControl> output);
+    [[nodiscard]] OutputControl& output() const { return output_; }
 
     /// access discretization
     [[nodiscard]] const Core::FE::Discretization& get_discretization() const;
@@ -400,7 +396,7 @@ namespace Core::IO
     int meshfile_changed_;
 
     //! Control file object
-    std::shared_ptr<OutputControl> output_;
+    OutputControl& output_;
 
     //! do we want binary output
     bool binio_;

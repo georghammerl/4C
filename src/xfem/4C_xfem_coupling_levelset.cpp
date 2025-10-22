@@ -202,7 +202,7 @@ void XFEM::LevelSetCoupling::prepare_cutter_output()
   if (cutter_output_ == nullptr)
   {
     cutter_dis_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(*cutter_dis_,
-        Global::Problem::instance()->output_control_file(),
+        *Global::Problem::instance()->output_control_file(),
         Global::Problem::instance()->spatial_approximation_type()));
   }
 
@@ -306,7 +306,7 @@ void XFEM::LevelSetCoupling::gmsh_output(const std::string& filename_base, const
   filename_base_fsi << filename_base << "_levelset";
 
   const std::string filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files(
-      filename_base_fsi.str(), cutter_output_->output()->file_name(), step, gmsh_step_diff,
+      filename_base_fsi.str(), cutter_output_->output().file_name(), step, gmsh_step_diff,
       gmsh_debug_out_screen, myrank_);
 
   std::ofstream gmshfilecontent(filename.c_str());

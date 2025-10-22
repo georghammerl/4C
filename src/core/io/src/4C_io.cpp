@@ -460,12 +460,10 @@ std::shared_ptr<Core::IO::HDFReader> Core::IO::DiscretizationReader::open_files(
 }
 
 
-
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 Core::IO::DiscretizationWriter::DiscretizationWriter(Core::FE::Discretization& dis,
-    std::shared_ptr<OutputControl> output_control,
-    const Core::FE::ShapeFunctionType shape_function_type)
+    OutputControl& output_control, const Core::FE::ShapeFunctionType shape_function_type)
     : dis_(dis),
       step_(-1),
       time_(-1.0),
@@ -480,10 +478,7 @@ Core::IO::DiscretizationWriter::DiscretizationWriter(Core::FE::Discretization& d
       output_(output_control),
       spatial_approx_(shape_function_type)
 {
-  if (output_ != nullptr)
-    binio_ = output_->write_binary_output();
-  else
-    binio_ = false;
+  binio_ = output_.write_binary_output();
 }
 
 /*----------------------------------------------------------------------*/
@@ -539,7 +534,7 @@ void Core::IO::DiscretizationWriter::create_mesh_file(const int step)
   {
     std::ostringstream meshname;
 
-    meshname << output_->file_name() << ".mesh." << dis_.name() << ".s" << step;
+    meshname << output_.file_name() << ".mesh." << dis_.name() << ".s" << step;
     meshfilename_ = meshname.str();
     if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
     {
@@ -569,7 +564,7 @@ void Core::IO::DiscretizationWriter::create_result_file(const int step)
   if (binio_)
   {
     std::ostringstream resultname;
-    resultname << output_->file_name() << ".result." << dis_.name() << ".s" << step;
+    resultname << output_.file_name() << ".result." << dis_.name() << ".s" << step;
 
     resultfilename_ = resultname.str();
     if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
@@ -627,7 +622,7 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
       }
     }
 
-    if (step_ - resultfile_changed_ >= output_->file_steps() or resultfile_changed_ == -1)
+    if (step_ - resultfile_changed_ >= output_.file_steps() or resultfile_changed_ == -1)
     {
       create_result_file(step_);
       write_file = true;
@@ -639,9 +634,9 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
 
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file().try_end_group();
+      output_.control_file().try_end_group();
 
-      output_->control_file()
+      output_.control_file()
           .start_group("result")
           .write("field", dis_.name())
           .write("time", time)
@@ -651,7 +646,7 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
       {
         if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
         {
-          output_->control_file().write(
+          output_.control_file().write(
               "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
         }
         std::string filename;
@@ -660,7 +655,7 @@ void Core::IO::DiscretizationWriter::new_step(const int step, const double time)
           filename = resultfilename_;
         else
           filename = resultfilename_.substr(pos + 1);
-        output_->control_file().write("result_file", filename);
+        output_.control_file().write("result_file", filename);
       }
 
       // N.B. We do not end the group here!
@@ -683,7 +678,7 @@ void Core::IO::DiscretizationWriter::write_double(const std::string name, const 
   {
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file().write(name, value);
+      output_.control_file().write(name, value);
     }
   }
 }
@@ -697,7 +692,7 @@ void Core::IO::DiscretizationWriter::write_int(const std::string name, const int
   {
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file().write(name, value);
+      output_.control_file().write(name, value);
     }
   }
 }
@@ -814,7 +809,7 @@ void Core::IO::DiscretizationWriter::write_multi_vector(
           FOUR_C_THROW("unknown vector type {}", vt);
           break;
       }
-      output_->control_file()
+      output_.control_file()
           .start_group(name)
           .write("type", vectortype)
           .write("columns", vec.num_vectors())
@@ -929,7 +924,7 @@ void Core::IO::DiscretizationWriter::write_vector(const std::string name,
           break;
       }
 
-      output_->control_file()
+      output_.control_file()
           .start_group(name)
           .write("type", vectortype)
           .write("columns", 1)
@@ -951,7 +946,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
 {
   if (binio_)
   {
-    if (step - meshfile_changed_ >= output_->file_steps() or meshfile_changed_ == -1)
+    if (step - meshfile_changed_ >= output_.file_steps() or meshfile_changed_ == -1)
     {
       create_mesh_file(step);
     }
@@ -1005,8 +1000,8 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file().try_end_group();
-      output_->control_file()
+      output_.control_file().try_end_group();
+      output_.control_file()
           .start_group("field")
           .write("field", dis_.name())
           .write("time", time)
@@ -1022,7 +1017,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
 
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file().write(
+        output_.control_file().write(
             "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
@@ -1031,7 +1026,7 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file().write("mesh_file", filename);
+      output_.control_file().write("mesh_file", filename);
     }
     const herr_t flush_status = H5Fflush(meshgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1056,8 +1051,8 @@ void Core::IO::DiscretizationWriter::write_mesh(
     // ... write other mesh information
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
     {
-      output_->control_file().try_end_group();
-      output_->control_file()
+      output_.control_file().try_end_group();
+      output_.control_file()
           .start_group("field")
           .write("field", dis_.name())
           .write("time", time)
@@ -1077,7 +1072,7 @@ void Core::IO::DiscretizationWriter::write_mesh(
 
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file().write(
+        output_.control_file().write(
             "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
@@ -1086,7 +1081,7 @@ void Core::IO::DiscretizationWriter::write_mesh(
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file().write("mesh_file", filename);
+      output_.control_file().write("mesh_file", filename);
     }
   }
 }
@@ -1098,7 +1093,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
 {
   if (binio_)
   {
-    if (step - meshfile_changed_ >= output_->file_steps() or meshfile_changed_ == -1)
+    if (step - meshfile_changed_ >= output_.file_steps() or meshfile_changed_ == -1)
     {
       create_mesh_file(step);
     }
@@ -1141,8 +1136,8 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
     {
       /* number of nodes and elements is set to zero to suppress reading of
        * nodes during post-processing only maxnodeid is important */
-      output_->control_file().try_end_group();
-      output_->control_file()
+      output_.control_file().try_end_group();
+      output_.control_file()
           .start_group("field")
           .write("field", dis_.name())
           .write("time", time)
@@ -1157,7 +1152,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
        * each time step */
       if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
       {
-        output_->control_file().write(
+        output_.control_file().write(
             "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
       }
       std::string filename;
@@ -1166,7 +1161,7 @@ void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_cont
         filename = meshfilename_;
       else
         filename = meshfilename_.substr(pos + 1);
-      output_->control_file().write("mesh_file", filename);
+      output_.control_file().write("mesh_file", filename);
     }
     const herr_t flush_status = H5Fflush(meshgroup_, H5F_SCOPE_LOCAL);
     if (flush_status < 0)
@@ -1380,7 +1375,7 @@ void Core::IO::DiscretizationWriter::write_char_data(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file().start_group(name).write("values", valuename).end_group();
+      output_.control_file().start_group(name).write("values", valuename).end_group();
     }
 
     const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
@@ -1425,7 +1420,7 @@ void Core::IO::DiscretizationWriter::write_redundant_double_vector(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file().start_group(name).write("values", valuename).end_group();
+      output_.control_file().start_group(name).write("values", valuename).end_group();
 
       const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
       if (flush_status < 0) FOUR_C_THROW("Failed to flush HDF file {}", resultfilename_);
@@ -1470,7 +1465,7 @@ void Core::IO::DiscretizationWriter::write_redundant_int_vector(
       valuename = groupname.str() + valuename;
 
       // a comment is also added to the control file
-      output_->control_file().start_group(name).write("values", valuename).end_group();
+      output_.control_file().start_group(name).write("values", valuename).end_group();
 
       const herr_t flush_status = H5Fflush(resultgroup_, H5F_SCOPE_LOCAL);
       if (flush_status < 0) FOUR_C_THROW("Failed to flush HDF file {}", resultfilename_);
@@ -1478,15 +1473,6 @@ void Core::IO::DiscretizationWriter::write_redundant_int_vector(
   }
 }
 
-
-/*----------------------------------------------------------------------*
- |  set output control                               (public) nis Jan14 |
- *----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::set_output(std::shared_ptr<OutputControl> output)
-{
-  output_ = output;
-  binio_ = output_->write_binary_output();
-}
 
 /*----------------------------------------------------------------------*/
 /* clear all stored map data                                            */

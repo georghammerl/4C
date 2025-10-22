@@ -452,7 +452,7 @@ void PARTICLEWALL::WallHandlerBase::create_wall_discretization()
 
   // create wall discretization writer
   walldiscretization_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(
-      *walldiscretization_, Global::Problem::instance()->output_control_file(),
+      *walldiscretization_, *Global::Problem::instance()->output_control_file(),
       Global::Problem::instance()->spatial_approximation_type()));
 }
 

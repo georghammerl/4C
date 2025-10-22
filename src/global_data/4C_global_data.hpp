@@ -137,9 +137,14 @@ namespace Global
     /// set restart step which was read from the command line
     void set_restart_step(int r);
 
-    void set_input_control_file(std::shared_ptr<Core::IO::InputControl>& input)
+    void set_input_control_file(std::shared_ptr<Core::IO::InputControl>&& input)
     {
       inputcontrol_ = input;
+    }
+
+    void set_output_control_file(std::shared_ptr<Core::IO::OutputControl>&& output)
+    {
+      outputcontrol_ = output;
     }
 
     /// manipulate problem type

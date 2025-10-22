@@ -258,7 +258,7 @@ void Mortar::Interface::create_interface_discretization(
 
   // Prepare discretization writer
   idiscret_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(
-      *idiscret_, output_control, spatial_approximation_type));
+      *idiscret_, *output_control, spatial_approximation_type));
   FOUR_C_ASSERT(idiscret_->writer(), "Setup of discretization writer failed.");
 }
 

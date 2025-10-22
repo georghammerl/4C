@@ -113,13 +113,13 @@ Core::Binstrategy::BinningStrategy::BinningStrategy(const Teuchos::ParameterList
   auto spatial_approximation_type = Teuchos::getIntegralValue<Core::FE::ShapeFunctionType>(
       binning_params, "spatial_approximation_type");
   bindis_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(
-      *bindis_, output_control, spatial_approximation_type));
+      *bindis_, *output_control, spatial_approximation_type));
   bindis_->fill_complete(Core::FE::OptionsFillComplete::none());
 
   visbindis_ = std::make_shared<Core::FE::Discretization>("bins", comm_, 3);
   // create discretization writer
   visbindis_->set_writer(std::make_shared<Core::IO::DiscretizationWriter>(
-      *visbindis_, output_control, spatial_approximation_type));
+      *visbindis_, *output_control, spatial_approximation_type));
 
   // try to read valid input
   domain_bounding_box_corner_positions_.put_scalar(1.0e12);

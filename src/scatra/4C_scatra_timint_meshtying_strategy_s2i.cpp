@@ -1943,7 +1943,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
   master_conditions_.clear();
   runtime_csvwriter_.emplace(
       Core::Communication::my_mpi_rank(scatratimint_->discretization()->get_comm()),
-      *scatratimint_->disc_writer()->output(), "kinetics_interface_flux");
+      scatratimint_->disc_writer()->output(), "kinetics_interface_flux");
 
   for (auto* s2imeshtying_cond : s2imeshtying_conditions)
   {

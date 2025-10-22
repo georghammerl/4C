@@ -414,7 +414,7 @@ void FLD::XFluidOutputServiceGmsh::gmsh_output(
 
   bool screen_out = gmsh_debug_out_screen_;
 
-  auto file_name = discret_->writer()->output()->file_name();
+  auto file_name = discret_->writer()->output().file_name();
 
   // output for Element and Node IDs
   std::ostringstream filename_base_vel;
@@ -1298,7 +1298,7 @@ void FLD::XFluidOutputServiceGmsh::gmsh_output_discretization(
 
   // output for Element and Node IDs
   const std::string filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("DISCRET",
-      discret_->writer()->output()->file_name(), step, gmsh_step_diff_, gmsh_debug_out_screen_,
+      discret_->writer()->output().file_name(), step, gmsh_step_diff_, gmsh_debug_out_screen_,
       Core::Communication::my_mpi_rank(discret_->get_comm()));
   std::ofstream gmshfilecontent(filename.c_str());
   gmshfilecontent.setf(std::ios::scientific, std::ios::floatfield);
@@ -1329,7 +1329,7 @@ void FLD::XFluidOutputServiceGmsh::gmsh_output_eos(
 
   // output for Element and Node IDs
   const std::string filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files("EOS",
-      discret_->writer()->output()->file_name(), step, gmsh_step_diff_, gmsh_debug_out_screen_,
+      discret_->writer()->output().file_name(), step, gmsh_step_diff_, gmsh_debug_out_screen_,
       Core::Communication::my_mpi_rank(discret_->get_comm()));
   std::ofstream gmshfilecontent(filename.c_str());
   gmshfilecontent.setf(std::ios::scientific, std::ios::floatfield);

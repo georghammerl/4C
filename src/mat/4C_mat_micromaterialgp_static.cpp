@@ -190,16 +190,14 @@ void Mat::MicroMaterialGP::new_result_file(
     // in case of restart, the new output file name is already adapted
     if (restart) adaptname = false;
 
-    std::shared_ptr<Core::IO::OutputControl> microcontrol =
-        std::make_shared<Core::IO::OutputControl>(microdis->get_comm(), "Structure",
-            microproblem->spatial_approximation_type(), "micro-input-file-not-known", restartname_,
-            newfilename, ndim, restart, macrocontrol->file_steps(),
-            Global::Problem::instance()->io_params().get<bool>("OUTPUT_BIN"), adaptname);
+    micro_output_control_.emplace(microdis->get_comm(), "Structure",
+        microproblem->spatial_approximation_type(), "micro-input-file-not-known", restartname_,
+        newfilename, ndim, restart, macrocontrol->file_steps(),
+        Global::Problem::instance()->io_params().get<bool>("OUTPUT_BIN"), adaptname);
 
     // initialize writer for restart output
     micro_output_ = std::make_shared<Core::IO::DiscretizationWriter>(
-        *microdis, microcontrol, microproblem->spatial_approximation_type());
-    micro_output_->set_output(microcontrol);
+        *microdis, *micro_output_control_, microproblem->spatial_approximation_type());
     micro_output_->write_mesh(step_, time_);
 
     if (initialize_runtime_output_writer)
@@ -208,7 +206,7 @@ void Mat::MicroMaterialGP::new_result_file(
           std::make_shared<Core::IO::DiscretizationVisualizationWriterMesh>(
               microdis, Core::IO::visualization_parameters_factory(
                             Global::Problem::instance()->io_params().sublist("RUNTIME VTK OUTPUT"),
-                            *microcontrol, time_));
+                            *micro_output_control_, time_));
     }
   }
 }

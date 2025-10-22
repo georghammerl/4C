@@ -1080,7 +1080,7 @@ void ScaTra::ScaTraTimIntImpl::output_to_gmsh(const int step, const double time)
 
   // create Gmsh postprocessing file
   const std::string filename = Core::IO::Gmsh::get_new_file_name_and_delete_old_files(
-      "solution_field_scalar", disc_writer()->output()->file_name(), step, 500, screen_out,
+      "solution_field_scalar", disc_writer()->output().file_name(), step, 500, screen_out,
       Core::Communication::my_mpi_rank(discret_->get_comm()));
   std::ofstream gmshfilecontent(filename.c_str());
   {
@@ -2319,7 +2319,7 @@ ScaTra::OutputScalarsStrategyBase::OutputScalarsStrategyBase(const ScaTraTimIntI
   else
     filename = "scalarvalues";
 
-  runtime_csvwriter_.emplace(myrank_, *scatratimint->disc_writer()->output(), filename);
+  runtime_csvwriter_.emplace(myrank_, scatratimint->disc_writer()->output(), filename);
 }
 
 /*-------------------------------------------------------------------------*
