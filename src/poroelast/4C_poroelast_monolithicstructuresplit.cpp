@@ -221,8 +221,22 @@ void PoroElast::MonolithicStructureSplit::setup_vector(Core::LinAlg::Vector<doub
 
     // add contribution of Lagrange multiplier from previous time step
     if (lambda_ != nullptr)
-      modfv->update(-ftiparam + stiparam * (1.0 - ftiparam) / (1.0 - stiparam),
-          *structure_to_fluid_at_interface(*lambda_), 1.0);
+    {
+      const double alpha = -ftiparam + stiparam * (1.0 - ftiparam) / (1.0 - stiparam);
+
+      // lambda contribution from "slave" map
+      auto lambda_structure_slave = structure_to_fluid_at_interface(*lambda_);
+
+      // ensure lambda_temp matches modfvs map before update
+      const auto& modfv_map = modfv->get_map();
+      const auto& lambda_map = lambda_structure_slave->get_map();
+
+      if (modfv_map.point_same_as(lambda_map))
+      {
+        modfv->update(alpha, *lambda_structure_slave, 1.0);
+      }
+    }
+
 
     extractor()->insert_vector(*modfv, 1, f);
   }
