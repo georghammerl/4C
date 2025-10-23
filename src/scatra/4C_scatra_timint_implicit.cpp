@@ -3660,7 +3660,7 @@ void ScaTra::ScaTraTimIntImpl::build_block_null_spaces(
       // freedom on discretization
       Core::FE::compute_null_space_if_necessary(*discret_, block_smoother_parameters);
     }
-    // Implementation for Teko
+    // Implementation for Teko and MueLu
     else
     {
       if (solver.params().isSublist("MueLu Parameters"))
