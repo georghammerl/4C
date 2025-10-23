@@ -68,15 +68,15 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_off_diag_block_thermo_struct
   thermo_->scatra_field()->add_time_integration_specific_vectors();
 
   // create strategy for assembly of thermo-structure matrix block
-  Core::FE::AssembleStrategy strategyscatrastructure(
+  Core::FE::AssembleStrategy strategythermostructure(
       0,  // row assembly based on number of dofset associated with thermo dofs on thermo
           // discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on thermo
-          // discretization
-      thermostructuredomain,  // thermo-structure matrix block
+      thermo_->scatra_field()->nds_disp(),  // column assembly based on number of dofset associated
+                                            // with structural dofs on thermo discretization
+      thermostructuredomain,                // thermo-structure matrix block
       nullptr, nullptr, nullptr, nullptr);
 
-  thermo_->scatra_field()->discretization()->evaluate(eleparams, strategyscatrastructure);
+  thermo_->scatra_field()->discretization()->evaluate(eleparams, strategythermostructure);
 
   thermo_->scatra_field()->discretization()->clear_state();
 }
@@ -171,7 +171,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_off_diag_block_structure_the
   structure_->discretization()->set_state("displacement", *structure_->dispnp());
 
   // create strategy for assembly of structure-thermo matrix block
-  Core::FE::AssembleStrategy strategystructurescatra(
+  Core::FE::AssembleStrategy strategystructurethermo(
       0,  // row assembly based on number of dofset associated with structure dofs on structural
           // discretization
       2,  // column assembly based on number of dofset associated with thermo dofs on structural
@@ -179,7 +179,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_off_diag_block_structure_the
       structurethermodomain,  // structure-thermo matrix block
       nullptr, nullptr, nullptr, nullptr);
 
-  structure_->discretization()->evaluate(eleparams, strategystructurescatra);
+  structure_->discretization()->evaluate(eleparams, strategystructurethermo);
 
   // need to scale structurethermoblock_ with 'timefac' to getcorrect implementation
   structurethermodomain->scale(1.0 - structure_->tim_int_param());
@@ -308,11 +308,11 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
   }
 
   // create strategy for assembly of auxiliary system matrix
-  Core::FE::AssembleStrategy strategyscatrastructures2i(
+  Core::FE::AssembleStrategy strategythermostructures2i(
       0,  // row assembly based on number of dofset associated with thermo dofs on
           // thermo discretization
-      1,  // column assembly based on number of dofset associated with structural dofs on
-          // thermo discretization
+      thermo_->scatra_field()->nds_disp(),  // column assembly based on number of dofset associated
+                                            // with structural dofs on thermo discretization
       evaluate_matrix, nullptr, nullptr, nullptr, nullptr);
 
   // evaluate interface coupling
@@ -327,7 +327,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
           *kinetics_slave_cond.second);
       // evaluate the condition
       thermo_->scatra_field()->discretization()->evaluate_condition(
-          condparams, strategyscatrastructures2i, "S2IKinetics", kinetics_slave_cond.first);
+          condparams, strategythermostructures2i, "S2IKinetics", kinetics_slave_cond.first);
     }
   }
 

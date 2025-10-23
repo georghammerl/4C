@@ -2657,7 +2657,7 @@ void ScaTra::ScaTraTimIntImpl::evaluate_solution_depending_conditions(
  *----------------------------------------------------------------------------*/
 int ScaTra::ScaTraTimIntImpl::get_max_dof_set_number() const
 {
-  return std::max({nds_disp_, nds_growth_, nds_micro_, nds_pres_, nds_scatra_, nds_thermo_,
+  return std::max({0, nds_disp_, nds_growth_, nds_micro_, nds_pres_, nds_scatra_, nds_thermo_,
       nds_two_tensor_quantity_, nds_vel_, nds_wss_});
 }
 

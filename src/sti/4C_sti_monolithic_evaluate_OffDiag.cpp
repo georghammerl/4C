@@ -76,10 +76,10 @@ void STI::ScatraThermoOffDiagCoupling::evaluate_off_diag_block_scatra_thermo_dom
   Core::FE::AssembleStrategy strategyscatrathermo(
       0,  // row assembly based on number of dofset associated with scatra dofs on scatra
           // discretization
-      2,  // column assembly based on number of dofset associated with thermo dofs on scatra
-          // discretization
-      scatrathermoblock,  // scatra-thermo matrix block
-      nullptr,            // no additional matrices or vectors
+      scatra_field()->nds_thermo(),  // column assembly based on number of dofset associated with
+                                     // thermo dofs on scatra discretization
+      scatrathermoblock,             // scatra-thermo matrix block
+      nullptr,                       // no additional matrices or vectors
       nullptr, nullptr, nullptr);
 
   // assemble scatra-thermo matrix block
@@ -136,10 +136,10 @@ void STI::ScatraThermoOffDiagCoupling::evaluate_off_diag_block_thermo_scatra_dom
   Core::FE::AssembleStrategy strategythermoscatra(
       0,  // row assembly based on number of dofset associated with thermo dofs on thermo
           // discretization
-      2,  // column assembly based on number of dofset associated with scatra dofs on thermo
-          // discretization
-      thermoscatrablock,  // thermo-scatra matrix block
-      nullptr,            // no additional matrices or vectors
+      thermo_field()->nds_scatra(),  // column assembly based on number of dofset associated with
+                                     // scatra dofs on thermo discretization
+      thermoscatrablock,             // thermo-scatra matrix block
+      nullptr,                       // no additional matrices or vectors
       nullptr, nullptr, nullptr);
 
   // assemble thermo-scatra matrix block
@@ -297,12 +297,12 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_scatra_thermo_inter
 
   // create strategy for assembly of auxiliary system matrix
   Core::FE::AssembleStrategy strategyscatrathermos2i(
-      0,            // row assembly based on number of dofset associated with scatra dofs on scatra
-                    // discretization
-      2,            // column assembly based on number of dofset associated with thermo dofs on
-                    // scatra discretization
-      slavematrix,  // auxiliary system matrix
-      nullptr,      // no additional matrices of vectors
+      0,  // row assembly based on number of dofset associated with scatra dofs on scatra
+          // discretization
+      scatra_field()->nds_thermo(),  // column assembly based on number of dofset associated with
+                                     // thermo dofs on scatra discretization
+      slavematrix,                   // auxiliary system matrix
+      nullptr,                       // no additional matrices of vectors
       nullptr, nullptr, nullptr);
 
   // evaluate scatra-scatra interface kinetics
@@ -479,13 +479,13 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
 
   // create strategy for assembly of auxiliary system matrices
   Core::FE::AssembleStrategy strategythermoscatras2i(
-      0,             // row assembly based on number of dofset associated with thermo dofs on
-                     // thermo discretization
-      2,             // column assembly based on number of dofset associated with scatra dofs on
-                     // thermo discretization
-      slavematrix,   // auxiliary system matrix for slave side
-      mastermatrix,  // auxiliary system matrix for master side
-      nullptr,       // no additional matrices of vectors
+      0,  // row assembly based on number of dofset associated with thermo dofs on
+          // thermo discretization
+      thermo_field()->nds_scatra(),  // column assembly based on number of dofset associated with
+                                     // scatra dofs on thermo discretization
+      slavematrix,                   // auxiliary system matrix for slave side
+      mastermatrix,                  // auxiliary system matrix for master side
+      nullptr,                       // no additional matrices of vectors
       nullptr, nullptr);
 
   // evaluate scatra-scatra interface kinetics
