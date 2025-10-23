@@ -233,7 +233,20 @@ void Solid::ModelEvaluator::LagPenConstraint::run_post_compute_x(
 
   Core::LinAlg::export_to(dir, lagmult_incr);
 
-  constrman_->update_lagr_mult(lagmult_incr);
+
+  const auto& lm = constrman_->get_lagr_mult_vector();
+
+  // perform update based on matching maps
+  if (!lm->get_map().same_as(lagmult_incr.get_map()))
+  {
+    Core::LinAlg::Vector<double> lagmult_incr_on_lm(lm->get_map());
+    Core::LinAlg::export_to(lagmult_incr, lagmult_incr_on_lm);
+    constrman_->update_lagr_mult(lagmult_incr_on_lm);
+  }
+  else
+  {
+    constrman_->update_lagr_mult(lagmult_incr);
+  }
 }
 
 /*----------------------------------------------------------------------*

@@ -100,6 +100,15 @@ void Core::Conditions::LocsysManager::update(const double time,
   geo_hierarchy.emplace_back(Core::Conditions::LineLocsys);
   geo_hierarchy.emplace_back(Core::Conditions::PointLocsys);
 
+  // Ensure locsystoggle_ is on the node row map
+  const Core::LinAlg::Map& node_row_map = *discret_.node_row_map();
+
+  // Check if maps match, if not recreate the correct map
+  if (locsystoggle_ == nullptr || !locsystoggle_->get_map().same_as(node_row_map))
+  {
+    locsystoggle_ = Core::LinAlg::create_vector(node_row_map, true);
+  }
+
   //**********************************************************************
   // read locsys conditions in given hierarchical order
   //**************************+*******************************************
@@ -230,8 +239,15 @@ void Core::Conditions::LocsysManager::update(const double time,
             nodalrotvectors_[nodeGID] = currotangle;
 
             int indices = nodeGID;
-            double values = i;
-            locsystoggle_->replace_global_values(1, &values, &indices);
+            double value = static_cast<double>(i);
+
+            const auto& locsystoggle_map = locsystoggle_->get_map();
+            const int lid = locsystoggle_map.lid(indices);
+            if (lid >= 0)
+            {
+              // Global setter with global ids
+              locsystoggle_->replace_global_values(1, &value, &indices);
+            }
           }
         }
       }
