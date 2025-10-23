@@ -8,6 +8,8 @@
 #include "4C_constraint_framework_submodelevaluator_nullspace.hpp"
 
 #include "4C_fem_condition.hpp"
+#include "4C_fem_condition_selector.hpp"
+#include "4C_fem_condition_utils.hpp"
 #include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_elementtype.hpp"
 #include "4C_io_pstream.hpp"
@@ -91,6 +93,20 @@ Constraints::SubmodelEvaluator::NullspaceConstraintManager::NullspaceConstraintM
   Core::IO::cout(Core::IO::verbose)
       << "Constructing nullspace constraint with " << active_mode_ids_.size()
       << " active components out of " << nullspace_dimension_ << " given.\n";
+
+  const auto node_cond_map =
+      Core::Conditions::condition_node_row_map(*discret_ptr_, "KrylovSpaceProjection");
+
+  std::vector<int> cond_dof_gids;
+
+  for (int i = 0; i < discret_ptr_->num_my_row_nodes(); i++)
+  {
+    const Core::Nodes::Node* node = discret_ptr_->l_row_node(i);
+    if (node_cond_map->my_gid(node->id())) discret_ptr_->dof(node, cond_dof_gids);
+  }
+
+  dof_condition_map_ = std::make_shared<Core::LinAlg::Map>(
+      -1, cond_dof_gids.size(), cond_dof_gids.data(), 0, discret_ptr_->get_comm());
 }
 
 /*----------------------------------------------------------------------------*
@@ -108,9 +124,6 @@ bool Constraints::SubmodelEvaluator::NullspaceConstraintManager::evaluate_force_
   global_state_ptr->assign_model_block(
       *jacobian, *Q_Ld_, Inpar::Solid::model_constraints, Solid::MatBlockType::lm_displ);
 
-  std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> Ablock =
-      std::dynamic_pointer_cast<Core::LinAlg::BlockSparseMatrixBase>(jacobian);
-
   return true;
 }
 
@@ -120,9 +133,10 @@ void Constraints::SubmodelEvaluator::NullspaceConstraintManager::evaluate_coupli
     Solid::TimeInt::BaseDataGlobalState& gstate)
 {
   auto dof_map = discret_ptr_->dof_row_map();
-  auto nullspace = Core::FE::compute_null_space(*discret_ptr_, nullspace_dimension_, *dof_map);
+  auto nullspace =
+      Core::FE::compute_null_space(*discret_ptr_, nullspace_dimension_, *dof_condition_map_);
 
-  Core::LinAlg::MultiVector<double> constraint_space(*dof_map, active_mode_ids_.size());
+  Core::LinAlg::MultiVector<double> constraint_space(*dof_condition_map_, active_mode_ids_.size());
 
   for (int mode = 0; mode < static_cast<int>(active_mode_ids_.size()); mode++)
   {
@@ -136,11 +150,12 @@ void Constraints::SubmodelEvaluator::NullspaceConstraintManager::evaluate_coupli
     }
   }
 
-  Q_dL_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dof_map, constraint_space.num_vectors());
-
+  auto constraint_matrix = std::make_shared<Core::LinAlg::SparseMatrix>(
+      *dof_condition_map_, constraint_space.num_vectors());
   Core::LinAlg::multi_vector_to_linalg_sparse_matrix(
-      constraint_space, *dof_map, *constraint_map_, *Q_dL_);
+      constraint_space, *dof_condition_map_, *constraint_map_, *constraint_matrix);
 
+  Q_dL_ = Core::LinAlg::matrix_row_transform(*constraint_matrix, *dof_map);
   Q_Ld_ = Core::LinAlg::matrix_transpose(*Q_dL_);
   Q_Ld_->complete(*dof_map, *constraint_map_);
 }

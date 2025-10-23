@@ -74,6 +74,9 @@ namespace Constraints::SubmodelEvaluator
     //! Row map of the additional constraint degrees of freedom
     std::shared_ptr<Core::LinAlg::Map> constraint_map_;
 
+    //! Row map of the degrees of freedom constrained by the nullspace condition
+    std::shared_ptr<Core::LinAlg::Map> dof_condition_map_;
+
     //! Dimension of the nullspace used for constraint enforcement
     int nullspace_dimension_;
 
