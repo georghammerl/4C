@@ -23,6 +23,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_print.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
+#include "4C_linear_solver_method_parameters.hpp"
 #include "4C_scatra_timint_elch.hpp"
 #include "4C_scatra_timint_meshtying_strategy_s2i.hpp"
 #include "4C_ssi_contact_strategy.hpp"
@@ -391,18 +392,13 @@ void SSI::SsiMono::build_null_spaces() const
 
     case Core::LinAlg::MatrixType::sparse:
     {
-      // equip smoother for scatra matrix block with empty parameter sub lists to trigger null space
-      // computation
       std::ostringstream scatrablockstr;
       scatrablockstr << ssi_maps_->get_block_positions(Subproblem::scalar_transport).at(0) + 1;
       Teuchos::ParameterList& blocksmootherparamsscatra =
           solver_->params().sublist("Inverse" + scatrablockstr.str());
-      blocksmootherparamsscatra.sublist("Belos Parameters");
-      blocksmootherparamsscatra.sublist("MueLu Parameters");
 
-      // equip smoother for scatra matrix block with null space associated with all degrees of
-      // freedom on scatra discretization
-      compute_null_space_if_necessary(*scatra_field()->discretization(), blocksmootherparamsscatra);
+      Core::LinearSolver::Parameters::compute_solver_parameters(
+          *scatra_field()->discretization(), blocksmootherparamsscatra);
 
       if (is_scatra_manifold())
       {
@@ -410,12 +406,8 @@ void SSI::SsiMono::build_null_spaces() const
         scatramanifoldblockstr << ssi_maps_->get_block_positions(Subproblem::manifold).at(0) + 1;
         Teuchos::ParameterList& blocksmootherparamsscatramanifold =
             solver_->params().sublist("Inverse" + scatramanifoldblockstr.str());
-        blocksmootherparamsscatramanifold.sublist("Belos Parameters");
-        blocksmootherparamsscatramanifold.sublist("MueLu Parameters");
 
-        // equip smoother for scatra matrix block with null space associated with all degrees of
-        // freedom on scatra discretization
-        compute_null_space_if_necessary(
+        Core::LinearSolver::Parameters::compute_solver_parameters(
             *scatra_manifold()->discretization(), blocksmootherparamsscatramanifold);
       }
 
@@ -432,16 +424,22 @@ void SSI::SsiMono::build_null_spaces() const
   std::stringstream iblockstr;
   iblockstr << ssi_maps_->get_block_positions(Subproblem::structure).at(0) + 1;
 
-  // equip smoother for structural matrix block with empty parameter sub lists to trigger null space
-  // computation
   Teuchos::ParameterList& blocksmootherparams =
       solver_->params().sublist("Inverse" + iblockstr.str());
-  blocksmootherparams.sublist("Belos Parameters");
-  blocksmootherparams.sublist("MueLu Parameters");
 
-  // equip smoother for structural matrix block with null space associated with all degrees of
-  // freedom on structural discretization
-  compute_null_space_if_necessary(*structure_field()->discretization(), blocksmootherparams);
+  if (solver_->params().isSublist("AMGnxn Parameters"))
+  {
+    blocksmootherparams.sublist("Belos Parameters");
+    blocksmootherparams.sublist("MueLu Parameters");
+
+    Core::FE::compute_null_space_if_necessary(
+        *structure_field()->discretization(), blocksmootherparams);
+  }
+  else
+  {
+    Core::LinearSolver::Parameters::compute_solver_parameters(
+        *structure_field()->discretization(), blocksmootherparams);
+  }
 }
 
 /*--------------------------------------------------------------------------*
@@ -718,13 +716,8 @@ void SSI::SsiMono::setup_system()
   {
     case Core::LinAlg::MatrixType::block_field:
     {
-      // safety check
-      if (!solver_->params().isSublist("AMGnxn Parameters"))
-        FOUR_C_THROW(
-            "Global system matrix with block structure requires AMGnxn block preconditioner!");
-
-      // feed AMGnxn block preconditioner with null space information for each block of global
-      // block system matrix
+      // feed block preconditioner with null space information for each block of global block system
+      // matrix
       build_null_spaces();
 
       break;
