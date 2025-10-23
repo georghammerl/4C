@@ -12,47 +12,24 @@
 
 #include "4C_io_legacy_table.hpp"
 
+#include <stack>
+
 FOUR_C_NAMESPACE_OPEN
-
-/*----------------------------------------------------------------------*/
-/*!
-  \brief map node stack element
-
- */
-/*----------------------------------------------------------------------*/
-struct StackElement
-{
-  struct StackElement* snext;
-  MapNode* map_node;
-};
-
-
-/*----------------------------------------------------------------------*/
-/*!
-  \brief stack of map nodes
-
- */
-/*----------------------------------------------------------------------*/
-struct Stack
-{
-  int count;
-  StackElement head;
-};
-
 
 /*----------------------------------------------------------------------*/
 /*!
   \brief map iterator
 
   Visit all maps inside a map. This is a tree iterator. The map is
-  implemented as a tree. Hence there is a stack inside this iterator.
+  implemented as a tree. Hence there is a stack inside this iterator
+  to implement the depth-first traversal.
 
  */
 /*----------------------------------------------------------------------*/
 struct MapIterator
 {
   MAP* map;
-  Stack stack;
+  std::stack<MapNode*> stack;
 };
 
 

@@ -65,13 +65,6 @@ int map_has_real(MAP* map, const char* key, const double value);
 int map_has_map(MAP* map, const char* key);
 
 
-/* Insert a new symbol. */
-void map_insert_string(MAP* map, char* string, char* key);
-void map_insert_int(MAP* map, int integer, char* key);
-void map_insert_real(MAP* map, double real, char* key);
-void map_insert_map(MAP* map, MAP* dir, char* key);
-
-
 /* Tell the number of symbols under this key. */
 int map_symbol_count(MAP* map, const char* key);
 
