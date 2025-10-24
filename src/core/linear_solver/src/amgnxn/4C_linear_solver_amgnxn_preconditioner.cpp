@@ -10,7 +10,6 @@
 #include "4C_io_input_parameter_container.hpp"
 #include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
-#include "4C_linear_solver_amgnxn_vcycle.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <MueLu_ParameterListInterpreter.hpp>
@@ -86,14 +85,7 @@ void Core::LinearSolver::AmGnxnPreconditioner::setup(
   AmGnxnInterface myInterface(params_, NumBlocks);
 
   // Create the Operator
-  if (myInterface.get_preconditioner_type() == "AMG(BlockSmoother)")
-  {
-    p_ = std::make_shared<AmGnxnOperator>(a_, myInterface.get_num_pdes(),
-        myInterface.get_null_spaces_dim(), myInterface.get_null_spaces_data(),
-        myInterface.get_preconditioner_params(), myInterface.get_smoothers_params(),
-        myInterface.get_smoothers_params());
-  }
-  else if (myInterface.get_preconditioner_type() == "BlockSmoother(X)")
+  if (myInterface.get_preconditioner_type() == "BlockSmoother(X)")
   {
     p_ = std::make_shared<BlockSmootherOperator>(a_, myInterface.get_num_pdes(),
         myInterface.get_null_spaces_dim(), myInterface.get_null_spaces_data(),
@@ -236,158 +228,6 @@ Core::LinearSolver::AmGnxnInterface::AmGnxnInterface(Teuchos::ParameterList& par
       FOUR_C_THROW("Error: PDE equations or null space dimension wrong.");
     if (null_spaces_data_[block] == nullptr) FOUR_C_THROW("Error: null space data is empty");
   }
-}
-
-/*------------------------------------------------------------------------------*/
-/*------------------------------------------------------------------------------*/
-Core::LinearSolver::AmGnxnOperator::AmGnxnOperator(
-    std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> A, std::vector<int> num_pdes,
-    std::vector<int> null_spaces_dim,
-    std::vector<std::shared_ptr<std::vector<double>>> null_spaces_data,
-    const Teuchos::ParameterList& amgnxn_params, const Teuchos::ParameterList& smoothers_params,
-    const Teuchos::ParameterList& muelu_params)
-    : a_(A),
-      num_pdes_(num_pdes),
-      null_spaces_dim_(null_spaces_dim),
-      null_spaces_data_(null_spaces_data),
-      amgnxn_params_(amgnxn_params),
-      smoothers_params_(smoothers_params),
-      muelu_params_(muelu_params),
-      is_setup_flag_(false)
-{
-  // Expected parameters in amgnxn_params (example)
-  //<ParameterList name="amgnxn_params">
-  //
-  //  <Parameter name="number of levels"                 type="int"  value="..."/>
-  //
-  //  <Parameter name="smoother: all but coarsest level" type="string"  value="myFinestSmoother"/>
-  //
-  //  <Parameter name="smoother: coarsest level"         type="string"  value="myCoarsestSmoother"/>
-  //
-  //  <Parameter name="verbosity"                        type="string"  value="on"/>
-  //
-  //  <Parameter name="muelu parameters for block 0"       type="string"  value="myMuelu0"/>
-  //
-  //  <Parameter name="muelu parameters for block 1"       type="string"  value="myMuelu1"/>
-  //
-  //   ....
-  //
-  //  <Parameter name="muelu parameters for block N"       type="string"  value="myMueluN"/>
-  //
-  //</ParameterList>
-
-  // Expected parameters in smoothers_params (example)
-  //<ParameterList name="smoothers_params">
-  //
-  //  <ParameterList name="myFinestSmoother">
-  //
-  //   ...    ...    ...    ...    ...
-  //
-  //  </ParameterList>
-  //
-  //  <ParameterList name="myCoarsestSmoother">
-  //
-  //   ...    ...    ...    ...    ...
-  //
-  //  </ParameterList>
-  //
-  //</ParameterList>
-
-  // Expected parameters in muelu_params (example)
-  //<ParameterList name="muelu_params">
-  //
-  //   <ParameterList name="myMueluX">
-  //     <Parameter name="xml file"      type="string"  value="myfile.xml"/>
-  //   </ParameterList>
-  //
-  //   TODO or
-  //
-  //   <ParameterList name="myMueluX">
-  //    ... ... list defining the muelue hierarchy (i.e.) the contents of the xml file
-  //   </ParameterList>
-  //
-  //
-  //</ParameterList>
-
-  setup();
-}
-
-/*------------------------------------------------------------------------------*/
-/*------------------------------------------------------------------------------*/
-
-int Core::LinearSolver::AmGnxnOperator::ApplyInverse(
-    const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  TEUCHOS_FUNC_TIME_MONITOR("Core::LinAlg::SOLVER::AMGnxn_Operator::ApplyInverse");
-  if (!is_setup_flag_)
-    FOUR_C_THROW("ApplyInverse cannot be called without a previous set up of the preconditioner");
-
-  const Core::LinAlg::MultiMapExtractor& range_ex = a_->range_extractor();
-  const Core::LinAlg::MultiMapExtractor& domain_ex = a_->domain_extractor();
-
-  int NumBlocks = a_->rows();
-  if (NumBlocks != a_->cols()) FOUR_C_THROW("The block matrix has to be square");
-
-  AMGNxN::BlockedVector Xbl(NumBlocks);
-  AMGNxN::BlockedVector Ybl(NumBlocks);
-
-  int NV = X.NumVectors();
-  for (int i = 0; i < NumBlocks; i++)
-  {
-    Teuchos::RCP<Core::LinAlg::MultiVector<double>> Xi =
-        Teuchos::make_rcp<Core::LinAlg::MultiVector<double>>(*(range_ex.map(i)), NV);
-
-    Teuchos::RCP<Core::LinAlg::MultiVector<double>> Yi =
-        Teuchos::make_rcp<Core::LinAlg::MultiVector<double>>(*(domain_ex.map(i)), NV);
-
-    range_ex.extract_vector(Core::LinAlg::MultiVector<double>(X), i, *Xi);
-    domain_ex.extract_vector(Core::LinAlg::MultiVector<double>(X), i, *Yi);
-    Xbl.set_vector(Xi, i);
-    Ybl.set_vector(Yi, i);
-  }
-
-  if (v_ == nullptr) FOUR_C_THROW("Null pointer. We cannot call the vcycle");
-
-  v_->solve(Xbl, Ybl, true);
-
-  Core::LinAlg::View Y_view(Y);
-  for (int i = 0; i < NumBlocks; i++) domain_ex.insert_vector(*(Ybl.get_vector(i)), i, Y_view);
-
-  return 0;
-}
-
-
-/*------------------------------------------------------------------------------*/
-/*------------------------------------------------------------------------------*/
-
-void Core::LinearSolver::AmGnxnOperator::setup()
-{
-  TEUCHOS_FUNC_TIME_MONITOR("Core::LinAlg::SOLVER::AMGnxn_Operator::Setup");
-
-
-  int NumBlocks = a_->rows();
-  if (NumBlocks != a_->cols()) FOUR_C_THROW("We spect a square matrix here");
-
-  // Extract the blockedMatrix
-  Teuchos::RCP<AMGNxN::BlockedMatrix> Able =
-      Teuchos::make_rcp<AMGNxN::BlockedMatrix>(NumBlocks, NumBlocks);
-  for (int i = 0; i < NumBlocks; i++)
-  {
-    for (int j = 0; j < NumBlocks; j++)
-    {
-      Teuchos::RCP<Core::LinAlg::SparseMatrix> Aij = Teuchos::make_rcp<Core::LinAlg::SparseMatrix>(
-          a_->matrix(i, j), Core::LinAlg::DataAccess::Share);
-      Able->set_matrix(Aij, i, j);
-    }
-  }
-
-
-  v_ = std::make_shared<AMGNxN::CoupledAmg>(Able, num_pdes_, null_spaces_dim_, null_spaces_data_,
-      amgnxn_params_, smoothers_params_, muelu_params_);
-
-
-  is_setup_flag_ = true;
-  return;
 }
 
 

@@ -11,7 +11,6 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_blocksparsematrix.hpp"
-#include "4C_linear_solver_amgnxn_hierarchies.hpp"
 #include "4C_linear_solver_amgnxn_smoothers.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_linear_solver_preconditioner_type.hpp"
@@ -86,77 +85,6 @@ namespace Core::LinearSolver
       return ss.str();
     }
   };
-
-  class AmGnxnOperator : virtual public Epetra_Operator
-  {
-   public:
-    AmGnxnOperator(std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> A,
-        std::vector<int> num_pdes, std::vector<int> null_spaces_dim,
-        std::vector<std::shared_ptr<std::vector<double>>> null_spaces_data,
-        const Teuchos::ParameterList& amgnxn_params, const Teuchos::ParameterList& smoothers_params,
-        const Teuchos::ParameterList& muelu_params);
-
-    // virtual functions given by Epetra_Operator. The only one to be used is ApplyInverse()
-    int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-    int SetUseTranspose(bool UseTranspose) override
-    {
-      // default to false
-      return 0;
-    }
-
-    int Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override
-    {
-      FOUR_C_THROW("Function not implemented");
-      return -1;
-    }
-
-    double NormInf() const override
-    {
-      FOUR_C_THROW("Function not implemented");
-      return -1.0;
-    }
-
-    const char* Label() const override { return "AMG(BlockSmoother)"; }
-
-    bool UseTranspose() const override
-    {
-      // default to false
-      return false;
-    }
-
-    bool HasNormInf() const override
-    {
-      FOUR_C_THROW("Function not implemented");
-      return false;
-    }
-
-    // Only required to properly define an Epetra_Operator, not should be used!
-    const Epetra_Comm& Comm() const override { return a_->Comm(); }
-
-    // Only required to properly define an Epetra_Operator, not should be used!
-    const Epetra_Map& OperatorDomainMap() const override { return a_->OperatorDomainMap(); }
-
-    // Only required to properly define an Epetra_Operator, not should be used!
-    const Epetra_Map& OperatorRangeMap() const override { return a_->OperatorRangeMap(); }
-
-    void setup();
-
-   private:
-    std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> a_;
-    std::vector<Teuchos::ParameterList> muelu_lists_;
-    std::vector<int> num_pdes_;
-    std::vector<int> null_spaces_dim_;
-    std::vector<std::shared_ptr<std::vector<double>>> null_spaces_data_;
-    Teuchos::ParameterList amgnxn_params_;
-    Teuchos::ParameterList smoothers_params_;
-    Teuchos::ParameterList muelu_params_;
-
-    bool is_setup_flag_;
-
-    std::shared_ptr<AMGNxN::CoupledAmg> v_;
-
-  };  // class AMGnxn_Operator
 
   class BlockSmootherOperator : virtual public Epetra_Operator
   {

@@ -104,99 +104,9 @@ namespace Core::LinearSolver::AMGNxN
     std::vector<double> omegas_;
   };
 
-  class SimpleSmoother : public BlockedSmoother
-  {
-   public:
-    SimpleSmoother(Teuchos::RCP<BlockedMatrix> A, Teuchos::RCP<BlockedMatrix> invApp,
-        Teuchos::RCP<BlockedMatrix> Schur, Teuchos::RCP<GenericSmoother> SmooApp,
-        Teuchos::RCP<GenericSmoother> SmooSchur, std::vector<int> BlocksPred,
-        std::vector<int> BlocksSchur, unsigned iter, double alpha)
-        : a_(A),
-          inv_app_(invApp),
-          schur_(Schur),
-          smoo_app_(SmooApp),
-          smoo_schur_(SmooSchur),
-          blocks_pred_(BlocksPred),
-          blocks_schur_(BlocksSchur),
-          iter_(iter),
-          alpha_(alpha)
-    {
-    }
-
-    void solve(
-        const BlockedVector& X, BlockedVector& Y, bool InitialGuessIsZero = false) const override;
-
-   private:
-    Teuchos::RCP<BlockedMatrix> a_;
-    Teuchos::RCP<BlockedMatrix> inv_app_;
-    Teuchos::RCP<BlockedMatrix> schur_;
-    Teuchos::RCP<GenericSmoother> smoo_app_;
-    Teuchos::RCP<GenericSmoother> smoo_schur_;
-    std::vector<int> blocks_pred_;
-    std::vector<int> blocks_schur_;
-    unsigned iter_;
-    double alpha_;
-    mutable Teuchos::RCP<BlockedVector> xp_tmp_;
-    mutable Teuchos::RCP<BlockedVector> xs_tmp_;
-    mutable Teuchos::RCP<BlockedVector> yp_tmp_;
-    mutable Teuchos::RCP<BlockedVector> d_ys_;
-    mutable Teuchos::RCP<BlockedVector> d_xp_;
-    mutable Teuchos::RCP<BlockedVector> d_xs_;
-  };
-
-  class MergeAndSolve : public BlockedSmoother
-  {
-   public:
-    void setup(BlockedMatrix matrix);
-
-    void solve(
-        const BlockedVector& X, BlockedVector& Y, bool InitialGuessIsZero = false) const override;
-
-   private:
-    Teuchos::RCP<Core::LinAlg::Solver> solver_;
-    std::shared_ptr<Core::LinAlg::SparseMatrix> sparse_matrix_;
-    Teuchos::RCP<Core::LinAlg::BlockSparseMatrixBase> block_sparse_matrix_;
-
-    mutable std::shared_ptr<Core::LinAlg::MultiVector<double>> x_;
-    mutable std::shared_ptr<Core::LinAlg::MultiVector<double>> b_;
-    bool is_set_up_{false};
-  };
-
   // Forward declarations
   class Hierarchies;
-  class MonolithicHierarchy;
-  class Vcycle;
   class VcycleSingle;
-
-  class CoupledAmg : public BlockedSmoother
-  {
-   public:
-    CoupledAmg(Teuchos::RCP<AMGNxN::BlockedMatrix> A, std::vector<int> num_pdes,
-        std::vector<int> null_spaces_dim,
-        std::vector<std::shared_ptr<std::vector<double>>> null_spaces_data,
-        const Teuchos::ParameterList& amgnxn_params, const Teuchos::ParameterList& smoothers_params,
-        const Teuchos::ParameterList& muelu_params);
-
-    void solve(
-        const BlockedVector& X, BlockedVector& Y, bool InitialGuessIsZero = false) const override;
-
-   private:
-    void setup();
-
-    Teuchos::RCP<AMGNxN::BlockedMatrix> a_;
-    std::vector<Teuchos::ParameterList> muelu_lists_;
-    std::vector<int> num_pdes_;
-    std::vector<int> null_spaces_dim_;
-    std::vector<std::shared_ptr<std::vector<double>>> null_spaces_data_;
-    Teuchos::ParameterList amgnxn_params_;
-    Teuchos::ParameterList smoothers_params_;
-    Teuchos::ParameterList muelu_params_;
-
-    bool is_setup_flag_;
-    Teuchos::RCP<AMGNxN::Hierarchies> h_;
-    Teuchos::RCP<AMGNxN::MonolithicHierarchy> m_;
-    Teuchos::RCP<AMGNxN::Vcycle> v_;
-  };
 
   class MueluSmootherWrapper : public SingleFieldSmoother
   {
@@ -267,39 +177,6 @@ namespace Core::LinearSolver::AMGNxN
     Teuchos::ParameterList fine_smoother_list_;
     Teuchos::RCP<VcycleSingle> v_;
     void setup();
-  };
-
-  class IfpackWrapper : public SingleFieldSmoother
-  {
-   public:
-    IfpackWrapper(Teuchos::RCP<Core::LinAlg::SparseMatrix> A, Teuchos::ParameterList& list);
-    ~IfpackWrapper() override { delete prec_; }
-    void apply(const Core::LinAlg::MultiVector<double>& X, Core::LinAlg::MultiVector<double>& Y,
-        bool InitialGuessIsZero = false) const override;
-
-   private:
-    Ifpack_Preconditioner* prec_;
-    Teuchos::RCP<Core::LinAlg::SparseMatrix> a_;
-    Teuchos::RCP<Epetra_RowMatrix> arow_;
-    Teuchos::ParameterList list_;
-    std::string type_;
-  };
-
-  class DirectSolverWrapper : public SingleFieldSmoother
-  {
-   public:
-    void setup(Teuchos::RCP<Core::LinAlg::SparseMatrix> matrix,
-        Teuchos::RCP<Teuchos::ParameterList> params);
-
-    void apply(const Core::LinAlg::MultiVector<double>& X, Core::LinAlg::MultiVector<double>& Y,
-        bool InitialGuessIsZero = false) const override;
-
-   private:
-    std::shared_ptr<Core::LinAlg::Solver> solver_;
-    std::shared_ptr<Core::LinAlg::SparseMatrix> matrix_;
-    mutable std::shared_ptr<Core::LinAlg::MultiVector<double>> x_;
-    mutable std::shared_ptr<Core::LinAlg::MultiVector<double>> b_;
-    bool is_set_up_{false};
   };
 
   // Auxiliary class to wrap the null space data to be used within the smoothers
@@ -428,43 +305,7 @@ namespace Core::LinearSolver::AMGNxN
         std::vector<std::string>& smoothers_vector, std::vector<std::vector<int>> superblocks);
   };
 
-  class CoupledAmgFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
-
-  class SimpleSmootherFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-
-   private:
-    Teuchos::RCP<Core::LinAlg::SparseMatrix> approximate_inverse(
-        const Core::LinAlg::SparseMatrix& A, const std::string& method);
-    Teuchos::RCP<BlockedMatrix> compute_schur_complement(const BlockedMatrix& invApp,
-        const BlockedMatrix& Aps, const BlockedMatrix& Asp, const BlockedMatrix& Ass);
-  };
-
-  class MergeAndSolveFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
-
-  class IfpackWrapperFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
-
   class MueluSmootherWrapperFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
-
-  class HierarchyRemainderWrapperFactory : public SmootherFactoryBase
   {
    public:
     Teuchos::RCP<GenericSmoother> create() override;
@@ -476,17 +317,6 @@ namespace Core::LinearSolver::AMGNxN
     Teuchos::RCP<GenericSmoother> create() override;
   };
 
-  class SingleFieldAMGFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
-
-  class DirectSolverWrapperFactory : public SmootherFactoryBase
-  {
-   public:
-    Teuchos::RCP<GenericSmoother> create() override;
-  };
 }  // namespace Core::LinearSolver::AMGNxN
 
 FOUR_C_NAMESPACE_CLOSE
