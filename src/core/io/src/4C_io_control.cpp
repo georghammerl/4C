@@ -11,7 +11,6 @@
 #include "4C_io_control.hpp"
 
 #include "4C_comm_mpi_utils.hpp"
-#include "4C_io_legacy_table.hpp"
 #include "4C_io_pstream.hpp"
 #include "4C_io_yaml.hpp"
 
@@ -43,89 +42,86 @@ static size_t restart_finder(const std::string& filename)
   return std::string::npos;
 }
 
-namespace Core::IO::Internal
+struct Core::IO::ControlFileWriter::Impl
 {
-  class ControlFileWriterImpl
+ public:
+  explicit Impl(std::ostream& out) : out_(out)
   {
-   public:
-    ControlFileWriterImpl(std::ostream& out) : out_(out)
-    {
-      tree_ = init_yaml_tree_with_exceptions();
-      current_node_id_ = tree_.rootref().id();
-      tree_.rootref() |= ryml::SEQ;
-    }
+    tree_ = init_yaml_tree_with_exceptions();
+    current_node_id_ = tree_.rootref().id();
+    tree_.rootref() |= ryml::SEQ;
+  }
 
-    // Flush the current tree to the output stream and reset it.
-    // Ends all open groups.
-    void flush_and_reset_tree()
-    {
-      // Only write if there is anything to write. Otherwise, we get an ugly "[]" in the output.
-      if (tree_.rootref().num_children() > 0) out_ << tree_ << "\n" << std::flush;
+  // Flush the current tree to the output stream and reset it.
+  // Ends all open groups.
+  void flush_and_reset_tree()
+  {
+    // Only write if there is anything to write. Otherwise, we get an ugly "[]" in the output.
+    if (tree_.rootref().num_children() > 0) out_ << tree_ << "\n" << std::flush;
 
-      // Clear the tree and reset the current node to the root
-      tree_.clear();
-      tree_.clear_arena();
-      current_node_id_ = tree_.rootref().id();
-      group_level = 0;
-      tree_.rootref() |= ryml::SEQ;
-    }
+    // Clear the tree and reset the current node to the root
+    tree_.clear();
+    tree_.clear_arena();
+    current_node_id_ = tree_.rootref().id();
+    group_level = 0;
+    tree_.rootref() |= ryml::SEQ;
+  }
 
-    template <typename T>
-    void write(std::string_view key, const T& value)
-    {
-      FOUR_C_ASSERT_ALWAYS(current().is_map(), "Internal error: appending to non-map node");
-      auto node = current().append_child();
-      const auto key_str = ryml::csubstr(key.data(), key.size());
-      node << ryml::key(key_str);
+  template <typename T>
+  void write(std::string_view key, const T& value)
+  {
+    FOUR_C_ASSERT_ALWAYS(current().is_map(), "Internal error: appending to non-map node");
+    auto node = current().append_child();
+    const auto key_str = ryml::csubstr(key.data(), key.size());
+    node << ryml::key(key_str);
 
-      emit_value_as_yaml(YamlNodeRef{node, ""}, value);
-    }
+    emit_value_as_yaml(YamlNodeRef{node, ""}, value);
+  }
 
-    void start_group(std::string_view key)
-    {
-      ++group_level;
+  void start_group(std::string_view key)
+  {
+    ++group_level;
 
-      ryml::NodeRef outer = (current().is_seq()) ? current().append_child() : current();
-      outer |= ryml::MAP;
+    ryml::NodeRef outer = (current().is_seq()) ? current().append_child() : current();
+    outer |= ryml::MAP;
 
-      auto group_node = outer.append_child();
-      group_node |= ryml::MAP;
-      const auto key_str = ryml::csubstr(key.data(), key.size());
-      group_node << ryml::key(key_str);
-      current_node_id_ = group_node.id();
-    }
+    auto group_node = outer.append_child();
+    group_node |= ryml::MAP;
+    const auto key_str = ryml::csubstr(key.data(), key.size());
+    group_node << ryml::key(key_str);
+    current_node_id_ = group_node.id();
+  }
 
-    void end_group()
-    {
-      FOUR_C_ASSERT(group_level > 0, "Internal error: unmatched end_group()");
-      --group_level;
-      current_node_id_ = current().parent().id();
+  void end_group()
+  {
+    FOUR_C_ASSERT(group_level > 0, "Internal error: unmatched end_group()");
+    --group_level;
+    current_node_id_ = current().parent().id();
 
-      FOUR_C_ASSERT(current().num_children() > 0, "Internal error: empty group");
+    FOUR_C_ASSERT(current().num_children() > 0, "Internal error: empty group");
 
-      // Whenever we close the outermost group, flush the tree to file
-      if (group_level == 0) flush_and_reset_tree();
-    }
+    // Whenever we close the outermost group, flush the tree to file
+    if (group_level == 0) flush_and_reset_tree();
+  }
 
-    ryml::NodeRef current() { return ryml::NodeRef{&tree_, current_node_id_}; }
+  ryml::NodeRef current() { return ryml::NodeRef{&tree_, current_node_id_}; }
 
-    //! A temporary tree and node that can be used to build the YAML structure
-    //! The data is written to file periodically to avoid excessive memory usage
-    ryml::Tree tree_;
-    ryml::id_type current_node_id_;
+  //! A temporary tree and node that can be used to build the YAML structure
+  //! The data is written to file periodically to avoid excessive memory usage
+  ryml::Tree tree_;
+  ryml::id_type current_node_id_;
 
-    //! Remember how many groups were opened.
-    size_t group_level{0};
+  //! Remember how many groups were opened.
+  size_t group_level{0};
 
-    //! output stream for the control file
-    std::ostream& out_;
-  };
-}  // namespace Core::IO::Internal
+  //! output stream for the control file
+  std::ostream& out_;
+};
 
 
 
 Core::IO::ControlFileWriter::ControlFileWriter(bool do_write, std::ostream& stream)
-    : pimpl_(do_write ? std::make_unique<Internal::ControlFileWriterImpl>(stream) : nullptr)
+    : pimpl_(do_write ? std::make_unique<Impl>(stream) : nullptr)
 {
 }
 
@@ -324,100 +320,198 @@ std::string Core::IO::OutputControl::directory_name() const
   return path.parent_path();
 }
 
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
+static std::string read_file(const std::string& filename, MPI_Comm comm)
+{
+  int myrank = (comm != MPI_COMM_NULL) ? Core::Communication::my_mpi_rank(comm) : 0;
+  int nprocs = (comm != MPI_COMM_NULL) ? Core::Communication::num_mpi_ranks(comm) : 1;
+
+  std::string file_content;
+  if (myrank == 0)
+  {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file)
+    {
+      FOUR_C_THROW("Cannot read file '{}'", filename);
+    }
+    std::streamsize file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    file_content.resize(file_size);
+    if (!file.read(file_content.data(), file_size))
+    {
+      FOUR_C_THROW("Failed to read file {}", filename);
+    }
+  }
+
+  if (nprocs > 1)
+  {
+    Core::Communication::broadcast(file_content, 0, comm);
+  }
+
+  return file_content;
+}
+
+struct Core::IO::InputControl::Impl
+{
+  ryml::Tree tree;
+  std::string filename;
+  std::string file_buffer;
+
+  ryml::ConstNodeRef node_at_index(size_t index) const { return tree.ref(index); }
+};
+
+
+Core::IO::ControlFileEntry::ControlFileEntry(const InputControl* control, size_t index)
+    : control_(control), index_(index)
+{
+}
+
+
+template <Core::IO::ControlFileEntrySupportedType T>
+bool Core::IO::ControlFileEntry::is_a() const
+{
+  if (!is_valid()) return false;
+  ryml::ConstNodeRef node = control_->pimpl_->node_at_index(index_);
+  T val;
+  auto status = read_value_from_yaml(ConstYamlNodeRef{node, ""}, val);
+  return status == YamlReadStatus::success;
+}
+
+template <Core::IO::ControlFileEntrySupportedType T>
+std::optional<T> Core::IO::ControlFileEntry::as() const
+{
+  if (!is_valid()) return std::nullopt;
+  ryml::ConstNodeRef node = control_->pimpl_->node_at_index(index_);
+  T val;
+  auto status = read_value_from_yaml(ConstYamlNodeRef{node, ""}, val);
+  if (status != YamlReadStatus::success) return std::nullopt;
+  return val;
+}
+
+
+
+bool Core::IO::ControlFileEntry::is_group() const
+{
+  if (!is_valid()) return false;
+  ryml::ConstNodeRef node = control_->pimpl_->node_at_index(index_);
+  return node.is_map();
+}
+
+
+Core::IO::ControlFileEntry Core::IO::ControlFileEntry::operator[](const std::string& key) const
+{
+  if (!is_valid()) return {};
+
+  ryml::ConstNodeRef node = control_->pimpl_->node_at_index(index_);
+  FOUR_C_ASSERT(node.is_map(), "Internal error: expected a map node");
+
+  if (!node.has_child(ryml::to_csubstr(key))) return {};
+  ryml::ConstNodeRef child_node = node[ryml::to_csubstr(key)];
+  return {control_, child_node.id()};
+}
+
 Core::IO::InputControl::InputControl(const std::string& filename, const bool serial)
-    : filename_(filename)
+    : InputControl(filename, serial ? MPI_COMM_NULL : MPI_COMM_WORLD)
 {
-  std::stringstream name;
-  name << filename << ".control";
-
-  if (!serial)
-    parse_control_file(&table_, name.str().c_str(), MPI_COMM_WORLD);
-  else
-    parse_control_file(&table_, name.str().c_str(), MPI_COMM_NULL);
 }
 
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
+
+
 Core::IO::InputControl::InputControl(const std::string& filename, MPI_Comm comm)
-    : filename_(filename)
+    : pimpl_(std::make_unique<Impl>())
 {
+  pimpl_->filename = filename;
   std::stringstream name;
   name << filename << ".control";
-
-  parse_control_file(&table_, name.str().c_str(), comm);
+  pimpl_->file_buffer = read_file(name.str(), comm);
+  ryml::parse_in_place(ryml::to_substr(pimpl_->file_buffer), &pimpl_->tree);
 }
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-Core::IO::InputControl::~InputControl() { destroy_map(&table_); }
 
 
 
-void Core::IO::InputControl::find_group(int step, const std::string& discretization_name,
-    const char* group_name, const char* filestring, MAP*& result_info, MAP*& file_info)
+Core::IO::InputControl::~InputControl() = default;
+
+
+
+const std::string& Core::IO::InputControl::file_name() const { return pimpl_->filename; }
+
+
+Core::IO::ControlFileEntry Core::IO::InputControl::last_entry(const std::string& key) const
 {
-  /* Iterate all symbols under the name "result" and get the one that
-   * matches the given step. Note that this iteration starts from the
-   * last result group and goes backward. */
+  auto root = pimpl_->tree.rootref();
+  FOUR_C_ASSERT(root.is_seq(), "Internal error: expected top-level sequence in control file");
 
-  SYMBOL* symbol = map_find_symbol(&table_, group_name);
-  while (symbol != nullptr)
+  for (int i = root.num_children() - 1; i >= 0; --i)
   {
-    if (symbol_is_map(symbol))
+    ryml::NodeRef entry = root[i];
+    FOUR_C_ASSERT(entry.is_map(), "Internal error: expected sequence items to be maps");
+    FOUR_C_ASSERT(entry.num_children() == 1, "Internal error: expected exactly one child");
+
+    ryml::NodeRef symbol_node = entry.child(0);
+    FOUR_C_ASSERT(symbol_node.is_map(), "Internal error: expected a map");
+    auto symbol_key = symbol_node.key();
+    if (symbol_key == ryml::to_csubstr(key)) return {this, symbol_node.id()};
+  }
+
+  return {};
+}
+
+
+std::pair<Core::IO::ControlFileEntry, Core::IO::ControlFileEntry>
+Core::IO::InputControl::find_group(int step, const std::string& discretization_name,
+    const std::string& group_name, const std::string& file_marker) const
+{
+  ControlFileEntry result_info;
+  ControlFileEntry file_info;
+
+  auto root = pimpl_->tree.rootref();
+  FOUR_C_ASSERT(root.is_seq(), "Internal error: expected top-level sequence in control file");
+
+  for (int i = root.num_children() - 1; i >= 0; --i)
+  {
+    ryml::NodeRef entry = root[i];
+    FOUR_C_ASSERT(entry.is_map(), "Internal error: expected sequence items to be maps");
+    FOUR_C_ASSERT(entry.num_children() == 1, "Internal error: expected exactly one child");
+    ryml::NodeRef symbol_node = entry.child(0);
+    FOUR_C_ASSERT(symbol_node.is_map(), "Internal error: expected a map");
+    auto symbol_key = symbol_node.key();
+    if (symbol_key != ryml::to_csubstr(group_name)) continue;
+
+    const auto has_entry_with_value =
+        []<typename T>(const ControlFileEntry& group, const std::string& key, const T& val)
     {
-      MAP* map;
-      symbol_get_map(symbol, &map);
-      if (map_has_string(map, "field", discretization_name.c_str()) and
-          map_has_int(map, "step", step))
-      {
-        result_info = map;
-        break;
-      }
-    }
-    symbol = symbol->next;
-  }
-  if (symbol == nullptr)
-  {
-    FOUR_C_THROW(
-        "No restart entry for discretization '{}' step {} in symbol table. "
-        "Control file corrupt?\n\nLooking for control file at: {}",
-        discretization_name, step, filename_);
-  }
+      auto entry = group[key].as<T>();
+      if (entry) return (*entry == val);
+      return false;
+    };
 
-  /*--------------------------------------------------------------------*/
-  /* open file to read */
+    ControlFileEntry group = ControlFileEntry(this, symbol_node.id());
 
-  /* We have a symbol and its map that corresponds to the step we are
-   * interested in. Now we need to continue our search to find the
-   * step that defines the output file used for our step. */
-
-  while (symbol != nullptr)
-  {
-    if (symbol_is_map(symbol))
+    if (!result_info.is_valid())
     {
-      MAP* map;
-      symbol_get_map(symbol, &map);
-      if (map_has_string(map, "field", discretization_name.c_str()))
-      {
-        /*
-         * If one of these files is here the other one has to be
-         * here, too. If it's not, it's a bug in the input. */
-        if (map_symbol_count(map, filestring) > 0)
-        {
-          file_info = map;
-          break;
-        }
-      }
+      if (!has_entry_with_value(group, "field", discretization_name)) continue;
+      if (!has_entry_with_value(group, "step", step)) continue;
+      // Found the correct group
+      result_info = group;
     }
-    symbol = symbol->next;
+
+    if (result_info.is_valid())
+    {
+      if (!has_entry_with_value(group, "field", discretization_name)) continue;
+
+      if (!group[file_marker].is_a<std::string>()) continue;
+
+      // Found the correct file info --> stop searching
+      file_info = group;
+      break;
+    }
   }
 
-  /* No restart files defined? */
-  if (symbol == nullptr)
-  {
-    FOUR_C_THROW("no restart file definitions found in control file");
-  }
+  FOUR_C_ASSERT_ALWAYS(result_info.is_valid() && file_info.is_valid(),
+      "No restart entry for discretization '{}' step {} in control file. "
+      "Control file corrupt?\n\nLooking in control file at: {}",
+      discretization_name, step, file_name());
+
+  return {result_info, file_info};
 }
 
 
@@ -426,24 +520,23 @@ void Core::IO::InputControl::find_group(int step, const std::string& discretizat
 /*----------------------------------------------------------------------*/
 int Core::IO::get_last_possible_restart_step(Core::IO::InputControl& inputcontrol)
 {
-  /* Go to the first symbol under the name "field" and get the
-   * corresponding step. Note that it will find the last "field"
-   * group starting from the end of the file and looking backwards. */
-
-  SYMBOL* symbol = map_find_symbol(inputcontrol.control_file(), "field");
-  if (symbol != nullptr && symbol_is_map(symbol))
+  auto last_possible = inputcontrol.last_entry("field")["step"].as<int>();
+  if (!last_possible)
   {
-    MAP* map;
-    symbol_get_map(symbol, &map);
-    return map_read_int(map, "step");
+    FOUR_C_THROW(
+        "No restart entry in symbol table. "
+        "Control file corrupt?\n\nLooking for control file at: {}",
+        inputcontrol.file_name());
   }
-
-  FOUR_C_THROW(
-      "No restart entry in symbol table. "
-      "Control file corrupt?\n\nLooking for control file at: {}",
-      inputcontrol.file_name().c_str());
-
-  return 0;
+  return last_possible.value();
 }
+
+template bool Core::IO::ControlFileEntry::is_a<int>() const;
+template bool Core::IO::ControlFileEntry::is_a<double>() const;
+template bool Core::IO::ControlFileEntry::is_a<std::string>() const;
+
+template std::optional<int> Core::IO::ControlFileEntry::as() const;
+template std::optional<double> Core::IO::ControlFileEntry::as() const;
+template std::optional<std::string> Core::IO::ControlFileEntry::as() const;
 
 FOUR_C_NAMESPACE_CLOSE
