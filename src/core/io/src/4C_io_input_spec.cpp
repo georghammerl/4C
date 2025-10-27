@@ -81,11 +81,13 @@ void Core::IO::InputSpec::emit(YamlNodeRef yaml, Core::IO::InputParameterContain
   }
 }
 
-void Core::IO::InputSpec::emit_metadata(YamlNodeRef yaml) const
+void Core::IO::InputSpec::emit_metadata(
+    YamlNodeRef yaml, InputSpecEmitMetadataOptions options) const
 {
   FOUR_C_ASSERT(pimpl_, "InputSpec is empty.");
 
-  pimpl_->emit_metadata(yaml);
+  Internal::EmitMetadataContext context{.options = options};
+  Internal::emit_metadata_helper(*this, yaml, context);
 }
 
 Core::IO::Internal::InputSpecImpl& Core::IO::InputSpec::impl()
@@ -99,6 +101,8 @@ const Core::IO::Internal::InputSpecImpl& Core::IO::InputSpec::impl() const
   FOUR_C_ASSERT(pimpl_, "InputSpec is empty.");
   return *pimpl_;
 }
+
+std::size_t Core::IO::InputSpec::use_count() const { return pimpl_.use_count(); }
 
 const std::string& Core::IO::InputSpec::name() const
 {
