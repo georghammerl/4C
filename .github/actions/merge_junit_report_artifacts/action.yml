@@ -12,7 +12,7 @@ runs:
   using: composite
   steps:
     - name: Download reports
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         path: ${{ github.workspace }}
         merge-multiple: true
