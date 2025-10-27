@@ -15,6 +15,7 @@ from four_c_metadata.not_set import NotSet, check_if_set, NotSetAlias
 from four_c_common_utils.io import load_yaml
 
 from four_c_metadata.metadata import (
+    make_context,
     One_Of,
     Enum,
     Group,
@@ -63,7 +64,6 @@ def short_name(spec: InputSpec) -> str:
 
 
 def create_schema(spec: InputSpec, schema_type: TypeAlias) -> Schema:
-
     if spec.validator is not None:
         validators = validator_to_schema(spec.validator)
         if validators is not None:
@@ -220,7 +220,6 @@ def create_schema_from_one_of(one_of: One_Of) -> Schema:
     for all_of, name in zip(
         one_of.specs, sort_one_of_option_names(one_of.specs), strict=True
     ):
-
         schema_all_of = create_schema_from_all_of(all_of)
         schema_all_of.title = name
         schema_all_of.description = name
@@ -313,7 +312,10 @@ def main(fourc_metadata_yaml_path: str, json_schema_path: str):
     # Description
     metadata_description = f"Schema for 4C\nCommit hash: {metadata['metadata']['commit_hash']}\nVersion: {metadata['metadata']['version']}"
 
-    metadata_object = All_Of.from_4C_metadata(metadata["sections"])
+    # References used by other metadata entries
+    context = make_context(metadata)
+
+    metadata_object = All_Of.from_4C_metadata(metadata["sections"], context)
     metadata_object.description = metadata_description
 
     # Add legacy sections
