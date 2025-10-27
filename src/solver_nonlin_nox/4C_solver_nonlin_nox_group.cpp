@@ -312,12 +312,12 @@ double NOX::Nln::Group::get_trial_update_norm(const ::NOX::Abstract::Vector& dir
   const std::vector<StatusTest::QuantityType> quantities(1, quantity);
   const std::vector<StatusTest::NormUpdate::ScaleType> scales(1, scale);
 
-  if (tmp_vector_ptr_.is_null() or
-      !tmp_vector_ptr_->Map().SameAs(xVector.getEpetraVector().Map()) or
-      tmp_vector_ptr_.get() == &xVector.getEpetraVector())
-    tmp_vector_ptr_ = Teuchos::make_rcp<Epetra_Vector>(xVector.getEpetraVector());
+  if (!tmp_vector_ptr_ or
+      !tmp_vector_ptr_->get_map().same_as(xVector.get_linalg_vector().get_map()) or
+      tmp_vector_ptr_.get() == &xVector.get_linalg_vector())
+    tmp_vector_ptr_ = std::make_shared<Core::LinAlg::Vector<double>>(xVector.get_linalg_vector());
   else
-    tmp_vector_ptr_->Scale(1.0, xVector.getEpetraVector());
+    tmp_vector_ptr_->scale(1.0, xVector.get_linalg_vector());
 
   // change the internally stored x-vector for the norm evaluation
   auto& x_mutable = const_cast<NOX::Nln::Vector&>(xVector);

@@ -9,6 +9,7 @@
 
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_utils_shared_ptr_from_ref.hpp"
 
 #include <NOX_Abstract_Group.H>
 #include <NOX_Epetra_Interface_Required.H>
@@ -81,10 +82,15 @@ int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVect
   // Convert X and Y from an Epetra_MultiVector to a Core::LinAlg::Vectors
   // and NOX::Nln::Vectors.  This is done so we use a consistent
   // vector space for norms and inner products.
-  Teuchos::RCP<Epetra_Vector> wrappedX = Teuchos::make_rcp<Epetra_Vector>(View, X, 0);
-  Teuchos::RCP<Epetra_Vector> wrappedY = Teuchos::make_rcp<Epetra_Vector>(View, Y, 0);
-  NOX::Nln::Vector nevX(wrappedX, NOX::Nln::Vector::MemoryType::View);
-  NOX::Nln::Vector nevY(wrappedY, NOX::Nln::Vector::MemoryType::View);
+  Core::LinAlg::View wrappedX(X);
+  Core::LinAlg::View wrappedY(Y);
+
+  // There is a const_cast introduced - should be removed
+  NOX::Nln::Vector nevX(Core::Utils::shared_ptr_from_ref(
+                            const_cast<Core::LinAlg::Vector<double>&>(wrappedX.underlying()(0))),
+      NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector nevY(Core::Utils::shared_ptr_from_ref(wrappedY.underlying()(0)),
+      NOX::Nln::Vector::MemoryType::View);
 
   // The trial vector x is not guaranteed to be a suitable interface
   // displacement. It might be much too large to fit the ALE
@@ -168,7 +174,7 @@ const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const { return *ep
 bool NOX::FSI::FSIMatrixFree::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac)
 {
   // Remember the current interface displacements.
-  currentX = x;
+  currentX = Core::LinAlg::View(x);
 
   // Nothing to do here. The work is done when we apply a vector to
   // the Jacobian.

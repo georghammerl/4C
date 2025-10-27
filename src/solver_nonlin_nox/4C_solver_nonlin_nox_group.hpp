@@ -197,7 +197,7 @@ namespace NOX
       //! Throw an NOX_error
       void throw_error(const std::string& functionName, const std::string& errorMsg) const;
 
-      mutable Teuchos::RCP<Epetra_Vector> tmp_vector_ptr_;
+      mutable std::shared_ptr<Core::LinAlg::Vector<double>> tmp_vector_ptr_ = nullptr;
 
      protected:
       /*! flag whether update of x vector should be skipped

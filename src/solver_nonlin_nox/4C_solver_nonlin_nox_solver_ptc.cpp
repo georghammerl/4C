@@ -912,7 +912,7 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
   {
     case NOX::Nln::Solver::PseudoTransient::scale_op_identity:
     {
-      NOX::Nln::Vector v(Teuchos::rcpFromRef(scaling_diag_op_ptr_->get_ref_of_epetra_vector()));
+      NOX::Nln::Vector v(*scaling_diag_op_ptr_);
       v.scale(ptcsolver_.get_inverse_pseudo_time_step());
       xUpdate->scale(v);
 

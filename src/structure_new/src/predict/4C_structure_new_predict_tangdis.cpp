@@ -119,11 +119,13 @@ void Solid::Predict::TangDis::compute(::NOX::Abstract::Group& grp)
   std::shared_ptr<Core::LinAlg::Vector<double>> dbc_incr_exp_ptr =
       std::make_shared<Core::LinAlg::Vector<double>>(global_state().global_problem_map(), true);
   Core::LinAlg::export_to(*dbc_incr_ptr_, *dbc_incr_exp_ptr);
-  grp_ptr->computeX(*grp_ptr, dbc_incr_exp_ptr->get_ref_of_epetra_vector(), 1.0);
+
+  NOX::Nln::Vector wrapper_dbc_incr_exp_ptr(dbc_incr_exp_ptr, NOX::Nln::Vector::MemoryType::View);
+  grp_ptr->computeX(*grp_ptr, wrapper_dbc_incr_exp_ptr, 1.0);
   // Reset the state variables
-  const auto& x_eptra = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
+  const auto& x_nln = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
   // set the consistent state in the models (e.g. structure and contact models)
-  impl_int().reset_model_states(Core::LinAlg::Vector<double>(x_eptra.getEpetraVector()));
+  impl_int().reset_model_states(x_nln.get_linalg_vector());
 
   // For safety purposes, we set the dbc_incr vector to zero
   dbc_incr_ptr_->put_scalar(0.0);
