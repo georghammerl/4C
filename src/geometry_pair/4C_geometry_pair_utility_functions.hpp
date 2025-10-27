@@ -99,6 +99,11 @@ namespace GeometryPair
     PrintElementData<other>::print(element_data_other, out);
   }
 
+  /**
+   * \brief Create the element ID to element pointer map.
+   */
+  std::unordered_map<int, const Core::Elements::Element*> condition_to_element_id_map(
+      const Core::Conditions::Condition& condition);
 }  // namespace GeometryPair
 
 

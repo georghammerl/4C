@@ -508,8 +508,12 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
   actdis_->get_condition("BeamPotentialLineCharge", beampotconditions);
 
   // conditions for beam penalty point coupling
-  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions;
-  actdis_->get_condition("PenaltyPointCouplingCondition", beampenaltycouplingconditions);
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_direct;
+  actdis_->get_condition(
+      "PenaltyPointCouplingConditionDirect", beampenaltycouplingconditions_direct);
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
+  actdis_->get_condition(
+      "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
 
 
   if (strategy != BeamContact::bstr_none and modelevaluator == BeamContact::bstr_old)
@@ -552,7 +556,8 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
           "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
       Global::Problem::instance()->parameters().isParameter(
           "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT") or
-      beampotconditions.size() > 0 or beampenaltycouplingconditions.size() > 0)
+      beampotconditions.size() > 0 or beampenaltycouplingconditions_direct.size() > 0 or
+      beampenaltycouplingconditions_indirect.size() > 0)
   {
     modeltypes.insert(Inpar::Solid::model_beaminteraction);
   }

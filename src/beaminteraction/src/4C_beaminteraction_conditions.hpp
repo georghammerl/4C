@@ -85,6 +85,14 @@ namespace BeamInteraction
         const std::vector<Core::Elements::Element const*>& ele_ptrs) = 0;
 
     /**
+     * \brief Create the contact pairs directly, i.e., not depending on given element pointers.
+     */
+    virtual void create_contact_pairs_direct(
+        std::vector<std::shared_ptr<BeamContactPair>>& contact_pairs,
+        const Core::FE::Discretization& discretization,
+        const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr) {};
+
+    /**
      * \brief Build the ID sets for this condition. The ID sets will be used to check if an element
      * is in this condition.
      */
@@ -208,6 +216,13 @@ namespace BeamInteraction
         const std::vector<Core::Elements::Element const*>& ele_ptrs);
 
     /**
+     * \brief Create the contact pairs directly, i.e., not depending on given element pointers.
+     */
+    std::vector<std::shared_ptr<BeamContactPair>> create_contact_pairs_direct(
+        const Core::FE::Discretization& discretization,
+        const std::shared_ptr<BeamInteraction::BeamContactParams>& params_ptr);
+
+    /**
      * Create all needed indirect assembly managers.
      * @param discret (in) discretization.
      * @param assembly_managers (in/out) Pointer to assembly manager vector from the beam
@@ -278,12 +293,6 @@ namespace BeamInteraction
    */
   void condition_to_element_ids(
       const Core::Conditions::Condition& condition, std::vector<int>& element_ids);
-
-  /**
-   * \brief Create the element ID to element pointer map.
-   */
-  std::unordered_map<int, const Core::Elements::Element*> condition_to_element_id_map(
-      const Core::Conditions::Condition& condition);
 
 }  // namespace BeamInteraction
 

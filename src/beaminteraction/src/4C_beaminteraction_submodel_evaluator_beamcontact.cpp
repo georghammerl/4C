@@ -118,9 +118,17 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   }
 
   // conditions for beam penalty point coupling
-  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions;
-  discret().get_condition("PenaltyPointCouplingCondition", beampenaltycouplingconditions);
-  if (beampenaltycouplingconditions.size() > 0)
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_direct;
+  discret().get_condition(
+      "PenaltyPointCouplingConditionDirect", beampenaltycouplingconditions_direct);
+  if (beampenaltycouplingconditions_direct.size() > 0)
+  {
+    contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
+  }
+  std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
+  discret().get_condition(
+      "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
+  if (beampenaltycouplingconditions_indirect.size() > 0)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
   }
@@ -1092,6 +1100,14 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::create_beam_contact_elemen
       }
     }
   }
+
+  auto directly_created_pairs = beam_interaction_conditions_ptr_->create_contact_pairs_direct(
+      discret(), beam_contact_params_ptr_);
+  for (auto& pair : directly_created_pairs)
+  {
+    contact_elepairs_.push_back(pair);
+  }
+
 
   // Setup the geometry evaluation data.
   beam_interaction_conditions_ptr_->setup(discret_ptr());

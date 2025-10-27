@@ -12,29 +12,19 @@
 #include "4C_beaminteraction_beam_to_solid_utils.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_geometry_pair_access_traits.hpp"
+#include "4C_geometry_pair_constants.hpp"
 #include "4C_geometry_pair_element_evaluation_functions.hpp"
+#include "4C_geometry_pair_line_to_line.hpp"
 #include "4C_linalg_fevector.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_sparsematrix.hpp"
+#include "4C_utils_exceptions.hpp"
+
+#include <array>
 
 FOUR_C_NAMESPACE_OPEN
 
-
-/**
- *
- */
-template <typename Beam>
-BeamInteraction::BeamToBeamPointCouplingPair<Beam>::BeamToBeamPointCouplingPair(
-    double penalty_parameter_rot, double penalty_parameter_pos,
-    std::array<double, 2> pos_in_parameterspace)
-    : BeamContactPair(),
-      penalty_parameter_pos_(penalty_parameter_pos),
-      penalty_parameter_rot_(penalty_parameter_rot),
-      position_in_parameterspace_(pos_in_parameterspace)
-{
-  // Empty constructor.
-}
 
 /**
  *
@@ -65,6 +55,9 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam>::evaluate_and_assemble(
     const std::shared_ptr<Core::LinAlg::SparseMatrix>& stiffness_matrix,
     const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement_vector)
 {
+  check_init_setup();
+
+
   const std::array<const Core::Elements::Element*, 2> beam_ele = {
       this->element1(), this->element2()};
 
@@ -81,10 +74,14 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam>::evaluate_and_assemble(
 
   // Evaluate positional kinematics
   {
+    std::array<GeometryPair::ElementData<Beam, double>, 2> beam_pos_ref;
+    std::array<GeometryPair::ElementData<Beam, double>, 2> beam_pos;
+
     for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
     {
-      // Get shape function data
-      GeometryPair::ElementData<Beam, double> beam_data =
+      beam_pos_ref[i_beam] =
+          GeometryPair::InitializeElementData<Beam, double>::initialize(beam_ele[i_beam]);
+      beam_pos[i_beam] =
           GeometryPair::InitializeElementData<Beam, double>::initialize(beam_ele[i_beam]);
 
       // Get GIDs of the beams positional DOF.
@@ -102,22 +99,69 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam>::evaluate_and_assemble(
       BeamInteraction::Utils::extract_pos_dof_vec_absolute_values(
           *discret, beam_ele[i_beam], *displacement_vector, element_posdofvec_absolutevalues);
 
-      // Evaluate the current position of the coupling point.
+      // Get the current and reference position.
       for (unsigned int i_dof = 0; i_dof < Beam::n_dof_; i_dof++)
-        beam_data.element_position_(i_dof) = element_posdofvec_absolutevalues[i_dof];
+      {
+        beam_pos[i_beam].element_position_(i_dof) = element_posdofvec_absolutevalues[i_dof];
+        beam_pos_ref[i_beam].element_position_(i_dof) =
+            element_posdofvec_absolutevalues[i_dof] - element_posdofvec_values[i_dof];
+      }
+    }
+
+    if (use_closest_point_projection_)
+    {
+      // Closest point projection between the two curves
+      const auto projection_result =
+          GeometryPair::line_to_line_closest_point_projection(beam_pos_ref[0], beam_pos_ref[1],
+              position_in_parameterspace_[0], position_in_parameterspace_[1]);
+
+      if (projection_result != GeometryPair::ProjectionResult::projection_found_valid)
+      {
+        // No projection was found
+        return;
+      }
+
+      // Check the projection distance
+      Core::LinAlg::Matrix<3, 1> diff{Core::LinAlg::Initialization::zero};
+      double beam_radii = 0.0;
+      for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
+      {
+        Core::LinAlg::Matrix<3, 1> r;
+        GeometryPair::evaluate_position<Beam>(
+            position_in_parameterspace_[i_beam], beam_pos_ref[i_beam], r);
+        r.scale(i_beam == 0 ? -1.0 : 1.0);
+        diff += r;
+
+        const auto* beam_ptr = dynamic_cast<const Discret::Elements::Beam3Base*>(beam_ele[i_beam]);
+        beam_radii += beam_ptr->get_circular_cross_section_radius_for_interactions();
+      }
+      if (projection_valid_factor_ * beam_radii < diff.norm2())
+      {
+        return;
+      }
+
+      // Make sure that we have unique pairs for projections directly on nodes
+      if (not line_to_line_evaluation_data_->evaluate_projection_coordinates(
+              beam_ele, position_in_parameterspace_))
+      {
+        return;
+      }
+    }
+
+    for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
+    {
+      // Evaluate the current position of the coupling point.
       GeometryPair::evaluate_position<Beam>(
-          position_in_parameterspace_[i_beam], beam_data, r[i_beam]);
+          position_in_parameterspace_[i_beam], beam_pos[i_beam], r[i_beam]);
 
       // Evaluate the reference position of the coupling point.
-      for (unsigned int i_dof = 0; i_dof < Beam::n_dof_; i_dof++)
-        beam_data.element_position_(i_dof) -= element_posdofvec_values[i_dof];
       GeometryPair::evaluate_position<Beam>(
-          position_in_parameterspace_[i_beam], beam_data, r_ref[i_beam]);
+          position_in_parameterspace_[i_beam], beam_pos_ref[i_beam], r_ref[i_beam]);
 
       // Shape function matrices
       Core::LinAlg::Matrix<3, Beam::n_dof_> H_full;
       GeometryPair::evaluate_shape_function_matrix<Beam>(
-          H_full, position_in_parameterspace_[i_beam], beam_data.shape_function_data_);
+          H_full, position_in_parameterspace_[i_beam], beam_pos_ref[i_beam].shape_function_data_);
       for (unsigned int i_dof = 0; i_dof < Beam::n_dof_; i_dof++)
       {
         for (unsigned int i_dir = 0; i_dir < 3; i_dir++)
