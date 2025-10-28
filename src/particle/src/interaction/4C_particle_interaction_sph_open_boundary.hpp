@@ -23,24 +23,24 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
   class MaterialHandler;
   class SPHEquationOfStateBundle;
   class SPHNeighborPairs;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHOpenBoundaryBase
   {
@@ -56,11 +56,11 @@ namespace ParticleInteraction
 
     //! setup open boundary handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! prescribe open boundary states
     virtual void prescribe_open_boundary_states(const double& evaltime) = 0;
@@ -76,25 +76,25 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! equation of state bundle
-    std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle_;
+    std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! states of ghosted particles to refresh
-    PARTICLEENGINE::StatesOfTypesToRefresh statestorefresh_;
+    Particle::StatesOfTypesToRefresh statestorefresh_;
 
     //! function id of prescribed state
     int prescribedstatefunctid_;
@@ -106,10 +106,10 @@ namespace ParticleInteraction
     std::vector<double> planepoint_;
 
     //! fluid phase
-    PARTICLEENGINE::TypeEnum fluidphase_;
+    Particle::TypeEnum fluidphase_;
 
     //! open boundary phase
-    PARTICLEENGINE::TypeEnum openboundaryphase_;
+    Particle::TypeEnum openboundaryphase_;
   };
 
   class SPHOpenBoundaryDirichlet : public SPHOpenBoundaryBase
@@ -122,12 +122,11 @@ namespace ParticleInteraction
     void init() override;
 
     //! setup open boundary handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs) override;
 
     //! prescribe open boundary states
     void prescribe_open_boundary_states(const double& evaltime) override;
@@ -146,12 +145,11 @@ namespace ParticleInteraction
     void init() override;
 
     //! setup open boundary handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs) override;
 
     //! prescribe open boundary states
     void prescribe_open_boundary_states(const double& evaltime) override;
@@ -160,7 +158,7 @@ namespace ParticleInteraction
     void interpolate_open_boundary_states() override;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

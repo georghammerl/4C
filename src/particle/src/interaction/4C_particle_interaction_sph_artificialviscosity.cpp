@@ -17,22 +17,22 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHArtificialViscosity::SPHArtificialViscosity()
+Particle::SPHArtificialViscosity::SPHArtificialViscosity()
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHArtificialViscosity::init()
+void Particle::SPHArtificialViscosity::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHArtificialViscosity::setup()
+void Particle::SPHArtificialViscosity::setup()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHArtificialViscosity::artificial_viscosity(const double* vel_i,
+void Particle::SPHArtificialViscosity::artificial_viscosity(const double* vel_i,
     const double* vel_j, const double* mass_i, const double* mass_j, const double& artvisc_i,
     const double& artvisc_j, const double& dWdrij, const double& dWdrji, const double& dens_ij,
     const double& h_ij, const double& c_ij, const double& abs_rij, const double* e_ij,

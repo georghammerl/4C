@@ -31,7 +31,7 @@ namespace Core::IO
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief particle runtime vtp writer class
@@ -114,7 +114,7 @@ namespace PARTICLEENGINE
     std::set<ParticleState> blackliststates_;
   };
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

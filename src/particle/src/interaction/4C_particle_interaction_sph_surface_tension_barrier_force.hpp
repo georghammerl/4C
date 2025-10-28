@@ -23,13 +23,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHNeighborPairs;
 }
@@ -37,7 +37,7 @@ namespace ParticleInteraction
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHBarrierForce
   {
@@ -49,9 +49,8 @@ namespace ParticleInteraction
     void init();
 
     //! setup barrier force handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! compute barrier force contribution
     void compute_barrier_force_contribution() const;
@@ -67,25 +66,25 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! liquid particle type
-    PARTICLEENGINE::TypeEnum liquidtype_;
+    Particle::TypeEnum liquidtype_;
 
     //! gas particle type
-    PARTICLEENGINE::TypeEnum gastype_;
+    Particle::TypeEnum gastype_;
 
     //! set of fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> fluidtypes_;
+    std::set<Particle::TypeEnum> fluidtypes_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
 
     //! barrier force distance
     const double dist_;
@@ -112,7 +111,7 @@ namespace ParticleInteraction
     const double damp_g_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

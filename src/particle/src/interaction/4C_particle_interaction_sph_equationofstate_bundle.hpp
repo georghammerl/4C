@@ -22,16 +22,16 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHEquationOfStateBase;
   class MaterialHandler;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHEquationOfStateBundle final
   {
@@ -40,14 +40,14 @@ namespace ParticleInteraction
     explicit SPHEquationOfStateBundle(const Teuchos::ParameterList& params);
 
     //! init equation of state bundle
-    void init(ParticleInteraction::MaterialHandler& particlematerial);
+    void init(Particle::MaterialHandler& particlematerial);
 
     //! setup equation of state bundle
     void setup();
 
     //! return pointer to specific equation of state
-    inline const ParticleInteraction::SPHEquationOfStateBase* get_ptr_to_specific_equation_of_state(
-        PARTICLEENGINE::TypeEnum type_i) const
+    inline const Particle::SPHEquationOfStateBase* get_ptr_to_specific_equation_of_state(
+        Particle::TypeEnum type_i) const
     {
       return phasetypetoequationofstate_[type_i].get();
     };
@@ -57,14 +57,13 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! equation of state handler for all particle types
-    std::vector<std::unique_ptr<ParticleInteraction::SPHEquationOfStateBase>>
-        phasetypetoequationofstate_;
+    std::vector<std::unique_ptr<Particle::SPHEquationOfStateBase>> phasetypetoequationofstate_;
 
     //! set of particle types of stored equation of state handlers
-    std::set<PARTICLEENGINE::TypeEnum> storedtypes_;
+    std::set<Particle::TypeEnum> storedtypes_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

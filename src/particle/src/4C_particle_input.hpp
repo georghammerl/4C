@@ -26,7 +26,7 @@ namespace Core::Conditions
 /*---------------------------------------------------------------------------*
  | input parameters for particle problems                                    |
  *---------------------------------------------------------------------------*/
-namespace PARTICLE
+namespace Particle
 {
   /*---------------------------------------------------------------------------*
    | general control parameters for particle simulations                       |
@@ -254,7 +254,7 @@ namespace PARTICLE
   //! set the particle conditions
   void set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist);
 
-}  // namespace PARTICLE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

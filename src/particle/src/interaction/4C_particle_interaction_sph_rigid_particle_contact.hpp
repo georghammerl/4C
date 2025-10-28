@@ -23,27 +23,27 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class InteractionWriter;
   class SPHNeighborPairs;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHRigidParticleContactBase
   {
@@ -59,10 +59,10 @@ namespace ParticleInteraction
 
     //! setup rigid particle contact handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! add rigid particle contact contribution to force field
     virtual void add_force_contribution() = 0;
@@ -76,25 +76,25 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! particle interaction writer
-    std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter_;
+    std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! write particle-wall interaction output
     const bool writeparticlewallinteraction_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
   };
 
   class SPHRigidParticleContactElastic : public SPHRigidParticleContactBase
@@ -104,11 +104,10 @@ namespace ParticleInteraction
     explicit SPHRigidParticleContactElastic(const Teuchos::ParameterList& params);
 
     //! setup rigid particle contact handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs) override;
 
     //! add rigid particle contact contribution to force field
     void add_force_contribution() override;
@@ -127,7 +126,7 @@ namespace ParticleInteraction
     const double damp_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

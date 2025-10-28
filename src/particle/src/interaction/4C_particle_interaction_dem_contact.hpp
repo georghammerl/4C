@@ -23,18 +23,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
   class InteractionWriter;
@@ -43,12 +43,12 @@ namespace ParticleInteraction
   class DEMContactNormalBase;
   class DEMContactTangentialBase;
   class DEMContactRollingBase;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMContact final
   {
@@ -69,21 +69,19 @@ namespace ParticleInteraction
     void init();
 
     //! setup contact handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-        const std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs,
-        const std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+        const std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs,
+        const std::shared_ptr<Particle::DEMHistoryPairs> historypairs);
 
     //! set current step size
     void set_current_step_size(const double currentstepsize);
 
     //! insert contact evaluation dependent states
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     //! get normal contact stiffness
     double get_normal_contact_stiffness() const;
@@ -129,34 +127,34 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_dem_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! particle interaction writer
-    std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter_;
+    std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs_;
 
     //! history pair handler
-    std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs_;
+    std::shared_ptr<Particle::DEMHistoryPairs> historypairs_;
 
     //! normal contact handler
-    std::unique_ptr<ParticleInteraction::DEMContactNormalBase> contactnormal_;
+    std::unique_ptr<Particle::DEMContactNormalBase> contactnormal_;
 
     //! tangential contact handler
-    std::unique_ptr<ParticleInteraction::DEMContactTangentialBase> contacttangential_;
+    std::unique_ptr<Particle::DEMContactTangentialBase> contacttangential_;
 
     //! rolling contact handler
-    std::unique_ptr<ParticleInteraction::DEMContactRollingBase> contactrolling_;
+    std::unique_ptr<Particle::DEMContactRollingBase> contactrolling_;
 
     //! time step size
     double dt_;
@@ -168,7 +166,7 @@ namespace ParticleInteraction
     const bool writeparticlewallinteraction_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

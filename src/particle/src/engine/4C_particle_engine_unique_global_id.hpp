@@ -36,7 +36,7 @@ namespace Core::IO
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief unique global identifier handler
@@ -198,7 +198,7 @@ namespace PARTICLEENGINE
     //! reusable global ids
     std::vector<int> reusableglobalids_;
   };
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

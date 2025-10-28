@@ -26,11 +26,10 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHInterfaceViscosity::SPHInterfaceViscosity(
-    const Teuchos::ParameterList& params)
+Particle::SPHInterfaceViscosity::SPHInterfaceViscosity(const Teuchos::ParameterList& params)
     : params_sph_(params),
-      liquidtype_(PARTICLEENGINE::Phase1),
-      gastype_(PARTICLEENGINE::Phase2),
+      liquidtype_(Particle::Phase1),
+      gastype_(Particle::Phase2),
       artvisc_lg_int_(params_sph_.get<double>("INTERFACE_VISCOSITY_LIQUIDGAS")),
       artvisc_sl_int_(params_sph_.get<double>("INTERFACE_VISCOSITY_SOLIDLIQUID")),
       trans_ref_temp_(params_sph_.get<double>("TRANS_REF_TEMPERATURE")),
@@ -39,9 +38,9 @@ ParticleInteraction::SPHInterfaceViscosity::SPHInterfaceViscosity(
   // empty constructor
 }
 
-ParticleInteraction::SPHInterfaceViscosity::~SPHInterfaceViscosity() = default;
+Particle::SPHInterfaceViscosity::~SPHInterfaceViscosity() = default;
 
-void ParticleInteraction::SPHInterfaceViscosity::init()
+void Particle::SPHInterfaceViscosity::init()
 {
   // init artificial viscosity handler
   init_artificial_viscosity_handler();
@@ -50,23 +49,23 @@ void ParticleInteraction::SPHInterfaceViscosity::init()
   fluidtypes_ = {liquidtype_, gastype_};
 
   // init with potential boundary particle types
-  boundarytypes_ = {PARTICLEENGINE::BoundaryPhase, PARTICLEENGINE::RigidPhase};
+  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 
   // safety check
   if (trans_d_t_intvisc_ > 0.0)
   {
-    if (Teuchos::getIntegralValue<PARTICLE::TemperatureEvaluationScheme>(
-            params_sph_, "TEMPERATUREEVALUATION") == PARTICLE::NoTemperatureEvaluation)
+    if (Teuchos::getIntegralValue<Particle::TemperatureEvaluationScheme>(
+            params_sph_, "TEMPERATUREEVALUATION") == Particle::NoTemperatureEvaluation)
       FOUR_C_THROW("temperature evaluation needed for linear transition of interface viscosity!");
   }
 }
 
-void ParticleInteraction::SPHInterfaceViscosity::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-    ParticleInteraction::MaterialHandler& particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHInterfaceViscosity::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel,
+    Particle::MaterialHandler& particlematerial,
+    const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -90,7 +89,7 @@ void ParticleInteraction::SPHInterfaceViscosity::setup(
   for (const auto& type_i : fluidtypes_)
     if (not particlecontainerbundle_->get_particle_types().count(type_i))
       FOUR_C_THROW("no particle container for particle type '{}' found!",
-          PARTICLEENGINE::enum_to_type_name(type_i));
+          Particle::enum_to_type_name(type_i));
 
   // update with actual boundary particle types
   const auto boundarytypes = boundarytypes_;
@@ -112,7 +111,7 @@ void ParticleInteraction::SPHInterfaceViscosity::setup(
   }
 }
 
-void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_contribution() const
+void Particle::SPHInterfaceViscosity::compute_interface_viscosity_contribution() const
 {
   // compute interface viscosity contribution (particle contribution)
   compute_interface_viscosity_particle_contribution();
@@ -121,18 +120,17 @@ void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_con
   compute_interface_viscosity_particle_boundary_contribution();
 }
 
-void ParticleInteraction::SPHInterfaceViscosity::init_artificial_viscosity_handler()
+void Particle::SPHInterfaceViscosity::init_artificial_viscosity_handler()
 {
   // create artificial viscosity handler
-  artificialviscosity_ = std::unique_ptr<ParticleInteraction::SPHArtificialViscosity>(
-      new ParticleInteraction::SPHArtificialViscosity());
+  artificialviscosity_ =
+      std::unique_ptr<Particle::SPHArtificialViscosity>(new Particle::SPHArtificialViscosity());
 
   // init artificial viscosity handler
   artificialviscosity_->init();
 }
 
-void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_particle_contribution()
-    const
+void Particle::SPHInterfaceViscosity::compute_interface_viscosity_particle_contribution() const
 {
   // get relevant particle pair indices
   std::vector<int> relindices;
@@ -145,21 +143,21 @@ void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_par
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get material for particle types
@@ -167,25 +165,21 @@ void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_par
     const Mat::PAR::ParticleMaterialSPHFluid* material_j = fluidmaterial_[type_j];
 
     // get pointer to particle states
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* cfg_i =
-        container_i->get_ptr_to_state(PARTICLEENGINE::ColorfieldGradient, particle_i);
-    const double* temp_i =
-        container_i->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_i);
-    double* acc_i = container_i->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* cfg_i = container_i->get_ptr_to_state(Particle::ColorfieldGradient, particle_i);
+    const double* temp_i = container_i->cond_get_ptr_to_state(Particle::Temperature, particle_i);
+    double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
-    const double* rad_j = container_j->get_ptr_to_state(PARTICLEENGINE::Radius, particle_j);
-    const double* mass_j = container_j->get_ptr_to_state(PARTICLEENGINE::Mass, particle_j);
-    const double* dens_j = container_j->get_ptr_to_state(PARTICLEENGINE::Density, particle_j);
-    const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
-    const double* cfg_j =
-        container_j->get_ptr_to_state(PARTICLEENGINE::ColorfieldGradient, particle_j);
-    const double* temp_j =
-        container_j->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_j);
-    double* acc_j = container_j->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_j);
+    const double* rad_j = container_j->get_ptr_to_state(Particle::Radius, particle_j);
+    const double* mass_j = container_j->get_ptr_to_state(Particle::Mass, particle_j);
+    const double* dens_j = container_j->get_ptr_to_state(Particle::Density, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
+    const double* cfg_j = container_j->get_ptr_to_state(Particle::ColorfieldGradient, particle_j);
+    const double* temp_j = container_j->cond_get_ptr_to_state(Particle::Temperature, particle_j);
+    double* acc_j = container_j->get_ptr_to_state(Particle::Acceleration, particle_j);
 
     // get smoothing length
     const double h_i = kernel_->smoothing_length(rad_i[0]);
@@ -232,8 +226,8 @@ void ParticleInteraction::SPHInterfaceViscosity::compute_interface_viscosity_par
   }
 }
 
-void ParticleInteraction::SPHInterfaceViscosity::
-    compute_interface_viscosity_particle_boundary_contribution() const
+void Particle::SPHInterfaceViscosity::compute_interface_viscosity_particle_boundary_contribution()
+    const
 {
   // get relevant particle pair indices
   std::vector<int> relindices;
@@ -247,13 +241,13 @@ void ParticleInteraction::SPHInterfaceViscosity::
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
@@ -277,39 +271,35 @@ void ParticleInteraction::SPHInterfaceViscosity::
     const double dWdrij = (swapparticles) ? particlepair.dWdrji_ : particlepair.dWdrij_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get material for particle types
     const Mat::PAR::ParticleMaterialSPHFluid* material_i = fluidmaterial_[type_i];
 
     // get equation of state for particle types
-    const ParticleInteraction::SPHEquationOfStateBase* equationofstate_i =
+    const Particle::SPHEquationOfStateBase* equationofstate_i =
         equationofstatebundle_->get_ptr_to_specific_equation_of_state(type_i);
 
     // get pointer to particle states
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* cfg_i =
-        container_i->get_ptr_to_state(PARTICLEENGINE::ColorfieldGradient, particle_i);
-    const double* temp_i =
-        container_i->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* cfg_i = container_i->get_ptr_to_state(Particle::ColorfieldGradient, particle_i);
+    const double* temp_i = container_i->cond_get_ptr_to_state(Particle::Temperature, particle_i);
 
     double* acc_i = nullptr;
-    if (status_i == PARTICLEENGINE::Owned)
-      acc_i = container_i->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_i);
+    if (status_i == Particle::Owned)
+      acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
     // get pointer to boundary particle states
-    const double* mass_j = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* press_j =
-        container_j->get_ptr_to_state(PARTICLEENGINE::BoundaryPressure, particle_j);
-    const double* vel_j =
-        container_j->get_ptr_to_state(PARTICLEENGINE::BoundaryVelocity, particle_j);
+    const double* mass_j = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* press_j = container_j->get_ptr_to_state(Particle::BoundaryPressure, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::BoundaryVelocity, particle_j);
 
     double temp_dens(0.0);
     temp_dens = equationofstate_i->pressure_to_density(press_j[0], material_i->initDensity_);

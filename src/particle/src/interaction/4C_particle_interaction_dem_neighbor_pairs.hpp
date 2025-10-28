@@ -22,13 +22,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
@@ -36,16 +36,16 @@ namespace PARTICLEWALL
 /*---------------------------------------------------------------------------*
  | type definitions                                                          |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
-  using DEMParticlePairData = std::vector<ParticleInteraction::DEMParticlePair>;
-  using DEMParticleWallPairData = std::vector<ParticleInteraction::DEMParticleWallPair>;
-}  // namespace ParticleInteraction
+  using DEMParticlePairData = std::vector<Particle::DEMParticlePair>;
+  using DEMParticleWallPairData = std::vector<Particle::DEMParticleWallPair>;
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMNeighborPairs final
   {
@@ -57,9 +57,8 @@ namespace ParticleInteraction
     void init();
 
     //! setup neighbor pair handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface);
 
     //! get reference to particle pair data
     inline const DEMParticlePairData& get_ref_to_particle_pair_data() const
@@ -117,16 +116,16 @@ namespace ParticleInteraction
     DEMParticleWallPairData particlewallpairadhesiondata_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

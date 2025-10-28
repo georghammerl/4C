@@ -23,16 +23,16 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHRecoilPressureEvaporation
   {
@@ -44,8 +44,7 @@ namespace ParticleInteraction
     void init();
 
     //! setup evaporation induced recoil pressure handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     //! compute evaporation induced recoil pressure contribution
     void compute_recoil_pressure_contribution() const;
@@ -55,13 +54,13 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! evaporating phase
-    PARTICLEENGINE::TypeEnum evaporatingphase_;
+    Particle::TypeEnum evaporatingphase_;
 
     //! boiling temperature in recoil pressure formula
     double recoilboilingtemp_;
@@ -73,7 +72,7 @@ namespace ParticleInteraction
     double recoil_tfac_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -17,7 +17,7 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   namespace COMMUNICATION
   {
@@ -42,7 +42,7 @@ namespace PARTICLEENGINE
 
   }  // namespace COMMUNICATION
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

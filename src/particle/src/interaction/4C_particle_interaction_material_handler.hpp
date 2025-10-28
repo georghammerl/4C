@@ -26,7 +26,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler final
   {
@@ -42,13 +42,13 @@ namespace ParticleInteraction
 
     //! return pointer to particle material parameter
     inline const Mat::PAR::ParticleMaterialBase* get_ptr_to_particle_mat_parameter(
-        PARTICLEENGINE::TypeEnum type_i) const
+        Particle::TypeEnum type_i) const
     {
       return phasetypetoparticlematpar_[type_i];
     }
 
     //! get particle types of stored particle material parameters
-    inline std::set<PARTICLEENGINE::TypeEnum> get_particle_types() const { return storedtypes_; };
+    inline std::set<Particle::TypeEnum> get_particle_types() const { return storedtypes_; };
 
    private:
     //! particle simulation parameter list
@@ -58,9 +58,9 @@ namespace ParticleInteraction
     std::vector<const Mat::PAR::ParticleMaterialBase*> phasetypetoparticlematpar_;
 
     //! set of particle types of stored particle material parameters
-    std::set<PARTICLEENGINE::TypeEnum> storedtypes_;
+    std::set<Particle::TypeEnum> storedtypes_;
   };
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

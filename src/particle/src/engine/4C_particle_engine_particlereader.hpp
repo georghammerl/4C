@@ -22,21 +22,21 @@ namespace Core::IO
   class InputFile;
 }
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   /**
    * Read particles from an input file. The particles are read from the section
    * with name @p section_name.
    */
   void read_particles(Core::IO::InputFile& input, const std::string& section_name,
-      std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particles);
+      std::vector<Particle::ParticleObjShrdPtr>& particles);
 
   /**
    * The InputSpec for a single particle line.
    */
   [[nodiscard]] Core::IO::InputSpec create_particle_spec();
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 FOUR_C_NAMESPACE_CLOSE
 

@@ -30,11 +30,11 @@ void PaSI::PasiPartOneWayCoup::setup()
   // safety check
   {
     // get interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface =
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface =
         particlealgorithm_->get_particle_wall_handler_interface();
 
     // get wall data state container
-    std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+    std::shared_ptr<Particle::WallDataState> walldatastate =
         particlewallinterface->get_wall_data_state();
 
     if (walldatastate->get_disp_row() == nullptr or walldatastate->get_disp_col() == nullptr)

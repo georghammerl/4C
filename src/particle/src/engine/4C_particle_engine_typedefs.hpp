@@ -26,12 +26,12 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleContainer;
   class ParticleContainerBundle;
   class ParticleObject;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 namespace Core::Elements
 {
@@ -41,7 +41,7 @@ namespace Core::Elements
 /*---------------------------------------------------------------------------*
  | type definitions                                                          |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   //! particle type enum
   using TypeEnum = ParticleType;
@@ -107,7 +107,7 @@ namespace PARTICLEENGINE
   //! relate particle source to target type after phase change
   using ParticleTypeToType = std::tuple<ParticleType, ParticleType, int>;
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

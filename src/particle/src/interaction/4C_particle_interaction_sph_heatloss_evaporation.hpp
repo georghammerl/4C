@@ -23,13 +23,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
 }
@@ -45,7 +45,7 @@ namespace Mat
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHHeatLossEvaporation
   {
@@ -57,9 +57,8 @@ namespace ParticleInteraction
     void init();
 
     //! setup evaporation induced heat loss handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial);
 
     //! evaluate evaporation induced heat loss
     void evaluate_evaporation_induced_heat_loss() const;
@@ -69,19 +68,19 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! pointer to thermo material of particle types
     std::vector<const Mat::PAR::ParticleMaterialThermo*> thermomaterial_;
 
     //! evaporating phase
-    PARTICLEENGINE::TypeEnum evaporatingphase_;
+    Particle::TypeEnum evaporatingphase_;
 
     //! boiling temperature in recoil pressure formula
     double recoilboilingtemp_;
@@ -105,7 +104,7 @@ namespace ParticleInteraction
     double heatloss_tfac_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

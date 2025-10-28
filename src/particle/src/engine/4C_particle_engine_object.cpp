@@ -14,9 +14,9 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEENGINE::ParticleObjectType PARTICLEENGINE::ParticleObjectType::instance_;
+Particle::ParticleObjectType Particle::ParticleObjectType::instance_;
 
-Core::Communication::ParObject* PARTICLEENGINE::ParticleObjectType::create(
+Core::Communication::ParObject* Particle::ParticleObjectType::create(
     Core::Communication::UnpackBuffer& buffer)
 {
   ParticleObject* my_particleobject = new ParticleObject();
@@ -24,20 +24,19 @@ Core::Communication::ParObject* PARTICLEENGINE::ParticleObjectType::create(
   return my_particleobject;
 }
 
-PARTICLEENGINE::ParticleObject::ParticleObject()
-    : type_(Phase1), globalid_(0), bingid_(-1), index_(-1)
+Particle::ParticleObject::ParticleObject() : type_(Phase1), globalid_(0), bingid_(-1), index_(-1)
 {
   // empty constructor
 }
 
-PARTICLEENGINE::ParticleObject::ParticleObject(
+Particle::ParticleObject::ParticleObject(
     ParticleType type, int globalid, const ParticleStates& states, int bingid, int index)
     : type_(type), globalid_(globalid), states_(states), bingid_(bingid), index_(index)
 {
   // empty constructor
 }
 
-void PARTICLEENGINE::ParticleObject::pack(Core::Communication::PackBuffer& data) const
+void Particle::ParticleObject::pack(Core::Communication::PackBuffer& data) const
 {
   // pack type of this instance of ParObject
   int type = unique_par_object_id();
@@ -61,7 +60,7 @@ void PARTICLEENGINE::ParticleObject::pack(Core::Communication::PackBuffer& data)
   add_to_pack(data, index_);
 }
 
-void PARTICLEENGINE::ParticleObject::unpack(Core::Communication::UnpackBuffer& buffer)
+void Particle::ParticleObject::unpack(Core::Communication::UnpackBuffer& buffer)
 {
   Core::Communication::extract_and_assert_id(buffer, unique_par_object_id());
 

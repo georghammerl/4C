@@ -14,17 +14,17 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEENGINE::ParticleContainerBundle::ParticleContainerBundle()
+Particle::ParticleContainerBundle::ParticleContainerBundle()
 {
   // empty constructor
 }
 
-void PARTICLEENGINE::ParticleContainerBundle::init()
+void Particle::ParticleContainerBundle::init()
 {
   // nothing to do
 }
 
-void PARTICLEENGINE::ParticleContainerBundle::setup(
+void Particle::ParticleContainerBundle::setup(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes)
 {
   std::shared_ptr<ParticleContainer> container;
@@ -71,7 +71,7 @@ void PARTICLEENGINE::ParticleContainerBundle::setup(
   }
 }
 
-void PARTICLEENGINE::ParticleContainerBundle::get_packed_particle_objects_of_all_containers(
+void Particle::ParticleContainerBundle::get_packed_particle_objects_of_all_containers(
     std::vector<char>& particlebuffer) const
 {
   // iterate over particle types
@@ -97,7 +97,7 @@ void PARTICLEENGINE::ParticleContainerBundle::get_packed_particle_objects_of_all
   }
 }
 
-void PARTICLEENGINE::ParticleContainerBundle::get_vector_of_particle_objects_of_all_containers(
+void Particle::ParticleContainerBundle::get_vector_of_particle_objects_of_all_containers(
     std::vector<ParticleObjShrdPtr>& particlesstored) const
 {
   // iterate over particle types

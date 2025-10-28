@@ -23,17 +23,17 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
   class SPHNeighborPairs;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 namespace Mat
 {
@@ -46,7 +46,7 @@ namespace Mat
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHHeatSourceBase
   {
@@ -62,9 +62,9 @@ namespace ParticleInteraction
 
     //! setup heat source handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! evaluate heat source
     virtual void evaluate_heat_source(const double& evaltime) const = 0;
@@ -74,16 +74,16 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! pointer to thermo material of particle types
     std::vector<const Mat::PAR::ParticleMaterialThermo*> thermomaterial_;
@@ -92,10 +92,10 @@ namespace ParticleInteraction
     const int heatsourcefctnumber_;
 
     //! set of absorbing particle types
-    std::set<PARTICLEENGINE::TypeEnum> absorbingtypes_;
+    std::set<Particle::TypeEnum> absorbingtypes_;
 
     //! set of non-absorbing particle types
-    std::set<PARTICLEENGINE::TypeEnum> nonabsorbingtypes_;
+    std::set<Particle::TypeEnum> nonabsorbingtypes_;
   };
 
   class SPHHeatSourceVolume : public SPHHeatSourceBase
@@ -128,7 +128,7 @@ namespace ParticleInteraction
     bool eval_direction_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -34,7 +34,7 @@ namespace Core::IO
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief interface to provide restricted access to particle engine
@@ -247,7 +247,7 @@ namespace PARTICLEENGINE
     virtual int get_number_of_particles_of_specific_type(const ParticleType type) const = 0;
   };
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

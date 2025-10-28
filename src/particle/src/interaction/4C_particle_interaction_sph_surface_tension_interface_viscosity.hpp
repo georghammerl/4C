@@ -23,20 +23,20 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
   class MaterialHandler;
   class SPHEquationOfStateBundle;
   class SPHNeighborPairs;
   class SPHArtificialViscosity;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 namespace Mat
 {
@@ -49,7 +49,7 @@ namespace Mat
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHInterfaceViscosity
   {
@@ -70,12 +70,11 @@ namespace ParticleInteraction
     void init();
 
     //! setup interface viscosity handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        ParticleInteraction::MaterialHandler& particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        Particle::MaterialHandler& particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! compute interface viscosity contribution
     void compute_interface_viscosity_contribution() const;
@@ -94,37 +93,37 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
 
     //! equation of state bundle
-    std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle_;
+    std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! artificial viscosity handler
-    std::unique_ptr<ParticleInteraction::SPHArtificialViscosity> artificialviscosity_;
+    std::unique_ptr<Particle::SPHArtificialViscosity> artificialviscosity_;
 
     //! pointer to fluid material of particle types
     std::vector<const Mat::PAR::ParticleMaterialSPHFluid*> fluidmaterial_;
 
     //! liquid particle type
-    PARTICLEENGINE::TypeEnum liquidtype_;
+    Particle::TypeEnum liquidtype_;
 
     //! gas particle type
-    PARTICLEENGINE::TypeEnum gastype_;
+    Particle::TypeEnum gastype_;
 
     //! set of fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> fluidtypes_;
+    std::set<Particle::TypeEnum> fluidtypes_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
 
     //! artificial viscosity on liquid-gas interface
     const double artvisc_lg_int_;
@@ -139,7 +138,7 @@ namespace ParticleInteraction
     const double trans_d_t_intvisc_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

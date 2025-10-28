@@ -23,13 +23,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallDataState;
   class WallDiscretizationRuntimeVtuWriter;
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
@@ -52,7 +52,7 @@ namespace Core::Elements
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   /*!
    * \brief particle wall handler for particle problem
@@ -99,7 +99,7 @@ namespace PARTICLEWALL
      * \param[in] restart_time          restart time of the simulation
      */
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         double restart_time);
 
     /*!
@@ -126,8 +126,8 @@ namespace PARTICLEWALL
      * \param[out] particlestatestotypes map of particle types and corresponding states
      */
     virtual void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const final;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes)
+        const final;
 
     /*!
      * \brief write wall runtime output
@@ -183,7 +183,7 @@ namespace PARTICLEWALL
      * \param[in] particlestobins relation of (owned and ghosted) particles to bins
      */
     virtual void build_particle_to_wall_neighbors(
-        const PARTICLEENGINE::ParticlesToBins& particlestobins) final;
+        const Particle::ParticlesToBins& particlestobins) final;
 
     /*!
      * \brief check for valid wall neighbors
@@ -196,12 +196,12 @@ namespace PARTICLEWALL
       return walldiscretization_;
     };
 
-    std::shared_ptr<PARTICLEWALL::WallDataState> get_wall_data_state() const final
+    std::shared_ptr<Particle::WallDataState> get_wall_data_state() const final
     {
       return walldatastate_;
     }
 
-    const PARTICLEENGINE::PotentialWallNeighbors& get_potential_wall_neighbors() const final;
+    const Particle::PotentialWallNeighbors& get_potential_wall_neighbors() const final;
 
     /*!
      * \brief determine nodal positions of column wall element
@@ -242,13 +242,13 @@ namespace PARTICLEWALL
     //! @}
 
     //! relate bins to column wall elements
-    PARTICLEENGINE::BinsToColWallEles binstocolwalleles_;
+    Particle::BinsToColWallEles binstocolwalleles_;
 
     //! relate potential neighboring column wall elements to particles of all types
-    PARTICLEENGINE::PotentialWallNeighbors potentialwallneighbors_;
+    Particle::PotentialWallNeighbors potentialwallneighbors_;
 
     //! wall discretization runtime vtu writer
-    std::unique_ptr<PARTICLEWALL::WallDiscretizationRuntimeVtuWriter>
+    std::unique_ptr<Particle::WallDiscretizationRuntimeVtuWriter>
         walldiscretizationruntimevtuwriter_;
 
    protected:
@@ -265,7 +265,7 @@ namespace PARTICLEWALL
     const Teuchos::ParameterList& params_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! binning strategy
     std::shared_ptr<Core::Binstrategy::BinningStrategy> binstrategy_;
@@ -280,7 +280,7 @@ namespace PARTICLEWALL
     std::shared_ptr<Core::FE::Discretization> walldiscretization_;
 
     //! wall data state container
-    std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate_;
+    std::shared_ptr<Particle::WallDataState> walldatastate_;
 
     //! flag denoting valid relation of bins to column wall elements
     bool validwallelements_;
@@ -386,7 +386,7 @@ namespace PARTICLEWALL
     void setup_wall_discretization() const override;
   };
 
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

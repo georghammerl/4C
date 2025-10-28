@@ -23,20 +23,20 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHNeighborPairs::SPHNeighborPairs()
+Particle::SPHNeighborPairs::SPHNeighborPairs()
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHNeighborPairs::init()
+void Particle::SPHNeighborPairs::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHNeighborPairs::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel)
+void Particle::SPHNeighborPairs::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -60,10 +60,9 @@ void ParticleInteraction::SPHNeighborPairs::setup(
   indexofparticlewallpairs_.resize(typevectorsize);
 }
 
-void ParticleInteraction::SPHNeighborPairs::
-    get_relevant_particle_pair_indices_for_disjoint_combination(
-        const std::set<PARTICLEENGINE::TypeEnum>& types_a,
-        const std::set<PARTICLEENGINE::TypeEnum>& types_b, std::vector<int>& relindices) const
+void Particle::SPHNeighborPairs::get_relevant_particle_pair_indices_for_disjoint_combination(
+    const std::set<Particle::TypeEnum>& types_a, const std::set<Particle::TypeEnum>& types_b,
+    std::vector<int>& relindices) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   if (relindices.size() != 0) FOUR_C_THROW("vector of relevant particle pair indices not cleared!");
@@ -82,9 +81,8 @@ void ParticleInteraction::SPHNeighborPairs::
     }
 }
 
-void ParticleInteraction::SPHNeighborPairs::
-    get_relevant_particle_pair_indices_for_equal_combination(
-        const std::set<PARTICLEENGINE::TypeEnum>& types_a, std::vector<int>& relindices) const
+void Particle::SPHNeighborPairs::get_relevant_particle_pair_indices_for_equal_combination(
+    const std::set<Particle::TypeEnum>& types_a, std::vector<int>& relindices) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   if (relindices.size() != 0) FOUR_C_THROW("vector of relevant particle pair indices not cleared!");
@@ -96,8 +94,8 @@ void ParticleInteraction::SPHNeighborPairs::
           indexofparticlepairs_[type_i][type_j].end());
 }
 
-void ParticleInteraction::SPHNeighborPairs::get_relevant_particle_wall_pair_indices(
-    const std::set<PARTICLEENGINE::TypeEnum>& types_a, std::vector<int>& relindices) const
+void Particle::SPHNeighborPairs::get_relevant_particle_wall_pair_indices(
+    const std::set<Particle::TypeEnum>& types_a, std::vector<int>& relindices) const
 {
   // iterate over particle types to consider
   for (const auto& type_i : types_a)
@@ -105,7 +103,7 @@ void ParticleInteraction::SPHNeighborPairs::get_relevant_particle_wall_pair_indi
         indexofparticlewallpairs_[type_i].end());
 }
 
-void ParticleInteraction::SPHNeighborPairs::evaluate_neighbor_pairs()
+void Particle::SPHNeighborPairs::evaluate_neighbor_pairs()
 {
   // evaluate particle pairs
   evaluate_particle_pairs();
@@ -114,9 +112,9 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_neighbor_pairs()
   if (particlewallinterface_) evaluate_particle_wall_pairs();
 }
 
-void ParticleInteraction::SPHNeighborPairs::evaluate_particle_pairs()
+void Particle::SPHNeighborPairs::evaluate_particle_pairs()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::SPHNeighborPairs::evaluate_particle_pairs");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHNeighborPairs::evaluate_particle_pairs");
 
   // clear particle pair data
   particlepairdata_.clear();
@@ -133,32 +131,31 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_particle_pairs()
   for (auto& potentialneighbors : particleengineinterface_->get_potential_particle_neighbors())
   {
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = potentialneighbors.first;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = potentialneighbors.second;
 
-    if (type_i == PARTICLEENGINE::BoundaryPhase and type_j == PARTICLEENGINE::BoundaryPhase)
-      continue;
+    if (type_i == Particle::BoundaryPhase and type_j == Particle::BoundaryPhase) continue;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get pointer to particle states
-    const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
+    const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
 
-    const double* pos_j = container_j->get_ptr_to_state(PARTICLEENGINE::Position, particle_j);
-    const double* rad_j = container_j->get_ptr_to_state(PARTICLEENGINE::Radius, particle_j);
+    const double* pos_j = container_j->get_ptr_to_state(Particle::Position, particle_j);
+    const double* rad_j = container_j->get_ptr_to_state(Particle::Radius, particle_j);
 
     // vector from particle i to j
     double r_ji[3];
@@ -234,9 +231,9 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_particle_pairs()
   }
 }
 
-void ParticleInteraction::SPHNeighborPairs::evaluate_particle_wall_pairs()
+void Particle::SPHNeighborPairs::evaluate_particle_wall_pairs()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::SPHNeighborPairs::evaluate_particle_wall_pairs");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHNeighborPairs::evaluate_particle_wall_pairs");
 
   // clear particle-wall pair data
   particlewallpairdata_.clear();
@@ -256,24 +253,24 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_particle_wall_pairs()
   for (const auto& potentialneighbors : particlewallinterface_->get_potential_wall_neighbors())
   {
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = potentialneighbors.first;
 
     // get corresponding particle container
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
     // get global id of particle i
     const int* globalid_i = container_i->get_ptr_to_global_id(particle_i);
 
     // get pointer to particle states
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
 
     // get position of particle i
     const Core::LinAlg::Matrix<3, 1> pos_i(
-        container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i));
+        container_i->get_ptr_to_state(Particle::Position, particle_i));
 
     // get pointer to column wall element
     Core::Elements::Element* ele = potentialneighbors.second;
@@ -353,21 +350,21 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_particle_wall_pairs()
     if (indexofparticlewallpairs.size() == 1) continue;
 
     // get local index tuple of current particle
-    PARTICLEENGINE::LocalIndexTuple tuple_i =
+    Particle::LocalIndexTuple tuple_i =
         particlewallpairdata_[indexofparticlewallpairs[0].second].tuple_i_;
 
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = tuple_i;
 
     // get corresponding particle container
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
     // get pointer to particle states
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
 
     // define tolerance dependent on the particle radius
     const double adaptedtol = 1.0e-7 * rad_i[0];
@@ -445,8 +442,8 @@ void ParticleInteraction::SPHNeighborPairs::evaluate_particle_wall_pairs()
   for (auto& particlewallpair : particlewallpairdata_)
   {
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlewallpair.tuple_i_;
 

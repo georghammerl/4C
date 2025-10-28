@@ -28,7 +28,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHRigidParticleContactBase::SPHRigidParticleContactBase(
+Particle::SPHRigidParticleContactBase::SPHRigidParticleContactBase(
     const Teuchos::ParameterList& params)
     : params_sph_(params),
       writeparticlewallinteraction_(params_sph_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
@@ -36,17 +36,17 @@ ParticleInteraction::SPHRigidParticleContactBase::SPHRigidParticleContactBase(
   // empty constructor
 }
 
-void ParticleInteraction::SPHRigidParticleContactBase::init()
+void Particle::SPHRigidParticleContactBase::init()
 {
   // init with potential boundary particle types
-  boundarytypes_ = {PARTICLEENGINE::BoundaryPhase, PARTICLEENGINE::RigidPhase};
+  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 }
 
-void ParticleInteraction::SPHRigidParticleContactBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-    const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHRigidParticleContactBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+    const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -73,11 +73,11 @@ void ParticleInteraction::SPHRigidParticleContactBase::setup(
       boundarytypes_.erase(type_i);
 
   // safety check
-  if (not boundarytypes_.count(PARTICLEENGINE::RigidPhase))
+  if (not boundarytypes_.count(Particle::RigidPhase))
     FOUR_C_THROW("no rigid particles defined but a rigid particle contact formulation is set!");
 }
 
-void ParticleInteraction::SPHRigidParticleContactBase::setup_particle_interaction_writer()
+void Particle::SPHRigidParticleContactBase::setup_particle_interaction_writer()
 {
   // register specific runtime output writer
   if (writeparticlewallinteraction_)
@@ -85,20 +85,20 @@ void ParticleInteraction::SPHRigidParticleContactBase::setup_particle_interactio
         "rigidparticle-wall-contact");
 }
 
-ParticleInteraction::SPHRigidParticleContactElastic::SPHRigidParticleContactElastic(
+Particle::SPHRigidParticleContactElastic::SPHRigidParticleContactElastic(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHRigidParticleContactBase(params),
+    : Particle::SPHRigidParticleContactBase(params),
       stiff_(params_sph_.get<double>("RIGIDPARTICLECONTACTSTIFF")),
       damp_(params_sph_.get<double>("RIGIDPARTICLECONTACTDAMP"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHRigidParticleContactElastic::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-    const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHRigidParticleContactElastic::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+    const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // call base class setup
   SPHRigidParticleContactBase::setup(
@@ -109,10 +109,9 @@ void ParticleInteraction::SPHRigidParticleContactElastic::setup(
   if (damp_ < 0.0) FOUR_C_THROW("rigid particle contact damping parameter not positive or zero!");
 }
 
-void ParticleInteraction::SPHRigidParticleContactElastic::add_force_contribution()
+void Particle::SPHRigidParticleContactElastic::add_force_contribution()
 {
-  TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHRigidParticleContactElastic::add_force_contribution");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHRigidParticleContactElastic::add_force_contribution");
 
   // elastic contact (particle contribution)
   elastic_contact_particle_contribution();
@@ -121,10 +120,10 @@ void ParticleInteraction::SPHRigidParticleContactElastic::add_force_contribution
   if (particlewallinterface_) elastic_contact_particle_wall_contribution();
 }
 
-void ParticleInteraction::SPHRigidParticleContactElastic::elastic_contact_particle_contribution()
+void Particle::SPHRigidParticleContactElastic::elastic_contact_particle_contribution()
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHRigidParticleContactElastic::elastic_contact_particle_contribution");
+      "Particle::SPHRigidParticleContactElastic::elastic_contact_particle_contribution");
 
   // get initial particle spacing
   const double initialparticlespacing = params_sph_.get<double>("INITIALPARTICLESPACING");
@@ -144,33 +143,33 @@ void ParticleInteraction::SPHRigidParticleContactElastic::elastic_contact_partic
     if (not(particlepair.absdist_ < initialparticlespacing)) continue;
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get pointer to particle states
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    double* force_i = container_i->cond_get_ptr_to_state(PARTICLEENGINE::Force, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    double* force_i = container_i->cond_get_ptr_to_state(Particle::Force, particle_i);
 
     // get pointer to particle states
-    const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
 
     double* force_j = nullptr;
-    if (status_j == PARTICLEENGINE::Owned)
-      force_j = container_j->cond_get_ptr_to_state(PARTICLEENGINE::Force, particle_j);
+    if (status_j == Particle::Owned)
+      force_j = container_j->cond_get_ptr_to_state(Particle::Force, particle_j);
 
     // compute normal gap and rate of normal gap
     const double gap = particlepair.absdist_ - initialparticlespacing;
@@ -186,18 +185,17 @@ void ParticleInteraction::SPHRigidParticleContactElastic::elastic_contact_partic
   }
 }
 
-void ParticleInteraction::SPHRigidParticleContactElastic::
-    elastic_contact_particle_wall_contribution()
+void Particle::SPHRigidParticleContactElastic::elastic_contact_particle_wall_contribution()
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHRigidParticleContactElastic::"
+      "Particle::SPHRigidParticleContactElastic::"
       "elastic_contact_particle_wall_contribution");
 
   // get initial particle spacing
   const double initialparticlespacing = params_sph_.get<double>("INITIALPARTICLESPACING");
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface_->get_wall_data_state();
 
   // get reference to particle-wall pair data
@@ -226,7 +224,7 @@ void ParticleInteraction::SPHRigidParticleContactElastic::
 
   // get relevant particle wall pair indices for specific particle types
   std::vector<int> relindices;
-  neighborpairs_->get_relevant_particle_wall_pair_indices({PARTICLEENGINE::RigidPhase}, relindices);
+  neighborpairs_->get_relevant_particle_wall_pair_indices({Particle::RigidPhase}, relindices);
 
   // iterate over relevant particle-wall pairs
   for (const int particlewallpairindex : relindices)
@@ -237,19 +235,19 @@ void ParticleInteraction::SPHRigidParticleContactElastic::
     if (not(particlewallpair.absdist_ < 0.5 * initialparticlespacing)) continue;
 
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlewallpair.tuple_i_;
 
     // get corresponding particle container
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
     // get pointer to particle states
-    const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    double* force_i = container_i->cond_get_ptr_to_state(PARTICLEENGINE::Force, particle_i);
+    const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    double* force_i = container_i->cond_get_ptr_to_state(Particle::Force, particle_i);
 
     // get pointer to column wall element
     Core::Elements::Element* ele = particlewallpair.ele_;

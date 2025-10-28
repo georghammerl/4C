@@ -23,13 +23,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHNeighborPairs;
 }
@@ -37,7 +37,7 @@ namespace ParticleInteraction
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHBoundaryParticleBase
   {
@@ -53,8 +53,8 @@ namespace ParticleInteraction
 
     //! setup boundary particle handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! init boundary particle states
     virtual void init_boundary_particle_states(std::vector<double>& gravity) = 0;
@@ -64,19 +64,19 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! set of fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> fluidtypes_;
+    std::set<Particle::TypeEnum> fluidtypes_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
   };
 
   class SPHBoundaryParticleAdami : public SPHBoundaryParticleBase
@@ -86,16 +86,15 @@ namespace ParticleInteraction
     explicit SPHBoundaryParticleAdami(const Teuchos::ParameterList& params);
 
     //! setup boundary particle handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs) override;
 
     //! init boundary particle states
     void init_boundary_particle_states(std::vector<double>& gravity) override;
 
    private:
     //! modified states of ghosted boundary particles to refresh
-    PARTICLEENGINE::StatesOfTypesToRefresh boundarystatestorefresh_;
+    Particle::StatesOfTypesToRefresh boundarystatestorefresh_;
 
     //! contributions of neighboring particles
     std::vector<std::vector<double>> sumj_wij_;
@@ -104,7 +103,7 @@ namespace ParticleInteraction
     std::vector<std::vector<std::vector<double>>> sumj_vel_j_wij_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

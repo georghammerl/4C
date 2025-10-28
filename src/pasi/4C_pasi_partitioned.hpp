@@ -30,7 +30,7 @@ namespace Adapter
   class PASIStructureWrapper;
 }  // namespace Adapter
 
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   class ParticleAlgorithm;
 }
@@ -199,7 +199,7 @@ namespace PaSI
     std::shared_ptr<Adapter::PASIStructureWrapper> structurefield_;
 
     //! particle algorithm
-    std::shared_ptr<PARTICLEALGORITHM::ParticleAlgorithm> particlealgorithm_;
+    std::shared_ptr<Particle::ParticleAlgorithm> particlealgorithm_;
 
     //! communication object at the interface
     std::shared_ptr<const Solid::MapExtractor> interface_;

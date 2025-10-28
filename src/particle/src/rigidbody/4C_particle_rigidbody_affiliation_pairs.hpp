@@ -29,7 +29,7 @@ namespace Core::IO
   class DiscretizationReader;
 }
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
@@ -37,7 +37,7 @@ namespace PARTICLEENGINE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   /*!
    * \brief affiliation pair handler for rigid bodies
@@ -67,8 +67,7 @@ namespace ParticleRigidBody
      * \brief setup affiliation pair handler
      *
      */
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     /*!
      * \brief write restart of affiliation pair handler
@@ -151,12 +150,12 @@ namespace ParticleRigidBody
     const int myrank_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! affiliation pair data relating rigid particles to rigid bodies
     std::unordered_map<int, int> affiliationdata_;
   };
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

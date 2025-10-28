@@ -334,7 +334,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Inpar::FPSI::valid_parameters());
   push_specs(specs, FBI::valid_parameters());
 
-  push_specs(specs, PARTICLE::valid_parameters());
+  push_specs(specs, Particle::valid_parameters());
 
   push_specs(specs, Inpar::Geo::valid_parameters());
   push_specs(specs, Core::Binstrategy::valid_parameters());

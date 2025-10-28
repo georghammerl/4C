@@ -18,8 +18,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::DEMContactRollingBase::DEMContactRollingBase(
-    const Teuchos::ParameterList& params)
+Particle::DEMContactRollingBase::DEMContactRollingBase(const Teuchos::ParameterList& params)
     : params_dem_(params),
       dt_(0.0),
       e_(params_dem_.get<double>("COEFF_RESTITUTION")),
@@ -29,7 +28,7 @@ ParticleInteraction::DEMContactRollingBase::DEMContactRollingBase(
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactRollingBase::init()
+void Particle::DEMContactRollingBase::init()
 {
   // safety checks for contact parameters
   if (nue_ <= -1.0 or nue_ > 0.5)
@@ -39,26 +38,25 @@ void ParticleInteraction::DEMContactRollingBase::init()
     FOUR_C_THROW("invalid input parameter FRICT_COEFF_ROLL for this kind of contact law!");
 }
 
-void ParticleInteraction::DEMContactRollingBase::setup(const double& k_normal)
+void Particle::DEMContactRollingBase::setup(const double& k_normal)
 {
   // nothing to do
 }
 
-void ParticleInteraction::DEMContactRollingBase::set_current_step_size(const double currentstepsize)
+void Particle::DEMContactRollingBase::set_current_step_size(const double currentstepsize)
 {
   dt_ = currentstepsize;
 }
 
-ParticleInteraction::DEMContactRollingViscous::DEMContactRollingViscous(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactRollingBase(params),
+Particle::DEMContactRollingViscous::DEMContactRollingViscous(const Teuchos::ParameterList& params)
+    : Particle::DEMContactRollingBase(params),
       young_(params_dem_.get<double>("YOUNG_MODULUS")),
       v_max_(params_dem_.get<double>("MAX_VELOCITY"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactRollingViscous::init()
+void Particle::DEMContactRollingViscous::init()
 {
   // call base class init
   DEMContactRollingBase::init();
@@ -71,7 +69,7 @@ void ParticleInteraction::DEMContactRollingViscous::init()
     FOUR_C_THROW("invalid input parameter MAX_VELOCITY (expected to be positive)!");
 }
 
-void ParticleInteraction::DEMContactRollingViscous::setup(const double& k_normal)
+void Particle::DEMContactRollingViscous::setup(const double& k_normal)
 {
   // call base class setup
   DEMContactRollingBase::setup(k_normal);
@@ -82,7 +80,7 @@ void ParticleInteraction::DEMContactRollingViscous::setup(const double& k_normal
   d_rolling_fac_ = (1.0 - e_) / (c_1 * std::pow(fac, 0.4) * std::pow(v_max_, 0.2));
 }
 
-void ParticleInteraction::DEMContactRollingViscous::effective_radius_particle(
+void Particle::DEMContactRollingViscous::effective_radius_particle(
     const double* radius_i, const double* radius_j, const double& gap, double& r_eff) const
 {
   if (radius_j)
@@ -91,7 +89,7 @@ void ParticleInteraction::DEMContactRollingViscous::effective_radius_particle(
     r_eff = radius_i[0];
 }
 
-void ParticleInteraction::DEMContactRollingViscous::relative_rolling_velocity(const double& r_eff,
+void Particle::DEMContactRollingViscous::relative_rolling_velocity(const double& r_eff,
     const double* normal, const double* angvel_i, const double* angvel_j,
     double* v_rel_rolling) const
 {
@@ -99,7 +97,7 @@ void ParticleInteraction::DEMContactRollingViscous::relative_rolling_velocity(co
   if (angvel_j) Utils::vec_add_cross(v_rel_rolling, normal, angvel_j);
 }
 
-void ParticleInteraction::DEMContactRollingViscous::rolling_contact_moment(double* gap_rolling,
+void Particle::DEMContactRollingViscous::rolling_contact_moment(double* gap_rolling,
     bool& stick_rolling, const double* normal, const double* v_rel_rolling, const double& m_eff,
     const double& r_eff, const double& mu_rolling, const double& normalcontactforce,
     double* rollingcontactmoment) const
@@ -116,20 +114,19 @@ void ParticleInteraction::DEMContactRollingViscous::rolling_contact_moment(doubl
   Utils::vec_scale(rollingcontactmoment, r_eff);
 }
 
-void ParticleInteraction::DEMContactRollingViscous::rolling_potential_energy(
+void Particle::DEMContactRollingViscous::rolling_potential_energy(
     const double* gap_rolling, double& rollingpotentialenergy) const
 {
   rollingpotentialenergy = 0.0;
 }
 
-ParticleInteraction::DEMContactRollingCoulomb::DEMContactRollingCoulomb(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactRollingBase(params), k_rolling_(0.0)
+Particle::DEMContactRollingCoulomb::DEMContactRollingCoulomb(const Teuchos::ParameterList& params)
+    : Particle::DEMContactRollingBase(params), k_rolling_(0.0)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactRollingCoulomb::setup(const double& k_normal)
+void Particle::DEMContactRollingCoulomb::setup(const double& k_normal)
 {
   // call base class setup
   DEMContactRollingBase::setup(k_normal);
@@ -151,7 +148,7 @@ void ParticleInteraction::DEMContactRollingCoulomb::setup(const double& k_normal
     d_rolling_fac_ = 2.0 * std::sqrt(k_normal);
 }
 
-void ParticleInteraction::DEMContactRollingCoulomb::effective_radius_particle(
+void Particle::DEMContactRollingCoulomb::effective_radius_particle(
     const double* radius_i, const double* radius_j, const double& gap, double& r_eff) const
 {
   if (radius_j)
@@ -161,7 +158,7 @@ void ParticleInteraction::DEMContactRollingCoulomb::effective_radius_particle(
     r_eff = radius_i[0] + gap;
 }
 
-void ParticleInteraction::DEMContactRollingCoulomb::relative_rolling_velocity(const double& r_eff,
+void Particle::DEMContactRollingCoulomb::relative_rolling_velocity(const double& r_eff,
     const double* normal, const double* angvel_i, const double* angvel_j,
     double* v_rel_rolling) const
 {
@@ -171,7 +168,7 @@ void ParticleInteraction::DEMContactRollingCoulomb::relative_rolling_velocity(co
   Utils::vec_scale(v_rel_rolling, r_eff);
 }
 
-void ParticleInteraction::DEMContactRollingCoulomb::rolling_contact_moment(double* gap_rolling,
+void Particle::DEMContactRollingCoulomb::rolling_contact_moment(double* gap_rolling,
     bool& stick_rolling, const double* normal, const double* v_rel_rolling, const double& m_eff,
     const double& r_eff, const double& mu_rolling, const double& normalcontactforce,
     double* rollingcontactmoment) const
@@ -229,7 +226,7 @@ void ParticleInteraction::DEMContactRollingCoulomb::rolling_contact_moment(doubl
   Utils::vec_scale(rollingcontactmoment, r_eff);
 }
 
-void ParticleInteraction::DEMContactRollingCoulomb::rolling_potential_energy(
+void Particle::DEMContactRollingCoulomb::rolling_potential_energy(
     const double* gap_rolling, double& rollingpotentialenergy) const
 {
   rollingpotentialenergy = 0.5 * k_rolling_ * Utils::vec_dot(gap_rolling, gap_rolling);

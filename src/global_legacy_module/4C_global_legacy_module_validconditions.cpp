@@ -839,7 +839,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   Thermo::set_valid_conditions(condlist);
   SSI::set_valid_conditions(condlist);
   SSTI::set_valid_conditions(condlist);
-  PARTICLE::set_valid_conditions(condlist);
+  Particle::set_valid_conditions(condlist);
   Inpar::LevelSet::set_valid_conditions(condlist);
   BeamInteraction::Potential::set_valid_conditions(condlist);
   Constraints::set_valid_conditions(condlist);

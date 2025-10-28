@@ -22,18 +22,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHPhaseChangeBase::SPHPhaseChangeBase(const Teuchos::ParameterList& params)
+Particle::SPHPhaseChangeBase::SPHPhaseChangeBase(const Teuchos::ParameterList& params)
     : params_sph_(params),
-      belowphase_(PARTICLEENGINE::Phase1),
-      abovephase_(PARTICLEENGINE::Phase2),
-      transitionstate_(PARTICLEENGINE::Density),
+      belowphase_(Particle::Phase1),
+      abovephase_(Particle::Phase2),
+      transitionstate_(Particle::Density),
       transitionvalue_(0.0),
       hysteresisgap_(0.0)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHPhaseChangeBase::init()
+void Particle::SPHPhaseChangeBase::init()
 {
   // read from input file
   std::string word;
@@ -42,13 +42,13 @@ void ParticleInteraction::SPHPhaseChangeBase::init()
 
   // get phase below transition value
   if (phasechangedefinition >> word)
-    belowphase_ = PARTICLEENGINE::enum_from_type_name(word);
+    belowphase_ = Particle::enum_from_type_name(word);
   else
     FOUR_C_THROW("expecting particle type for phase below transition value!");
 
   // get phase above transition value
   if (phasechangedefinition >> word)
-    abovephase_ = PARTICLEENGINE::enum_from_type_name(word);
+    abovephase_ = Particle::enum_from_type_name(word);
   else
     FOUR_C_THROW("expecting particle type for phase above transition value!");
 
@@ -58,12 +58,12 @@ void ParticleInteraction::SPHPhaseChangeBase::init()
 
   // get transition state of phase change
   if (phasechangedefinition >> word)
-    transitionstate_ = PARTICLEENGINE::enum_from_state_name(word);
+    transitionstate_ = Particle::enum_from_state_name(word);
   else
     FOUR_C_THROW("expecting particle state of phase change!");
 
   // safety check
-  if (PARTICLEENGINE::enum_to_state_dim(transitionstate_) != 1)
+  if (Particle::enum_to_state_dim(transitionstate_) != 1)
     FOUR_C_THROW("expecting scalar particle state for phase change!");
 
   // get transition value of phase change
@@ -104,10 +104,10 @@ void ParticleInteraction::SPHPhaseChangeBase::init()
   }
 }
 
-void ParticleInteraction::SPHPhaseChangeBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle)
+void Particle::SPHPhaseChangeBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+    const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -125,28 +125,27 @@ void ParticleInteraction::SPHPhaseChangeBase::setup(
   for (const auto& type_i : {belowphase_, abovephase_})
     if (not particlecontainerbundle_->get_particle_types().count(type_i))
       FOUR_C_THROW("no particle container for particle type '{}' found!",
-          PARTICLEENGINE::enum_to_type_name(type_i));
+          Particle::enum_to_type_name(type_i));
 }
 
-void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_below_to_above_phase(
-    std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase,
+void Particle::SPHPhaseChangeBase::evaluate_phase_change_from_below_to_above_phase(
+    std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase,
     std::vector<std::set<int>>& particlestoremove,
-    std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>>& particlestoinsert)
-    const
+    std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>>& particlestoinsert) const
 {
   // set source and target type of particles
-  PARTICLEENGINE::TypeEnum type_source = belowphase_;
-  PARTICLEENGINE::TypeEnum type_target = abovephase_;
+  Particle::TypeEnum type_source = belowphase_;
+  Particle::TypeEnum type_target = abovephase_;
 
   // check for boundary or rigid particles
   bool isboundaryrigid_source =
-      (type_source == PARTICLEENGINE::BoundaryPhase or type_source == PARTICLEENGINE::RigidPhase);
+      (type_source == Particle::BoundaryPhase or type_source == Particle::RigidPhase);
   bool isboundaryrigid_target =
-      (type_target == PARTICLEENGINE::BoundaryPhase or type_target == PARTICLEENGINE::RigidPhase);
+      (type_target == Particle::BoundaryPhase or type_target == Particle::RigidPhase);
 
   // get container of owned particles of source particle type
-  PARTICLEENGINE::ParticleContainer* container =
-      particlecontainerbundle_->get_specific_container(type_source, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container =
+      particlecontainerbundle_->get_specific_container(type_source, Particle::Owned);
 
   // get number of particles stored in container
   int particlestored = container->particles_stored();
@@ -164,7 +163,7 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_below_t
       particlematerial_->get_ptr_to_particle_mat_parameter(type_target);
 
   // get equation of state of target particle type
-  const ParticleInteraction::SPHEquationOfStateBase* equationofstate_target;
+  const Particle::SPHEquationOfStateBase* equationofstate_target;
   if (not isboundaryrigid_target)
     equationofstate_target =
         equationofstatebundle_->get_ptr_to_specific_equation_of_state(type_target);
@@ -176,29 +175,29 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_below_t
     if (state[index] > (transitionvalue_ + 0.5 * hysteresisgap_))
     {
       int globalid(0);
-      PARTICLEENGINE::ParticleStates particlestates;
+      Particle::ParticleStates particlestates;
       container->get_particle(index, globalid, particlestates);
 
       // add density and pressure state for boundary or rigid particles
       if (isboundaryrigid_source and (not isboundaryrigid_target))
       {
-        particlestates[PARTICLEENGINE::Density].assign(1, material_source->initDensity_);
+        particlestates[Particle::Density].assign(1, material_source->initDensity_);
 
         const double press = equationofstate_target->density_to_pressure(
             material_source->initDensity_, material_target->initDensity_);
 
-        particlestates[PARTICLEENGINE::Pressure].assign(1, press);
+        particlestates[Particle::Pressure].assign(1, press);
       }
 
       // clear velocity and acceleration state of boundary or rigid particles
       if (isboundaryrigid_target and (not isboundaryrigid_source))
       {
-        particlestates[PARTICLEENGINE::Velocity].assign(3, 0.0);
-        particlestates[PARTICLEENGINE::Acceleration].assign(3, 0.0);
+        particlestates[Particle::Velocity].assign(3, 0.0);
+        particlestates[Particle::Acceleration].assign(3, 0.0);
       }
 
-      PARTICLEENGINE::ParticleObjShrdPtr particleobject =
-          std::make_shared<PARTICLEENGINE::ParticleObject>(type_target, globalid, particlestates);
+      Particle::ParticleObjShrdPtr particleobject =
+          std::make_shared<Particle::ParticleObject>(type_target, globalid, particlestates);
 
       // append particle to be insert
       particlestoinsert[type_target].push_back(std::make_pair(-1, particleobject));
@@ -212,25 +211,24 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_below_t
   }
 }
 
-void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_above_to_below_phase(
-    std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase,
+void Particle::SPHPhaseChangeBase::evaluate_phase_change_from_above_to_below_phase(
+    std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase,
     std::vector<std::set<int>>& particlestoremove,
-    std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>>& particlestoinsert)
-    const
+    std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>>& particlestoinsert) const
 {
   // set source and target type of particles
-  PARTICLEENGINE::TypeEnum type_source = abovephase_;
-  PARTICLEENGINE::TypeEnum type_target = belowphase_;
+  Particle::TypeEnum type_source = abovephase_;
+  Particle::TypeEnum type_target = belowphase_;
 
   // check for boundary or rigid particles
   bool isboundaryrigid_source =
-      (type_source == PARTICLEENGINE::BoundaryPhase or type_source == PARTICLEENGINE::RigidPhase);
+      (type_source == Particle::BoundaryPhase or type_source == Particle::RigidPhase);
   bool isboundaryrigid_target =
-      (type_target == PARTICLEENGINE::BoundaryPhase or type_target == PARTICLEENGINE::RigidPhase);
+      (type_target == Particle::BoundaryPhase or type_target == Particle::RigidPhase);
 
   // get container of owned particles of source particle type
-  PARTICLEENGINE::ParticleContainer* container =
-      particlecontainerbundle_->get_specific_container(type_source, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container =
+      particlecontainerbundle_->get_specific_container(type_source, Particle::Owned);
 
   // get number of particles stored in container
   int particlestored = container->particles_stored();
@@ -248,7 +246,7 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_above_t
       particlematerial_->get_ptr_to_particle_mat_parameter(type_target);
 
   // get equation of state of target particle type
-  const ParticleInteraction::SPHEquationOfStateBase* equationofstate_target;
+  const Particle::SPHEquationOfStateBase* equationofstate_target;
   if (not isboundaryrigid_target)
     equationofstate_target =
         equationofstatebundle_->get_ptr_to_specific_equation_of_state(type_target);
@@ -260,29 +258,29 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_above_t
     if (state[index] < (transitionvalue_ - 0.5 * hysteresisgap_))
     {
       int globalid(0);
-      PARTICLEENGINE::ParticleStates particlestates;
+      Particle::ParticleStates particlestates;
       container->get_particle(index, globalid, particlestates);
 
       // add density and pressure state for boundary or rigid particles
       if (isboundaryrigid_source and (not isboundaryrigid_target))
       {
-        particlestates[PARTICLEENGINE::Density].assign(1, material_source->initDensity_);
+        particlestates[Particle::Density].assign(1, material_source->initDensity_);
 
         const double press = equationofstate_target->density_to_pressure(
             material_source->initDensity_, material_target->initDensity_);
 
-        particlestates[PARTICLEENGINE::Pressure].assign(1, press);
+        particlestates[Particle::Pressure].assign(1, press);
       }
 
       // clear velocity and acceleration state of boundary or rigid particles
       if (isboundaryrigid_target and (not isboundaryrigid_source))
       {
-        particlestates[PARTICLEENGINE::Velocity].assign(3, 0.0);
-        particlestates[PARTICLEENGINE::Acceleration].assign(3, 0.0);
+        particlestates[Particle::Velocity].assign(3, 0.0);
+        particlestates[Particle::Acceleration].assign(3, 0.0);
       }
 
-      PARTICLEENGINE::ParticleObjShrdPtr particleobject =
-          std::make_shared<PARTICLEENGINE::ParticleObject>(type_target, globalid, particlestates);
+      Particle::ParticleObjShrdPtr particleobject =
+          std::make_shared<Particle::ParticleObject>(type_target, globalid, particlestates);
 
       // append particle to be insert
       particlestoinsert[type_target].push_back(std::make_pair(-1, particleobject));
@@ -296,21 +294,21 @@ void ParticleInteraction::SPHPhaseChangeBase::evaluate_phase_change_from_above_t
   }
 }
 
-ParticleInteraction::SPHPhaseChangeOneWayScalarBelowToAbove::SPHPhaseChangeOneWayScalarBelowToAbove(
+Particle::SPHPhaseChangeOneWayScalarBelowToAbove::SPHPhaseChangeOneWayScalarBelowToAbove(
     const Teuchos::ParameterList& params)
     : SPHPhaseChangeBase::SPHPhaseChangeBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHPhaseChangeOneWayScalarBelowToAbove::evaluate_phase_change(
-    std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const
+void Particle::SPHPhaseChangeOneWayScalarBelowToAbove::evaluate_phase_change(
+    std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const
 {
   // determine size of vectors indexed by particle types
   const int typevectorsize = *(--particlecontainerbundle_->get_particle_types().end()) + 1;
 
   std::vector<std::set<int>> particlestoremove(typevectorsize);
-  std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>> particlestoinsert(
+  std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>> particlestoinsert(
       typevectorsize);
 
   // evaluate phase change from below to above phase
@@ -324,21 +322,21 @@ void ParticleInteraction::SPHPhaseChangeOneWayScalarBelowToAbove::evaluate_phase
   particleengineinterface_->hand_over_particles_to_be_inserted(particlestoinsert);
 }
 
-ParticleInteraction::SPHPhaseChangeOneWayScalarAboveToBelow::SPHPhaseChangeOneWayScalarAboveToBelow(
+Particle::SPHPhaseChangeOneWayScalarAboveToBelow::SPHPhaseChangeOneWayScalarAboveToBelow(
     const Teuchos::ParameterList& params)
     : SPHPhaseChangeBase::SPHPhaseChangeBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHPhaseChangeOneWayScalarAboveToBelow::evaluate_phase_change(
-    std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const
+void Particle::SPHPhaseChangeOneWayScalarAboveToBelow::evaluate_phase_change(
+    std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const
 {
   // determine size of vectors indexed by particle types
   const int typevectorsize = *(--particlecontainerbundle_->get_particle_types().end()) + 1;
 
   std::vector<std::set<int>> particlestoremove(typevectorsize);
-  std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>> particlestoinsert(
+  std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>> particlestoinsert(
       typevectorsize);
 
   // evaluate phase change from above to below phase
@@ -352,21 +350,21 @@ void ParticleInteraction::SPHPhaseChangeOneWayScalarAboveToBelow::evaluate_phase
   particleengineinterface_->hand_over_particles_to_be_inserted(particlestoinsert);
 }
 
-ParticleInteraction::SPHPhaseChangeTwoWayScalar::SPHPhaseChangeTwoWayScalar(
+Particle::SPHPhaseChangeTwoWayScalar::SPHPhaseChangeTwoWayScalar(
     const Teuchos::ParameterList& params)
     : SPHPhaseChangeBase::SPHPhaseChangeBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHPhaseChangeTwoWayScalar::evaluate_phase_change(
-    std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const
+void Particle::SPHPhaseChangeTwoWayScalar::evaluate_phase_change(
+    std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const
 {
   // determine size of vectors indexed by particle types
   const int typevectorsize = *(--particlecontainerbundle_->get_particle_types().end()) + 1;
 
   std::vector<std::set<int>> particlestoremove(typevectorsize);
-  std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>> particlestoinsert(
+  std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>> particlestoinsert(
       typevectorsize);
 
   // evaluate phase change from below to above phase

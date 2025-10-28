@@ -17,34 +17,33 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace
 {
-  std::map<PARTICLEENGINE::StateEnum, std::map<PARTICLEENGINE::TypeEnum, int>>
+  std::map<Particle::StateEnum, std::map<Particle::TypeEnum, int>>
   extract_particle_types_to_function_ids(const Teuchos::ParameterList& params);
 
-  std::vector<std::vector<double>>& get_rigid_body_state(PARTICLEENGINE::StateEnum particleState,
-      ParticleRigidBody::RigidBodyDataState& rigidbodydatastates);
+  std::vector<std::vector<double>>& get_rigid_body_state(
+      Particle::StateEnum particleState, Particle::RigidBodyDataState& rigidbodydatastates);
 }  // namespace
 
-void ParticleRigidBody::set_initial_fields(const Teuchos::ParameterList& params,
-    const std::vector<int>& ownedrigidbodies,
-    ParticleRigidBody::RigidBodyDataState& rigidbodydatastates)
+void Particle::set_initial_fields(const Teuchos::ParameterList& params,
+    const std::vector<int>& ownedrigidbodies, Particle::RigidBodyDataState& rigidbodydatastates)
 {
   // relating particle types to function ids
-  std::map<PARTICLEENGINE::StateEnum, std::map<PARTICLEENGINE::TypeEnum, int>>
-      statetotypetofunctidmap = extract_particle_types_to_function_ids(params);
+  std::map<Particle::StateEnum, std::map<Particle::TypeEnum, int>> statetotypetofunctidmap =
+      extract_particle_types_to_function_ids(params);
 
   for (auto& stateIt : statetotypetofunctidmap)
   {
-    if (not stateIt.second.count(PARTICLEENGINE::RigidPhase)) continue;
+    if (not stateIt.second.count(Particle::RigidPhase)) continue;
 
     // state vector
-    PARTICLEENGINE::StateEnum particleState = stateIt.first;
+    Particle::StateEnum particleState = stateIt.first;
 
     // get pointer to rigid body state
     std::vector<std::vector<double>>& state =
         get_rigid_body_state(particleState, rigidbodydatastates);
 
     // get id of function
-    const int functid = stateIt.second[PARTICLEENGINE::RigidPhase];
+    const int functid = stateIt.second[Particle::RigidPhase];
 
     // get reference to function
     const auto& function =
@@ -59,7 +58,7 @@ void ParticleRigidBody::set_initial_fields(const Teuchos::ParameterList& params,
       FOUR_C_THROW(
           "dimensions of function defining initial field and of state of rigid bodies '{}' not "
           "matching!",
-          PARTICLEENGINE::enum_to_state_name(particleState).c_str());
+          Particle::enum_to_state_name(particleState).c_str());
     }
 
     // iterate over owned rigid bodies
@@ -79,32 +78,31 @@ void ParticleRigidBody::set_initial_fields(const Teuchos::ParameterList& params,
 
 namespace
 {
-  std::map<PARTICLEENGINE::StateEnum, std::map<PARTICLEENGINE::TypeEnum, int>>
+  std::map<Particle::StateEnum, std::map<Particle::TypeEnum, int>>
   extract_particle_types_to_function_ids(const Teuchos::ParameterList& params)
   {
-    std::map<PARTICLEENGINE::StateEnum, std::map<PARTICLEENGINE::TypeEnum, int>>
-        statetotypetofunctidmap;
+    std::map<Particle::StateEnum, std::map<Particle::TypeEnum, int>> statetotypetofunctidmap;
 
     // get control parameters for initial/boundary conditions
     const Teuchos::ParameterList& params_conditions =
         params.sublist("INITIAL AND BOUNDARY CONDITIONS");
 
     // relate particle state to input name
-    std::map<std::string, PARTICLEENGINE::StateEnum> initialfieldtostateenum = {
-        std::make_pair("INITIAL_VELOCITY_FIELD", PARTICLEENGINE::Velocity),
-        std::make_pair("INITIAL_ANGULAR_VELOCITY_FIELD", PARTICLEENGINE::AngularVelocity),
-        std::make_pair("INITIAL_ACCELERATION_FIELD", PARTICLEENGINE::Acceleration),
-        std::make_pair("INITIAL_ANGULAR_ACCELERATION_FIELD", PARTICLEENGINE::AngularAcceleration)};
+    std::map<std::string, Particle::StateEnum> initialfieldtostateenum = {
+        std::make_pair("INITIAL_VELOCITY_FIELD", Particle::Velocity),
+        std::make_pair("INITIAL_ANGULAR_VELOCITY_FIELD", Particle::AngularVelocity),
+        std::make_pair("INITIAL_ACCELERATION_FIELD", Particle::Acceleration),
+        std::make_pair("INITIAL_ANGULAR_ACCELERATION_FIELD", Particle::AngularAcceleration)};
 
     // iterate over particle states
     for (const auto& stateIt : initialfieldtostateenum)
     {
       // get reference to sub-map
-      std::map<PARTICLEENGINE::TypeEnum, int>& currentstatetypetofunctidmap =
+      std::map<Particle::TypeEnum, int>& currentstatetypetofunctidmap =
           statetotypetofunctidmap[stateIt.second];
 
       // read parameters relating particle types to values
-      PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
+      Particle::Utils::read_params_types_related_to_values(
           params_conditions, stateIt.first, currentstatetypetofunctidmap);
     }
 
@@ -112,32 +110,32 @@ namespace
     // safety check
     for (const auto& iter : statetotypetofunctidmap)
     {
-      if (iter.first == PARTICLEENGINE::Temperature and not iter.second.empty())
+      if (iter.first == Particle::Temperature and not iter.second.empty())
         FOUR_C_THROW("initial temperature cannot be specified for rigid bodies '{}' !",
-            PARTICLEENGINE::enum_to_state_name(iter.first));
+            Particle::enum_to_state_name(iter.first));
     }
 #endif
 
     return statetotypetofunctidmap;
   }
 
-  std::vector<std::vector<double>>& get_rigid_body_state(PARTICLEENGINE::StateEnum particleState,
-      ParticleRigidBody::RigidBodyDataState& rigidbodydatastates)
+  std::vector<std::vector<double>>& get_rigid_body_state(
+      Particle::StateEnum particleState, Particle::RigidBodyDataState& rigidbodydatastates)
   {
     switch (particleState)
     {
-      case PARTICLEENGINE::Velocity:
+      case Particle::Velocity:
         return rigidbodydatastates.get_ref_velocity();
-      case PARTICLEENGINE::AngularVelocity:
+      case Particle::AngularVelocity:
         return rigidbodydatastates.get_ref_angular_velocity();
-      case PARTICLEENGINE::Acceleration:
+      case Particle::Acceleration:
         return rigidbodydatastates.get_ref_acceleration();
-      case PARTICLEENGINE::AngularAcceleration:
+      case Particle::AngularAcceleration:
         return rigidbodydatastates.get_ref_angular_acceleration();
 
       default:
         FOUR_C_THROW("unsupported state vector '{}' for initialization of rigid body!",
-            PARTICLEENGINE::enum_to_state_name(particleState));
+            Particle::enum_to_state_name(particleState));
     }
   }
 }  // namespace

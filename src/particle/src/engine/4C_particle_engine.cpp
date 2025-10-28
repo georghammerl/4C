@@ -34,7 +34,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEENGINE::ParticleEngine::ParticleEngine(MPI_Comm comm, const Teuchos::ParameterList& params)
+Particle::ParticleEngine::ParticleEngine(MPI_Comm comm, const Teuchos::ParameterList& params)
     : comm_(comm),
       myrank_(Core::Communication::my_mpi_rank(comm)),
       params_(params),
@@ -50,9 +50,9 @@ PARTICLEENGINE::ParticleEngine::ParticleEngine(MPI_Comm comm, const Teuchos::Par
   // empty constructor
 }
 
-PARTICLEENGINE::ParticleEngine::~ParticleEngine() = default;
+Particle::ParticleEngine::~ParticleEngine() = default;
 
-void PARTICLEENGINE::ParticleEngine::init()
+void Particle::ParticleEngine::init()
 {
   // init binning strategy
   init_binning_strategy();
@@ -67,7 +67,7 @@ void PARTICLEENGINE::ParticleEngine::init()
   init_particle_vtp_writer();
 }
 
-void PARTICLEENGINE::ParticleEngine::setup(
+void Particle::ParticleEngine::setup(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes)
 {
   // setup binning strategy
@@ -89,7 +89,7 @@ void PARTICLEENGINE::ParticleEngine::setup(
   setup_type_weights();
 }
 
-void PARTICLEENGINE::ParticleEngine::write_restart(const int step, const double time) const
+void Particle::ParticleEngine::write_restart(const int step, const double time) const
 {
   // get bin discretization writer
   std::shared_ptr<Core::IO::DiscretizationWriter> binwriter = binstrategy_->bin_discret()->writer();
@@ -107,7 +107,7 @@ void PARTICLEENGINE::ParticleEngine::write_restart(const int step, const double 
   particleuniqueglobalidhandler_->write_restart(binwriter);
 }
 
-void PARTICLEENGINE::ParticleEngine::read_restart(
+void Particle::ParticleEngine::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader,
     std::vector<ParticleObjShrdPtr>& particlestoread) const
 {
@@ -133,14 +133,14 @@ void PARTICLEENGINE::ParticleEngine::read_restart(
   particlevtpwriter_->read_restart(reader);
 }
 
-void PARTICLEENGINE::ParticleEngine::write_particle_runtime_output(
+void Particle::ParticleEngine::write_particle_runtime_output(
     const int step, const double time) const
 {
   particlevtpwriter_->set_particle_positions_and_states();
   particlevtpwriter_->write_to_disk(time, step);
 }
 
-void PARTICLEENGINE::ParticleEngine::free_unique_global_ids(std::vector<int>& freeuniquegids)
+void Particle::ParticleEngine::free_unique_global_ids(std::vector<int>& freeuniquegids)
 {
   // insert freed global id
   for (const int currfreegid : freeuniquegids)
@@ -150,7 +150,7 @@ void PARTICLEENGINE::ParticleEngine::free_unique_global_ids(std::vector<int>& fr
   freeuniquegids.clear();
 }
 
-void PARTICLEENGINE::ParticleEngine::get_unique_global_ids_for_all_particles(
+void Particle::ParticleEngine::get_unique_global_ids_for_all_particles(
     std::vector<ParticleObjShrdPtr>& particlestogetuniquegids)
 {
   std::vector<int> requesteduniqueglobalids;
@@ -167,7 +167,7 @@ void PARTICLEENGINE::ParticleEngine::get_unique_global_ids_for_all_particles(
     particlestogetuniquegids[i]->set_particle_global_id(requesteduniqueglobalids[i]);
 }
 
-void PARTICLEENGINE::ParticleEngine::check_number_of_unique_global_ids()
+void Particle::ParticleEngine::check_number_of_unique_global_ids()
 {
   // get number of particles on all processors
   int numberofparticles = get_number_of_particles();
@@ -187,7 +187,7 @@ void PARTICLEENGINE::ParticleEngine::check_number_of_unique_global_ids()
         numberofparticles, numberofreusableglobalids, (maxglobalid + 1));
 }
 
-void PARTICLEENGINE::ParticleEngine::erase_particles_outside_bounding_box(
+void Particle::ParticleEngine::erase_particles_outside_bounding_box(
     std::vector<ParticleObjShrdPtr>& particlestocheck)
 {
   // get bounding box dimensions
@@ -271,10 +271,10 @@ void PARTICLEENGINE::ParticleEngine::erase_particles_outside_bounding_box(
                    << " particle(s) being outside the computational domain!" << Core::IO::endl;
 }
 
-void PARTICLEENGINE::ParticleEngine::distribute_particles(
+void Particle::ParticleEngine::distribute_particles(
     std::vector<ParticleObjShrdPtr>& particlestodistribute)
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::DistributeParticles");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::DistributeParticles");
 
   std::vector<std::vector<ParticleObjShrdPtr>> particlestosend(
       Core::Communication::num_mpi_ranks(comm_));
@@ -296,9 +296,9 @@ void PARTICLEENGINE::ParticleEngine::distribute_particles(
   relate_owned_particles_to_bins();
 }
 
-void PARTICLEENGINE::ParticleEngine::transfer_particles()
+void Particle::ParticleEngine::transfer_particles()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::TransferParticles");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::TransferParticles");
 
   std::vector<std::set<int>> particlestoremove(typevectorsize_);
   std::vector<std::vector<ParticleObjShrdPtr>> particlestosend(
@@ -333,9 +333,9 @@ void PARTICLEENGINE::ParticleEngine::transfer_particles()
   particlecontainerbundle_->check_and_decrease_size_all_containers_of_specific_status(Owned);
 }
 
-void PARTICLEENGINE::ParticleEngine::ghost_particles()
+void Particle::ParticleEngine::ghost_particles()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::GhostParticles");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::GhostParticles");
 
   std::vector<std::vector<ParticleObjShrdPtr>> particlestosend(
       Core::Communication::num_mpi_ranks(comm_));
@@ -361,9 +361,9 @@ void PARTICLEENGINE::ParticleEngine::ghost_particles()
   particlecontainerbundle_->check_and_decrease_size_all_containers_of_specific_status(Ghosted);
 }
 
-void PARTICLEENGINE::ParticleEngine::refresh_particles() const
+void Particle::ParticleEngine::refresh_particles() const
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::RefreshParticles");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::RefreshParticles");
 
   std::vector<std::vector<ParticleObjShrdPtr>> particlestosend(
       Core::Communication::num_mpi_ranks(comm_));
@@ -379,11 +379,11 @@ void PARTICLEENGINE::ParticleEngine::refresh_particles() const
   insert_refreshed_particles(particlestoinsert);
 }
 
-void PARTICLEENGINE::ParticleEngine::refresh_particles_of_specific_states_and_types(
+void Particle::ParticleEngine::refresh_particles_of_specific_states_and_types(
     const StatesOfTypesToRefresh& particlestatestotypes) const
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "PARTICLEENGINE::ParticleEngine::refresh_particles_of_specific_states_and_types");
+      "Particle::ParticleEngine::refresh_particles_of_specific_states_and_types");
 
   std::vector<std::vector<ParticleObjShrdPtr>> particlestosend(
       Core::Communication::num_mpi_ranks(comm_));
@@ -400,9 +400,9 @@ void PARTICLEENGINE::ParticleEngine::refresh_particles_of_specific_states_and_ty
   insert_refreshed_particles(particlestoinsert);
 }
 
-void PARTICLEENGINE::ParticleEngine::dynamic_load_balancing()
+void Particle::ParticleEngine::dynamic_load_balancing()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::dynamic_load_balancing");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::dynamic_load_balancing");
 
   // determine bin weights needed for repartitioning
   determine_bin_weights();
@@ -445,10 +445,10 @@ void PARTICLEENGINE::ParticleEngine::dynamic_load_balancing()
   particlecontainerbundle_->check_and_decrease_size_all_containers_of_specific_status(Owned);
 }
 
-void PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_removed(
+void Particle::ParticleEngine::hand_over_particles_to_be_removed(
     std::vector<std::set<int>>& particlestoremove)
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_removed");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::hand_over_particles_to_be_removed");
 
   // number of particles to remove
   int numparticlestoremove = 0;
@@ -464,10 +464,10 @@ void PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_removed(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_inserted(
+void Particle::ParticleEngine::hand_over_particles_to_be_inserted(
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestoinsert)
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_inserted");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::hand_over_particles_to_be_inserted");
 
   // number of particles to insert
   int numparticlestoinsert = 0;
@@ -480,9 +480,9 @@ void PARTICLEENGINE::ParticleEngine::hand_over_particles_to_be_inserted(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::build_particle_to_particle_neighbors()
+void Particle::ParticleEngine::build_particle_to_particle_neighbors()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::build_particle_to_particle_neighbors");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::build_particle_to_particle_neighbors");
 
   // safety check
   if ((not validownedparticles_) or (not validghostedparticles_))
@@ -585,9 +585,9 @@ void PARTICLEENGINE::ParticleEngine::build_particle_to_particle_neighbors()
   validparticleneighbors_ = true;
 }
 
-void PARTICLEENGINE::ParticleEngine::build_global_id_to_local_index_map()
+void Particle::ParticleEngine::build_global_id_to_local_index_map()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEENGINE::ParticleEngine::build_global_id_to_local_index_map");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleEngine::build_global_id_to_local_index_map");
 
   // clear map
   globalidtolocalindex_.clear();
@@ -629,7 +629,7 @@ void PARTICLEENGINE::ParticleEngine::build_global_id_to_local_index_map()
   validglobalidtolocalindex_ = true;
 }
 
-bool PARTICLEENGINE::ParticleEngine::have_valid_particle_connectivity() const
+bool Particle::ParticleEngine::have_valid_particle_connectivity() const
 {
   int localcheck = ((validownedparticles_ and validghostedparticles_ and
                      validglobalidtolocalindex_ and validdirectghosting_));
@@ -641,7 +641,7 @@ bool PARTICLEENGINE::ParticleEngine::have_valid_particle_connectivity() const
   return globalcheck;
 }
 
-bool PARTICLEENGINE::ParticleEngine::have_valid_particle_neighbors() const
+bool Particle::ParticleEngine::have_valid_particle_neighbors() const
 {
   int localcheck = validparticleneighbors_;
 
@@ -652,7 +652,7 @@ bool PARTICLEENGINE::ParticleEngine::have_valid_particle_neighbors() const
   return globalcheck;
 }
 
-const PARTICLEENGINE::ParticlesToBins& PARTICLEENGINE::ParticleEngine::get_particles_to_bins() const
+const Particle::ParticlesToBins& Particle::ParticleEngine::get_particles_to_bins() const
 {
   // safety check
   if ((not validownedparticles_) or (not validghostedparticles_))
@@ -661,8 +661,8 @@ const PARTICLEENGINE::ParticlesToBins& PARTICLEENGINE::ParticleEngine::get_parti
   return particlestobins_;
 }
 
-const PARTICLEENGINE::PotentialParticleNeighbors&
-PARTICLEENGINE::ParticleEngine::get_potential_particle_neighbors() const
+const Particle::PotentialParticleNeighbors&
+Particle::ParticleEngine::get_potential_particle_neighbors() const
 {
   // safety check
   if (not validparticleneighbors_) FOUR_C_THROW("invalid particle neighbors!");
@@ -670,8 +670,8 @@ PARTICLEENGINE::ParticleEngine::get_potential_particle_neighbors() const
   return potentialparticleneighbors_;
 }
 
-PARTICLEENGINE::LocalIndexTupleShrdPtr
-PARTICLEENGINE::ParticleEngine::get_local_index_in_specific_container(int globalid) const
+Particle::LocalIndexTupleShrdPtr Particle::ParticleEngine::get_local_index_in_specific_container(
+    int globalid) const
 {
   // safety check
   if (not validglobalidtolocalindex_) FOUR_C_THROW("invalid global id to local index map!");
@@ -684,12 +684,12 @@ PARTICLEENGINE::ParticleEngine::get_local_index_in_specific_container(int global
 }
 
 std::shared_ptr<Core::IO::DiscretizationWriter>
-PARTICLEENGINE::ParticleEngine::get_bin_discretization_writer() const
+Particle::ParticleEngine::get_bin_discretization_writer() const
 {
   return binstrategy_->bin_discret()->writer();
 }
 
-void PARTICLEENGINE::ParticleEngine::relate_all_particles_to_all_procs(
+void Particle::ParticleEngine::relate_all_particles_to_all_procs(
     std::vector<int>& particlestoproc) const
 {
   // global ids on this processor
@@ -734,7 +734,7 @@ void PARTICLEENGINE::ParticleEngine::relate_all_particles_to_all_procs(
   MPI_Allreduce(MPI_IN_PLACE, particlestoproc.data(), vecsize, MPI_INT, MPI_MAX, comm_);
 }
 
-void PARTICLEENGINE::ParticleEngine::get_particles_within_radius(const double* position,
+void Particle::ParticleEngine::get_particles_within_radius(const double* position,
     const double radius, std::vector<LocalIndexTuple>& neighboringparticles) const
 {
   // safety check
@@ -810,35 +810,35 @@ void PARTICLEENGINE::ParticleEngine::get_particles_within_radius(const double* p
   }
 }
 
-std::array<double, 3> PARTICLEENGINE::ParticleEngine::bin_size() const
+std::array<double, 3> Particle::ParticleEngine::bin_size() const
 {
   return binstrategy_->bin_size();
 }
 
-bool PARTICLEENGINE::ParticleEngine::have_periodic_boundary_conditions() const
+bool Particle::ParticleEngine::have_periodic_boundary_conditions() const
 {
   return binstrategy_->have_periodic_boundary_conditions_applied();
 }
 
-bool PARTICLEENGINE::ParticleEngine::have_periodic_boundary_conditions_in_spatial_direction(
+bool Particle::ParticleEngine::have_periodic_boundary_conditions_in_spatial_direction(
     const int dim) const
 {
   return binstrategy_->have_periodic_boundary_conditions_applied_in_spatial_direction(dim);
 }
 
-double PARTICLEENGINE::ParticleEngine::length_of_binning_domain_in_a_spatial_direction(
+double Particle::ParticleEngine::length_of_binning_domain_in_a_spatial_direction(
     const int dim) const
 {
   return binstrategy_->length_of_binning_domain_in_a_spatial_direction(dim);
 }
 
-Core::LinAlg::Matrix<3, 2> const&
-PARTICLEENGINE::ParticleEngine::domain_bounding_box_corner_positions() const
+Core::LinAlg::Matrix<3, 2> const& Particle::ParticleEngine::domain_bounding_box_corner_positions()
+    const
 {
   return binstrategy_->domain_bounding_box_corner_positions();
 }
 
-void PARTICLEENGINE::ParticleEngine::distance_between_particles(
+void Particle::ParticleEngine::distance_between_particles(
     const double* pos_i, const double* pos_j, double* r_ji) const
 {
   // loop over all spatial directions
@@ -866,14 +866,14 @@ void PARTICLEENGINE::ParticleEngine::distance_between_particles(
   }
 }
 
-std::shared_ptr<Core::IO::DiscretizationReader> PARTICLEENGINE::ParticleEngine::bin_dis_reader(
+std::shared_ptr<Core::IO::DiscretizationReader> Particle::ParticleEngine::bin_dis_reader(
     int restartstep) const
 {
   return std::make_shared<Core::IO::DiscretizationReader>(
       *binstrategy_->bin_discret(), Global::Problem::instance()->input_control_file(), restartstep);
 }
 
-int PARTICLEENGINE::ParticleEngine::get_number_of_particles() const
+int Particle::ParticleEngine::get_number_of_particles() const
 {
   int numberofparticles = 0;
 
@@ -890,7 +890,7 @@ int PARTICLEENGINE::ParticleEngine::get_number_of_particles() const
   return numberofparticles;
 }
 
-int PARTICLEENGINE::ParticleEngine::get_number_of_particles_of_specific_type(
+int Particle::ParticleEngine::get_number_of_particles_of_specific_type(
     const ParticleType type) const
 {
   if (not particlecontainerbundle_->get_particle_types().count(type)) return 0;
@@ -901,13 +901,13 @@ int PARTICLEENGINE::ParticleEngine::get_number_of_particles_of_specific_type(
   return container->particles_stored();
 }
 
-void PARTICLEENGINE::ParticleEngine::write_bin_dis_output(const int step, const double time) const
+void Particle::ParticleEngine::write_bin_dis_output(const int step, const double time) const
 {
   // write bins to output file
   binstrategy_->write_bin_output(step, time);
 }
 
-void PARTICLEENGINE::ParticleEngine::init_binning_strategy()
+void Particle::ParticleEngine::init_binning_strategy()
 {
   // create and init binning strategy and create bins
   Teuchos::ParameterList binning_params = Global::Problem::instance()->binning_strategy_params();
@@ -919,7 +919,7 @@ void PARTICLEENGINE::ParticleEngine::init_binning_strategy()
       Core::Communication::my_mpi_rank(comm_));
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_binning_strategy()
+void Particle::ParticleEngine::setup_binning_strategy()
 {
   // determine minimum relevant bin size
   determine_min_relevant_bin_size();
@@ -953,7 +953,7 @@ void PARTICLEENGINE::ParticleEngine::setup_binning_strategy()
   determine_ghosting_dependent_maps_and_sets();
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_bin_ghosting()
+void Particle::ParticleEngine::setup_bin_ghosting()
 {
   // gather bins of row map and all its neighbors (row + ghost)
   std::set<int> bins;
@@ -1011,21 +1011,21 @@ void PARTICLEENGINE::ParticleEngine::setup_bin_ghosting()
   binstrategy_->bin_discret()->extended_ghosting(*bincolmap_, true, false, true, false);
 }
 
-void PARTICLEENGINE::ParticleEngine::init_particle_container_bundle()
+void Particle::ParticleEngine::init_particle_container_bundle()
 {
   // create and init particle container bundle
   particlecontainerbundle_ = std::make_shared<ParticleContainerBundle>();
   particlecontainerbundle_->init();
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_particle_container_bundle(
+void Particle::ParticleEngine::setup_particle_container_bundle(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes) const
 {
   // setup particle container bundle
   particlecontainerbundle_->setup(particlestatestotypes);
 }
 
-void PARTICLEENGINE::ParticleEngine::init_particle_unique_global_id_handler()
+void Particle::ParticleEngine::init_particle_unique_global_id_handler()
 {
   // create and init unique global identifier handler
   particleuniqueglobalidhandler_ =
@@ -1033,13 +1033,13 @@ void PARTICLEENGINE::ParticleEngine::init_particle_unique_global_id_handler()
   particleuniqueglobalidhandler_->init();
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_particle_unique_global_id_handler() const
+void Particle::ParticleEngine::setup_particle_unique_global_id_handler() const
 {
   // setup unique global identifier handler
   particleuniqueglobalidhandler_->setup();
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_data_storage(
+void Particle::ParticleEngine::setup_data_storage(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes)
 {
   // determine size of vectors indexed by particle types
@@ -1053,7 +1053,7 @@ void PARTICLEENGINE::ParticleEngine::setup_data_storage(
       Core::Communication::num_mpi_ranks(comm_), std::vector<int>(0));
 }
 
-void PARTICLEENGINE::ParticleEngine::init_particle_vtp_writer()
+void Particle::ParticleEngine::init_particle_vtp_writer()
 {
   // construct and init particle runtime vtp writer
   particlevtpwriter_ =
@@ -1061,7 +1061,7 @@ void PARTICLEENGINE::ParticleEngine::init_particle_vtp_writer()
   particlevtpwriter_->init(particlecontainerbundle_);
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_particle_vtp_writer() const
+void Particle::ParticleEngine::setup_particle_vtp_writer() const
 {
   // get flag to determine output of ghosted particles (debug feature)
   bool write_ghosted_particles = params_.get<bool>("WRITE_GHOSTED_PARTICLES");
@@ -1070,7 +1070,7 @@ void PARTICLEENGINE::ParticleEngine::setup_particle_vtp_writer() const
   particlevtpwriter_->setup(write_ghosted_particles);
 }
 
-void PARTICLEENGINE::ParticleEngine::setup_type_weights()
+void Particle::ParticleEngine::setup_type_weights()
 {
   // allocate memory to hold particle types
   typeweights_.resize(typevectorsize_);
@@ -1079,14 +1079,14 @@ void PARTICLEENGINE::ParticleEngine::setup_type_weights()
   std::map<ParticleType, double> typetodynloadbal;
 
   // read parameters relating particle types to values
-  PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
+  Particle::Utils::read_params_types_related_to_values(
       params_, "PHASE_TO_DYNLOADBALFAC", typetodynloadbal);
 
   // insert weight of particle type
   for (const auto& typeIt : typetodynloadbal) typeweights_[typeIt.first] = typeIt.second;
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_bin_dis_dependent_maps_and_sets()
+void Particle::ParticleEngine::determine_bin_dis_dependent_maps_and_sets()
 {
   // clear sets and maps
   boundarybins_.clear();
@@ -1156,7 +1156,7 @@ void PARTICLEENGINE::ParticleEngine::determine_bin_dis_dependent_maps_and_sets()
   for (int currbin : innerbinids) boundarybins_.erase(currbin);
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_ghosting_dependent_maps_and_sets()
+void Particle::ParticleEngine::determine_ghosting_dependent_maps_and_sets()
 {
   // clear sets and maps
   ghostedbins_.clear();
@@ -1220,7 +1220,7 @@ void PARTICLEENGINE::ParticleEngine::determine_ghosting_dependent_maps_and_sets(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::relate_half_neighboring_bins_to_owned_bins()
+void Particle::ParticleEngine::relate_half_neighboring_bins_to_owned_bins()
 {
   // allocate memory for neighbors of owned bins
   halfneighboringbinstobins_.assign(binrowmap_->num_my_elements(), std::set<int>());
@@ -1277,7 +1277,7 @@ void PARTICLEENGINE::ParticleEngine::relate_half_neighboring_bins_to_owned_bins(
   validhalfneighboringbins_ = true;
 }
 
-void PARTICLEENGINE::ParticleEngine::check_particles_at_boundaries(
+void Particle::ParticleEngine::check_particles_at_boundaries(
     std::vector<std::set<int>>& particlestoremove) const
 {
   // safety check
@@ -1364,7 +1364,7 @@ void PARTICLEENGINE::ParticleEngine::check_particles_at_boundaries(
                    << " particle(s) being outside the computational domain!" << Core::IO::endl;
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_distributed(
+void Particle::ParticleEngine::determine_particles_to_be_distributed(
     std::vector<ParticleObjShrdPtr>& particlestodistribute,
     std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend,
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestokeep)
@@ -1476,7 +1476,7 @@ void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_distributed(
   particlestodistribute.clear();
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_transferred(
+void Particle::ParticleEngine::determine_particles_to_be_transferred(
     std::vector<std::set<int>>& particlestoremove,
     std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend)
 {
@@ -1552,7 +1552,7 @@ void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_transferred(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_ghosted(
+void Particle::ParticleEngine::determine_particles_to_be_ghosted(
     std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend) const
 {
   // safety check
@@ -1597,7 +1597,7 @@ void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_ghosted(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_refreshed(
+void Particle::ParticleEngine::determine_particles_to_be_refreshed(
     std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend) const
 {
   // safety check
@@ -1635,7 +1635,7 @@ void PARTICLEENGINE::ParticleEngine::determine_particles_to_be_refreshed(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::
+void Particle::ParticleEngine::
     determine_specific_states_of_particles_of_specific_types_to_be_refreshed(
         const StatesOfTypesToRefresh& particlestatestotypes,
         std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend) const
@@ -1694,7 +1694,7 @@ void PARTICLEENGINE::ParticleEngine::
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::communicate_particles(
+void Particle::ParticleEngine::communicate_particles(
     std::vector<std::vector<ParticleObjShrdPtr>>& particlestosend,
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestoreceive) const
 {
@@ -1743,7 +1743,7 @@ void PARTICLEENGINE::ParticleEngine::communicate_particles(
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::communicate_direct_ghosting_map(
+void Particle::ParticleEngine::communicate_direct_ghosting_map(
     std::map<int, std::map<ParticleType, std::map<int, std::pair<int, int>>>>& directghosting)
 {
   // iterate over particle types
@@ -1806,7 +1806,7 @@ void PARTICLEENGINE::ParticleEngine::communicate_direct_ghosting_map(
   validdirectghosting_ = true;
 }
 
-void PARTICLEENGINE::ParticleEngine::insert_owned_particles(
+void Particle::ParticleEngine::insert_owned_particles(
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestoinsert)
 {
   // iterate over particle types
@@ -1873,7 +1873,7 @@ void PARTICLEENGINE::ParticleEngine::insert_owned_particles(
   invalidate_particle_safety_flags();
 }
 
-void PARTICLEENGINE::ParticleEngine::insert_ghosted_particles(
+void Particle::ParticleEngine::insert_ghosted_particles(
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestoinsert,
     std::map<int, std::map<ParticleType, std::map<int, std::pair<int, int>>>>& directghosting)
 {
@@ -1933,7 +1933,7 @@ void PARTICLEENGINE::ParticleEngine::insert_ghosted_particles(
   validdirectghosting_ = false;
 }
 
-void PARTICLEENGINE::ParticleEngine::insert_refreshed_particles(
+void Particle::ParticleEngine::insert_refreshed_particles(
     std::vector<std::vector<std::pair<int, ParticleObjShrdPtr>>>& particlestoinsert) const
 {
   // iterate over particle types
@@ -1966,7 +1966,7 @@ void PARTICLEENGINE::ParticleEngine::insert_refreshed_particles(
   particlestoinsert.clear();
 }
 
-void PARTICLEENGINE::ParticleEngine::remove_particles_from_containers(
+void Particle::ParticleEngine::remove_particles_from_containers(
     std::vector<std::set<int>>& particlestoremove)
 {
   // iterate over particle types
@@ -1991,7 +1991,7 @@ void PARTICLEENGINE::ParticleEngine::remove_particles_from_containers(
   invalidate_particle_safety_flags();
 }
 
-void PARTICLEENGINE::ParticleEngine::store_positions_after_particle_transfer()
+void Particle::ParticleEngine::store_positions_after_particle_transfer()
 {
   // iterate over particle types
   for (const auto& type : particlecontainerbundle_->get_particle_types())
@@ -2017,7 +2017,7 @@ void PARTICLEENGINE::ParticleEngine::store_positions_after_particle_transfer()
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::relate_owned_particles_to_bins()
+void Particle::ParticleEngine::relate_owned_particles_to_bins()
 {
   // clear vector relating (owned and ghosted) particles to col bins
   particlestobins_.resize(bincolmap_->num_my_elements());
@@ -2067,7 +2067,7 @@ void PARTICLEENGINE::ParticleEngine::relate_owned_particles_to_bins()
   validownedparticles_ = true;
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_min_relevant_bin_size()
+void Particle::ParticleEngine::determine_min_relevant_bin_size()
 {
   // get number of bins in all spatial directions
   const auto binperdir = binstrategy_->bin_per_dir();
@@ -2083,7 +2083,7 @@ void PARTICLEENGINE::ParticleEngine::determine_min_relevant_bin_size()
     if (binperdir[i] > 1) minbinsize_ = std::min(minbinsize_, binsize[i]);
 }
 
-void PARTICLEENGINE::ParticleEngine::determine_bin_weights()
+void Particle::ParticleEngine::determine_bin_weights()
 {
   // safety check
   if (not validownedparticles_) FOUR_C_THROW("invalid relation of owned particles to bins!");
@@ -2106,7 +2106,7 @@ void PARTICLEENGINE::ParticleEngine::determine_bin_weights()
   }
 }
 
-void PARTICLEENGINE::ParticleEngine::invalidate_particle_safety_flags()
+void Particle::ParticleEngine::invalidate_particle_safety_flags()
 {
   validownedparticles_ = false;
   validghostedparticles_ = false;

@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief smart particle container class
@@ -420,7 +420,7 @@ namespace PARTICLEENGINE
     std::vector<int> statedim_;
   };
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -31,7 +31,7 @@ namespace Core::IO
   class DiscretizationReader;
 }
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
@@ -39,27 +39,25 @@ namespace PARTICLEENGINE
 /*---------------------------------------------------------------------------*
  | type definitions                                                          |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
-  using TouchedDEMHistoryPairTangential =
-      std::pair<bool, ParticleInteraction::DEMHistoryPairTangential>;
+  using TouchedDEMHistoryPairTangential = std::pair<bool, Particle::DEMHistoryPairTangential>;
   using DEMHistoryPairTangentialData =
       std::unordered_map<int, std::unordered_map<int, TouchedDEMHistoryPairTangential>>;
 
-  using TouchedDEMHistoryPairRolling = std::pair<bool, ParticleInteraction::DEMHistoryPairRolling>;
+  using TouchedDEMHistoryPairRolling = std::pair<bool, Particle::DEMHistoryPairRolling>;
   using DEMHistoryPairRollingData =
       std::unordered_map<int, std::unordered_map<int, TouchedDEMHistoryPairRolling>>;
 
-  using TouchedDEMHistoryPairAdhesion =
-      std::pair<bool, ParticleInteraction::DEMHistoryPairAdhesion>;
+  using TouchedDEMHistoryPairAdhesion = std::pair<bool, Particle::DEMHistoryPairAdhesion>;
   using DEMHistoryPairAdhesionData =
       std::unordered_map<int, std::unordered_map<int, TouchedDEMHistoryPairAdhesion>>;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMHistoryPairs final
   {
@@ -71,8 +69,7 @@ namespace ParticleInteraction
     void init();
 
     //! setup history pair handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     //! write restart of history pair handler
     void write_restart() const;
@@ -177,10 +174,10 @@ namespace ParticleInteraction
     DEMHistoryPairAdhesionData particlewalladhesionhistorydata_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

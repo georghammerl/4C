@@ -40,8 +40,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEALGORITHM::ParticleAlgorithm::ParticleAlgorithm(
-    MPI_Comm comm, const Teuchos::ParameterList& params)
+Particle::ParticleAlgorithm::ParticleAlgorithm(MPI_Comm comm, const Teuchos::ParameterList& params)
     : AlgorithmBase(comm, params),
       myrank_(Core::Communication::my_mpi_rank(comm)),
       params_(params),
@@ -56,10 +55,9 @@ PARTICLEALGORITHM::ParticleAlgorithm::ParticleAlgorithm(
   // empty constructor
 }
 
-PARTICLEALGORITHM::ParticleAlgorithm::~ParticleAlgorithm() = default;
+Particle::ParticleAlgorithm::~ParticleAlgorithm() = default;
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init(
-    std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& initialparticles)
+void Particle::ParticleAlgorithm::init(std::vector<Particle::ParticleObjShrdPtr>& initialparticles)
 {
   // init particle engine
   init_particle_engine();
@@ -89,7 +87,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::init(
   initialparticles.clear();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::setup()
+void Particle::ParticleAlgorithm::setup()
 {
   // generate initial particles
   if (not isrestarted_) generate_initial_particles();
@@ -146,7 +144,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::setup()
   if (not isrestarted_) write_output();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::read_restart(const int restartstep)
+void Particle::ParticleAlgorithm::read_restart(const int restartstep)
 {
   // clear vector of particles to be distributed
   particlestodistribute_.clear();
@@ -186,7 +184,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::read_restart(const int restartstep)
                    << Core::IO::endl;
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::timeloop()
+void Particle::ParticleAlgorithm::timeloop()
 {
   // time loop
   while (not_finished())
@@ -211,7 +209,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::timeloop()
   }
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::prepare_time_step(bool do_print_header)
+void Particle::ParticleAlgorithm::prepare_time_step(bool do_print_header)
 {
   // increment time and step
   increment_time_and_step();
@@ -233,13 +231,13 @@ void PARTICLEALGORITHM::ParticleAlgorithm::prepare_time_step(bool do_print_heade
   set_current_write_result_flag();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::pre_evaluate_time_step()
+void Particle::ParticleAlgorithm::pre_evaluate_time_step()
 {
   // pre evaluate time step
   if (particleinteraction_) particleinteraction_->pre_evaluate_time_step();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::integrate_time_step()
+void Particle::ParticleAlgorithm::integrate_time_step()
 {
   // time integration scheme specific pre-interaction routine
   particletimint_->pre_interaction_routine();
@@ -254,10 +252,10 @@ void PARTICLEALGORITHM::ParticleAlgorithm::integrate_time_step()
   particletimint_->post_interaction_routine();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::post_evaluate_time_step()
+void Particle::ParticleAlgorithm::post_evaluate_time_step()
 {
   // post evaluate time step
-  std::vector<PARTICLEENGINE::ParticleTypeToType> particlesfromphasetophase;
+  std::vector<Particle::ParticleTypeToType> particlesfromphasetophase;
   if (particleinteraction_)
     particleinteraction_->post_evaluate_time_step(particlesfromphasetophase);
 
@@ -275,9 +273,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::post_evaluate_time_step()
   }
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::write_output() const
+void Particle::ParticleAlgorithm::write_output() const
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEALGORITHM::ParticleAlgorithm::WriteOutput");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::WriteOutput");
 
   // write result step
   if (writeresultsthisstep_)
@@ -300,9 +298,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::write_output() const
   }
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::write_restart() const
+void Particle::ParticleAlgorithm::write_restart() const
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEALGORITHM::ParticleAlgorithm::write_restart");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::write_restart");
 
   // write restart step
   if (writerestartthisstep_)
@@ -328,7 +326,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::write_restart() const
 }
 
 std::vector<std::shared_ptr<Core::Utils::ResultTest>>
-PARTICLEALGORITHM::ParticleAlgorithm::create_result_tests()
+Particle::ParticleAlgorithm::create_result_tests()
 {
   // build global id to local index map
   particleengine_->build_global_id_to_local_index_map();
@@ -339,8 +337,8 @@ PARTICLEALGORITHM::ParticleAlgorithm::create_result_tests()
   // particle result test
   {
     // create and init particle result test
-    std::shared_ptr<PARTICLEALGORITHM::ParticleResultTest> particleresulttest =
-        std::make_shared<PARTICLEALGORITHM::ParticleResultTest>();
+    std::shared_ptr<Particle::ParticleResultTest> particleresulttest =
+        std::make_shared<Particle::ParticleResultTest>();
     particleresulttest->init();
 
     // setup particle result test
@@ -353,8 +351,8 @@ PARTICLEALGORITHM::ParticleAlgorithm::create_result_tests()
   if (particlewall_)
   {
     // create and init wall result test
-    std::shared_ptr<PARTICLEWALL::WallResultTest> wallresulttest =
-        std::make_shared<PARTICLEWALL::WallResultTest>();
+    std::shared_ptr<Particle::WallResultTest> wallresulttest =
+        std::make_shared<Particle::WallResultTest>();
     wallresulttest->init();
 
     // setup wall result test
@@ -366,8 +364,8 @@ PARTICLEALGORITHM::ParticleAlgorithm::create_result_tests()
   if (particlerigidbody_)
   {
     // create and init rigid body result test
-    std::shared_ptr<ParticleRigidBody::RigidBodyResultTest> rigidbodyresulttest =
-        std::make_shared<ParticleRigidBody::RigidBodyResultTest>();
+    std::shared_ptr<Particle::RigidBodyResultTest> rigidbodyresulttest =
+        std::make_shared<Particle::RigidBodyResultTest>();
     rigidbodyresulttest->init();
 
     // setup rigid body result test
@@ -379,36 +377,35 @@ PARTICLEALGORITHM::ParticleAlgorithm::create_result_tests()
   return allresulttests;
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_engine()
+void Particle::ParticleAlgorithm::init_particle_engine()
 {
   // create and init particle engine
-  particleengine_ = std::make_shared<PARTICLEENGINE::ParticleEngine>(get_comm(), params_);
+  particleengine_ = std::make_shared<Particle::ParticleEngine>(get_comm(), params_);
   particleengine_->init();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_wall()
+void Particle::ParticleAlgorithm::init_particle_wall()
 {
   // get type of particle wall source
   auto particlewallsource =
-      Teuchos::getIntegralValue<PARTICLE::ParticleWallSource>(params_, "PARTICLE_WALL_SOURCE");
+      Teuchos::getIntegralValue<Particle::ParticleWallSource>(params_, "PARTICLE_WALL_SOURCE");
 
   // create particle wall handler
   switch (particlewallsource)
   {
-    case PARTICLE::NoParticleWall:
+    case Particle::NoParticleWall:
     {
-      particlewall_ = std::shared_ptr<PARTICLEWALL::WallHandlerBase>(nullptr);
+      particlewall_ = std::shared_ptr<Particle::WallHandlerBase>(nullptr);
       break;
     }
-    case PARTICLE::DiscretCondition:
+    case Particle::DiscretCondition:
     {
-      particlewall_ =
-          std::make_shared<PARTICLEWALL::WallHandlerDiscretCondition>(get_comm(), params_);
+      particlewall_ = std::make_shared<Particle::WallHandlerDiscretCondition>(get_comm(), params_);
       break;
     }
-    case PARTICLE::BoundingBox:
+    case Particle::BoundingBox:
     {
-      particlewall_ = std::make_shared<PARTICLEWALL::WallHandlerBoundingBox>(get_comm(), params_);
+      particlewall_ = std::make_shared<Particle::WallHandlerBoundingBox>(get_comm(), params_);
       break;
     }
     default:
@@ -422,34 +419,34 @@ void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_wall()
   if (particlewall_) particlewall_->init(particleengine_->get_binning_strategy());
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_rigid_body()
+void Particle::ParticleAlgorithm::init_particle_rigid_body()
 {
   // create rigid body handler
   if (params_.get<bool>("RIGID_BODY_MOTION"))
-    particlerigidbody_ = std::make_shared<ParticleRigidBody::RigidBodyHandler>(get_comm(), params_);
+    particlerigidbody_ = std::make_shared<Particle::RigidBodyHandler>(get_comm(), params_);
 
   // init rigid body handler
   if (particlerigidbody_) particlerigidbody_->init();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_time_integration()
+void Particle::ParticleAlgorithm::init_particle_time_integration()
 {
   // get particle time integration scheme
-  auto timinttype = Teuchos::getIntegralValue<PARTICLE::DynamicType>(params_, "DYNAMICTYPE");
+  auto timinttype = Teuchos::getIntegralValue<Particle::DynamicType>(params_, "DYNAMICTYPE");
 
   // create particle time integration
   switch (timinttype)
   {
-    case PARTICLE::dyna_semiimpliciteuler:
+    case Particle::dyna_semiimpliciteuler:
     {
-      particletimint_ = std::unique_ptr<PARTICLEALGORITHM::TimIntSemiImplicitEuler>(
-          new PARTICLEALGORITHM::TimIntSemiImplicitEuler(params_));
+      particletimint_ = std::unique_ptr<Particle::TimIntSemiImplicitEuler>(
+          new Particle::TimIntSemiImplicitEuler(params_));
       break;
     }
-    case PARTICLE::dyna_velocityverlet:
+    case Particle::dyna_velocityverlet:
     {
-      particletimint_ = std::unique_ptr<PARTICLEALGORITHM::TimIntVelocityVerlet>(
-          new PARTICLEALGORITHM::TimIntVelocityVerlet(params_));
+      particletimint_ = std::unique_ptr<Particle::TimIntVelocityVerlet>(
+          new Particle::TimIntVelocityVerlet(params_));
       break;
     }
     default:
@@ -463,30 +460,30 @@ void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_time_integration()
   particletimint_->init();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_interaction()
+void Particle::ParticleAlgorithm::init_particle_interaction()
 {
   // get particle interaction type
   auto interactiontype =
-      Teuchos::getIntegralValue<PARTICLE::InteractionType>(params_, "INTERACTION");
+      Teuchos::getIntegralValue<Particle::InteractionType>(params_, "INTERACTION");
 
   // create particle interaction handler
   switch (interactiontype)
   {
-    case PARTICLE::interaction_none:
+    case Particle::interaction_none:
     {
-      particleinteraction_ = std::unique_ptr<ParticleInteraction::ParticleInteractionBase>(nullptr);
+      particleinteraction_ = std::unique_ptr<Particle::ParticleInteractionBase>(nullptr);
       break;
     }
-    case PARTICLE::interaction_sph:
+    case Particle::interaction_sph:
     {
-      particleinteraction_ = std::unique_ptr<ParticleInteraction::ParticleInteractionSPH>(
-          new ParticleInteraction::ParticleInteractionSPH(get_comm(), params_));
+      particleinteraction_ = std::unique_ptr<Particle::ParticleInteractionSPH>(
+          new Particle::ParticleInteractionSPH(get_comm(), params_));
       break;
     }
-    case PARTICLE::interaction_dem:
+    case Particle::interaction_dem:
     {
-      particleinteraction_ = std::unique_ptr<ParticleInteraction::ParticleInteractionDEM>(
-          new ParticleInteraction::ParticleInteractionDEM(get_comm(), params_));
+      particleinteraction_ = std::unique_ptr<Particle::ParticleInteractionDEM>(
+          new Particle::ParticleInteractionDEM(get_comm(), params_));
       break;
     }
     default:
@@ -500,7 +497,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_interaction()
   if (particleinteraction_) particleinteraction_->init();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_gravity()
+void Particle::ParticleAlgorithm::init_particle_gravity()
 {
   // init gravity acceleration vector
   std::vector<double> gravity;
@@ -522,71 +519,69 @@ void PARTICLEALGORITHM::ParticleAlgorithm::init_particle_gravity()
 
   // create particle gravity handler
   if (gravity_norm > 0.0)
-    particlegravity_ = std::unique_ptr<PARTICLEALGORITHM::GravityHandler>(
-        new PARTICLEALGORITHM::GravityHandler(params_));
+    particlegravity_ =
+        std::unique_ptr<Particle::GravityHandler>(new Particle::GravityHandler(params_));
 
   // init particle gravity handler
   if (particlegravity_) particlegravity_->init(gravity);
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::init_viscous_damping()
+void Particle::ParticleAlgorithm::init_viscous_damping()
 {
   // get viscous damping factor
   const double viscdampfac = params_.get<double>("VISCOUS_DAMPING");
 
   // create viscous damping handler
   if (viscdampfac > 0.0)
-    viscousdamping_ = std::unique_ptr<PARTICLEALGORITHM::ViscousDampingHandler>(
-        new PARTICLEALGORITHM::ViscousDampingHandler(viscdampfac));
+    viscousdamping_ = std::unique_ptr<Particle::ViscousDampingHandler>(
+        new Particle::ViscousDampingHandler(viscdampfac));
 
   // init viscous damping handler
   if (viscousdamping_) viscousdamping_->init();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::generate_initial_particles()
+void Particle::ParticleAlgorithm::generate_initial_particles()
 {
   // create and init particle input generator
-  std::unique_ptr<PARTICLEALGORITHM::InputGenerator> particleinputgenerator =
-      std::unique_ptr<PARTICLEALGORITHM::InputGenerator>(
-          new PARTICLEALGORITHM::InputGenerator(get_comm(), params_));
+  std::unique_ptr<Particle::InputGenerator> particleinputgenerator =
+      std::unique_ptr<Particle::InputGenerator>(new Particle::InputGenerator(get_comm(), params_));
   particleinputgenerator->init();
 
   // generate particles
   particleinputgenerator->generate_particles(particlestodistribute_);
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::determine_particle_types()
+void Particle::ParticleAlgorithm::determine_particle_types()
 {
   // init map relating particle types to dynamic load balance factor
-  std::map<PARTICLEENGINE::TypeEnum, double> typetodynloadbal;
+  std::map<Particle::TypeEnum, double> typetodynloadbal;
 
   // read parameters relating particle types to values
-  PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
+  Particle::Utils::read_params_types_related_to_values(
       params_, "PHASE_TO_DYNLOADBALFAC", typetodynloadbal);
 
   // insert into map of particle types and corresponding states with empty set
   for (auto& typeIt : typetodynloadbal)
-    particlestatestotypes_.insert(
-        std::make_pair(typeIt.first, std::set<PARTICLEENGINE::StateEnum>()));
+    particlestatestotypes_.insert(std::make_pair(typeIt.first, std::set<Particle::StateEnum>()));
 
   // safety check
   for (auto& particle : particlestodistribute_)
     if (not particlestatestotypes_.count(particle->return_particle_type()))
       FOUR_C_THROW("particle type '{}' of initial particle not defined!",
-          PARTICLEENGINE::enum_to_type_name(particle->return_particle_type()));
+          Particle::enum_to_type_name(particle->return_particle_type()));
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::determine_particle_states_of_particle_types()
+void Particle::ParticleAlgorithm::determine_particle_states_of_particle_types()
 {
   // iterate over particle types
   for (auto& typeIt : particlestatestotypes_)
   {
     // set of particle states for current particle type
-    std::set<PARTICLEENGINE::StateEnum>& particlestates = typeIt.second;
+    std::set<Particle::StateEnum>& particlestates = typeIt.second;
 
     // insert default particle states
-    particlestates.insert({PARTICLEENGINE::Position, PARTICLEENGINE::Velocity,
-        PARTICLEENGINE::Acceleration, PARTICLEENGINE::LastTransferPosition});
+    particlestates.insert({Particle::Position, Particle::Velocity, Particle::Acceleration,
+        Particle::LastTransferPosition});
   }
 
   // insert integration dependent states of all particle types
@@ -605,7 +600,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::determine_particle_states_of_particle
     particlerigidbody_->insert_particle_states_of_particle_types(particlestatestotypes_);
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_particles()
+void Particle::ParticleAlgorithm::setup_initial_particles()
 {
   // get unique global ids for all particles
   if (not isrestarted_)
@@ -621,7 +616,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_particles()
   if (particleinteraction_) particleinteraction_->distribute_interaction_history();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_rigid_bodies()
+void Particle::ParticleAlgorithm::setup_initial_rigid_bodies()
 {
   // set initial affiliation pair data
   if (not isrestarted_) particlerigidbody_->set_initial_affiliation_pair_data();
@@ -636,7 +631,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_rigid_bodies()
   particlerigidbody_->distribute_rigid_body();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_states()
+void Particle::ParticleAlgorithm::setup_initial_states()
 {
   // set initial states
   if (particleinteraction_) particleinteraction_->set_initial_states();
@@ -667,9 +662,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::setup_initial_states()
   }
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::update_connectivity()
+void Particle::ParticleAlgorithm::update_connectivity()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEALGORITHM::ParticleAlgorithm::update_connectivity");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::update_connectivity");
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   // check number of unique global ids
@@ -707,7 +702,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::update_connectivity()
   }
 }
 
-bool PARTICLEALGORITHM::ParticleAlgorithm::check_load_transfer_needed()
+bool Particle::ParticleAlgorithm::check_load_transfer_needed()
 {
   bool transferload = transferevery_ or writeresultsthisstep_ or writerestartthisstep_;
 
@@ -727,7 +722,7 @@ bool PARTICLEALGORITHM::ParticleAlgorithm::check_load_transfer_needed()
   return transferload;
 }
 
-bool PARTICLEALGORITHM::ParticleAlgorithm::check_max_position_increment()
+bool Particle::ParticleAlgorithm::check_max_position_increment()
 {
   // get maximum particle interaction distance
   double allprocmaxinteractiondistance = 0.0;
@@ -759,22 +754,22 @@ bool PARTICLEALGORITHM::ParticleAlgorithm::check_max_position_increment()
   return (maxpositionincrement > allowedpositionincrement);
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::get_max_particle_position_increment(
+void Particle::ParticleAlgorithm::get_max_particle_position_increment(
     double& allprocmaxpositionincrement)
 {
   // maximum position increment since last particle transfer
   double maxpositionincrement = 0.0;
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengine_->get_particle_container_bundle();
 
   // iterate over particle types
   for (auto& typeEnum : particlecontainerbundle->get_particle_types())
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container =
-        particlecontainerbundle->get_specific_container(typeEnum, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container =
+        particlecontainerbundle->get_specific_container(typeEnum, Particle::Owned);
 
     // get number of particles stored in container
     const int particlestored = container->particles_stored();
@@ -783,7 +778,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::get_max_particle_position_increment(
     if (particlestored == 0) continue;
 
     // get particle state dimension
-    int statedim = container->get_state_dim(PARTICLEENGINE::Position);
+    int statedim = container->get_state_dim(Particle::Position);
 
     // position increment of particle
     double positionincrement[3];
@@ -792,9 +787,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::get_max_particle_position_increment(
     for (int i = 0; i < particlestored; ++i)
     {
       // get pointer to particle states
-      const double* pos = container->get_ptr_to_state(PARTICLEENGINE::Position, i);
+      const double* pos = container->get_ptr_to_state(Particle::Position, i);
       const double* lasttransferpos =
-          container->get_ptr_to_state(PARTICLEENGINE::LastTransferPosition, i);
+          container->get_ptr_to_state(Particle::LastTransferPosition, i);
 
       // position increment of particle considering periodic boundaries
       particleengine_->distance_between_particles(pos, lasttransferpos, positionincrement);
@@ -813,9 +808,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::get_max_particle_position_increment(
   allprocmaxpositionincrement = Core::Communication::max_all(maxpositionincrement, get_comm());
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::transfer_load_between_procs()
+void Particle::ParticleAlgorithm::transfer_load_between_procs()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEALGORITHM::ParticleAlgorithm::transfer_load_between_procs");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::transfer_load_between_procs");
 
   // transfer particles to new bins and processors
   particleengine_->transfer_particles();
@@ -834,7 +829,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::transfer_load_between_procs()
     Core::IO::cout(Core::IO::verbose) << "transfer load in step " << step() << Core::IO::endl;
 }
 
-bool PARTICLEALGORITHM::ParticleAlgorithm::check_load_redistribution_needed()
+bool Particle::ParticleAlgorithm::check_load_redistribution_needed()
 {
   bool redistributeload = writerestartthisstep_;
 
@@ -861,9 +856,9 @@ bool PARTICLEALGORITHM::ParticleAlgorithm::check_load_redistribution_needed()
   return redistributeload;
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::distribute_load_among_procs()
+void Particle::ParticleAlgorithm::distribute_load_among_procs()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEALGORITHM::ParticleAlgorithm::distribute_load_among_procs");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::distribute_load_among_procs");
 
   // dynamic load balancing
   particleengine_->dynamic_load_balancing();
@@ -892,10 +887,9 @@ void PARTICLEALGORITHM::ParticleAlgorithm::distribute_load_among_procs()
     Core::IO::cout(Core::IO::verbose) << "distribute load in step " << step() << Core::IO::endl;
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::build_potential_neighbor_relation()
+void Particle::ParticleAlgorithm::build_potential_neighbor_relation()
 {
-  TEUCHOS_FUNC_TIME_MONITOR(
-      "PARTICLEALGORITHM::ParticleAlgorithm::build_potential_neighbor_relation");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::ParticleAlgorithm::build_potential_neighbor_relation");
 
   // build particle to particle neighbors
   particleengine_->build_particle_to_particle_neighbors();
@@ -910,12 +904,11 @@ void PARTICLEALGORITHM::ParticleAlgorithm::build_potential_neighbor_relation()
   }
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::set_initial_conditions()
+void Particle::ParticleAlgorithm::set_initial_conditions()
 {
   // create and init particle initial field handler
-  std::unique_ptr<PARTICLEALGORITHM::InitialFieldHandler> initialfield =
-      std::unique_ptr<PARTICLEALGORITHM::InitialFieldHandler>(
-          new PARTICLEALGORITHM::InitialFieldHandler(params_));
+  std::unique_ptr<Particle::InitialFieldHandler> initialfield =
+      std::unique_ptr<Particle::InitialFieldHandler>(new Particle::InitialFieldHandler(params_));
   initialfield->init();
 
   // setup particle initial field handler
@@ -928,7 +921,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::set_initial_conditions()
   if (particlerigidbody_) particlerigidbody_->set_initial_conditions();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::set_current_time()
+void Particle::ParticleAlgorithm::set_current_time()
 {
   // set current time in particle time integration
   particletimint_->set_current_time(time());
@@ -937,20 +930,20 @@ void PARTICLEALGORITHM::ParticleAlgorithm::set_current_time()
   if (particleinteraction_) particleinteraction_->set_current_time(time());
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::set_current_step_size()
+void Particle::ParticleAlgorithm::set_current_step_size()
 {
   // set current step size in particle interaction
   if (particleinteraction_) particleinteraction_->set_current_step_size(dt());
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::set_current_write_result_flag()
+void Particle::ParticleAlgorithm::set_current_write_result_flag()
 {
   // set current write result flag in particle interaction
   if (particleinteraction_)
     particleinteraction_->set_current_write_result_flag(writeresultsthisstep_);
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::evaluate_time_step()
+void Particle::ParticleAlgorithm::evaluate_time_step()
 {
   // clear forces and torques
   if (particlerigidbody_) particlerigidbody_->clear_forces_and_torques();
@@ -968,7 +961,7 @@ void PARTICLEALGORITHM::ParticleAlgorithm::evaluate_time_step()
   if (particlerigidbody_ and particleinteraction_) particlerigidbody_->compute_accelerations();
 }
 
-void PARTICLEALGORITHM::ParticleAlgorithm::set_gravity_acceleration()
+void Particle::ParticleAlgorithm::set_gravity_acceleration()
 {
   std::vector<double> scaled_gravity(3);
 
@@ -976,23 +969,21 @@ void PARTICLEALGORITHM::ParticleAlgorithm::set_gravity_acceleration()
   particlegravity_->get_gravity_acceleration(time(), scaled_gravity);
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengine_->get_particle_container_bundle();
 
   // iterate over particle types
   for (auto& typeEnum : particlecontainerbundle->get_particle_types())
   {
     // gravity is not set for boundary or rigid particles
-    if (typeEnum == PARTICLEENGINE::BoundaryPhase or typeEnum == PARTICLEENGINE::RigidPhase)
-      continue;
+    if (typeEnum == Particle::BoundaryPhase or typeEnum == Particle::RigidPhase) continue;
 
     // gravity is not set for open boundary particles
-    if (typeEnum == PARTICLEENGINE::DirichletPhase or typeEnum == PARTICLEENGINE::NeumannPhase)
-      continue;
+    if (typeEnum == Particle::DirichletPhase or typeEnum == Particle::NeumannPhase) continue;
 
     // set gravity acceleration for all particles of current type
     particlecontainerbundle->set_state_specific_container(
-        scaled_gravity, PARTICLEENGINE::Acceleration, typeEnum);
+        scaled_gravity, Particle::Acceleration, typeEnum);
   }
 
   // add gravity acceleration

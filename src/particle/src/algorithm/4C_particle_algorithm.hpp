@@ -24,24 +24,24 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   class TimInt;
   class GravityHandler;
   class ViscousDampingHandler;
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class ParticleInteractionBase;
 }
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleObject;
 }
 
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyHandler;
 }
@@ -54,7 +54,7 @@ namespace Discret
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   /*!
    * \brief algorithm to control particle simulations
@@ -98,7 +98,7 @@ namespace PARTICLEALGORITHM
      *
      * \param[in] initialparticles particle objects read in from restart
      */
-    void init(std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& initialparticles);
+    void init(std::vector<Particle::ParticleObjShrdPtr>& initialparticles);
 
     /*!
      * \brief setup particle algorithm
@@ -179,7 +179,7 @@ namespace PARTICLEALGORITHM
      *
      * \return interface to particle engine
      */
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> get_particle_engine_interface() const
+    std::shared_ptr<Particle::ParticleEngineInterface> get_particle_engine_interface() const
     {
       return particleengine_;
     }
@@ -190,7 +190,7 @@ namespace PARTICLEALGORITHM
      *
      * \return interface to particle wall handler
      */
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> get_particle_wall_handler_interface() const
+    std::shared_ptr<Particle::WallHandlerInterface> get_particle_wall_handler_interface() const
     {
       return particlewall_;
     }
@@ -395,31 +395,31 @@ namespace PARTICLEALGORITHM
     const Teuchos::ParameterList& params_;
 
     //! particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngine> particleengine_;
+    std::shared_ptr<Particle::ParticleEngine> particleengine_;
 
     //! particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerBase> particlewall_;
+    std::shared_ptr<Particle::WallHandlerBase> particlewall_;
 
     //! rigid body handler
-    std::shared_ptr<ParticleRigidBody::RigidBodyHandler> particlerigidbody_;
+    std::shared_ptr<Particle::RigidBodyHandler> particlerigidbody_;
 
     //! particle time integration
-    std::unique_ptr<PARTICLEALGORITHM::TimInt> particletimint_;
+    std::unique_ptr<Particle::TimInt> particletimint_;
 
     //! particle interaction
-    std::unique_ptr<ParticleInteraction::ParticleInteractionBase> particleinteraction_;
+    std::unique_ptr<Particle::ParticleInteractionBase> particleinteraction_;
 
     //! particle gravity handler
-    std::unique_ptr<PARTICLEALGORITHM::GravityHandler> particlegravity_;
+    std::unique_ptr<Particle::GravityHandler> particlegravity_;
 
     //! particle viscous damping handler
-    std::unique_ptr<PARTICLEALGORITHM::ViscousDampingHandler> viscousdamping_;
+    std::unique_ptr<Particle::ViscousDampingHandler> viscousdamping_;
 
     //! map of particle types and corresponding states
-    std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>> particlestatestotypes_;
+    std::map<Particle::TypeEnum, std::set<Particle::StateEnum>> particlestatestotypes_;
 
     //! vector of initial or generated particles to distribute
-    std::vector<PARTICLEENGINE::ParticleObjShrdPtr> particlestodistribute_;
+    std::vector<Particle::ParticleObjShrdPtr> particlestodistribute_;
 
     //! number of particles on this processor after last load balance
     int numparticlesafterlastloadbalance_;
@@ -443,7 +443,7 @@ namespace PARTICLEALGORITHM
     bool isrestarted_;
   };
 
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -279,7 +279,7 @@ namespace
       << BeamInteraction::BeamLinkBeam3rLine2RigidJointedType::instance().name() << " "
       << BeamInteraction::BeamLinkBeam3rLine2PinJointedType::instance().name() << " "
       << BeamInteraction::BeamLinkTrussType::instance().name() << " "
-      << PARTICLEENGINE::ParticleObjectType::instance().name() << " "
+      << Particle::ParticleObjectType::instance().name() << " "
       << MultiScale::MicroStaticParObjectType::instance().name() << " ";
   }
 

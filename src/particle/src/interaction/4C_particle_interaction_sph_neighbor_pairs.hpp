@@ -22,18 +22,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
 }
@@ -41,18 +41,18 @@ namespace ParticleInteraction
 /*---------------------------------------------------------------------------*
  | type definitions                                                          |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
-  using SPHParticlePairData = std::vector<ParticleInteraction::SPHParticlePair>;
-  using SPHParticleWallPairData = std::vector<ParticleInteraction::SPHParticleWallPair>;
+  using SPHParticlePairData = std::vector<Particle::SPHParticlePair>;
+  using SPHParticleWallPairData = std::vector<Particle::SPHParticleWallPair>;
   using SPHIndexOfParticlePairs = std::vector<std::vector<std::vector<int>>>;
   using SPHIndexOfParticleWallPairs = std::vector<std::vector<int>>;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHNeighborPairs final
   {
@@ -64,10 +64,9 @@ namespace ParticleInteraction
     void init();
 
     //! setup neighbor pair handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel);
 
     //! get reference to particle pair data
     inline const SPHParticlePairData& get_ref_to_particle_pair_data() const
@@ -83,16 +82,16 @@ namespace ParticleInteraction
 
     //! get relevant particle pair indices for disjoint combination of particle types
     void get_relevant_particle_pair_indices_for_disjoint_combination(
-        const std::set<PARTICLEENGINE::TypeEnum>& types_a,
-        const std::set<PARTICLEENGINE::TypeEnum>& types_b, std::vector<int>& relindices) const;
+        const std::set<Particle::TypeEnum>& types_a, const std::set<Particle::TypeEnum>& types_b,
+        std::vector<int>& relindices) const;
 
     //! get relevant particle pair indices for equal combination of particle types
     void get_relevant_particle_pair_indices_for_equal_combination(
-        const std::set<PARTICLEENGINE::TypeEnum>& types_a, std::vector<int>& relindices) const;
+        const std::set<Particle::TypeEnum>& types_a, std::vector<int>& relindices) const;
 
     //! get relevant particle wall pair indices for specific particle types
     void get_relevant_particle_wall_pair_indices(
-        const std::set<PARTICLEENGINE::TypeEnum>& types_a, std::vector<int>& relindices) const;
+        const std::set<Particle::TypeEnum>& types_a, std::vector<int>& relindices) const;
 
     //! evaluate neighbor pairs
     void evaluate_neighbor_pairs();
@@ -117,19 +116,19 @@ namespace ParticleInteraction
     SPHIndexOfParticleWallPairs indexofparticlewallpairs_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

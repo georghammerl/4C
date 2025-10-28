@@ -28,7 +28,7 @@ namespace Core::FE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   /*!
    * \brief wall data state container
@@ -174,7 +174,7 @@ namespace PARTICLEWALL
     //! @}
   };
 
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

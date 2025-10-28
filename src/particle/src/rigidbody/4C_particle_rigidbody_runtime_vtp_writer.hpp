@@ -27,7 +27,7 @@ namespace Core::IO
   class DiscretizationReader;
 }  // namespace Core::IO
 
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyDataState;
 }
@@ -35,7 +35,7 @@ namespace ParticleRigidBody
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   /*!
    * \brief rigid body runtime vtp writer class
@@ -60,7 +60,7 @@ namespace ParticleRigidBody
      *
      * \param[in] rigidbodydatastate rigid body data state container
      */
-    void init(const std::shared_ptr<ParticleRigidBody::RigidBodyDataState> rigidbodydatastate);
+    void init(const std::shared_ptr<Particle::RigidBodyDataState> rigidbodydatastate);
 
     /*!
      * \brief read restart of runtime vtp writer
@@ -93,13 +93,13 @@ namespace ParticleRigidBody
     double setuptime_;
 
     //! rigid body data state container
-    std::shared_ptr<ParticleRigidBody::RigidBodyDataState> rigidbodydatastate_;
+    std::shared_ptr<Particle::RigidBodyDataState> rigidbodydatastate_;
 
     //! visualization manager
     std::shared_ptr<Core::IO::VisualizationManager> visualization_manager_;
   };
 
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

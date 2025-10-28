@@ -31,7 +31,7 @@ namespace Core::FE
   class Discretization;
 }  // namespace Core::FE
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallDataState;
 }
@@ -39,7 +39,7 @@ namespace PARTICLEWALL
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   /*!
    * \brief interface to provide restricted access to particle wall handler
@@ -72,7 +72,7 @@ namespace PARTICLEWALL
      *
      * \return wall data state container
      */
-    virtual std::shared_ptr<PARTICLEWALL::WallDataState> get_wall_data_state() const = 0;
+    virtual std::shared_ptr<Particle::WallDataState> get_wall_data_state() const = 0;
 
     /*!
      * \brief get reference to potential wall neighbors
@@ -80,7 +80,7 @@ namespace PARTICLEWALL
      *
      * \return potential particle wall neighbor pairs
      */
-    virtual const PARTICLEENGINE::PotentialWallNeighbors& get_potential_wall_neighbors() const = 0;
+    virtual const Particle::PotentialWallNeighbors& get_potential_wall_neighbors() const = 0;
 
     /*!
      * \brief determine nodal positions of column wall element
@@ -93,7 +93,7 @@ namespace PARTICLEWALL
         std::map<int, Core::LinAlg::Matrix<3, 1>>& colelenodalpos) const = 0;
   };
 
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

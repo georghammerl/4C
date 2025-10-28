@@ -24,21 +24,21 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHHeatSourceBase::SPHHeatSourceBase(const Teuchos::ParameterList& params)
+Particle::SPHHeatSourceBase::SPHHeatSourceBase(const Teuchos::ParameterList& params)
     : params_sph_(params), heatsourcefctnumber_(params.get<int>("HEATSOURCE_FUNCT"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHHeatSourceBase::init()
+void Particle::SPHHeatSourceBase::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHHeatSourceBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHHeatSourceBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -64,8 +64,8 @@ void ParticleInteraction::SPHHeatSourceBase::setup(
         particlematerial_->get_ptr_to_particle_mat_parameter(type_i));
 
   // set of potential absorbing particle types
-  std::set<PARTICLEENGINE::TypeEnum> potentialabsorbingtypes = {
-      PARTICLEENGINE::Phase1, PARTICLEENGINE::Phase2, PARTICLEENGINE::RigidPhase};
+  std::set<Particle::TypeEnum> potentialabsorbingtypes = {
+      Particle::Phase1, Particle::Phase2, Particle::RigidPhase};
 
   // iterate over particle types
   for (const auto& type_i : particlecontainerbundle_->get_particle_types())
@@ -76,7 +76,7 @@ void ParticleInteraction::SPHHeatSourceBase::setup(
       // safety check
       if (not potentialabsorbingtypes.count(type_i))
         FOUR_C_THROW("thermal absorptivity for particles of type '{}' not possible!",
-            PARTICLEENGINE::enum_to_type_name(type_i));
+            Particle::enum_to_type_name(type_i));
 
       absorbingtypes_.insert(type_i);
     }
@@ -88,15 +88,15 @@ void ParticleInteraction::SPHHeatSourceBase::setup(
   }
 }
 
-ParticleInteraction::SPHHeatSourceVolume::SPHHeatSourceVolume(const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHHeatSourceBase(params)
+Particle::SPHHeatSourceVolume::SPHHeatSourceVolume(const Teuchos::ParameterList& params)
+    : Particle::SPHHeatSourceBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHHeatSourceVolume::evaluate_heat_source(const double& evaltime) const
+void Particle::SPHHeatSourceVolume::evaluate_heat_source(const double& evaltime) const
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::SPHHeatSourceVolume::EvaluateHeatSource");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHHeatSourceVolume::EvaluateHeatSource");
 
   // init vector containing evaluated function
   std::vector<double> funct(1);
@@ -114,8 +114,8 @@ void ParticleInteraction::SPHHeatSourceVolume::evaluate_heat_source(const double
   for (const auto& type_i : absorbingtypes_)
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container_i =
-        particlecontainerbundle_->get_specific_container(type_i, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container_i =
+        particlecontainerbundle_->get_specific_container(type_i, Particle::Owned);
 
     // get material for current particle type
     const Mat::PAR::ParticleMaterialBase* basematerial_i =
@@ -127,13 +127,12 @@ void ParticleInteraction::SPHHeatSourceVolume::evaluate_heat_source(const double
     for (int particle_i = 0; particle_i < container_i->particles_stored(); ++particle_i)
     {
       // get pointer to particle states
-      const double* dens_i =
-          (container_i->have_stored_state(PARTICLEENGINE::Density))
-              ? container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i)
-              : &(basematerial_i->initDensity_);
+      const double* dens_i = (container_i->have_stored_state(Particle::Density))
+                                 ? container_i->get_ptr_to_state(Particle::Density, particle_i)
+                                 : &(basematerial_i->initDensity_);
 
-      const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-      double* tempdot_i = container_i->get_ptr_to_state(PARTICLEENGINE::TemperatureDot, particle_i);
+      const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+      double* tempdot_i = container_i->get_ptr_to_state(Particle::TemperatureDot, particle_i);
 
       // evaluate function defining heat source
       funct = function.evaluate_time_derivative(std::span(pos_i, 3), evaltime, 0, 0);
@@ -145,14 +144,13 @@ void ParticleInteraction::SPHHeatSourceVolume::evaluate_heat_source(const double
   }
 }
 
-ParticleInteraction::SPHHeatSourceSurface::SPHHeatSourceSurface(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHHeatSourceBase(params), eval_direction_(false)
+Particle::SPHHeatSourceSurface::SPHHeatSourceSurface(const Teuchos::ParameterList& params)
+    : Particle::SPHHeatSourceBase(params), eval_direction_(false)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHHeatSourceSurface::init()
+void Particle::SPHHeatSourceSurface::init()
 {
   // call base class init
   SPHHeatSourceBase::init();
@@ -178,9 +176,9 @@ void ParticleInteraction::SPHHeatSourceSurface::init()
   }
 }
 
-void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const double& evaltime) const
+void Particle::SPHHeatSourceSurface::evaluate_heat_source(const double& evaltime) const
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::SPHHeatSourceSurface::EvaluateHeatSource");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHHeatSourceSurface::EvaluateHeatSource");
 
   // determine size of vectors indexed by particle types
   const int typevectorsize = *(--absorbingtypes_.end()) + 1;
@@ -192,8 +190,8 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
   for (const auto& type_i : absorbingtypes_)
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container_i =
-        particlecontainerbundle_->get_specific_container(type_i, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container_i =
+        particlecontainerbundle_->get_specific_container(type_i, Particle::Owned);
 
     // get number of particles stored in container
     const int particlestored = container_i->particles_stored();
@@ -214,21 +212,21 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get material for particle types
@@ -239,16 +237,16 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
         particlematerial_->get_ptr_to_particle_mat_parameter(type_j);
 
     // get pointer to particle states
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
 
-    const double* dens_i = container_i->have_stored_state(PARTICLEENGINE::Density)
-                               ? container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i)
+    const double* dens_i = container_i->have_stored_state(Particle::Density)
+                               ? container_i->get_ptr_to_state(Particle::Density, particle_i)
                                : &(material_i->initDensity_);
 
-    const double* mass_j = container_j->get_ptr_to_state(PARTICLEENGINE::Mass, particle_j);
+    const double* mass_j = container_j->get_ptr_to_state(Particle::Mass, particle_j);
 
-    const double* dens_j = container_j->have_stored_state(PARTICLEENGINE::Density)
-                               ? container_j->get_ptr_to_state(PARTICLEENGINE::Density, particle_j)
+    const double* dens_j = container_j->have_stored_state(Particle::Density)
+                               ? container_j->get_ptr_to_state(Particle::Density, particle_j)
                                : &(material_j->initDensity_);
 
     // (current) volume of particle i and j
@@ -266,7 +264,7 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
     }
 
     // evaluate contribution of neighboring particle i
-    if (absorbingtypes_.count(type_j) and status_j == PARTICLEENGINE::Owned)
+    if (absorbingtypes_.count(type_j) and status_j == Particle::Owned)
     {
       // sum contribution of neighboring particle i
       Utils::vec_add_scale(cfg_i[type_j][particle_j].data(),
@@ -290,8 +288,8 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
   for (const auto& type_i : absorbingtypes_)
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container_i =
-        particlecontainerbundle_->get_specific_container(type_i, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container_i =
+        particlecontainerbundle_->get_specific_container(type_i, Particle::Owned);
 
     // get material for current particle type
     const Mat::PAR::ParticleMaterialBase* basematerial_i =
@@ -317,13 +315,12 @@ void ParticleInteraction::SPHHeatSourceSurface::evaluate_heat_source(const doubl
       if (f_i_proj < 0.0) continue;
 
       // get pointer to particle states
-      const double* dens_i =
-          (container_i->have_stored_state(PARTICLEENGINE::Density))
-              ? container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i)
-              : &(basematerial_i->initDensity_);
+      const double* dens_i = (container_i->have_stored_state(Particle::Density))
+                                 ? container_i->get_ptr_to_state(Particle::Density, particle_i)
+                                 : &(basematerial_i->initDensity_);
 
-      const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-      double* tempdot_i = container_i->get_ptr_to_state(PARTICLEENGINE::TemperatureDot, particle_i);
+      const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+      double* tempdot_i = container_i->get_ptr_to_state(Particle::TemperatureDot, particle_i);
 
       // evaluate function defining heat source
       funct = function.evaluate_time_derivative(std::span(pos_i, 3), evaltime, 0, 0);

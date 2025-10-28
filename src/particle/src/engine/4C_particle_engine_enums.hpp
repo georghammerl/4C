@@ -22,7 +22,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | enum definitions                                                          |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   //! \name definition of particle states
   //! @{
@@ -211,7 +211,7 @@ namespace PARTICLEENGINE
 
   //! @}
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

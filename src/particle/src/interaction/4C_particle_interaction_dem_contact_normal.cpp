@@ -18,8 +18,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::DEMContactNormalBase::DEMContactNormalBase(
-    const Teuchos::ParameterList& params)
+Particle::DEMContactNormalBase::DEMContactNormalBase(const Teuchos::ParameterList& params)
     : params_dem_(params),
       r_max_(params_dem_.get<double>("MAX_RADIUS")),
       v_max_(params_dem_.get<double>("MAX_VELOCITY")),
@@ -30,7 +29,7 @@ ParticleInteraction::DEMContactNormalBase::DEMContactNormalBase(
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalBase::init()
+void Particle::DEMContactNormalBase::init()
 {
   if (not((c_ <= 0.0 and k_normal_ > 0.0) or (c_ > 0.0 and v_max_ > 0.0 and k_normal_ <= 0.0)))
     FOUR_C_THROW(
@@ -38,19 +37,19 @@ void ParticleInteraction::DEMContactNormalBase::init()
         "stiffness, but neither both nor none of them!");
 }
 
-void ParticleInteraction::DEMContactNormalBase::setup(const double& dens_max)
+void Particle::DEMContactNormalBase::setup(const double& dens_max)
 {
   // nothing to do
 }
 
-ParticleInteraction::DEMContactNormalLinearSpring::DEMContactNormalLinearSpring(
+Particle::DEMContactNormalLinearSpring::DEMContactNormalLinearSpring(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalBase(params)
+    : Particle::DEMContactNormalBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpring::setup(const double& dens_max)
+void Particle::DEMContactNormalLinearSpring::setup(const double& dens_max)
 {
   // call base class setup
   DEMContactNormalBase::setup(dens_max);
@@ -64,22 +63,22 @@ void ParticleInteraction::DEMContactNormalLinearSpring::setup(const double& dens
   k_normal_crit_ = k_normal_;
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpring::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalLinearSpring::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {
   normalcontactforce = k_normal_ * gap;
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpring::normal_potential_energy(
+void Particle::DEMContactNormalLinearSpring::normal_potential_energy(
     const double& gap, double& normalpotentialenergy) const
 {
   normalpotentialenergy = 0.5 * k_normal_ * Utils::pow<2>(gap);
 }
 
-ParticleInteraction::DEMContactNormalLinearSpringDamp::DEMContactNormalLinearSpringDamp(
+Particle::DEMContactNormalLinearSpringDamp::DEMContactNormalLinearSpringDamp(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalLinearSpring(params),
+    : Particle::DEMContactNormalLinearSpring(params),
       e_(params_dem_.get<double>("COEFF_RESTITUTION")),
       damp_reg_fac_(params_dem_.get<double>("DAMP_REG_FAC")),
       d_normal_fac_(0.0)
@@ -87,7 +86,7 @@ ParticleInteraction::DEMContactNormalLinearSpringDamp::DEMContactNormalLinearSpr
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpringDamp::init()
+void Particle::DEMContactNormalLinearSpringDamp::init()
 {
   // call base class init
   DEMContactNormalLinearSpring::init();
@@ -97,7 +96,7 @@ void ParticleInteraction::DEMContactNormalLinearSpringDamp::init()
     FOUR_C_THROW("invalid input parameter COEFF_RESTITUTION for this kind of contact law!");
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpringDamp::setup(const double& dens_max)
+void Particle::DEMContactNormalLinearSpringDamp::setup(const double& dens_max)
 {
   // call base class setup
   DEMContactNormalLinearSpring::setup(dens_max);
@@ -113,7 +112,7 @@ void ParticleInteraction::DEMContactNormalLinearSpringDamp::setup(const double& 
     d_normal_fac_ = 2.0 * std::sqrt(k_normal_);
 }
 
-void ParticleInteraction::DEMContactNormalLinearSpringDamp::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalLinearSpringDamp::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {
@@ -134,14 +133,14 @@ void ParticleInteraction::DEMContactNormalLinearSpringDamp::normal_contact_force
   normalcontactforce = (k_normal_ * gap) - (d_normal * v_rel_normal * reg_fac);
 }
 
-ParticleInteraction::DEMContactNormalNonlinearBase::DEMContactNormalNonlinearBase(
+Particle::DEMContactNormalNonlinearBase::DEMContactNormalNonlinearBase(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalBase(params)
+    : Particle::DEMContactNormalBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalNonlinearBase::setup(const double& dens_max)
+void Particle::DEMContactNormalNonlinearBase::setup(const double& dens_max)
 {
   // call base class setup
   DEMContactNormalBase::setup(dens_max);
@@ -162,35 +161,34 @@ void ParticleInteraction::DEMContactNormalNonlinearBase::setup(const double& den
             0.2);
 }
 
-void ParticleInteraction::DEMContactNormalNonlinearBase::normal_potential_energy(
+void Particle::DEMContactNormalNonlinearBase::normal_potential_energy(
     const double& gap, double& normalpotentialenergy) const
 {
   normalpotentialenergy = 0.4 * k_normal_ * Utils::pow<2>(gap) * std::sqrt(-gap);
 }
 
-ParticleInteraction::DEMContactNormalHertz::DEMContactNormalHertz(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalNonlinearBase(params)
+Particle::DEMContactNormalHertz::DEMContactNormalHertz(const Teuchos::ParameterList& params)
+    : Particle::DEMContactNormalNonlinearBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalHertz::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalHertz::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {
   normalcontactforce = -k_normal_ * (-gap) * std::sqrt(-gap);
 }
 
-ParticleInteraction::DEMContactNormalNonlinearDampBase::DEMContactNormalNonlinearDampBase(
+Particle::DEMContactNormalNonlinearDampBase::DEMContactNormalNonlinearDampBase(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalNonlinearBase(params),
+    : Particle::DEMContactNormalNonlinearBase(params),
       d_normal_(params_dem_.get<double>("NORMAL_DAMP"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalNonlinearDampBase::init()
+void Particle::DEMContactNormalNonlinearDampBase::init()
 {
   // call base class init
   DEMContactNormalNonlinearBase::init();
@@ -200,28 +198,28 @@ void ParticleInteraction::DEMContactNormalNonlinearDampBase::init()
     FOUR_C_THROW("invalid input parameter NORMAL_DAMP for this kind of contact law!");
 }
 
-ParticleInteraction::DEMContactNormalLeeHerrmann::DEMContactNormalLeeHerrmann(
+Particle::DEMContactNormalLeeHerrmann::DEMContactNormalLeeHerrmann(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalNonlinearDampBase(params)
+    : Particle::DEMContactNormalNonlinearDampBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalLeeHerrmann::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalLeeHerrmann::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {
   normalcontactforce = -k_normal_ * (-gap) * std::sqrt(-gap) - m_eff * d_normal_ * v_rel_normal;
 }
 
-ParticleInteraction::DEMContactNormalKuwabaraKono::DEMContactNormalKuwabaraKono(
+Particle::DEMContactNormalKuwabaraKono::DEMContactNormalKuwabaraKono(
     const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalNonlinearDampBase(params)
+    : Particle::DEMContactNormalNonlinearDampBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalKuwabaraKono::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalKuwabaraKono::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {
@@ -229,14 +227,13 @@ void ParticleInteraction::DEMContactNormalKuwabaraKono::normal_contact_force(con
       -k_normal_ * (-gap) * std::sqrt(-gap) - d_normal_ * v_rel_normal * std::sqrt(-gap);
 }
 
-ParticleInteraction::DEMContactNormalTsuji::DEMContactNormalTsuji(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMContactNormalNonlinearDampBase(params)
+Particle::DEMContactNormalTsuji::DEMContactNormalTsuji(const Teuchos::ParameterList& params)
+    : Particle::DEMContactNormalNonlinearDampBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMContactNormalTsuji::normal_contact_force(const double& gap,
+void Particle::DEMContactNormalTsuji::normal_contact_force(const double& gap,
     const double* radius_i, const double* radius_j, const double& v_rel_normal, const double& m_eff,
     double& normalcontactforce) const
 {

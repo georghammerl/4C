@@ -32,7 +32,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::DEMAdhesion::DEMAdhesion(const Teuchos::ParameterList& params)
+Particle::DEMAdhesion::DEMAdhesion(const Teuchos::ParameterList& params)
     : params_dem_(params),
       adhesion_distance_(params_dem_.get<double>("ADHESION_DISTANCE")),
       writeparticlewallinteraction_(params_dem_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
@@ -40,9 +40,9 @@ ParticleInteraction::DEMAdhesion::DEMAdhesion(const Teuchos::ParameterList& para
   // empty constructor
 }
 
-ParticleInteraction::DEMAdhesion::~DEMAdhesion() = default;
+Particle::DEMAdhesion::~DEMAdhesion() = default;
 
-void ParticleInteraction::DEMAdhesion::init()
+void Particle::DEMAdhesion::init()
 {
   // init adhesion law handler
   init_adhesion_law_handler();
@@ -51,13 +51,12 @@ void ParticleInteraction::DEMAdhesion::init()
   init_adhesion_surface_energy_handler();
 }
 
-void ParticleInteraction::DEMAdhesion::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-    const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-    const std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs,
-    const std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs,
-    const double& k_normal)
+void Particle::DEMAdhesion::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+    const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+    const std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs,
+    const std::shared_ptr<Particle::DEMHistoryPairs> historypairs, const double& k_normal)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -90,7 +89,7 @@ void ParticleInteraction::DEMAdhesion::setup(
   if (adhesion_distance_ < 0.0) FOUR_C_THROW("negative adhesion distance!");
 }
 
-void ParticleInteraction::DEMAdhesion::add_force_contribution()
+void Particle::DEMAdhesion::add_force_contribution()
 {
   // evaluate particle adhesion contribution
   evaluate_particle_adhesion();
@@ -99,24 +98,24 @@ void ParticleInteraction::DEMAdhesion::add_force_contribution()
   if (particlewallinterface_) evaluate_particle_wall_adhesion();
 }
 
-void ParticleInteraction::DEMAdhesion::init_adhesion_law_handler()
+void Particle::DEMAdhesion::init_adhesion_law_handler()
 {
   // get type of adhesion law
-  auto adhesionlaw = Teuchos::getIntegralValue<PARTICLE::AdhesionLaw>(params_dem_, "ADHESIONLAW");
+  auto adhesionlaw = Teuchos::getIntegralValue<Particle::AdhesionLaw>(params_dem_, "ADHESIONLAW");
 
   // create adhesion law handler
   switch (adhesionlaw)
   {
-    case PARTICLE::AdhesionVdWDMT:
+    case Particle::AdhesionVdWDMT:
     {
-      adhesionlaw_ = std::unique_ptr<ParticleInteraction::DEMAdhesionLawVdWDMT>(
-          new ParticleInteraction::DEMAdhesionLawVdWDMT(params_dem_));
+      adhesionlaw_ = std::unique_ptr<Particle::DEMAdhesionLawVdWDMT>(
+          new Particle::DEMAdhesionLawVdWDMT(params_dem_));
       break;
     }
-    case PARTICLE::AdhesionRegDMT:
+    case Particle::AdhesionRegDMT:
     {
-      adhesionlaw_ = std::unique_ptr<ParticleInteraction::DEMAdhesionLawRegDMT>(
-          new ParticleInteraction::DEMAdhesionLawRegDMT(params_dem_));
+      adhesionlaw_ = std::unique_ptr<Particle::DEMAdhesionLawRegDMT>(
+          new Particle::DEMAdhesionLawRegDMT(params_dem_));
       break;
     }
     default:
@@ -130,35 +129,34 @@ void ParticleInteraction::DEMAdhesion::init_adhesion_law_handler()
   adhesionlaw_->init();
 }
 
-void ParticleInteraction::DEMAdhesion::init_adhesion_surface_energy_handler()
+void Particle::DEMAdhesion::init_adhesion_surface_energy_handler()
 {
   // get type of adhesion surface energy distribution
   auto surfaceenergydistributiontype =
-      Teuchos::getIntegralValue<PARTICLE::SurfaceEnergyDistribution>(
+      Teuchos::getIntegralValue<Particle::SurfaceEnergyDistribution>(
           params_dem_, "ADHESION_SURFACE_ENERGY_DISTRIBUTION");
 
   // create adhesion surface energy handler
   switch (surfaceenergydistributiontype)
   {
-    case PARTICLE::ConstantSurfaceEnergy:
+    case Particle::ConstantSurfaceEnergy:
     {
-      adhesionsurfaceenergy_ =
-          std::unique_ptr<ParticleInteraction::DEMAdhesionSurfaceEnergyConstant>(
-              new ParticleInteraction::DEMAdhesionSurfaceEnergyConstant(params_dem_));
+      adhesionsurfaceenergy_ = std::unique_ptr<Particle::DEMAdhesionSurfaceEnergyConstant>(
+          new Particle::DEMAdhesionSurfaceEnergyConstant(params_dem_));
       break;
     }
-    case PARTICLE::NormalSurfaceEnergyDistribution:
+    case Particle::NormalSurfaceEnergyDistribution:
     {
       adhesionsurfaceenergy_ =
-          std::unique_ptr<ParticleInteraction::DEMAdhesionSurfaceEnergyDistributionNormal>(
-              new ParticleInteraction::DEMAdhesionSurfaceEnergyDistributionNormal(params_dem_));
+          std::unique_ptr<Particle::DEMAdhesionSurfaceEnergyDistributionNormal>(
+              new Particle::DEMAdhesionSurfaceEnergyDistributionNormal(params_dem_));
       break;
     }
-    case PARTICLE::LogNormalSurfaceEnergyDistribution:
+    case Particle::LogNormalSurfaceEnergyDistribution:
     {
       adhesionsurfaceenergy_ =
-          std::unique_ptr<ParticleInteraction::DEMAdhesionSurfaceEnergyDistributionLogNormal>(
-              new ParticleInteraction::DEMAdhesionSurfaceEnergyDistributionLogNormal(params_dem_));
+          std::unique_ptr<Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal>(
+              new Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal(params_dem_));
       break;
     }
     default:
@@ -172,16 +170,16 @@ void ParticleInteraction::DEMAdhesion::init_adhesion_surface_energy_handler()
   adhesionsurfaceenergy_->init();
 }
 
-void ParticleInteraction::DEMAdhesion::setup_particle_interaction_writer()
+void Particle::DEMAdhesion::setup_particle_interaction_writer()
 {
   // register specific runtime output writer
   if (writeparticlewallinteraction_)
     particleinteractionwriter_->register_specific_runtime_output_writer("particle-wall-adhesion");
 }
 
-void ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion()
+void Particle::DEMAdhesion::evaluate_particle_adhesion()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::DEMAdhesion::evaluate_particle_adhesion");
 
   // get reference to particle adhesion history pair data
   DEMHistoryPairAdhesionData& adhesionhistorydata =
@@ -194,21 +192,21 @@ void ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion()
   for (const auto& particlepair : neighborpairs_->get_ref_to_particle_pair_adhesion_data())
   {
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get global ids of particle
@@ -216,13 +214,13 @@ void ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion()
     const int* globalid_j = container_j->get_ptr_to_global_id(particle_j);
 
     // get pointer to particle states
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
-    double* force_i = container_i->get_ptr_to_state(PARTICLEENGINE::Force, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
+    double* force_i = container_i->get_ptr_to_state(Particle::Force, particle_i);
 
-    const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
-    const double* rad_j = container_j->get_ptr_to_state(PARTICLEENGINE::Radius, particle_j);
-    double* force_j = container_j->get_ptr_to_state(PARTICLEENGINE::Force, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
+    const double* rad_j = container_j->get_ptr_to_state(Particle::Radius, particle_j);
+    double* force_j = container_j->get_ptr_to_state(Particle::Force, particle_j);
 
     // relative velocity in contact point c between particle i and j (neglecting angular velocity)
     double vel_rel[3];
@@ -255,7 +253,7 @@ void ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion()
         vel_rel_normal, particlepair.m_eff_, adhesionhistory_ij.adhesion_force_);
 
     // copy history from interaction pair ij to ji
-    if (status_j == PARTICLEENGINE::Owned)
+    if (status_j == Particle::Owned)
     {
       // get reference to touched adhesion history
       TouchedDEMHistoryPairAdhesion& touchedadhesionhistory_ji =
@@ -274,17 +272,17 @@ void ParticleInteraction::DEMAdhesion::evaluate_particle_adhesion()
 
     // add adhesion force contribution
     Utils::vec_add_scale(force_i, adhesionhistory_ij.adhesion_force_, particlepair.e_ji_);
-    if (status_j == PARTICLEENGINE::Owned)
+    if (status_j == Particle::Owned)
       Utils::vec_add_scale(force_j, -adhesionhistory_ij.adhesion_force_, particlepair.e_ji_);
   }
 }
 
-void ParticleInteraction::DEMAdhesion::evaluate_particle_wall_adhesion()
+void Particle::DEMAdhesion::evaluate_particle_wall_adhesion()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("ParticleInteraction::DEMAdhesion::evaluate_particle_wall_adhesion");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::DEMAdhesion::evaluate_particle_wall_adhesion");
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface_->get_wall_data_state();
 
   // get reference to particle-wall pair data
@@ -320,24 +318,24 @@ void ParticleInteraction::DEMAdhesion::evaluate_particle_wall_adhesion()
   for (const auto& particlewallpair : particlewallpairdata)
   {
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlewallpair.tuple_i_;
 
     // get corresponding particle container
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
     // get global id of particle
     const int* globalid_i = container_i->get_ptr_to_global_id(particle_i);
 
     // get pointer to particle states
-    const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* rad_i = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    double* force_i = container_i->get_ptr_to_state(PARTICLEENGINE::Force, particle_i);
+    const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* rad_i = container_i->get_ptr_to_state(Particle::Radius, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    double* force_i = container_i->get_ptr_to_state(Particle::Force, particle_i);
 
     // get pointer to column wall element
     Core::Elements::Element* ele = particlewallpair.ele_;

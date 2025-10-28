@@ -22,7 +22,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyHandlerInterface;
 }
@@ -30,7 +30,7 @@ namespace ParticleRigidBody
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   /*!
    * \brief rigid body result test handler
@@ -54,8 +54,8 @@ namespace ParticleRigidBody
      *
      * \param[in] particlerigidbodyinterface interface to rigid body handler
      */
-    void setup(const std::shared_ptr<ParticleRigidBody::RigidBodyHandlerInterface>
-            particlerigidbodyinterface);
+    void setup(
+        const std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface);
 
     /*!
      * \brief test special quantity
@@ -69,10 +69,10 @@ namespace ParticleRigidBody
 
    private:
     //! interface to rigid body handler
-    std::shared_ptr<ParticleRigidBody::RigidBodyHandlerInterface> particlerigidbodyinterface_;
+    std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface_;
   };
 
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

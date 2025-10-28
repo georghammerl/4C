@@ -31,7 +31,7 @@ namespace Core::Communication
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief particle object type singleton
@@ -180,7 +180,7 @@ namespace PARTICLEENGINE
     int index_;
   };
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

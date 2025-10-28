@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
@@ -29,7 +29,7 @@ namespace PARTICLEENGINE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   /*!
    * \brief dirichlet boundary condition handler for particle simulations
@@ -58,8 +58,7 @@ namespace PARTICLEALGORITHM
      *
      * \param[in] particleengineinterface interface to particle engine
      */
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     /*!
      * \brief get reference to set of particle types subjected to dirichlet boundary conditions
@@ -67,8 +66,7 @@ namespace PARTICLEALGORITHM
      *
      * \return set of particle types subjected to dirichlet boundary conditions
      */
-    const std::set<PARTICLEENGINE::TypeEnum>& get_particle_types_subjected_to_dirichlet_bc_set()
-        const
+    const std::set<Particle::TypeEnum>& get_particle_types_subjected_to_dirichlet_bc_set() const
     {
       return typessubjectedtodirichletbc_;
     };
@@ -80,8 +78,7 @@ namespace PARTICLEALGORITHM
      * \param[out] particlestatestotypes map of particle types and corresponding states
      */
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     /*!
      * \brief set particle reference position
@@ -106,16 +103,16 @@ namespace PARTICLEALGORITHM
     const Teuchos::ParameterList& params_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! relating particle types to function ids of dirichlet boundary conditions
-    std::map<PARTICLEENGINE::TypeEnum, int> dirichletbctypetofunctid_;
+    std::map<Particle::TypeEnum, int> dirichletbctypetofunctid_;
 
     //! set of particle types subjected to dirichlet boundary conditions
-    std::set<PARTICLEENGINE::TypeEnum> typessubjectedtodirichletbc_;
+    std::set<Particle::TypeEnum> typessubjectedtodirichletbc_;
   };
 
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

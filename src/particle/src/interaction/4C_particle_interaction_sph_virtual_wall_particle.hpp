@@ -23,27 +23,27 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
   class SPHNeighborPairs;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHVirtualWallParticle
   {
@@ -55,11 +55,10 @@ namespace ParticleInteraction
     void init();
 
     //! setup virtual wall particle handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! get reference to relative positions of virtual particles
     inline const std::vector<std::vector<double>>& get_relative_positions_of_virtual_particles()
@@ -100,19 +99,19 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! relative positions of virtual particles
     std::vector<std::vector<double>> virtualparticles_;
@@ -130,13 +129,13 @@ namespace ParticleInteraction
     std::vector<std::vector<double>> weightedvelocity_;
 
     //! set of all fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> allfluidtypes_;
+    std::set<Particle::TypeEnum> allfluidtypes_;
 
     //! set of integrated fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> intfluidtypes_;
+    std::set<Particle::TypeEnum> intfluidtypes_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

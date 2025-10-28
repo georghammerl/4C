@@ -17,9 +17,8 @@ FOUR_C_NAMESPACE_OPEN
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
 template <typename Valtype>
-void PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
-    const Teuchos::ParameterList& params, const std::string& name,
-    std::map<PARTICLEENGINE::TypeEnum, Valtype>& typetovalmap)
+void Particle::Utils::read_params_types_related_to_values(const Teuchos::ParameterList& params,
+    const std::string& name, std::map<Particle::TypeEnum, Valtype>& typetovalmap)
 {
   // read from input file
   std::vector<std::string> typetoval;
@@ -43,7 +42,7 @@ void PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
     valstring = typetoval[2 * i + 1];
 
     // get enum of particle types
-    PARTICLEENGINE::TypeEnum particleType = PARTICLEENGINE::enum_from_type_name(typestring);
+    Particle::TypeEnum particleType = Particle::enum_from_type_name(typestring);
 
     // get numeric value
     Valtype val;
@@ -64,19 +63,19 @@ void PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
     // safety check
     if (not iterator.second)
       FOUR_C_THROW("failed inserting numeric value into map since key '{}' is already existing!",
-          PARTICLEENGINE::enum_to_type_name(particleType));
+          Particle::enum_to_type_name(particleType));
   }
 }
 
 /*---------------------------------------------------------------------------*
  | template instantiations                                                   |
  *---------------------------------------------------------------------------*/
-template void PARTICLEALGORITHM::Utils::read_params_types_related_to_values<int>(
+template void Particle::Utils::read_params_types_related_to_values<int>(
     const Teuchos::ParameterList& params, const std::string& name,
-    std::map<PARTICLEENGINE::TypeEnum, int>& typetovalmap);
+    std::map<Particle::TypeEnum, int>& typetovalmap);
 
-template void PARTICLEALGORITHM::Utils::read_params_types_related_to_values<double>(
+template void Particle::Utils::read_params_types_related_to_values<double>(
     const Teuchos::ParameterList& params, const std::string& name,
-    std::map<PARTICLEENGINE::TypeEnum, double>& typetovalmap);
+    std::map<Particle::TypeEnum, double>& typetovalmap);
 
 FOUR_C_NAMESPACE_CLOSE

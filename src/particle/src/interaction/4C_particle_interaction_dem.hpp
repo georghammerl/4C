@@ -21,18 +21,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMNeighborPairs;
   class DEMHistoryPairs;
   class DEMContact;
   class DEMAdhesion;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   /*!
    * \brief discrete element method (DEM) interaction
@@ -58,9 +58,8 @@ namespace ParticleInteraction
     void init() override;
 
     //! setup particle interaction handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface) override;
 
     //! write restart of particle interaction handler
     void write_restart() const override;
@@ -70,8 +69,8 @@ namespace ParticleInteraction
 
     //! insert interaction dependent states of all particle types
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) override;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes)
+        override;
 
     //! set initial states
     void set_initial_states() override;
@@ -84,7 +83,7 @@ namespace ParticleInteraction
 
     //! post evaluate time step
     void post_evaluate_time_step(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) override;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) override;
 
     //! maximum interaction distance (on this processor)
     double max_interaction_distance() const override;
@@ -143,22 +142,22 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_dem_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs_;
 
     //! history pair handler
-    std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs_;
+    std::shared_ptr<Particle::DEMHistoryPairs> historypairs_;
 
     //! contact handler
-    std::unique_ptr<ParticleInteraction::DEMContact> contact_;
+    std::unique_ptr<Particle::DEMContact> contact_;
 
     //! adhesion handler
-    std::unique_ptr<ParticleInteraction::DEMAdhesion> adhesion_;
+    std::unique_ptr<Particle::DEMAdhesion> adhesion_;
 
     //! write particle energy output
     const bool writeparticleenergy_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

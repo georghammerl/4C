@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
@@ -29,7 +29,7 @@ namespace PARTICLEENGINE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   /*!
    * \brief particle field result test handler
@@ -53,8 +53,7 @@ namespace PARTICLEALGORITHM
      *
      * \param[in] particleengineinterface interface to particle engine
      */
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     /*!
      * \brief test special quantity
@@ -68,10 +67,10 @@ namespace PARTICLEALGORITHM
 
    private:
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
   };
 
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

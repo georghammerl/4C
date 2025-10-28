@@ -31,18 +31,18 @@ namespace Core::IO
   class DiscretizationReader;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
   class InteractionWriter;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
@@ -50,7 +50,7 @@ namespace PARTICLEWALL
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   /*!
    * \brief base particle interaction
@@ -70,8 +70,8 @@ namespace ParticleInteraction
 
     //! setup particle interaction handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface);
 
     //! write restart of particle interaction handler
     virtual void write_restart() const;
@@ -81,8 +81,7 @@ namespace ParticleInteraction
 
     //! insert interaction dependent states of all particle types
     virtual void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) = 0;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) = 0;
 
     //! set initial states
     virtual void set_initial_states() = 0;
@@ -95,7 +94,7 @@ namespace ParticleInteraction
 
     //! post evaluate time step
     virtual void post_evaluate_time_step(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) = 0;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) = 0;
 
     //! check particle interaction distance concerning bin size
     virtual void check_particle_interaction_distance_concerning_bin_size() const final;
@@ -145,19 +144,19 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! particle interaction writer
-    std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter_;
+    std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter_;
 
     //! current time
     double time_;
@@ -169,7 +168,7 @@ namespace ParticleInteraction
     std::vector<double> gravity_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -20,31 +20,30 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::InteractionWriter::InteractionWriter(
-    MPI_Comm comm, const Teuchos::ParameterList& params)
+Particle::InteractionWriter::InteractionWriter(MPI_Comm comm, const Teuchos::ParameterList& params)
     : comm_(comm), setuptime_(0.0), writeresultsthisstep_(true)
 {
   // empty constructor
 }
 
-void ParticleInteraction::InteractionWriter::init()
+void Particle::InteractionWriter::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::InteractionWriter::setup()
+void Particle::InteractionWriter::setup()
 {
   // nothing to do
 }
 
-void ParticleInteraction::InteractionWriter::read_restart(
+void Particle::InteractionWriter::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader)
 {
   // get restart time
   setuptime_ = reader->read_double("time");
 }
 
-void ParticleInteraction::InteractionWriter::register_specific_runtime_output_writer(
+void Particle::InteractionWriter::register_specific_runtime_output_writer(
     const std::string& fieldname)
 {
   // safety check
@@ -63,8 +62,7 @@ void ParticleInteraction::InteractionWriter::register_specific_runtime_output_wr
   runtime_visualization_managers_[fieldname] = runtime_visualization_manager;
 }
 
-void ParticleInteraction::InteractionWriter::register_specific_runtime_csv_writer(
-    const std::string& fieldname)
+void Particle::InteractionWriter::register_specific_runtime_csv_writer(const std::string& fieldname)
 {
   // safety check
   if (runtime_csvwriters_.count(fieldname))
@@ -76,7 +74,7 @@ void ParticleInteraction::InteractionWriter::register_specific_runtime_csv_write
           *Global::Problem::instance()->output_control_file(), fieldname);
 }
 
-void ParticleInteraction::InteractionWriter::write_particle_interaction_runtime_output(
+void Particle::InteractionWriter::write_particle_interaction_runtime_output(
     const int step, const double time) const
 {
   // iterate over output writer objects

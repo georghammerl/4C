@@ -17,38 +17,38 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHKernelBase::SPHKernelBase(const Teuchos::ParameterList& params)
+Particle::SPHKernelBase::SPHKernelBase(const Teuchos::ParameterList& params)
     : kernelspacedim_(
-          Teuchos::getIntegralValue<PARTICLE::KernelSpaceDimension>(params, "KERNEL_SPACE_DIM"))
+          Teuchos::getIntegralValue<Particle::KernelSpaceDimension>(params, "KERNEL_SPACE_DIM"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHKernelBase::init()
+void Particle::SPHKernelBase::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHKernelBase::setup()
+void Particle::SPHKernelBase::setup()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHKernelBase::kernel_space_dimension(int& dim) const
+void Particle::SPHKernelBase::kernel_space_dimension(int& dim) const
 {
   switch (kernelspacedim_)
   {
-    case PARTICLE::Kernel1D:
+    case Particle::Kernel1D:
     {
       dim = 1;
       break;
     }
-    case PARTICLE::Kernel2D:
+    case Particle::Kernel2D:
     {
       dim = 2;
       break;
     }
-    case PARTICLE::Kernel3D:
+    case Particle::Kernel3D:
     {
       dim = 3;
       break;
@@ -61,39 +61,38 @@ void ParticleInteraction::SPHKernelBase::kernel_space_dimension(int& dim) const
   }
 }
 
-void ParticleInteraction::SPHKernelBase::grad_wij(
+void Particle::SPHKernelBase::grad_wij(
     const double& rij, const double& support, const double* eij, double* gradWij) const
 {
   Utils::vec_set_scale(gradWij, this->d_wdrij(rij, support), eij);
 }
 
-ParticleInteraction::SPHKernelCubicSpline::SPHKernelCubicSpline(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHKernelBase(params)
+Particle::SPHKernelCubicSpline::SPHKernelCubicSpline(const Teuchos::ParameterList& params)
+    : Particle::SPHKernelBase(params)
 {
   // empty constructor
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::smoothing_length(const double& support) const
+double Particle::SPHKernelCubicSpline::smoothing_length(const double& support) const
 {
   return (0.5 * support);
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::normalization_constant(const double& inv_h) const
+double Particle::SPHKernelCubicSpline::normalization_constant(const double& inv_h) const
 {
   switch (kernelspacedim_)
   {
-    case PARTICLE::Kernel1D:
+    case Particle::Kernel1D:
     {
       // (2.0 / 3.0) * inv_h
       return 0.6666666666666666 * inv_h;
     }
-    case PARTICLE::Kernel2D:
+    case Particle::Kernel2D:
     {
       // (10.0 / 7.0) * std::numbers::inv_pi * inv_h * inv_h
       return 0.4547284088339866 * Utils::pow<2>(inv_h);
     }
-    case PARTICLE::Kernel3D:
+    case Particle::Kernel3D:
     {
       return std::numbers::inv_pi * Utils::pow<3>(inv_h);
     }
@@ -107,12 +106,12 @@ double ParticleInteraction::SPHKernelCubicSpline::normalization_constant(const d
   return 0.0;
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::w0(const double& support) const
+double Particle::SPHKernelCubicSpline::w0(const double& support) const
 {
   return normalization_constant(2.0 / support);
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::w(const double& rij, const double& support) const
+double Particle::SPHKernelCubicSpline::w(const double& rij, const double& support) const
 {
   const double inv_h = 2.0 / support;
   const double q = rij * inv_h;
@@ -125,8 +124,7 @@ double ParticleInteraction::SPHKernelCubicSpline::w(const double& rij, const dou
     return 0.0;
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::d_wdrij(
-    const double& rij, const double& support) const
+double Particle::SPHKernelCubicSpline::d_wdrij(const double& rij, const double& support) const
 {
   const double inv_h = 2.0 / support;
   const double q = rij * inv_h;
@@ -139,8 +137,7 @@ double ParticleInteraction::SPHKernelCubicSpline::d_wdrij(
     return 0.0;
 }
 
-double ParticleInteraction::SPHKernelCubicSpline::d2_wdrij2(
-    const double& rij, const double& support) const
+double Particle::SPHKernelCubicSpline::d2_wdrij2(const double& rij, const double& support) const
 {
   const double inv_h = 2.0 / support;
   const double q = rij * inv_h;
@@ -153,35 +150,33 @@ double ParticleInteraction::SPHKernelCubicSpline::d2_wdrij2(
     return 0.0;
 }
 
-ParticleInteraction::SPHKernelQuinticSpline::SPHKernelQuinticSpline(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHKernelBase(params)
+Particle::SPHKernelQuinticSpline::SPHKernelQuinticSpline(const Teuchos::ParameterList& params)
+    : Particle::SPHKernelBase(params)
 {
   // empty constructor
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::smoothing_length(const double& support) const
+double Particle::SPHKernelQuinticSpline::smoothing_length(const double& support) const
 {
   // (support / 3.0)
   return 0.3333333333333333 * support;
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::normalization_constant(
-    const double& inv_h) const
+double Particle::SPHKernelQuinticSpline::normalization_constant(const double& inv_h) const
 {
   switch (kernelspacedim_)
   {
-    case PARTICLE::Kernel1D:
+    case Particle::Kernel1D:
     {
       // (inv_h / 120.0)
       return 0.0083333333333333 * inv_h;
     }
-    case PARTICLE::Kernel2D:
+    case Particle::Kernel2D:
     {
       // (7.0 / 478.0) * std::numbers::inv_pi * inv_h * inv_h
       return 0.0046614418478797 * Utils::pow<2>(inv_h);
     }
-    case PARTICLE::Kernel3D:
+    case Particle::Kernel3D:
     {
       // (3.0 / 359.0) * std::numbers::inv_pi * inv_h * inv_h * inv_h
       return 0.0026599711937364 * Utils::pow<3>(inv_h);
@@ -196,13 +191,12 @@ double ParticleInteraction::SPHKernelQuinticSpline::normalization_constant(
   return 0.0;
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::w0(const double& support) const
+double Particle::SPHKernelQuinticSpline::w0(const double& support) const
 {
   return 66.0 * normalization_constant(3.0 / support);
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::w(
-    const double& rij, const double& support) const
+double Particle::SPHKernelQuinticSpline::w(const double& rij, const double& support) const
 {
   const double inv_h = 3.0 / support;
   const double q = rij * inv_h;
@@ -218,8 +212,7 @@ double ParticleInteraction::SPHKernelQuinticSpline::w(
     return 0.0;
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::d_wdrij(
-    const double& rij, const double& support) const
+double Particle::SPHKernelQuinticSpline::d_wdrij(const double& rij, const double& support) const
 {
   const double inv_h = 3.0 / support;
   const double q = rij * inv_h;
@@ -237,8 +230,7 @@ double ParticleInteraction::SPHKernelQuinticSpline::d_wdrij(
     return 0.0;
 }
 
-double ParticleInteraction::SPHKernelQuinticSpline::d2_wdrij2(
-    const double& rij, const double& support) const
+double Particle::SPHKernelQuinticSpline::d2_wdrij2(const double& rij, const double& support) const
 {
   const double inv_h = 3.0 / support;
   const double q = rij * inv_h;

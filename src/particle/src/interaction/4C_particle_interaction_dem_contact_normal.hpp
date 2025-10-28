@@ -22,7 +22,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMContactNormalBase
   {
@@ -199,7 +199,7 @@ namespace ParticleInteraction
         const double& v_rel_normal, const double& m_eff, double& normalcontactforce) const override;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

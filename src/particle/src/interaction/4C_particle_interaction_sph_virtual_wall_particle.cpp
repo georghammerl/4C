@@ -27,26 +27,25 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHVirtualWallParticle::SPHVirtualWallParticle(
-    const Teuchos::ParameterList& params)
+Particle::SPHVirtualWallParticle::SPHVirtualWallParticle(const Teuchos::ParameterList& params)
     : params_sph_(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHVirtualWallParticle::init()
+void Particle::SPHVirtualWallParticle::init()
 {
   // init with potential fluid particle types
-  allfluidtypes_ = {PARTICLEENGINE::Phase1, PARTICLEENGINE::Phase2, PARTICLEENGINE::DirichletPhase,
-      PARTICLEENGINE::NeumannPhase};
-  intfluidtypes_ = {PARTICLEENGINE::Phase1, PARTICLEENGINE::Phase2, PARTICLEENGINE::NeumannPhase};
+  allfluidtypes_ = {
+      Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase};
+  intfluidtypes_ = {Particle::Phase1, Particle::Phase2, Particle::NeumannPhase};
 }
 
-void ParticleInteraction::SPHVirtualWallParticle::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHVirtualWallParticle::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -79,11 +78,11 @@ void ParticleInteraction::SPHVirtualWallParticle::setup(
       intfluidtypes_.erase(type_i);
 }
 
-void ParticleInteraction::SPHVirtualWallParticle::init_relative_positions_of_virtual_particles(
+void Particle::SPHVirtualWallParticle::init_relative_positions_of_virtual_particles(
     const double maxinteractiondistance)
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHVirtualWallParticle::init_relative_positions_of_virtual_particles");
+      "Particle::SPHVirtualWallParticle::init_relative_positions_of_virtual_particles");
 
   // clear relative positions of virtual particles
   virtualparticles_.clear();
@@ -118,14 +117,13 @@ void ParticleInteraction::SPHVirtualWallParticle::init_relative_positions_of_vir
   }
 }
 
-void ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_points(
+void Particle::SPHVirtualWallParticle::init_states_at_wall_contact_points(
     std::vector<double>& gravity)
 {
-  TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_points");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHVirtualWallParticle::init_states_at_wall_contact_points");
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface_->get_wall_data_state();
 
   // get reference to particle-wall pair data
@@ -151,20 +149,20 @@ void ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_po
     const SPHParticleWallPair& particlewallpair = particlewallpairdata[particlewallpairindex];
 
     // access values of local index tuple of particle i
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlewallpair.tuple_i_;
 
     // get corresponding particle container
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
     // get pointer to particle states
-    const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
+    const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
 
     // get pointer to wall contact point states
-    const double* rad_j = container_i->get_ptr_to_state(PARTICLEENGINE::Radius, particle_i);
+    const double* rad_j = container_i->get_ptr_to_state(Particle::Radius, particle_i);
 
     // get pointer to column wall element
     Core::Elements::Element* ele = particlewallpair.ele_;
@@ -214,7 +212,7 @@ void ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_po
     Utils::vec_sub(pos_j, r_ij);
 
     // get particles within radius
-    std::vector<PARTICLEENGINE::LocalIndexTuple> neighboringparticles;
+    std::vector<Particle::LocalIndexTuple> neighboringparticles;
     particleengineinterface_->get_particles_within_radius(pos_j, rad_j[0], neighboringparticles);
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -232,8 +230,8 @@ void ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_po
     for (const auto& neighboringparticle : neighboringparticles)
     {
       // access values of local index tuple of particle k
-      PARTICLEENGINE::TypeEnum type_k;
-      PARTICLEENGINE::StatusEnum status_k;
+      Particle::TypeEnum type_k;
+      Particle::StatusEnum status_k;
       int particle_k;
       std::tie(type_k, status_k, particle_k) = neighboringparticle;
 
@@ -241,14 +239,14 @@ void ParticleInteraction::SPHVirtualWallParticle::init_states_at_wall_contact_po
       if (not allfluidtypes_.count(type_k)) continue;
 
       // get container of particles of current particle type
-      PARTICLEENGINE::ParticleContainer* container_k =
+      Particle::ParticleContainer* container_k =
           particlecontainerbundle_->get_specific_container(type_k, status_k);
 
       // get pointer to particle states
-      const double* pos_k = container_k->get_ptr_to_state(PARTICLEENGINE::Position, particle_k);
-      const double* vel_k = container_k->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_k);
-      const double* dens_k = container_k->get_ptr_to_state(PARTICLEENGINE::Density, particle_k);
-      const double* press_k = container_k->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_k);
+      const double* pos_k = container_k->get_ptr_to_state(Particle::Position, particle_k);
+      const double* vel_k = container_k->get_ptr_to_state(Particle::Velocity, particle_k);
+      const double* dens_k = container_k->get_ptr_to_state(Particle::Density, particle_k);
+      const double* press_k = container_k->get_ptr_to_state(Particle::Pressure, particle_k);
 
       // vector from particle k to wall contact point j
       double r_jk[3];
