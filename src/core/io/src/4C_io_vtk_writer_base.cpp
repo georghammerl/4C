@@ -7,7 +7,6 @@
 
 #include "4C_io_vtk_writer_base.hpp"
 
-#include "4C_io_legacy_table.hpp"
 #include "4C_io_pstream.hpp"
 #include "4C_utils_exceptions.hpp"
 

@@ -12,6 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_fem_general_shape_function_type.hpp"
+#include "4C_io_control.hpp"
 #include "4C_io_hdf.hpp"
 #include "4C_io_legacy_types.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
@@ -38,6 +39,7 @@ enum class ShapeFunctionType;
 /// IO: input/output facility
 namespace Core::IO
 {
+  class ControlFileEntry;
   class InputControl;
   class OutputControl;
   class HDFReader;
@@ -171,13 +173,12 @@ namespace Core::IO
     /// access the MPI_Comm object
     [[nodiscard]] MPI_Comm get_comm() const;
 
-    MAP* restart_step_map() { return restart_step_; }
-
     /// find control file entry to given time step
     void find_mesh_group(int step);
 
     /// open data files.
-    std::shared_ptr<HDFReader> open_files(const char* filestring, MAP* result_step);
+    std::shared_ptr<HDFReader> open_files(
+        const char* filestring, const Core::IO::ControlFileEntry& result_step);
 
     //! my discretization
     Core::FE::Discretization& dis_;
@@ -186,7 +187,7 @@ namespace Core::IO
     std::shared_ptr<Core::IO::InputControl> input_;
 
     /// control file entry of this step
-    MAP* restart_step_;
+    Core::IO::ControlFileEntry restart_step_;
 
     std::shared_ptr<HDFReader> reader_;
     std::shared_ptr<HDFReader> meshreader_;

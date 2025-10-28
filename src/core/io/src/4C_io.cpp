@@ -12,7 +12,6 @@
 #include "4C_fem_general_node.hpp"
 #include "4C_fem_nurbs_discretization.hpp"
 #include "4C_io_control.hpp"
-#include "4C_io_legacy_table.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_utils_enum.hpp"
@@ -38,8 +37,7 @@ Core::IO::DiscretizationReader::DiscretizationReader(
 /*----------------------------------------------------------------------*/
 int Core::IO::DiscretizationReader::has_int(std::string name)
 {
-  int integer;
-  return map_find_int(restart_step_, name.c_str(), &integer);
+  return restart_step_[name].is_a<int>();
 }
 
 
@@ -48,12 +46,13 @@ int Core::IO::DiscretizationReader::has_int(std::string name)
 std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::IO::DiscretizationReader::read_vector(
     std::string name)
 {
-  MAP* result = map_read_map(restart_step_, name.c_str());
-  int columns;
-  if (map_find_int(result, "columns", &columns))
+  auto vector_data = restart_step_[name];
+  auto columns = vector_data["columns"].as<int>();
+  if (columns)
   {
-    if (columns != 1) FOUR_C_THROW("got multivector with name '{}', vector expected", name);
+    if (*columns != 1) FOUR_C_THROW("got multivector with name '{}', vector expected", name);
   }
+
   return read_multi_vector(name);
 }
 
@@ -70,11 +69,10 @@ void Core::IO::DiscretizationReader::read_vector(
 void Core::IO::DiscretizationReader::read_vector(
     std::shared_ptr<Core::LinAlg::MultiVector<double>> vec, std::string name)
 {
-  MAP* result = map_read_map(restart_step_, name.c_str());
-  int columns;
-  if (map_find_int(result, "columns", &columns))
+  auto columns = restart_step_[name]["columns"].as<int>();
+  if (columns)
   {
-    if (columns != 1) FOUR_C_THROW("got multivector with name '{}', vector expected", name);
+    if (*columns != 1) FOUR_C_THROW("got multivector with name '{}', vector expected", name);
   }
   read_multi_vector(vec, name);
 }
@@ -85,15 +83,15 @@ void Core::IO::DiscretizationReader::read_vector(
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
 Core::IO::DiscretizationReader::read_multi_vector(const std::string name)
 {
-  MAP* result = map_read_map(restart_step_, name.c_str());
-  const std::string id_path = map_read_string(result, "ids");
-  const std::string value_path = map_read_string(result, "values");
-  int columns;
-  if (not map_find_int(result, "columns", &columns))
-  {
-    columns = 1;
-  }
-  return reader_->read_result_data(id_path, value_path, columns, get_comm());
+  auto id_path = restart_step_[name]["ids"].as<std::string>();
+  auto value_path = restart_step_[name]["values"].as<std::string>();
+  FOUR_C_ASSERT(id_path, "no 'ids' entry for vector '{}'", name);
+  FOUR_C_ASSERT(id_path, "no 'values' entry for vector '{}'", name);
+
+  auto columns_entry = restart_step_[name]["columns"].as<int>();
+  const int columns = columns_entry ? *columns_entry : 1;
+
+  return reader_->read_result_data(*id_path, *value_path, columns, get_comm());
 }
 
 
@@ -126,20 +124,20 @@ void Core::IO::DiscretizationReader::read_multi_vector(
 void Core::IO::DiscretizationReader::read_map_data_of_char_vector(
     std::map<int, std::vector<char>>& mapdata, std::string name) const
 {
-  MAP* result = map_read_map(restart_step_, name.c_str());
-  std::string id_path = map_read_string(result, "ids");
-  std::string value_path = map_read_string(result, "values");
-  int columns = map_find_int(result, "columns", &columns);
-  if (not map_find_int(result, "columns", &columns))
-  {
-    columns = 1;
-  }
+  auto id_path = restart_step_[name]["ids"].as<std::string>();
+  auto value_path = restart_step_[name]["values"].as<std::string>();
+  FOUR_C_ASSERT(id_path, "no 'ids' entry for vector '{}'", name);
+  FOUR_C_ASSERT(id_path, "no 'values' entry for vector '{}'", name);
+
+  auto columns_entry = restart_step_[name]["columns"].as<int>();
+  const int columns = columns_entry ? *columns_entry : 1;
+
   if (columns != 1)
     FOUR_C_THROW("got multivector with name '{}', std::vector<char> expected", name);
 
   std::shared_ptr<Core::LinAlg::Map> elemap;
   std::shared_ptr<std::vector<char>> data =
-      reader_->read_result_data_vec_char(id_path, value_path, columns, get_comm(), elemap);
+      reader_->read_result_data_vec_char(*id_path, *value_path, columns, get_comm(), elemap);
 
   Communication::UnpackBuffer buffer(*data);
   for (int i = 0; i < elemap->num_my_elements(); ++i)
@@ -240,10 +238,10 @@ void Core::IO::DiscretizationReader::read_char_vector(
     std::shared_ptr<std::vector<char>>& charvec, const std::string name)
 {
   // read vector properties
-  MAP* result = map_read_map(restart_step_, name.c_str());
-  std::string value_path = map_read_string(result, "values");
+  auto value_path = restart_step_[name]["values"].as<std::string>();
+  FOUR_C_ASSERT(value_path, "no 'values' entry for vector '{}'", name);
 
-  charvec = reader_->read_char_vector(value_path, dis_.get_comm());
+  charvec = reader_->read_char_vector(*value_path, dis_.get_comm());
 
   return;
 }
@@ -259,10 +257,10 @@ void Core::IO::DiscretizationReader::read_redundant_double_vector(
   if (Core::Communication::my_mpi_rank(get_comm()) == 0)
   {
     // only proc0 reads the vector entities
-    MAP* result = map_read_map(restart_step_, name.c_str());
-    std::string value_path = map_read_string(result, "values");
+    auto value_path = restart_step_[name]["values"].as<std::string>();
+    FOUR_C_ASSERT(value_path, "no 'values' entry for vector '{}'", name);
 
-    doublevec = reader_->read_double_vector(value_path);
+    doublevec = reader_->read_double_vector(*value_path);
 
     length = doublevec->size();
   }
@@ -288,10 +286,10 @@ void Core::IO::DiscretizationReader::read_redundant_int_vector(
   if (Core::Communication::my_mpi_rank(get_comm()) == 0)
   {
     // only proc0 reads the vector entities
-    MAP* result = map_read_map(restart_step_, name.c_str());
-    std::string value_path = map_read_string(result, "values");
+    auto value_path = restart_step_[name]["values"].as<std::string>();
+    FOUR_C_ASSERT(value_path, "no 'values' entry for vector '{}'", name);
 
-    intvec = reader_->read_int_vector(value_path);
+    intvec = reader_->read_int_vector(*value_path);
 
     length = intvec->size();
   }
@@ -311,7 +309,9 @@ void Core::IO::DiscretizationReader::read_redundant_int_vector(
 /*----------------------------------------------------------------------*/
 int Core::IO::DiscretizationReader::read_int(std::string name)
 {
-  return map_read_int(restart_step_, name.c_str());
+  auto entry = restart_step_[name].as<int>();
+  FOUR_C_ASSERT(entry, "no int entry for '{}'", name);
+  return *entry;
 }
 
 
@@ -319,7 +319,9 @@ int Core::IO::DiscretizationReader::read_int(std::string name)
 /*----------------------------------------------------------------------*/
 double Core::IO::DiscretizationReader::read_double(std::string name)
 {
-  return map_read_real(restart_step_, name.c_str());
+  auto entry = restart_step_[name].as<double>();
+  FOUR_C_ASSERT(entry, "no double entry for '{}'", name);
+  return *entry;
 }
 
 
@@ -327,10 +329,9 @@ double Core::IO::DiscretizationReader::read_double(std::string name)
 /*----------------------------------------------------------------------*/
 void Core::IO::DiscretizationReader::find_result_group(int step)
 {
-  MAP* result_info = nullptr;
-  MAP* file_info = nullptr;
+  const auto [result_info, file_info] =
+      input_->find_group(step, dis_.name(), "result", "result_file");
 
-  input_->find_group(step, dis_.name(), "result", "result_file", result_info, file_info);
   reader_ = open_files("result_file", file_info);
 
   restart_step_ = result_info;
@@ -344,10 +345,7 @@ MPI_Comm Core::IO::DiscretizationReader::get_comm() const { return dis_.get_comm
 /*----------------------------------------------------------------------*/
 void Core::IO::DiscretizationReader::find_mesh_group(int step)
 {
-  MAP* result_info = nullptr;
-  MAP* file_info = nullptr;
-
-  input_->find_group(step, dis_.name(), "field", "mesh_file", result_info, file_info);
+  const auto [_, file_info] = input_->find_group(step, dis_.name(), "field", "mesh_file");
   meshreader_ = open_files("mesh_file", file_info);
 
   // We do not need result_info as we are interested in the mesh files only.
@@ -358,13 +356,10 @@ void Core::IO::DiscretizationReader::find_mesh_group(int step)
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::IO::HDFReader> Core::IO::DiscretizationReader::open_files(
-    const char* filestring, MAP* result_step)
+    const char* filestring, const ControlFileEntry& result_step)
 {
-  int numoutputproc;
-  if (!map_find_int(result_step, "num_output_proc", &numoutputproc))
-  {
-    numoutputproc = 1;
-  }
+  auto tmp = result_step["num_output_proc"].as<int>();
+  const int numoutputproc = (tmp.has_value()) ? tmp.value() : 1;
 
   const std::string name = input_->file_name();
 
@@ -379,10 +374,11 @@ std::shared_ptr<Core::IO::HDFReader> Core::IO::DiscretizationReader::open_files(
     dirname = name.substr(0, pos + 1);
   }
 
-  const std::string filename = map_read_string(result_step, filestring);
+  auto filename = result_step[filestring].as<std::string>();
+  FOUR_C_ASSERT_ALWAYS(filename, "File name for '{}' not found in control file", filestring);
 
   std::shared_ptr<HDFReader> reader = std::make_shared<HDFReader>(dirname);
-  reader->open(filename, numoutputproc, Core::Communication::num_mpi_ranks(get_comm()),
+  reader->open(*filename, numoutputproc, Core::Communication::num_mpi_ranks(get_comm()),
       Core::Communication::my_mpi_rank(get_comm()));
   return reader;
 }

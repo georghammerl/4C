@@ -11,12 +11,12 @@
 #include "4C_config.hpp"
 
 #include "4C_fem_general_shape_function_type.hpp"
-#include "4C_io_legacy_types.hpp"
 
 #include <mpi.h>
 
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <string>
 
 
@@ -24,10 +24,7 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Core::IO
 {
-  namespace Internal
-  {
-    class ControlFileWriterImpl;
-  }
+  class InputControl;
 
   /**
    * Wrap functionality related to writing control files.
@@ -86,8 +83,9 @@ namespace Core::IO
     ControlFileWriter& try_end_group();
 
    private:
+    struct Impl;
     //! Pointer-to-implementation to hide implementation details.
-    std::unique_ptr<Internal::ControlFileWriterImpl> pimpl_;
+    std::unique_ptr<Impl> pimpl_;
   };
 
   /// control class to manage a control file for output
@@ -177,13 +175,94 @@ namespace Core::IO
     const bool write_binary_output_;
   };
 
+  template <typename T>
+  concept ControlFileEntrySupportedType =
+      std::is_same_v<T, std::string> || std::is_same_v<T, int> || std::is_same_v<T, double>;
 
-  /// control class to manage a control file for input
+  /**
+   * An entry in the control file. This is either a value or a group that holds values or groups.
+   * This is a light-weight accessor object that refers to an entry in the control file held by
+   * InputControl.
+   *
+   * Any invalid access fails gracefully by either returning an invalid ControlFileEntry or, when
+   * accessing the value, an empty optional. Take the following example:
+   *
+   * @code
+   *   auto value = entry["some_group"]["some_key"].as<int>();
+   * @endcode
+   *
+   * Traversing through the call chain, may fail for any of the following reasons:
+   *  - `entry` is already invalid
+   *  - `entry` does not contain a group with key `some_group`
+   *  - what is stored under key `some_group` is not a group
+   *  - `some_group` does not contain a key `some_key`
+   *  - `some_key` is not an integer
+   *
+   * These failures are all handled gracefully and `value` will be an empty optional, should any of
+   * the above occur. Usually, we are not interested where exactly the failure occurred, only that
+   * it did.
+   */
+  class ControlFileEntry
+  {
+   public:
+    /**
+     * Creates an invalid entry.
+     */
+    ControlFileEntry() = default;
+
+    /**
+     * Construct an entry that wraps the given control file and index. There is no reason
+     * to call this constructor directly. ControlFileEntry objects are created by InputControl and
+     * other ControlFileEntry objects.
+     */
+    ControlFileEntry(const InputControl* control, size_t index);
+
+    /**
+     * Return true if the entry is of the given type. False if it is of a different type, a group,
+     * or invalid.
+     */
+    template <ControlFileEntrySupportedType T>
+    [[nodiscard]] bool is_a() const;
+
+    /**
+     * Return true if the entry is a group. False if it is a value or invalid.
+     */
+    [[nodiscard]] bool is_group() const;
+
+    /**
+     * Return the value of the entry as the given type, if possible. If the entry is not of the
+     * given type, is a group, or is invalid, return an empty optional.
+     */
+    template <ControlFileEntrySupportedType T>
+    [[nodiscard]] std::optional<T> as() const;
+
+    /**
+     * If the entry is a group, return the child entry with the given key. Otherwise, return an
+     * Invalid ControlFileEntry.
+     */
+    [[nodiscard]] ControlFileEntry operator[](const std::string& key) const;
+
+    /**
+     * Return true if this object is valid and refers to an entry in the control file.
+     */
+    [[nodiscard]] bool is_valid() const { return control_ != nullptr; }
+
+   private:
+    //! Refer to the input control that holds the control file details.
+    const InputControl* control_{nullptr};
+    //! Opaque index of this entry in the control file.
+    size_t index_{};
+  };
+
+  /**
+   * Manages reading from a control file.
+   */
   class InputControl
   {
    public:
-    InputControl(const std::string& filename, const bool serial = false);
+    explicit InputControl(const std::string& filename, const bool serial = false);
     InputControl(const std::string& filename, MPI_Comm comm);
+
     ~InputControl();
 
     InputControl(const InputControl&) = delete;
@@ -191,22 +270,32 @@ namespace Core::IO
     InputControl(InputControl&&) = delete;
     InputControl& operator=(InputControl&&) = delete;
 
-    MAP* control_file() { return &table_; }
-
-    std::string file_name() const { return filename_; }
-
-    /// find control file entry to given time step
-    /*!
-      The control file entry with the given group_name those field and step match
-      my discretization and step. From that we need a backward search to find
-      the entry that links to the binary files that cover our entry.
+    /**
+     * Return the name of the control file.
      */
-    void find_group(int step, const std::string& discretization_name, const char* group_name,
-        const char* filestring, MAP*& result_info, MAP*& file_info);
+    [[nodiscard]] const std::string& file_name() const;
+
+    /**
+     * A control file contains a list of entries which may contain the same key. This function
+     * returns the last entry (i.e., the most recent one) with the given key. If no such entry
+     * exists, an invalid ControlFileEntry is returned.
+     */
+    [[nodiscard]] ControlFileEntry last_entry(const std::string& key) const;
+
+    /**
+     * Find the control file entries for the given discretization and step.
+     */
+    std::pair<ControlFileEntry, ControlFileEntry> find_group(int step,
+        const std::string& discretization_name, const std::string& group_name,
+        const std::string& file_marker) const;
 
    private:
-    std::string filename_;
-    MAP table_;
+    struct Impl;
+    //! Pointer-to-implementation to hide implementation details.
+    std::unique_ptr<Impl> pimpl_;
+
+    //! ControlFileEntry is a light-weight accessor into the control file structure.
+    friend class ControlFileEntry;
   };
 
 
