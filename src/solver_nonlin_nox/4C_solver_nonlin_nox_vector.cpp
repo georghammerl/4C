@@ -17,24 +17,24 @@ NOX::Nln::Vector::Vector(const std::shared_ptr<Core::LinAlg::Vector<double>>& so
     MemoryType memory, ::NOX::CopyType type)
 {
   if (memory == MemoryType::View)
-    linalg_vec = source;
+    linalg_vec_ = source;
   else
   {
     switch (type)
     {
       case ::NOX::DeepCopy:
-        linalg_vec = std::make_shared<Core::LinAlg::Vector<double>>(*source);
+        linalg_vec_ = std::make_shared<Core::LinAlg::Vector<double>>(*source);
         break;
 
       case ::NOX::ShapeCopy:
-        linalg_vec = std::make_shared<Core::LinAlg::Vector<double>>(source->get_map());
+        linalg_vec_ = std::make_shared<Core::LinAlg::Vector<double>>(source->get_map());
         break;
     }
   }
 }
 
 NOX::Nln::Vector::Vector(Core::LinAlg::Vector<double>&& source)
-    : linalg_vec(std::make_shared<Core::LinAlg::Vector<double>>(std::move(source)))
+    : linalg_vec_(std::make_shared<Core::LinAlg::Vector<double>>(std::move(source)))
 {
 }
 
@@ -43,11 +43,11 @@ NOX::Nln::Vector::Vector(const Core::LinAlg::Vector<double>& source, ::NOX::Copy
   switch (type)
   {
     case ::NOX::DeepCopy:
-      linalg_vec = std::make_shared<Core::LinAlg::Vector<double>>(source);
+      linalg_vec_ = std::make_shared<Core::LinAlg::Vector<double>>(source);
       break;
 
     case ::NOX::ShapeCopy:
-      linalg_vec = std::make_shared<Core::LinAlg::Vector<double>>(source.get_map());
+      linalg_vec_ = std::make_shared<Core::LinAlg::Vector<double>>(source.get_map());
       break;
   }
 }
@@ -57,11 +57,11 @@ NOX::Nln::Vector::Vector(const NOX::Nln::Vector& source, ::NOX::CopyType type)
   switch (type)
   {
     case ::NOX::DeepCopy:
-      linalg_vec = std::make_shared<Core::LinAlg::Vector<double>>(source.get_linalg_vector());
+      linalg_vec_ = std::make_shared<Core::LinAlg::Vector<double>>(source.get_linalg_vector());
       break;
 
     case ::NOX::ShapeCopy:
-      linalg_vec =
+      linalg_vec_ =
           std::make_shared<Core::LinAlg::Vector<double>>(source.get_linalg_vector().get_map());
       break;
   }
@@ -69,13 +69,13 @@ NOX::Nln::Vector::Vector(const NOX::Nln::Vector& source, ::NOX::CopyType type)
 
 ::NOX::Abstract::Vector& NOX::Nln::Vector::operator=(const Core::LinAlg::Vector<double>& source)
 {
-  linalg_vec->scale(1.0, source);
+  linalg_vec_->scale(1.0, source);
   return *this;
 }
 
 ::NOX::Abstract::Vector& NOX::Nln::Vector::operator=(const NOX::Nln::Vector& source)
 {
-  linalg_vec->scale(1.0, source.get_linalg_vector());
+  linalg_vec_->scale(1.0, source.get_linalg_vector());
   return *this;
 }
 
@@ -87,20 +87,20 @@ NOX::Nln::Vector::Vector(const NOX::Nln::Vector& source, ::NOX::CopyType type)
 Teuchos::RCP<::NOX::Abstract::Vector> NOX::Nln::Vector::clone(::NOX::CopyType type) const
 {
   Teuchos::RCP<::NOX::Abstract::Vector> newVec =
-      Teuchos::rcp(new NOX::Nln::Vector(*linalg_vec, type));
+      Teuchos::rcp(new NOX::Nln::Vector(*linalg_vec_, type));
   return newVec;
 }
 
-Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() { return *linalg_vec; }
+Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() { return *linalg_vec_; }
 
 const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 {
-  return *linalg_vec;
+  return *linalg_vec_;
 }
 
-::NOX::Abstract::Vector& NOX::Nln::Vector::init(double value)
+::NOX::Abstract::Vector& NOX::Nln::Vector::init(double gamma)
 {
-  linalg_vec->put_scalar(value);
+  linalg_vec_->put_scalar(gamma);
   return *this;
 }
 
@@ -114,7 +114,7 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 ::NOX::Abstract::Vector& NOX::Nln::Vector::abs(const ::NOX::Abstract::Vector& y)
 {
   const auto& nln_vector = dynamic_cast<const NOX::Nln::Vector&>(y);
-  linalg_vec->abs(nln_vector.get_linalg_vector());
+  linalg_vec_->abs(nln_vector.get_linalg_vector());
 
   return *this;
 }
@@ -122,14 +122,14 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 ::NOX::Abstract::Vector& NOX::Nln::Vector::reciprocal(const ::NOX::Abstract::Vector& y)
 {
   const auto& nln_vector = dynamic_cast<const NOX::Nln::Vector&>(y);
-  linalg_vec->reciprocal(nln_vector.get_linalg_vector());
+  linalg_vec_->reciprocal(nln_vector.get_linalg_vector());
 
   return *this;
 }
 
 ::NOX::Abstract::Vector& NOX::Nln::Vector::scale(double gamma)
 {
-  linalg_vec->scale(gamma);
+  linalg_vec_->scale(gamma);
 
   return *this;
 }
@@ -137,7 +137,7 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 ::NOX::Abstract::Vector& NOX::Nln::Vector::scale(const ::NOX::Abstract::Vector& a)
 {
   const auto& nln_vector = dynamic_cast<const NOX::Nln::Vector&>(a);
-  linalg_vec->scale(1.0, nln_vector.get_linalg_vector());
+  linalg_vec_->multiply(1.0, *linalg_vec_, nln_vector.get_linalg_vector(), 0.0);
 
   return *this;
 }
@@ -146,7 +146,7 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
     double alpha, const ::NOX::Abstract::Vector& a, double gamma)
 {
   const auto& nln_vector = dynamic_cast<const NOX::Nln::Vector&>(a);
-  linalg_vec->update(alpha, nln_vector.get_linalg_vector(), gamma);
+  linalg_vec_->update(alpha, nln_vector.get_linalg_vector(), gamma);
 
   return *this;
 }
@@ -156,7 +156,7 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 {
   const auto& nln_vector_a = dynamic_cast<const NOX::Nln::Vector&>(a);
   const auto& nln_vector_b = dynamic_cast<const NOX::Nln::Vector&>(b);
-  linalg_vec->update(
+  linalg_vec_->update(
       alpha, nln_vector_a.get_linalg_vector(), beta, nln_vector_b.get_linalg_vector(), gamma);
 
   return *this;
@@ -164,7 +164,7 @@ const Core::LinAlg::Vector<double>& NOX::Nln::Vector::get_linalg_vector() const
 
 double NOX::Nln::Vector::norm(::NOX::Abstract::Vector::NormType type) const
 {
-  return NOX::Nln::Aux::calc_vector_norm(*linalg_vec, type, false);
+  return NOX::Nln::Aux::calc_vector_norm(*linalg_vec_, type, false);
 }
 
 double NOX::Nln::Vector::norm(const ::NOX::Abstract::Vector&) const
@@ -178,31 +178,31 @@ double NOX::Nln::Vector::innerProduct(const ::NOX::Abstract::Vector& y) const
 {
   double res = 0.;
   const auto& nln_vector = dynamic_cast<const NOX::Nln::Vector&>(y);
-  linalg_vec->dot(nln_vector.get_linalg_vector(), &res);
+  linalg_vec_->dot(nln_vector.get_linalg_vector(), &res);
 
   return res;
 }
 
-::NOX::size_type NOX::Nln::Vector::length() const { return linalg_vec->global_length(); }
+::NOX::size_type NOX::Nln::Vector::length() const { return linalg_vec_->global_length(); }
 
 Epetra_Vector& NOX::Nln::Vector::getEpetraVector()
 {
-  return linalg_vec->get_ref_of_epetra_vector();
+  return linalg_vec_->get_ref_of_epetra_vector();
 }
 
 const Epetra_Vector& NOX::Nln::Vector::getEpetraVector() const
 {
-  return linalg_vec->get_ref_of_epetra_vector();
+  return linalg_vec_->get_ref_of_epetra_vector();
 }
 
 NOX::Nln::Vector::operator ::NOX::Epetra::Vector()
 {
-  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec->get_ref_of_epetra_vector(), false));
+  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec_->get_ref_of_epetra_vector(), false));
 }
 
 NOX::Nln::Vector::operator ::NOX::Epetra::Vector() const
 {
-  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec->get_ref_of_epetra_vector(), false));
+  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec_->get_ref_of_epetra_vector(), false));
 }
 
 FOUR_C_NAMESPACE_CLOSE

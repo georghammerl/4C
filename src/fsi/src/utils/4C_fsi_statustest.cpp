@@ -41,25 +41,21 @@ double NOX::FSI::GenericNormF::compute_norm(const Core::LinAlg::Vector<double>& 
 {
   int n = v.global_length();
   double norm;
-  int err;
 
   switch (norm_type_)
   {
     case ::NOX::Abstract::Vector::TwoNorm:
-      err = v.norm_2(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_2(&norm);
       if (scale_type_ == Scaled) norm /= sqrt(1.0 * n);
       break;
 
     case ::NOX::Abstract::Vector::OneNorm:
-      err = v.norm_1(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_1(&norm);
       if (scale_type_ == Scaled) norm /= n;
       break;
 
     case ::NOX::Abstract::Vector::MaxNorm:
-      err = v.norm_inf(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_inf(&norm);
       if (scale_type_ == Scaled)
         FOUR_C_THROW("It does not make sense to scale a MaxNorm by the vector length.");
       break;

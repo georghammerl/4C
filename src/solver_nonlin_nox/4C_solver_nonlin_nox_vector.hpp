@@ -31,17 +31,17 @@ namespace NOX
         Copy
       };
 
-      //! Ctor that get a shared_ptr with the state vector
+      //! Ctor that gets a shared_ptr with the state vector
       Vector(const std::shared_ptr<Core::LinAlg::Vector<double>>& source,
           MemoryType memory = MemoryType::Copy, ::NOX::CopyType type = ::NOX::DeepCopy);
 
       //! Ctor that captures the ownership of the vector
       Vector(Core::LinAlg::Vector<double>&& source);
 
-      //! Ctor that copies that provided state vector
+      //! Ctor that copies the provided state vector or its shape
       Vector(const Core::LinAlg::Vector<double>& source, ::NOX::CopyType type = ::NOX::DeepCopy);
 
-      //! Ctor that copies from another NOX::Nln::Vector
+      //! Ctor that copies data or just shape from another NOX::Nln::Vector
       Vector(const NOX::Nln::Vector& source, ::NOX::CopyType type = ::NOX::DeepCopy);
 
       //! Main copy assignment operator
@@ -101,10 +101,10 @@ namespace NOX
       ::NOX::size_type length() const override;
 
       //! Get reference to underlying Epetra vector - temporary and is to be removed
-      Epetra_Vector& getEpetraVector();
+      Epetra_Vector& getEpetraVector();  // NOLINT(readability-identifier-naming)
 
       //! Get const reference to underlying Epetra vector - temporary and is to be removed
-      const Epetra_Vector& getEpetraVector() const;
+      const Epetra_Vector& getEpetraVector() const;  // NOLINT(readability-identifier-naming)
 
       // Create a view-like NOX::Epetra::Vector wrapper - temporary and is to be removed
       operator ::NOX::Epetra::Vector();
@@ -112,9 +112,9 @@ namespace NOX
       // Create a view-like NOX::Epetra::Vector wrapper - temporary and is to be removed
       operator ::NOX::Epetra::Vector() const;
 
-     protected:
+     private:
       //! Pointer to a storage vector owned by this object
-      std::shared_ptr<Core::LinAlg::Vector<double>> linalg_vec;
+      std::shared_ptr<Core::LinAlg::Vector<double>> linalg_vec_;
     };
   }  // namespace Nln
 }  // namespace NOX
