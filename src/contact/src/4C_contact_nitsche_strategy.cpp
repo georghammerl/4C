@@ -58,7 +58,7 @@ void CONTACT::NitscheStrategy::apply_force_stiff_cmt(
 
   fc->complete();
   // add negative contact force here since the time integrator handed me a rhs!
-  if (f->update(-1., *fc, 1.)) FOUR_C_THROW("update went wrong");
+  f->update(-1., *fc, 1.);
   kc->complete();
   kt->un_complete();
   kt->add(*kc, false, 1., 1.);

@@ -674,8 +674,7 @@ bool Solid::ModelEvaluator::BeamInteraction::evaluate_force()
   // do communication
   ia_state_ptr_->get_force_np()->complete();
   // add to non fe vector
-  if (ia_force_beaminteraction_->update(1., *ia_state_ptr_->get_force_np(), 1.))
-    FOUR_C_THROW("update went wrong");
+  ia_force_beaminteraction_->update(1., *ia_state_ptr_->get_force_np(), 1.);
 
   // transformation from ia_discret to problem discret
   transform_force();
@@ -720,8 +719,7 @@ bool Solid::ModelEvaluator::BeamInteraction::evaluate_force_stiff()
   ia_state_ptr_->get_force_np()->complete();
 
   // add to non fe vector
-  if (ia_force_beaminteraction_->update(1., *ia_state_ptr_->get_force_np(), 1.))
-    FOUR_C_THROW("update went wrong");
+  ia_force_beaminteraction_->update(1., *ia_state_ptr_->get_force_np(), 1.);
   if (not ia_state_ptr_->get_stiff()->filled()) ia_state_ptr_->get_stiff()->complete();
 
   transform_force_stiff();

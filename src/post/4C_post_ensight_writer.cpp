@@ -1557,8 +1557,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
     // contract result values on proc0 (proc0 gets everything, other procs empty)
     Core::LinAlg::Import proc0dataimporter(*proc0datamap, datamap);
     Core::LinAlg::Vector<double> proc0data(*proc0datamap);
-    int err = proc0data.import(*data, proc0dataimporter, Insert);
-    if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
+    proc0data.import(*data, proc0dataimporter, Insert);
 
     const Core::LinAlg::Map& finaldatamap = proc0data.get_map();
 
@@ -1820,8 +1819,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
   // contract result values on proc0 (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0dataimporter(*proc0datamap, datamap);
   Core::LinAlg::Vector<double> proc0data(*proc0datamap);
-  int err = proc0data.import(*data, proc0dataimporter, Insert);
-  if (err > 0) FOUR_C_THROW("Importing everything to proc 0 went wrong. Import returns {}", err);
+  proc0data.import(*data, proc0dataimporter, Insert);
 
   const Core::LinAlg::Map& finaldatamap = proc0data.get_map();
 
