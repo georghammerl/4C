@@ -1215,14 +1215,8 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet_with_trafo(const Core::LinAlg::
         if (diagonalblock)
         {
           // extract values of trafo at the inclined dbc dof
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-          int err = trafo.extract_global_row_copy(
-              row, trafomaxnumentries, trafonumentries, trafovalues.data(), trafoindices.data());
-          if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ExtractGlobalRowCopy returned err={}", err);
-#else
           trafo.extract_global_row_copy(
               row, trafomaxnumentries, trafonumentries, trafovalues.data(), trafoindices.data());
-#endif
         }
         // if entry of dof with inclined dbc is not a diagonal block, set zero
         // at this position
@@ -1284,14 +1278,8 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet_with_trafo(const Core::LinAlg::
 
         if (diagonalblock)
         {
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-          err = trafo.extract_my_row_copy(
-              i, trafomaxnumentries, trafonumentries, trafovalues.data(), trafoindices.data());
-          if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ExtractGlobalRowCopy returned err={}", err);
-#else
           trafo.extract_my_row_copy(
               i, trafomaxnumentries, trafonumentries, trafovalues.data(), trafoindices.data());
-#endif
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
           err =
@@ -1549,41 +1537,42 @@ int Core::LinAlg::SparseMatrix::replace_diagonal_values(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::extract_diagonal_copy(Core::LinAlg::Vector<double>& Diagonal) const
+void Core::LinAlg::SparseMatrix::extract_diagonal_copy(Core::LinAlg::Vector<double>& Diagonal) const
 {
-  return sysmat_->ExtractDiagonalCopy(Diagonal.get_ref_of_epetra_vector());
+  CHECK_EPETRA_CALL(sysmat_->ExtractDiagonalCopy(Diagonal.get_ref_of_epetra_vector()));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::extract_my_row_copy(
+void Core::LinAlg::SparseMatrix::extract_my_row_copy(
     int my_row, int length, int& num_entries, double* values, int* indices) const
 {
-  return sysmat_->ExtractMyRowCopy(my_row, length, num_entries, values, indices);
+  CHECK_EPETRA_CALL(sysmat_->ExtractMyRowCopy(my_row, length, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::extract_global_row_copy(
+void Core::LinAlg::SparseMatrix::extract_global_row_copy(
     int global_row, int length, int& num_entries, double* values, int* indices) const
 {
-  return sysmat_->ExtractGlobalRowCopy(global_row, length, num_entries, values, indices);
+  CHECK_EPETRA_CALL(
+      sysmat_->ExtractGlobalRowCopy(global_row, length, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::extract_my_row_view(
+void Core::LinAlg::SparseMatrix::extract_my_row_view(
     int my_row, int& num_entries, double*& values, int*& indices) const
 {
-  return sysmat_->ExtractMyRowView(my_row, num_entries, values, indices);
+  CHECK_EPETRA_CALL(sysmat_->ExtractMyRowView(my_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::extract_global_row_view(
+void Core::LinAlg::SparseMatrix::extract_global_row_view(
     int global_row, int& num_entries, double*& values, int*& indices) const
 {
-  return sysmat_->ExtractGlobalRowView(global_row, num_entries, values, indices);
+  CHECK_EPETRA_CALL(sysmat_->ExtractGlobalRowView(global_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
