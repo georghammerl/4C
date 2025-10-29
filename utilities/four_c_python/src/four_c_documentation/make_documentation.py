@@ -626,13 +626,14 @@ def create_markdown_documentation(
         ),
     ]
 
-    obj = All_Of.from_4C_metadata(fourc_metadata["sections"])
-
     for doc in reference_documents:
         doc.content = f"({doc.linkanchor})=\n\n" + f"# {doc.title}\n\n"
         doc.content += f"{set_missing_description(doc.description)}\n\n"
 
-    for section in obj:
+    obj = All_Of.from_4C_metadata(fourc_metadata["sections"])
+    sorted_entries = sorted(list(obj), key=lambda e: getattr(e, "name", "").lower())
+
+    for section in sorted_entries:
         for doc in reference_documents:
             if any(re.match(pattern, section.name) for pattern in doc.pattern):
                 doc.content += create_section_markdown(
