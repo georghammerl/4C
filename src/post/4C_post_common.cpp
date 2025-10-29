@@ -46,8 +46,13 @@ PostProblem::PostProblem(Teuchos::CommandLineProcessor& CLP, int argc, char** ar
   struct_mat_disp_ = "no";
   struct_rot_ = "no";
   std::string mortar_string = "no";
+  bool postprocessor_deprecation_warning = true;
 
   CLP.throwExceptions(false);
+  CLP.setOption("postprocessor_deprecation_warning", "postprocessor_deprecation_warning_off",
+      &postprocessor_deprecation_warning,
+      "If the deprecation warning for the post processor module should be shown - only deactivate "
+      "this if you have a plan on how to port your output functionality to runtime output");
   CLP.setOption("filter", &filter_, "filter to run [ensight, gid, vtu, vtu_node_based, vti]");
   CLP.setOption("start", &start_, "first time step to read");
   CLP.setOption("end", &end_, "last time step to read");
@@ -86,6 +91,24 @@ PostProblem::PostProblem(Teuchos::CommandLineProcessor& CLP, int argc, char** ar
   {
     CLP.printHelpMessage(argv[0], std::cout);
     exit(EXIT_FAILURE);
+  }
+
+  if (postprocessor_deprecation_warning)
+  {
+    const int my_rank = Core::Communication::my_mpi_rank(MPI_COMM_WORLD);
+    if (my_rank == 0)
+    {
+      std::cout << "You are using the post processing functionality of 4C which is deprecated\n"
+                   "and will be replaced with runtime output in the near future.\n\n"
+                   "Make sure to port your requested output field to runtime output. If you are\n"
+                   "not sure about this warning talk to someone from the output taskforce.\n"
+                   "https://github.com/4C-multiphysics/4C/issues/211\n\n"
+                   "This warning can be deactivated with the command line argument:\n"
+                   "    --postprocessor_deprecation_warning_off\n\n"
+                   "Press Enter to continue ";
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    Core::Communication::barrier(MPI_COMM_WORLD);
   }
 
   if (file.length() <= 8 or file.substr(file.length() - 8, 8) != ".control")
