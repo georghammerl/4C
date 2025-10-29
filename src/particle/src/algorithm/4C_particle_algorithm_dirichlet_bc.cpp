@@ -20,65 +20,64 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEALGORITHM::DirichletBoundaryConditionHandler::DirichletBoundaryConditionHandler(
+Particle::DirichletBoundaryConditionHandler::DirichletBoundaryConditionHandler(
     const Teuchos::ParameterList& params)
     : params_(params)
 {
   // empty constructor
 }
 
-void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::init()
+void Particle::DirichletBoundaryConditionHandler::init()
 {
   // get control parameters for initial/boundary conditions
   const Teuchos::ParameterList& params_conditions =
       params_.sublist("INITIAL AND BOUNDARY CONDITIONS");
 
   // read parameters relating particle types to values
-  PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
+  ParticleUtils::read_params_types_related_to_values(
       params_conditions, "DIRICHLET_BOUNDARY_CONDITION", dirichletbctypetofunctid_);
 
   // iterate over particle types and insert into set
   for (auto& typeIt : dirichletbctypetofunctid_) typessubjectedtodirichletbc_.insert(typeIt.first);
 }
 
-void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface)
+void Particle::DirichletBoundaryConditionHandler::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
 }
 
-void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::insert_particle_states_of_particle_types(
-    std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>& particlestatestotypes)
-    const
+void Particle::DirichletBoundaryConditionHandler::insert_particle_states_of_particle_types(
+    std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const
 {
   // iterate over particle types subjected to dirichlet boundary conditions
   for (auto& particleType : typessubjectedtodirichletbc_)
   {
     // insert states for types subjected to dirichlet boundary conditions
-    particlestatestotypes[particleType].insert(PARTICLEENGINE::ReferencePosition);
+    particlestatestotypes[particleType].insert(Particle::ReferencePosition);
   }
 }
 
-void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::set_particle_reference_position() const
+void Particle::DirichletBoundaryConditionHandler::set_particle_reference_position() const
 {
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengineinterface_->get_particle_container_bundle();
 
   // iterate over particle types subjected to dirichlet boundary conditions
   for (auto& particleType : typessubjectedtodirichletbc_)
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container =
-        particlecontainerbundle->get_specific_container(particleType, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container =
+        particlecontainerbundle->get_specific_container(particleType, Particle::Owned);
 
     // set particle reference position
-    container->update_state(0.0, PARTICLEENGINE::ReferencePosition, 1.0, PARTICLEENGINE::Position);
+    container->update_state(0.0, Particle::ReferencePosition, 1.0, Particle::Position);
   }
 }
 
-void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::evaluate_dirichlet_boundary_condition(
+void Particle::DirichletBoundaryConditionHandler::evaluate_dirichlet_boundary_condition(
     const double& evaltime, const bool evalpos, const bool evalvel, const bool evalacc) const
 {
   // degree of maximal function derivative
@@ -99,18 +98,18 @@ void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::evaluate_dirichlet_bo
   std::vector<double> functtimederiv(deg + 1);
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengineinterface_->get_particle_container_bundle();
 
   // iterate over particle types subjected to dirichlet boundary conditions
   for (auto& typeIt : dirichletbctypetofunctid_)
   {
     // get type of particles
-    PARTICLEENGINE::TypeEnum particleType = typeIt.first;
+    Particle::TypeEnum particleType = typeIt.first;
 
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container =
-        particlecontainerbundle->get_specific_container(particleType, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container =
+        particlecontainerbundle->get_specific_container(particleType, Particle::Owned);
 
     // get number of particles stored in container
     const int particlestored = container->particles_stored();
@@ -126,13 +125,13 @@ void PARTICLEALGORITHM::DirichletBoundaryConditionHandler::evaluate_dirichlet_bo
         Global::Problem::instance()->function_by_id<Core::Utils::FunctionOfSpaceTime>(functid);
 
     // get pointer to particle states
-    const double* refpos = container->get_ptr_to_state(PARTICLEENGINE::ReferencePosition, 0);
-    double* pos = container->get_ptr_to_state(PARTICLEENGINE::Position, 0);
-    double* vel = container->get_ptr_to_state(PARTICLEENGINE::Velocity, 0);
-    double* acc = container->get_ptr_to_state(PARTICLEENGINE::Acceleration, 0);
+    const double* refpos = container->get_ptr_to_state(Particle::ReferencePosition, 0);
+    double* pos = container->get_ptr_to_state(Particle::Position, 0);
+    double* vel = container->get_ptr_to_state(Particle::Velocity, 0);
+    double* acc = container->get_ptr_to_state(Particle::Acceleration, 0);
 
     // get particle state dimension
-    int statedim = container->get_state_dim(PARTICLEENGINE::Position);
+    int statedim = container->get_state_dim(Particle::Position);
 
     // safety check
     if (static_cast<std::size_t>(statedim) != function.number_components())

@@ -23,18 +23,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
   class MaterialHandler;
@@ -44,7 +44,7 @@ namespace ParticleInteraction
   class SPHVirtualWallParticle;
   class SPHMomentumFormulationBase;
   class SPHArtificialViscosity;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 namespace Mat
 {
@@ -57,7 +57,7 @@ namespace Mat
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHMomentum final
   {
@@ -78,20 +78,18 @@ namespace ParticleInteraction
     void init();
 
     //! setup momentum handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs,
-        const std::shared_ptr<ParticleInteraction::SPHVirtualWallParticle> virtualwallparticle);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs,
+        const std::shared_ptr<Particle::SPHVirtualWallParticle> virtualwallparticle);
 
     //! insert momentum evaluation dependent states
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     //! add momentum contribution to acceleration field
     void add_acceleration_contribution() const;
@@ -119,43 +117,43 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! particle interaction writer
-    std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter_;
+    std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter_;
 
     //! equation of state bundle
-    std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle_;
+    std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! virtual wall particle handler
-    std::shared_ptr<ParticleInteraction::SPHVirtualWallParticle> virtualwallparticle_;
+    std::shared_ptr<Particle::SPHVirtualWallParticle> virtualwallparticle_;
 
     //! momentum formulation handler
-    std::unique_ptr<ParticleInteraction::SPHMomentumFormulationBase> momentumformulation_;
+    std::unique_ptr<Particle::SPHMomentumFormulationBase> momentumformulation_;
 
     //! artificial viscosity handler
-    std::unique_ptr<ParticleInteraction::SPHArtificialViscosity> artificialviscosity_;
+    std::unique_ptr<Particle::SPHArtificialViscosity> artificialviscosity_;
 
     //! type of boundary particle interaction
-    PARTICLE::BoundaryParticleInteraction boundaryparticleinteraction_;
+    Particle::BoundaryParticleInteraction boundaryparticleinteraction_;
 
     //! type of transport velocity formulation
-    PARTICLE::TransportVelocityFormulation transportvelocityformulation_;
+    Particle::TransportVelocityFormulation transportvelocityformulation_;
 
     //! pointer to fluid material of particle types
     std::vector<const Mat::PAR::ParticleMaterialSPHFluid*> fluidmaterial_;
@@ -164,19 +162,19 @@ namespace ParticleInteraction
     const bool writeparticlewallinteraction_;
 
     //! set of all fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> allfluidtypes_;
+    std::set<Particle::TypeEnum> allfluidtypes_;
 
     //! set of integrated fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> intfluidtypes_;
+    std::set<Particle::TypeEnum> intfluidtypes_;
 
     //! set of pure fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> purefluidtypes_;
+    std::set<Particle::TypeEnum> purefluidtypes_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

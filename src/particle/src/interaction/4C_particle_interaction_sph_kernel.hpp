@@ -23,7 +23,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase
   {
@@ -67,7 +67,7 @@ namespace ParticleInteraction
 
    protected:
     // store problem dimension required by weight functions
-    PARTICLE::KernelSpaceDimension kernelspacedim_;
+    Particle::KernelSpaceDimension kernelspacedim_;
   };
 
   class SPHKernelCubicSpline final : public SPHKernelBase
@@ -120,7 +120,7 @@ namespace ParticleInteraction
     double d2_wdrij2(const double& rij, const double& support) const override;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

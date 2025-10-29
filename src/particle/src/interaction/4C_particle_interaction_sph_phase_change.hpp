@@ -23,22 +23,22 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
   class SPHEquationOfStateBundle;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHPhaseChangeBase
   {
@@ -54,52 +54,52 @@ namespace ParticleInteraction
 
     //! setup phase change handler
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle);
 
     //! evaluate phase change
     virtual void evaluate_phase_change(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const = 0;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const = 0;
 
    protected:
     //! evaluate phase change from below to above phase
     virtual void evaluate_phase_change_from_below_to_above_phase(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase,
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase,
         std::vector<std::set<int>>& particlestoremove,
-        std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>>&
-            particlestoinsert) const final;
+        std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>>& particlestoinsert)
+        const final;
 
     //! evaluate phase change from above to below phase
     virtual void evaluate_phase_change_from_above_to_below_phase(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase,
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase,
         std::vector<std::set<int>>& particlestoremove,
-        std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>>&
-            particlestoinsert) const final;
+        std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>>& particlestoinsert)
+        const final;
 
     //! smoothed particle hydrodynamics specific parameter list
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! equation of state bundle
-    std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle_;
+    std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle_;
 
     //! phase below transition value
-    PARTICLEENGINE::TypeEnum belowphase_;
+    Particle::TypeEnum belowphase_;
 
     //! phase above transition value
-    PARTICLEENGINE::TypeEnum abovephase_;
+    Particle::TypeEnum abovephase_;
 
     //! transition state of phase change
-    PARTICLEENGINE::StateEnum transitionstate_;
+    Particle::StateEnum transitionstate_;
 
     //! transition value of phase change
     double transitionvalue_;
@@ -116,7 +116,7 @@ namespace ParticleInteraction
 
     //! evaluate phase change
     void evaluate_phase_change(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const override;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const override;
   };
 
   class SPHPhaseChangeOneWayScalarAboveToBelow : public SPHPhaseChangeBase
@@ -127,7 +127,7 @@ namespace ParticleInteraction
 
     //! evaluate phase change
     void evaluate_phase_change(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const override;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const override;
   };
 
   class SPHPhaseChangeTwoWayScalar : public SPHPhaseChangeBase
@@ -138,10 +138,10 @@ namespace ParticleInteraction
 
     //! evaluate phase change
     void evaluate_phase_change(
-        std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase) const override;
+        std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const override;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

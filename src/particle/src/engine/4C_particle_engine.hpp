@@ -23,14 +23,14 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleContainer;
   class ParticleContainerBundle;
   class ParticleObject;
   class UniqueGlobalIdHandler;
   class ParticleRuntimeVtpWriter;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 namespace Core::Binstrategy
 {
@@ -46,7 +46,7 @@ namespace Core::IO
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   /*!
    * \brief particle engine to control particle problem
@@ -800,7 +800,7 @@ namespace PARTICLEENGINE
     std::map<int, std::set<int>> thisbinsghostedby_;
   };
 
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

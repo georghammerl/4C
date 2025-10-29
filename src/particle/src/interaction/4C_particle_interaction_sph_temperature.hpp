@@ -23,19 +23,19 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class MaterialHandler;
   class SPHNeighborPairs;
   class SPHHeatSourceBase;
   class SPHHeatLossEvaporation;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 namespace Mat
 {
@@ -48,7 +48,7 @@ namespace Mat
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHTemperature final
   {
@@ -69,10 +69,9 @@ namespace ParticleInteraction
     void init();
 
     //! setup temperature handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! set current time
     void set_current_time(const double currenttime);
@@ -82,8 +81,7 @@ namespace ParticleInteraction
 
     //! insert temperature evaluation dependent states
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     //! compute temperature field using energy equation
     void compute_temperature() const;
@@ -105,25 +103,25 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! heat source handler
-    std::unique_ptr<ParticleInteraction::SPHHeatSourceBase> heatsource_;
+    std::unique_ptr<Particle::SPHHeatSourceBase> heatsource_;
 
     //! evaporation induced heat loss handler
-    std::unique_ptr<ParticleInteraction::SPHHeatLossEvaporation> heatlossevaporation_;
+    std::unique_ptr<Particle::SPHHeatLossEvaporation> heatlossevaporation_;
 
     //! temperature of ghosted particles to refresh
-    PARTICLEENGINE::StatesOfTypesToRefresh temptorefresh_;
+    Particle::StatesOfTypesToRefresh temptorefresh_;
 
     //! current time
     double time_;
@@ -138,10 +136,10 @@ namespace ParticleInteraction
     std::vector<const Mat::PAR::ParticleMaterialThermo*> thermomaterial_;
 
     //! set of integrated thermo particle types
-    std::set<PARTICLEENGINE::TypeEnum> intthermotypes_;
+    std::set<Particle::TypeEnum> intthermotypes_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

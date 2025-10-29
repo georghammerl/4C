@@ -26,7 +26,7 @@ namespace Core::IO
   class DiscretizationReader;
 }  // namespace Core::IO
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallDataState;
 }
@@ -39,7 +39,7 @@ namespace Core::FE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   /*!
    * \brief particle wall discretization runtime vtu writer class
@@ -62,7 +62,7 @@ namespace PARTICLEWALL
      */
     explicit WallDiscretizationRuntimeVtuWriter(
         const std::shared_ptr<Core::FE::Discretization> walldiscretization,
-        const std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate, double restart_time);
+        const std::shared_ptr<Particle::WallDataState> walldatastate, double restart_time);
 
     /*!
      * \brief destructor
@@ -87,13 +87,13 @@ namespace PARTICLEWALL
     std::shared_ptr<Core::FE::Discretization> walldiscretization_;
 
     //! wall data state container
-    std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate_;
+    std::shared_ptr<Particle::WallDataState> walldatastate_;
 
     //! vtu writer object
     std::unique_ptr<Core::IO::DiscretizationVisualizationWriterMesh> runtime_vtuwriter_;
   };
 
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

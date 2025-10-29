@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
@@ -34,7 +34,7 @@ namespace Core::FE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEWALL
+namespace Particle
 {
   /*!
    * \brief particle wall result test handler
@@ -58,7 +58,7 @@ namespace PARTICLEWALL
      *
      * \param[in] particleengineinterface interface to particle engine
      */
-    void setup(const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface);
+    void setup(const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface);
 
     /*!
      * \brief test node value
@@ -82,13 +82,13 @@ namespace PARTICLEWALL
 
    private:
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! wall discretization
     std::shared_ptr<const Core::FE::Discretization> walldiscretization_;
   };
 
-}  // namespace PARTICLEWALL
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

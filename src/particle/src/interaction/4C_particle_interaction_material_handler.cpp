@@ -17,19 +17,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::MaterialHandler::MaterialHandler(const Teuchos::ParameterList& params)
-    : params_(params)
+Particle::MaterialHandler::MaterialHandler(const Teuchos::ParameterList& params) : params_(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::MaterialHandler::init()
+void Particle::MaterialHandler::init()
 {
   // init map relating particle types to material ids
-  std::map<PARTICLEENGINE::TypeEnum, int> typetomatidmap;
+  std::map<Particle::TypeEnum, int> typetomatidmap;
 
   // read parameters relating particle types to values
-  PARTICLEALGORITHM::Utils::read_params_types_related_to_values(
+  ParticleUtils::read_params_types_related_to_values(
       params_, "PHASE_TO_MATERIAL_ID", typetomatidmap);
 
   // determine size of vector indexed by particle types
@@ -42,7 +41,7 @@ void ParticleInteraction::MaterialHandler::init()
   for (auto& typeIt : typetomatidmap)
   {
     // get type of particle
-    PARTICLEENGINE::TypeEnum type_i = typeIt.first;
+    Particle::TypeEnum type_i = typeIt.first;
 
     // add to set of particle types of stored particle material parameters
     storedtypes_.insert(type_i);
@@ -61,7 +60,7 @@ void ParticleInteraction::MaterialHandler::init()
   }
 }
 
-void ParticleInteraction::MaterialHandler::setup()
+void Particle::MaterialHandler::setup()
 {
   // nothing to do
 }

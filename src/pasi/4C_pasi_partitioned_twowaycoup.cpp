@@ -63,11 +63,11 @@ void PaSI::PasiPartTwoWayCoup::setup()
   // safety check
   {
     // get interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface =
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface =
         particlealgorithm_->get_particle_wall_handler_interface();
 
     // get wall data state container
-    std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+    std::shared_ptr<Particle::WallDataState> walldatastate =
         particlewallinterface->get_wall_data_state();
 
     if (walldatastate->get_disp_row() == nullptr or walldatastate->get_disp_col() == nullptr)
@@ -226,49 +226,47 @@ void PaSI::PasiPartTwoWayCoup::reset_particle_states()
   TEUCHOS_FUNC_TIME_MONITOR("PaSI::PASI_PartTwoWayCoup::reset_particle_states");
 
   // get interface to particle engine
-  std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface =
+  std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface =
       particlealgorithm_->get_particle_engine_interface();
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengineinterface->get_particle_container_bundle();
 
   // iterate over particle types
   for (const auto& type : particlecontainerbundle->get_particle_types())
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container =
-        particlecontainerbundle->get_specific_container(type, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container =
+        particlecontainerbundle->get_specific_container(type, Particle::Owned);
 
     // reset position, velocity and acceleration states of all particles
-    container->update_state(0.0, PARTICLEENGINE::Position, 1.0, PARTICLEENGINE::LastIterPosition);
-    container->update_state(0.0, PARTICLEENGINE::Velocity, 1.0, PARTICLEENGINE::LastIterVelocity);
-    container->update_state(
-        0.0, PARTICLEENGINE::Acceleration, 1.0, PARTICLEENGINE::LastIterAcceleration);
+    container->update_state(0.0, Particle::Position, 1.0, Particle::LastIterPosition);
+    container->update_state(0.0, Particle::Velocity, 1.0, Particle::LastIterVelocity);
+    container->update_state(0.0, Particle::Acceleration, 1.0, Particle::LastIterAcceleration);
 
     // reset angular velocity state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::AngularVelocity))
+    if (container->have_stored_state(Particle::AngularVelocity))
       container->update_state(
-          0.0, PARTICLEENGINE::AngularVelocity, 1.0, PARTICLEENGINE::LastIterAngularVelocity);
+          0.0, Particle::AngularVelocity, 1.0, Particle::LastIterAngularVelocity);
 
     // reset angular acceleration state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::AngularAcceleration))
-      container->update_state(0.0, PARTICLEENGINE::AngularAcceleration, 1.0,
-          PARTICLEENGINE::LastIterAngularAcceleration);
+    if (container->have_stored_state(Particle::AngularAcceleration))
+      container->update_state(
+          0.0, Particle::AngularAcceleration, 1.0, Particle::LastIterAngularAcceleration);
 
     // reset modified acceleration state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::ModifiedAcceleration))
-      container->update_state(0.0, PARTICLEENGINE::ModifiedAcceleration, 1.0,
-          PARTICLEENGINE::LastIterModifiedAcceleration);
+    if (container->have_stored_state(Particle::ModifiedAcceleration))
+      container->update_state(
+          0.0, Particle::ModifiedAcceleration, 1.0, Particle::LastIterModifiedAcceleration);
 
     // reset density state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::DensityDot))
-      container->update_state(0.0, PARTICLEENGINE::Density, 1.0, PARTICLEENGINE::LastIterDensity);
+    if (container->have_stored_state(Particle::DensityDot))
+      container->update_state(0.0, Particle::Density, 1.0, Particle::LastIterDensity);
 
     // reset temperature state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::TemperatureDot))
-      container->update_state(
-          0.0, PARTICLEENGINE::Temperature, 1.0, PARTICLEENGINE::LastIterTemperature);
+    if (container->have_stored_state(Particle::TemperatureDot))
+      container->update_state(0.0, Particle::Temperature, 1.0, Particle::LastIterTemperature);
   }
 }
 
@@ -277,11 +275,11 @@ void PaSI::PasiPartTwoWayCoup::clear_interface_forces()
   TEUCHOS_FUNC_TIME_MONITOR("PaSI::PASI_PartTwoWayCoup::clear_interface_forces");
 
   // get interface to particle wall handler
-  std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface =
+  std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface =
       particlealgorithm_->get_particle_wall_handler_interface();
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface->get_wall_data_state();
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -297,11 +295,11 @@ void PaSI::PasiPartTwoWayCoup::get_interface_forces()
   TEUCHOS_FUNC_TIME_MONITOR("PaSI::PASI_PartTwoWayCoup::get_interface_forces");
 
   // get interface to particle wall handler
-  std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface =
+  std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface =
       particlealgorithm_->get_particle_wall_handler_interface();
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface->get_wall_data_state();
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -427,49 +425,47 @@ void PaSI::PasiPartTwoWayCoup::save_particle_states()
   TEUCHOS_FUNC_TIME_MONITOR("PaSI::PASI_PartTwoWayCoup::save_particle_states");
 
   // get interface to particle engine
-  std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface =
+  std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface =
       particlealgorithm_->get_particle_engine_interface();
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengineinterface->get_particle_container_bundle();
 
   // iterate over particle types
   for (const auto& type : particlecontainerbundle->get_particle_types())
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container =
-        particlecontainerbundle->get_specific_container(type, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container =
+        particlecontainerbundle->get_specific_container(type, Particle::Owned);
 
     // save position, velocity and acceleration states of all particles
-    container->update_state(0.0, PARTICLEENGINE::LastIterPosition, 1.0, PARTICLEENGINE::Position);
-    container->update_state(0.0, PARTICLEENGINE::LastIterVelocity, 1.0, PARTICLEENGINE::Velocity);
-    container->update_state(
-        0.0, PARTICLEENGINE::LastIterAcceleration, 1.0, PARTICLEENGINE::Acceleration);
+    container->update_state(0.0, Particle::LastIterPosition, 1.0, Particle::Position);
+    container->update_state(0.0, Particle::LastIterVelocity, 1.0, Particle::Velocity);
+    container->update_state(0.0, Particle::LastIterAcceleration, 1.0, Particle::Acceleration);
 
     // save angular velocity state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::AngularVelocity))
+    if (container->have_stored_state(Particle::AngularVelocity))
       container->update_state(
-          0.0, PARTICLEENGINE::LastIterAngularVelocity, 1.0, PARTICLEENGINE::AngularVelocity);
+          0.0, Particle::LastIterAngularVelocity, 1.0, Particle::AngularVelocity);
 
     // save angular acceleration state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::AngularAcceleration))
-      container->update_state(0.0, PARTICLEENGINE::LastIterAngularAcceleration, 1.0,
-          PARTICLEENGINE::AngularAcceleration);
+    if (container->have_stored_state(Particle::AngularAcceleration))
+      container->update_state(
+          0.0, Particle::LastIterAngularAcceleration, 1.0, Particle::AngularAcceleration);
 
     // save modified acceleration state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::ModifiedAcceleration))
-      container->update_state(0.0, PARTICLEENGINE::LastIterModifiedAcceleration, 1.0,
-          PARTICLEENGINE::ModifiedAcceleration);
+    if (container->have_stored_state(Particle::ModifiedAcceleration))
+      container->update_state(
+          0.0, Particle::LastIterModifiedAcceleration, 1.0, Particle::ModifiedAcceleration);
 
     // save density state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::DensityDot))
-      container->update_state(0.0, PARTICLEENGINE::LastIterDensity, 1.0, PARTICLEENGINE::Density);
+    if (container->have_stored_state(Particle::DensityDot))
+      container->update_state(0.0, Particle::LastIterDensity, 1.0, Particle::Density);
 
     // save temperature state of all particles
-    if (container->have_stored_state(PARTICLEENGINE::TemperatureDot))
-      container->update_state(
-          0.0, PARTICLEENGINE::LastIterTemperature, 1.0, PARTICLEENGINE::Temperature);
+    if (container->have_stored_state(Particle::TemperatureDot))
+      container->update_state(0.0, Particle::LastIterTemperature, 1.0, Particle::Temperature);
   }
 }
 

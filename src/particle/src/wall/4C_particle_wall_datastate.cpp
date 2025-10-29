@@ -20,12 +20,12 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEWALL::WallDataState::WallDataState(const Teuchos::ParameterList& params) : params_(params)
+Particle::WallDataState::WallDataState(const Teuchos::ParameterList& params) : params_(params)
 {
   // empty constructor
 }
 
-void PARTICLEWALL::WallDataState::init(
+void Particle::WallDataState::init(
     const std::shared_ptr<Core::FE::Discretization> walldiscretization)
 {
   // set wall discretization
@@ -56,12 +56,12 @@ void PARTICLEWALL::WallDataState::init(
   }
 }
 
-void PARTICLEWALL::WallDataState::setup()
+void Particle::WallDataState::setup()
 {
   // nothing to do
 }
 
-void PARTICLEWALL::WallDataState::check_for_correct_maps()
+void Particle::WallDataState::check_for_correct_maps()
 {
   if (disp_row_ != nullptr)
     if (not disp_row_->get_map().same_as(*walldiscretization_->dof_row_map()))
@@ -88,7 +88,7 @@ void PARTICLEWALL::WallDataState::check_for_correct_maps()
       FOUR_C_THROW("map of state 'force_col_' corrupt!");
 }
 
-void PARTICLEWALL::WallDataState::update_maps_of_state_vectors()
+void Particle::WallDataState::update_maps_of_state_vectors()
 {
   if (disp_row_ != nullptr and disp_col_ != nullptr)
   {

@@ -187,11 +187,11 @@ void PaSI::PartitionedAlgo::set_interface_states(
   TEUCHOS_FUNC_TIME_MONITOR("PaSI::PartitionedAlgo::set_interface_states");
 
   // get interface to particle wall handler
-  std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface =
+  std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface =
       particlealgorithm_->get_particle_wall_handler_interface();
 
   // get wall data state container
-  std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+  std::shared_ptr<Particle::WallDataState> walldatastate =
       particlewallinterface->get_wall_data_state();
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -284,10 +284,10 @@ void PaSI::PartitionedAlgo::init_particle_algorithm()
   const Teuchos::ParameterList& params = problem->particle_params();
 
   // reference to vector of initial particles
-  std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& initialparticles = problem->particles();
+  std::vector<Particle::ParticleObjShrdPtr>& initialparticles = problem->particles();
 
   // create and init particle algorithm
-  particlealgorithm_ = std::make_shared<PARTICLEALGORITHM::ParticleAlgorithm>(get_comm(), params);
+  particlealgorithm_ = std::make_shared<Particle::ParticleAlgorithm>(get_comm(), params);
   particlealgorithm_->init(initialparticles);
 }
 

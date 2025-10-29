@@ -34,7 +34,7 @@ namespace Core::IO
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class InteractionWriter final
   {
@@ -111,7 +111,7 @@ namespace ParticleInteraction
         runtime_csvwriters_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

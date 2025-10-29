@@ -19,14 +19,14 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleRigidBody::RigidBodyRuntimeVtpWriter::RigidBodyRuntimeVtpWriter(MPI_Comm comm)
+Particle::RigidBodyRuntimeVtpWriter::RigidBodyRuntimeVtpWriter(MPI_Comm comm)
     : comm_(comm), setuptime_(0.0)
 {
   // empty constructor
 }
 
-void ParticleRigidBody::RigidBodyRuntimeVtpWriter::init(
-    const std::shared_ptr<ParticleRigidBody::RigidBodyDataState> rigidbodydatastate)
+void Particle::RigidBodyRuntimeVtpWriter::init(
+    const std::shared_ptr<Particle::RigidBodyDataState> rigidbodydatastate)
 {
   // set rigid body data state container
   rigidbodydatastate_ = rigidbodydatastate;
@@ -39,14 +39,14 @@ void ParticleRigidBody::RigidBodyRuntimeVtpWriter::init(
       comm_, "rigidbody");
 }
 
-void ParticleRigidBody::RigidBodyRuntimeVtpWriter::read_restart(
+void Particle::RigidBodyRuntimeVtpWriter::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader)
 {
   // get restart time
   setuptime_ = reader->read_double("time");
 }
 
-void ParticleRigidBody::RigidBodyRuntimeVtpWriter::set_rigid_body_positions_and_states(
+void Particle::RigidBodyRuntimeVtpWriter::set_rigid_body_positions_and_states(
     const std::vector<int>& ownedrigidbodies)
 {
   auto& visualization_data = visualization_manager_->get_visualization_data();
@@ -209,7 +209,7 @@ void ParticleRigidBody::RigidBodyRuntimeVtpWriter::set_rigid_body_positions_and_
   }
 }
 
-void ParticleRigidBody::RigidBodyRuntimeVtpWriter::write_to_disk(
+void Particle::RigidBodyRuntimeVtpWriter::write_to_disk(
     const double time, const unsigned int timestep_number)
 {
   visualization_manager_->write_to_disk(time, timestep_number);

@@ -32,11 +32,11 @@ void particle_drt()
   const Teuchos::ParameterList& params = problem->particle_params();
 
   // reference to vector of initial particles
-  std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& initialparticles = problem->particles();
+  std::vector<Particle::ParticleObjShrdPtr>& initialparticles = problem->particles();
 
   // create and init particle algorithm
-  auto particlealgorithm = std::unique_ptr<PARTICLEALGORITHM::ParticleAlgorithm>(
-      new PARTICLEALGORITHM::ParticleAlgorithm(comm, params));
+  auto particlealgorithm =
+      std::unique_ptr<Particle::ParticleAlgorithm>(new Particle::ParticleAlgorithm(comm, params));
   particlealgorithm->init(initialparticles);
 
   // read restart information

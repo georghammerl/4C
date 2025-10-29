@@ -25,9 +25,9 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEWALL::WallDiscretizationRuntimeVtuWriter::WallDiscretizationRuntimeVtuWriter(
+Particle::WallDiscretizationRuntimeVtuWriter::WallDiscretizationRuntimeVtuWriter(
     const std::shared_ptr<Core::FE::Discretization> walldiscretization,
-    const std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate, const double restart_time)
+    const std::shared_ptr<Particle::WallDataState> walldatastate, const double restart_time)
     : walldiscretization_(walldiscretization), walldatastate_(walldatastate)
 {
   // construct the writer object
@@ -38,7 +38,7 @@ PARTICLEWALL::WallDiscretizationRuntimeVtuWriter::WallDiscretizationRuntimeVtuWr
               *Global::Problem::instance()->output_control_file(), restart_time));
 }
 
-void PARTICLEWALL::WallDiscretizationRuntimeVtuWriter::write_wall_discretization_runtime_output(
+void Particle::WallDiscretizationRuntimeVtuWriter::write_wall_discretization_runtime_output(
     const int step, const double time) const
 {
   // reset the writer object

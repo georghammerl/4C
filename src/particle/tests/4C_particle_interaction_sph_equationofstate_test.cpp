@@ -16,8 +16,8 @@ namespace
   class SPHEquationOfStateGenTaitTest : public ::testing::Test
   {
    protected:
-    std::unique_ptr<ParticleInteraction::SPHEquationOfStateGenTait> equationofstate_;
-    std::unique_ptr<ParticleInteraction::SPHEquationOfStateGenTait> equationofstate_special_;
+    std::unique_ptr<Particle::SPHEquationOfStateGenTait> equationofstate_;
+    std::unique_ptr<Particle::SPHEquationOfStateGenTait> equationofstate_special_;
 
     SPHEquationOfStateGenTaitTest()
     {
@@ -26,10 +26,10 @@ namespace
       const double exponent = 7;
 
       // create equation of state handler
-      equationofstate_ = std::make_unique<ParticleInteraction::SPHEquationOfStateGenTait>(
-          speedofsound, refdensfac, exponent);
-      equationofstate_special_ = std::make_unique<ParticleInteraction::SPHEquationOfStateGenTait>(
-          speedofsound, refdensfac, 1.0);
+      equationofstate_ =
+          std::make_unique<Particle::SPHEquationOfStateGenTait>(speedofsound, refdensfac, exponent);
+      equationofstate_special_ =
+          std::make_unique<Particle::SPHEquationOfStateGenTait>(speedofsound, refdensfac, 1.0);
 
       // init equation of state handler
       equationofstate_->init();
@@ -78,15 +78,14 @@ namespace
   class SPHEquationOfStateIdealGasTest : public ::testing::Test
   {
    protected:
-    std::unique_ptr<ParticleInteraction::SPHEquationOfStateIdealGas> equationofstate_;
+    std::unique_ptr<Particle::SPHEquationOfStateIdealGas> equationofstate_;
 
     SPHEquationOfStateIdealGasTest()
     {
       const double speedofsound = 3.5;
 
       // create equation of state handler
-      equationofstate_ =
-          std::make_unique<ParticleInteraction::SPHEquationOfStateIdealGas>(speedofsound);
+      equationofstate_ = std::make_unique<Particle::SPHEquationOfStateIdealGas>(speedofsound);
 
       // init equation of state handler
       equationofstate_->init();

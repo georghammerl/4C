@@ -21,8 +21,8 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::string& section_name,
-    std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particles)
+void Particle::read_particles(Core::IO::InputFile& input, const std::string& section_name,
+    std::vector<Particle::ParticleObjShrdPtr>& particles)
 {
   const int myrank = Core::Communication::my_mpi_rank(input.get_comm());
   if (myrank > 0) return;
@@ -36,8 +36,8 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
     any_particles_read = true;
 
     {
-      PARTICLEENGINE::TypeEnum particletype;
-      PARTICLEENGINE::ParticleStates particlestates;
+      Particle::TypeEnum particletype;
+      Particle::ParticleStates particlestates;
 
       Core::IO::ValueParser parser{particle_line.get_as_dat_style_string(),
           {.user_scope_message = "While reading particle data: "}};
@@ -47,18 +47,18 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
       auto pos = parser.read<std::array<double, 3>>();
 
       // get enum of particle type
-      particletype = PARTICLEENGINE::enum_from_type_name(type);
+      particletype = Particle::enum_from_type_name(type);
 
       // allocate memory to hold particle position state
-      particlestates.resize(PARTICLEENGINE::Position + 1);
+      particlestates.resize(Particle::Position + 1);
 
       // set position state
-      particlestates[PARTICLEENGINE::Position] = std::vector<double>(pos.begin(), pos.end());
+      particlestates[Particle::Position] = std::vector<double>(pos.begin(), pos.end());
 
       // optional particle states
       {
         std::string statelabel;
-        PARTICLEENGINE::StateEnum particlestate;
+        Particle::StateEnum particlestate;
         std::vector<double> state;
 
         while (!parser.at_end())
@@ -67,7 +67,7 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
           // optional particle radius
           if (next == "RAD")
           {
-            particlestate = PARTICLEENGINE::Radius;
+            particlestate = Particle::Radius;
             parser.consume("RAD");
 
             if (auto val = parser.read<std::optional<double>>())
@@ -83,7 +83,7 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
           // optional rigid body color
           else if (next == "RIGIDCOLOR")
           {
-            particlestate = PARTICLEENGINE::RigidBodyColor;
+            particlestate = Particle::RigidBodyColor;
             parser.consume("RIGIDCOLOR");
 
             if (auto val = parser.read<std::optional<double>>())
@@ -110,7 +110,7 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
 
       // construct and store read in particle object
       particles.emplace_back(
-          std::make_shared<PARTICLEENGINE::ParticleObject>(particletype, -1, particlestates));
+          std::make_shared<Particle::ParticleObject>(particletype, -1, particlestates));
     }
   }
 
@@ -120,7 +120,7 @@ void PARTICLEENGINE::read_particles(Core::IO::InputFile& input, const std::strin
 }
 
 
-Core::IO::InputSpec PARTICLEENGINE::create_particle_spec()
+Core::IO::InputSpec Particle::create_particle_spec()
 {
   using namespace Core::IO::InputSpecBuilders;
 

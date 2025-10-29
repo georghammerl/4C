@@ -15,42 +15,41 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEALGORITHM::InputGenerator::InputGenerator(
-    MPI_Comm comm, const Teuchos::ParameterList& params)
+Particle::InputGenerator::InputGenerator(MPI_Comm comm, const Teuchos::ParameterList& params)
     : myrank_(Core::Communication::my_mpi_rank(comm)), params_(params)
 {
   // empty constructor
 }
 
-void PARTICLEALGORITHM::InputGenerator::init()
+void Particle::InputGenerator::init()
 {
   // nothing to do
 }
 
-void PARTICLEALGORITHM::InputGenerator::generate_particles(
-    std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particlesgenerated) const
+void Particle::InputGenerator::generate_particles(
+    std::vector<Particle::ParticleObjShrdPtr>& particlesgenerated) const
 {
   // generate initial particles
 }
 
-void PARTICLEALGORITHM::InputGenerator::add_generated_particle(const std::vector<double>& position,
-    const PARTICLEENGINE::TypeEnum particletype,
-    std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particlesgenerated) const
+void Particle::InputGenerator::add_generated_particle(const std::vector<double>& position,
+    const Particle::TypeEnum particletype,
+    std::vector<Particle::ParticleObjShrdPtr>& particlesgenerated) const
 {
   // safety check
   if (position.size() != 3)
     FOUR_C_THROW("particle can not be generated since position vector needs three entries!");
 
   // allocate memory to hold particle states
-  PARTICLEENGINE::ParticleStates particlestates;
-  particlestates.assign((PARTICLEENGINE::Position + 1), std::vector<double>(0));
+  Particle::ParticleStates particlestates;
+  particlestates.assign((Particle::Position + 1), std::vector<double>(0));
 
   // set position state
-  particlestates[PARTICLEENGINE::Position] = position;
+  particlestates[Particle::Position] = position;
 
   // construct and store generated particle object
   particlesgenerated.emplace_back(
-      std::make_shared<PARTICLEENGINE::ParticleObject>(particletype, -1, particlestates));
+      std::make_shared<Particle::ParticleObject>(particletype, -1, particlestates));
 }
 
 FOUR_C_NAMESPACE_CLOSE

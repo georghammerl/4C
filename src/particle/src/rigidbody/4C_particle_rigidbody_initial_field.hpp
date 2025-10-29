@@ -18,7 +18,7 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-namespace ParticleRigidBody
+namespace Particle
 {
   /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
@@ -30,10 +30,9 @@ namespace ParticleRigidBody
    *
    */
   void set_initial_fields(const Teuchos::ParameterList& params,
-      const std::vector<int>& ownedrigidbodies,
-      ParticleRigidBody::RigidBodyDataState& rigidbodydatastates);
+      const std::vector<int>& ownedrigidbodies, Particle::RigidBodyDataState& rigidbodydatastates);
 
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

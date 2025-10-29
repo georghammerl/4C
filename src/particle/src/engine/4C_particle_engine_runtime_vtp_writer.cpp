@@ -18,13 +18,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEENGINE::ParticleRuntimeVtpWriter::ParticleRuntimeVtpWriter(MPI_Comm comm)
+Particle::ParticleRuntimeVtpWriter::ParticleRuntimeVtpWriter(MPI_Comm comm)
     : comm_(comm), setuptime_(0.0)
 {
   // empty constructor
 }
 
-void PARTICLEENGINE::ParticleRuntimeVtpWriter::init(
+void Particle::ParticleRuntimeVtpWriter::init(
     const ParticleContainerBundleShrdPtr particlecontainerbundle)
 {
   // set particle container bundle
@@ -41,7 +41,7 @@ void PARTICLEENGINE::ParticleRuntimeVtpWriter::init(
       LastIterDensity, LastIterTemperature});
 }
 
-void PARTICLEENGINE::ParticleRuntimeVtpWriter::setup(bool write_ghosted_particles)
+void Particle::ParticleRuntimeVtpWriter::setup(bool write_ghosted_particles)
 {
   // determine size of vector indexed by particle types
   const int typevectorsize = *(--particlecontainerbundle_->get_particle_types().end()) + 1;
@@ -74,14 +74,14 @@ void PARTICLEENGINE::ParticleRuntimeVtpWriter::setup(bool write_ghosted_particle
   }
 }
 
-void PARTICLEENGINE::ParticleRuntimeVtpWriter::read_restart(
+void Particle::ParticleRuntimeVtpWriter::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader)
 {
   // get restart time
   setuptime_ = reader->read_double("time");
 }
 
-void PARTICLEENGINE::ParticleRuntimeVtpWriter::set_particle_positions_and_states()
+void Particle::ParticleRuntimeVtpWriter::set_particle_positions_and_states()
 {
   // iterate over particle types
   for (const auto& type : particlecontainerbundle_->get_particle_types())
@@ -182,7 +182,7 @@ void PARTICLEENGINE::ParticleRuntimeVtpWriter::set_particle_positions_and_states
   }
 }
 
-void PARTICLEENGINE::ParticleRuntimeVtpWriter::write_to_disk(
+void Particle::ParticleRuntimeVtpWriter::write_to_disk(
     const double visualization_time, const int visualization_step)
 {
   // iterate over particle types

@@ -20,26 +20,25 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHBoundaryParticleBase::SPHBoundaryParticleBase(
-    const Teuchos::ParameterList& params)
+Particle::SPHBoundaryParticleBase::SPHBoundaryParticleBase(const Teuchos::ParameterList& params)
     : params_sph_(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHBoundaryParticleBase::init()
+void Particle::SPHBoundaryParticleBase::init()
 {
   // init with potential fluid particle types
-  fluidtypes_ = {PARTICLEENGINE::Phase1, PARTICLEENGINE::Phase2, PARTICLEENGINE::DirichletPhase,
-      PARTICLEENGINE::NeumannPhase};
+  fluidtypes_ = {
+      Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase};
 
   // init with potential boundary particle types
-  boundarytypes_ = {PARTICLEENGINE::BoundaryPhase, PARTICLEENGINE::RigidPhase};
+  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 }
 
-void ParticleInteraction::SPHBoundaryParticleBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHBoundaryParticleBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -67,24 +66,22 @@ void ParticleInteraction::SPHBoundaryParticleBase::setup(
         "no boundary or rigid particles defined but a boundary particle formulation is set!");
 }
 
-ParticleInteraction::SPHBoundaryParticleAdami::SPHBoundaryParticleAdami(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::SPHBoundaryParticleBase(params)
+Particle::SPHBoundaryParticleAdami::SPHBoundaryParticleAdami(const Teuchos::ParameterList& params)
+    : Particle::SPHBoundaryParticleBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHBoundaryParticleAdami::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHBoundaryParticleAdami::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // call base class setup
   SPHBoundaryParticleBase::setup(particleengineinterface, neighborpairs);
 
   // setup modified states of ghosted boundary particles to refresh
   {
-    std::vector<PARTICLEENGINE::StateEnum> states{
-        PARTICLEENGINE::BoundaryPressure, PARTICLEENGINE::BoundaryVelocity};
+    std::vector<Particle::StateEnum> states{Particle::BoundaryPressure, Particle::BoundaryVelocity};
 
     for (const auto& type_i : boundarytypes_)
       boundarystatestorefresh_.push_back(std::make_pair(type_i, states));
@@ -100,18 +97,16 @@ void ParticleInteraction::SPHBoundaryParticleAdami::setup(
   sumj_vel_j_wij_.resize(typevectorsize);
 }
 
-void ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_states(
-    std::vector<double>& gravity)
+void Particle::SPHBoundaryParticleAdami::init_boundary_particle_states(std::vector<double>& gravity)
 {
-  TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_states");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::SPHBoundaryParticleAdami::init_boundary_particle_states");
 
   // iterate over boundary particle types
   for (const auto& type_i : boundarytypes_)
   {
     // get container of owned particles of current particle type
-    PARTICLEENGINE::ParticleContainer* container_i =
-        particlecontainerbundle_->get_specific_container(type_i, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container_i =
+        particlecontainerbundle_->get_specific_container(type_i, Particle::Owned);
 
     // get number of particles stored in container
     const int particlestored = container_i->particles_stored();
@@ -135,13 +130,13 @@ void ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_state
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
@@ -149,46 +144,48 @@ void ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_state
     if (boundarytypes_.count(type_i))
     {
       // get container of owned particles
-      PARTICLEENGINE::ParticleContainer* container_j =
+      Particle::ParticleContainer* container_j =
           particlecontainerbundle_->get_specific_container(type_j, status_j);
 
       // get pointer to particle states
-      const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
-      const double* dens_j = container_j->get_ptr_to_state(PARTICLEENGINE::Density, particle_j);
-      const double* press_j = container_j->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_j);
+      const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
+      const double* dens_j = container_j->get_ptr_to_state(Particle::Density, particle_j);
+      const double* press_j = container_j->get_ptr_to_state(Particle::Pressure, particle_j);
 
       // sum contribution of neighboring particle j
       sumj_wij_[type_i][particle_i] += particlepair.Wij_;
       sumj_press_j_wij_[type_i][particle_i] += press_j[0] * particlepair.Wij_;
 
       const double fac = dens_j[0] * particlepair.absdist_ * particlepair.Wij_;
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           sumj_dens_j_r_ij_wij_[type_i][particle_i].data(), fac, particlepair.e_ij_);
 
-      Utils::vec_add_scale(sumj_vel_j_wij_[type_i][particle_i].data(), particlepair.Wij_, vel_j);
+      ParticleUtils::vec_add_scale(
+          sumj_vel_j_wij_[type_i][particle_i].data(), particlepair.Wij_, vel_j);
     }
 
     // evaluate contribution of neighboring fluid particle i
-    if (boundarytypes_.count(type_j) and status_j == PARTICLEENGINE::Owned)
+    if (boundarytypes_.count(type_j) and status_j == Particle::Owned)
     {
       // get container of owned particles
-      PARTICLEENGINE::ParticleContainer* container_i =
+      Particle::ParticleContainer* container_i =
           particlecontainerbundle_->get_specific_container(type_i, status_i);
 
       // get pointer to particle states
-      const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-      const double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
-      const double* press_i = container_i->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_i);
+      const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+      const double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
+      const double* press_i = container_i->get_ptr_to_state(Particle::Pressure, particle_i);
 
       // sum contribution of neighboring particle i
       sumj_wij_[type_j][particle_j] += particlepair.Wji_;
       sumj_press_j_wij_[type_j][particle_j] += press_i[0] * particlepair.Wji_;
 
       const double fac = -dens_i[0] * particlepair.absdist_ * particlepair.Wji_;
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           sumj_dens_j_r_ij_wij_[type_j][particle_j].data(), fac, particlepair.e_ij_);
 
-      Utils::vec_add_scale(sumj_vel_j_wij_[type_j][particle_j].data(), particlepair.Wji_, vel_i);
+      ParticleUtils::vec_add_scale(
+          sumj_vel_j_wij_[type_j][particle_j].data(), particlepair.Wji_, vel_i);
     }
   }
 
@@ -196,12 +193,12 @@ void ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_state
   for (const auto& type_i : boundarytypes_)
   {
     // get container of owned particles
-    PARTICLEENGINE::ParticleContainer* container_i =
-        particlecontainerbundle_->get_specific_container(type_i, PARTICLEENGINE::Owned);
+    Particle::ParticleContainer* container_i =
+        particlecontainerbundle_->get_specific_container(type_i, Particle::Owned);
 
     // clear modified boundary particle states
-    container_i->clear_state(PARTICLEENGINE::BoundaryPressure);
-    container_i->clear_state(PARTICLEENGINE::BoundaryVelocity);
+    container_i->clear_state(Particle::BoundaryPressure);
+    container_i->clear_state(Particle::BoundaryVelocity);
 
     // iterate over particles in container
     for (int particle_i = 0; particle_i < container_i->particles_stored(); ++particle_i)
@@ -210,30 +207,29 @@ void ParticleInteraction::SPHBoundaryParticleAdami::init_boundary_particle_state
       if (sumj_wij_[type_i][particle_i] > 0.0)
       {
         // get pointer to particle states
-        const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-        const double* acc_i =
-            container_i->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_i);
+        const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+        const double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
         double* boundarypress_i =
-            container_i->get_ptr_to_state(PARTICLEENGINE::BoundaryPressure, particle_i);
+            container_i->get_ptr_to_state(Particle::BoundaryPressure, particle_i);
         double* boundaryvel_i =
-            container_i->get_ptr_to_state(PARTICLEENGINE::BoundaryVelocity, particle_i);
+            container_i->get_ptr_to_state(Particle::BoundaryVelocity, particle_i);
 
         // get relative acceleration of boundary particle
         double relacc[3];
-        Utils::vec_set(relacc, gravity.data());
-        Utils::vec_sub(relacc, acc_i);
+        ParticleUtils::vec_set(relacc, gravity.data());
+        ParticleUtils::vec_sub(relacc, acc_i);
 
         const double inv_sumj_Wij = 1.0 / sumj_wij_[type_i][particle_i];
 
         // set modified boundary pressure
         boundarypress_i[0] =
             (sumj_press_j_wij_[type_i][particle_i] +
-                Utils::vec_dot(relacc, sumj_dens_j_r_ij_wij_[type_i][particle_i].data())) *
+                ParticleUtils::vec_dot(relacc, sumj_dens_j_r_ij_wij_[type_i][particle_i].data())) *
             inv_sumj_Wij;
 
         // set modified boundary velocity
-        Utils::vec_set_scale(boundaryvel_i, 2.0, vel_i);
-        Utils::vec_add_scale(
+        ParticleUtils::vec_set_scale(boundaryvel_i, 2.0, vel_i);
+        ParticleUtils::vec_add_scale(
             boundaryvel_i, -inv_sumj_Wij, sumj_vel_j_wij_[type_i][particle_i].data());
       }
     }

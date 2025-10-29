@@ -20,10 +20,10 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHBarrierForce::SPHBarrierForce(const Teuchos::ParameterList& params)
+Particle::SPHBarrierForce::SPHBarrierForce(const Teuchos::ParameterList& params)
     : params_sph_(params),
-      liquidtype_(PARTICLEENGINE::Phase1),
-      gastype_(PARTICLEENGINE::Phase2),
+      liquidtype_(Particle::Phase1),
+      gastype_(Particle::Phase2),
       dist_(params_sph_.get<double>("BARRIER_FORCE_DISTANCE")),
       cr_(params_sph_.get<double>("BARRIER_FORCE_TEMPSCALE")),
       trans_ref_temp_(params_sph_.get<double>("TRANS_REF_TEMPERATURE")),
@@ -36,13 +36,13 @@ ParticleInteraction::SPHBarrierForce::SPHBarrierForce(const Teuchos::ParameterLi
   // empty constructor
 }
 
-void ParticleInteraction::SPHBarrierForce::init()
+void Particle::SPHBarrierForce::init()
 {
   // init fluid particle types
   fluidtypes_ = {liquidtype_, gastype_};
 
   // init with potential boundary particle types
-  boundarytypes_ = {PARTICLEENGINE::BoundaryPhase, PARTICLEENGINE::RigidPhase};
+  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 
   // safety check
   if (not(dist_ > 0.0)) FOUR_C_THROW("barrier force distance not positive!");
@@ -55,15 +55,15 @@ void ParticleInteraction::SPHBarrierForce::init()
 
   if (trans_dT_barrier_ > 0.0)
   {
-    if (Teuchos::getIntegralValue<PARTICLE::TemperatureEvaluationScheme>(
-            params_sph_, "TEMPERATUREEVALUATION") == PARTICLE::NoTemperatureEvaluation)
+    if (Teuchos::getIntegralValue<Particle::TemperatureEvaluationScheme>(
+            params_sph_, "TEMPERATUREEVALUATION") == Particle::NoTemperatureEvaluation)
       FOUR_C_THROW("temperature evaluation needed for linear transition of surface tension!");
   }
 }
 
-void ParticleInteraction::SPHBarrierForce::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHBarrierForce::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -78,7 +78,7 @@ void ParticleInteraction::SPHBarrierForce::setup(
   for (const auto& type_i : fluidtypes_)
     if (not particlecontainerbundle_->get_particle_types().count(type_i))
       FOUR_C_THROW("no particle container for particle type '{}' found!",
-          PARTICLEENGINE::enum_to_type_name(type_i));
+          Particle::enum_to_type_name(type_i));
 
   // update with actual boundary particle types
   const auto boundarytypes = boundarytypes_;
@@ -87,7 +87,7 @@ void ParticleInteraction::SPHBarrierForce::setup(
       boundarytypes_.erase(type_i);
 }
 
-void ParticleInteraction::SPHBarrierForce::compute_barrier_force_contribution() const
+void Particle::SPHBarrierForce::compute_barrier_force_contribution() const
 {
   // compute barrier force contribution (particle contribution)
   compute_barrier_force_particle_contribution();
@@ -96,7 +96,7 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_contribution() 
   compute_barrier_force_particle_boundary_contribution();
 }
 
-void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_contribution() const
+void Particle::SPHBarrierForce::compute_barrier_force_particle_contribution() const
 {
   // get relevant particle pair indices
   std::vector<int> relindices;
@@ -109,47 +109,45 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_contri
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get pointer to particle states
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* temp_i =
-        container_i->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_i);
-    double* acc_i = container_i->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* temp_i = container_i->cond_get_ptr_to_state(Particle::Temperature, particle_i);
+    double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
-    const double* mass_j = container_j->get_ptr_to_state(PARTICLEENGINE::Mass, particle_j);
-    const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
-    const double* temp_j =
-        container_j->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_j);
-    double* acc_j = container_j->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_j);
+    const double* mass_j = container_j->get_ptr_to_state(Particle::Mass, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
+    const double* temp_j = container_j->cond_get_ptr_to_state(Particle::Temperature, particle_j);
+    double* acc_j = container_j->get_ptr_to_state(Particle::Acceleration, particle_j);
 
     // evaluate transition factor above reference temperature
     double tempfac_i = 0.0;
     double tempfac_j = 0.0;
 
     if (type_i != gastype_ and trans_dT_barrier_ > 0.0)
-      tempfac_i =
-          Utils::comp_lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
+      tempfac_i = ParticleUtils::comp_lin_trans(
+          temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
 
     if (type_j != gastype_ and trans_dT_barrier_ > 0.0)
-      tempfac_j =
-          Utils::comp_lin_trans(temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
+      tempfac_j = ParticleUtils::comp_lin_trans(
+          temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
 
     // evaluate active barrier force distance
     const double activedist = std::max(1.0 + cr_ * tempfac_i, 1.0 + cr_ * tempfac_j) * dist_;
@@ -157,8 +155,8 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_contri
     if (particlepair.absdist_ < activedist)
     {
       const double gap = particlepair.absdist_ - activedist;
-      const double gapdot =
-          Utils::vec_dot(vel_i, particlepair.e_ij_) - Utils::vec_dot(vel_j, particlepair.e_ij_);
+      const double gapdot = ParticleUtils::vec_dot(vel_i, particlepair.e_ij_) -
+                            ParticleUtils::vec_dot(vel_j, particlepair.e_ij_);
 
       const double stiff = (type_i == gastype_ or type_j == gastype_) ? stiff_g_ : stiff_h_;
       const double damp = (type_i == gastype_ or type_j == gastype_) ? damp_g_ : damp_h_;
@@ -167,17 +165,16 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_contri
       const double fac = (stiff * gap + damp * std::abs(gap) * gapdot);
 
       // sum contribution of neighboring particle j
-      Utils::vec_add_scale(acc_i, -fac / mass_i[0], particlepair.e_ij_);
+      ParticleUtils::vec_add_scale(acc_i, -fac / mass_i[0], particlepair.e_ij_);
 
       // sum contribution of neighboring particle i
-      if (status_j == PARTICLEENGINE::Owned)
-        Utils::vec_add_scale(acc_j, fac / mass_j[0], particlepair.e_ij_);
+      if (status_j == Particle::Owned)
+        ParticleUtils::vec_add_scale(acc_j, fac / mass_j[0], particlepair.e_ij_);
     }
   }
 }
 
-void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_boundary_contribution()
-    const
+void Particle::SPHBarrierForce::compute_barrier_force_particle_boundary_contribution() const
 {
   // get relevant particle pair indices
   std::vector<int> relindices;
@@ -191,13 +188,13 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_bounda
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
@@ -214,42 +211,40 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_bounda
 
     // versor from particle j to i
     double e_ij[3];
-    Utils::vec_set(e_ij, particlepair.e_ij_);
-    if (swapparticles) Utils::vec_scale(e_ij, -1.0);
+    ParticleUtils::vec_set(e_ij, particlepair.e_ij_);
+    if (swapparticles) ParticleUtils::vec_scale(e_ij, -1.0);
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get pointer to particle states
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
-    const double* temp_i =
-        container_i->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
+    const double* temp_i = container_i->cond_get_ptr_to_state(Particle::Temperature, particle_i);
 
     double* acc_i = nullptr;
-    if (status_i == PARTICLEENGINE::Owned)
-      acc_i = container_i->get_ptr_to_state(PARTICLEENGINE::Acceleration, particle_i);
+    if (status_i == Particle::Owned)
+      acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
     // get pointer to boundary particle states
-    const double* vel_j = container_j->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_j);
-    const double* temp_j =
-        container_j->cond_get_ptr_to_state(PARTICLEENGINE::Temperature, particle_j);
+    const double* vel_j = container_j->get_ptr_to_state(Particle::Velocity, particle_j);
+    const double* temp_j = container_j->cond_get_ptr_to_state(Particle::Temperature, particle_j);
 
     // evaluate transition factor above reference temperature
     double tempfac_i = 0.0;
     double tempfac_j = 0.0;
 
     if (type_i != gastype_ and trans_dT_barrier_ > 0.0)
-      tempfac_i =
-          Utils::comp_lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
+      tempfac_i = ParticleUtils::comp_lin_trans(
+          temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
 
     if (trans_dT_barrier_ > 0.0)
-      tempfac_j =
-          Utils::comp_lin_trans(temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
+      tempfac_j = ParticleUtils::comp_lin_trans(
+          temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_dT_barrier_);
 
     // evaluate active barrier force distance
     const double activedist = std::max(1.0 + cr_ * tempfac_i, 1.0 + cr_ * tempfac_j) * dist_;
@@ -257,7 +252,8 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_bounda
     if (absdist < activedist)
     {
       const double gap = absdist - activedist;
-      const double gapdot = Utils::vec_dot(vel_i, e_ij) - Utils::vec_dot(vel_j, e_ij);
+      const double gapdot =
+          ParticleUtils::vec_dot(vel_i, e_ij) - ParticleUtils::vec_dot(vel_j, e_ij);
 
       const double stiff = (type_i == gastype_) ? stiff_g_ : stiff_h_;
       const double damp = (type_i == gastype_) ? damp_g_ : damp_h_;
@@ -266,7 +262,7 @@ void ParticleInteraction::SPHBarrierForce::compute_barrier_force_particle_bounda
       const double fac = (stiff * gap + damp * std::abs(gap) * gapdot);
 
       // sum contribution of neighboring particle j
-      if (acc_i) Utils::vec_add_scale(acc_i, -fac / mass_i[0], e_ij);
+      if (acc_i) ParticleUtils::vec_add_scale(acc_i, -fac / mass_i[0], e_ij);
     }
   }
 }

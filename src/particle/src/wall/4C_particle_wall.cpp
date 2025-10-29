@@ -38,7 +38,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEWALL::WallHandlerBase::WallHandlerBase(MPI_Comm comm, const Teuchos::ParameterList& params)
+Particle::WallHandlerBase::WallHandlerBase(MPI_Comm comm, const Teuchos::ParameterList& params)
     : comm_(comm),
       myrank_(Core::Communication::my_mpi_rank(comm)),
       params_(params),
@@ -48,9 +48,9 @@ PARTICLEWALL::WallHandlerBase::WallHandlerBase(MPI_Comm comm, const Teuchos::Par
   // empty constructor
 }
 
-PARTICLEWALL::WallHandlerBase::~WallHandlerBase() = default;
+Particle::WallHandlerBase::~WallHandlerBase() = default;
 
-void PARTICLEWALL::WallHandlerBase::init(
+void Particle::WallHandlerBase::init(
     const std::shared_ptr<Core::Binstrategy::BinningStrategy> binstrategy)
 {
   // set interface to binning strategy
@@ -63,8 +63,8 @@ void PARTICLEWALL::WallHandlerBase::init(
   init_wall_data_state();
 }
 
-void PARTICLEWALL::WallHandlerBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
+void Particle::WallHandlerBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
     const double restart_time)
 {
   // set interface to particle engine
@@ -80,7 +80,7 @@ void PARTICLEWALL::WallHandlerBase::setup(
   walldatastate_->setup();
 }
 
-void PARTICLEWALL::WallHandlerBase::write_restart(const int step, const double time) const
+void Particle::WallHandlerBase::write_restart(const int step, const double time) const
 {
   // get wall discretization writer
   std::shared_ptr<Core::IO::DiscretizationWriter> walldiscretizationwriter =
@@ -89,11 +89,10 @@ void PARTICLEWALL::WallHandlerBase::write_restart(const int step, const double t
   walldiscretizationwriter->new_step(step, time);
 }
 
-void PARTICLEWALL::WallHandlerBase::read_restart(const int restartstep) {}
+void Particle::WallHandlerBase::read_restart(const int restartstep) {}
 
-void PARTICLEWALL::WallHandlerBase::insert_particle_states_of_particle_types(
-    std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>& particlestatestotypes)
-    const
+void Particle::WallHandlerBase::insert_particle_states_of_particle_types(
+    std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const
 {
   // get flags defining considered states of particle wall
   const bool ismoving = params_.get<bool>("PARTICLE_WALL_MOVING");
@@ -105,40 +104,39 @@ void PARTICLEWALL::WallHandlerBase::insert_particle_states_of_particle_types(
   for (auto& typeIt : particlestatestotypes)
   {
     // set of particle states for current particle type
-    std::set<PARTICLEENGINE::StateEnum>& particlestates = typeIt.second;
+    std::set<Particle::StateEnum>& particlestates = typeIt.second;
 
     // insert states needed for iteration in particle structure interaction
     particlestates.insert({
-        PARTICLEENGINE::LastIterPosition,
-        PARTICLEENGINE::LastIterVelocity,
-        PARTICLEENGINE::LastIterAcceleration,
+        Particle::LastIterPosition,
+        Particle::LastIterVelocity,
+        Particle::LastIterAcceleration,
     });
 
-    if (particlestates.count(PARTICLEENGINE::AngularVelocity))
-      particlestates.insert(PARTICLEENGINE::LastIterAngularVelocity);
+    if (particlestates.count(Particle::AngularVelocity))
+      particlestates.insert(Particle::LastIterAngularVelocity);
 
-    if (particlestates.count(PARTICLEENGINE::AngularAcceleration))
-      particlestates.insert(PARTICLEENGINE::LastIterAngularAcceleration);
+    if (particlestates.count(Particle::AngularAcceleration))
+      particlestates.insert(Particle::LastIterAngularAcceleration);
 
-    if (particlestates.count(PARTICLEENGINE::ModifiedAcceleration))
-      particlestates.insert(PARTICLEENGINE::LastIterModifiedAcceleration);
+    if (particlestates.count(Particle::ModifiedAcceleration))
+      particlestates.insert(Particle::LastIterModifiedAcceleration);
 
-    if (particlestates.count(PARTICLEENGINE::DensityDot))
-      particlestates.insert(PARTICLEENGINE::LastIterDensity);
+    if (particlestates.count(Particle::DensityDot))
+      particlestates.insert(Particle::LastIterDensity);
 
-    if (particlestates.count(PARTICLEENGINE::TemperatureDot))
-      particlestates.insert(PARTICLEENGINE::LastIterTemperature);
+    if (particlestates.count(Particle::TemperatureDot))
+      particlestates.insert(Particle::LastIterTemperature);
   }
 }
 
-void PARTICLEWALL::WallHandlerBase::write_wall_runtime_output(
-    const int step, const double time) const
+void Particle::WallHandlerBase::write_wall_runtime_output(const int step, const double time) const
 {
   // write wall discretization runtime output
   walldiscretizationruntimevtuwriter_->write_wall_discretization_runtime_output(step, time);
 }
 
-void PARTICLEWALL::WallHandlerBase::update_bin_row_and_col_map(
+void Particle::WallHandlerBase::update_bin_row_and_col_map(
     const std::shared_ptr<Core::LinAlg::Map> binrowmap,
     const std::shared_ptr<Core::LinAlg::Map> bincolmap)
 {
@@ -146,7 +144,7 @@ void PARTICLEWALL::WallHandlerBase::update_bin_row_and_col_map(
   bincolmap_ = bincolmap;
 }
 
-void PARTICLEWALL::WallHandlerBase::check_wall_nodes_located_in_bounding_box() const
+void Particle::WallHandlerBase::check_wall_nodes_located_in_bounding_box() const
 {
   // get bounding box dimension
   Core::LinAlg::Matrix<3, 2> boundingbox = binstrategy_->domain_bounding_box_corner_positions();
@@ -189,7 +187,7 @@ void PARTICLEWALL::WallHandlerBase::check_wall_nodes_located_in_bounding_box() c
   }
 }
 
-void PARTICLEWALL::WallHandlerBase::get_max_wall_position_increment(
+void Particle::WallHandlerBase::get_max_wall_position_increment(
     double& allprocmaxpositionincrement) const
 {
   if (walldatastate_->get_disp_row() != nullptr)
@@ -229,12 +227,12 @@ void PARTICLEWALL::WallHandlerBase::get_max_wall_position_increment(
   }
 }
 
-void PARTICLEWALL::WallHandlerBase::relate_bins_to_col_wall_eles()
+void Particle::WallHandlerBase::relate_bins_to_col_wall_eles()
 {
   // valid flag denoting validity of map relating bins to column wall elements
   if (validwallelements_) return;
 
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEWALL::WallHandlerBase::relate_bins_to_col_wall_eles");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::WallHandlerBase::relate_bins_to_col_wall_eles");
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   walldatastate_->check_for_correct_maps();
@@ -266,10 +264,10 @@ void PARTICLEWALL::WallHandlerBase::relate_bins_to_col_wall_eles()
   validwallelements_ = true;
 }
 
-void PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors(
-    const PARTICLEENGINE::ParticlesToBins& particlestobins)
+void Particle::WallHandlerBase::build_particle_to_wall_neighbors(
+    const Particle::ParticlesToBins& particlestobins)
 {
-  TEUCHOS_FUNC_TIME_MONITOR("PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::WallHandlerBase::build_particle_to_wall_neighbors");
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   walldatastate_->check_for_correct_maps();
@@ -285,7 +283,7 @@ void PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors(
   validwallneighbors_ = false;
 
   // get particle container bundle
-  PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+  Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
       particleengineinterface_->get_particle_container_bundle();
 
   // get minimum relevant bin size
@@ -331,19 +329,18 @@ void PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors(
       for (auto& neighborParticleIt : particlestobins[collidofneighboringbin])
       {
         // get type of neighboring particle
-        PARTICLEENGINE::TypeEnum neighborTypeEnum = neighborParticleIt.first;
+        Particle::TypeEnum neighborTypeEnum = neighborParticleIt.first;
 
         // get local index of neighboring particle
         const int neighborindex = neighborParticleIt.second;
 
         // get container of neighboring particle of current particle type
-        PARTICLEENGINE::ParticleContainer* neighborcontainer =
-            particlecontainerbundle->get_specific_container(
-                neighborTypeEnum, PARTICLEENGINE::Owned);
+        Particle::ParticleContainer* neighborcontainer =
+            particlecontainerbundle->get_specific_container(neighborTypeEnum, Particle::Owned);
 
         // get position of neighboring particle
         const Core::LinAlg::Matrix<3, 1> currpos(
-            neighborcontainer->get_ptr_to_state(PARTICLEENGINE::Position, neighborindex));
+            neighborcontainer->get_ptr_to_state(Particle::Position, neighborindex));
 
         // get coordinates of closest point on current column wall element to particle
         Core::LinAlg::Matrix<3, 1> closestpos;
@@ -358,8 +355,8 @@ void PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors(
           continue;
 
         // append potential wall neighbor pair
-        potentialwallneighbors_.push_back(std::make_pair(
-            std::make_tuple(neighborTypeEnum, PARTICLEENGINE::Owned, neighborindex), ele));
+        potentialwallneighbors_.push_back(
+            std::make_pair(std::make_tuple(neighborTypeEnum, Particle::Owned, neighborindex), ele));
       }
     }
   }
@@ -368,8 +365,8 @@ void PARTICLEWALL::WallHandlerBase::build_particle_to_wall_neighbors(
   validwallneighbors_ = true;
 }
 
-const PARTICLEENGINE::PotentialWallNeighbors&
-PARTICLEWALL::WallHandlerBase::get_potential_wall_neighbors() const
+const Particle::PotentialWallNeighbors& Particle::WallHandlerBase::get_potential_wall_neighbors()
+    const
 {
   // safety check
   if (not validwallneighbors_) FOUR_C_THROW("invalid wall neighbors!");
@@ -377,7 +374,7 @@ PARTICLEWALL::WallHandlerBase::get_potential_wall_neighbors() const
   return potentialwallneighbors_;
 }
 
-void PARTICLEWALL::WallHandlerBase::determine_col_wall_ele_nodal_pos(
+void Particle::WallHandlerBase::determine_col_wall_ele_nodal_pos(
     Core::Elements::Element* ele, std::map<int, Core::LinAlg::Matrix<3, 1>>& colelenodalpos) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -426,25 +423,25 @@ void PARTICLEWALL::WallHandlerBase::determine_col_wall_ele_nodal_pos(
   }
 }
 
-void PARTICLEWALL::WallHandlerBase::init_wall_data_state()
+void Particle::WallHandlerBase::init_wall_data_state()
 {
   // create wall data state container
-  walldatastate_ = std::make_shared<PARTICLEWALL::WallDataState>(params_);
+  walldatastate_ = std::make_shared<Particle::WallDataState>(params_);
 
   // init wall data state container
   walldatastate_->init(walldiscretization_);
 }
 
-void PARTICLEWALL::WallHandlerBase::create_wall_discretization_runtime_vtu_writer(
+void Particle::WallHandlerBase::create_wall_discretization_runtime_vtu_writer(
     const double restart_time)
 {
   // create wall discretization runtime vtu writer
   walldiscretizationruntimevtuwriter_ =
-      std::make_unique<PARTICLEWALL::WallDiscretizationRuntimeVtuWriter>(
+      std::make_unique<Particle::WallDiscretizationRuntimeVtuWriter>(
           walldiscretization_, walldatastate_, restart_time);
 }
 
-void PARTICLEWALL::WallHandlerBase::create_wall_discretization()
+void Particle::WallHandlerBase::create_wall_discretization()
 {
   // create wall discretization
   walldiscretization_ = std::make_shared<Core::FE::Discretization>(
@@ -456,17 +453,17 @@ void PARTICLEWALL::WallHandlerBase::create_wall_discretization()
       Global::Problem::instance()->spatial_approximation_type()));
 }
 
-PARTICLEWALL::WallHandlerDiscretCondition::WallHandlerDiscretCondition(
+Particle::WallHandlerDiscretCondition::WallHandlerDiscretCondition(
     MPI_Comm comm, const Teuchos::ParameterList& params)
-    : PARTICLEWALL::WallHandlerBase(comm, params)
+    : Particle::WallHandlerBase(comm, params)
 {
   // empty constructor
 }
 
-void PARTICLEWALL::WallHandlerDiscretCondition::distribute_wall_elements_and_nodes()
+void Particle::WallHandlerDiscretCondition::distribute_wall_elements_and_nodes()
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "PARTICLEWALL::WallHandlerDiscretCondition::distribute_wall_elements_and_nodes");
+      "Particle::WallHandlerDiscretCondition::distribute_wall_elements_and_nodes");
 
   // invalidate flags
   validwallelements_ = false;
@@ -498,13 +495,13 @@ void PARTICLEWALL::WallHandlerDiscretCondition::distribute_wall_elements_and_nod
   walldatastate_->update_maps_of_state_vectors();
 }
 
-void PARTICLEWALL::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes()
+void Particle::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes()
 {
   // transfer wall elements and nodes only if wall displacements are set
   if (walldatastate_->get_disp_row() == nullptr) return;
 
   TEUCHOS_FUNC_TIME_MONITOR(
-      "PARTICLEWALL::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes");
+      "Particle::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes");
 
   // invalidate flags
   validwallelements_ = false;
@@ -522,7 +519,7 @@ void PARTICLEWALL::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes
   walldatastate_->update_maps_of_state_vectors();
 }
 
-void PARTICLEWALL::WallHandlerDiscretCondition::extend_wall_element_ghosting(
+void Particle::WallHandlerDiscretCondition::extend_wall_element_ghosting(
     std::map<int, std::set<int>>& bintorowelemap)
 {
   std::map<int, std::set<int>> colbintoelemap;
@@ -533,7 +530,7 @@ void PARTICLEWALL::WallHandlerDiscretCondition::extend_wall_element_ghosting(
       *walldiscretization_, *extendedelecolmap, true, false, false);
 }
 
-void PARTICLEWALL::WallHandlerDiscretCondition::init_wall_discretization()
+void Particle::WallHandlerDiscretCondition::init_wall_discretization()
 {
   // create wall discretization
   create_wall_discretization();
@@ -614,7 +611,7 @@ void PARTICLEWALL::WallHandlerDiscretCondition::init_wall_discretization()
   });
 }
 
-void PARTICLEWALL::WallHandlerDiscretCondition::setup_wall_discretization() const
+void Particle::WallHandlerDiscretCondition::setup_wall_discretization() const
 {
   // short screen output
   if (binstrategy_->have_periodic_boundary_conditions_applied() and myrank_ == 0)
@@ -622,24 +619,24 @@ void PARTICLEWALL::WallHandlerDiscretCondition::setup_wall_discretization() cons
                    << Core::IO::endl;
 }
 
-PARTICLEWALL::WallHandlerBoundingBox::WallHandlerBoundingBox(
+Particle::WallHandlerBoundingBox::WallHandlerBoundingBox(
     MPI_Comm comm, const Teuchos::ParameterList& params)
-    : PARTICLEWALL::WallHandlerBase(comm, params)
+    : Particle::WallHandlerBase(comm, params)
 {
   // empty constructor
 }
 
-void PARTICLEWALL::WallHandlerBoundingBox::distribute_wall_elements_and_nodes()
+void Particle::WallHandlerBoundingBox::distribute_wall_elements_and_nodes()
 {
   // no need to distribute wall elements and nodes
 }
 
-void PARTICLEWALL::WallHandlerBoundingBox::transfer_wall_elements_and_nodes()
+void Particle::WallHandlerBoundingBox::transfer_wall_elements_and_nodes()
 {
   // no need to transfer wall elements and nodes
 }
 
-void PARTICLEWALL::WallHandlerBoundingBox::init_wall_discretization()
+void Particle::WallHandlerBoundingBox::init_wall_discretization()
 {
   // create wall discretization
   create_wall_discretization();
@@ -766,7 +763,7 @@ void PARTICLEWALL::WallHandlerBoundingBox::init_wall_discretization()
   });
 }
 
-void PARTICLEWALL::WallHandlerBoundingBox::setup_wall_discretization() const
+void Particle::WallHandlerBoundingBox::setup_wall_discretization() const
 {
   // nothing to do
 }

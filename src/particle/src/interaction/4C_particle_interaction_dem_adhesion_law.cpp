@@ -18,7 +18,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::DEMAdhesionLawBase::DEMAdhesionLawBase(const Teuchos::ParameterList& params)
+Particle::DEMAdhesionLawBase::DEMAdhesionLawBase(const Teuchos::ParameterList& params)
     : params_dem_(params),
       adhesion_surface_energy_factor_(params_dem_.get<double>("ADHESION_SURFACE_ENERGY_FACTOR")),
       adhesion_max_contact_pressure_(params_dem_.get<double>("ADHESION_MAX_CONTACT_PRESSURE")),
@@ -31,12 +31,12 @@ ParticleInteraction::DEMAdhesionLawBase::DEMAdhesionLawBase(const Teuchos::Param
   // empty constructor
 }
 
-void ParticleInteraction::DEMAdhesionLawBase::init()
+void Particle::DEMAdhesionLawBase::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::DEMAdhesionLawBase::setup(const double& k_normal)
+void Particle::DEMAdhesionLawBase::setup(const double& k_normal)
 {
   // set inverse normal contact stiffness
   inv_k_normal_ = 1.0 / k_normal;
@@ -57,11 +57,11 @@ void ParticleInteraction::DEMAdhesionLawBase::setup(const double& k_normal)
       FOUR_C_THROW("invalid input parameter POISSON_RATIO (expected in range ]-1.0; 0.5])!");
 
     // determine the effective Young's modulus
-    const double young_eff = young / (2 * (1 - Utils::pow<2>(nue)));
+    const double young_eff = young / (2 * (1 - ParticleUtils::pow<2>(nue)));
 
     adhesion_max_contact_force_fac_ =
-        Utils::pow<3>(std::numbers::pi * adhesion_max_contact_pressure_) /
-        (6 * Utils::pow<2>(young_eff));
+        ParticleUtils::pow<3>(std::numbers::pi * adhesion_max_contact_pressure_) /
+        (6 * ParticleUtils::pow<2>(young_eff));
 
     // safety check
     if (adhesion_max_contact_pressure_ > 0.0)
@@ -75,15 +75,14 @@ void ParticleInteraction::DEMAdhesionLawBase::setup(const double& k_normal)
   }
 }
 
-ParticleInteraction::DEMAdhesionLawVdWDMT::DEMAdhesionLawVdWDMT(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMAdhesionLawBase(params),
+Particle::DEMAdhesionLawVdWDMT::DEMAdhesionLawVdWDMT(const Teuchos::ParameterList& params)
+    : Particle::DEMAdhesionLawBase(params),
       hamaker_constant_(params_dem_.get<double>("ADHESION_HAMAKER"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMAdhesionLawVdWDMT::init()
+void Particle::DEMAdhesionLawVdWDMT::init()
 {
   // call base class init
   DEMAdhesionLawBase::init();
@@ -92,14 +91,15 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::init()
   if (hamaker_constant_ <= 0.0) FOUR_C_THROW("negative hamaker constant!");
 }
 
-void ParticleInteraction::DEMAdhesionLawVdWDMT::adhesion_force(const double& gap,
-    const double& surfaceenergy, const double& r_eff, const double& v_rel_normal,
-    const double& m_eff, double& adhesionforce) const
+void Particle::DEMAdhesionLawVdWDMT::adhesion_force(const double& gap, const double& surfaceenergy,
+    const double& r_eff, const double& v_rel_normal, const double& m_eff,
+    double& adhesionforce) const
 {
   // determine the adhesion maximum contact force
-  const double adhesioncontactforce = adhesion_use_max_contact_force_
-                                          ? adhesion_max_contact_force_
-                                          : adhesion_max_contact_force_fac_ * Utils::pow<2>(r_eff);
+  const double adhesioncontactforce =
+      adhesion_use_max_contact_force_
+          ? adhesion_max_contact_force_
+          : adhesion_max_contact_force_fac_ * ParticleUtils::pow<2>(r_eff);
 
   // calculate gap where the maximum pull-off force is achieved
   const double gap_intersect_max = adhesioncontactforce * inv_k_normal_;
@@ -143,9 +143,10 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::adhesion_force(const double& gap
   else
   {
     if (adhesion_vdW_curve_shift_)
-      adhesionforce_temp = hamaker_constant_ * r_eff / (6.0 * Utils::pow<2>(gap + gap_offset));
+      adhesionforce_temp =
+          hamaker_constant_ * r_eff / (6.0 * ParticleUtils::pow<2>(gap + gap_offset));
     else
-      adhesionforce_temp = hamaker_constant_ * r_eff / (6.0 * Utils::pow<2>(gap));
+      adhesionforce_temp = hamaker_constant_ * r_eff / (6.0 * ParticleUtils::pow<2>(gap));
   }
 
   if (adhesion_vdW_curve_shift_)
@@ -159,7 +160,7 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::adhesion_force(const double& gap
       const double gap_max =
           std::sqrt(hamaker_constant_ * r_eff / (6.0 * adhesionforce)) - gap_offset;
       if (gap >= gap_max)
-        adhesionforce = hamaker_constant_ * r_eff / (6.0 * Utils::pow<2>(gap + gap_offset));
+        adhesionforce = hamaker_constant_ * r_eff / (6.0 * ParticleUtils::pow<2>(gap + gap_offset));
     }
   }
   else
@@ -172,12 +173,13 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::adhesion_force(const double& gap
     else
     {
       const double gap_max = std::sqrt(hamaker_constant_ * r_eff / (6.0 * adhesionforce));
-      if (gap >= gap_max) adhesionforce = hamaker_constant_ * r_eff / (6.0 * Utils::pow<2>(gap));
+      if (gap >= gap_max)
+        adhesionforce = hamaker_constant_ * r_eff / (6.0 * ParticleUtils::pow<2>(gap));
     }
   }
 }
 
-void ParticleInteraction::DEMAdhesionLawVdWDMT::calculate_intersection_gap(
+void Particle::DEMAdhesionLawVdWDMT::calculate_intersection_gap(
     double a, double b, double c, double d, double& gap_intersect) const
 {
   double x1 = 0.0;
@@ -188,10 +190,10 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::calculate_intersection_gap(
   c /= a;
   d /= a;
 
-  double q = (3.0 * c - Utils::pow<2>(b)) / 9.0;
-  double r = -(27.0 * d) + b * (9.0 * c - 2.0 * Utils::pow<2>(b));
+  double q = (3.0 * c - ParticleUtils::pow<2>(b)) / 9.0;
+  double r = -(27.0 * d) + b * (9.0 * c - 2.0 * ParticleUtils::pow<2>(b));
   r /= 54.0;
-  double disc = Utils::pow<3>(q) + Utils::pow<2>(r);
+  double disc = ParticleUtils::pow<3>(q) + ParticleUtils::pow<2>(r);
   double term1 = b / 3.0;
   double r13 = 0.0;
 
@@ -214,7 +216,7 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::calculate_intersection_gap(
   else
   {
     q = -q;
-    double dummy = Utils::pow<3>(q);
+    double dummy = ParticleUtils::pow<3>(q);
     dummy = std::acos(r / std::sqrt(dummy));
     r13 = 2.0 * std::sqrt(q);
     x1 = -term1 + r13 * std::cos(dummy / 3.0);
@@ -248,22 +250,22 @@ void ParticleInteraction::DEMAdhesionLawVdWDMT::calculate_intersection_gap(
   }
 }
 
-ParticleInteraction::DEMAdhesionLawRegDMT::DEMAdhesionLawRegDMT(
-    const Teuchos::ParameterList& params)
-    : ParticleInteraction::DEMAdhesionLawBase(params),
+Particle::DEMAdhesionLawRegDMT::DEMAdhesionLawRegDMT(const Teuchos::ParameterList& params)
+    : Particle::DEMAdhesionLawBase(params),
       adhesion_distance_(params_dem_.get<double>("ADHESION_DISTANCE"))
 {
   // empty constructor
 }
 
-void ParticleInteraction::DEMAdhesionLawRegDMT::adhesion_force(const double& gap,
-    const double& surfaceenergy, const double& r_eff, const double& v_rel_normal,
-    const double& m_eff, double& adhesionforce) const
+void Particle::DEMAdhesionLawRegDMT::adhesion_force(const double& gap, const double& surfaceenergy,
+    const double& r_eff, const double& v_rel_normal, const double& m_eff,
+    double& adhesionforce) const
 {
   // determine the adhesion maximum contact force
-  const double adhesioncontactforce = adhesion_use_max_contact_force_
-                                          ? adhesion_max_contact_force_
-                                          : adhesion_max_contact_force_fac_ * Utils::pow<2>(r_eff);
+  const double adhesioncontactforce =
+      adhesion_use_max_contact_force_
+          ? adhesion_max_contact_force_
+          : adhesion_max_contact_force_fac_ * ParticleUtils::pow<2>(r_eff);
 
   // calculate gap where the maximum pull-off force is achieved
   const double gap_intersect_max = adhesioncontactforce * inv_k_normal_;

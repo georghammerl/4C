@@ -15,7 +15,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-void PARTICLEENGINE::COMMUNICATION::immediate_recv_blocking_send(
+void Particle::ParticleUtils::immediate_recv_blocking_send(
     MPI_Comm comm, std::map<int, std::vector<char>>& sdata, std::map<int, std::vector<char>>& rdata)
 {
   // number of processors

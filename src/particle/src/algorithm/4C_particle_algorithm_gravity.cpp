@@ -15,13 +15,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEALGORITHM::GravityHandler::GravityHandler(const Teuchos::ParameterList& params)
+Particle::GravityHandler::GravityHandler(const Teuchos::ParameterList& params)
     : params_(params), gravityrampfctnumber_(params.get<int>("GRAVITY_RAMP_FUNCT"))
 {
   // empty constructor
 }
 
-void PARTICLEALGORITHM::GravityHandler::init(const std::vector<double>& gravity)
+void Particle::GravityHandler::init(const std::vector<double>& gravity)
 {
   // set gravity acceleration vector
   gravity_ = gravity;
@@ -32,12 +32,12 @@ void PARTICLEALGORITHM::GravityHandler::init(const std::vector<double>& gravity)
         static_cast<int>(gravity_.size()));
 }
 
-void PARTICLEALGORITHM::GravityHandler::setup()
+void Particle::GravityHandler::setup()
 {
   // nothing to do
 }
 
-void PARTICLEALGORITHM::GravityHandler::get_gravity_acceleration(
+void Particle::GravityHandler::get_gravity_acceleration(
     const double time, std::vector<double>& scaled_gravity)
 {
   scaled_gravity = gravity_;

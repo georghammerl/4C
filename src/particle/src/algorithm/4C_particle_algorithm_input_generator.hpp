@@ -24,7 +24,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleObject;
 }
@@ -32,7 +32,7 @@ namespace PARTICLEENGINE
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   /*!
    * \brief particle input generator
@@ -77,8 +77,7 @@ namespace PARTICLEALGORITHM
      *
      * \param[out] particlesgenerated particle objects generated
      */
-    void generate_particles(
-        std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particlesgenerated) const;
+    void generate_particles(std::vector<Particle::ParticleObjShrdPtr>& particlesgenerated) const;
 
    protected:
     /*!
@@ -90,8 +89,8 @@ namespace PARTICLEALGORITHM
      * \param[out] particlesgenerated particle objects generated
      */
     void add_generated_particle(const std::vector<double>& position,
-        const PARTICLEENGINE::TypeEnum particletype,
-        std::vector<PARTICLEENGINE::ParticleObjShrdPtr>& particlesgenerated) const;
+        const Particle::TypeEnum particletype,
+        std::vector<Particle::ParticleObjShrdPtr>& particlesgenerated) const;
 
     //! processor id
     const int myrank_;
@@ -100,7 +99,7 @@ namespace PARTICLEALGORITHM
     const Teuchos::ParameterList& params_;
   };
 
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -21,8 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEENGINE::UniqueGlobalIdHandler::UniqueGlobalIdHandler(
-    MPI_Comm comm, const std::string& objectname)
+Particle::UniqueGlobalIdHandler::UniqueGlobalIdHandler(MPI_Comm comm, const std::string& objectname)
     : comm_(comm),
       myrank_(Core::Communication::my_mpi_rank(comm)),
       masterrank_(0),
@@ -32,17 +31,17 @@ PARTICLEENGINE::UniqueGlobalIdHandler::UniqueGlobalIdHandler(
   // empty constructor
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::init()
+void Particle::UniqueGlobalIdHandler::init()
 {
   // nothing to do
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::setup()
+void Particle::UniqueGlobalIdHandler::setup()
 {
   // nothing to do
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::write_restart(
+void Particle::UniqueGlobalIdHandler::write_restart(
     std::shared_ptr<Core::IO::DiscretizationWriter> writer) const
 {
   // write maximum global id in restart
@@ -61,7 +60,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::write_restart(
   }
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::read_restart(
+void Particle::UniqueGlobalIdHandler::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader)
 {
   // get maximum global id from restart
@@ -82,11 +81,10 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::read_restart(
   }
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::draw_requested_number_of_global_ids(
+void Particle::UniqueGlobalIdHandler::draw_requested_number_of_global_ids(
     std::vector<int>& requesteduniqueglobalids)
 {
-  TEUCHOS_FUNC_TIME_MONITOR(
-      "PARTICLEENGINE::UniqueGlobalIdHandler::draw_requested_number_of_global_ids");
+  TEUCHOS_FUNC_TIME_MONITOR("Particle::UniqueGlobalIdHandler::draw_requested_number_of_global_ids");
 
   // get number of requested global ids
   const int numberofrequestedgids = requesteduniqueglobalids.capacity();
@@ -120,8 +118,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::draw_requested_number_of_global_ids(
   std::sort(requesteduniqueglobalids.begin(), requesteduniqueglobalids.end());
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::
-    gather_reusable_global_ids_from_all_procs_on_master_proc()
+void Particle::UniqueGlobalIdHandler::gather_reusable_global_ids_from_all_procs_on_master_proc()
 {
   // prepare buffer for sending and receiving
   std::map<int, std::vector<char>> sdata;
@@ -141,7 +138,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::
   }
 
   // communicate data via non-buffered send from proc to proc
-  COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   if (myrank_ != masterrank_)
@@ -190,7 +187,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::
 #endif
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::prepare_requested_global_ids_for_all_procs(
+void Particle::UniqueGlobalIdHandler::prepare_requested_global_ids_for_all_procs(
     int numberofrequestedgids, std::map<int, std::vector<int>>& preparedglobalids)
 {
   // gather number of requested global ids of each processor on master processor
@@ -254,7 +251,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::prepare_requested_global_ids_for_all
   MPI_Bcast(&maxglobalid_, 1, MPI_INT, masterrank_, comm_);
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::extract_requested_global_ids_on_master_proc(
+void Particle::UniqueGlobalIdHandler::extract_requested_global_ids_on_master_proc(
     std::map<int, std::vector<int>>& preparedglobalids,
     std::vector<int>& requesteduniqueglobalids) const
 {
@@ -269,10 +266,9 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::extract_requested_global_ids_on_mast
   }
 }
 
-void PARTICLEENGINE::UniqueGlobalIdHandler::
-    distribute_requested_global_ids_from_master_proc_to_all_procs(
-        std::map<int, std::vector<int>>& tobesendglobalids,
-        std::vector<int>& requesteduniqueglobalids) const
+void Particle::UniqueGlobalIdHandler::distribute_requested_global_ids_from_master_proc_to_all_procs(
+    std::map<int, std::vector<int>>& tobesendglobalids,
+    std::vector<int>& requesteduniqueglobalids) const
 {
   // prepare buffer for sending and receiving
   std::map<int, std::vector<char>> sdata;
@@ -294,7 +290,7 @@ void PARTICLEENGINE::UniqueGlobalIdHandler::
   }
 
   // communicate data via non-buffered send from proc to proc
-  COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
   for (const auto& p : rdata)

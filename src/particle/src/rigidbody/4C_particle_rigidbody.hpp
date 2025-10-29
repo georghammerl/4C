@@ -31,23 +31,23 @@ namespace Core::IO
   class DiscretizationReader;
 }
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class UniqueGlobalIdHandler;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyDataState;
   class RigidBodyRuntimeVtpWriter;
   class RigidBodyAffiliationPairs;
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   /*!
    * \brief rigid body handler for particle problem
@@ -84,8 +84,7 @@ namespace ParticleRigidBody
      * \brief setup rigid body handler
      *
      */
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 
     /*!
      * \brief write restart of rigid body handler
@@ -108,8 +107,7 @@ namespace ParticleRigidBody
      * \param[out] particlestatestotypes map of particle types and corresponding states
      */
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     /*!
      * \brief write rigid body runtime output
@@ -239,7 +237,7 @@ namespace ParticleRigidBody
      * \return have phase change
      */
     bool have_rigid_body_phase_change(
-        const std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase);
+        const std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase);
 
     /*!
      * \brief evaluate rigid body phase change
@@ -251,10 +249,9 @@ namespace ParticleRigidBody
      * \param[in] particlesfromphasetophase particle phase change tuples
      */
     void evaluate_rigid_body_phase_change(
-        const std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase);
+        const std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase);
 
-    std::shared_ptr<ParticleRigidBody::RigidBodyDataState> get_rigid_body_data_state()
-        const override
+    std::shared_ptr<Particle::RigidBodyDataState> get_rigid_body_data_state() const override
     {
       return rigidbodydatastate_;
     }
@@ -563,7 +560,7 @@ namespace ParticleRigidBody
      * \param[in] particlesfromphasetophase particle phase change tuples
      */
     void evaluate_rigid_body_melting(
-        const std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase);
+        const std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase);
 
     /*!
      * \brief evaluate solidification of rigid bodies
@@ -572,7 +569,7 @@ namespace ParticleRigidBody
      * \param[in] particlesfromphasetophase particle phase change tuples
      */
     void evaluate_rigid_body_solidification(
-        const std::vector<PARTICLEENGINE::ParticleTypeToType>& particlesfromphasetophase);
+        const std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase);
 
     /*!
      * \brief set velocities of rigid bodies after phase change
@@ -595,19 +592,19 @@ namespace ParticleRigidBody
     const Teuchos::ParameterList& params_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! rigid body unique global identifier handler
-    std::unique_ptr<PARTICLEENGINE::UniqueGlobalIdHandler> rigidbodyuniqueglobalidhandler_;
+    std::unique_ptr<Particle::UniqueGlobalIdHandler> rigidbodyuniqueglobalidhandler_;
 
     //! rigid body data state container
-    std::shared_ptr<ParticleRigidBody::RigidBodyDataState> rigidbodydatastate_;
+    std::shared_ptr<Particle::RigidBodyDataState> rigidbodydatastate_;
 
     //! rigid body runtime vtp writer
-    std::unique_ptr<ParticleRigidBody::RigidBodyRuntimeVtpWriter> rigidbodyvtpwriter_;
+    std::unique_ptr<Particle::RigidBodyRuntimeVtpWriter> rigidbodyvtpwriter_;
 
     //! affiliation pair handler
-    std::unique_ptr<ParticleRigidBody::RigidBodyAffiliationPairs> affiliationpairs_;
+    std::unique_ptr<Particle::RigidBodyAffiliationPairs> affiliationpairs_;
 
     //! rigid bodies owned by this processor
     std::vector<int> ownedrigidbodies_;
@@ -621,7 +618,7 @@ namespace ParticleRigidBody
     //! owned rigid bodies related to hosting processors (without this processor)
     std::vector<std::vector<int>> ownedrigidbodiestohostingprocs_;
   };
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -17,52 +17,52 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEALGORITHM::ParticleResultTest::ParticleResultTest() : Core::Utils::ResultTest("PARTICLE")
+Particle::ParticleResultTest::ParticleResultTest() : Core::Utils::ResultTest("PARTICLE")
 {
   // empty constructor
 }
 
-void PARTICLEALGORITHM::ParticleResultTest::init()
+void Particle::ParticleResultTest::init()
 {
   // nothing to do
 }
 
-void PARTICLEALGORITHM::ParticleResultTest::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface)
+void Particle::ParticleResultTest::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
 }
 
-void PARTICLEALGORITHM::ParticleResultTest::test_special(
+void Particle::ParticleResultTest::test_special(
     const Core::IO::InputParameterContainer& result_container, int& nerr, int& test_count)
 {
   // extract global particle id
   int globalid = result_container.get<int>("ID");
 
   // get local index in specific particle container
-  PARTICLEENGINE::LocalIndexTupleShrdPtr localindextuple =
+  Particle::LocalIndexTupleShrdPtr localindextuple =
       particleengineinterface_->get_local_index_in_specific_container(globalid);
 
   // particle with global id found on this processor
   if (localindextuple)
   {
     // access values of local index tuple
-    PARTICLEENGINE::TypeEnum particleType;
-    PARTICLEENGINE::StatusEnum particleStatus;
+    Particle::TypeEnum particleType;
+    Particle::StatusEnum particleStatus;
     int index;
     std::tie(particleType, particleStatus, index) = *localindextuple;
 
     // consider only owned particle
-    if (particleStatus == PARTICLEENGINE::Owned)
+    if (particleStatus == Particle::Owned)
     {
       // get particle container bundle
-      PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle =
+      Particle::ParticleContainerBundleShrdPtr particlecontainerbundle =
           particleengineinterface_->get_particle_container_bundle();
 
       // get container of owned particles of current particle type
-      PARTICLEENGINE::ParticleContainer* container =
-          particlecontainerbundle->get_specific_container(particleType, PARTICLEENGINE::Owned);
+      Particle::ParticleContainer* container =
+          particlecontainerbundle->get_specific_container(particleType, Particle::Owned);
 
       // get result
       std::string quantity = result_container.get<std::string>("QUANTITY");
@@ -74,13 +74,13 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       int dim = 0;
 
       // declare enum of particle state
-      PARTICLEENGINE::StateEnum particleState;
+      Particle::StateEnum particleState;
 
       // position
       if (quantity == "posx" or quantity == "posy" or quantity == "posz")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Position;
+        particleState = Particle::Position;
 
         // get component of result
         if (quantity == "posx")
@@ -94,7 +94,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "velx" or quantity == "vely" or quantity == "velz")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Velocity;
+        particleState = Particle::Velocity;
 
         // get component of result
         if (quantity == "velx")
@@ -108,7 +108,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "accx" or quantity == "accy" or quantity == "accz")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Acceleration;
+        particleState = Particle::Acceleration;
 
         // get component of result
         if (quantity == "accx")
@@ -122,7 +122,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "angvelx" or quantity == "angvely" or quantity == "angvelz")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::AngularVelocity;
+        particleState = Particle::AngularVelocity;
 
         // get component of result
         if (quantity == "angvelx")
@@ -136,7 +136,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "radius")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Radius;
+        particleState = Particle::Radius;
 
         // get component of result
         dim = 0;
@@ -145,7 +145,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "density")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Density;
+        particleState = Particle::Density;
 
         // get component of result
         dim = 0;
@@ -154,7 +154,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "pressure")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Pressure;
+        particleState = Particle::Pressure;
 
         // get component of result
         dim = 0;
@@ -163,7 +163,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "temperature")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::Temperature;
+        particleState = Particle::Temperature;
 
         // get component of result
         dim = 0;
@@ -172,7 +172,7 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
       else if (quantity == "tempgradx" or quantity == "tempgrady" or quantity == "tempgradz")
       {
         // get enum of particle state
-        particleState = PARTICLEENGINE::temperature_gradient;
+        particleState = Particle::temperature_gradient;
 
         // get component of result
         if (quantity == "tempgradx")
@@ -187,8 +187,8 @@ void PARTICLEALGORITHM::ParticleResultTest::test_special(
 
       // container contains current particle state
       if (not container->have_stored_state(particleState))
-        FOUR_C_THROW("state '{}' not found in container!",
-            PARTICLEENGINE::enum_to_state_name(particleState));
+        FOUR_C_THROW(
+            "state '{}' not found in container!", Particle::enum_to_state_name(particleState));
 
       // get pointer to particle state
       const double* state = container->get_ptr_to_state(particleState, 0);

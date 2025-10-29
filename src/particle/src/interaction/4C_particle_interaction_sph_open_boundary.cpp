@@ -27,26 +27,26 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHOpenBoundaryBase::SPHOpenBoundaryBase(const Teuchos::ParameterList& params)
+Particle::SPHOpenBoundaryBase::SPHOpenBoundaryBase(const Teuchos::ParameterList& params)
     : params_sph_(params),
       prescribedstatefunctid_(-1),
-      fluidphase_(PARTICLEENGINE::Phase1),
-      openboundaryphase_(PARTICLEENGINE::DirichletPhase)
+      fluidphase_(Particle::Phase1),
+      openboundaryphase_(Particle::DirichletPhase)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHOpenBoundaryBase::init()
+void Particle::SPHOpenBoundaryBase::init()
 {
   // nothing to do
 }
 
-void ParticleInteraction::SPHOpenBoundaryBase::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHOpenBoundaryBase::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+    const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -70,24 +70,24 @@ void ParticleInteraction::SPHOpenBoundaryBase::setup(
   for (const auto& type_i : {fluidphase_, openboundaryphase_})
     if (not particlecontainerbundle_->get_particle_types().count(type_i))
       FOUR_C_THROW("no particle container for particle type '{}' found!",
-          PARTICLEENGINE::enum_to_type_name(type_i));
+          Particle::enum_to_type_name(type_i));
 }
 
-void ParticleInteraction::SPHOpenBoundaryBase::check_open_boundary_phase_change(
+void Particle::SPHOpenBoundaryBase::check_open_boundary_phase_change(
     const double maxinteractiondistance)
 {
   // determine size of vectors indexed by particle types
   const int typevectorsize = *(--particlecontainerbundle_->get_particle_types().end()) + 1;
 
   std::vector<std::set<int>> particlestoremove(typevectorsize);
-  std::vector<std::vector<std::pair<int, PARTICLEENGINE::ParticleObjShrdPtr>>> particlestoinsert(
+  std::vector<std::vector<std::pair<int, Particle::ParticleObjShrdPtr>>> particlestoinsert(
       typevectorsize);
 
   // global ids to be freed
   std::vector<int> globalidstofree;
 
   // generated particle objects
-  std::vector<PARTICLEENGINE::ParticleObjShrdPtr> particlesgenerated;
+  std::vector<Particle::ParticleObjShrdPtr> particlesgenerated;
 
   // get initial particle spacing
   const double initialparticlespacing = params_sph_.get<double>("INITIALPARTICLESPACING");
@@ -99,36 +99,36 @@ void ParticleInteraction::SPHOpenBoundaryBase::check_open_boundary_phase_change(
   const double toleranceopenboundarytofluid = 0.1 * initialparticlespacing;
 
   // get container of owned particles of open boundary phase
-  PARTICLEENGINE::ParticleContainer* container_i =
-      particlecontainerbundle_->get_specific_container(openboundaryphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_i =
+      particlecontainerbundle_->get_specific_container(openboundaryphase_, Particle::Owned);
 
   // iterate over particles in container
   for (int particle_i = 0; particle_i < container_i->particles_stored(); ++particle_i)
   {
     // get pointer to particle states
-    double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
+    double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
 
     // compute distance of open boundary particle from plane
     std::vector<double> temp(3);
-    Utils::vec_set(temp.data(), pos_i);
-    Utils::vec_sub(temp.data(), planepoint_.data());
+    ParticleUtils::vec_set(temp.data(), pos_i);
+    ParticleUtils::vec_sub(temp.data(), planepoint_.data());
 
-    const double distancefromplane = Utils::vec_dot(temp.data(), outwardnormal_.data());
+    const double distancefromplane = ParticleUtils::vec_dot(temp.data(), outwardnormal_.data());
 
     // open boundary particle traveled over plane
     if (distancefromplane < -toleranceopenboundarytofluid)
     {
       // duplicate open boundary particle and change phase
       int globalid(0);
-      PARTICLEENGINE::ParticleStates particlestates;
+      Particle::ParticleStates particlestates;
       container_i->get_particle(particle_i, globalid, particlestates);
 
       // construct and store generated particle object
       particlesgenerated.emplace_back(
-          std::make_shared<PARTICLEENGINE::ParticleObject>(fluidphase_, -1, particlestates));
+          std::make_shared<Particle::ParticleObject>(fluidphase_, -1, particlestates));
 
       // shift open boundary particle back
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           pos_i, numparticleperdir * initialparticlespacing, outwardnormal_.data());
     }
     // open boundary particle more than maximum interaction distance away from plane
@@ -146,32 +146,31 @@ void ParticleInteraction::SPHOpenBoundaryBase::check_open_boundary_phase_change(
   }
 
   // get container of owned particles of fluid phase
-  PARTICLEENGINE::ParticleContainer* container_j =
-      particlecontainerbundle_->get_specific_container(fluidphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_j =
+      particlecontainerbundle_->get_specific_container(fluidphase_, Particle::Owned);
 
   // iterate over particles in container
   for (int particle_j = 0; particle_j < container_j->particles_stored(); ++particle_j)
   {
     // get pointer to particle states
-    double* pos_j = container_j->get_ptr_to_state(PARTICLEENGINE::Position, particle_j);
+    double* pos_j = container_j->get_ptr_to_state(Particle::Position, particle_j);
 
     // compute distance of fluid particle from plane
     std::vector<double> temp(3);
-    Utils::vec_set(temp.data(), pos_j);
-    Utils::vec_sub(temp.data(), planepoint_.data());
+    ParticleUtils::vec_set(temp.data(), pos_j);
+    ParticleUtils::vec_sub(temp.data(), planepoint_.data());
 
-    const double distancefromplane = Utils::vec_dot(temp.data(), outwardnormal_.data());
+    const double distancefromplane = ParticleUtils::vec_dot(temp.data(), outwardnormal_.data());
 
     // fluid particle traveled over plane
     if (distancefromplane > 0.0)
     {
       int globalid(0);
-      PARTICLEENGINE::ParticleStates particlestates;
+      Particle::ParticleStates particlestates;
       container_j->get_particle(particle_j, globalid, particlestates);
 
-      PARTICLEENGINE::ParticleObjShrdPtr particleobject =
-          std::make_shared<PARTICLEENGINE::ParticleObject>(
-              openboundaryphase_, globalid, particlestates);
+      Particle::ParticleObjShrdPtr particleobject =
+          std::make_shared<Particle::ParticleObject>(openboundaryphase_, globalid, particlestates);
 
       // append particle to be insert
       particlestoinsert[openboundaryphase_].push_back(std::make_pair(-1, particleobject));
@@ -199,14 +198,13 @@ void ParticleInteraction::SPHOpenBoundaryBase::check_open_boundary_phase_change(
   particleengineinterface_->hand_over_particles_to_be_inserted(particlestoinsert);
 }
 
-ParticleInteraction::SPHOpenBoundaryDirichlet::SPHOpenBoundaryDirichlet(
-    const Teuchos::ParameterList& params)
+Particle::SPHOpenBoundaryDirichlet::SPHOpenBoundaryDirichlet(const Teuchos::ParameterList& params)
     : SPHOpenBoundaryBase::SPHOpenBoundaryBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHOpenBoundaryDirichlet::init()
+void Particle::SPHOpenBoundaryDirichlet::init()
 {
   // call base class init
   SPHOpenBoundaryBase::init();
@@ -230,9 +228,9 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::init()
           static_cast<int>(outwardnormal_.size()));
 
     // normalize outward normal
-    const double norm = Utils::vec_norm_two(outwardnormal_.data());
+    const double norm = ParticleUtils::vec_norm_two(outwardnormal_.data());
     if (not(norm > 0.0)) FOUR_C_THROW("no outward normal set!");
-    Utils::vec_set_scale(outwardnormal_.data(), 1.0 / norm, outwardnormal_.data());
+    ParticleUtils::vec_set_scale(outwardnormal_.data(), 1.0 / norm, outwardnormal_.data());
   }
 
   // init plain point
@@ -249,16 +247,16 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::init()
   }
 
   // init fluid phase and open boundary phase
-  fluidphase_ = PARTICLEENGINE::Phase1;
-  openboundaryphase_ = PARTICLEENGINE::DirichletPhase;
+  fluidphase_ = Particle::Phase1;
+  openboundaryphase_ = Particle::DirichletPhase;
 }
 
-void ParticleInteraction::SPHOpenBoundaryDirichlet::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHOpenBoundaryDirichlet::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+    const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // call base class setup
   SPHOpenBoundaryBase::setup(
@@ -266,19 +264,17 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::setup(
 
   // setup states of ghosted particles to refresh
   {
-    std::vector<PARTICLEENGINE::StateEnum> states{
-        PARTICLEENGINE::Density, PARTICLEENGINE::Pressure};
+    std::vector<Particle::StateEnum> states{Particle::Density, Particle::Pressure};
 
     statestorefresh_.push_back(std::make_pair(openboundaryphase_, states));
   }
 }
 
-void ParticleInteraction::SPHOpenBoundaryDirichlet::prescribe_open_boundary_states(
-    const double& evaltime)
+void Particle::SPHOpenBoundaryDirichlet::prescribe_open_boundary_states(const double& evaltime)
 {
   // get container of owned particles of open boundary phase
-  PARTICLEENGINE::ParticleContainer* container_i =
-      particlecontainerbundle_->get_specific_container(openboundaryphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_i =
+      particlecontainerbundle_->get_specific_container(openboundaryphase_, Particle::Owned);
 
   // get number of particles stored in container
   const int particlestored = container_i->particles_stored();
@@ -299,27 +295,27 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::prescribe_open_boundary_stat
   for (int particle_i = 0; particle_i < particlestored; ++particle_i)
   {
     // get pointer to particle states
-    const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-    double* vel_i = container_i->get_ptr_to_state(PARTICLEENGINE::Velocity, particle_i);
+    const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+    double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
 
     // evaluate function to set velocity
-    Utils::vec_set_scale(
+    ParticleUtils::vec_set_scale(
         vel_i, -function.evaluate(std::span(pos_i, 3), evaltime, 0), outwardnormal_.data());
   }
 }
 
-void ParticleInteraction::SPHOpenBoundaryDirichlet::interpolate_open_boundary_states()
+void Particle::SPHOpenBoundaryDirichlet::interpolate_open_boundary_states()
 {
   // get container of owned particles of open boundary phase
-  PARTICLEENGINE::ParticleContainer* container_k =
-      particlecontainerbundle_->get_specific_container(openboundaryphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_k =
+      particlecontainerbundle_->get_specific_container(openboundaryphase_, Particle::Owned);
 
   // get material for current particle type
   const Mat::PAR::ParticleMaterialBase* material_k =
       particlematerial_->get_ptr_to_particle_mat_parameter(openboundaryphase_);
 
   // get equation of state for current particle type
-  const ParticleInteraction::SPHEquationOfStateBase* equationofstate_k =
+  const Particle::SPHEquationOfStateBase* equationofstate_k =
       equationofstatebundle_->get_ptr_to_specific_equation_of_state(openboundaryphase_);
 
   // get number of particles stored in container
@@ -340,32 +336,32 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::interpolate_open_boundary_st
         neighborpairs_->get_ref_to_particle_pair_data()[particlepairindex];
 
     // access values of local index tuples of particle i and j
-    PARTICLEENGINE::TypeEnum type_i;
-    PARTICLEENGINE::StatusEnum status_i;
+    Particle::TypeEnum type_i;
+    Particle::StatusEnum status_i;
     int particle_i;
     std::tie(type_i, status_i, particle_i) = particlepair.tuple_i_;
 
-    PARTICLEENGINE::TypeEnum type_j;
-    PARTICLEENGINE::StatusEnum status_j;
+    Particle::TypeEnum type_j;
+    Particle::StatusEnum status_j;
     int particle_j;
     std::tie(type_j, status_j, particle_j) = particlepair.tuple_j_;
 
     // get corresponding particle containers
-    PARTICLEENGINE::ParticleContainer* container_i =
+    Particle::ParticleContainer* container_i =
         particlecontainerbundle_->get_specific_container(type_i, status_i);
 
-    PARTICLEENGINE::ParticleContainer* container_j =
+    Particle::ParticleContainer* container_j =
         particlecontainerbundle_->get_specific_container(type_j, status_j);
 
     // get pointer to particle states
-    const double* mass_i = container_i->get_ptr_to_state(PARTICLEENGINE::Mass, particle_i);
-    const double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
-    const double* press_i = container_i->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_i);
+    const double* mass_i = container_i->get_ptr_to_state(Particle::Mass, particle_i);
+    const double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
+    const double* press_i = container_i->get_ptr_to_state(Particle::Pressure, particle_i);
 
     // get pointer to particle states
-    const double* mass_j = container_j->get_ptr_to_state(PARTICLEENGINE::Mass, particle_j);
-    const double* dens_j = container_j->get_ptr_to_state(PARTICLEENGINE::Density, particle_j);
-    const double* press_j = container_j->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_j);
+    const double* mass_j = container_j->get_ptr_to_state(Particle::Mass, particle_j);
+    const double* dens_j = container_j->get_ptr_to_state(Particle::Density, particle_j);
+    const double* press_j = container_j->get_ptr_to_state(Particle::Pressure, particle_j);
 
     // evaluate contribution of neighboring particle j
     if (type_i == openboundaryphase_)
@@ -376,7 +372,7 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::interpolate_open_boundary_st
     }
 
     // evaluate contribution of neighboring particle i
-    if (type_j == openboundaryphase_ and status_j == PARTICLEENGINE::Owned)
+    if (type_j == openboundaryphase_ and status_j == Particle::Owned)
     {
       const double fac = mass_i[0] / dens_i[0] * particlepair.Wji_;
       sumj_Vj_Wij[particle_j] += fac;
@@ -388,8 +384,8 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::interpolate_open_boundary_st
   for (int particle_k = 0; particle_k < particlestored; ++particle_k)
   {
     // get pointer to particle states
-    double* dens_k = container_k->get_ptr_to_state(PARTICLEENGINE::Density, particle_k);
-    double* press_k = container_k->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_k);
+    double* dens_k = container_k->get_ptr_to_state(Particle::Density, particle_k);
+    double* press_k = container_k->get_ptr_to_state(Particle::Pressure, particle_k);
 
     // interpolate pressure
     press_k[0] = (sumj_Vj_Wij[particle_k] > 0.0)
@@ -404,14 +400,13 @@ void ParticleInteraction::SPHOpenBoundaryDirichlet::interpolate_open_boundary_st
   particleengineinterface_->refresh_particles_of_specific_states_and_types(statestorefresh_);
 }
 
-ParticleInteraction::SPHOpenBoundaryNeumann::SPHOpenBoundaryNeumann(
-    const Teuchos::ParameterList& params)
+Particle::SPHOpenBoundaryNeumann::SPHOpenBoundaryNeumann(const Teuchos::ParameterList& params)
     : SPHOpenBoundaryBase::SPHOpenBoundaryBase(params)
 {
   // empty constructor
 }
 
-void ParticleInteraction::SPHOpenBoundaryNeumann::init()
+void Particle::SPHOpenBoundaryNeumann::init()
 {
   // call base class init
   SPHOpenBoundaryBase::init();
@@ -432,9 +427,10 @@ void ParticleInteraction::SPHOpenBoundaryNeumann::init()
           static_cast<int>(outwardnormal_.size()));
 
     // normalize outward normal
-    const double direction_norm = Utils::vec_norm_two(outwardnormal_.data());
+    const double direction_norm = ParticleUtils::vec_norm_two(outwardnormal_.data());
     if (not(direction_norm > 0.0)) FOUR_C_THROW("no outward normal set!");
-    Utils::vec_set_scale(outwardnormal_.data(), 1.0 / direction_norm, outwardnormal_.data());
+    ParticleUtils::vec_set_scale(
+        outwardnormal_.data(), 1.0 / direction_norm, outwardnormal_.data());
   }
 
   // init plain point
@@ -451,16 +447,16 @@ void ParticleInteraction::SPHOpenBoundaryNeumann::init()
   }
 
   // init fluid phase and open boundary phase
-  fluidphase_ = PARTICLEENGINE::Phase1;
-  openboundaryphase_ = PARTICLEENGINE::NeumannPhase;
+  fluidphase_ = Particle::Phase1;
+  openboundaryphase_ = Particle::NeumannPhase;
 }
 
-void ParticleInteraction::SPHOpenBoundaryNeumann::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-    const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-    const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs)
+void Particle::SPHOpenBoundaryNeumann::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::SPHKernelBase> kernel,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+    const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+    const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs)
 {
   // call base class setup
   SPHOpenBoundaryBase::setup(
@@ -468,25 +464,24 @@ void ParticleInteraction::SPHOpenBoundaryNeumann::setup(
 
   // setup states of ghosted particles to refresh
   {
-    std::vector<PARTICLEENGINE::StateEnum> states{PARTICLEENGINE::Velocity};
+    std::vector<Particle::StateEnum> states{Particle::Velocity};
 
     statestorefresh_.push_back(std::make_pair(openboundaryphase_, states));
   }
 }
 
-void ParticleInteraction::SPHOpenBoundaryNeumann::prescribe_open_boundary_states(
-    const double& evaltime)
+void Particle::SPHOpenBoundaryNeumann::prescribe_open_boundary_states(const double& evaltime)
 {
   // get container of owned particles of open boundary phase
-  PARTICLEENGINE::ParticleContainer* container_i =
-      particlecontainerbundle_->get_specific_container(openboundaryphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_i =
+      particlecontainerbundle_->get_specific_container(openboundaryphase_, Particle::Owned);
 
   // get material for current particle type
   const Mat::PAR::ParticleMaterialBase* material_i =
       particlematerial_->get_ptr_to_particle_mat_parameter(openboundaryphase_);
 
   // get equation of state for current particle type
-  const ParticleInteraction::SPHEquationOfStateBase* equationofstate_i =
+  const Particle::SPHEquationOfStateBase* equationofstate_i =
       equationofstatebundle_->get_ptr_to_specific_equation_of_state(openboundaryphase_);
 
   // get number of particles stored in container
@@ -510,8 +505,8 @@ void ParticleInteraction::SPHOpenBoundaryNeumann::prescribe_open_boundary_states
     for (int particle_i = 0; particle_i < particlestored; ++particle_i)
     {
       // get pointer to particle states
-      const double* pos_i = container_i->get_ptr_to_state(PARTICLEENGINE::Position, particle_i);
-      double* press_i = container_i->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_i);
+      const double* pos_i = container_i->get_ptr_to_state(Particle::Position, particle_i);
+      double* press_i = container_i->get_ptr_to_state(Particle::Pressure, particle_i);
 
       // evaluate function to set pressure
       press_i[0] = function.evaluate(std::span(pos_i, 3), evaltime, 0);
@@ -520,22 +515,22 @@ void ParticleInteraction::SPHOpenBoundaryNeumann::prescribe_open_boundary_states
   else
   {
     // clear pressure state
-    container_i->clear_state(PARTICLEENGINE::Pressure);
+    container_i->clear_state(Particle::Pressure);
   }
 
   // iterate over particles in container
   for (int particle_i = 0; particle_i < particlestored; ++particle_i)
   {
     // get pointer to particle states
-    const double* press_i = container_i->get_ptr_to_state(PARTICLEENGINE::Pressure, particle_i);
-    double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
+    const double* press_i = container_i->get_ptr_to_state(Particle::Pressure, particle_i);
+    double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
 
     // compute density
     dens_i[0] = equationofstate_i->pressure_to_density(press_i[0], material_i->initDensity_);
   }
 }
 
-void ParticleInteraction::SPHOpenBoundaryNeumann::interpolate_open_boundary_states()
+void Particle::SPHOpenBoundaryNeumann::interpolate_open_boundary_states()
 {
   // nothing to do
 }

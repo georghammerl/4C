@@ -23,30 +23,30 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace PARTICLEWALL
+namespace Particle
 {
   class WallHandlerInterface;
 }
 
-namespace ParticleInteraction
+namespace Particle
 {
   class InteractionWriter;
   class DEMNeighborPairs;
   class DEMHistoryPairs;
   class DEMAdhesionLawBase;
   class DEMAdhesionSurfaceEnergyBase;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class DEMAdhesion final
   {
@@ -67,13 +67,11 @@ namespace ParticleInteraction
     void init();
 
     //! setup contact handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface,
-        const std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter,
-        const std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs,
-        const std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs,
-        const double& k_normal);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
+        const std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter,
+        const std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs,
+        const std::shared_ptr<Particle::DEMHistoryPairs> historypairs, const double& k_normal);
 
     //! get adhesion distance
     inline double get_adhesion_distance() const { return adhesion_distance_; };
@@ -101,28 +99,28 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_dem_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! interface to particle wall handler
-    std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface_;
+    std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface_;
 
     //! particle interaction writer
-    std::shared_ptr<ParticleInteraction::InteractionWriter> particleinteractionwriter_;
+    std::shared_ptr<Particle::InteractionWriter> particleinteractionwriter_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::DEMNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::DEMNeighborPairs> neighborpairs_;
 
     //! history pair handler
-    std::shared_ptr<ParticleInteraction::DEMHistoryPairs> historypairs_;
+    std::shared_ptr<Particle::DEMHistoryPairs> historypairs_;
 
     //! adhesion law handler
-    std::unique_ptr<ParticleInteraction::DEMAdhesionLawBase> adhesionlaw_;
+    std::unique_ptr<Particle::DEMAdhesionLawBase> adhesionlaw_;
 
     //! adhesion surface energy handler
-    std::unique_ptr<ParticleInteraction::DEMAdhesionSurfaceEnergyBase> adhesionsurfaceenergy_;
+    std::unique_ptr<Particle::DEMAdhesionSurfaceEnergyBase> adhesionsurfaceenergy_;
 
     //! adhesion distance
     const double adhesion_distance_;
@@ -131,7 +129,7 @@ namespace ParticleInteraction
     const bool writeparticlewallinteraction_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

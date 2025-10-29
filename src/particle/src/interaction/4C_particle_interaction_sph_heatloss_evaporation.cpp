@@ -21,10 +21,9 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-ParticleInteraction::SPHHeatLossEvaporation::SPHHeatLossEvaporation(
-    const Teuchos::ParameterList& params)
+Particle::SPHHeatLossEvaporation::SPHHeatLossEvaporation(const Teuchos::ParameterList& params)
     : params_sph_(params),
-      evaporatingphase_(PARTICLEENGINE::Phase1),
+      evaporatingphase_(Particle::Phase1),
       recoilboilingtemp_(params_sph_.get<double>("VAPOR_RECOIL_BOILINGTEMPERATURE")),
       recoil_pfac_(params_sph_.get<double>("VAPOR_RECOIL_PFAC")),
       recoil_tfac_(params_sph_.get<double>("VAPOR_RECOIL_TFAC")),
@@ -36,17 +35,17 @@ ParticleInteraction::SPHHeatLossEvaporation::SPHHeatLossEvaporation(
   // empty constructor
 }
 
-void ParticleInteraction::SPHHeatLossEvaporation::init()
+void Particle::SPHHeatLossEvaporation::init()
 {
   // safety check
-  if (Teuchos::getIntegralValue<PARTICLE::SurfaceTensionFormulation>(
-          params_sph_, "SURFACETENSIONFORMULATION") == PARTICLE::NoSurfaceTension)
+  if (Teuchos::getIntegralValue<Particle::SurfaceTensionFormulation>(
+          params_sph_, "SURFACETENSIONFORMULATION") == Particle::NoSurfaceTension)
     FOUR_C_THROW("surface tension evaluation needed for evaporation induced heat loss!");
 }
 
-void ParticleInteraction::SPHHeatLossEvaporation::setup(
-    const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-    const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial)
+void Particle::SPHHeatLossEvaporation::setup(
+    const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+    const std::shared_ptr<Particle::MaterialHandler> particlematerial)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
@@ -69,30 +68,28 @@ void ParticleInteraction::SPHHeatLossEvaporation::setup(
         particlematerial_->get_ptr_to_particle_mat_parameter(type_i));
 }
 
-void ParticleInteraction::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss() const
+void Particle::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss() const
 {
   TEUCHOS_FUNC_TIME_MONITOR(
-      "ParticleInteraction::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss");
+      "Particle::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss");
 
   // get container of owned particles of evaporating phase
-  PARTICLEENGINE::ParticleContainer* container_i =
-      particlecontainerbundle_->get_specific_container(evaporatingphase_, PARTICLEENGINE::Owned);
+  Particle::ParticleContainer* container_i =
+      particlecontainerbundle_->get_specific_container(evaporatingphase_, Particle::Owned);
 
   const Mat::PAR::ParticleMaterialThermo* thermomaterial_i = thermomaterial_[evaporatingphase_];
 
   // iterate over particles in container
   for (int particle_i = 0; particle_i < container_i->particles_stored(); ++particle_i)
   {
-    const double* dens_i = container_i->get_ptr_to_state(PARTICLEENGINE::Density, particle_i);
-    const double* temp_i = container_i->get_ptr_to_state(PARTICLEENGINE::Temperature, particle_i);
-    const double* cfg_i =
-        container_i->get_ptr_to_state(PARTICLEENGINE::ColorfieldGradient, particle_i);
-    const double* ifn_i =
-        container_i->get_ptr_to_state(PARTICLEENGINE::InterfaceNormal, particle_i);
-    double* tempdot_i = container_i->get_ptr_to_state(PARTICLEENGINE::TemperatureDot, particle_i);
+    const double* dens_i = container_i->get_ptr_to_state(Particle::Density, particle_i);
+    const double* temp_i = container_i->get_ptr_to_state(Particle::Temperature, particle_i);
+    const double* cfg_i = container_i->get_ptr_to_state(Particle::ColorfieldGradient, particle_i);
+    const double* ifn_i = container_i->get_ptr_to_state(Particle::InterfaceNormal, particle_i);
+    double* tempdot_i = container_i->get_ptr_to_state(Particle::TemperatureDot, particle_i);
 
     // evaluation only for non-zero interface normal
-    if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+    if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
     // heat loss contribution only for temperature above boiling temperature
     if (not(temp_i[0] > recoilboilingtemp_)) continue;
@@ -109,8 +106,9 @@ void ParticleInteraction::SPHHeatLossEvaporation::evaluate_evaporation_induced_h
         thermomaterial_i->thermalCapacity_ * (temp_i[0] - enthalpyreftemp_);
 
     // add contribution of heat loss
-    tempdot_i[0] -= Utils::vec_norm_two(cfg_i) * m_dot_i * (latentheat_ + specificenthalpy_i) *
-                    thermomaterial_i->invThermalCapacity_ / dens_i[0];
+    tempdot_i[0] -= ParticleUtils::vec_norm_two(cfg_i) * m_dot_i *
+                    (latentheat_ + specificenthalpy_i) * thermomaterial_i->invThermalCapacity_ /
+                    dens_i[0];
   }
 }
 

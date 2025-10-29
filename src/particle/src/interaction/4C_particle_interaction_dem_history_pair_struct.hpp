@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   //! struct to store tangential contact history of interacting particles
   struct DEMHistoryPairTangential final
@@ -100,7 +100,7 @@ namespace ParticleInteraction
       extract_from_pack(buffer, adhesion_force_);
     }
   };
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

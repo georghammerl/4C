@@ -23,13 +23,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace PARTICLEENGINE
+}  // namespace Particle
 
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHKernelBase;
   class MaterialHandler;
@@ -38,12 +38,12 @@ namespace ParticleInteraction
   class SPHInterfaceViscosity;
   class SPHRecoilPressureEvaporation;
   class SPHBarrierForce;
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   class SPHSurfaceTension
   {
@@ -64,20 +64,18 @@ namespace ParticleInteraction
     void init();
 
     //! setup surface tension handler
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel,
-        const std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial,
-        const std::shared_ptr<ParticleInteraction::SPHEquationOfStateBundle> equationofstatebundle,
-        const std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs);
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::SPHKernelBase> kernel,
+        const std::shared_ptr<Particle::MaterialHandler> particlematerial,
+        const std::shared_ptr<Particle::SPHEquationOfStateBundle> equationofstatebundle,
+        const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);
 
     //! set current time
     void set_current_time(const double currenttime);
 
     //! insert surface tension evaluation dependent states
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     //! compute interface quantities
     void compute_interface_quantities();
@@ -120,43 +118,43 @@ namespace ParticleInteraction
     const Teuchos::ParameterList& params_sph_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! particle container bundle
-    PARTICLEENGINE::ParticleContainerBundleShrdPtr particlecontainerbundle_;
+    Particle::ParticleContainerBundleShrdPtr particlecontainerbundle_;
 
     //! kernel handler
-    std::shared_ptr<ParticleInteraction::SPHKernelBase> kernel_;
+    std::shared_ptr<Particle::SPHKernelBase> kernel_;
 
     //! particle material handler
-    std::shared_ptr<ParticleInteraction::MaterialHandler> particlematerial_;
+    std::shared_ptr<Particle::MaterialHandler> particlematerial_;
 
     //! neighbor pair handler
-    std::shared_ptr<ParticleInteraction::SPHNeighborPairs> neighborpairs_;
+    std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs_;
 
     //! interface viscosity handler
-    std::unique_ptr<ParticleInteraction::SPHInterfaceViscosity> interfaceviscosity_;
+    std::unique_ptr<Particle::SPHInterfaceViscosity> interfaceviscosity_;
 
     //! evaporation induced recoil pressure handler
-    std::unique_ptr<ParticleInteraction::SPHRecoilPressureEvaporation> recoilpressureevaporation_;
+    std::unique_ptr<Particle::SPHRecoilPressureEvaporation> recoilpressureevaporation_;
 
     //! barrier force handler
-    std::unique_ptr<ParticleInteraction::SPHBarrierForce> barrierforce_;
+    std::unique_ptr<Particle::SPHBarrierForce> barrierforce_;
 
     //! liquid particle type
-    PARTICLEENGINE::TypeEnum liquidtype_;
+    Particle::TypeEnum liquidtype_;
 
     //! gas particle type
-    PARTICLEENGINE::TypeEnum gastype_;
+    Particle::TypeEnum gastype_;
 
     //! set of fluid particle types
-    std::set<PARTICLEENGINE::TypeEnum> fluidtypes_;
+    std::set<Particle::TypeEnum> fluidtypes_;
 
     //! set of boundary particle types
-    std::set<PARTICLEENGINE::TypeEnum> boundarytypes_;
+    std::set<Particle::TypeEnum> boundarytypes_;
 
     //! interface normal of ghosted particles to refresh
-    PARTICLEENGINE::StatesOfTypesToRefresh intnormtorefresh_;
+    Particle::StatesOfTypesToRefresh intnormtorefresh_;
 
     //! current time
     double time_;
@@ -201,7 +199,7 @@ namespace ParticleInteraction
     const double trans_d_t_wet_;
   };
 
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -188,7 +188,7 @@ void Global::emit_general_metadata(Core::IO::YamlNodeRef node)
     legacy_particle_spec |= ryml::MAP;
 
     Core::IO::YamlNodeRef spec_emitter{legacy_particle_spec, ""};
-    PARTICLEENGINE::create_particle_spec().emit_metadata(spec_emitter);
+    Particle::create_particle_spec().emit_metadata(spec_emitter);
   }
 
   // Cell types.
@@ -1770,7 +1770,7 @@ void Global::read_particles(Global::Problem& problem, Core::IO::InputFile& input
   // no need to read in particles in case of restart
   if (problem.restart()) return;
 
-  PARTICLEENGINE::read_particles(input, "PARTICLES", problem.particles());
+  Particle::read_particles(input, "PARTICLES", problem.particles());
 }
 
 

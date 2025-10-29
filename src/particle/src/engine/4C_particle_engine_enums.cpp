@@ -12,7 +12,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-int PARTICLEENGINE::enum_to_state_dim(const enum ParticleState& state)
+int Particle::enum_to_state_dim(const enum ParticleState& state)
 {
   int dim = 0;
 
@@ -73,7 +73,7 @@ int PARTICLEENGINE::enum_to_state_dim(const enum ParticleState& state)
   return dim;
 }
 
-std::string PARTICLEENGINE::enum_to_state_name(const enum ParticleState& state)
+std::string Particle::enum_to_state_name(const enum ParticleState& state)
 {
   std::string name;
 
@@ -206,7 +206,7 @@ std::string PARTICLEENGINE::enum_to_state_name(const enum ParticleState& state)
   return name;
 }
 
-enum PARTICLEENGINE::ParticleState PARTICLEENGINE::enum_from_state_name(const std::string& name)
+enum Particle::ParticleState Particle::enum_from_state_name(const std::string& name)
 {
   enum ParticleState state;
 
@@ -225,26 +225,23 @@ enum PARTICLEENGINE::ParticleState PARTICLEENGINE::enum_from_state_name(const st
 static std::vector<std::string> particle_type_names = {
     "phase1", "phase2", "boundaryphase", "rigidphase", "dirichletphase", "neumannphase"};
 
-std::string PARTICLEENGINE::enum_to_type_name(const enum ParticleType& type)
+std::string Particle::enum_to_type_name(const enum ParticleType& type)
 {
   FOUR_C_ASSERT(type >= 0 and type < static_cast<int>(particle_type_names.size()),
       "particle type out of range!");
   return particle_type_names[type];
 }
 
-enum PARTICLEENGINE::ParticleType PARTICLEENGINE::enum_from_type_name(const std::string& name)
+enum Particle::ParticleType Particle::enum_from_type_name(const std::string& name)
 {
   auto it = std::ranges::find(particle_type_names, name);
   FOUR_C_ASSERT(it != particle_type_names.end(), "particle type '{}' unknown!", name);
   return static_cast<enum ParticleType>(std::distance(particle_type_names.begin(), it));
 }
 
-const std::vector<std::string>& PARTICLEENGINE::get_particle_type_names()
-{
-  return particle_type_names;
-}
+const std::vector<std::string>& Particle::get_particle_type_names() { return particle_type_names; }
 
-std::string PARTICLEENGINE::enum_to_status_name(const enum ParticleStatus& status)
+std::string Particle::enum_to_status_name(const enum ParticleStatus& status)
 {
   std::string name;
 

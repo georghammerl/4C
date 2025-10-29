@@ -44,7 +44,7 @@ namespace Mat
   }
 }  // namespace Mat
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleObject;
 }
@@ -472,7 +472,7 @@ namespace Global
     /// @name Particles
 
     /// return reference to read in particles
-    std::vector<std::shared_ptr<PARTICLEENGINE::ParticleObject>>& particles() { return particles_; }
+    std::vector<std::shared_ptr<Particle::ParticleObject>>& particles() { return particles_; }
 
     //@}
 
@@ -550,7 +550,7 @@ namespace Global
     std::shared_ptr<CONTACT::CONSTITUTIVELAW::Bundle> contactconstitutivelaws_;
 
     /// all particles that are read in
-    std::vector<std::shared_ptr<PARTICLEENGINE::ParticleObject>> particles_;
+    std::vector<std::shared_ptr<Particle::ParticleObject>> particles_;
 
     /// basket of spatial function
     Core::Utils::FunctionManager functionmanager_;

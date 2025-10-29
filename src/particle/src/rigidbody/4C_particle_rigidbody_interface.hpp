@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyDataState;
 }
@@ -29,7 +29,7 @@ namespace ParticleRigidBody
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleRigidBody
+namespace Particle
 {
   /*!
    * \brief interface to provide restricted access to rigid body handler
@@ -69,8 +69,7 @@ namespace ParticleRigidBody
      *
      * \return rigid body data state container
      */
-    virtual std::shared_ptr<ParticleRigidBody::RigidBodyDataState> get_rigid_body_data_state()
-        const = 0;
+    virtual std::shared_ptr<Particle::RigidBodyDataState> get_rigid_body_data_state() const = 0;
 
     /*!
      * \brief get owned rigid bodies by this processor
@@ -81,7 +80,7 @@ namespace ParticleRigidBody
     virtual const std::vector<int>& get_owned_rigid_bodies() const = 0;
   };
 
-}  // namespace ParticleRigidBody
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -19,18 +19,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-PARTICLEWALL::WallResultTest::WallResultTest() : Core::Utils::ResultTest("PARTICLEWALL")
+Particle::WallResultTest::WallResultTest() : Core::Utils::ResultTest("PARTICLEWALL")
 {
   // empty constructor
 }
 
-void PARTICLEWALL::WallResultTest::init()
+void Particle::WallResultTest::init()
 {
   // nothing to do
 }
 
-void PARTICLEWALL::WallResultTest::setup(
-    const std::shared_ptr<PARTICLEWALL::WallHandlerInterface> particlewallinterface)
+void Particle::WallResultTest::setup(
+    const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface)
 {
   // set interface to particle wall handler
   particlewallinterface_ = particlewallinterface;
@@ -39,7 +39,7 @@ void PARTICLEWALL::WallResultTest::setup(
   walldiscretization_ = particlewallinterface_->get_wall_discretization();
 }
 
-void PARTICLEWALL::WallResultTest::test_node(
+void Particle::WallResultTest::test_node(
     const Core::IO::InputParameterContainer& container, int& nerr, int& test_count)
 {
   // extract and check discretization name
@@ -69,7 +69,7 @@ void PARTICLEWALL::WallResultTest::test_node(
       return;
 
     // get wall data state container
-    std::shared_ptr<PARTICLEWALL::WallDataState> walldatastate =
+    std::shared_ptr<Particle::WallDataState> walldatastate =
         particlewallinterface_->get_wall_data_state();
 
     // extract test quantity
@@ -143,7 +143,7 @@ void PARTICLEWALL::WallResultTest::test_node(
   }
 }
 
-void PARTICLEWALL::WallResultTest::test_special(
+void Particle::WallResultTest::test_special(
     const Core::IO::InputParameterContainer& container, int& nerr, int& test_count)
 {
   // check results only for processor 0

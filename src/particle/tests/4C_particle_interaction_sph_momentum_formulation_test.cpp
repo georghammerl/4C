@@ -21,13 +21,12 @@ namespace
   class SPHMomentumFormulationMonaghanTest : public ::testing::Test
   {
    protected:
-    std::unique_ptr<ParticleInteraction::SPHMomentumFormulationMonaghan> momentumformulation_;
+    std::unique_ptr<Particle::SPHMomentumFormulationMonaghan> momentumformulation_;
 
     SPHMomentumFormulationMonaghanTest()
     {
       // create momentum formulation handler
-      momentumformulation_ =
-          std::make_unique<ParticleInteraction::SPHMomentumFormulationMonaghan>();
+      momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationMonaghan>();
 
       // init momentum formulation handler
       momentumformulation_->init();
@@ -821,12 +820,12 @@ namespace
   class SPHMomentumFormulationAdamiTest : public ::testing::Test
   {
    protected:
-    std::unique_ptr<ParticleInteraction::SPHMomentumFormulationAdami> momentumformulation_;
+    std::unique_ptr<Particle::SPHMomentumFormulationAdami> momentumformulation_;
 
     SPHMomentumFormulationAdamiTest()
     {
       // create momentum formulation handler
-      momentumformulation_ = std::make_unique<ParticleInteraction::SPHMomentumFormulationAdami>();
+      momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationAdami>();
 
       // init momentum formulation handler
       momentumformulation_->init();

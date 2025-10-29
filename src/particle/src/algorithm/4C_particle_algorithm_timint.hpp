@@ -21,18 +21,18 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | forward declarations                                                      |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   class DirichletBoundaryConditionHandler;
   class TemperatureBoundaryConditionHandler;
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
-namespace PARTICLEENGINE
+namespace Particle
 {
   class ParticleEngineInterface;
 }
 
-namespace ParticleRigidBody
+namespace Particle
 {
   class RigidBodyHandlerInterface;
 }
@@ -40,7 +40,7 @@ namespace ParticleRigidBody
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace PARTICLEALGORITHM
+namespace Particle
 {
   /*!
    * \brief time integration base
@@ -77,9 +77,8 @@ namespace PARTICLEALGORITHM
      *
      */
     virtual void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleRigidBody::RigidBodyHandlerInterface>
-            particlerigidbodyinterface);
+        const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface);
 
     /*!
      * \brief insert integration dependent states of all particle types
@@ -88,8 +87,7 @@ namespace PARTICLEALGORITHM
      * \param[out] particlestatestotypes map of particle types and corresponding states
      */
     void insert_particle_states_of_particle_types(
-        std::map<PARTICLEENGINE::TypeEnum, std::set<PARTICLEENGINE::StateEnum>>&
-            particlestatestotypes) const;
+        std::map<Particle::TypeEnum, std::set<Particle::StateEnum>>& particlestatestotypes) const;
 
     /*!
      * \brief time integration scheme specific initialization routine
@@ -141,21 +139,19 @@ namespace PARTICLEALGORITHM
     const Teuchos::ParameterList& params_;
 
     //! interface to particle engine
-    std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface_;
+    std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface_;
 
     //! interface to rigid body handler
-    std::shared_ptr<ParticleRigidBody::RigidBodyHandlerInterface> particlerigidbodyinterface_;
+    std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface_;
 
     //! dirichlet boundary condition handler
-    std::unique_ptr<PARTICLEALGORITHM::DirichletBoundaryConditionHandler>
-        dirichletboundarycondition_;
+    std::unique_ptr<Particle::DirichletBoundaryConditionHandler> dirichletboundarycondition_;
 
     //! temperature boundary condition handler
-    std::unique_ptr<PARTICLEALGORITHM::TemperatureBoundaryConditionHandler>
-        temperatureboundarycondition_;
+    std::unique_ptr<Particle::TemperatureBoundaryConditionHandler> temperatureboundarycondition_;
 
     //! set of particle types to integrate in time
-    std::set<PARTICLEENGINE::TypeEnum> typestointegrate_;
+    std::set<Particle::TypeEnum> typestointegrate_;
 
     //! current time
     double time_;
@@ -189,10 +185,9 @@ namespace PARTICLEALGORITHM
      * \brief time integration scheme specific initialization routine
      *
      */
-    void setup(
-        const std::shared_ptr<PARTICLEENGINE::ParticleEngineInterface> particleengineinterface,
-        const std::shared_ptr<ParticleRigidBody::RigidBodyHandlerInterface>
-            particlerigidbodyinterface) override;
+    void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
+        const std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface)
+        override;
 
     /*!
      * \brief time integration scheme specific pre-interaction routine
@@ -252,7 +247,7 @@ namespace PARTICLEALGORITHM
     double dthalf_;
   };
 
-}  // namespace PARTICLEALGORITHM
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

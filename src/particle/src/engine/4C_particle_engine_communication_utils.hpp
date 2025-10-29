@@ -17,32 +17,36 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-namespace PARTICLEENGINE
+
+namespace Particle::ParticleUtils
 {
-  namespace COMMUNICATION
-  {
-    /*!
-     * \brief communicate data via non-buffered send from processor to processor
-     *
-     * Communicate data via non-buffered send from processor to processor via point-to-point
-     * communication. Collective communication is required to inform the target processors about the
-     * size of data to be received. The send buffer only relates data to be send to the target
-     * processor.
-     *
-     * \note This method has to be called by all processors of the communicator as it contains
-     * collective communication.
-     *
-     *
-     * \param[in]  comm  communicator
-     * \param[in]  sdata send buffers related to corresponding target processors
-     * \param[out] rdata receive buffers related to corresponding source processors
-     */
-    void immediate_recv_blocking_send(MPI_Comm comm, std::map<int, std::vector<char>>& sdata,
-        std::map<int, std::vector<char>>& rdata);
+  //! @name methods for the communication of particles
+  //@{
 
-  }  // namespace COMMUNICATION
+  /*!
+   * \brief communicate data via non-buffered send from processor to processor
+   *
+   * Communicate data via non-buffered send from processor to processor via point-to-point
+   * communication. Collective communication is required to inform the target processors about the
+   * size of data to be received. The send buffer only relates data to be send to the target
+   * processor.
+   *
+   * \note This method has to be called by all processors of the communicator as it contains
+   * collective communication.
+   *
+   *
+   * \param[in]  comm  communicator
+   * \param[in]  sdata send buffers related to corresponding target processors
+   * \param[out] rdata receive buffers related to corresponding source processors
+   */
+  void immediate_recv_blocking_send(MPI_Comm comm, std::map<int, std::vector<char>>& sdata,
+      std::map<int, std::vector<char>>& rdata);
 
-}  // namespace PARTICLEENGINE
+  //@}
+
+}  // namespace Particle::ParticleUtils
+
+
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE

@@ -24,14 +24,14 @@ namespace Core::Elements
 /*---------------------------------------------------------------------------*
  | class declarations                                                        |
  *---------------------------------------------------------------------------*/
-namespace ParticleInteraction
+namespace Particle
 {
   //! struct to store quantities of interacting particles
   struct DEMParticlePair final
   {
     //! local index tuple of particles i and j
-    PARTICLEENGINE::LocalIndexTuple tuple_i_;
-    PARTICLEENGINE::LocalIndexTuple tuple_j_;
+    Particle::LocalIndexTuple tuple_i_;
+    Particle::LocalIndexTuple tuple_j_;
 
     //! gap between particles
     double gap_;
@@ -47,7 +47,7 @@ namespace ParticleInteraction
   struct DEMParticleWallPair final
   {
     //! local index tuple of particle i
-    PARTICLEENGINE::LocalIndexTuple tuple_i_;
+    Particle::LocalIndexTuple tuple_i_;
 
     //! pointer to column wall element
     Core::Elements::Element* ele_;
@@ -64,7 +64,7 @@ namespace ParticleInteraction
     //! global ids of relevant wall elements in penetration volume for interaction history
     std::set<int> histeles_;
   };
-}  // namespace ParticleInteraction
+}  // namespace Particle
 
 /*---------------------------------------------------------------------------*/
 FOUR_C_NAMESPACE_CLOSE
