@@ -210,9 +210,9 @@ std::vector<int> Beam3ContactOctTree::in_which_octant_lies(const int& thisBBoxID
   octants.clear();
   int bboxcolid = searchdis_.element_col_map()->lid(thisBBoxID);
   int i = 0;
-  while ((*bbox2octant_)(i)[bboxcolid] >= 0.0)
+  while ((*bbox2octant_)(i).local_values_as_span()[bboxcolid] >= 0.0)
   {
-    octants.push_back((int)(*bbox2octant_)(i)[bboxcolid]);
+    octants.push_back((int)(*bbox2octant_)(i).local_values_as_span()[bboxcolid]);
     i++;
   }
   return octants;
@@ -278,11 +278,11 @@ bool Beam3ContactOctTree::intersect_b_boxes_with(
         for (int i = 0; i < bboxesinoctants_->num_vectors(); i++)
         {
           // take only values of existing bounding boxes and not the filler values (-9)
-          if ((int)(*bboxesinoctants_)(i)[octants[ibox][oct]] > -0.9)
+          if ((int)(*bboxesinoctants_)(i).local_values_as_span()[octants[ibox][oct]] > -0.9)
           {
             // get the second bounding box ID
             std::vector<int> bboxinoct(2, -1);
-            bboxinoct[0] = (int)(*bboxesinoctants_)(i)[octants[ibox][oct]];
+            bboxinoct[0] = (int)(*bboxesinoctants_)(i).local_values_as_span()[octants[ibox][oct]];
             /*check for adjacent nodes: if there are adjacent nodes, then, of course, there
              * the intersection test will turn out positive. We skip those cases.*/
             // note: bounding box IDs are equal to element GIDs
@@ -390,8 +390,9 @@ void Beam3ContactOctTree::octree_output(
       for (int u = 0; u < allbboxes_->local_length(); u++)
       {
         for (int v = 0; v < allbboxes_->num_vectors(); v++)
-          out << std::scientific << std::setprecision(10) << (*allbboxes_)(v)[u] << " ";
-        out << (*diameter_)[u] << '\n';
+          out << std::scientific << std::setprecision(10)
+              << (*allbboxes_)(v).local_values_as_span()[u] << " ";
+        out << (*diameter_).local_values_as_span()[u] << '\n';
       }
     }
   }

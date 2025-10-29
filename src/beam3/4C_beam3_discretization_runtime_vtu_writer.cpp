@@ -1371,11 +1371,13 @@ void BeamDiscretizationRuntimeOutputWriter::append_element_orientation_parameter
     for (int dim = 0; dim < 3; ++dim)
     {
       pos[0] = ele->nodes()[0]->x()[dim] +
-               (displacement_state_vector)[displacement_state_vector.get_map().lid(
-                   discretization_->dof(ele->nodes()[0])[dim])];
+               (displacement_state_vector)
+                   .local_values_as_span()[displacement_state_vector.get_map().lid(
+                       discretization_->dof(ele->nodes()[0])[dim])];
       pos[1] = ele->nodes()[1]->x()[dim] +
-               (displacement_state_vector)[displacement_state_vector.get_map().lid(
-                   discretization_->dof(ele->nodes()[1])[dim])];
+               (displacement_state_vector)
+                   .local_values_as_span()[displacement_state_vector.get_map().lid(
+                       discretization_->dof(ele->nodes()[1])[dim])];
       dirvec(dim) = pos[1] - pos[0];
     }
 
