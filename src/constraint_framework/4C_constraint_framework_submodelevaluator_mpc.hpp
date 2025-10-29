@@ -25,7 +25,7 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Constraints::SubmodelEvaluator
 {
-  class MultiPointConstraintEquationBase;
+  class ConstraintEquationBase;
 
 
   class RveMultiPointConstraintManager : public ConstraintBase

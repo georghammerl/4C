@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_CONSTRAINT_FRAMEWORK_EQUATION_MPC_HPP
-#define FOUR_C_CONSTRAINT_FRAMEWORK_EQUATION_MPC_HPP
+#ifndef FOUR_C_CONSTRAINT_FRAMEWORK_EQUATION_HPP
+#define FOUR_C_CONSTRAINT_FRAMEWORK_EQUATION_HPP
 
 #include "4C_config.hpp"
 
@@ -16,15 +16,15 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Constraints::SubmodelEvaluator
 {
-  /*! \brief The MultiPointConstraintEquationBase class serves as a base interface
-   * for managing multi-point constraint equations within the constraint framework
+  /*! \brief The ConstraintEquationBase class serves as a base interface
+   * for managing constraint equations within the constraint framework
    */
-  class MultiPointConstraintEquationBase
+  class ConstraintEquationBase
   {
    public:
-    virtual ~MultiPointConstraintEquationBase() = default;
+    virtual ~ConstraintEquationBase() = default;
     //! Constructor
-    MultiPointConstraintEquationBase() = default;
+    ConstraintEquationBase() = default;
 
     /*! \brief Add the penalty stiffness contribution to the constraint_vector and the
      * coupling-stiffness
@@ -40,11 +40,11 @@ namespace Constraints::SubmodelEvaluator
         Core::LinAlg::Vector<double>& constraint_vector,
         const Core::LinAlg::Vector<double>& D_np1) = 0;
 
-    /*! \brief Return the number of multi point constraints the object contains
+    /*! \brief Return the number of constraints the object contains
      *
-     * @return [out] number of multi point constraint equation the object contains
+     * @return [out] number of constraint equations the object contains
      */
-    int get_number_of_mp_cs() const;
+    int get_number_of_constraint_equation_objects() const;
 
     /*! \brief Return the global id of the affected row of this equation
      *
@@ -59,7 +59,7 @@ namespace Constraints::SubmodelEvaluator
     void set_first_row_id(int global_row_id);
 
    private:
-    //! Number of dof coupled per Object (= Number of MPCs per Obj.)
+    //! Number of dof coupled per Object (= Number of equations per Obj.)
     int n_dof_coupled_ = 1;
 
     //! ID of the first constraint in the set
@@ -68,7 +68,7 @@ namespace Constraints::SubmodelEvaluator
   /*! \brief The class provides the method for evaluating linear coupled
    *  equations and manages associated coefficients and data.
    */
-  class LinearCoupledEquation : public MultiPointConstraintEquationBase
+  class LinearCoupledEquation : public ConstraintEquationBase
   {
    public:
     ~LinearCoupledEquation() override = default;
