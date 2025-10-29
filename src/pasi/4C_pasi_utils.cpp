@@ -13,10 +13,7 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
-void PaSI::Utils::change_time_parameter(MPI_Comm comm, const Teuchos::ParameterList& pasi_params,
+void PaSI::change_time_parameter(MPI_Comm comm, const Teuchos::ParameterList& pasi_params,
     Teuchos::ParameterList& particle_params, Teuchos::ParameterList& struct_params)
 {
   // the default time step size
@@ -71,7 +68,7 @@ void PaSI::Utils::change_time_parameter(MPI_Comm comm, const Teuchos::ParameterL
   }
 }
 
-void PaSI::Utils::logo()
+void PaSI::logo()
 {
   std::cout << "============================ Welcome to =============================="
             << std::endl;

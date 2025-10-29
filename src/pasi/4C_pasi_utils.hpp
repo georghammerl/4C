@@ -22,23 +22,18 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace PaSI
 {
-  namespace Utils
-  {
-    /*!
-     * \brief modification of time parameter list
-     *
-     */
-    void change_time_parameter(MPI_Comm comm, const Teuchos::ParameterList& pasi_params,
-        Teuchos::ParameterList& particle_params, Teuchos::ParameterList& struct_params);
+  /*!
+   * \brief modification of time parameter list
+   *
+   */
+  void change_time_parameter(MPI_Comm comm, const Teuchos::ParameterList& pasi_params,
+      Teuchos::ParameterList& particle_params, Teuchos::ParameterList& struct_params);
 
-    /*!
-     * \brief print particle structure interaction logo
-     *
-     */
-    void logo();
-
-  }  // namespace Utils
-
+  /*!
+   * \brief print particle structure interaction logo
+   *
+   */
+  void logo();
 }  // namespace PaSI
 
 /*---------------------------------------------------------------------------*/

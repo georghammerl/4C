@@ -33,13 +33,13 @@ void pasi_dyn()
   MPI_Comm comm = problem->get_dis("structure")->get_comm();
 
   // print pasi logo to screen
-  if (Core::Communication::my_mpi_rank(comm) == 0) PaSI::Utils::logo();
+  if (Core::Communication::my_mpi_rank(comm) == 0) PaSI::logo();
 
   // get parameter list
   const Teuchos::ParameterList& params = problem->pasi_dynamic_params();
 
   // modification of time parameters of subproblems
-  PaSI::Utils::change_time_parameter(comm, params,
+  PaSI::change_time_parameter(comm, params,
       const_cast<Teuchos::ParameterList&>(problem->particle_params()),
       const_cast<Teuchos::ParameterList&>(problem->structural_dynamic_params()));
 
