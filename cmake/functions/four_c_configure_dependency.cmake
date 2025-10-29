@@ -260,6 +260,14 @@ function(four_c_configure_dependency _package_name)
     endif()
 
     if(FOUR_C_${_package_name_sanitized}_ROOT)
+      # Sanity check: root should be a directory and should exist
+      if(NOT IS_DIRECTORY ${FOUR_C_${_package_name_sanitized}_ROOT})
+        message(
+          FATAL_ERROR "FOUR_C_${_package_name_sanitized}_ROOT is set to "
+                      "${FOUR_C_${_package_name_sanitized}_ROOT} which is not a directory"
+          )
+      endif()
+
       # Translate the ROOT variable into the case style that fits to the package name.
       # This variable is automatically understood by CMake's find_XXX functions.
       set(${_package_name}_ROOT ${FOUR_C_${_package_name_sanitized}_ROOT})
