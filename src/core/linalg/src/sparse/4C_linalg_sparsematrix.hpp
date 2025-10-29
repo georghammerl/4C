@@ -518,7 +518,7 @@ namespace Core::LinAlg
     //@{
 
     /// Returns the result of a matrix multiplied by a Core::LinAlg::Vector<double> x in y.
-    int multiply(
+    void multiply(
         bool TransA, const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& y) const;
 
     /// Returns the result of a Epetra_CrsMatrix multiplied by a Epetra_MultiVector X in Y.
@@ -526,16 +526,16 @@ namespace Core::LinAlg
         Core::LinAlg::MultiVector<double>& Y) const override;
 
     /// Scales the Epetra_CrsMatrix on the left with a Core::LinAlg::Vector<double> x.
-    int left_scale(const Core::LinAlg::Vector<double>& x);
+    void left_scale(const Core::LinAlg::Vector<double>& x);
 
     /// Scales the Epetra_CrsMatrix on the right with a Core::LinAlg::Vector<double> x.
-    int right_scale(const Core::LinAlg::Vector<double>& x);
+    void right_scale(const Core::LinAlg::Vector<double>& x);
 
     // Computes the inverse of the sum of absolute values of the rows.
-    int inv_row_sums(Core::LinAlg::Vector<double>& x) const;
+    void inv_row_sums(Core::LinAlg::Vector<double>& x) const;
 
     // Computes the inverse of the sum of absolute values of the columns.
-    int inv_col_sums(Core::LinAlg::Vector<double>& x) const;
+    void inv_col_sums(Core::LinAlg::Vector<double>& x) const;
 
     //@}
 

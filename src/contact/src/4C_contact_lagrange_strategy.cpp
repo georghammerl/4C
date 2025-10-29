@@ -6622,7 +6622,7 @@ void CONTACT::LagrangeStrategy::run_pre_apply_jacobian_inverse(
     Core::LinAlg::Vector<double> rhs_str(*problem_dofs());
     Core::LinAlg::Vector<double> rhs_str2(*problem_dofs());
     Core::LinAlg::export_to(rhs, rhs_str);
-    if (systrafo_->multiply(true, rhs_str, rhs_str2)) FOUR_C_THROW("multiply failed");
+    systrafo_->multiply(true, rhs_str, rhs_str2);
     for (int i = 0; i < rhs_str2.get_map().num_my_elements(); ++i)
       rhs.get_values()[rhs.get_map().lid(rhs_str2.get_map().gid(i))] = rhs_str2[i];
   }

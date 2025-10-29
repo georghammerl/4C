@@ -1122,8 +1122,7 @@ void Coupling::VolMortar::VolMortarCoupl::check_initial_residuum()
   // if(err1!=0 or err2!=0)
   //  FOUR_C_THROW("error");
 
-  int err = p21_->multiply(false, *var_A, *result_A);
-  if (err != 0) FOUR_C_THROW("error");
+  p21_->multiply(false, *var_A, *result_A);
 
   // subtract both results
   result_A->update(-1.0, *var_B, 1.0);
@@ -1296,23 +1295,16 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     std::shared_ptr<Core::LinAlg::Vector<double>> solMA =
         Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
 
-    int err = 0;
-    err = dmatrix_xa_->multiply(false, *mergedXa, *solDA);
-    if (err != 0) FOUR_C_THROW("stop");
-
-    err = mmatrix_xa_->multiply(false, *mergedXb, *solMA);
-    if (err != 0) FOUR_C_THROW("stop");
+    dmatrix_xa_->multiply(false, *mergedXa, *solDA);
+    mmatrix_xa_->multiply(false, *mergedXb, *solMA);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> solDB =
         Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
     std::shared_ptr<Core::LinAlg::Vector<double>> solMB =
         Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
 
-    err = dmatrix_xb_->multiply(false, *mergedXb, *solDB);
-    if (err != 0) FOUR_C_THROW("stop");
-
-    err = mmatrix_xb_->multiply(false, *mergedXa, *solMB);
-    if (err != 0) FOUR_C_THROW("stop");
+    dmatrix_xb_->multiply(false, *mergedXb, *solDB);
+    mmatrix_xb_->multiply(false, *mergedXa, *solMB);
 
     solDA->update(-1.0, *solMA, 1.0);
     solDB->update(-1.0, *solMB, 1.0);
@@ -1519,22 +1511,16 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     std::shared_ptr<Core::LinAlg::Vector<double>> finalMA =
         Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
 
-    err = dmatrix_xa_->multiply(false, *checka, *finalDA);
-    if (err != 0) FOUR_C_THROW("stop");
-
-    err = mmatrix_xa_->multiply(false, *checkb, *finalMA);
-    if (err != 0) FOUR_C_THROW("stop");
+    dmatrix_xa_->multiply(false, *checka, *finalDA);
+    mmatrix_xa_->multiply(false, *checkb, *finalMA);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> finalDB =
         Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
     std::shared_ptr<Core::LinAlg::Vector<double>> finalMB =
         Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
 
-    err = dmatrix_xb_->multiply(false, *checkb, *finalDB);
-    if (err != 0) FOUR_C_THROW("stop");
-
-    err = mmatrix_xb_->multiply(false, *checka, *finalMB);
-    if (err != 0) FOUR_C_THROW("stop");
+    dmatrix_xb_->multiply(false, *checkb, *finalDB);
+    mmatrix_xb_->multiply(false, *checka, *finalMB);
 
     finalDA->update(-1.0, *finalMA, 1.0);
 

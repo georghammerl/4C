@@ -1478,10 +1478,11 @@ double Core::LinAlg::SparseMatrix::norm_frobenius() const { return sysmat_->Norm
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::multiply(
+void Core::LinAlg::SparseMatrix::multiply(
     bool TransA, const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& y) const
 {
-  return sysmat_->Multiply(TransA, x.get_ref_of_epetra_vector(), y.get_ref_of_epetra_vector());
+  CHECK_EPETRA_CALL(
+      sysmat_->Multiply(TransA, x.get_ref_of_epetra_vector(), y.get_ref_of_epetra_vector()));
 }
 
 
@@ -1496,31 +1497,31 @@ int Core::LinAlg::SparseMatrix::multiply(bool TransA, const Core::LinAlg::MultiV
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::left_scale(const Core::LinAlg::Vector<double>& x)
+void Core::LinAlg::SparseMatrix::left_scale(const Core::LinAlg::Vector<double>& x)
 {
-  return sysmat_->LeftScale(x);
+  CHECK_EPETRA_CALL(sysmat_->LeftScale(x));
 }
 
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::right_scale(const Core::LinAlg::Vector<double>& x)
+void Core::LinAlg::SparseMatrix::right_scale(const Core::LinAlg::Vector<double>& x)
 {
-  return sysmat_->RightScale(x);
+  CHECK_EPETRA_CALL(sysmat_->RightScale(x));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::inv_row_sums(Core::LinAlg::Vector<double>& x) const
+void Core::LinAlg::SparseMatrix::inv_row_sums(Core::LinAlg::Vector<double>& x) const
 {
-  return sysmat_->InvRowSums(x);
+  CHECK_EPETRA_CALL(sysmat_->InvRowSums(x));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::inv_col_sums(Core::LinAlg::Vector<double>& x) const
+void Core::LinAlg::SparseMatrix::inv_col_sums(Core::LinAlg::Vector<double>& x) const
 {
-  return sysmat_->InvColSums(x);
+  CHECK_EPETRA_CALL(sysmat_->InvColSums(x));
 }
 
 /*----------------------------------------------------------------------*

@@ -1000,7 +1000,7 @@ bool CONTACT::MtLagrangeStrategy::evaluate_force(
   {
     // add meshtying force terms
     Core::LinAlg::Vector<double> fs(*gsdofrowmap_);
-    if (dmatrix_->multiply(true, *z_, fs)) FOUR_C_THROW("multiply failed");
+    dmatrix_->multiply(true, *z_, fs);
     Core::LinAlg::Vector<double> fsexp(*problem_dofs());
     Core::LinAlg::export_to(fs, fsexp);
     f_->update(1.0, fsexp, 1.0);
