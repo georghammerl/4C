@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_constraint_framework_equation_mpc.hpp"
+#include "4C_constraint_framework_equation.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_structure_new_enum_lists.hpp"
 #include "4C_structure_new_model_evaluator_generic.hpp"
@@ -71,8 +71,8 @@ namespace Constraints::SubmodelEvaluator
     double penalty_parameter_;
 
    protected:
-    //! Vector containing all multipoint constraint and related constraint equation objects
-    std::vector<std::shared_ptr<MultiPointConstraintEquationBase>> listMPCs_;
+    //! Vector containing all constraint equation objects
+    std::vector<std::shared_ptr<ConstraintEquationBase>> constraint_equations_;
 
     //! Pointer to the structural stiffness matrix \f$ K_{sys} \f$
     Core::LinAlg::SparseMatrix* stiff_ptr_;
@@ -93,7 +93,7 @@ namespace Constraints::SubmodelEvaluator
     std::shared_ptr<Core::LinAlg::SparseMatrix> Q_Ld_ = nullptr;
 
     //! coupling conditions evaluated at current displacements
-    std::shared_ptr<Core::LinAlg::Vector<double>> constraint_vector_;
+    std::shared_ptr<Core::LinAlg::Vector<double>> constraint_residual_;
   };
 
 }  // namespace Constraints::SubmodelEvaluator

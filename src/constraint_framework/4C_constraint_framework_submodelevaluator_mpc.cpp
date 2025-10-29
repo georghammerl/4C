@@ -10,7 +10,7 @@
 #include "4C_constraint_framework_submodelevaluator_mpc.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_constraint_framework_equation_mpc.hpp"
+#include "4C_constraint_framework_equation.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
@@ -540,14 +540,15 @@ void Constraints::SubmodelEvaluator::RveMultiPointConstraintManager::build_perio
         Core::IO::cout(Core::IO::debug) << dof << ", ";
       }
       Core::IO::cout(Core::IO::debug) << Core::IO::endl;
-      listMPCs_.emplace_back(std::make_shared<LinearCoupledEquation>(mpcId++, pbcDofs, pbcCoefs));
+      constraint_equations_.emplace_back(
+          std::make_shared<LinearCoupledEquation>(mpcId++, pbcDofs, pbcCoefs));
     }
     Core::IO::cout(Core::IO::debug) << "\n";
   }
   Core::IO::cout(Core::IO::verbose)
       << Core::IO::endl
-      << "Total number of node pairs created for periodic boundary conditions: " << listMPCs_.size()
-      << Core::IO::endl;
+      << "Total number of node pairs created for periodic boundary conditions: "
+      << constraint_equations_.size() << Core::IO::endl;
 }
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
@@ -621,14 +622,14 @@ int Constraints::SubmodelEvaluator::RveMultiPointConstraintManager::build_linear
   }
   // Get number of MPC already in the MPCs List
   int nMPC = 0;
-  for (const auto& mpc : listMPCs_)
+  for (const auto& mpc : constraint_equations_)
   {
-    nMPC += mpc->get_number_of_mp_cs();
+    nMPC += mpc->get_number_of_constraint_equation_objects();
   }
   unsigned int i = 0;
   for (; i < constraintRowIds.size(); ++i)
   {
-    listMPCs_.emplace_back(
+    constraint_equations_.emplace_back(
         std::make_shared<LinearCoupledEquation>(nMPC++, constraintColIds[i], constraintCoeffs[i]));
 
     Core::IO::cout(Core::IO::verbose) << "Linear MPC #" << i << "  Created: 0 = ";

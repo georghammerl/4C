@@ -58,7 +58,7 @@ bool Constraints::SubmodelEvaluator::ConstraintBase::evaluate_force_stiff(
   {
     //  Calculate force contribution
     Core::LinAlg::Vector<double> r_pen(stiff_ptr_->row_map(), true);
-    Q_Ld_->multiply(true, *constraint_vector_, r_pen);
+    Q_Ld_->multiply(true, *constraint_residual_, r_pen);
     Core::LinAlg::assemble_my_vector(1.0, *me_force_ptr, penalty_parameter_, r_pen);
   }
   return true;
@@ -69,14 +69,15 @@ void Constraints::SubmodelEvaluator::ConstraintBase::evaluate_coupling_terms(
 {
   // Get the number of multipoint equations
   int ncon_ = 0;
-  for (const auto& mpc : listMPCs_) ncon_ += mpc->get_number_of_mp_cs();
+  for (const auto& mpc : constraint_equations_)
+    ncon_ += mpc->get_number_of_constraint_equation_objects();
 
   // ToDo: Add an offset to the constraint dof map.
   n_condition_map_ = std::make_shared<Core::LinAlg::Map>(
       ncon_, 0, Core::Communication::unpack_epetra_comm(stiff_ptr_->Comm()));
 
   // initialise all global coupling objects
-  constraint_vector_ = std::make_shared<Core::LinAlg::Vector<double>>(*n_condition_map_, true);
+  constraint_residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*n_condition_map_, true);
   Q_Ld_ = std::make_shared<Core::LinAlg::SparseMatrix>(*n_condition_map_, 4);
   Q_dL_ = std::make_shared<Core::LinAlg::SparseMatrix>(stiff_ptr_->row_map(), 4);
   Q_dd_ = std::make_shared<Core::LinAlg::SparseMatrix>(stiff_ptr_->row_map(), 0);
@@ -85,9 +86,9 @@ void Constraints::SubmodelEvaluator::ConstraintBase::evaluate_coupling_terms(
   Q_dd_->zero();
   // Evaluate the Constraint Pairs / equations objects
   std::shared_ptr<const Core::LinAlg::Vector<double>> dis_np = gstate.get_dis_np();
-  for (const auto& obj : listMPCs_)
+  for (const auto& obj : constraint_equations_)
   {
-    obj->evaluate_equation(*Q_dd_, *Q_dL_, *Q_Ld_, *constraint_vector_, *dis_np);
+    obj->evaluate_equation(*Q_dd_, *Q_dL_, *Q_Ld_, *constraint_residual_, *dis_np);
   }
   Core::IO::cout(Core::IO::debug) << "Evaluated all constraint objects" << Core::IO::endl;
 

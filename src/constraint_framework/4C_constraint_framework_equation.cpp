@@ -7,7 +7,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_constraint_framework_equation_mpc.hpp"
+#include "4C_constraint_framework_equation.hpp"
 
 #include "4C_fem_discretization.hpp"
 #include "4C_io_pstream.hpp"
@@ -38,20 +38,20 @@ void Constraints::SubmodelEvaluator::LinearCoupledEquation::evaluate_equation(
 }
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-int Constraints::SubmodelEvaluator::MultiPointConstraintEquationBase::get_number_of_mp_cs() const
+int Constraints::SubmodelEvaluator::ConstraintEquationBase::
+    get_number_of_constraint_equation_objects() const
 {
   return n_dof_coupled_;
 }
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-int Constraints::SubmodelEvaluator::MultiPointConstraintEquationBase::get_first_row_id() const
+int Constraints::SubmodelEvaluator::ConstraintEquationBase::get_first_row_id() const
 {
   return first_row_id_;
 }
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Constraints::SubmodelEvaluator::MultiPointConstraintEquationBase::set_first_row_id(
-    int global_row_id)
+void Constraints::SubmodelEvaluator::ConstraintEquationBase::set_first_row_id(int global_row_id)
 {
   first_row_id_ = global_row_id;
 }
