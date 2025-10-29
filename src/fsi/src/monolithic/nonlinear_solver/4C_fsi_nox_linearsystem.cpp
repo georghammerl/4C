@@ -92,10 +92,6 @@ bool NOX::FSI::LinearSystem::apply_jacobian_inverse(
   const int maxit = p.get("Max Iterations", 30);
   const double tol = p.get("Tolerance", 1.0e-10);
 
-  std::shared_ptr<Core::LinAlg::Vector<double>> fres =
-      std::make_shared<Core::LinAlg::Vector<double>>(input.getEpetraVector());
-  Core::LinAlg::View disi = Core::LinAlg::View(result.getEpetraVector());
-
   // get the hopefully adaptive linear solver convergence tolerance
   solver_->params()
       .sublist("Belos Parameters")
@@ -104,8 +100,12 @@ bool NOX::FSI::LinearSystem::apply_jacobian_inverse(
   Core::LinAlg::SolverParams solver_params;
   solver_params.refactor = true;
   solver_params.reset = callcount_ == 0;
-  solver_->solve(
-      operator_, Core::Utils::shared_ptr_from_ref(disi.underlying()), fres, solver_params);
+
+  // There is a const_cast introduced - should be removed
+  solver_->solve(operator_, Core::Utils::shared_ptr_from_ref(result.get_linalg_vector()),
+      Core::Utils::shared_ptr_from_ref(
+          const_cast<Core::LinAlg::Vector<double>&>(input.get_linalg_vector())),
+      solver_params);
 
   callcount_ += 1;
 

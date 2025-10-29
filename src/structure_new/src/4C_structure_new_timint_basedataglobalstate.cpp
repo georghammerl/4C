@@ -654,10 +654,8 @@ std::shared_ptr<NOX::Nln::Vector> Solid::TimeInt::BaseDataGlobalState::create_gl
     }
   }  // end of the switch-case statement
 
-  // Copy the content of our vector into a vector that NOX can use
-  return std::make_shared<NOX::Nln::Vector>(
-      Teuchos::make_rcp<Epetra_Vector>(xvec_ptr.get_ref_of_epetra_vector()),
-      NOX::Nln::Vector::MemoryType::View);
+  // Move the content of our vector into a vector that NOX can use
+  return std::make_shared<NOX::Nln::Vector>(std::move(xvec_ptr));
 }
 
 /*----------------------------------------------------------------------------*
@@ -1131,17 +1129,16 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
     const NOX::Nln::Group& input_grp, const Core::LinAlg::Vector<double>& dir, const double& step,
     const NOX::Nln::Group& curr_grp)
 {
-  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).get_linalg_vector();
 
   // cast the const away so that the new x vector can be set after the update
   NOX::Nln::Group& curr_grp_mutable = const_cast<NOX::Nln::Group&>(curr_grp);
 
-  Core::LinAlg::Vector<double> xnew(xold.Map(), true);
+  Core::LinAlg::Vector<double> xnew(xold.get_map(), true);
 
   /* we do the multiplicative update only for those entries which belong to
    * rotation (pseudo-)vectors */
-  Core::LinAlg::Vector<double> x_rotvec =
-      *gstate_ptr_->extract_rot_vec_entries(Core::LinAlg::Vector<double>(xold));
+  Core::LinAlg::Vector<double> x_rotvec = *gstate_ptr_->extract_rot_vec_entries(xold);
   Core::LinAlg::Vector<double> dir_rotvec = *gstate_ptr_->extract_rot_vec_entries(dir);
 
   Core::LinAlg::Matrix<4, 1> Qold;
@@ -1178,8 +1175,8 @@ void NOX::Nln::GROUP::PrePostOp::TimeInt::RotVecUpdater::run_pre_compute_x(
   // now replace the rotvec entries by the correct value computed before
   Core::LinAlg::assemble_my_vector(0.0, xnew, 1.0, x_rotvec);
 
-  NOX::Nln::Vector wrapper(Teuchos::make_rcp<Epetra_Vector>(xnew.get_ref_of_epetra_vector()),
-      NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector wrapper(
+      Core::Utils::shared_ptr_from_ref(xnew), NOX::Nln::Vector::MemoryType::View);
   curr_grp_mutable.setX(wrapper);
 
   /* tell the NOX::Nln::Group that the x vector has already been updated in

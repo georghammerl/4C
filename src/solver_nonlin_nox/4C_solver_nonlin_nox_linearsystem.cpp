@@ -181,15 +181,12 @@ bool NOX::Nln::LinearSystem::apply_jacobian_block(const NOX::Nln::Vector& input,
     input_apply = Core::Utils::shared_ptr_from_ref(input_v);
   }
 
-  Teuchos::RCP<Core::LinAlg::Vector<double>> result_apply =
-      Teuchos::make_rcp<Core::LinAlg::Vector<double>>(rangemap, true);
+  Core::LinAlg::Vector<double> result_apply(rangemap, true);
 
   block.SetUseTranspose(false);
-  int status = block.Apply(*input_apply, *result_apply);
+  int status = block.Apply(*input_apply, result_apply);
 
-  result = Teuchos::make_rcp<NOX::Nln::Vector>(
-      Teuchos::rcpFromRef(result_apply->get_ref_of_epetra_vector()),
-      NOX::Nln::Vector::MemoryType::Copy);
+  result = Teuchos::make_rcp<NOX::Nln::Vector>(std::move(result_apply));
 
   return (status == 0);
 }

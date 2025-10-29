@@ -109,7 +109,7 @@ namespace NOX
       virtual double compute_norm(const ::NOX::Abstract::Group& grp) = 0;
 
       /// compute the norm of a given vector
-      double compute_norm(const Epetra_Vector& v);
+      double compute_norm(const Core::LinAlg::Vector<double>& v);
 
       /*! In the case of a relative norm calculation, initializes
         \c trueTolerance based on the F-value at the initial guess.*/
@@ -261,7 +261,7 @@ namespace NOX
 
      protected:
       /// compute the norm of a given vector
-      virtual double compute_norm(const Epetra_Vector& v);
+      virtual double compute_norm(const Core::LinAlg::Vector<double>& v);
 
      private:
       //! %Status
@@ -305,7 +305,7 @@ namespace NOX
 
      protected:
       /// compute the norm of a given vector
-      double compute_norm(const Epetra_Vector& v) override;
+      double compute_norm(const Core::LinAlg::Vector<double>& v) override;
 
      private:
       const Core::LinAlg::MultiMapExtractor extractor_;

@@ -233,8 +233,7 @@ void Solid::Integrator::compute_mass_matrix_and_init_acc()
   // create a copy of the initial displacement vector
   Core::LinAlg::Vector<double> soln(*global_state().dof_row_map_view(), true);
   // wrap the soln_ptr in a NOX::Nln::Vector
-  NOX::Nln::Vector nox_soln(
-      Teuchos::rcpFromRef(soln.get_ref_of_epetra_vector()), NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector nox_soln(std::move(soln));
 
   // Check if we are using a Newton direction
   std::string dir_str = p_nox.sublist("Direction").get<std::string>("Method");
@@ -285,7 +284,7 @@ void Solid::Integrator::compute_mass_matrix_and_init_acc()
   NOX::Nln::Solid::LinearSystem linsys(p_print, p_ls, str_linsolver, Teuchos::null, Teuchos::null,
       Teuchos::rcpFromRef(mass_matrix), nox_soln);
 
-  linsys.apply_jacobian_inverse(p_ls, rhs_solid->get_ref_of_epetra_vector(), nox_soln);
+  linsys.apply_jacobian_inverse(p_ls, *rhs_solid, nox_soln);
   nox_soln.scale(-1.0);
 
   // get the solution vector and add it into the acceleration vector

@@ -37,29 +37,25 @@ NOX::FSI::GenericNormF::GenericNormF(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-double NOX::FSI::GenericNormF::compute_norm(const Epetra_Vector& v)
+double NOX::FSI::GenericNormF::compute_norm(const Core::LinAlg::Vector<double>& v)
 {
-  int n = v.GlobalLength();
+  int n = v.global_length();
   double norm;
-  int err;
 
   switch (norm_type_)
   {
     case ::NOX::Abstract::Vector::TwoNorm:
-      err = v.Norm2(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_2(&norm);
       if (scale_type_ == Scaled) norm /= sqrt(1.0 * n);
       break;
 
     case ::NOX::Abstract::Vector::OneNorm:
-      err = v.Norm1(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_1(&norm);
       if (scale_type_ == Scaled) norm /= n;
       break;
 
     case ::NOX::Abstract::Vector::MaxNorm:
-      err = v.NormInf(&norm);
-      if (err != 0) FOUR_C_THROW("norm failed");
+      v.norm_inf(&norm);
       if (scale_type_ == Scaled)
         FOUR_C_THROW("It does not make sense to scale a MaxNorm by the vector length.");
       break;
@@ -307,7 +303,8 @@ NOX::FSI::GenericNormUpdate::GenericNormUpdate(std::string name, double tol, Sca
 
   update_vector_ptr_->update(1.0, curSoln, -1.0, oldSoln, 0.0);
 
-  compute_norm(std::dynamic_pointer_cast<NOX::Nln::Vector>(update_vector_ptr_)->getEpetraVector());
+  compute_norm(
+      std::dynamic_pointer_cast<NOX::Nln::Vector>(update_vector_ptr_)->get_linalg_vector());
 
   status_ =
       (norm_update_ < tolerance_) ? ::NOX::StatusTest::Converged : ::NOX::StatusTest::Unconverged;
@@ -317,25 +314,24 @@ NOX::FSI::GenericNormUpdate::GenericNormUpdate(std::string name, double tol, Sca
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-double NOX::FSI::GenericNormUpdate::compute_norm(const Epetra_Vector& v)
+double NOX::FSI::GenericNormUpdate::compute_norm(const Core::LinAlg::Vector<double>& v)
 {
-  NOX::Nln::Vector vec(v);
-  int n = (scale_type_ == Scaled) ? vec.length() : 0;
+  int n = (scale_type_ == Scaled) ? v.global_length() : 0;
 
   switch (norm_type_)
   {
     case ::NOX::Abstract::Vector::TwoNorm:
-      norm_update_ = vec.norm();
+      v.norm_2(&norm_update_);
       if (scale_type_ == Scaled) norm_update_ /= sqrt(1.0 * n);
       break;
 
     case ::NOX::Abstract::Vector::OneNorm:
-      norm_update_ = vec.norm(norm_type_);
+      v.norm_1(&norm_update_);
       if (scale_type_ == Scaled) norm_update_ /= n;
       break;
 
     case ::NOX::Abstract::Vector::MaxNorm:
-      norm_update_ = vec.norm(norm_type_);
+      v.norm_inf(&norm_update_);
       if (scale_type_ == Scaled)
         FOUR_C_THROW("It does not make sense to scale a MaxNorm by the vector length.");
       break;
@@ -414,9 +410,9 @@ NOX::FSI::PartialNormUpdate::PartialNormUpdate(std::string name,
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-double NOX::FSI::PartialNormUpdate::compute_norm(const Epetra_Vector& v)
+double NOX::FSI::PartialNormUpdate::compute_norm(const Core::LinAlg::Vector<double>& v)
 {
-  Core::LinAlg::Vector<double> v_new = Core::LinAlg::Vector<double>(v);
+  Core::LinAlg::Vector<double> v_new(v);
   return FSI::GenericNormUpdate::compute_norm(*extractor_.extract_vector(v_new, blocknum_));
 }
 
