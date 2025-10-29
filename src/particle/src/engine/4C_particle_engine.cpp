@@ -1192,7 +1192,7 @@ void Particle::ParticleEngine::determine_ghosting_dependent_maps_and_sets()
   }
 
   // communicate data via non-buffered send from proc to proc
-  COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // init receiving vector
   std::set<int> receivedbins;
@@ -1719,7 +1719,7 @@ void Particle::ParticleEngine::communicate_particles(
   particlestosend.clear();
 
   // communicate data via non-buffered send from proc to proc
-  COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (const auto& p : rdata)
@@ -1769,7 +1769,7 @@ void Particle::ParticleEngine::communicate_direct_ghosting_map(
   directghosting.clear();
 
   // communicate data via non-buffered send from proc to proc
-  COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // init receiving map
   std::map<ParticleType, std::map<int, std::pair<int, int>>> receiveddirectghosting;

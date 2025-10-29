@@ -277,7 +277,7 @@ void Particle::DEMHistoryPairs::communicate_specific_history_pairs(
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack history pairs
   for (auto& p : rdata) unpack_history_pairs(p.second, historydata);

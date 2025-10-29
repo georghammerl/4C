@@ -627,7 +627,7 @@ void Particle::RigidBodyHandler::relate_owned_rigid_bodies_to_hosting_procs()
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -695,7 +695,7 @@ void Particle::RigidBodyHandler::communicate_rigid_body_states(
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -920,7 +920,7 @@ void Particle::RigidBodyHandler::gather_partial_mass_quantities(
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -1146,7 +1146,7 @@ void Particle::RigidBodyHandler::gather_partial_and_compute_full_force_and_torqu
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -1340,7 +1340,7 @@ void Particle::RigidBodyHandler::broadcast_rigid_body_positions()
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -1395,7 +1395,7 @@ void Particle::RigidBodyHandler::broadcast_rigid_body_velocities()
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
@@ -1450,7 +1450,7 @@ void Particle::RigidBodyHandler::broadcast_rigid_body_accelerations()
   }
 
   // communicate data via non-buffered send from proc to proc
-  Particle::COMMUNICATION::immediate_recv_blocking_send(comm_, sdata, rdata);
+  ParticleUtils::immediate_recv_blocking_send(comm_, sdata, rdata);
 
   // unpack and store received data
   for (auto& p : rdata)
