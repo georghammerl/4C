@@ -140,9 +140,7 @@ bool Coupling::Adapter::MatrixLogicalSplitAndTransform::operator()(
       }
 
       auto permsrc = std::make_shared<Core::LinAlg::SparseMatrix>(permsrcmap, 0);
-      int err = permsrc->import(src, *exporter_, Insert);
-      if (err) FOUR_C_THROW("Import failed with err={}", err);
-
+      permsrc->import(src, *exporter_, Insert);
       permsrc->complete(src.domain_map(), permsrcmap);
       esrc = permsrc;
     }
