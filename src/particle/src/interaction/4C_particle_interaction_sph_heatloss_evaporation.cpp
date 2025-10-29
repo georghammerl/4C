@@ -89,7 +89,7 @@ void Particle::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss() 
     double* tempdot_i = container_i->get_ptr_to_state(Particle::TemperatureDot, particle_i);
 
     // evaluation only for non-zero interface normal
-    if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+    if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
     // heat loss contribution only for temperature above boiling temperature
     if (not(temp_i[0] > recoilboilingtemp_)) continue;
@@ -106,8 +106,9 @@ void Particle::SPHHeatLossEvaporation::evaluate_evaporation_induced_heat_loss() 
         thermomaterial_i->thermalCapacity_ * (temp_i[0] - enthalpyreftemp_);
 
     // add contribution of heat loss
-    tempdot_i[0] -= Utils::vec_norm_two(cfg_i) * m_dot_i * (latentheat_ + specificenthalpy_i) *
-                    thermomaterial_i->invThermalCapacity_ / dens_i[0];
+    tempdot_i[0] -= ParticleUtils::vec_norm_two(cfg_i) * m_dot_i *
+                    (latentheat_ + specificenthalpy_i) * thermomaterial_i->invThermalCapacity_ /
+                    dens_i[0];
   }
 }
 

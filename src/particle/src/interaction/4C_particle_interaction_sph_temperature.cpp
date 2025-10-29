@@ -364,12 +364,12 @@ void Particle::SPHTemperature::temperature_gradient() const
 
     // sum contribution of neighboring particle j
     if (tempgrad_i)
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           tempgrad_i, (mass_j[0] / dens_j[0]) * temp_ji * particlepair.dWdrij_, particlepair.e_ij_);
 
     // sum contribution of neighboring particle i
     if (tempgrad_j and status_j == Particle::Owned)
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           tempgrad_j, (mass_i[0] / dens_i[0]) * temp_ji * particlepair.dWdrji_, particlepair.e_ij_);
   }
 }

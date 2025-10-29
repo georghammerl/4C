@@ -110,10 +110,10 @@ void Particle::SPHOpenBoundaryBase::check_open_boundary_phase_change(
 
     // compute distance of open boundary particle from plane
     std::vector<double> temp(3);
-    Utils::vec_set(temp.data(), pos_i);
-    Utils::vec_sub(temp.data(), planepoint_.data());
+    ParticleUtils::vec_set(temp.data(), pos_i);
+    ParticleUtils::vec_sub(temp.data(), planepoint_.data());
 
-    const double distancefromplane = Utils::vec_dot(temp.data(), outwardnormal_.data());
+    const double distancefromplane = ParticleUtils::vec_dot(temp.data(), outwardnormal_.data());
 
     // open boundary particle traveled over plane
     if (distancefromplane < -toleranceopenboundarytofluid)
@@ -128,7 +128,7 @@ void Particle::SPHOpenBoundaryBase::check_open_boundary_phase_change(
           std::make_shared<Particle::ParticleObject>(fluidphase_, -1, particlestates));
 
       // shift open boundary particle back
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           pos_i, numparticleperdir * initialparticlespacing, outwardnormal_.data());
     }
     // open boundary particle more than maximum interaction distance away from plane
@@ -157,10 +157,10 @@ void Particle::SPHOpenBoundaryBase::check_open_boundary_phase_change(
 
     // compute distance of fluid particle from plane
     std::vector<double> temp(3);
-    Utils::vec_set(temp.data(), pos_j);
-    Utils::vec_sub(temp.data(), planepoint_.data());
+    ParticleUtils::vec_set(temp.data(), pos_j);
+    ParticleUtils::vec_sub(temp.data(), planepoint_.data());
 
-    const double distancefromplane = Utils::vec_dot(temp.data(), outwardnormal_.data());
+    const double distancefromplane = ParticleUtils::vec_dot(temp.data(), outwardnormal_.data());
 
     // fluid particle traveled over plane
     if (distancefromplane > 0.0)
@@ -228,9 +228,9 @@ void Particle::SPHOpenBoundaryDirichlet::init()
           static_cast<int>(outwardnormal_.size()));
 
     // normalize outward normal
-    const double norm = Utils::vec_norm_two(outwardnormal_.data());
+    const double norm = ParticleUtils::vec_norm_two(outwardnormal_.data());
     if (not(norm > 0.0)) FOUR_C_THROW("no outward normal set!");
-    Utils::vec_set_scale(outwardnormal_.data(), 1.0 / norm, outwardnormal_.data());
+    ParticleUtils::vec_set_scale(outwardnormal_.data(), 1.0 / norm, outwardnormal_.data());
   }
 
   // init plain point
@@ -299,7 +299,7 @@ void Particle::SPHOpenBoundaryDirichlet::prescribe_open_boundary_states(const do
     double* vel_i = container_i->get_ptr_to_state(Particle::Velocity, particle_i);
 
     // evaluate function to set velocity
-    Utils::vec_set_scale(
+    ParticleUtils::vec_set_scale(
         vel_i, -function.evaluate(std::span(pos_i, 3), evaltime, 0), outwardnormal_.data());
   }
 }
@@ -427,9 +427,10 @@ void Particle::SPHOpenBoundaryNeumann::init()
           static_cast<int>(outwardnormal_.size()));
 
     // normalize outward normal
-    const double direction_norm = Utils::vec_norm_two(outwardnormal_.data());
+    const double direction_norm = ParticleUtils::vec_norm_two(outwardnormal_.data());
     if (not(direction_norm > 0.0)) FOUR_C_THROW("no outward normal set!");
-    Utils::vec_set_scale(outwardnormal_.data(), 1.0 / direction_norm, outwardnormal_.data());
+    ParticleUtils::vec_set_scale(
+        outwardnormal_.data(), 1.0 / direction_norm, outwardnormal_.data());
   }
 
   // init plain point

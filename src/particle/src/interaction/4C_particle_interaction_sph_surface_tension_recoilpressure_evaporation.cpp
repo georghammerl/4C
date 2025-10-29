@@ -60,7 +60,7 @@ void Particle::SPHRecoilPressureEvaporation::compute_recoil_pressure_contributio
     double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
     // evaluation only for non-zero interface normal
-    if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+    if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
     // recoil pressure contribution only for temperature above boiling temperature
     if (not(temp_i[0] > recoilboilingtemp_)) continue;
@@ -70,7 +70,7 @@ void Particle::SPHRecoilPressureEvaporation::compute_recoil_pressure_contributio
         recoil_pfac_ * std::exp(-recoil_tfac_ * (1.0 / temp_i[0] - 1.0 / recoilboilingtemp_));
 
     // add contribution to acceleration
-    Utils::vec_add_scale(acc_i, -recoil_press_i / dens_i[0], cfg_i);
+    ParticleUtils::vec_add_scale(acc_i, -recoil_press_i / dens_i[0], cfg_i);
   }
 }
 

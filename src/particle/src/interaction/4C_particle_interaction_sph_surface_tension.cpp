@@ -330,14 +330,16 @@ void Particle::SPHSurfaceTension::compute_colorfield_gradient() const
     const double V_i = mass_i[0] / dens_i[0];
     const double V_j = mass_j[0] / dens_j[0];
 
-    const double fac = (Utils::pow<2>(V_i) + Utils::pow<2>(V_j)) / (dens_i[0] + dens_j[0]);
+    const double fac =
+        (ParticleUtils::pow<2>(V_i) + ParticleUtils::pow<2>(V_j)) / (dens_i[0] + dens_j[0]);
 
     // sum contribution of neighboring particle j
-    Utils::vec_add_scale(cfg_i, dens_i[0] / V_i * fac * particlepair.dWdrij_, particlepair.e_ij_);
+    ParticleUtils::vec_add_scale(
+        cfg_i, dens_i[0] / V_i * fac * particlepair.dWdrij_, particlepair.e_ij_);
 
     // sum contribution of neighboring particle i
     if (status_j == Particle::Owned)
-      Utils::vec_add_scale(
+      ParticleUtils::vec_add_scale(
           cfg_j, -dens_j[0] / V_j * fac * particlepair.dWdrji_, particlepair.e_ij_);
   }
 
@@ -356,10 +358,10 @@ void Particle::SPHSurfaceTension::compute_colorfield_gradient() const
       double* cfg_i = container_i->get_ptr_to_state(Particle::ColorfieldGradient, particle_i);
 
       // norm of colorfield gradient
-      const double cfg_i_norm = Utils::vec_norm_two(cfg_i);
+      const double cfg_i_norm = ParticleUtils::vec_norm_two(cfg_i);
 
       // clear colorfield gradient
-      if (not(cfg_i_norm > (1.0e-10 * rad_i[0]))) Utils::vec_clear(cfg_i);
+      if (not(cfg_i_norm > (1.0e-10 * rad_i[0]))) ParticleUtils::vec_clear(cfg_i);
     }
   }
 }
@@ -385,10 +387,11 @@ void Particle::SPHSurfaceTension::compute_interface_normal() const
       double* ifn_i = container_i->get_ptr_to_state(Particle::InterfaceNormal, particle_i);
 
       // norm of colorfield gradient
-      const double cfg_i_norm = Utils::vec_norm_two(cfg_i);
+      const double cfg_i_norm = ParticleUtils::vec_norm_two(cfg_i);
 
       // set interface normal
-      if (cfg_i_norm > (1.0e-10 * rad_i[0])) Utils::vec_set_scale(ifn_i, 1.0 / cfg_i_norm, cfg_i);
+      if (cfg_i_norm > (1.0e-10 * rad_i[0]))
+        ParticleUtils::vec_set_scale(ifn_i, 1.0 / cfg_i_norm, cfg_i);
     }
   }
 }
@@ -460,19 +463,20 @@ void Particle::SPHSurfaceTension::compute_wall_colorfield_and_wall_interface_nor
       // (initial) volume of boundary particle j
       const double V_j = mass_j[0] / material_j->initDensity_;
 
-      const double fac = (Utils::pow<2>(V_i) + Utils::pow<2>(V_j)) * dens_i[0] /
+      const double fac = (ParticleUtils::pow<2>(V_i) + ParticleUtils::pow<2>(V_j)) * dens_i[0] /
                          (V_i * (dens_i[0] + material_j->initDensity_));
 
 
       // evaluate transition factor below reference temperature
       double tempfac = 1.0;
       if (trans_d_t_wet_ > 0.0)
-        tempfac =
-            Utils::comp_lin_trans(temp_j[0], trans_ref_temp_ - trans_d_t_wet_, trans_ref_temp_);
+        tempfac = ParticleUtils::comp_lin_trans(
+            temp_j[0], trans_ref_temp_ - trans_d_t_wet_, trans_ref_temp_);
 
       // sum contribution of neighboring boundary particle j
       wallcf_i[0] += tempfac * fac * particlepair.Wij_;
-      Utils::vec_add_scale(wallifn_i, tempfac * fac * particlepair.dWdrij_, particlepair.e_ij_);
+      ParticleUtils::vec_add_scale(
+          wallifn_i, tempfac * fac * particlepair.dWdrij_, particlepair.e_ij_);
     }
 
     // evaluate contribution of neighboring boundary particle i
@@ -497,18 +501,19 @@ void Particle::SPHSurfaceTension::compute_wall_colorfield_and_wall_interface_nor
       // (current) volume of particle j
       const double V_j = mass_j[0] / dens_j[0];
 
-      const double fac = (Utils::pow<2>(V_i) + Utils::pow<2>(V_j)) * dens_j[0] /
+      const double fac = (ParticleUtils::pow<2>(V_i) + ParticleUtils::pow<2>(V_j)) * dens_j[0] /
                          (V_j * (material_i->initDensity_ + dens_j[0]));
 
       // evaluate transition factor below reference temperature
       double tempfac = 1.0;
       if (trans_d_t_wet_ > 0.0)
-        tempfac =
-            Utils::comp_lin_trans(temp_i[0], trans_ref_temp_ - trans_d_t_wet_, trans_ref_temp_);
+        tempfac = ParticleUtils::comp_lin_trans(
+            temp_i[0], trans_ref_temp_ - trans_d_t_wet_, trans_ref_temp_);
 
       // sum contribution of neighboring boundary particle i
       wallcf_j[0] += tempfac * fac * particlepair.Wji_;
-      Utils::vec_add_scale(wallifn_j, -tempfac * fac * particlepair.dWdrji_, particlepair.e_ij_);
+      ParticleUtils::vec_add_scale(
+          wallifn_j, -tempfac * fac * particlepair.dWdrji_, particlepair.e_ij_);
     }
   }
 
@@ -527,13 +532,13 @@ void Particle::SPHSurfaceTension::compute_wall_colorfield_and_wall_interface_nor
       double* wallifn_i = container_i->get_ptr_to_state(Particle::WallInterfaceNormal, particle_i);
 
       // norm of wall interface normal
-      const double wallifn_i_norm = Utils::vec_norm_two(wallifn_i);
+      const double wallifn_i_norm = ParticleUtils::vec_norm_two(wallifn_i);
 
       // scale or clear wall interface normal
       if (wallifn_i_norm > (1.0e-10 * rad_i[0]))
-        Utils::vec_set_scale(wallifn_i, 1.0 / wallifn_i_norm, wallifn_i);
+        ParticleUtils::vec_set_scale(wallifn_i, 1.0 / wallifn_i_norm, wallifn_i);
       else
-        Utils::vec_clear(wallifn_i);
+        ParticleUtils::vec_clear(wallifn_i);
     }
   }
 }
@@ -565,46 +570,46 @@ void Particle::SPHSurfaceTension::correct_triple_point_normal() const
       double* ifn_i = container_i->get_ptr_to_state(Particle::InterfaceNormal, particle_i);
 
       // evaluation only for non-zero wall interface normal
-      if (not(Utils::vec_norm_two(wallifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(wallifn_i) > 0.0)) continue;
 
       // evaluation only for non-zero interface normal
-      if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
       // determine correction factor
-      double f_i = Utils::comp_lin_trans(wallcf_i[0], tpn_corr_cf_low_, tpn_corr_cf_up_);
+      double f_i = ParticleUtils::comp_lin_trans(wallcf_i[0], tpn_corr_cf_low_, tpn_corr_cf_up_);
 
       // determine wall interface tangential
       double wallift_i[3];
-      Utils::vec_set(wallift_i, ifn_i);
-      Utils::vec_add_scale(wallift_i, -Utils::vec_dot(ifn_i, wallifn_i), wallifn_i);
+      ParticleUtils::vec_set(wallift_i, ifn_i);
+      ParticleUtils::vec_add_scale(wallift_i, -ParticleUtils::vec_dot(ifn_i, wallifn_i), wallifn_i);
 
       // norm of wall interface tangential
-      const double wallift_i_norm = Utils::vec_norm_two(wallift_i);
+      const double wallift_i_norm = ParticleUtils::vec_norm_two(wallift_i);
 
       // scale or clear wall interface tangential
       if (wallift_i_norm > (1.0e-10 * rad_i[0]))
-        Utils::vec_set_scale(wallift_i, 1.0 / wallift_i_norm, wallift_i);
+        ParticleUtils::vec_set_scale(wallift_i, 1.0 / wallift_i_norm, wallift_i);
       else
-        Utils::vec_clear(wallift_i);
+        ParticleUtils::vec_clear(wallift_i);
 
       // determine triple point normal
       double tpn_i[3];
-      Utils::vec_set_scale(tpn_i, std::sin(theta_0), wallift_i);
-      Utils::vec_add_scale(tpn_i, -std::cos(theta_0), wallifn_i);
+      ParticleUtils::vec_set_scale(tpn_i, std::sin(theta_0), wallift_i);
+      ParticleUtils::vec_add_scale(tpn_i, -std::cos(theta_0), wallifn_i);
 
       // determine corrected interface normal
       double corifn_i[3];
-      Utils::vec_set_scale(corifn_i, f_i, ifn_i);
-      Utils::vec_add_scale(corifn_i, (1.0 - f_i), tpn_i);
+      ParticleUtils::vec_set_scale(corifn_i, f_i, ifn_i);
+      ParticleUtils::vec_add_scale(corifn_i, (1.0 - f_i), tpn_i);
 
       // norm of corrected interface normal
-      const double corifn_i_norm = Utils::vec_norm_two(corifn_i);
+      const double corifn_i_norm = ParticleUtils::vec_norm_two(corifn_i);
 
       // scale or clear interface normal
       if (corifn_i_norm > (1.0e-10 * rad_i[0]))
-        Utils::vec_set_scale(ifn_i, 1.0 / corifn_i_norm, corifn_i);
+        ParticleUtils::vec_set_scale(ifn_i, 1.0 / corifn_i_norm, corifn_i);
       else
-        Utils::vec_clear(ifn_i);
+        ParticleUtils::vec_clear(ifn_i);
     }
   }
 }
@@ -645,7 +650,7 @@ void Particle::SPHSurfaceTension::compute_curvature() const
       const double* temp_i = container_i->cond_get_ptr_to_state(Particle::Temperature, particle_i);
 
       // evaluation only for non-zero interface normal
-      if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
       // evaluate kernel
       const double Wii = kernel_->w0(rad_i[0]);
@@ -656,7 +661,8 @@ void Particle::SPHSurfaceTension::compute_curvature() const
       // evaluate transition factor above reference temperature
       double tempfac = 1.0;
       if (trans_d_t_curv_ > 0.0)
-        tempfac = Utils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
+        tempfac =
+            ParticleUtils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
 
       // add self-interaction
       sumj_Vj_Wij[type_i][particle_i] += tempfac * V_i * Wii;
@@ -703,16 +709,18 @@ void Particle::SPHSurfaceTension::compute_curvature() const
     const double* temp_j = container_j->cond_get_ptr_to_state(Particle::Temperature, particle_j);
 
     // evaluation only for non-zero interface normals
-    if (not(Utils::vec_norm_two(ifn_i) > 0.0) or not(Utils::vec_norm_two(ifn_j) > 0.0)) continue;
+    if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0) or
+        not(ParticleUtils::vec_norm_two(ifn_j) > 0.0))
+      continue;
 
     // change sign of interface normal for different particle types
     double signfac = (type_i == type_j) ? 1.0 : -1.0;
 
     double n_ij[3];
-    Utils::vec_set(n_ij, ifn_i);
-    Utils::vec_add_scale(n_ij, -signfac, ifn_j);
+    ParticleUtils::vec_set(n_ij, ifn_i);
+    ParticleUtils::vec_add_scale(n_ij, -signfac, ifn_j);
 
-    const double nij_eij = Utils::vec_dot(n_ij, particlepair.e_ij_);
+    const double nij_eij = ParticleUtils::vec_dot(n_ij, particlepair.e_ij_);
 
     // evaluate contribution of neighboring particle j
     {
@@ -722,7 +730,8 @@ void Particle::SPHSurfaceTension::compute_curvature() const
       // evaluate transition factor above reference temperature
       double tempfac = 1.0;
       if (trans_d_t_curv_ > 0.0)
-        tempfac = Utils::lin_trans(temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
+        tempfac =
+            ParticleUtils::lin_trans(temp_j[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
 
       // sum contribution of neighboring particle j
       sumj_nij_Vj_eij_dWij[type_i][particle_i] += tempfac * V_j * nij_eij * particlepair.dWdrij_;
@@ -738,7 +747,8 @@ void Particle::SPHSurfaceTension::compute_curvature() const
       // evaluate transition factor above reference temperature
       double tempfac = 1.0;
       if (trans_d_t_curv_ > 0.0)
-        tempfac = Utils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
+        tempfac =
+            ParticleUtils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_curv_);
 
       // sum contribution of neighboring particle i
       sumj_nij_Vj_eij_dWij[type_j][particle_j] +=
@@ -763,7 +773,7 @@ void Particle::SPHSurfaceTension::compute_curvature() const
       double* curv_i = container_i->get_ptr_to_state(Particle::Curvature, particle_i);
 
       // evaluation only for non-zero interface normal
-      if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
       // evaluation only for meaningful contributions
       if (not(std::abs(sumj_Vj_Wij[type_i][particle_i]) > (1.0e-10 * rad_i[0]))) continue;
@@ -802,7 +812,7 @@ void Particle::SPHSurfaceTension::compute_surface_tension_contribution() const
       double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
       // evaluation only for non-zero interface normal
-      if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
       // evaluate surface tension coefficient
       double alpha = alpha0_;
@@ -815,10 +825,12 @@ void Particle::SPHSurfaceTension::compute_surface_tension_contribution() const
       // evaluate transition factor above reference temperature
       double tempfac = 1.0;
       if (trans_d_t_surf_ > 0.0)
-        tempfac = Utils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_surf_);
+        tempfac =
+            ParticleUtils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_surf_);
 
       // add contribution to acceleration
-      Utils::vec_add_scale(acc_i, -timefac * tempfac * alpha * curv_i[0] / dens_i[0], cfg_i);
+      ParticleUtils::vec_add_scale(
+          acc_i, -timefac * tempfac * alpha * curv_i[0] / dens_i[0], cfg_i);
     }
   }
 }
@@ -855,24 +867,27 @@ void Particle::SPHSurfaceTension::compute_temp_grad_driven_contribution() const
       double* acc_i = container_i->get_ptr_to_state(Particle::Acceleration, particle_i);
 
       // evaluation only for non-zero interface normal
-      if (not(Utils::vec_norm_two(ifn_i) > 0.0)) continue;
+      if (not(ParticleUtils::vec_norm_two(ifn_i) > 0.0)) continue;
 
       // no evaluation in the regime of constant surface tension coefficient
       if (temp_i[0] > transitiontemp) continue;
 
       // projection of temperature gradient onto tangential plane defined by interface normal
       double tempgrad_i_proj[3];
-      Utils::vec_set(tempgrad_i_proj, tempgrad_i);
-      Utils::vec_add_scale(tempgrad_i_proj, -Utils::vec_dot(tempgrad_i, ifn_i), ifn_i);
+      ParticleUtils::vec_set(tempgrad_i_proj, tempgrad_i);
+      ParticleUtils::vec_add_scale(
+          tempgrad_i_proj, -ParticleUtils::vec_dot(tempgrad_i, ifn_i), ifn_i);
 
       // evaluate transition factor above reference temperature
       double tempfac = 1.0;
       if (trans_d_t_mara_ > 0.0)
-        tempfac = Utils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_mara_);
+        tempfac =
+            ParticleUtils::lin_trans(temp_i[0], trans_ref_temp_, trans_ref_temp_ + trans_d_t_mara_);
 
       // add contribution to acceleration
-      Utils::vec_add_scale(acc_i,
-          timefac * tempfac * alpha_t_ * Utils::vec_norm_two(cfg_i) / dens_i[0], tempgrad_i_proj);
+      ParticleUtils::vec_add_scale(acc_i,
+          timefac * tempfac * alpha_t_ * ParticleUtils::vec_norm_two(cfg_i) / dens_i[0],
+          tempgrad_i_proj);
     }
   }
 }

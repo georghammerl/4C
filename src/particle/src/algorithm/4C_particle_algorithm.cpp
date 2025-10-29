@@ -557,7 +557,7 @@ void Particle::ParticleAlgorithm::determine_particle_types()
   std::map<Particle::TypeEnum, double> typetodynloadbal;
 
   // read parameters relating particle types to values
-  Particle::Utils::read_params_types_related_to_values(
+  ParticleUtils::read_params_types_related_to_values(
       params_, "PHASE_TO_DYNLOADBALFAC", typetodynloadbal);
 
   // insert into map of particle types and corresponding states with empty set

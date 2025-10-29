@@ -78,9 +78,9 @@ void Particle::DEMContactTangentialLinearSpringDamp::setup(const double& k_norma
   if (e_ > 0.0)
   {
     const double lne = std::log(e_);
-    d_tangential_fac_ =
-        2.0 * std::abs(lne) *
-        std::sqrt(k_normal / (Utils::pow<2>(lne) + Utils::pow<2>(std::numbers::pi)));
+    d_tangential_fac_ = 2.0 * std::abs(lne) *
+                        std::sqrt(k_normal / (ParticleUtils::pow<2>(lne) +
+                                                 ParticleUtils::pow<2>(std::numbers::pi)));
   }
   else
     d_tangential_fac_ = 2.0 * std::sqrt(k_normal);
@@ -95,27 +95,28 @@ void Particle::DEMContactTangentialLinearSpringDamp::tangential_contact_force(
   const double d_tangential = d_tangential_fac_ * std::sqrt(m_eff);
 
   // compute length of tangential gap at time n
-  const double old_length = Utils::vec_norm_two(gap_tangential);
+  const double old_length = ParticleUtils::vec_norm_two(gap_tangential);
 
   // compute projection of tangential gap onto current normal at time n+1
-  Utils::vec_add_scale(gap_tangential, -Utils::vec_dot(normal, gap_tangential), normal);
+  ParticleUtils::vec_add_scale(
+      gap_tangential, -ParticleUtils::vec_dot(normal, gap_tangential), normal);
 
   // compute length of tangential gap at time n+1
-  const double new_length = Utils::vec_norm_two(gap_tangential);
+  const double new_length = ParticleUtils::vec_norm_two(gap_tangential);
 
   // maintain length of tangential gap equal to before the projection
   if (new_length > 1.0e-14)
-    Utils::vec_set_scale(gap_tangential, old_length / new_length, gap_tangential);
+    ParticleUtils::vec_set_scale(gap_tangential, old_length / new_length, gap_tangential);
 
   // update of elastic tangential displacement if stick is true
-  if (stick_tangential == true) Utils::vec_add_scale(gap_tangential, dt_, v_rel_tangential);
+  if (stick_tangential == true) ParticleUtils::vec_add_scale(gap_tangential, dt_, v_rel_tangential);
 
   // compute tangential contact force (assume stick-case)
-  Utils::vec_set_scale(tangentialcontactforce, -k_tangential_, gap_tangential);
-  Utils::vec_add_scale(tangentialcontactforce, -d_tangential, v_rel_tangential);
+  ParticleUtils::vec_set_scale(tangentialcontactforce, -k_tangential_, gap_tangential);
+  ParticleUtils::vec_add_scale(tangentialcontactforce, -d_tangential, v_rel_tangential);
 
   // compute the norm of the tangential contact force
-  const double norm_tangentialcontactforce = Utils::vec_norm_two(tangentialcontactforce);
+  const double norm_tangentialcontactforce = ParticleUtils::vec_norm_two(tangentialcontactforce);
 
   // tangential contact force for stick-case
   if (norm_tangentialcontactforce <= (mu_tangential * std::abs(normalcontactforce)))
@@ -130,21 +131,23 @@ void Particle::DEMContactTangentialLinearSpringDamp::tangential_contact_force(
     stick_tangential = false;
 
     // compute tangential contact force
-    Utils::vec_set_scale(tangentialcontactforce,
+    ParticleUtils::vec_set_scale(tangentialcontactforce,
         mu_tangential * std::abs(normalcontactforce) / norm_tangentialcontactforce,
         tangentialcontactforce);
 
     // compute tangential displacement
     const double inv_k_tangential = 1.0 / k_tangential_;
-    Utils::vec_set_scale(gap_tangential, -inv_k_tangential, tangentialcontactforce);
-    Utils::vec_add_scale(gap_tangential, -inv_k_tangential * d_tangential, v_rel_tangential);
+    ParticleUtils::vec_set_scale(gap_tangential, -inv_k_tangential, tangentialcontactforce);
+    ParticleUtils::vec_add_scale(
+        gap_tangential, -inv_k_tangential * d_tangential, v_rel_tangential);
   }
 }
 
 void Particle::DEMContactTangentialLinearSpringDamp::tangential_potential_energy(
     const double* gap_tangential, double& tangentialpotentialenergy) const
 {
-  tangentialpotentialenergy = 0.5 * k_tangential_ * Utils::vec_dot(gap_tangential, gap_tangential);
+  tangentialpotentialenergy =
+      0.5 * k_tangential_ * ParticleUtils::vec_dot(gap_tangential, gap_tangential);
 }
 
 FOUR_C_NAMESPACE_CLOSE

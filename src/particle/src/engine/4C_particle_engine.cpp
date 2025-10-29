@@ -1079,7 +1079,7 @@ void Particle::ParticleEngine::setup_type_weights()
   std::map<ParticleType, double> typetodynloadbal;
 
   // read parameters relating particle types to values
-  Particle::Utils::read_params_types_related_to_values(
+  ParticleUtils::read_params_types_related_to_values(
       params_, "PHASE_TO_DYNLOADBALFAC", typetodynloadbal);
 
   // insert weight of particle type

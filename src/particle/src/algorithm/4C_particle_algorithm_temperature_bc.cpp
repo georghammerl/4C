@@ -34,7 +34,7 @@ void Particle::TemperatureBoundaryConditionHandler::init()
       params_.sublist("INITIAL AND BOUNDARY CONDITIONS");
 
   // read parameters relating particle types to values
-  Particle::Utils::read_params_types_related_to_values(
+  ParticleUtils::read_params_types_related_to_values(
       params_conditions, "TEMPERATURE_BOUNDARY_CONDITION", temperaturebctypetofunctid_);
 
   // iterate over particle types and insert into set

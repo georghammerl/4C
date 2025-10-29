@@ -48,7 +48,7 @@ void Particle::InitialFieldHandler::init()
         statetotypetofunctidmap_[stateIt.second];
 
     // read parameters relating particle types to values
-    Particle::Utils::read_params_types_related_to_values(
+    ParticleUtils::read_params_types_related_to_values(
         params_conditions, stateIt.first, currentstatetypetofunctidmap);
   }
 }

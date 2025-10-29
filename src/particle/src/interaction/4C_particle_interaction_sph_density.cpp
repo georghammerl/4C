@@ -226,12 +226,12 @@ void Particle::SPHDensityBase::sum_weighted_mass_particle_wall_contribution() co
 
     // compute vector from wall contact point j to particle i
     double r_ij[3];
-    Utils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
+    ParticleUtils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
 
     // unit surface tangent vectors in wall contact point j
     double t_j_1[3];
     double t_j_2[3];
-    Utils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
+    ParticleUtils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
 
     // iterate over virtual particles
     for (const std::vector<double>& virtualparticle :
@@ -239,13 +239,13 @@ void Particle::SPHDensityBase::sum_weighted_mass_particle_wall_contribution() co
     {
       // vector from virtual particle k to particle i
       double r_ik[3];
-      Utils::vec_set(r_ik, r_ij);
-      Utils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
-      Utils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
-      Utils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
+      ParticleUtils::vec_set(r_ik, r_ij);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
 
       // absolute distance between virtual particle k and particle i
-      const double absdist = Utils::vec_norm_two(r_ik);
+      const double absdist = ParticleUtils::vec_norm_two(r_ik);
 
       // virtual particle within interaction distance
       if (absdist < rad_i[0])
@@ -417,12 +417,12 @@ void Particle::SPHDensityBase::sum_colorfield_particle_wall_contribution() const
 
     // compute vector from wall contact point j to particle i
     double r_ij[3];
-    Utils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
+    ParticleUtils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
 
     // unit surface tangent vectors in wall contact point j
     double t_j_1[3];
     double t_j_2[3];
-    Utils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
+    ParticleUtils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
 
     // iterate over virtual particles
     for (const std::vector<double>& virtualparticle :
@@ -430,13 +430,13 @@ void Particle::SPHDensityBase::sum_colorfield_particle_wall_contribution() const
     {
       // vector from virtual particle k to particle i
       double r_ik[3];
-      Utils::vec_set(r_ik, r_ij);
-      Utils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
-      Utils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
-      Utils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
+      ParticleUtils::vec_set(r_ik, r_ij);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
 
       // absolute distance between virtual particle k and particle i
-      const double absdist = Utils::vec_norm_two(r_ik);
+      const double absdist = ParticleUtils::vec_norm_two(r_ik);
 
       // virtual particle within interaction distance
       if (absdist < rad_i[0])
@@ -538,10 +538,10 @@ void Particle::SPHDensityBase::continuity_equation_particle_contribution() const
 
     // relative velocity (use modified velocities in case of transport velocity formulation)
     double vel_ij[3];
-    Utils::vec_set(vel_ij, vel_i);
-    Utils::vec_sub(vel_ij, vel_j);
+    ParticleUtils::vec_set(vel_ij, vel_i);
+    ParticleUtils::vec_sub(vel_ij, vel_j);
 
-    const double e_ij_vel_ij = Utils::vec_dot(particlepair.e_ij_, vel_ij);
+    const double e_ij_vel_ij = ParticleUtils::vec_dot(particlepair.e_ij_, vel_ij);
 
     // sum contribution of neighboring particle j
     if (densdot_i)
@@ -644,17 +644,17 @@ void Particle::SPHDensityBase::continuity_equation_particle_wall_contribution() 
 
     // compute vector from wall contact point j to particle i
     double r_ij[3];
-    Utils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
+    ParticleUtils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
 
     // relative velocity (use modified velocities in case of transport velocity formulation)
     double vel_ik[3];
-    Utils::vec_set(vel_ik, vel_i);
-    Utils::vec_sub(vel_ik, vel_k);
+    ParticleUtils::vec_set(vel_ik, vel_i);
+    ParticleUtils::vec_sub(vel_ik, vel_k);
 
     // unit surface tangent vectors in wall contact point j
     double t_j_1[3];
     double t_j_2[3];
-    Utils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
+    ParticleUtils::unit_surface_tangents(particlewallpair.e_ij_, t_j_1, t_j_2);
 
     // iterate over virtual particles
     for (const std::vector<double>& virtualparticle :
@@ -662,18 +662,18 @@ void Particle::SPHDensityBase::continuity_equation_particle_wall_contribution() 
     {
       // vector from virtual particle k to particle i
       double r_ik[3];
-      Utils::vec_set(r_ik, r_ij);
-      Utils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
-      Utils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
-      Utils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
+      ParticleUtils::vec_set(r_ik, r_ij);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[0], particlewallpair.e_ij_);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[1], t_j_1);
+      ParticleUtils::vec_add_scale(r_ik, virtualparticle[2], t_j_2);
 
       // absolute distance between virtual particle k and particle i
-      const double absdist = Utils::vec_norm_two(r_ik);
+      const double absdist = ParticleUtils::vec_norm_two(r_ik);
 
       // virtual particle within interaction distance
       if (absdist < rad_i[0])
       {
-        const double e_ik_vel_ik = Utils::vec_dot(r_ik, vel_ik) / absdist;
+        const double e_ik_vel_ik = ParticleUtils::vec_dot(r_ik, vel_ik) / absdist;
 
         // evaluate first derivative of kernel
         const double dWdrik = kernel_->d_wdrij(absdist, rad_i[0]);

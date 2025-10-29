@@ -19,7 +19,7 @@ namespace
   {
     const double q_ref[4] = {0.0, 0.0, 0.0, 1.0};
     double q[4] = {1.0, 2.0, 3.0, 4.0};
-    Particle::Utils::quaternion_clear(q);
+    Particle::ParticleUtils::quaternion_clear(q);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -29,7 +29,7 @@ namespace
     double q1[4] = {0.0, 0.0, 0.0, 1.0};
     const double q2[4] = {1.0, 2.0, 3.0, 4.0};
 
-    Particle::Utils::quaternion_set(q1, q2);
+    Particle::ParticleUtils::quaternion_set(q1, q2);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q1, q2, 4, 1.0e-14);
   }
@@ -40,7 +40,7 @@ namespace
     const double q2[4] = {1.0, 2.0, 3.0, 4.0};
     const double q_ref[4] = {-q2[0], -q2[1], -q2[2], q2[3]};
 
-    Particle::Utils::quaternion_invert(q1, q2);
+    Particle::ParticleUtils::quaternion_invert(q1, q2);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q1, q_ref, 4, 1.0e-14);
   }
@@ -53,13 +53,13 @@ namespace
     const double phi2[3] = {-0.8, 5.0, 0.0};
 
     double q1[4];
-    Particle::Utils::quaternion_from_angle(q1, phi1);
+    Particle::ParticleUtils::quaternion_from_angle(q1, phi1);
 
     double q2[4];
-    Particle::Utils::quaternion_from_angle(q2, phi2);
+    Particle::ParticleUtils::quaternion_from_angle(q2, phi2);
 
     double q12[4];
-    Particle::Utils::quaternion_product(q12, q2, q1);
+    Particle::ParticleUtils::quaternion_product(q12, q2, q1);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q12, q12_ref, 4, 1.0e-14);
   }
@@ -70,7 +70,7 @@ namespace
     const double phi[3] = {0.0, 0.0, 0.0};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -82,7 +82,7 @@ namespace
     const double phi[3] = {std::numbers::pi / 2, 0.0, 0.0};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -94,7 +94,7 @@ namespace
     const double phi[3] = {0.0, std::numbers::pi / 2, 0.0};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -106,7 +106,7 @@ namespace
     const double phi[3] = {0.0, 0.0, std::numbers::pi / 2};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -118,7 +118,7 @@ namespace
     const double phi[3] = {-std::numbers::pi / 3, std::numbers::pi, std::numbers::pi / 2};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(q, q_ref, 4, 1.0e-14);
   }
@@ -131,7 +131,7 @@ namespace
 
     const double q[4] = {0.0, 0.0, std::sin(std::numbers::pi / 4), std::cos(std::numbers::pi / 4)};
 
-    Particle::Utils::quaternion_rotate_vector(w, q, v);
+    Particle::ParticleUtils::quaternion_rotate_vector(w, q, v);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(w, w_ref, 3, 1.0e-14);
   }
@@ -144,7 +144,7 @@ namespace
 
     const double q[4] = {0.0, std::sin(std::numbers::pi / 4), 0.0, std::cos(std::numbers::pi / 4)};
 
-    Particle::Utils::quaternion_rotate_vector(w, q, v);
+    Particle::ParticleUtils::quaternion_rotate_vector(w, q, v);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(w, w_ref, 3, 1.0e-14);
   }
@@ -157,7 +157,7 @@ namespace
 
     const double q[4] = {std::sin(std::numbers::pi / 4), 0.0, 0.0, std::cos(std::numbers::pi / 4)};
 
-    Particle::Utils::quaternion_rotate_vector(w, q, v);
+    Particle::ParticleUtils::quaternion_rotate_vector(w, q, v);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(w, w_ref, 3, 1.0e-14);
   }
@@ -171,9 +171,9 @@ namespace
     const double phi[3] = {-std::numbers::pi / 3, std::numbers::pi, std::numbers::pi / 2};
 
     double q[4];
-    Particle::Utils::quaternion_from_angle(q, phi);
+    Particle::ParticleUtils::quaternion_from_angle(q, phi);
 
-    Particle::Utils::quaternion_rotate_vector(w, q, v);
+    Particle::ParticleUtils::quaternion_rotate_vector(w, q, v);
 
     FOUR_C_EXPECT_ITERABLE_NEAR(w, w_ref, 3, 1.0e-14);
   }

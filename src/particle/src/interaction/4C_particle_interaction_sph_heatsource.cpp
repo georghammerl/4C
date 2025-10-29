@@ -168,11 +168,11 @@ void Particle::SPHHeatSourceSurface::init()
         static_cast<int>(direction_.size()));
 
   // normalize heat source direction vector
-  const double direction_norm = Utils::vec_norm_two(direction_.data());
+  const double direction_norm = ParticleUtils::vec_norm_two(direction_.data());
   if (direction_norm > 0.0)
   {
     eval_direction_ = true;
-    Utils::vec_set_scale(direction_.data(), 1.0 / direction_norm, direction_.data());
+    ParticleUtils::vec_set_scale(direction_.data(), 1.0 / direction_norm, direction_.data());
   }
 }
 
@@ -253,13 +253,14 @@ void Particle::SPHHeatSourceSurface::evaluate_heat_source(const double& evaltime
     const double V_i = mass_i[0] / dens_i[0];
     const double V_j = mass_j[0] / dens_j[0];
 
-    const double fac = (Utils::pow<2>(V_i) + Utils::pow<2>(V_j)) / (dens_i[0] + dens_j[0]);
+    const double fac =
+        (ParticleUtils::pow<2>(V_i) + ParticleUtils::pow<2>(V_j)) / (dens_i[0] + dens_j[0]);
 
     // evaluate contribution of neighboring particle j
     if (absorbingtypes_.count(type_i))
     {
       // sum contribution of neighboring particle j
-      Utils::vec_add_scale(cfg_i[type_i][particle_i].data(),
+      ParticleUtils::vec_add_scale(cfg_i[type_i][particle_i].data(),
           dens_i[0] / V_i * fac * particlepair.dWdrij_, particlepair.e_ij_);
     }
 
@@ -267,7 +268,7 @@ void Particle::SPHHeatSourceSurface::evaluate_heat_source(const double& evaltime
     if (absorbingtypes_.count(type_j) and status_j == Particle::Owned)
     {
       // sum contribution of neighboring particle i
-      Utils::vec_add_scale(cfg_i[type_j][particle_j].data(),
+      ParticleUtils::vec_add_scale(cfg_i[type_j][particle_j].data(),
           -dens_j[0] / V_j * fac * particlepair.dWdrji_, particlepair.e_ij_);
     }
   }
@@ -301,15 +302,15 @@ void Particle::SPHHeatSourceSurface::evaluate_heat_source(const double& evaltime
     for (int particle_i = 0; particle_i < container_i->particles_stored(); ++particle_i)
     {
       // norm of colorfield gradient of absorbing interface particles
-      const double f_i = Utils::vec_norm_two(cfg_i[type_i][particle_i].data());
+      const double f_i = ParticleUtils::vec_norm_two(cfg_i[type_i][particle_i].data());
 
       // no heat source contribution to current particle
       if (not(f_i > 0.0)) continue;
 
       // projection of colorfield gradient with heat source direction
-      const double f_i_proj =
-          eval_direction_ ? -Utils::vec_dot(direction_.data(), cfg_i[type_i][particle_i].data())
-                          : f_i;
+      const double f_i_proj = eval_direction_ ? -ParticleUtils::vec_dot(direction_.data(),
+                                                    cfg_i[type_i][particle_i].data())
+                                              : f_i;
 
       // heat source contribution only for surface opposing heat source
       if (f_i_proj < 0.0) continue;

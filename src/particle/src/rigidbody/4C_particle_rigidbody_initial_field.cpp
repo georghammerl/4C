@@ -102,7 +102,7 @@ namespace
           statetotypetofunctidmap[stateIt.second];
 
       // read parameters relating particle types to values
-      Particle::Utils::read_params_types_related_to_values(
+      Particle::ParticleUtils::read_params_types_related_to_values(
           params_conditions, stateIt.first, currentstatetypetofunctidmap);
     }
 

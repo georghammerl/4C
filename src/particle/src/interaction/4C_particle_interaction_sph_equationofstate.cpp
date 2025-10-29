@@ -43,10 +43,10 @@ double Particle::SPHEquationOfStateGenTait::density_to_pressure(
     const double& density, const double& density0) const
 {
   if (exponent_ == 1)
-    return Utils::pow<2>(speedofsound_) * (density - refdensfac_ * density0);
+    return ParticleUtils::pow<2>(speedofsound_) * (density - refdensfac_ * density0);
   else
   {
-    double initPressure = Utils::pow<2>(speedofsound_) * density0 / exponent_;
+    double initPressure = ParticleUtils::pow<2>(speedofsound_) * density0 / exponent_;
     return initPressure * (std::pow((density / density0), exponent_) - refdensfac_);
   }
 }
@@ -55,10 +55,10 @@ double Particle::SPHEquationOfStateGenTait::pressure_to_density(
     const double& pressure, const double& density0) const
 {
   if (exponent_ == 1)
-    return pressure / Utils::pow<2>(speedofsound_) + refdensfac_ * density0;
+    return pressure / ParticleUtils::pow<2>(speedofsound_) + refdensfac_ * density0;
   else
   {
-    double initPressure = Utils::pow<2>(speedofsound_) * density0 / exponent_;
+    double initPressure = ParticleUtils::pow<2>(speedofsound_) * density0 / exponent_;
     return density0 * std::pow(((pressure / initPressure) + refdensfac_), (1.0 / exponent_));
   }
 }
@@ -72,12 +72,12 @@ double Particle::SPHEquationOfStateGenTait::density_to_energy(
   // the pressure law with the relation V=mass/density and integration constant from initial
   // condition E(V=mass/initDensity)
   if (exponent_ == 1)
-    return -Utils::pow<2>(speedofsound_) * mass *
-           (std::log(Utils::pow<2>(mass) / (density0 * density)) -
+    return -ParticleUtils::pow<2>(speedofsound_) * mass *
+           (std::log(ParticleUtils::pow<2>(mass) / (density0 * density)) -
                refdensfac_ * (1 + (density0 / density)));
   else
   {
-    double initPressure = Utils::pow<2>(speedofsound_) * density0 / exponent_;
+    double initPressure = ParticleUtils::pow<2>(speedofsound_) * density0 / exponent_;
     return -initPressure *
            ((1.0 / (1 - exponent_)) *
                    (mass / (std::pow(density0, exponent_) * std::pow(density, (1 - exponent_))) +
@@ -95,13 +95,13 @@ Particle::SPHEquationOfStateIdealGas::SPHEquationOfStateIdealGas(const double& s
 double Particle::SPHEquationOfStateIdealGas::density_to_pressure(
     const double& density, const double& density0) const
 {
-  return Utils::pow<2>(speedofsound_) * density;
+  return ParticleUtils::pow<2>(speedofsound_) * density;
 }
 
 double Particle::SPHEquationOfStateIdealGas::pressure_to_density(
     const double& pressure, const double& density0) const
 {
-  return pressure / Utils::pow<2>(speedofsound_);
+  return pressure / ParticleUtils::pow<2>(speedofsound_);
 }
 
 double Particle::SPHEquationOfStateIdealGas::density_to_energy(
@@ -112,8 +112,8 @@ double Particle::SPHEquationOfStateIdealGas::density_to_energy(
   // implemented! Thus, it is only valid for isentrop problems, i.e. dE/dS=0! Remark: integration of
   // the pressure law with the relation V=mass/density and integration constant from initial
   // condition E(V=mass/initDensity)
-  return -Utils::pow<2>(speedofsound_) * mass *
-         std::log(Utils::pow<2>(mass) / (density0 * density));
+  return -ParticleUtils::pow<2>(speedofsound_) * mass *
+         std::log(ParticleUtils::pow<2>(mass) / (density0 * density));
 }
 
 FOUR_C_NAMESPACE_CLOSE

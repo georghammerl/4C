@@ -173,15 +173,15 @@ void Particle::SPHRigidParticleContactElastic::elastic_contact_particle_contribu
 
     // compute normal gap and rate of normal gap
     const double gap = particlepair.absdist_ - initialparticlespacing;
-    const double gapdot =
-        Utils::vec_dot(vel_i, particlepair.e_ij_) - Utils::vec_dot(vel_j, particlepair.e_ij_);
+    const double gapdot = ParticleUtils::vec_dot(vel_i, particlepair.e_ij_) -
+                          ParticleUtils::vec_dot(vel_j, particlepair.e_ij_);
 
     // magnitude of rigid particle contact force
     const double fac = std::min(0.0, (stiff_ * gap + damp_ * gapdot));
 
     // add contributions
-    if (force_i) Utils::vec_add_scale(force_i, -fac, particlepair.e_ij_);
-    if (force_j) Utils::vec_add_scale(force_j, fac, particlepair.e_ij_);
+    if (force_i) ParticleUtils::vec_add_scale(force_i, -fac, particlepair.e_ij_);
+    if (force_j) ParticleUtils::vec_add_scale(force_j, fac, particlepair.e_ij_);
   }
 }
 
@@ -289,31 +289,31 @@ void Particle::SPHRigidParticleContactElastic::elastic_contact_particle_wall_con
 
     // compute normal gap and rate of normal gap
     const double gap = particlewallpair.absdist_ - 0.5 * initialparticlespacing;
-    const double gapdot = Utils::vec_dot(vel_i, particlewallpair.e_ij_) -
-                          Utils::vec_dot(vel_j, particlewallpair.e_ij_);
+    const double gapdot = ParticleUtils::vec_dot(vel_i, particlewallpair.e_ij_) -
+                          ParticleUtils::vec_dot(vel_j, particlewallpair.e_ij_);
 
     // magnitude of rigid particle contact force
     const double fac = std::min(0.0, (stiff_ * gap + damp_ * gapdot));
 
     // add contributions
-    if (force_i) Utils::vec_add_scale(force_i, -fac, particlewallpair.e_ij_);
+    if (force_i) ParticleUtils::vec_add_scale(force_i, -fac, particlewallpair.e_ij_);
 
     // calculation of wall contact force
     double wallcontactforce[3] = {0.0, 0.0, 0.0};
     if (writeinteractionoutput or walldatastate->get_force_col() != nullptr)
-      Utils::vec_set_scale(wallcontactforce, fac, particlewallpair.e_ij_);
+      ParticleUtils::vec_set_scale(wallcontactforce, fac, particlewallpair.e_ij_);
 
     // write interaction output
     if (writeinteractionoutput)
     {
       // compute vector from wall contact point j to particle i
       double r_ij[3];
-      Utils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
+      ParticleUtils::vec_set_scale(r_ij, particlewallpair.absdist_, particlewallpair.e_ij_);
 
       // calculate wall contact point
       double wallcontactpoint[3];
-      Utils::vec_set(wallcontactpoint, pos_i);
-      Utils::vec_sub(wallcontactpoint, r_ij);
+      ParticleUtils::vec_set(wallcontactpoint, pos_i);
+      ParticleUtils::vec_sub(wallcontactpoint, r_ij);
 
       // set wall attack point and states
       for (int dim = 0; dim < 3; ++dim) attackpoints.push_back(wallcontactpoint[dim]);
