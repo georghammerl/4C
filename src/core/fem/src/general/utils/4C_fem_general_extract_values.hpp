@@ -114,7 +114,7 @@ namespace Core::FE
       // loop over multi vector columns (numcol=1 for Core::LinAlg::Vector<double>)
       for (int col = 0; col < numcol; col++)
       {
-        local[col + (numcol * i)] = global(col)[lid];
+        local[col + (numcol * i)] = global(col).local_values_as_span()[lid];
       }
     }
 

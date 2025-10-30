@@ -6248,7 +6248,7 @@ void CONTACT::Interface::evaluate_relative_movement(
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     auto* cnode = dynamic_cast<FriNode*>(node);
-    double cn = get_cn_ref()[get_cn_ref().get_map().lid(cnode->id())];
+    double cn = get_cn_ref().local_values_as_span()[get_cn_ref().get_map().lid(cnode->id())];
 
     // get some information form the node
     double gap = cnode->data().getg();
