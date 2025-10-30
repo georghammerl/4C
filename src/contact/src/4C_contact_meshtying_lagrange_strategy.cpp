@@ -414,7 +414,8 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
           Core::LinAlg::matrix_multiply(*kteffmatrix, false, systrafo, false, false, false, true);
       kteffmatrix =
           Core::LinAlg::matrix_multiply(systrafo, true, *kteffmatrix, false, false, false, true);
-      systrafo.multiply(true, *feff, *feff);
+      Core::LinAlg::Vector<double> feffnew(*feff);
+      systrafo.multiply(true, feffnew, *feff);
     }
 
     if (par_redist())
@@ -704,7 +705,8 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
       kteffnew =
           Core::LinAlg::matrix_multiply(systrafo, true, *kteffnew, false, false, false, true);
       kteff = kteffnew;
-      systrafo.multiply(true, *feff, *feff);
+      Core::LinAlg::Vector<double> feffnew(*feff);
+      systrafo.multiply(true, feffnew, *feff);
     }
 
     // add meshtying force terms
@@ -930,7 +932,8 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
 
     /**********************************************************************/
@@ -980,7 +983,8 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
   }
 
@@ -1151,8 +1155,7 @@ void CONTACT::MtLagrangeStrategy::run_pre_apply_jacobian_inverse(
   {
     std::shared_ptr<Core::LinAlg::SparseMatrix> k =
         std::make_shared<Core::LinAlg::SparseMatrix>(*kteff);
-    std::shared_ptr<Core::LinAlg::Vector<double>> r =
-        Core::Utils::shared_ptr_from_ref<Core::LinAlg::Vector<double>>(rhs);
+    Core::LinAlg::Vector<double> r = Core::LinAlg::Vector<double>(rhs);
 
     auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
 
@@ -1161,7 +1164,7 @@ void CONTACT::MtLagrangeStrategy::run_pre_apply_jacobian_inverse(
       // apply basis transformation to K and f
       k = Core::LinAlg::matrix_multiply(*k, false, *systrafo_, false, false, false, true);
       k = Core::LinAlg::matrix_multiply(*systrafo_, true, *k, false, false, false, true);
-      systrafo_->multiply(true, *r, *r);
+      systrafo_->multiply(true, r, rhs);
     }
 
     std::shared_ptr<const Core::LinAlg::SparseMatrix> non_redist_mhatmatrix =
@@ -1169,7 +1172,7 @@ void CONTACT::MtLagrangeStrategy::run_pre_apply_jacobian_inverse(
     Mortar::Utils::mortar_matrix_condensation(k, non_redist_mhatmatrix, non_redist_mhatmatrix);
     *kteff = *k;
 
-    Mortar::Utils::mortar_rhs_condensation(*r, *mhatmatrix_);
+    Mortar::Utils::mortar_rhs_condensation(rhs, *mhatmatrix_);
   }
 }
 
@@ -1182,13 +1185,14 @@ void CONTACT::MtLagrangeStrategy::run_post_apply_jacobian_inverse(
   auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
   if (systype == CONTACT::SystemType::condensed)
   {
-    std::shared_ptr<Core::LinAlg::Vector<double>> inc =
-        Core::Utils::shared_ptr_from_ref<Core::LinAlg::Vector<double>>(result);
-    Mortar::Utils::mortar_recover(*inc, *mhatmatrix_);
+    Mortar::Utils::mortar_recover(result, *mhatmatrix_);
 
     // undo basis transformation to solution
     if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
-      systrafo_->multiply(false, *inc, *inc);
+    {
+      Core::LinAlg::Vector<double> inc = Core::LinAlg::Vector<double>(result);
+      systrafo_->multiply(false, inc, result);
+    }
   }
 }
 
@@ -1217,11 +1221,12 @@ void CONTACT::MtLagrangeStrategy::remove_condensed_contributions_from_rhs(
   {
     // undo basis transformation to solution
     if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
-      systrafo_->multiply(true, rhs, rhs);
+    {
+      auto r = Core::LinAlg::Vector<double>(rhs);
+      systrafo_->multiply(true, r, rhs);
+    }
 
-    std::shared_ptr<Core::LinAlg::Vector<double>> r =
-        Core::Utils::shared_ptr_from_ref<Core::LinAlg::Vector<double>>(rhs);
-    Mortar::Utils::mortar_rhs_condensation(*r, *mhatmatrix_);
+    Mortar::Utils::mortar_rhs_condensation(rhs, *mhatmatrix_);
   }
 }
 

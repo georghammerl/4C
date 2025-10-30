@@ -2214,7 +2214,8 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
           Core::LinAlg::matrix_multiply(*kteffmatrix, false, systrafo, false, false, false, true);
       kteffmatrix =
           Core::LinAlg::matrix_multiply(systrafo, true, *kteffmatrix, false, false, false, true);
-      systrafo.multiply(true, *feff, *feff);
+      Core::LinAlg::Vector<double> feffnew(*feff);
+      systrafo.multiply(true, feffnew, *feff);
     }
 
     // transform if necessary
@@ -2830,7 +2831,8 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         kteffnew =
             Core::LinAlg::matrix_multiply(systrafo, true, *kteffnew, false, false, false, true);
         kteff = kteffnew;
-        systrafo.multiply(true, *feff, *feff);
+        Core::LinAlg::Vector<double> feffnew(*feff);
+        systrafo.multiply(true, feffnew, *feff);
       }
     }
 
@@ -4472,7 +4474,8 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
 
     /**********************************************************************/
@@ -4554,7 +4557,8 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
   }
 

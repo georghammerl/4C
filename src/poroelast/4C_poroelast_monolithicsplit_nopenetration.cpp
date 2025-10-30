@@ -557,6 +557,8 @@ void PoroElast::MonolithicSplitNoPenetration::apply_fluid_coupl_matrix(
       *structure_field()->interface()->fsi_cond_map(), *fluid_field()->interface()->fsi_cond_map());
   k_inv_d_->complete(
       *fluid_field()->interface()->fsi_cond_map(), *structure_field()->interface()->fsi_cond_map());
+  k_d_->complete(
+      *structure_field()->interface()->fsi_cond_map(), *fluid_field()->interface()->fsi_cond_map());
 
   // Calculate 1/b*Tangent*invD
   k_lambdainv_d_ = Core::LinAlg::matrix_multiply(*k_lambda_, false, *k_inv_d_, false, true);
