@@ -39,45 +39,10 @@ def load_meta_data():
     metafile_data = yaml.safe_load(
         (PATH_TO_TESTS / ("../.." / pathlib.Path("4C_metadata.yaml"))).read_text()
     )
-    section_dict = {}
-    for section in metafile_data["sections"]["specs"]:
-        params_avail = {}
-        if "spec" in section:
-            params_avail = section["spec"]["specs"]
-        elif "specs" in section:
-            params_avail = section["specs"][0]["specs"]
-        else:
-            KeyError(f'Parameters in section {section["name"]} not found.')
+    sections = [section["name"] for section in metafile_data["sections"]["specs"]]
+    sections += metafile_data["legacy_string_sections"]
 
-        def parse_parameters(params, parameters, section_name):
-            for item in params:
-                if item["type"] == "group":
-                    # Recursively process nested group specs
-                    parse_parameters(
-                        item["specs"][0]["specs"], parameters, section_name
-                    )
-                else:
-                    if "name" not in item:
-                        print(
-                            f"Currently, parameters in section {section_name} cannot be parsed."
-                        )
-                        continue
-
-                    if item["required"]:
-                        parameter_string = "# required parameter"
-                    else:
-                        parameter_string = f"{item['default']} # optional, the given value is the default"
-
-                    parameters[item["name"]] = parameter_string
-
-        parameter_dict = {}
-        parse_parameters(params_avail, parameter_dict, section["name"])
-
-        section_dict[section["name"]] = parameter_dict
-
-    for section in metafile_data["legacy_string_sections"]:
-        section_dict[section] = "legacy section, no parameters available."
-    return section_dict
+    return sections
 
 
 def yaml_dump(data, filetype="rst"):
@@ -113,35 +78,18 @@ def section_dump(input_file_section, section_names, filetype="rst"):
 def find_sections_in_meta(
     meta_file_data,
     section_name_expressions,
-    section_details="<parameters>",
     filetype="rst",
 ):
     """Returns a string of the given section name expressions from the given dictionary of sections.
-    Besides the section names, the section_details can be specified. The default is just to print the string "<parameters>".
     It can take either one regular expression for a section name or a list of those
     """
     if isinstance(section_name_expressions, str):
         section_name_expressions = [section_name_expressions]
-    if section_details == "none":
-        section_names = []
-        for section_name_expression in section_name_expressions:
-            reg_expression = re.compile(section_name_expression)
-            for section_name in filter(reg_expression.match, meta_file_data.keys()):
-                section_names.append(section_name)
-    elif section_details == "all":
-        section_names = {}
-        for section_name_expression in section_name_expressions:
-            reg_expression = re.compile(section_name_expression)
-            for section_name in filter(reg_expression.match, meta_file_data.keys()):
-                section_names[section_name] = meta_file_data[section_name]
-    else:
-        section_names = {}
-        for section_name_expression in section_name_expressions:
-            reg_expression = re.compile(section_name_expression)
-            section_names = section_names | {
-                k: [section_details]
-                for k in filter(reg_expression.match, meta_file_data.keys())
-            }
+    section_names = []
+    for section_name_expression in section_name_expressions:
+        reg_expression = re.compile(section_name_expression)
+
+        section_names += filter(reg_expression.match, meta_file_data)
     if len(section_names) == 0:
         exit("No sections found for the given regular expressions.")
     return yaml_dump(section_names, filetype)

@@ -28,6 +28,36 @@ G = TypeVar("G", contravariant=True)
 NotSetAlias: TypeAlias = NotSet | T
 
 
+class Context:
+    """Additional context for metadata validation."""
+
+    def __init__(self, references: dict[str, Spec]) -> None:
+        """Initialise Context.
+
+        Args:
+            references: entries referenced by metadata entries.
+        """
+        self.references = references
+
+
+def make_context(metadata: dict) -> Context:
+    """Make context from metadata.
+
+    Args:
+        metadata: Metadata dictionary
+
+    Returns:
+        Context object
+    """
+    references = metadata["$references"]
+    reference_dict = {
+        key: metadata_from_dict(reference, None)
+        for key, reference in references.items()
+    }
+
+    return Context(references=reference_dict)
+
+
 class InputSpec:
     """Input spec base class."""
 
@@ -59,11 +89,12 @@ class InputSpec:
 
     @classmethod
     @abc.abstractmethod
-    def from_4C_metadata(cls, data_dict: dict) -> InputSpec:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> InputSpec:
         """Create InputSpec from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             InputSpec
@@ -144,18 +175,19 @@ class All_Of:
         return len(self.specs) == 1 and isinstance(self.specs[0], One_Of)
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> All_Of:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> All_Of:
         """Create All_Of from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             All_Of
         """
         data_dict.pop("type", None)
         specs = data_dict.pop("specs", [])
-        specs = [metadata_from_dict(spec) for spec in specs]
+        specs = [metadata_from_dict(spec, context) for spec in specs]
         return cls(specs=specs, **data_dict)
 
     def __str__(self) -> str:  # pragma: no cover
@@ -242,17 +274,18 @@ class One_Of:
         return self
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> One_Of:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> One_Of:
         """Create One_Of from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             One_Of
         """
         data_dict.pop("type", None)
-        specs = [metadata_from_dict(spec) for spec in data_dict.pop("specs")]
+        specs = [metadata_from_dict(spec, context) for spec in data_dict.pop("specs")]
         return cls(specs=specs, **data_dict)
 
     def __str__(self) -> str:  # pragma: no cover
@@ -326,11 +359,12 @@ class Primitive(InputSpec):
         self.default = default
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Primitive:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Primitive:
         """Create primitive from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             primitive
@@ -389,11 +423,12 @@ class Enum(InputSpec):
         self.choices_description = choices_description
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Enum:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Enum:
         """Create enum from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             enum
@@ -448,17 +483,20 @@ class Vector(InputSpec):
         self.default = default
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Vector:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Vector:
         """Create vector from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             vector
         """
         data_dict.pop("type", None)
-        value_type: NATIVE_CPP_ALIAS = metadata_from_dict(data_dict.pop("value_type"))  # type: ignore
+        value_type: NATIVE_CPP_ALIAS = metadata_from_dict(
+            data_dict.pop("value_type"), context
+        )  # type: ignore
         if "validator" in data_dict:
             data_dict["validator"] = validator_from_dict(data_dict["validator"])
         return cls(value_type=value_type, **data_dict)
@@ -514,17 +552,20 @@ class Map(InputSpec):
         self.default = default
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Map:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Map:
         """Create map from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             map
         """
         data_dict.pop("type", None)
-        value_type: NATIVE_CPP_ALIAS = metadata_from_dict(data_dict.pop("value_type"))  # type: ignore
+        value_type: NATIVE_CPP_ALIAS = metadata_from_dict(
+            data_dict.pop("value_type"), context
+        )  # type: ignore
         if "validator" in data_dict:
             data_dict["validator"] = validator_from_dict(data_dict["validator"])
         return cls(value_type=value_type, **data_dict)
@@ -586,18 +627,19 @@ class Tuple(InputSpec):
         self.default = default
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Tuple:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Tuple:
         """Create tuple from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             tuple
         """
         data_dict.pop("type", None)
         value_types = [
-            metadata_from_dict(value_type)
+            metadata_from_dict(value_type, context)
             for value_type in data_dict.pop("value_types")
         ]
         if "validator" in data_dict:
@@ -648,11 +690,12 @@ class Selection(InputSpec):
         self.defautable = defaultable
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Selection:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Selection:
         """Create selection from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             selection
@@ -662,7 +705,7 @@ class Selection(InputSpec):
         choices = {}
         for choice in data_dict.pop("choices"):
             spec = choice.pop("spec")
-            choices[choice.pop("name")] = metadata_from_dict(spec)
+            choices[choice.pop("name")] = metadata_from_dict(spec, context)
         if "validator" in data_dict:
             data_dict["validator"] = validator_from_dict(data_dict["validator"])
         return cls(choices=choices, **data_dict)
@@ -711,17 +754,20 @@ class Group(InputSpec):
         self.defautable = defaultable
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> Group:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> Group:
         """Create group from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             group
         """
         data_dict.pop("type", None)
-        specs = [metadata_from_dict(spec) for spec in data_dict.pop("specs", [])]
+        specs = [
+            metadata_from_dict(spec, context) for spec in data_dict.pop("specs", [])
+        ]
         if "validator" in data_dict:
             data_dict["validator"] = validator_from_dict(data_dict["validator"])
         return cls(spec=All_Of(specs), **data_dict)
@@ -773,17 +819,18 @@ class List(InputSpec):
         self.defautable = defaultable
 
     @classmethod
-    def from_4C_metadata(cls, data_dict: dict) -> List:
+    def from_4C_metadata(cls, data_dict: dict, context: Context | None) -> List:
         """Create list from 4C metadata file.
 
         Args:
             data_dict: Data from 4C metadata file
+            context: Context for metadata creation
 
         Returns:
             list
         """
         data_dict.pop("type", None)
-        spec = metadata_from_dict(data_dict.pop("spec"))
+        spec = metadata_from_dict(data_dict.pop("spec"), context)
         if "validator" in data_dict:
             data_dict["validator"] = validator_from_dict(data_dict["validator"])
         return cls(spec=All_Of([spec]), **data_dict)
@@ -815,21 +862,30 @@ _METADATA_TYPE_TO_CLASS: dict[str, type[Spec]] = {
 } | {i: Primitive for i in Primitive.PRIMITIVE_TYPES}
 
 
-def metadata_from_dict(data_dict: dict) -> Spec:
+def metadata_from_dict(data_dict: dict, context: Context | None) -> Spec:
     """Create metadata object from 4C metadata dict.
 
     Args:
         data_dict: Data from 4C metadata file
+        context: Context for metadata creation
 
     Returns:
         metadata object
     """
+
+    # Resolve potential references first
+    ref_id: str | None = data_dict.get("$ref", None)
+    if ref_id is not None:
+        if context is None:
+            raise ValueError(f"Cannot resolve reference '{ref_id}' without context")
+        return context.references[ref_id]
+
     entry_type: str = data_dict.get("type")  # type: ignore
 
     metadata_class: type[Spec] | None = _METADATA_TYPE_TO_CLASS.get(entry_type, None)
 
     if metadata_class is not None:
-        return metadata_class.from_4C_metadata(data_dict)
+        return metadata_class.from_4C_metadata(data_dict, context)
 
     raise TypeError(
         f"Unknown type {entry_type} for {data_dict}, known ones are {list(_METADATA_TYPE_TO_CLASS.keys())}"

@@ -36,6 +36,7 @@ from functools import partial
 from four_c_common_utils.io import load_yaml
 
 from four_c_metadata.metadata import (
+    make_context,
     NATIVE_CPP_TYPES,
     All_Of,
     AllEmementsValidator,
@@ -486,7 +487,6 @@ def all_of_to_md(all_of: All_Of, indent=0):
 
 
 def create_section_markdown(section, section_in_tests, section_in_tutorials):
-
     # link anchor
     replacements = [(" ", ""), ("/", "_"), ("<", ""), (">", "")]
     section_link_anchor = "sec" + section.name.lower()
@@ -630,7 +630,8 @@ def create_markdown_documentation(
         doc.content = f"({doc.linkanchor})=\n\n" + f"# {doc.title}\n\n"
         doc.content += f"{set_missing_description(doc.description)}\n\n"
 
-    obj = All_Of.from_4C_metadata(fourc_metadata["sections"])
+    context = make_context(fourc_metadata)
+    obj = All_Of.from_4C_metadata(fourc_metadata["sections"], context)
     sorted_entries = sorted(list(obj), key=lambda e: getattr(e, "name", "").lower())
 
     for section in sorted_entries:
