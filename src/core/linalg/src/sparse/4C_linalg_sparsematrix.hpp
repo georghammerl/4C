@@ -578,21 +578,21 @@ namespace Core::LinAlg
     //@{
 
     /// Returns a copy of the main diagonal in a user-provided vector.
-    int extract_diagonal_copy(Core::LinAlg::Vector<double>& Diagonal) const;
+    void extract_diagonal_copy(Core::LinAlg::Vector<double>& Diagonal) const;
 
     /// Returns a copy of the values and indices of a local row.
-    int extract_my_row_copy(
+    void extract_my_row_copy(
         int my_row, int length, int& num_entries, double* values, int* indices) const;
 
     /// Returns a copy of the values and indices of a global row.
-    int extract_global_row_copy(
+    void extract_global_row_copy(
         int global_row, int length, int& num_entries, double* values, int* indices) const;
 
     /// Returns a view of the values and indices of a local row.
-    int extract_my_row_view(int my_row, int& num_entries, double*& values, int*& indices) const;
+    void extract_my_row_view(int my_row, int& num_entries, double*& values, int*& indices) const;
 
     /// Returns a view of the values and indices of a global row.
-    int extract_global_row_view(
+    void extract_global_row_view(
         int global_row, int& num_entries, double*& values, int*& indices) const;
 
     //@}

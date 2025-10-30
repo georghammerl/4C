@@ -415,8 +415,8 @@ void Core::LinAlg::split_matrix2x2(
     int numentries;
     double* values;
     int* cindices;
-    int err = ASparse.extract_my_row_view(i, numentries, values, cindices);
-    if (err) FOUR_C_THROW("ExtractMyRowView returned {}", err);
+    ASparse.extract_my_row_view(i, numentries, values, cindices);
+
     for (int j = 0; j < numentries; ++j)
     {
       const int gcid = ASparse.col_map().gid(cindices[j]);
@@ -502,8 +502,7 @@ void Core::LinAlg::split_matrixmxn(
     int numentries(0);
     double* values(nullptr);
     int* indices(nullptr);
-    if (ASparse.extract_my_row_view(rowlid, numentries, values, indices))
-      FOUR_C_THROW("Row of SparseMatrix couldn't be extracted during splitting!");
+    ASparse.extract_my_row_view(rowlid, numentries, values, indices);
 
     std::vector<unsigned> counters(N, 0);
 
@@ -875,8 +874,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_transform_g
     int NumEntries = 0;
     double* Values;
     int* Indices;
-    int err = inmat.extract_my_row_view(i, NumEntries, Values, Indices);
-    if (err != 0) FOUR_C_THROW("extract_my_row_view error: {}", err);
+    inmat.extract_my_row_view(i, NumEntries, Values, Indices);
 
     // pull indices back to global
     std::vector<int> idx(NumEntries);
@@ -885,7 +883,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_transform_g
       idx[j] = (inmat.col_map()).gid(Indices[j]);
     }
 
-    err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
+    int err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
     if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
   }
 
@@ -918,8 +916,8 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_col_transform_g
     int NumEntries = 0;
     double* Values;
     int* Indices;
-    int err = inmat.extract_my_row_view(i, NumEntries, Values, Indices);
-    if (err != 0) FOUR_C_THROW("extract_my_row_view error: {}", err);
+    inmat.extract_my_row_view(i, NumEntries, Values, Indices);
+
     std::vector<int> idx;
     std::vector<double> vals;
     idx.reserve(NumEntries);
@@ -940,7 +938,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_col_transform_g
 
     Values = vals.data();
     NumEntries = vals.size();
-    err = outmat->insert_global_values(inmat.row_map().gid(i), NumEntries, Values, idx.data());
+    int err = outmat->insert_global_values(inmat.row_map().gid(i), NumEntries, Values, idx.data());
     if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
   }
 
@@ -975,8 +973,8 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_col_transfo
     int NumEntries = 0;
     double* Values;
     int* Indices;
-    int err = inmat.extract_my_row_view(i, NumEntries, Values, Indices);
-    if (err != 0) FOUR_C_THROW("extract_my_row_view error: {}", err);
+    inmat.extract_my_row_view(i, NumEntries, Values, Indices);
+
     std::vector<int> idx;
     std::vector<double> vals;
     idx.reserve(NumEntries);
@@ -997,7 +995,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_col_transfo
 
     Values = vals.data();
     NumEntries = vals.size();
-    err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
+    int err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
     if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
   }
 

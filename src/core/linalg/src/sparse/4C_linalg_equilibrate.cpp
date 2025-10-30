@@ -277,9 +277,7 @@ void Core::LinAlg::EquilibrationBlock::equilibrate_matrix(
               int numentries(0);
               std::vector<double> values(length, 0.);
               std::vector<int> indices(length, 0);
-              if (matrix.extract_my_row_copy(
-                      irow, length, numentries, values.data(), indices.data()))
-                FOUR_C_THROW("Cannot extract matrix row with local ID {} from matrix block!", irow);
+              matrix.extract_my_row_copy(irow, length, numentries, values.data(), indices.data());
 
               // compute and store current row sum
               double rowsum(0.);
@@ -352,9 +350,7 @@ void Core::LinAlg::EquilibrationBlock::equilibrate_matrix(
               int numentries(0);
               std::vector<double> values(length, 0.);
               std::vector<int> indices(length, 0);
-              if (matrix.extract_my_row_copy(
-                      irow, length, numentries, values.data(), indices.data()))
-                FOUR_C_THROW("Cannot extract matrix row with local ID {} from matrix block!", irow);
+              matrix.extract_my_row_copy(irow, length, numentries, values.data(), indices.data());
 
               // add entries of current matrix row to column sums
               for (int ientry = 0; ientry < numentries; ++ientry)

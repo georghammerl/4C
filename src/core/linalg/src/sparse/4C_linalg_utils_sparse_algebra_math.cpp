@@ -119,9 +119,8 @@ namespace Core::LinAlg
       {
         const int Row = A.global_row_index(i);
         int NumEntries = 0;
-        int ierr = A.extract_global_row_copy(
-            Row, Values.size(), NumEntries, Values.data(), Indices.data());
-        if (ierr) FOUR_C_THROW("extract_global_row_copy() returned err={}", ierr);
+        A.extract_global_row_copy(Row, Values.size(), NumEntries, Values.data(), Indices.data());
+
         if (scalarA != 1.0)
           for (int j = 0; j < NumEntries; ++j) Values[j] *= scalarA;
         for (int j = 0; j < NumEntries; ++j)
@@ -203,9 +202,8 @@ void Core::LinAlg::matrix_put(const Core::LinAlg::SparseMatrix& A, const double 
   {
     const int Row = tomap->gid(lid);
     if (Row < 0) FOUR_C_THROW("DOF not found on processor.");
-    err = Aprime->extract_global_row_copy(
-        Row, MaxNumEntries, NumEntries, Values.data(), Indices.data());
-    if (err) FOUR_C_THROW("ExtractGlobalRowCopy returned err={}", err);
+    Aprime->extract_global_row_copy(Row, MaxNumEntries, NumEntries, Values.data(), Indices.data());
+
     if (scalarA != 1.0)
       for (int j = 0; j < NumEntries; ++j) Values[j] *= scalarA;
     err = B.replace_global_values(Row, NumEntries, Values.data(), Indices.data());

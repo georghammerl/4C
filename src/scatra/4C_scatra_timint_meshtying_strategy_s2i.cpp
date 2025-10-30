@@ -3437,8 +3437,7 @@ void ScaTra::MeshtyingStrategyS2I::extract_matrix_rows(
     int numentries(0);
     std::vector<double> values(length, 0.);
     std::vector<int> indices(length, 0);
-    if (matrix.extract_global_row_copy(dofgid, length, numentries, values.data(), indices.data()))
-      FOUR_C_THROW("Cannot extract matrix row with global ID {} from source matrix!", dofgid);
+    matrix.extract_global_row_copy(dofgid, length, numentries, values.data(), indices.data());
 
     // copy current source matrix row into destination matrix
     if (rows.insert_global_values(dofgid, numentries, values.data(), indices.data()) < 0)
