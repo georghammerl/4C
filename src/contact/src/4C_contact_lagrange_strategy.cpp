@@ -2214,7 +2214,8 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
           Core::LinAlg::matrix_multiply(*kteffmatrix, false, systrafo, false, false, false, true);
       kteffmatrix =
           Core::LinAlg::matrix_multiply(systrafo, true, *kteffmatrix, false, false, false, true);
-      systrafo.multiply(true, *feff, *feff);
+      Core::LinAlg::Vector<double> feffnew(*feff);
+      systrafo.multiply(true, feffnew, *feff);
     }
 
     // transform if necessary
@@ -2830,7 +2831,8 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         kteffnew =
             Core::LinAlg::matrix_multiply(systrafo, true, *kteffnew, false, false, false, true);
         kteff = kteffnew;
-        systrafo.multiply(true, *feff, *feff);
+        Core::LinAlg::Vector<double> feffnew(*feff);
+        systrafo.multiply(true, feffnew, *feff);
       }
     }
 
@@ -4472,7 +4474,8 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
 
     /**********************************************************************/
@@ -4554,7 +4557,8 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
             *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
       systrafo.add(*trafo_, false, 1.0, 1.0);
       systrafo.complete();
-      systrafo.multiply(false, *disi, *disi);
+      Core::LinAlg::Vector<double> disinew(*disi);
+      systrafo.multiply(false, disinew, *disi);
     }
   }
 
@@ -6622,7 +6626,7 @@ void CONTACT::LagrangeStrategy::run_pre_apply_jacobian_inverse(
     Core::LinAlg::Vector<double> rhs_str(*problem_dofs());
     Core::LinAlg::Vector<double> rhs_str2(*problem_dofs());
     Core::LinAlg::export_to(rhs, rhs_str);
-    if (systrafo_->multiply(true, rhs_str, rhs_str2)) FOUR_C_THROW("multiply failed");
+    systrafo_->multiply(true, rhs_str, rhs_str2);
     for (int i = 0; i < rhs_str2.get_map().num_my_elements(); ++i)
       rhs.get_values()[rhs.get_map().lid(rhs_str2.get_map().gid(i))] = rhs_str2[i];
   }
