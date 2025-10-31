@@ -84,16 +84,18 @@ void Core::LinAlg::Graph::fill_complete(const Map& domain_map, const Map& range_
 
 void Core::LinAlg::Graph::optimize_storage() { CHECK_EPETRA_CALL(graph_->OptimizeStorage()); }
 
-void Core::LinAlg::Graph::export_to(const Epetra_SrcDistObject& A,
+void Core::LinAlg::Graph::export_to(const Core::LinAlg::Graph& A,
     const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(graph_->Export(A, Exporter.get_epetra_export(), CombineMode));
+  CHECK_EPETRA_CALL(
+      graph_->Export(A.get_epetra_crs_graph(), Exporter.get_epetra_export(), CombineMode));
 }
 
-void Core::LinAlg::Graph::import_from(const Epetra_SrcDistObject& A,
+void Core::LinAlg::Graph::import_from(const Core::LinAlg::Graph& A,
     const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(graph_->Import(A, Importer.get_epetra_import(), CombineMode));
+  CHECK_EPETRA_CALL(
+      graph_->Import(A.get_epetra_crs_graph(), Importer.get_epetra_import(), CombineMode));
 }
 
 void Core::LinAlg::Graph::insert_global_indices(int GlobalRow, int NumIndices, int* Indices)

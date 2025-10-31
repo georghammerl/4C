@@ -73,11 +73,11 @@ namespace Core::LinAlg
     //! constructing graph
     void optimize_storage();
 
-    void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
+    void export_to(const Core::LinAlg::Graph& A, const Core::LinAlg::Export& Exporter,
         Epetra_CombineMode CombineMode);
 
-    //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
-    void import_from(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
+    //! Imports a Core::LinAlg::Graph using the Core::LinAlg::Import object.
+    void import_from(const Core::LinAlg::Graph& A, const Core::LinAlg::Import& Importer,
         Epetra_CombineMode CombineMode);
 
     //! Enter a list of elements in a specified global row of the graph.
