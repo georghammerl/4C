@@ -705,8 +705,7 @@ void ScaTra::MeshtyingStrategyS2I::evaluate_meshtying()
 
                 // build constraint residual vector associated with Lagrange multiplier dofs
                 Core::LinAlg::Vector<double> ilmresidual(*islaveresidual_);
-                if (ilmresidual.replace_map(*extendedmaps_->map(1)))
-                  FOUR_C_THROW("Couldn't replace map!");
+                ilmresidual.replace_map(*extendedmaps_->map(1));
                 lmresidual_->update(1., ilmresidual, 0.);
                 E_->multiply(true, *lm_, ilmresidual);
                 lmresidual_->update(1., ilmresidual, 1.);
@@ -725,8 +724,7 @@ void ScaTra::MeshtyingStrategyS2I::evaluate_meshtying()
 
                 // build constraint residual vector associated with Lagrange multiplier dofs
                 Core::LinAlg::Vector<double> ilmresidual(*imasterresidual_);
-                if (ilmresidual.replace_map(*extendedmaps_->map(1)))
-                  FOUR_C_THROW("Couldn't replace map!");
+                ilmresidual.replace_map(*extendedmaps_->map(1));
                 lmresidual_->update(1., ilmresidual, 0.);
                 E_->multiply(true, *lm_, ilmresidual);
                 lmresidual_->update(1., ilmresidual, 1.);

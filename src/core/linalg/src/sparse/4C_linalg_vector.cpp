@@ -202,12 +202,11 @@ void Core::LinAlg::Vector<T>::put_scalar(double ScalarConstant)
 
 
 template <typename T>
-int Core::LinAlg::Vector<T>::replace_map(const Map& map)
+void Core::LinAlg::Vector<T>::replace_map(const Map& map)
 {
   multi_vector_view_.invalidate();
   map_.invalidate();
-  auto rv = vector_->ReplaceMap(map.get_epetra_block_map());
-  return rv;
+  CHECK_EPETRA_CALL(vector_->ReplaceMap(map.get_epetra_block_map()));
 }
 
 template <typename T>

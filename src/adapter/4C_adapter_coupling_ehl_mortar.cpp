@@ -255,7 +255,7 @@ void Adapter::CouplingEhlMortar::condense_contact(
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*g_all, *gact);
-      if (gact->replace_map(*interface_->active_n_dofs())) FOUR_C_THROW("replaceMap went wrong");
+      gact->replace_map(*interface_->active_n_dofs());
     }
   }
   CONTACT::Utils::add_vector(*gact, *fcsa);

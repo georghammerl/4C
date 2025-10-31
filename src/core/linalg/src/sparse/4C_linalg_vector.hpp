@@ -173,10 +173,8 @@ namespace Core::LinAlg
      * Replace map, only if new map has same point-structure as current map.
      *
      * @warning This call may invalidate any views of this vector.
-     *
-     * @returns 0 if map is replaced, -1 if not.
      */
-    int replace_map(const Map& map);
+    void replace_map(const Map& map);
 
     void replace_local_value(int MyRow, double ScalarValue);
 
