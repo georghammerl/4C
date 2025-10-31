@@ -264,7 +264,7 @@ void CONTACT::LagrangeStrategyTsi::evaluate(
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*g_all, *gact);
-      if (gact->replace_map(*gactiven_)) FOUR_C_THROW("replaceMap went wrong");
+      gact->replace_map(*gactiven_);
     }
   }
   CONTACT::Utils::add_vector(*gact, *rcsa);
