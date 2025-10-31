@@ -178,7 +178,7 @@ void PARTICLEWALL::WallHandlerBase::check_wall_nodes_located_in_bounding_box() c
         if (lid < 0) FOUR_C_THROW("dof gid={} not in dof row map!", lm[dim]);
 #endif
 
-        currpos(dim) += walldatastate_->get_disp_row()->operator[](lid);
+        currpos(dim) += walldatastate_->get_disp_row()->local_values_as_span()[(lid)];
       }
     }
 
@@ -212,8 +212,8 @@ void PARTICLEWALL::WallHandlerBase::get_max_wall_position_increment(
     {
       // get position increment of wall node in current spatial dimension since last transfer
       double absolutpositionincrement =
-          std::abs(walldatastate_->get_disp_row()->operator[](i) -
-                   walldatastate_->get_disp_row_last_transfer()->operator[](i));
+          std::abs(walldatastate_->get_disp_row()->local_values_as_span()[(i)] -
+                   walldatastate_->get_disp_row_last_transfer()->local_values_as_span()[(i)]);
 
       // compare to current maximum
       maxpositionincrement = std::max(maxpositionincrement, absolutpositionincrement);
