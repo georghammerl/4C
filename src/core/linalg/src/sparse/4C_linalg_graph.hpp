@@ -74,11 +74,11 @@ namespace Core::LinAlg
     void optimize_storage();
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
     void import_from(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     //! Enter a list of elements in a specified global row of the graph.
     void insert_global_indices(int GlobalRow, int NumIndices, int* Indices);

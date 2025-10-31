@@ -284,34 +284,30 @@ void Core::LinAlg::Vector<T>::reciprocal_multiply(
 
 template <typename T>
 void Core::LinAlg::Vector<T>::import(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode,
-    const Epetra_OffsetIndex* Indexor)
+    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::import(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode,
-    const Epetra_OffsetIndex* Indexor)
+    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(vector_->Import(A, Exporter.get_epetra_export(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Import(A, Exporter.get_epetra_export(), CombineMode));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::export_to(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode,
-    const Epetra_OffsetIndex* Indexor)
+    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::export_to(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode,
-    const Epetra_OffsetIndex* Indexor)
+    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
 }
 
 template <typename T>
@@ -393,32 +389,28 @@ int Core::LinAlg::Vector<int>::min_value() { return vector_->MinValue(); }
 
 void Core::LinAlg::Vector<int>::print(std::ostream& os) const { vector_->Print(os); }
 
-void Core::LinAlg::Vector<int>::import(const Vector& A, const Core::LinAlg::Import& Importer,
-    Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor)
+void Core::LinAlg::Vector<int>::import(
+    const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
-      vector_->Import(*A.vector_, Importer.get_epetra_import(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Import(*A.vector_, Importer.get_epetra_import(), CombineMode));
 }
 
-void Core::LinAlg::Vector<int>::import(const Vector& A, const Core::LinAlg::Export& Exporter,
-    Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor)
+void Core::LinAlg::Vector<int>::import(
+    const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
-      vector_->Import(*A.vector_, Exporter.get_epetra_export(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Import(*A.vector_, Exporter.get_epetra_export(), CombineMode));
 }
 
-void Core::LinAlg::Vector<int>::export_to(const Vector& A, const Core::LinAlg::Import& Importer,
-    Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor)
+void Core::LinAlg::Vector<int>::export_to(
+    const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
-      vector_->Export(*A.vector_, Importer.get_epetra_import(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Export(*A.vector_, Importer.get_epetra_import(), CombineMode));
 }
 
-void Core::LinAlg::Vector<int>::export_to(const Vector& A, const Core::LinAlg::Export& Exporter,
-    Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor)
+void Core::LinAlg::Vector<int>::export_to(
+    const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
-      vector_->Export(*A.vector_, Exporter.get_epetra_export(), CombineMode, Indexor));
+  CHECK_EPETRA_CALL(vector_->Export(*A.vector_, Exporter.get_epetra_export(), CombineMode));
 }
 
 MPI_Comm Core::LinAlg::Vector<int>::get_comm() const

@@ -210,19 +210,19 @@ namespace Core::LinAlg
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
     void import(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Export object.
     void import(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     //! Exports an Epetra_DistObject using the Epetra_Import object.
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     //! Exports an Epetra_DistObject using the Epetra_Import object.
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+        Epetra_CombineMode CombineMode);
 
     /**
      * View a given Epetra_Vector object under our own Vector wrapper.
@@ -295,20 +295,20 @@ namespace Core::LinAlg
 
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
-    void import(const Vector& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    void import(
+        const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Export object.
-    void import(const Vector& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    void import(
+        const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode);
 
     //! Exports an Epetra_DistObject using the Epetra_Import object.
-    void export_to(const Vector& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    void export_to(
+        const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode);
 
     //! Exports an Epetra_DistObject using the Epetra_Import object.
-    void export_to(const Vector& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    void export_to(
+        const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode);
 
     [[nodiscard]] MPI_Comm get_comm() const;
 
