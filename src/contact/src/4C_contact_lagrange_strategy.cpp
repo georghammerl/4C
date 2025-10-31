@@ -407,7 +407,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
 
       // set zero diagonal values to dummy 1.0
       for (int i = 0; i < diag->local_length(); ++i)
-        if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+        if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
       diag->reciprocal(*diag);
@@ -2168,7 +2168,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
       // set zero diagonal values to dummy 1.0
       for (int i = 0; i < diag->local_length(); ++i)
-        if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+        if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
       diag->reciprocal(*diag);
@@ -3667,7 +3667,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
 
       // set zero diagonal values to dummy 1.0
       for (int i = 0; i < diag->local_length(); ++i)
-        if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+        if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
       diag->reciprocal(*diag);
@@ -3924,7 +3924,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
 
       // set zero diagonal values to dummy 1.0
       for (int i = 0; i < diag->local_length(); ++i)
-        if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+        if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
       // scalar inversion of diagonal values
       diag->reciprocal(*diag);
@@ -4587,7 +4587,7 @@ void CONTACT::LagrangeStrategy::update_active_set()
       Node* cnode = dynamic_cast<Node*>(node);
 
       // compute weighted gap
-      double wgap = (*wgap_).local_values_as_span()[wgap_->get_map().lid(gid)];
+      double wgap = wgap_->local_values_as_span()[wgap_->get_map().lid(gid)];
 
       // compute normal part of Lagrange multiplier
       double nz = 0.0;

@@ -553,7 +553,7 @@ void Constraints::SpringDashpot::evaluate_robin(std::shared_ptr<Core::LinAlg::Sp
           const int dof_gid = dofs_gid[dof];
           const int dof_lid = actdisc_->dof_row_map()->lid(dof_gid);
 
-          const double dof_disp = (*disp).local_values_as_span()[dof_lid];
+          const double dof_disp = disp->local_values_as_span()[dof_lid];
           const double dof_vel = (velo).local_values_as_span()[dof_lid];
 
           // compute stiffness, viscosity, and initial offset from functions
@@ -589,8 +589,8 @@ void Constraints::SpringDashpot::evaluate_robin(std::shared_ptr<Core::LinAlg::Sp
           }
           else
           {
-            std::array<double, 3> displ = {(*disp).local_values_as_span()[0],
-                (*disp).local_values_as_span()[1], (*disp).local_values_as_span()[2]};
+            std::array<double, 3> displ = {disp->local_values_as_span()[0],
+                disp->local_values_as_span()[1], (*disp).local_values_as_span()[2]};
             force_disp = Global::Problem::instance()
                              ->function_by_id<Core::Utils::FunctionOfSpaceTime>(
                                  (numfuncnonlinstiff)[dof] - 1)

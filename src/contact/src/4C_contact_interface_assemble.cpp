@@ -5294,7 +5294,7 @@ void CONTACT::Interface::assemble_coup_lin_d(
 
           int slavedoflid = x->get_map().lid(slavedofgid);
           if (slavedoflid < 0) FOUR_C_THROW("invalid slave dof lid");
-          double val = (*x).local_values_as_span()[slavedoflid] * (scolcurr->second);
+          double val = x->local_values_as_span()[slavedoflid] * (scolcurr->second);
 
           ++scolcurr;
 

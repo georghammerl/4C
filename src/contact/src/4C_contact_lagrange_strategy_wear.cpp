@@ -586,7 +586,7 @@ void Wear::LagrangeStrategyWear::condense_wear_impl_expl(
 
   // set zero diagonal values to dummy 1.0
   for (int i = 0; i < diag->local_length(); ++i)
-    if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+    if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
   // scalar inversion of diagonal values
   diag->reciprocal(*diag);
@@ -1593,7 +1593,7 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
 
   // set zero diagonal values to dummy 1.0
   for (int i = 0; i < diag->local_length(); ++i)
-    if ((*diag).local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
+    if (diag->local_values_as_span()[i] == 0.0) (*diag).get_values()[i] = 1.0;
 
   // scalar inversion of diagonal values
   diag->reciprocal(*diag);
@@ -1867,7 +1867,7 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
 
   // set zero diagonal values to dummy 1.0
   for (int i = 0; i < diage->local_length(); ++i)
-    if ((*diage).local_values_as_span()[i] == 0.0) (*diage).get_values()[i] = 1.0;
+    if (diage->local_values_as_span()[i] == 0.0) (*diage).get_values()[i] = 1.0;
 
   // scalar inversion of diagonal values
   diage->reciprocal(*diage);
@@ -4179,7 +4179,7 @@ void Wear::LagrangeStrategyWear::output_wear()
       for (int i = 0; i < lNumActiveDOFs; ++i)
         if ((diagD).local_values_as_span()[i] != 0.0)
           (real_weara).get_values()[i] =
-              (*wear_vectora).local_values_as_span()[i] / (diagD).local_values_as_span()[i];
+              wear_vectora->local_values_as_span()[i] / (diagD).local_values_as_span()[i];
     }
 
     Core::LinAlg::Vector<double> real_wearexp(*gsdofrowmap_);
@@ -4259,7 +4259,7 @@ void Wear::LagrangeStrategyWear::output_wear()
         for (int i = 0; i < lNumActiveDOFs; ++i)
           if ((diagD).local_values_as_span()[i] != 0.0)
             (wear2_real).get_values()[i] =
-                (*wear2_vectori).local_values_as_span()[i] / (diagD).local_values_as_span()[i];
+                wear2_vectori->local_values_as_span()[i] / (diagD).local_values_as_span()[i];
       }
 
       Core::LinAlg::Vector<double> real_wear2exp(*gmdofrowmap_);
@@ -4825,7 +4825,7 @@ void Wear::LagrangeStrategyWear::do_read_restart(
       int gid = (interface_[i]->slave_row_nodes())->gid(j);
       int dof = (activetoggle->get_map()).lid(gid);
 
-      if ((*activetoggle).local_values_as_span()[dof] == 1)
+      if (activetoggle->local_values_as_span()[dof] == 1)
       {
         Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
         if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
@@ -4838,11 +4838,11 @@ void Wear::LagrangeStrategyWear::do_read_restart(
         {
           // set value stick / slip in cnode
           // set wear value
-          if ((*sliptoggle).local_values_as_span()[dof] == 1)
+          if (sliptoggle->local_values_as_span()[dof] == 1)
             dynamic_cast<CONTACT::FriNode*>(cnode)->fri_data().slip() = true;
           if (weightedwear_)
             dynamic_cast<CONTACT::FriNode*>(cnode)->wear_data().weighted_wear() =
-                (*weightedwear).local_values_as_span()[dof];
+                weightedwear->local_values_as_span()[dof];
         }
       }
     }
@@ -5212,7 +5212,7 @@ void Wear::LagrangeStrategyWear::store_nodal_quantities(Mortar::StrategyBase::Qu
               // store updated wcurr into node
               CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(cnode);
               fnode->wear_data().wcurr()[0] =
-                  (*vectorinterface).local_values_as_span()[locindex[(int)(dof / n_dim())]];
+                  vectorinterface->local_values_as_span()[locindex[(int)(dof / n_dim())]];
               dof = dof + n_dim() - 1;
               break;
             }
@@ -5228,7 +5228,7 @@ void Wear::LagrangeStrategyWear::store_nodal_quantities(Mortar::StrategyBase::Qu
               // store updated wcurr into node
               CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(cnode);
               fnode->wear_data().waccu()[0] +=
-                  (*vectorinterface).local_values_as_span()[locindex[(int)(dof / n_dim())]];
+                  vectorinterface->local_values_as_span()[locindex[(int)(dof / n_dim())]];
               dof = dof + n_dim() - 1;
               break;
             }

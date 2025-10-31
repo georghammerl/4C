@@ -73,11 +73,11 @@ void Arteries::ArteryResultTest::test_node(
 
       // test result value of single scalar field
       if (position == "area")
-        result = (*mysol_).local_values_as_span()[pnpmap.lid(dis_->dof(actnode, 0))];
+        result = mysol_->local_values_as_span()[pnpmap.lid(dis_->dof(actnode, 0))];
       else if (position == "pressure")
-        result = (*mysol_).local_values_as_span()[pnpmap.lid(dis_->dof(0, actnode, 0))];
+        result = mysol_->local_values_as_span()[pnpmap.lid(dis_->dof(0, actnode, 0))];
       else if (position == "flowrate")
-        result = (*mysol_).local_values_as_span()[pnpmap.lid(dis_->dof(actnode, 1))];
+        result = mysol_->local_values_as_span()[pnpmap.lid(dis_->dof(actnode, 1))];
       else
       {
         FOUR_C_THROW(
@@ -129,7 +129,7 @@ void Arteries::ArteryResultTest::test_element(
       {
         if (myelevolflow_ == nullptr) FOUR_C_THROW("Element volume flow not available");
         result =
-            (*myelevolflow_).local_values_as_span()[dis_->element_row_map()->lid(actelement->id())];
+            myelevolflow_->local_values_as_span()[dis_->element_row_map()->lid(actelement->id())];
       }
       else if (quantity == "radius")
       {
