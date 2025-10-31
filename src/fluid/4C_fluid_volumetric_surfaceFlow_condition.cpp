@@ -1343,7 +1343,7 @@ double FLD::Utils::FluidVolumetricSurfaceFlowBc::flow_rate_calculation(
   double local_flowrate = 0.0;
   for (int i = 0; i < dofrowmap->num_my_elements(); i++)
   {
-    local_flowrate += ((*flowrates)[i]);
+    local_flowrate += (flowrates->local_values_as_span()[i]);
   }
 
   double flowrate = 0.0;

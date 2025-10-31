@@ -1447,7 +1447,7 @@ void FLD::FluidImplicitTimeInt::apply_nonlinear_boundary_conditions()
       double local_flowrate = 0.0;
       for (int i = 0; i < dofrowmap->num_my_elements(); i++)
       {
-        local_flowrate += ((*flowrates)[i]);
+        local_flowrate += (flowrates->local_values_as_span()[i]);
       }
 
       // sum up global flow rate over all processors and set to global value

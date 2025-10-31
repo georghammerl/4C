@@ -697,7 +697,7 @@ void STI::Monolithic::output_vector_to_file(
 
       // check output omission tolerance
       for (j = 0; j < fullvector.num_vectors(); ++j)
-        if (std::abs(fullvector(j)[lid]) > tolerance) break;
+        if (std::abs(fullvector(j).local_values_as_span()[lid]) > tolerance) break;
 
       // perform output if applicable
       if (j < fullvector.num_vectors())

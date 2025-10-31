@@ -862,7 +862,7 @@ std::map<int, double> FLD::Utils::compute_flow_rates(Core::FE::Discretization& d
     double local_flowrate = 0.0;
     for (int i = 0; i < dofrowmap->num_my_elements(); i++)
     {
-      local_flowrate += ((*flowrates)[i]);
+      local_flowrate += (flowrates->local_values_as_span()[i]);
     }
 
     double flowrate = 0.0;

@@ -6340,7 +6340,7 @@ void CONTACT::Interface::evaluate_relative_movement(
         for (int dim = 0; dim < csnode->num_dof(); ++dim)
         {
           int locid = (xsmod->get_map()).lid(csnode->dofs()[dim]);
-          jump[dim] -= (dik - dikold) * (*xsmod)[locid];
+          jump[dim] -= (dik - dikold) * xsmod->local_values_as_span()[locid];
         }
       }  //  loop over adjacent slave nodes
 
@@ -6530,7 +6530,7 @@ void CONTACT::Interface::evaluate_relative_movement(
           for (int dim = 0; dim < cnode->num_dof(); ++dim)
           {
             int locid = (xsmod->get_map()).lid(csnode->dofs()[dim]);
-            double val = -colcurr->second * (*xsmod)[locid];
+            double val = -colcurr->second * xsmod->local_values_as_span()[locid];
             if (abs(val) > 1e-14) cnode->add_deriv_jump_value(dim, col, val);
           }
         }
@@ -6985,8 +6985,9 @@ bool CONTACT::Interface::update_active_set_semi_smooth()
 
     Node* cnode = dynamic_cast<Node*>(node);
 
-    cn = get_cn_ref()[get_cn_ref().get_map().lid(cnode->id())];
-    if (friction_) ct = get_ct_ref()[get_ct_ref().get_map().lid(cnode->id())];
+    cn = get_cn_ref().local_values_as_span()[get_cn_ref().get_map().lid(cnode->id())];
+    if (friction_)
+      ct = get_ct_ref().local_values_as_span()[get_ct_ref().get_map().lid(cnode->id())];
 
     // get weighted gap
     double wgap = cnode->data().getg();
