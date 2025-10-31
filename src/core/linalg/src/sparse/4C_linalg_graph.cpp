@@ -25,22 +25,38 @@ Core::LinAlg::Graph::Graph(const Map& RowMap, const int* NumIndicesPerRow, Graph
     : graphtype_(graphtype)
 {
   if (graphtype_ == CRS_GRAPH)
+  {
     graph_ =
         std::make_unique<Epetra_CrsGraph>(::Copy, RowMap.get_epetra_block_map(), NumIndicesPerRow);
+  }
   else if (graphtype_ == FE_GRAPH)
+  {
     graph_ = std::make_unique<Epetra_FECrsGraph>(
         ::Copy, RowMap.get_epetra_block_map(), const_cast<int*>(NumIndicesPerRow));
+  }
+  else
+  {
+    FOUR_C_THROW("Construction of a graph with an unknown graph type.");
+  }
 }
 
 Core::LinAlg::Graph::Graph(const Map& RowMap, int NumIndicesPerRow, GraphType graphtype)
     : graphtype_(graphtype)
 {
   if (graphtype_ == CRS_GRAPH)
+  {
     graph_ =
         std::make_unique<Epetra_CrsGraph>(::Copy, RowMap.get_epetra_block_map(), NumIndicesPerRow);
+  }
   else if (graphtype_ == FE_GRAPH)
+  {
     graph_ = std::make_unique<Epetra_FECrsGraph>(
         ::Copy, RowMap.get_epetra_block_map(), NumIndicesPerRow);
+  }
+  else
+  {
+    FOUR_C_THROW("Construction of a graph with an unknown graph type.");
+  }
 }
 
 Core::LinAlg::Graph::Graph(const Graph& other)
@@ -96,22 +112,16 @@ void Core::LinAlg::Graph::import_from(const Core::LinAlg::Graph& A,
       graph_->Import(A.get_epetra_crs_graph(), Importer.get_epetra_import(), CombineMode));
 }
 
-void Core::LinAlg::Graph::insert_global_indices(int GlobalRow, int NumIndices, int* Indices)
-{
-  CHECK_EPETRA_CALL(graph_->InsertGlobalIndices(GlobalRow, NumIndices, Indices));
-}
-
-void Core::LinAlg::Graph::insert_global_indices(
-    int numRows, const int* rows, int numCols, const int* cols)
+void Core::LinAlg::Graph::insert_global_indices(int GlobalRow, std::span<int>& Indices)
 {
   if (graphtype_ == CRS_GRAPH)
   {
-    FOUR_C_THROW("This type of insert_global_indices() is only available for FE_GRAPH type.");
+    CHECK_EPETRA_CALL(graph_->InsertGlobalIndices(GlobalRow, Indices.size(), Indices.data()));
   }
   else if (graphtype_ == FE_GRAPH)
   {
     CHECK_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())
-            ->InsertGlobalIndices(numRows, rows, numCols, cols));
+            ->InsertGlobalIndices(1, &GlobalRow, Indices.size(), Indices.data()));
   }
 }
 
@@ -129,12 +139,6 @@ void Core::LinAlg::Graph::extract_global_row_view(int GlobalRow, std::span<int>&
   int* indices;
   CHECK_EPETRA_CALL(graph_->ExtractGlobalRowView(GlobalRow, num_indices, indices));
   Indices = std::span(indices, num_indices);
-}
-
-void Core::LinAlg::Graph::extract_global_row_copy(
-    int GlobalRow, int LenOfIndices, int& NumIndices, int* Indices) const
-{
-  CHECK_EPETRA_CALL(graph_->ExtractGlobalRowCopy(GlobalRow, LenOfIndices, NumIndices, Indices));
 }
 
 FOUR_C_NAMESPACE_CLOSE

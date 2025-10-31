@@ -77,17 +77,20 @@ namespace
         if (row == 0)
         {
           std::array<int, 2> indices{row, row + 1};
-          graph.insert_global_indices(row, 2, indices.data());
+          auto indices_view = std::span(indices.data(), 2);
+          graph.insert_global_indices(row, indices_view);
         }
         else if (row == map.num_my_elements() - 1)
         {
           std::array<int, 2> indices{row - 1, row};
-          graph.insert_global_indices(row, 2, indices.data());
+          auto indices_view = std::span(indices.data(), 2);
+          graph.insert_global_indices(row, indices_view);
         }
         else
         {
           std::array<int, 3> indices{row - 1, row, row + 1};
-          graph.insert_global_indices(row, 3, indices.data());
+          auto indices_view = std::span(indices.data(), 3);
+          graph.insert_global_indices(row, indices_view);
         }
       }
     }

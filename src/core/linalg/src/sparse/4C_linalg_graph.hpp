@@ -79,20 +79,14 @@ namespace Core::LinAlg
     void import_from(const Core::LinAlg::Graph& A, const Core::LinAlg::Import& Importer,
         Epetra_CombineMode CombineMode);
 
-    //! Enter a list of elements in a specified global row of the graph.
-    void insert_global_indices(int GlobalRow, int NumIndices, int* Indices);
+    //! Enter a list of elements in a specified globally owned row of the graph.
+    void insert_global_indices(int GlobalRow, std::span<int>& Indices);
 
-    void insert_global_indices(int numRows, const int* rows, int numCols, const int* cols);
-
+    //! Get a view of the elements in a specified locally owned row of the graph.
     void extract_local_row_view(int LocalRow, std::span<int>& Indices) const;
 
-    //! Get a view of the elements in a specified global row of the graph.
+    //! Get a view of the elements in a specified globally owned row of the graph.
     void extract_global_row_view(int GlobalRow, std::span<int>& Indices) const;
-
-    //! Extract a list of elements in a specified global row of the graph. Put into storage
-    //! allocated by calling
-    void extract_global_row_copy(
-        int GlobalRow, int LenOfIndices, int& NumIndices, int* Indices) const;
 
     //! Returns the allocated number of nonzero entries in specified local row on this processor.
     int num_local_indices(int Row) const { return graph_->NumMyIndices(Row); }

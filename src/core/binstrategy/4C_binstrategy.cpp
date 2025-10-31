@@ -1162,7 +1162,8 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
 
       std::vector<int> neighbors;
       get_neighbor_bin_ids(binId, neighbors);
-      bingraph->insert_global_indices(binId, (int)neighbors.size(), neighbors.data());
+      auto indices = std::span(neighbors.data(), neighbors.size());
+      bingraph->insert_global_indices(binId, indices);
     }
   }
   else
@@ -1223,7 +1224,8 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
     // (if active, periodic boundary conditions are considered here)
     std::vector<int> neighbors;
     get_neighbor_bin_ids(rowbinid, neighbors);
-    bingraph->insert_global_indices(rowbinid, static_cast<int>(neighbors.size()), neighbors.data());
+    auto indices = std::span(neighbors.data(), neighbors.size());
+    bingraph->insert_global_indices(rowbinid, indices);
   }
 
   // complete graph

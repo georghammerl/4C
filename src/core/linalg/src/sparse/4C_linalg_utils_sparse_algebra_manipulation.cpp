@@ -280,7 +280,8 @@ std::shared_ptr<Core::LinAlg::Graph> Core::LinAlg::threshold_matrix_graph(
         indices_new.emplace_back(A.col_map().gid(indices[i]));
     }
 
-    sparsity_pattern->insert_global_indices(global_row, indices_new.size(), indices_new.data());
+    auto indices_view = std::span(indices_new.data(), indices_new.size());
+    sparsity_pattern->insert_global_indices(global_row, indices_view);
   }
 
   sparsity_pattern->fill_complete();

@@ -866,7 +866,8 @@ void CONTACT::Interface::redistribute()
       std::ranges::transform(
           ele.nodes(), nodeids.begin(), [](auto node) { return node.global_id(); });
 
-      graph->insert_global_indices(gid, numnode, nodeids.data());
+      auto indices = std::span(nodeids.data(), numnode);
+      graph->insert_global_indices(gid, indices);
     }
   }
 

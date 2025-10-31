@@ -271,7 +271,8 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_graph(
       std::vector<int> cols;
       std::set<int>::iterator setfool = fool->second.begin();
       for (; setfool != fool->second.end(); ++setfool) cols.push_back(*setfool);
-      graph->insert_global_indices(grid, (int)cols.size(), cols.data());
+      auto indices = std::span(cols.data(), cols.size());
+      graph->insert_global_indices(grid, indices);
     }
     locals.clear();
   }
@@ -310,7 +311,8 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_graph(
         // see whether I have grid in my row map
         if (rownodes->lid(grid) != -1)  // I have it, put stuff in my graph
         {
-          graph->insert_global_indices(grid, num - 1, (ptr + 2));
+          auto index = std::span(ptr + 2, num - 1);
+          graph->insert_global_indices(grid, index);
           ptr += (num + 1);
         }
         else  // I don't have it so I don't care for entries of this row, goto next row
@@ -367,8 +369,8 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
     {
       element_node_ids[i_node] = element->nodes()[i_node]->id();
     }
-    element_connectivity.insert_global_indices(
-        element->id(), element_node_ids.size(), element_node_ids.data());
+    auto indices = std::span(element_node_ids.data(), element_node_ids.size());
+    element_connectivity.insert_global_indices(element->id(), indices);
   }
   element_connectivity.fill_complete(*dis.node_row_map(), *dis.element_row_map());
 
@@ -399,8 +401,9 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
       int index_main = node_main.global_id();
       for (auto node_inner : element.nodes())
       {
-        int index = node_inner.global_id();
-        my_graph->insert_global_indices(1, &index_main, 1, &index);
+        int node_inner_global_id = node_inner.global_id();
+        auto index = std::span(&node_inner_global_id, 1);
+        my_graph->insert_global_indices(index_main, index);
       }
     }
   }
@@ -424,18 +427,11 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
       const auto* node_main = predicate->nodes()[i_node];
       int index_main = node_main->id();
 
-      // int primitive_num_nodes;
-      // int* primitive_node_indices;
       std::span<int> primitive_indices;
-      // my_colliding_primitives_connectivity.extract_global_row_view(primitive_gid,
-      // primitive_num_nodes, primitive_node_indices);
       my_colliding_primitives_connectivity.extract_global_row_view(
           primitive_gid, primitive_indices);
 
-      // my_graph->insert_global_indices(1, &index_main, primitive_num_nodes,
-      // primitive_node_indices);
-      my_graph->insert_global_indices(
-          1, &index_main, primitive_indices.size(), primitive_indices.data());
+      my_graph->insert_global_indices(index_main, primitive_indices);
     }
   }
 

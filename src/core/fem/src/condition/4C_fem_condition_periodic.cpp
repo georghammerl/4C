@@ -1238,14 +1238,15 @@ void Core::Conditions::PeriodicBoundaryConditions::balance_load()
 
       for (int row = 0; row < num_nodes_per_ele; ++row)
       {
-        const int node_gid = node_gids_per_ele[row];
+        const int node_row_gid = node_gids_per_ele[row];
 
-        if (!node_row_map->my_gid(node_gid)) continue;
+        if (!node_row_map->my_gid(node_row_gid)) continue;
 
         for (int col = 0; col < num_nodes_per_ele; ++col)
         {
-          int neighbor_node = node_gids_per_ele[col];
-          node_graph.insert_global_indices(node_gid, 1, &neighbor_node);
+          int node_col_gid = node_gids_per_ele[col];
+          auto neighbor_node = std::span(&node_col_gid, 1);
+          node_graph.insert_global_indices(node_row_gid, neighbor_node);
         }
       }
     }
@@ -1261,7 +1262,7 @@ void Core::Conditions::PeriodicBoundaryConditions::balance_load()
 
       for (int row = 0; row < num_nodes_per_ele; ++row)
       {
-        const int node_gid = node_gids_per_ele[row];
+        int node_gid = node_gids_per_ele[row];
 
         if (!node_row_map->my_gid(node_gid)) continue;
 
@@ -1280,12 +1281,13 @@ void Core::Conditions::PeriodicBoundaryConditions::balance_load()
               // add connection to all slaves
               for (auto other_slave_gid : other_slave_gids)
               {
-                node_graph.insert_global_indices(node_gid, 1, &other_slave_gid);
+                auto slave_gid_index = std::span(&other_slave_gid, 1);
+                node_graph.insert_global_indices(node_gid, slave_gid_index);
 
                 if (node_row_map->my_gid(other_slave_gid))
                 {
-                  int masterindex = node_gid;
-                  node_graph.insert_global_indices(other_slave_gid, 1, &masterindex);
+                  auto masterindex = std::span(&node_gid, 1);
+                  node_graph.insert_global_indices(other_slave_gid, masterindex);
                 }
               }
             }
@@ -1311,14 +1313,11 @@ void Core::Conditions::PeriodicBoundaryConditions::balance_load()
     for (int i = 0; i < node_graph.num_local_rows(); ++i)
     {
       const int grow = node_graph.row_map().gid(i);
+      std::span<int> indices;
+      node_graph.extract_local_row_view(i, indices);
 
-      const int glob_length = node_graph.num_global_indices(grow);
-      int numentries = 0;
-      std::vector<int> indices(glob_length);
-      node_graph.extract_global_row_copy(grow, glob_length, numentries, indices.data());
-
-      std::vector<double> values(numentries, 1.0);
-      edge_weights->insert_global_values(grow, numentries, values.data(), indices.data());
+      std::vector<double> values(indices.size(), 1.0);
+      edge_weights->insert_global_values(grow, indices.size(), values.data(), indices.data());
     }
 
     // loop all master nodes on this proc
