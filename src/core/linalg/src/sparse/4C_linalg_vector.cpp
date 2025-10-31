@@ -219,7 +219,10 @@ template <typename T>
 void Core::LinAlg::Vector<T>::replace_local_values(
     int NumEntries, const double* Values, const int* Indices)
 {
-  CHECK_EPETRA_CALL(vector_->ReplaceMyValues(NumEntries, Values, Indices));
+  for (int i = 0; i < NumEntries; i++)
+  {
+    replace_local_value(Indices[i], Values[i]);
+  }
 }
 
 template <typename T>
@@ -232,7 +235,10 @@ template <typename T>
 void Core::LinAlg::Vector<T>::replace_global_values(
     int NumEntries, const double* Values, const int* Indices)
 {
-  CHECK_EPETRA_CALL(vector_->ReplaceGlobalValues(NumEntries, Values, Indices));
+  for (int i = 0; i < NumEntries; i++)
+  {
+    replace_global_value(Indices[i], Values[i]);
+  }
 }
 
 template <typename T>
@@ -251,7 +257,10 @@ template <typename T>
 void Core::LinAlg::Vector<T>::sum_into_global_values(
     int NumEntries, const double* Values, const int* Indices)
 {
-  CHECK_EPETRA_CALL(vector_->SumIntoGlobalValues(NumEntries, Values, Indices));
+  for (int i = 0; i < NumEntries; i++)
+  {
+    sum_into_global_value(Indices[i], Values[i]);
+  }
 }
 
 template <typename T>
