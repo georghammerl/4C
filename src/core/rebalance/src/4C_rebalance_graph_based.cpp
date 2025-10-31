@@ -259,8 +259,7 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_graph(
     maxband = Core::Communication::max_all(smaxband, dis.get_comm());
   }
 
-  std::shared_ptr<Core::LinAlg::Graph> graph =
-      std::make_shared<Core::LinAlg::Graph>(Copy, *rownodes, maxband, false);
+  auto graph = std::make_shared<Core::LinAlg::Graph>(*rownodes, maxband);
   Core::Communication::barrier(dis.get_comm());
 
   // fill all local entries into the graph
@@ -359,8 +358,7 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
 
   // 2. Get nodal connectivity of each element
   const int n_nodes_per_element_max = 27;  // element with highest node count is hex27
-  Core::LinAlg::Graph element_connectivity(
-      Copy, *dis.element_row_map(), n_nodes_per_element_max, false);
+  Core::LinAlg::Graph element_connectivity(*dis.element_row_map(), n_nodes_per_element_max);
   for (int rowele_i = 0; rowele_i < dis.num_my_row_elements(); ++rowele_i)
   {
     const auto* element = dis.l_row_element(rowele_i);
@@ -386,13 +384,12 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
       my_colliding_primitives_vec.data(), 0, dis.get_comm());
   Core::LinAlg::Import importer(my_colliding_primitives_map, *dis.element_row_map());
   Core::LinAlg::Graph my_colliding_primitives_connectivity(
-      Copy, my_colliding_primitives_map, n_nodes_per_element_max, false);
-  my_colliding_primitives_connectivity.import_from(
-      element_connectivity.get_epetra_crs_graph(), importer, Insert);
+      my_colliding_primitives_map, n_nodes_per_element_max);
+  my_colliding_primitives_connectivity.import_from(element_connectivity, importer, Insert);
 
   // 4. Build and fill the graph with element internal connectivities
   auto my_graph = std::make_shared<Core::LinAlg::Graph>(
-      Copy, *dis.node_row_map(), 40, false, Core::LinAlg::Graph::GraphType::FE_GRAPH);
+      *dis.node_row_map(), 40, Core::LinAlg::Graph::GraphType::FE_GRAPH);
 
   for (auto element : dis.my_row_element_range())
   {
@@ -427,12 +424,18 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
       const auto* node_main = predicate->nodes()[i_node];
       int index_main = node_main->id();
 
-      int primitive_num_nodes;
-      int* primitive_node_indices;
+      // int primitive_num_nodes;
+      // int* primitive_node_indices;
+      std::span<int> primitive_indices;
+      // my_colliding_primitives_connectivity.extract_global_row_view(primitive_gid,
+      // primitive_num_nodes, primitive_node_indices);
       my_colliding_primitives_connectivity.extract_global_row_view(
-          primitive_gid, primitive_num_nodes, primitive_node_indices);
+          primitive_gid, primitive_indices);
 
-      my_graph->insert_global_indices(1, &index_main, primitive_num_nodes, primitive_node_indices);
+      // my_graph->insert_global_indices(1, &index_main, primitive_num_nodes,
+      // primitive_node_indices);
+      my_graph->insert_global_indices(
+          1, &index_main, primitive_indices.size(), primitive_indices.data());
     }
   }
 

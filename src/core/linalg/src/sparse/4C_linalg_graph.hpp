@@ -35,11 +35,10 @@ namespace Core::LinAlg
       FE_GRAPH
     };
 
-    Graph(Epetra_DataAccess CV, const Core::LinAlg::Map& RowMap, const int* NumIndicesPerRow,
-        bool StaticProfile = false, GraphType graphtype = CRS_GRAPH);
+    Graph(const Core::LinAlg::Map& RowMap, const int* NumIndicesPerRow,
+        GraphType graphtype = CRS_GRAPH);
 
-    Graph(Epetra_DataAccess CV, const Core::LinAlg::Map& RowMap, int NumIndicesPerRow,
-        bool StaticProfile = false, GraphType graphtype = CRS_GRAPH);
+    Graph(const Core::LinAlg::Map& RowMap, int NumIndicesPerRow, GraphType graphtype = CRS_GRAPH);
 
     Graph(const Graph& other);
 
@@ -85,10 +84,10 @@ namespace Core::LinAlg
 
     void insert_global_indices(int numRows, const int* rows, int numCols, const int* cols);
 
-    void extract_local_row_view(int LocalRow, int& NumIndices, int*& Indices) const;
+    void extract_local_row_view(int LocalRow, std::span<int>& Indices) const;
 
     //! Get a view of the elements in a specified global row of the graph.
-    void extract_global_row_view(int GlobalRow, int& NumIndices, int*& Indices) const;
+    void extract_global_row_view(int GlobalRow, std::span<int>& Indices) const;
 
     //! Extract a list of elements in a specified global row of the graph. Put into storage
     //! allocated by calling

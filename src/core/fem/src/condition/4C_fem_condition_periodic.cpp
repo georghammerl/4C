@@ -1005,11 +1005,11 @@ void Core::Conditions::PeriodicBoundaryConditions::redistribute_and_create_dof_c
     std::shared_ptr<Core::LinAlg::Graph> oldnodegraph = discret_->build_node_graph();
 
     // export the graph to newrownodemap
-    Core::LinAlg::Graph nodegraph(Copy, *newrownodemap, 108, false);
+    Core::LinAlg::Graph nodegraph(*newrownodemap, 108);
 
     {
       Core::LinAlg::Export exporter(*discret_->node_row_map(), *newrownodemap);
-      nodegraph.export_to(oldnodegraph->get_epetra_crs_graph(), exporter, Add);
+      nodegraph.export_to(*oldnodegraph, exporter, Add);
     }
     nodegraph.fill_complete();
     nodegraph.optimize_storage();
@@ -1223,7 +1223,7 @@ void Core::Conditions::PeriodicBoundaryConditions::balance_load()
   }
 
   // 2. allocate graph
-  Core::LinAlg::Graph node_graph(Copy, *node_row_map, 108, false);
+  Core::LinAlg::Graph node_graph(*node_row_map, 108);
   {
     // iterate all elements on this proc including ghosted ones and compute connectivity
     // standard part without master<->slave coupling

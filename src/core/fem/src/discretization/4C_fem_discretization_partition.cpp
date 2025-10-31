@@ -265,8 +265,7 @@ std::shared_ptr<Core::LinAlg::Graph> Core::FE::Discretization::build_node_graph(
   const Core::LinAlg::Map* noderowmap = node_row_map();
 
   // allocate graph
-  std::shared_ptr<Core::LinAlg::Graph> graph =
-      std::make_shared<Core::LinAlg::Graph>(Copy, *noderowmap, 108, false);
+  auto graph = std::make_shared<Core::LinAlg::Graph>(*noderowmap, 108);
 
   // iterate all elements on this proc including ghosted ones
   // Note:
@@ -707,7 +706,7 @@ void Core::FE::Discretization::setup_ghosting(OptionsFillComplete options)
   // as well. The communication issue is solved.
 
   auto graph = std::make_shared<Core::LinAlg::Graph>(
-      Copy, rownodes, entriesperrow.data(), false, Core::LinAlg::Graph::GraphType::FE_GRAPH);
+      rownodes, entriesperrow.data(), Core::LinAlg::Graph::GraphType::FE_GRAPH);
 
   gids.clear();
   entriesperrow.clear();

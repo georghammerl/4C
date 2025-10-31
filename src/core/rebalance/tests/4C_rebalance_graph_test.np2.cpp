@@ -42,7 +42,7 @@ namespace
   {
     Core::LinAlg::Map map(20, 0, comm_);
 
-    Core::LinAlg::Graph empty_graph(Copy, map, 3);
+    Core::LinAlg::Graph empty_graph(map, 3);
 
     EXPECT_EQ(false, empty_graph.filled());
 
@@ -68,7 +68,7 @@ namespace
 
     Core::LinAlg::Map map(num_global_elements, num_local_elements, 0, comm_);
 
-    Core::LinAlg::Graph graph(Copy, map, 3);
+    Core::LinAlg::Graph graph(map, 3);
 
     if (Core::Communication::my_mpi_rank(comm_) == 0)
     {

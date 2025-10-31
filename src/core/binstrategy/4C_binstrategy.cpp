@@ -1153,7 +1153,7 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
     const Core::LinAlg::Map* oldrowmap = bindis_->element_row_map();
 
     const int maxband = 26;
-    bingraph = std::make_shared<Core::LinAlg::Graph>(Copy, *oldrowmap, maxband, false);
+    bingraph = std::make_shared<Core::LinAlg::Graph>(*oldrowmap, maxband);
 
     // fill all local entries into the graph
     for (int lid = 0; lid < oldrowmap->num_my_elements(); ++lid)
@@ -1171,7 +1171,7 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
     // weighting done so far)
     rowbins = create_linear_map_for_numbin(discret[0]->get_comm());
     // create nodal graph
-    bingraph = std::make_shared<Core::LinAlg::Graph>(Copy, *rowbins, 108, false);
+    bingraph = std::make_shared<Core::LinAlg::Graph>(*rowbins, 108);
   }
 
   // Now we're going to create a Core::LinAlg::Vector<double> with vertex/node weights to be
@@ -1429,9 +1429,9 @@ void Core::Binstrategy::BinningStrategy::standard_discretization_ghosting(
   // create the new graph and export to it
   std::shared_ptr<Core::LinAlg::Graph> newnodegraph;
 
-  newnodegraph = std::make_shared<Core::LinAlg::Graph>(Copy, *newnoderowmap, 108, false);
+  newnodegraph = std::make_shared<Core::LinAlg::Graph>(*newnoderowmap, 108);
   Core::LinAlg::Export exporter(initgraph->row_map(), *newnoderowmap);
-  newnodegraph->export_to(initgraph->get_epetra_crs_graph(), exporter, Add);
+  newnodegraph->export_to(*initgraph, exporter, Add);
   newnodegraph->fill_complete();
   newnodegraph->optimize_storage();
 

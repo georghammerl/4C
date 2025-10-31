@@ -41,7 +41,7 @@ namespace
    */
   TEST_F(RebalanceGraph, RebalanceGraphSerial)
   {
-    Core::LinAlg::Graph graph(Copy, *map_, 3);
+    Core::LinAlg::Graph graph(*map_, 3);
 
     for (int row = 0; row < map_->num_my_elements(); row++)
     {

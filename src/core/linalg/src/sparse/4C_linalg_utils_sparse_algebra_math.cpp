@@ -343,16 +343,15 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_sparse_inverse(
   for (int k = 0; k < sparsity_pattern->num_local_rows(); k++)
   {
     // 1. get column indices Ik of local row k
-    int* Ik;
-    int Ik_size;
-    sparsity_pattern->extract_local_row_view(k, Ik_size, Ik);
+    std::span<int> Ik;
+    sparsity_pattern->extract_local_row_view(k, Ik);
 
     // 2. get all local A(Ik,:) rows
-    std::vector<int*> J(Ik_size);
+    std::vector<int*> J(Ik.size());
     std::vector<int> J_size;
-    std::vector<double*> Ak(Ik_size);
+    std::vector<double*> Ak(Ik.size());
     std::vector<int> Jk;
-    for (int i = 0; i < Ik_size; i++)
+    for (size_t i = 0; i < Ik.size(); i++)
     {
       int Jk_size;
       A_overlap.ExtractMyRowView(Ik[i], Jk_size, Ak[i], J[i]);
@@ -370,8 +369,8 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_sparse_inverse(
     for (size_t i = 0; i < Jk.size(); i++) G.insert(std::pair<int, int>(Jk[i], i));
 
     // 3. merge local rows together
-    Core::LinAlg::SerialDenseMatrix localA(Jk.size(), Ik_size, true);
-    for (int i = 0; i < Ik_size; i++)
+    Core::LinAlg::SerialDenseMatrix localA(Jk.size(), Ik.size(), true);
+    for (size_t i = 0; i < Ik.size(); i++)
     {
       for (int j = 0; j < J_size[i]; j++)
       {
@@ -385,7 +384,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_sparse_inverse(
     ek[std::distance(Jk.begin(), std::find(Jk.begin(), Jk.end(), k))] = 1.0;
 
     // 5. solve linear system for x
-    Core::LinAlg::SerialDenseVector localX(Ik_size);
+    Core::LinAlg::SerialDenseVector localX(Ik.size());
     Teuchos::SerialQRDenseSolver<int, double> qrSolver;
     qrSolver.setMatrix(Teuchos::rcpFromRef(localA.base()));
     qrSolver.setVectors(Teuchos::rcpFromRef(localX), Teuchos::rcpFromRef(ek));
@@ -394,7 +393,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_sparse_inverse(
     if (err != 0) FOUR_C_THROW("Error in serial QR solve.");
 
     // 6. set calculated row into Ainv
-    A_inverse->replace_my_values(k, localX.length(), localX.values(), Ik);
+    A_inverse->replace_my_values(k, localX.length(), localX.values(), Ik.data());
   }
   A_inverse->complete();
 
@@ -530,7 +529,7 @@ void Core::LinAlg::multiply_multi_vectors(Core::LinAlg::MultiVector<double>& mul
 
   // import the result to a Core::LinAlg::MultiVector<double> whose elements/rows are distributed
   // over all procs
-  result.import(multivect_temp, impo, Insert, nullptr);
+  result.import(multivect_temp, impo, Insert);
 }
 
 FOUR_C_NAMESPACE_CLOSE
