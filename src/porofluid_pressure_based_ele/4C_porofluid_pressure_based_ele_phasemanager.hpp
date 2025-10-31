@@ -327,6 +327,9 @@ namespace Discret
         virtual void permeability_tensor_vol_frac_pressure(int volfracpressnum,
             Core::LinAlg::Matrix<1, 1>& permeabilitytensorvolfracpressure) const = 0;
 
+        //! get the body force contribution
+        virtual const std::vector<double>& bodyforce_contribution_values() const = 0;
+
         //! check if volume frac 'volfracnum' has additional scalar dependent flux
         virtual bool has_add_scalar_dependent_flux(int volfracnum) const = 0;
 
@@ -759,6 +762,12 @@ namespace Discret
           FOUR_C_THROW(
               "Permeability tensor for volume fraction pressures (1D) not available for this phase "
               "manager!");
+        };
+
+        //! get the body force contribution
+        [[nodiscard]] const std::vector<double>& bodyforce_contribution_values() const override
+        {
+          FOUR_C_THROW("Bodyforce contribution not available for this phase manager!");
         };
 
         //! check if volume frac 'volfracnum' has additional scalar dependent flux
@@ -1275,6 +1284,12 @@ namespace Discret
               volfracpressnum, permeabilitytensorvolfracpressure);
         };
 
+        //! get the body force contribution
+        [[nodiscard]] const std::vector<double>& bodyforce_contribution_values() const override
+        {
+          return phasemanager_->bodyforce_contribution_values();
+        };
+
         //! check if volume frac 'volfracnum' has additional scalar dependent flux
         bool has_add_scalar_dependent_flux(int volfracnum) const override
         {
@@ -1565,8 +1580,8 @@ namespace Discret
       {
        public:
         //! constructor
-        PhaseManagerDiffusion(
-            std::shared_ptr<PoroFluidManager::PhaseManagerInterface> phasemanager);
+        PhaseManagerDiffusion(std::shared_ptr<PoroFluidManager::PhaseManagerInterface> phasemanager,
+            const Discret::Elements::PoroFluidMultiPhaseEleParameter& para);
 
         //! setup (matnum is the material number of the porofluid-material on the current element)
         //! default is set to zero, if called from a porofluidmultiphase-element
@@ -1613,6 +1628,9 @@ namespace Discret
         //! get the permeability tensor for volume fraction pressures
         void permeability_tensor_vol_frac_pressure(int volfracpressnum,
             Core::LinAlg::Matrix<nsd, nsd>& permeabilitytensorvolfracpressure) const override;
+
+        //! get the body force contribution
+        const std::vector<double>& bodyforce_contribution_values() const override;
 
         //! check for constant dynamic viscosity of volume fraction pressure
         bool has_constant_dyn_viscosity_vol_frac_pressure(int volfracpressnum) const override;
@@ -1665,6 +1683,8 @@ namespace Discret
         std::vector<Core::LinAlg::Matrix<nsd, nsd>> permeabilitytensorsvolfracpress_;
         //! check for constant dynamic viscosities of volume fraction pressure
         std::vector<bool> constdynviscosityvolfracpress_;
+        //! fluid bodyforce contribution
+        std::vector<double> bodyforce_contribution_values_{};
       };
 
       /*----------------------------------------------------------------------*

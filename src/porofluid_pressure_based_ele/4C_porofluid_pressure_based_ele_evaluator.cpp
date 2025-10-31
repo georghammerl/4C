@@ -16,6 +16,19 @@
 
 FOUR_C_NAMESPACE_OPEN
 
+namespace
+{
+  template <int nsd>
+  Core::LinAlg::Tensor<double, nsd> get_bodyforce_vector(
+      const Discret::Elements::PoroFluidManager::PhaseManagerInterface& phasemanager)
+  {
+    Core::LinAlg::Tensor<double, nsd> bodyforce{};
+    for (int idim = 0; idim < nsd; idim++)
+      bodyforce(idim) = phasemanager.bodyforce_contribution_values()[idim];
+    return bodyforce;
+  };
+}  // namespace
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -141,6 +154,16 @@ Discret::Elements::PoroFluidEvaluator::EvaluatorInterface<nsd, nen>::create_eval
             evaluator_phase->add_evaluator(tmpevaluator);
           }
 
+          if (para.has_bodyforce_contribution())
+          {
+            // add evaluator for body force contribution
+            // the term is also assembled into the last phase
+            assembler = std::make_shared<AssembleAlsoIntoOtherPhase>(
+                curphase, numfluidphases - 1, inittimederiv);
+            tmpevaluator = std::make_shared<EvaluatorBodyforce<nsd, nen>>(assembler, curphase);
+            evaluator_phase->add_evaluator(tmpevaluator);
+          }
+
           // add evaluators for the additional terms in fluid equations introduced by volume
           // fractions
           if (hasvolfracs)
@@ -250,6 +273,14 @@ Discret::Elements::PoroFluidEvaluator::EvaluatorInterface<nsd, nen>::create_eval
             evaluator_lastphase->add_evaluator(tmpevaluator);
           }
 
+          // add evaluator for body force contribution
+          if (para.has_bodyforce_contribution())
+          {
+            assembler = std::make_shared<AssembleStandard>(curphase, inittimederiv);
+            tmpevaluator = std::make_shared<EvaluatorBodyforce<nsd, nen>>(assembler, curphase);
+            evaluator_lastphase->add_evaluator(tmpevaluator);
+          }
+
           // add evaluators for the additional terms in fluid equations introduced by volume
           // fractions
           if (hasvolfracs)
@@ -341,6 +372,15 @@ Discret::Elements::PoroFluidEvaluator::EvaluatorInterface<nsd, nen>::create_eval
               std::make_shared<EvaluatorVolFracBloodLungPressureDiff<nsd, nen>>(assembler, -1);
           evaluator_volfrac->add_evaluator(tmpevaluator);
 
+          // add evaluator for body force contribution
+          if (para.has_bodyforce_contribution())
+          {
+            assembler = std::make_shared<AssembleStandard>(-1, inittimederiv);
+            tmpevaluator =
+                std::make_shared<EvaluatorVolFracBloodLungBodyforce<nsd, nen>>(assembler, -1);
+            evaluator_volfrac->add_evaluator(tmpevaluator);
+          }
+
           // reactive term
           assembler = std::make_shared<AssembleStandard>(-1, inittimederiv);
           tmpevaluator =
@@ -377,6 +417,16 @@ Discret::Elements::PoroFluidEvaluator::EvaluatorInterface<nsd, nen>::create_eval
               std::make_shared<EvaluatorVolFracHomogenizedVasculatureTumorDiff<nsd, nen>>(
                   assembler, -1);
           evaluator_volfrac->add_evaluator(tmpevaluator);
+
+          // add evaluator for body force contribution
+          if (para.has_bodyforce_contribution())
+          {
+            assembler = std::make_shared<AssembleStandard>(-1, inittimederiv);
+            tmpevaluator =
+                std::make_shared<EvaluatorVolFracHomogenizedVasculatureTumorBodyforce<nsd, nen>>(
+                    assembler, -1);
+            evaluator_volfrac->add_evaluator(tmpevaluator);
+          }
 
           // reactive term
           assembler = std::make_shared<AssembleStandard>(-1, inittimederiv);
@@ -976,9 +1026,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorBase<nsd, nen>::calc_diff_o
     FOUR_C_THROW("shapederivatives not implemented for 1D!");
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1085,9 +1133,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorConv<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1165,9 +1211,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDivVel<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1250,9 +1294,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorSatDivVel<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1312,9 +1354,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorBiotStab<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
 
  *----------------------------------------------------------------------*/
@@ -1339,15 +1379,12 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDiff<nsd, nen>::evaluate_ma
 
     // current pressure gradient
     Core::LinAlg::Matrix<nsd, 1> gradpres(Core::LinAlg::Initialization::zero);
-    gradpres.clear();
 
     // compute the pressure gradient from the phi gradients
     for (int idof = 0; idof < numfluidphases; ++idof)
       gradpres.update(phasemanager.pressure_deriv(curphase, idof), gradphi[idof], 1.0);
 
-    double abspressgrad = 0.0;
-    for (int i = 0; i < nsd; i++) abspressgrad += gradpres(i) * gradpres(i);
-    abspressgrad = sqrt(abspressgrad);
+    double abspressgrad = gradpres.norm2();
 
     // permeability tensor
     Core::LinAlg::Matrix<nsd, nsd> permeabilitytensor(Core::LinAlg::Initialization::zero);
@@ -1462,7 +1499,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDiff<nsd, nen>::evaluate_ve
 
   // current pressure gradient
   Core::LinAlg::Matrix<nsd, 1> gradpres(Core::LinAlg::Initialization::zero);
-  gradpres.clear();
 
   // compute the pressure gradient from the phi gradients
   for (int idof = 0; idof < numfluidphases; ++idof)
@@ -1514,15 +1550,12 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDiff<nsd,
 
   // current pressure gradient
   Core::LinAlg::Matrix<nsd, 1> gradpres(Core::LinAlg::Initialization::zero);
-  gradpres.clear();
 
   // compute the pressure gradient from the phi gradients
   for (int idof = 0; idof < numfluidphases; ++idof)
     gradpres.update(phasemanager.pressure_deriv(curphase, idof), gradphi[idof], 1.0);
 
-  double abspressgrad = 0.0;
-  for (int i = 0; i < nsd; i++) abspressgrad += gradpres(i) * gradpres(i);
-  abspressgrad = sqrt(abspressgrad);
+  double abspressgrad = gradpres.norm2();
 
   // diffusion tensor
   Core::LinAlg::Matrix<nsd, nsd> difftensor(Core::LinAlg::Initialization::zero);
@@ -1540,7 +1573,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDiff<nsd,
 
   // gradient of pressure w.r.t. reference coordinates
   Core::LinAlg::Matrix<nsd, 1> refgradpres(Core::LinAlg::Initialization::zero);
-  refgradpres.clear();
 
   // gradient of phi w.r.t. reference coordinates
   std::vector<Core::LinAlg::Matrix<nsd, 1>> refgradphi(
@@ -1573,9 +1605,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDiff<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1730,9 +1760,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorReac<nsd,
   }
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -1965,9 +1993,7 @@ double Discret::Elements::PoroFluidEvaluator::EvaluatorMassPressure<nsd, nen>::g
   return vtrans;
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2235,9 +2261,7 @@ double Discret::Elements::PoroFluidEvaluator::EvaluatorMassSolidPressure<nsd, ne
   return vtrans;
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2347,9 +2371,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorMassSolidPressureSat<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2582,9 +2604,7 @@ double Discret::Elements::PoroFluidEvaluator::EvaluatorMassSaturation<nsd, nen>:
   return vtrans;
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2707,9 +2727,7 @@ void Discret::Elements::PoroFluidEvaluator::
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2808,9 +2826,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPressureAndSaturationBloodL
 {
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2881,9 +2897,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorSolidPressure<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -2971,9 +2985,6 @@ void Discret::Elements::PoroFluidEvaluator::
 
 
 /*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
 void Discret::Elements::PoroFluidEvaluator::EvaluatorValidVolFracPressuresBloodLung<nsd,
@@ -3050,9 +3061,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorValidVolFracPressuresBloodL
 }
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3122,9 +3131,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPorosity<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3194,9 +3201,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDeterminantOfDeformationgra
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3266,9 +3271,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolfracBloodLung<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3409,9 +3412,171 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorDomainIntegrals<nsd,
   // nothing to do
 }
 
+
 /*----------------------------------------------------------------------*
- * **********************************************************************
  *----------------------------------------------------------------------*/
+template <int nsd, int nen>
+void Discret::Elements::PoroFluidEvaluator::EvaluatorBodyforce<nsd,
+    nen>::evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+    const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+    const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd, int numdofpernode,
+    const PoroFluidManager::PhaseManagerInterface& phasemanager,
+    const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager, double rhsfac,
+    double fac, bool inittimederiv)
+{
+  // get vector to fill
+  Core::LinAlg::SerialDenseVector& myvec = *elevec[0];
+
+  // get body force
+  const Core::LinAlg::Tensor<double, nsd> bodyforce = get_bodyforce_vector<nsd>(phasemanager);
+
+  const int numfluidphases = phasemanager.num_fluid_phases();
+
+  const std::vector<Core::LinAlg::Matrix<nsd, 1>>& gradphi = *variablemanager.grad_phinp();
+
+  // current pressure gradient
+  Core::LinAlg::Tensor<double, nsd> gradpres{};
+
+  // compute the pressure gradient from the phi gradients
+  for (int idof = 0; idof < numfluidphases; ++idof)
+  {
+    gradpres *= phasemanager.pressure_deriv(curphase, idof);
+    gradpres += Core::LinAlg::reinterpret_as_tensor_view<nsd>(gradphi[idof]);
+  }
+  const double abspressgrad = Core::LinAlg::norm2(gradpres);
+
+  // diffusion tensor
+  Core::LinAlg::Tensor<double, nsd, nsd> difftensor{};
+  Core::LinAlg::Matrix<nsd, nsd> diffmatrix = Core::LinAlg::make_matrix_view(difftensor);
+  phasemanager.permeability_tensor(curphase, diffmatrix);
+  difftensor *=
+      phasemanager.rel_permeability(curphase) / phasemanager.dyn_viscosity(curphase, abspressgrad);
+
+  // diffusion tensor * bodyforce * density
+  const Core::LinAlg::Tensor<double, nsd> difftensorbodyforce =
+      difftensor * bodyforce * phasemanager.density(curphase);
+
+  for (int vi = 0; vi < nen; ++vi)
+  {
+    const int fvi = vi * numdofpernode + phasetoadd;
+
+    // laplacian in weak form
+    double laplawf(0.0);
+    for (int j = 0; j < nsd; j++) laplawf += derxy(j, vi) * difftensorbodyforce(j);
+    myvec[fvi] += rhsfac * laplawf;
+  }
+}
+
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+template <int nsd, int nen>
+void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatureTumorBodyforce<
+    nsd, nen>::evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+    const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+    const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd, int numdofpernode,
+    const PoroFluidManager::PhaseManagerInterface& phasemanager,
+    const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager, double rhsfac,
+    double fac, bool inittimederiv)
+{
+  // get matrix to fill
+  Core::LinAlg::SerialDenseVector& myvec = *elevec[0];
+
+  // get body force
+  const Core::LinAlg::Tensor<double, nsd> bodyforce = get_bodyforce_vector<nsd>(phasemanager);
+
+  const int numfluidphases = phasemanager.num_fluid_phases();
+  const int numvolfrac = phasemanager.num_vol_frac();
+
+
+  //  loop over all volume fractions
+  for (int ivolfracpress = numfluidphases + numvolfrac; ivolfracpress < numdofpernode;
+      ivolfracpress++)
+  {
+    const bool evaluatevolfracpress = variablemanager.element_has_valid_vol_frac_pressure(
+        ivolfracpress - numvolfrac - numfluidphases);
+
+    if (evaluatevolfracpress)
+    {
+      // diffusion tensor
+      Core::LinAlg::Tensor<double, nsd, nsd> difftensor{};
+      Core::LinAlg::Matrix<nsd, nsd> diffmatrix = Core::LinAlg::make_matrix_view(difftensor);
+      phasemanager.permeability_tensor_vol_frac_pressure(
+          ivolfracpress - numfluidphases - numvolfrac, diffmatrix);
+      difftensor *= (1.0 / phasemanager.dyn_viscosity_vol_frac_pressure(
+                               ivolfracpress - numfluidphases - numvolfrac, -1.0));
+
+      // diffusion tensor * bodyforce * density
+      const Core::LinAlg::Tensor<double, nsd> difftensorbodyforce =
+          difftensor * bodyforce *
+          phasemanager.vol_frac_density(ivolfracpress - numfluidphases - numvolfrac);
+
+      for (int vi = 0; vi < nen; ++vi)
+      {
+        const int fvi = vi * numdofpernode + ivolfracpress;
+
+        // laplacian in weak form
+        double laplawf(0.0);
+        for (int j = 0; j < nsd; j++)
+        {
+          laplawf += derxy(j, vi) * difftensorbodyforce(j);
+        }
+        myvec[fvi] += rhsfac * laplawf;
+      }
+    }
+  }
+}
+
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+template <int nsd, int nen>
+void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungBodyforce<nsd,
+    nen>::evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+    const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+    const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd, int numdofpernode,
+    const PoroFluidManager::PhaseManagerInterface& phasemanager,
+    const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager, double rhsfac,
+    double fac, bool inittimederiv)
+{
+  // get matrix to fill
+  Core::LinAlg::SerialDenseVector& myvec = *elevec[0];
+
+  // get body force
+  const Core::LinAlg::Tensor<double, nsd> bodyforce = get_bodyforce_vector<nsd>(phasemanager);
+
+  const int numfluidphases = phasemanager.num_fluid_phases();
+  const int ivolfracpress = numfluidphases;
+
+  // it is only possible to have one volfrac with closing relation <bloodlung>
+  // diffusion tensor
+  Core::LinAlg::Tensor<double, nsd, nsd> difftensor{};
+  Core::LinAlg::Matrix<nsd, nsd> diffmatrix = Core::LinAlg::make_matrix_view(difftensor);
+  phasemanager.permeability_tensor_vol_frac_pressure(ivolfracpress - numfluidphases, diffmatrix);
+  difftensor *= 1.0 / phasemanager.dyn_viscosity_vol_frac_pressure_blood_lung(
+                          ivolfracpress - numfluidphases, -1.0);
+
+  // diffusion tensor * bodyforce * density
+  const Core::LinAlg::Tensor<double, nsd> difftensorbodyforce =
+      difftensor * bodyforce * phasemanager.vol_frac_density(0);
+
+
+  for (int vi = 0; vi < nen; ++vi)
+  {
+    const int fvi = vi * numdofpernode + ivolfracpress;
+
+    // laplacian in weak form
+    double laplawf(0.0);
+    for (int j = 0; j < nsd; j++)
+    {
+      laplawf += derxy(j, vi) * difftensorbodyforce(j);
+    }
+    myvec[fvi] += rhsfac * laplawf;
+  }
+}
+
+
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3481,9 +3646,7 @@ void Discret::Elements::PoroFluidEvaluator::ReconstructFluxLinearization<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3504,15 +3667,12 @@ void Discret::Elements::PoroFluidEvaluator::ReconstructFluxRHS<nsd,
 
   // current pressure gradient
   Core::LinAlg::Matrix<nsd, 1> gradpres(Core::LinAlg::Initialization::zero);
-  gradpres.clear();
 
   // compute the pressure gradient from the phi gradients
   for (int idof = 0; idof < numfluidphases; ++idof)
     gradpres.update(phasemanager.pressure_deriv(curphase, idof), gradphi[idof], 1.0);
 
-  double abspressgrad = 0.0;
-  for (int i = 0; i < nsd; i++) abspressgrad += gradpres(i) * gradpres(i);
-  abspressgrad = sqrt(abspressgrad);
+  double abspressgrad = gradpres.norm2();
 
   // diffusion tensor
   Core::LinAlg::Matrix<nsd, nsd> difftensor(Core::LinAlg::Initialization::zero);
@@ -3579,9 +3739,7 @@ void Discret::Elements::PoroFluidEvaluator::ReconstructFluxRHS<nsd,
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3622,7 +3780,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPhaseVelocitiesHomogenizedV
         // hence we need to employ the chain rule:
         // d p(psi_1, psi_2, psi_3)/dx = sum_i ( (p(psi_1, psi_2, psi_3)/d psi_i) * (d psi_i/dx) )
         Core::LinAlg::Matrix<nsd, 1> pressure_gradient(Core::LinAlg::Initialization::zero);
-        pressure_gradient.clear();
+
         for (int i = 0; i < numfluidphases; ++i)
           pressure_gradient.update(phasemanager.pressure_deriv(curphase, i), gradient_phi[i], 1.0);
 
@@ -3681,9 +3839,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPhaseVelocitiesHomogenizedV
     FOUR_C_THROW("Invalid phase index for current phase: {}", curphase);
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -3723,7 +3879,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPhaseVelocitiesBloodLung<ns
         // hence we need to employ the chain rule:
         // d p(psi_1, psi_2, psi_3)/dx = sum_i ( (p(psi_1, psi_2, psi_3)/d psi_i) * (d psi_i/dx) )
         Core::LinAlg::Matrix<nsd, 1> pressure_gradient(Core::LinAlg::Initialization::zero);
-        pressure_gradient.clear();
+
         for (int i = 0; i < numfluidphases; ++i)
           pressure_gradient.update(phasemanager.pressure_deriv(curphase, i), gradient_phi[i], 1.0);
 
@@ -3775,9 +3931,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorPhaseVelocitiesBloodLung<ns
     FOUR_C_THROW("Invalid phase index for current phase: {}", curphase);
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4059,9 +4213,7 @@ double Discret::Elements::PoroFluidEvaluator::
   return vrhs;
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4403,9 +4555,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungAddInstatTe
 
 
 /*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
 void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungAddInstatTermsSat<nsd,
@@ -4498,9 +4647,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungAddInstatTe
 
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4615,9 +4761,7 @@ void Discret::Elements::PoroFluidEvaluator::
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4744,9 +4888,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungAddDivVelTe
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4832,9 +4974,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungAddDivVelTe
 }
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -4931,9 +5071,7 @@ void Discret::Elements::PoroFluidEvaluator::
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -5024,9 +5162,7 @@ void Discret::Elements::PoroFluidEvaluator::
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -5188,9 +5324,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
 
 
 /*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
 void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungInstat<nsd,
@@ -5302,9 +5435,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungInstat<nsd,
 }
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -5546,9 +5677,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -5682,9 +5811,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungDivVel<nsd,
 {
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -5833,9 +5960,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -6023,9 +6148,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
   }
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -6483,9 +6606,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
   }
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -6680,9 +6801,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
   // nothing to do
 }
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -6868,9 +6987,6 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracBloodLungPressureDif
 
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>
@@ -7082,9 +7198,7 @@ void Discret::Elements::PoroFluidEvaluator::EvaluatorVolFracHomogenizedVasculatu
 }
 
 
-/*----------------------------------------------------------------------*
- * **********************************************************************
- *----------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int nsd, int nen>

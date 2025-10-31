@@ -54,6 +54,11 @@ namespace Discret
       int nds_solid_pressure() const { return nds_solidpressure_; };
       int nds_scalar() const { return nds_scalar_; };
       bool has_scalar() const { return nds_scalar_ > -1; };
+      bool has_bodyforce_contribution() const { return has_bodyforce_contribution_; };
+      const std::vector<double>& bodyforce_contribution_values() const
+      {
+        return bodyforce_contribution_values_;
+      };
       int num_domain_int_functions() const { return domainint_funct_.size(); };
       std::vector<int> domain_int_functions() const { return domainint_funct_; };
       //@}
@@ -102,6 +107,11 @@ namespace Discret
       bool isset_generalparams_;
       //! domain integral functions
       std::vector<int> domainint_funct_;
+      //! flag for bodyforce contribution
+      bool has_bodyforce_contribution_;
+
+      //! bodyforce contribution values
+      std::vector<double> bodyforce_contribution_values_;
       //@}
 
     };  // class PoroFluidMultiPhaseEleParameter
