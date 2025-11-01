@@ -213,34 +213,34 @@ namespace Core::LinAlg
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
     void import(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr)
+        Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode, Indexor));
+      CHECK_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode));
     }
 
     //! Imports an Epetra_DistObject using the Epetra_Export object.
     void import(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr)
+        Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Import(A, Exporter, CombineMode, Indexor));
+      CHECK_EPETRA_CALL(vector_->Import(A, Exporter, CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr)
+        Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode, Indexor));
+      CHECK_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr)
+        Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode, Indexor));
+      CHECK_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr)
+        Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Exporter, CombineMode, Indexor));
+      CHECK_EPETRA_CALL(vector_->Export(A, Exporter, CombineMode));
     }
 
     void complete(Epetra_CombineMode mode = Add, bool reuse_map_and_exporter = false)

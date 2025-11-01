@@ -325,8 +325,9 @@ void Core::LinAlg::SparseMatrix::reset()
   {
     for (std::size_t i = 0; i < numentries.size(); ++i)
     {
-      int* indices;
-      graph.extract_local_row_view(i, numentries[i], indices);
+      std::span<int> indices;
+      graph.extract_local_row_view(i, indices);
+      numentries[i] = indices.size();
     }
   }
   else

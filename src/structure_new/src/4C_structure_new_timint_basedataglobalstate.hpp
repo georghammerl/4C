@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_inpar_structure.hpp"
+#include "4C_linalg.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_linalg_sparseoperator.hpp"
 #include "4C_solver_nonlin_nox_abstract_prepostoperator.hpp"

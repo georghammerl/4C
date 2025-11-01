@@ -265,8 +265,7 @@ std::shared_ptr<Core::LinAlg::Graph> Core::FE::Discretization::build_node_graph(
   const Core::LinAlg::Map* noderowmap = node_row_map();
 
   // allocate graph
-  std::shared_ptr<Core::LinAlg::Graph> graph =
-      std::make_shared<Core::LinAlg::Graph>(Copy, *noderowmap, 108, false);
+  auto graph = std::make_shared<Core::LinAlg::Graph>(*noderowmap, 108);
 
   // iterate all elements on this proc including ghosted ones
   // Note:
@@ -284,7 +283,8 @@ std::shared_ptr<Core::LinAlg::Graph> Core::FE::Discretization::build_node_graph(
       for (int col = 0; col < nnode; ++col)
       {
         int colnode = nodeids[col];
-        graph->insert_global_indices(rownode, 1, &colnode);
+        auto indices = std::span(&colnode, 1);
+        graph->insert_global_indices(rownode, indices);
       }
     }
   }
@@ -707,7 +707,7 @@ void Core::FE::Discretization::setup_ghosting(OptionsFillComplete options)
   // as well. The communication issue is solved.
 
   auto graph = std::make_shared<Core::LinAlg::Graph>(
-      Copy, rownodes, entriesperrow.data(), false, Core::LinAlg::Graph::GraphType::FE_GRAPH);
+      rownodes, entriesperrow.data(), Core::LinAlg::Graph::GraphType::FE_GRAPH);
 
   gids.clear();
   entriesperrow.clear();
@@ -717,12 +717,11 @@ void Core::FE::Discretization::setup_ghosting(OptionsFillComplete options)
   for (std::map<int, std::set<int>>::iterator i = localgraph.begin(); i != localgraph.end(); ++i)
   {
     std::set<int>& rowset = i->second;
-    std::vector<int> row;
-    row.reserve(rowset.size());
-    row.assign(rowset.begin(), rowset.end());
+    auto row = std::vector(rowset.begin(), rowset.end());
     rowset.clear();
 
-    graph->insert_global_indices(1, &i->first, row.size(), row.data());
+    auto indices = std::span(row.data(), row.size());
+    graph->insert_global_indices(i->first, indices);
   }
 
   localgraph.clear();

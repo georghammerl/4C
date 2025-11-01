@@ -221,12 +221,12 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
   std::shared_ptr<Core::LinAlg::Graph> old_node_graph = discret.build_node_graph();
 
   // build graph based on the new row node map
-  Core::LinAlg::Graph node_graph(Copy, new_row_node_map, 108, false);
+  Core::LinAlg::Graph node_graph(new_row_node_map, 108);
 
   // export nodal graph to new row node layout
   {
     const Core::LinAlg::Export exporter(*discret.node_row_map(), new_row_node_map);
-    node_graph.export_to(old_node_graph->get_epetra_crs_graph(), exporter, Add);
+    node_graph.export_to(*old_node_graph, exporter, Add);
   }
   node_graph.fill_complete();
   node_graph.optimize_storage();

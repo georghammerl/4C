@@ -35,11 +35,10 @@ namespace Core::LinAlg
       FE_GRAPH
     };
 
-    Graph(Epetra_DataAccess CV, const Core::LinAlg::Map& RowMap, const int* NumIndicesPerRow,
-        bool StaticProfile = false, GraphType graphtype = CRS_GRAPH);
+    Graph(const Core::LinAlg::Map& RowMap, const int* NumIndicesPerRow,
+        GraphType graphtype = CRS_GRAPH);
 
-    Graph(Epetra_DataAccess CV, const Core::LinAlg::Map& RowMap, int NumIndicesPerRow,
-        bool StaticProfile = false, GraphType graphtype = CRS_GRAPH);
+    Graph(const Core::LinAlg::Map& RowMap, int NumIndicesPerRow, GraphType graphtype = CRS_GRAPH);
 
     Graph(const Graph& other);
 
@@ -73,27 +72,21 @@ namespace Core::LinAlg
     //! constructing graph
     void optimize_storage();
 
-    void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    void export_to(const Core::LinAlg::Graph& A, const Core::LinAlg::Export& Exporter,
+        Epetra_CombineMode CombineMode);
 
-    //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
-    void import_from(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode, const Epetra_OffsetIndex* Indexor = nullptr);
+    //! Imports a Core::LinAlg::Graph using the Core::LinAlg::Import object.
+    void import_from(const Core::LinAlg::Graph& A, const Core::LinAlg::Import& Importer,
+        Epetra_CombineMode CombineMode);
 
-    //! Enter a list of elements in a specified global row of the graph.
-    void insert_global_indices(int GlobalRow, int NumIndices, int* Indices);
+    //! Enter a list of elements in a specified globally owned row of the graph.
+    void insert_global_indices(int GlobalRow, std::span<int>& Indices);
 
-    void insert_global_indices(int numRows, const int* rows, int numCols, const int* cols);
+    //! Get a view of the elements in a specified locally owned row of the graph.
+    void extract_local_row_view(int LocalRow, std::span<int>& Indices) const;
 
-    void extract_local_row_view(int LocalRow, int& NumIndices, int*& Indices) const;
-
-    //! Get a view of the elements in a specified global row of the graph.
-    void extract_global_row_view(int GlobalRow, int& NumIndices, int*& Indices) const;
-
-    //! Extract a list of elements in a specified global row of the graph. Put into storage
-    //! allocated by calling
-    void extract_global_row_copy(
-        int GlobalRow, int LenOfIndices, int& NumIndices, int* Indices) const;
+    //! Get a view of the elements in a specified globally owned row of the graph.
+    void extract_global_row_view(int GlobalRow, std::span<int>& Indices) const;
 
     //! Returns the allocated number of nonzero entries in specified local row on this processor.
     int num_local_indices(int Row) const { return graph_->NumMyIndices(Row); }
