@@ -655,7 +655,8 @@ void Solid::TimeInt::Base::output_restart(bool& datawritten)
   output_ptr->write_node_data(dataio_->is_first_output_of_run());
   dataio_->set_first_output_of_run(false);
 
-  // add velocity and acceleration if necessary
+  // add displacement, velocity and acceleration
+  output_ptr->write_vector("displacement", dataglobalstate_->get_dis_n());
   output_ptr->write_vector("velocity", dataglobalstate_->get_vel_n());
   output_ptr->write_vector("acceleration", dataglobalstate_->get_acc_n());
 

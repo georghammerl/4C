@@ -1378,10 +1378,6 @@ void Solid::ModelEvaluator::Structure::write_restart(
   // write forces
   iowriter.write_vector("fstructure_old", global_state().get_fstructure_old());
   iowriter.write_vector("fint", global_state().get_fint_n());
-
-  if (forced_writerestart) return;
-
-  iowriter.write_vector("displacement", global_state().get_dis_n());
 }
 
 /*----------------------------------------------------------------------------*
