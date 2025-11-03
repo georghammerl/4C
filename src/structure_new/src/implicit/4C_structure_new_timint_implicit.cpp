@@ -173,9 +173,9 @@ void Solid::TimeInt::Implicit::update_state_incrementally(
   grp_ptr->computeX(*grp_ptr, nox_disiterinc_ptr, 1.0);
 
   // Reset the state variables
-  const auto& x_eptra = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
+  const auto& x_nox = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getX());
   // set the consistent state in the models (e.g. structure and contact models)
-  impl_int().reset_model_states(Core::LinAlg::Vector<double>(x_eptra.getEpetraVector()));
+  impl_int().reset_model_states(Core::LinAlg::Vector<double>(x_nox.get_linalg_vector()));
 }
 
 /*----------------------------------------------------------------------------*

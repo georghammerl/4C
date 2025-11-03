@@ -62,7 +62,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jac_ptr_->SetUseTranspose(false);
-  int status = jac_ptr_->Apply(input.getEpetraVector(), result.getEpetraVector());
+  int status = jac_ptr_->Apply(input.get_linalg_vector(), result.get_linalg_vector());
 
   return status == 0;
 }
@@ -74,7 +74,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jac_ptr_->SetUseTranspose(true);
-  int status = jac_ptr_->Apply(input.getEpetraVector(), result.getEpetraVector());
+  int status = jac_ptr_->Apply(input.get_linalg_vector(), result.get_linalg_vector());
   jac_ptr_->SetUseTranspose(false);
 
   return status == 0;
@@ -130,7 +130,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian_inverse(
  *----------------------------------------------------------------------*/
 bool NOX::FSI::LinearSystem::compute_jacobian(const NOX::Nln::Vector& x)
 {
-  bool success = jac_interface_ptr_->computeJacobian(x.getEpetraVector(), *jac_ptr_);
+  bool success = jac_interface_ptr_->computeJacobian(x.get_linalg_vector(), *jac_ptr_);
   return success;
 }
 

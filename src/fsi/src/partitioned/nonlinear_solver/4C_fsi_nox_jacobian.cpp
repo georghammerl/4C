@@ -7,6 +7,7 @@
 
 #include "4C_fsi_nox_jacobian.hpp"
 
+#include "4C_comm_mpi_utils.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
@@ -36,19 +37,19 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
   // Epetra_Operators require Epetra_Maps, so anyone using block maps
   // (Core::LinAlg::Map) won't be able to directly use the iterative solver.
   // We get around this by creating an Epetra_Map from the Core::LinAlg::Map.
-  const Epetra_Map* testMap = nullptr;
-  testMap = dynamic_cast<const Epetra_Map*>(&currentX.getEpetraVector().Map());
-  if (testMap != nullptr)
+  try
   {
-    epetraMap = std::make_shared<Epetra_Map>(*testMap);
+    epetraMap =
+        std::make_shared<Epetra_Map>(currentX.get_linalg_vector().get_map().get_epetra_map());
   }
-  else
+  catch (const Core::Exception&)
   {
-    int size = currentX.getEpetraVector().Map().NumGlobalPoints();
-    int mySize = currentX.getEpetraVector().Map().NumMyPoints();
-    int indexBase = currentX.getEpetraVector().Map().IndexBase();
-    const auto& comm = currentX.getEpetraVector().Map().Comm();
-    epetraMap = std::make_shared<Epetra_Map>(size, mySize, indexBase, comm);
+    int size = currentX.get_linalg_vector().get_map().num_global_points();
+    int mySize = currentX.get_linalg_vector().get_map().num_my_points();
+    int indexBase = currentX.get_linalg_vector().get_map().index_base();
+    const auto& comm = currentX.get_linalg_vector().get_map().get_comm();
+    epetraMap = std::make_shared<Epetra_Map>(
+        size, mySize, indexBase, Core::Communication::as_epetra_comm(comm));
   }
 }
 
@@ -115,7 +116,7 @@ int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVect
 
   if (!useGroupForComputeF)
   {
-    interface->computeF(perturbX.getEpetraVector(), perturbY.getEpetraVector(),
+    interface->computeF(perturbX.get_linalg_vector(), perturbY.get_linalg_vector(),
         ::NOX::Epetra::Interface::Required::User);
   }
   else
@@ -161,7 +162,7 @@ bool NOX::FSI::FSIMatrixFree::HasNormInf() const { return false; }
 
 const Epetra_Comm& NOX::FSI::FSIMatrixFree::Comm() const
 {
-  return currentX.getEpetraVector().Map().Comm();
+  return Core::Communication::as_epetra_comm(currentX.get_linalg_vector().get_map().get_comm());
 }
 
 

@@ -100,12 +100,6 @@ namespace NOX
       //! Return the length of vector.
       ::NOX::size_type length() const override;
 
-      //! Get reference to underlying Epetra vector - temporary and is to be removed
-      Epetra_Vector& getEpetraVector();  // NOLINT(readability-identifier-naming)
-
-      //! Get const reference to underlying Epetra vector - temporary and is to be removed
-      const Epetra_Vector& getEpetraVector() const;  // NOLINT(readability-identifier-naming)
-
       // Create a view-like NOX::Epetra::Vector wrapper - temporary and is to be removed
       operator ::NOX::Epetra::Vector();
 

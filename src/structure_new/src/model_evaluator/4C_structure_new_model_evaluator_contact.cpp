@@ -750,7 +750,7 @@ void Solid::ModelEvaluator::Contact::run_post_iterate(const ::NOX::Solver::Gener
 
   // displacement vector after the predictor call
   std::shared_ptr<Core::LinAlg::Vector<double>> curr_disp =
-      global_state().extract_displ_entries(Core::LinAlg::Vector<double>(nox_x.getEpetraVector()));
+      global_state().extract_displ_entries(nox_x.get_linalg_vector());
   std::shared_ptr<const Core::LinAlg::Vector<double>> curr_vel = global_state().get_vel_np();
 
   if (strategy().dyn_redistribute_contact(curr_disp, curr_vel, solver.getNumIterations()))
@@ -780,7 +780,7 @@ void Solid::ModelEvaluator::Contact::run_pre_solve(const ::NOX::Solver::Generic&
 
   // displacement vector after the predictor call
   std::shared_ptr<Core::LinAlg::Vector<double>> curr_disp =
-      global_state().extract_displ_entries(Core::LinAlg::Vector<double>(nox_x.getEpetraVector()));
+      global_state().extract_displ_entries(nox_x.get_linalg_vector());
 
   std::vector<std::shared_ptr<const Core::LinAlg::Vector<double>>> eval_vec(1, nullptr);
   eval_vec[0] = curr_disp;
@@ -827,15 +827,12 @@ Solid::ModelEvaluator::Contact::assemble_force_of_models(
     const std::vector<Inpar::Solid::ModelType>* without_these_models, const bool apply_dbc) const
 {
   std::shared_ptr<NOX::Nln::Vector> force_nox = global_state().create_global_vector();
-  {
-    Core::LinAlg::View force_view(force_nox->getEpetraVector());
-    integrator().assemble_force(force_view, without_these_models);
-  }
+  integrator().assemble_force(force_nox->get_linalg_vector(), without_these_models);
 
   // copy the vector, otherwise the storage will be freed at the end of this
   // function, resulting in a segmentation fault
   std::shared_ptr<Core::LinAlg::Vector<double>> force =
-      std::make_shared<Core::LinAlg::Vector<double>>(force_nox->getEpetraVector());
+      std::make_shared<Core::LinAlg::Vector<double>>(force_nox->get_linalg_vector());
 
   if (apply_dbc) tim_int().get_dbc().apply_dirichlet_to_rhs(*force);
 

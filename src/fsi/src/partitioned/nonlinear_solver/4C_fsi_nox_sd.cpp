@@ -85,8 +85,8 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
 
   // write omega
   double fnorm = oldgrp.getF().norm();
-  if (Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(
-          dynamic_cast<const NOX::Nln::Vector&>(oldgrp.getF()).getEpetraVector().Comm())) == 0)
+  if (Core::Communication::my_mpi_rank(
+          dynamic_cast<const NOX::Nln::Vector&>(oldgrp.getF()).get_linalg_vector().get_comm()) == 0)
   {
     static int count;
     static std::ofstream* out;
@@ -118,7 +118,7 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
   // and we want to set our own flag
   // this tells computeF to do a SD relaxation calculation
   interface.computeF(
-      edir.getEpetraVector(), evec.getEpetraVector(), ::NOX::Epetra::Interface::Required::User);
+      edir.get_linalg_vector(), evec.get_linalg_vector(), ::NOX::Epetra::Interface::Required::User);
 
   return *vec_ptr_;
 }

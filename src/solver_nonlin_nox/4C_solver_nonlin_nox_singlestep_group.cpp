@@ -57,15 +57,14 @@ void NOX::Nln::SINGLESTEP::Group::computeX(
 void NOX::Nln::SINGLESTEP::Group::computeX(
     const NOX::Nln::SINGLESTEP::Group& grp, const NOX::Nln::Vector& d, double step)
 {
-  Core::LinAlg::View d_view(const_cast<Epetra_Vector&>(d.getEpetraVector()));
-  prePostOperatorPtr_->run_pre_compute_x(grp, d_view, step, *this);
+  prePostOperatorPtr_->run_pre_compute_x(grp, d.get_linalg_vector(), step, *this);
 
   reset_is_valid();
 
   step = 1.0;
   xVector.update(-1.0, d, step, grp.xVector);
 
-  prePostOperatorPtr_->run_post_compute_x(grp, d_view, step, *this);
+  prePostOperatorPtr_->run_post_compute_x(grp, d.get_linalg_vector(), step, *this);
 
   return;
 }

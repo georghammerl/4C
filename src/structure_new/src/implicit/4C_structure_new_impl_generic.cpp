@@ -21,27 +21,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-namespace
-{
-  Epetra_Vector& extract_epetra_vector(::NOX::Abstract::Vector& vec)
-  {
-    auto* epetra_vec = dynamic_cast<NOX::Nln::Vector*>(&vec);
-    FOUR_C_ASSERT(
-        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no NOX::Nln::Vector!");
-
-    return epetra_vec->getEpetraVector();
-  }
-
-  Core::LinAlg::Vector<double> copy_to_our_vector(const ::NOX::Abstract::Vector& vec)
-  {
-    const auto* epetra_vec = dynamic_cast<const NOX::Nln::Vector*>(&vec);
-    FOUR_C_ASSERT(
-        epetra_vec != nullptr, "The given ::NOX::Abstract::Vector is no NOX::Nln::Vector!");
-
-    return Core::LinAlg::Vector<double>(epetra_vec->getEpetraVector());
-  }
-}  // namespace
-
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 Solid::IMPLICIT::Generic::Generic() : ispredictor_state_(false)
@@ -193,12 +172,11 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_pre_compute_x(const NOX::Nln::G
     const Core::LinAlg::Vector<double>& dir, const double& step, const NOX::Nln::Group& curr_grp)
 {
   // set the evaluation parameters
-  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
-  Core::LinAlg::Vector<double>& dir_mutable = const_cast<Core::LinAlg::Vector<double>&>(dir);
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).get_linalg_vector();
+  auto& dir_mutable = const_cast<Core::LinAlg::Vector<double>&>(dir);
 
   const bool isdefaultstep = (step == default_step_);
-  impl_.model_eval().run_pre_compute_x(
-      Core::LinAlg::Vector<double>(xold), dir_mutable, step, curr_grp, isdefaultstep);
+  impl_.model_eval().run_pre_compute_x(xold, dir_mutable, step, curr_grp, isdefaultstep);
 }
 
 /*----------------------------------------------------------------------------*
@@ -207,12 +185,11 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_post_compute_x(const NOX::Nln::
     const Core::LinAlg::Vector<double>& dir, const double& step, const NOX::Nln::Group& curr_grp)
 {
   // set the evaluation parameters
-  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).getEpetraVector();
-  const auto& xnew = dynamic_cast<const NOX::Nln::Vector&>(curr_grp.getX()).getEpetraVector();
+  const auto& xold = dynamic_cast<const NOX::Nln::Vector&>(input_grp.getX()).get_linalg_vector();
+  const auto& xnew = dynamic_cast<const NOX::Nln::Vector&>(curr_grp.getX()).get_linalg_vector();
 
   bool isdefaultstep = (step == default_step_);
-  impl_.model_eval().run_post_compute_x(Core::LinAlg::Vector<double>(xold), dir, step,
-      Core::LinAlg::Vector<double>(xnew), isdefaultstep);
+  impl_.model_eval().run_post_compute_x(xold, dir, step, xnew, isdefaultstep);
 }
 
 /*----------------------------------------------------------------------------*
@@ -241,16 +218,12 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_pre_apply_jacobian_inverse(
     const ::NOX::Abstract::Vector& rhs, ::NOX::Abstract::Vector& result,
     const ::NOX::Abstract::Vector& xold, const NOX::Nln::Group& grp)
 {
-  Core::LinAlg::View result_view(extract_epetra_vector(result));
+  const auto& nox_rhs = dynamic_cast<const NOX::Nln::Vector&>(rhs);
+  auto& nox_result = dynamic_cast<NOX::Nln::Vector&>(result);
+  const auto& nox_xold = dynamic_cast<const NOX::Nln::Vector&>(xold);
 
-  // Some inherited classes break const-correctness. Thus, we need to provide something
-  // that may be safely const_casted. fixme
-  auto rhs_our = copy_to_our_vector(rhs);
-
-  impl_.model_eval().run_pre_apply_jacobian_inverse(
-      rhs_our, result_view, copy_to_our_vector(xold), grp);
-  const auto* epetra_rhs = dynamic_cast<const NOX::Nln::Vector*>(&rhs);
-  const_cast<Epetra_Vector&>(epetra_rhs->getEpetraVector()).Update(1.0, rhs_our, 0.0);
+  impl_.model_eval().run_pre_apply_jacobian_inverse(nox_rhs.get_linalg_vector(),
+      nox_result.get_linalg_vector(), nox_xold.get_linalg_vector(), grp);
 }
 
 /*----------------------------------------------------------------------------*
@@ -259,9 +232,12 @@ void NOX::Nln::PrePostOp::IMPLICIT::Generic::run_post_apply_jacobian_inverse(
     const ::NOX::Abstract::Vector& rhs, ::NOX::Abstract::Vector& result,
     const ::NOX::Abstract::Vector& xold, const NOX::Nln::Group& grp)
 {
-  Core::LinAlg::View result_view(extract_epetra_vector(result));
-  impl_.model_eval().run_post_apply_jacobian_inverse(
-      copy_to_our_vector(rhs), result_view, copy_to_our_vector(xold), grp);
+  const auto& nox_rhs = dynamic_cast<const NOX::Nln::Vector&>(rhs);
+  auto& nox_result = dynamic_cast<NOX::Nln::Vector&>(result);
+  const auto& nox_xold = dynamic_cast<const NOX::Nln::Vector&>(xold);
+
+  impl_.model_eval().run_post_apply_jacobian_inverse(nox_rhs.get_linalg_vector(),
+      nox_result.get_linalg_vector(), nox_xold.get_linalg_vector(), grp);
 
   impl_.print_jacobian_in_matlab_format(grp);
 }

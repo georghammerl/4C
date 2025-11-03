@@ -30,8 +30,7 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> Solid::TimeInt::ImplicitBase
 {
   const ::NOX::Abstract::Group& solgrp = get_solution_group();
   const auto& F = dynamic_cast<const NOX::Nln::Vector&>(solgrp.getF());
-  return get_data_global_state().extract_displ_entries(
-      Core::LinAlg::Vector<double>(F.getEpetraVector()));
+  return get_data_global_state().extract_displ_entries(F.get_linalg_vector());
 }
 
 /*----------------------------------------------------------------------------*
