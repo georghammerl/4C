@@ -501,6 +501,8 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
     if (dataio_->should_write_restart_for_step(dataglobalstate_->get_step_n()) or
         dataglobalstate_->get_step_n() == Global::Problem::instance()->restart())
       return;
+    // TODO: This if statement can be removed once Solid::ModelEvaluator::Contact::output_step_state
+    // is removed
     // if state already exists, add restart information
     if (dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()))
     {
@@ -524,6 +526,8 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
   }
 
   // output results (not necessary if restart in same step)
+  // TODO: This if statement can be removed once Solid::ModelEvaluator::Contact::output_step_state
+  // is removed
   if (dataio_->is_write_state() and
       dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()) and (not datawritten))
   {
@@ -680,6 +684,7 @@ void Solid::TimeInt::Base::add_restart_to_output_state()
   std::shared_ptr<Core::IO::DiscretizationWriter> output_ptr = dataio_->get_output_ptr();
 
   // output of velocity and acceleration
+  output_ptr->write_vector("displacement", dataglobalstate_->get_dis_n());
   output_ptr->write_vector("velocity", dataglobalstate_->get_vel_n());
   output_ptr->write_vector("acceleration", dataglobalstate_->get_acc_n());
 

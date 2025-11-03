@@ -1703,16 +1703,6 @@ void Solid::ModelEvaluator::Structure::determine_energy(const Core::LinAlg::Vect
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Structure::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  check_init_setup();
-
-  iowriter.write_vector("displacement", global_state().get_dis_n());
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Structure::runtime_pre_output_step_state()
 {
   check_init_setup();
