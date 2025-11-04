@@ -50,8 +50,7 @@ namespace Solid
     class Factory
     {
      private:
-      using LinSolMap =
-          std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>;
+      using LinSolMap = std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>;
 
      public:
       //! constructor
@@ -62,13 +61,13 @@ namespace Solid
 
       //! build the desired linear solvers
       std::shared_ptr<LinSolMap> build_lin_solvers(
-          const std::set<enum Inpar::Solid::ModelType>& modeltypes,
-          const Teuchos::ParameterList& sdyn, Core::FE::Discretization& actdis) const;
+          const std::set<Inpar::Solid::ModelType>& modeltypes, const Teuchos::ParameterList& sdyn,
+          Core::FE::Discretization& actdis) const;
 
       //! create the meshtying/contact linear solver
       static std::shared_ptr<Core::LinAlg::Solver> build_meshtying_contact_lin_solver(
-          Core::FE::Discretization& actdis, enum CONTACT::SolvingStrategy sol_type,
-          enum CONTACT::SystemType sys_type, const int lin_solver_id);
+          Core::FE::Discretization& actdis, CONTACT::SolvingStrategy sol_type,
+          CONTACT::SystemType sys_type, const int lin_solver_id);
 
      private:
       //! create the structural linear solver (should be called by default)
@@ -91,8 +90,8 @@ namespace Solid
 
     /*! Non-member function, which relates to the Solid::SOLVER::Factory class
      *  Please call this method from outside! */
-    std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
-    build_lin_solvers(const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+    std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+    build_lin_solvers(const std::set<Inpar::Solid::ModelType>& modeltypes,
         const Teuchos::ParameterList& sdyn, Core::FE::Discretization& actdis);
   }  // namespace SOLVER
 }  // namespace Solid

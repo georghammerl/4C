@@ -51,8 +51,8 @@ namespace Solid
   {
    public:
     //! Map Solid::TimInt::NameEnum to Solid::TimAda::NameEnum
-    enum Inpar::Solid::TimAdaKind map_name_tim_int_to_tim_ada(
-        const enum Inpar::Solid::DynamicType term  //!< input enum term
+    Inpar::Solid::TimAdaKind map_name_tim_int_to_tim_ada(
+        const Inpar::Solid::DynamicType term  //!< input enum term
     ) const
     {
       switch (term)
@@ -182,7 +182,7 @@ namespace Solid
     //@{
 
     //! Provide the name
-    enum Inpar::Solid::TimAdaKind method_name() const override
+    Inpar::Solid::TimAdaKind method_name() const override
     {
       return map_name_tim_int_to_tim_ada(sti_->method_name());
     }
@@ -206,7 +206,7 @@ namespace Solid
     double method_lin_err_coeff_vel() const override { return sta_->method_lin_err_coeff_vel(); }
 
     //! Provide type of algorithm
-    enum AdaEnum method_adapt_dis() const override { return ada_; }
+    AdaEnum method_adapt_dis() const override { return ada_; }
 
     //@}
 
@@ -218,7 +218,7 @@ namespace Solid
     TimAdaJoint(const TimAdaJoint& old);
 
     //! type of adaptivity algorithm
-    enum AdaEnum ada_;
+    AdaEnum ada_;
 
     //! The auxiliary integrator
     std::shared_ptr<T> sta_;

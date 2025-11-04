@@ -634,10 +634,10 @@ namespace Adapter
      *  the Generic::check_init() and Generic::check_init_setup() routines, instead.
      *
      */
-    void set_model_types(std::set<enum Inpar::Solid::ModelType>& modeltypes) const;
+    void set_model_types(std::set<Inpar::Solid::ModelType>& modeltypes) const;
 
     /// Set all found model types.
-    void detect_element_technologies(std::set<enum Inpar::Solid::EleTech>& eletechs) const;
+    void detect_element_technologies(std::set<Inpar::Solid::EleTech>& eletechs) const;
 
     /// Set different time integrator specific parameters in the different parameter lists
     virtual void set_params(Teuchos::ParameterList& ioflags, Teuchos::ParameterList& xparams,

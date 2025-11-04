@@ -222,7 +222,7 @@ namespace Solid
 
       /// Create the global solution vector
       std::shared_ptr<NOX::Nln::Vector> create_global_vector() const;
-      std::shared_ptr<NOX::Nln::Vector> create_global_vector(const enum VecInitType& vecinittype,
+      std::shared_ptr<NOX::Nln::Vector> create_global_vector(const VecInitType& vecinittype,
           const std::shared_ptr<const Solid::ModelEvaluatorManager>& modeleval) const;
 
       /// Create the structural stiffness matrix block
@@ -585,7 +585,7 @@ namespace Solid
       /** \brief Returns the Block id of the given model type.
        *
        *  If the block is not found, -1 is returned. */
-      int block_id(const enum Inpar::Solid::ModelType& mt) const
+      int block_id(const Inpar::Solid::ModelType& mt) const
       {
         if (model_block_id_.find(mt) != model_block_id_.end()) return model_block_id_.at(mt);
 

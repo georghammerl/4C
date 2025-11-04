@@ -51,7 +51,7 @@ namespace Cut
     };
 
     /// translate PointPosition enumerator to string
-    static inline std::string point_position_to_string(const enum PointPosition& pos)
+    static inline std::string point_position_to_string(const PointPosition& pos)
     {
       switch (pos)
       {

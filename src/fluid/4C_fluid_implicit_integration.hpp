@@ -1104,7 +1104,7 @@ namespace FLD
     //! do we move the fluid mesh and calculate the fluid on this moving mesh?
     bool alefluid_;
     //! do we have a turbulence model?
-    enum Inpar::FLUID::TurbModelAction turbmodel_;
+    Inpar::FLUID::TurbModelAction turbmodel_;
 
     //@}
 
@@ -1341,7 +1341,7 @@ namespace FLD
     std::shared_ptr<FLD::XWall> xwall_;
 
     /// flag for mesh-tying
-    enum Inpar::FLUID::MeshTying msht_;
+    Inpar::FLUID::MeshTying msht_;
 
     /// face discretization (only initialized for edge-based stabilization)
     std::shared_ptr<Core::FE::DiscretizationFaces> facediscret_;

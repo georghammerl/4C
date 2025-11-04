@@ -62,7 +62,7 @@ namespace Solid
       //@{
 
       //! Return time integrator name
-      [[nodiscard]] enum Inpar::Solid::DynamicType method_name() const override
+      [[nodiscard]] Inpar::Solid::DynamicType method_name() const override
       {
         return Inpar::Solid::DynamicType::AdamsBashforth2;
       }

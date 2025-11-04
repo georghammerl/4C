@@ -1263,7 +1263,7 @@ void CONTACT::LagrangeStrategyPoro::update_poro_contact()
  | Assign general poro contact state!                          ager 08/14|
  *------------------------------------------------------------------------*/
 void CONTACT::LagrangeStrategyPoro::set_state(
-    const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
 {
   switch (statetype)
   {
@@ -1391,7 +1391,7 @@ void CONTACT::LagrangeStrategyPoro::set_state(
 /*------------------------------------------------------------------------*
  | Assign general poro contact state!                          ager 10/14|
  *------------------------------------------------------------------------*/
-void CONTACT::LagrangeStrategyPoro::set_parent_state(const enum Mortar::StateType& statetype,
+void CONTACT::LagrangeStrategyPoro::set_parent_state(const Mortar::StateType& statetype,
     const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis)
 {
   if (statetype == Mortar::StateType::state_new_displacement)

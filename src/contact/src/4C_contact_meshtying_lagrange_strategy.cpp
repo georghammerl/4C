@@ -1085,7 +1085,7 @@ bool CONTACT::MtLagrangeStrategy::evaluate_force_stiff(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::MtLagrangeStrategy::get_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> vec_ptr = nullptr;
   switch (bt)
@@ -1111,7 +1111,7 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::MtLagrangeStrategy:
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::MtLagrangeStrategy::get_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt) const
+    const CONTACT::MatBlockType& bt) const
 {
   std::shared_ptr<Core::LinAlg::SparseMatrix> mat_ptr = nullptr;
   switch (bt)

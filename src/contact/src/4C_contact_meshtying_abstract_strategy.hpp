@@ -252,7 +252,7 @@ namespace CONTACT
 
     */
     void set_state(
-        const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
 
     /*!
     \brief Do mortar coupling in reference configuration
@@ -519,7 +519,7 @@ namespace CONTACT
 
      *  */
     virtual std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const = 0;
+        const CONTACT::VecBlockType& bt) const = 0;
 
     /*! \brief Return the desired matrix block pointer (read-only)
      *
@@ -531,7 +531,7 @@ namespace CONTACT
 
      *  */
     virtual std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt) const = 0;
+        const CONTACT::MatBlockType& bt) const = 0;
 
     /*! \brief Return the current (maybe redistributed) Lagrange multiplier dof row map
      *

@@ -280,8 +280,8 @@ namespace PoroPressureBased
     double max_inc_;  //!< maximum increment
     double max_res_;  //!< maximum residual
 
-    enum PoroPressureBased::VectorNorm vector_norm_res_;  //!< type of norm for residual
-    enum PoroPressureBased::VectorNorm vector_norm_inc_;  //!< type of norm for increments
+    PoroPressureBased::VectorNorm vector_norm_res_;  //!< type of norm for residual
+    PoroPressureBased::VectorNorm vector_norm_inc_;  //!< type of norm for increments
 
     Teuchos::Time timernewton_;  //!< timer for measurement of solution time of newton iterations
     double dtsolve_;             //!< linear solver time

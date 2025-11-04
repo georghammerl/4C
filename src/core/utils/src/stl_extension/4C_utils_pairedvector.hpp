@@ -100,7 +100,7 @@ namespace Core::Gen
      *  @param[in] type   Apply this copy type.
      *
      *  */
-    Pairedvector(const Pairedvector& source, enum Gen::CopyType type = DeepCopy)
+    Pairedvector(const Pairedvector& source, Gen::CopyType type = DeepCopy)
         : m_(0, pair_type()), entries_(0)
 
     {
@@ -356,7 +356,7 @@ namespace Core::Gen
      *                     only the key but not the values are copied.
      *
      */
-    void clone(const class_type& source, const enum CopyType type)
+    void clone(const class_type& source, const CopyType type)
     {
       clear();
       clone(source);

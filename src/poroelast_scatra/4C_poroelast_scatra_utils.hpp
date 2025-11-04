@@ -110,8 +110,8 @@ namespace PoroElastScaTra
         Core::FE::Discretization& voldiscret, Core::FE::Discretization* voldiscret2 = nullptr);
 
     //! Determine norm of vector
-    double calculate_vector_norm(const enum PoroElast::VectorNorm norm,  //!< norm to use
-        const std::shared_ptr<const Core::LinAlg::Vector<double>> vect   //!< the vector of interest
+    double calculate_vector_norm(const PoroElast::VectorNorm norm,      //!< norm to use
+        const std::shared_ptr<const Core::LinAlg::Vector<double>> vect  //!< the vector of interest
     );
 
     //! Set the slave and master elements of the face element

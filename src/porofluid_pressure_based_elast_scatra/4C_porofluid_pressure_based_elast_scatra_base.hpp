@@ -139,7 +139,7 @@ namespace PoroPressureBased
 
    protected:
     //! what to do when nonlinear solution fails
-    enum PoroPressureBased::DivergenceAction divergence_action_;
+    PoroPressureBased::DivergenceAction divergence_action_;
     //! do we perform coupling with 1D artery
     const bool artery_coupling_;
 

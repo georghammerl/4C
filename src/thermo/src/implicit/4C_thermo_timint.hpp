@@ -248,7 +248,7 @@ namespace Thermo
     //@{
 
     //! Provide Name
-    virtual enum Thermo::DynamicType method_name() const = 0;
+    virtual Thermo::DynamicType method_name() const = 0;
 
     //@}
 

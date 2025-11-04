@@ -78,7 +78,7 @@ namespace Solid
     class Data : public Solid::Elements::ParamsInterface
     {
       using quantity_norm_type_map =
-          std::map<enum NOX::Nln::StatusTest::QuantityType, enum ::NOX::Abstract::Vector::NormType>;
+          std::map<NOX::Nln::StatusTest::QuantityType, enum ::NOX::Abstract::Vector::NormType>;
 
      public:
       //! constructor
@@ -95,7 +95,7 @@ namespace Solid
       //!@{
 
       //! get the desired action type [derived]
-      [[nodiscard]] inline enum Core::Elements::ActionType get_action_type() const override
+      [[nodiscard]] inline Core::Elements::ActionType get_action_type() const override
       {
         check_init_setup();
         return ele_action_;
@@ -136,7 +136,7 @@ namespace Solid
       }
 
       //! get the current damping type [derived]
-      [[nodiscard]] enum Inpar::Solid::DampKind get_damping_type() const override;
+      [[nodiscard]] Inpar::Solid::DampKind get_damping_type() const override;
 
       //! get the tolerate errors indicator [derived]
       [[nodiscard]] inline bool is_tolerate_errors() const override
@@ -160,7 +160,7 @@ namespace Solid
       }
 
       //! get the predictor type of the structural time integration
-      [[nodiscard]] enum Inpar::Solid::PredEnum get_predictor_type() const override
+      [[nodiscard]] Inpar::Solid::PredEnum get_predictor_type() const override
       {
         check_init_setup();
         return predict_type_;
@@ -184,34 +184,34 @@ namespace Solid
       std::shared_ptr<std::vector<char>> opt_quantity_data_ptr() override;
 
       //! get the current stress type [derived]
-      [[nodiscard]] enum Inpar::Solid::StressType get_stress_output_type() const override;
+      [[nodiscard]] Inpar::Solid::StressType get_stress_output_type() const override;
 
       //! get the current strain type [derived]
-      [[nodiscard]] enum Inpar::Solid::StrainType get_strain_output_type() const override;
+      [[nodiscard]] Inpar::Solid::StrainType get_strain_output_type() const override;
 
       //! get the current plastic strain type [derived]
-      [[nodiscard]] enum Inpar::Solid::StrainType get_plastic_strain_output_type() const override;
+      [[nodiscard]] Inpar::Solid::StrainType get_plastic_strain_output_type() const override;
 
       //! get the current strain type [derived]
-      virtual enum Inpar::Solid::OptQuantityType get_opt_quantity_output_type() const;
+      virtual Inpar::Solid::OptQuantityType get_opt_quantity_output_type() const;
 
       //< get the manager of Gauss point data output
       std::shared_ptr<GaussPointDataOutputManager>& gauss_point_data_output_manager_ptr() override;
 
       //! register energy type to be computed and written to file
-      void insert_energy_type_to_be_considered(enum Solid::EnergyType type);
+      void insert_energy_type_to_be_considered(Solid::EnergyType type);
 
       //! read-only access to energy data
-      std::map<enum Solid::EnergyType, double> const& get_energy_data() const;
+      std::map<Solid::EnergyType, double> const& get_energy_data() const;
 
       //! read-only access to energy data
-      double get_energy_data(enum Solid::EnergyType type) const;
+      double get_energy_data(Solid::EnergyType type) const;
 
       //! read-only access to energy data
       double get_energy_data(const std::string type) const;
 
       //! set value for a specific energy type
-      void set_value_for_energy_type(double value, enum Solid::EnergyType type);
+      void set_value_for_energy_type(double value, Solid::EnergyType type);
 
       //! set function manager
       void set_function_manager(const Core::Utils::FunctionManager& function_manager)
@@ -228,7 +228,7 @@ namespace Solid
        * @param type Type of energy to be added to
        */
       void add_contribution_to_energy_type(
-          const double value, const enum Solid::EnergyType type) override;
+          const double value, const Solid::EnergyType type) override;
 
       //! get Interface to brownian dyn data [derived]
       [[nodiscard]] inline std::shared_ptr<BrownianDynamics::ParamsInterface>
@@ -289,7 +289,7 @@ namespace Solid
        *
        * \sa sum_into_my_previous_sol_norm
        */
-      void sum_into_my_update_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype,
+      void sum_into_my_update_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
           const int& numentries, const double* my_update_values, const double* my_new_sol_values,
           const double& step_length, const int& owner) override;
 
@@ -304,7 +304,7 @@ namespace Solid
        *
        * \sa sum_into_my_update_norm
        */
-      void sum_into_my_previous_sol_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype,
+      void sum_into_my_previous_sol_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
           const int& numentries, const double* my_old_sol_values, const int& owner) override;
 
       //!@}
@@ -316,10 +316,10 @@ namespace Solid
        * @param[in] qtype Quantity type which is tested
        * @return
        */
-      inline double get_my_update_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+      inline double get_my_update_norm(const NOX::Nln::StatusTest::QuantityType& qtype) const
       {
         check_init_setup();
-        std::map<enum NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
+        std::map<NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
         c_it = my_update_norm_.find(qtype);
         // not on this proc
         if (c_it == my_update_norm_.end()) return 0.0;
@@ -333,10 +333,10 @@ namespace Solid
        * @param[in] qtype Quantity type which is tested
        * @return
        */
-      inline double get_my_rms_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+      inline double get_my_rms_norm(const NOX::Nln::StatusTest::QuantityType& qtype) const
       {
         check_init_setup();
-        std::map<enum NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
+        std::map<NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
         c_it = my_rms_norm_.find(qtype);
         // not on this proc
         if (c_it == my_rms_norm_.end()) return 0.0;
@@ -351,11 +351,10 @@ namespace Solid
        * @param[in] qtype Quantity type which is tested
        * @return
        */
-      inline double get_my_previous_sol_norm(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+      inline double get_my_previous_sol_norm(const NOX::Nln::StatusTest::QuantityType& qtype) const
       {
         check_init_setup();
-        std::map<enum NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
+        std::map<NOX::Nln::StatusTest::QuantityType, double>::const_iterator c_it;
         c_it = my_prev_sol_norm_.find(qtype);
         // not on this proc
         if (c_it == my_prev_sol_norm_.end()) return 0.0;
@@ -370,7 +369,7 @@ namespace Solid
        * @return
        */
       inline enum ::NOX::Abstract::Vector::NormType get_update_norm_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+          const NOX::Nln::StatusTest::QuantityType& qtype) const
       {
         check_init_setup();
         // collect the norm types only once
@@ -397,10 +396,10 @@ namespace Solid
        * @param[in] qtype Quantity type which is tested
        * @return
        */
-      inline int get_my_dof_number(const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+      inline int get_my_dof_number(const NOX::Nln::StatusTest::QuantityType& qtype) const
       {
         check_init_setup();
-        std::map<enum NOX::Nln::StatusTest::QuantityType, std::size_t>::const_iterator c_it;
+        std::map<NOX::Nln::StatusTest::QuantityType, std::size_t>::const_iterator c_it;
         c_it = my_dof_number_.find(qtype);
         // not on this proc
         if (c_it == my_dof_number_.end()) return 0;
@@ -432,7 +431,7 @@ namespace Solid
        *
        * @param[in] actiontype Action type
        */
-      inline void set_action_type(const enum Core::Elements::ActionType& actiontype)
+      inline void set_action_type(const Core::Elements::ActionType& actiontype)
       {
         ele_action_ = actiontype;
       }
@@ -753,7 +752,7 @@ namespace Solid
        *
        *  If the norm type can be found, the function returns true,
        *  otherwise false. */
-      bool get_update_norm_type(const enum NOX::Nln::StatusTest::QuantityType& qtype,
+      bool get_update_norm_type(const NOX::Nln::StatusTest::QuantityType& qtype,
           enum ::NOX::Abstract::Vector::NormType& normtype);
 
       /*! \brief Get the WRMS absolute and relative tolerances of the desired quantity.
@@ -761,7 +760,7 @@ namespace Solid
        *  If the tolerances can be found, the function returns true,
        *  otherwise false. */
       bool get_wrms_tolerances(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype, double& atol, double& rtol);
+          const NOX::Nln::StatusTest::QuantityType& qtype, double& atol, double& rtol);
 
       /*! \brief Sum locally values into a norm of the desired type
        *
@@ -817,13 +816,13 @@ namespace Solid
       //!@{
 
       //! Current action type
-      enum Core::Elements::ActionType ele_action_;
+      Core::Elements::ActionType ele_action_;
 
       //! Current predictor type
-      enum Inpar::Solid::PredEnum predict_type_;
+      Inpar::Solid::PredEnum predict_type_;
 
       //! element evaluation error flag
-      enum Solid::Elements::EvalErrorFlag ele_eval_error_flag_;
+      Solid::Elements::EvalErrorFlag ele_eval_error_flag_;
 
       //! tolerate errors flag
       bool is_tolerate_errors_;
@@ -892,7 +891,7 @@ namespace Solid
       std::shared_ptr<Core::LinAlg::MultiVector<double>> opt_quantity_data_postprocessed_nodal_ptr_;
 
       //! system energy, stored separately by type
-      std::map<enum Solid::EnergyType, double> energy_data_;
+      std::map<Solid::EnergyType, double> energy_data_;
 
       //! Manager of gauss point data output
       std::shared_ptr<GaussPointDataOutputManager> gauss_point_data_manager_ptr_;
@@ -906,24 +905,24 @@ namespace Solid
       quantity_norm_type_map normtype_update_;
 
       //! map holding the dof number of the the active quantities on the current processor
-      std::map<enum NOX::Nln::StatusTest::QuantityType, std::size_t> my_dof_number_;
+      std::map<NOX::Nln::StatusTest::QuantityType, std::size_t> my_dof_number_;
 
       /*! map holding the absolute tolerance for the wrms status test of the active
        *  quantities on the current processor */
-      std::map<enum NOX::Nln::StatusTest::QuantityType, double> atol_wrms_;
+      std::map<NOX::Nln::StatusTest::QuantityType, double> atol_wrms_;
 
       /*! map holding the relative tolerance for the wrms status test of the active
        *  quantities on the current processor */
-      std::map<enum NOX::Nln::StatusTest::QuantityType, double> rtol_wrms_;
+      std::map<NOX::Nln::StatusTest::QuantityType, double> rtol_wrms_;
 
       //! partial update norm of the current processor
-      std::map<enum NOX::Nln::StatusTest::QuantityType, double> my_update_norm_;
+      std::map<NOX::Nln::StatusTest::QuantityType, double> my_update_norm_;
 
       //! partial relative mean square norm of the current processor
-      std::map<enum NOX::Nln::StatusTest::QuantityType, double> my_rms_norm_;
+      std::map<NOX::Nln::StatusTest::QuantityType, double> my_rms_norm_;
 
       //! global partial solution norm of the previous step
-      std::map<enum NOX::Nln::StatusTest::QuantityType, double> my_prev_sol_norm_;
+      std::map<NOX::Nln::StatusTest::QuantityType, double> my_prev_sol_norm_;
 
       //! read-only access to the structural dynamic parameters
       std::shared_ptr<const Solid::TimeInt::BaseDataSDyn> sdyn_ptr_;
@@ -1075,7 +1074,7 @@ namespace Solid
       void setup();
 
       //! returns the mortar/contact action type
-      [[nodiscard]] inline enum Mortar::ActionType get_action_type() const override
+      [[nodiscard]] inline Mortar::ActionType get_action_type() const override
       {
         check_init_setup();
         return mortar_action_;
@@ -1108,7 +1107,7 @@ namespace Solid
        * @return Type of predictor
        *
        * */
-      [[nodiscard]] enum Inpar::Solid::PredEnum get_predictor_type() const override
+      [[nodiscard]] Inpar::Solid::PredEnum get_predictor_type() const override
       {
         check_init();
         return str_data_ptr_->get_predictor_type();
@@ -1153,13 +1152,13 @@ namespace Solid
       [[nodiscard]] std::string get_output_file_path() const override;
 
       //! set coupling mode enumerator
-      [[nodiscard]] enum CONTACT::CouplingScheme get_coupling_scheme() const override
+      [[nodiscard]] CONTACT::CouplingScheme get_coupling_scheme() const override
       {
         return coupling_scheme_;
       }
 
       //! set coupling mode enumerator
-      void set_coupling_scheme(const enum CONTACT::CouplingScheme scheme) override
+      void set_coupling_scheme(const CONTACT::CouplingScheme scheme) override
       {
         coupling_scheme_ = scheme;
       }
@@ -1180,7 +1179,7 @@ namespace Solid
       //! @{
 
       //! set the action type
-      inline void set_action_type(const enum Mortar::ActionType& actiontype)
+      inline void set_action_type(const Mortar::ActionType& actiontype)
       {
         mortar_action_ = actiontype;
       }
@@ -1259,9 +1258,9 @@ namespace Solid
 
       bool issetup_;
 
-      enum Mortar::ActionType mortar_action_;
+      Mortar::ActionType mortar_action_;
 
-      enum CONTACT::CouplingScheme coupling_scheme_;
+      CONTACT::CouplingScheme coupling_scheme_;
 
       std::shared_ptr<const Solid::ModelEvaluator::Data> str_data_ptr_;
 

@@ -242,7 +242,7 @@ namespace Solid
       //!@name data for submodel management
       //! @{
       /// current active model types for the model evaluator
-      std::shared_ptr<std::set<enum Inpar::BeamInteraction::SubModelType>> submodeltypes_;
+      std::shared_ptr<std::set<Inpar::BeamInteraction::SubModelType>> submodeltypes_;
 
       std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> me_map_ptr_;
 

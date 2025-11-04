@@ -54,7 +54,7 @@ void Solid::TimeInt::Implicit::setup()
   // ---------------------------------------------------------------------------
   // build predictor
   // ---------------------------------------------------------------------------
-  const enum Inpar::Solid::PredEnum predtype = data_sdyn().get_predictor_type();
+  const Inpar::Solid::PredEnum predtype = data_sdyn().get_predictor_type();
   predictor_ptr_ = Solid::Predict::build_predictor(predtype);
   predictor_ptr_->init(predtype, implint_ptr_, dbc_ptr(), data_global_state_ptr(), data_io_ptr(),
       data_sdyn().get_nox_params_ptr());
@@ -63,7 +63,7 @@ void Solid::TimeInt::Implicit::setup()
   // ---------------------------------------------------------------------------
   // build non-linear solver
   // ---------------------------------------------------------------------------
-  const enum Inpar::Solid::NonlinSolTech nlnSolverType = data_sdyn().get_nln_solver_type();
+  const Inpar::Solid::NonlinSolTech nlnSolverType = data_sdyn().get_nln_solver_type();
   if (nlnSolverType == Inpar::Solid::soltech_singlestep)
     std::cout << "WARNING!!! You are trying to solve implicitly using the \"singlestep\" nonlinear "
                  "solver. This is not encouraged, since it only works for linear statics analysis. "
@@ -493,8 +493,7 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
   Teuchos::RCP<const NOX::Nln::LinearSystem> nln_lin_system =
       Teuchos::rcp_dynamic_cast<const NOX::Nln::LinearSystem>(linear_system, true);
 
-  const enum NOX::Nln::LinSystem::OperatorType jac_type =
-      nln_lin_system->get_jacobian_operator_type();
+  const NOX::Nln::LinSystem::OperatorType jac_type = nln_lin_system->get_jacobian_operator_type();
 
   Teuchos::RCP<const Epetra_Operator> jac_ptr = nln_lin_system->get_jacobian_operator();
 
@@ -530,7 +529,7 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::DynamicType Solid::TimeInt::Implicit::method_name() const
+Inpar::Solid::DynamicType Solid::TimeInt::Implicit::method_name() const
 {
   return implint_ptr_->method_name();
 }

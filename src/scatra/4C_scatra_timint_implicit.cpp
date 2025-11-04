@@ -3099,7 +3099,7 @@ void ScaTra::ScaTraTimIntImpl::nonlinear_micro_scale_solve()
 /*--------------------------------------------------------------------------*
  *--------------------------------------------------------------------------*/
 std::string ScaTra::ScaTraTimIntImpl::map_tim_int_enum_to_string(
-    const enum Inpar::ScaTra::TimeIntegrationScheme term)
+    const Inpar::ScaTra::TimeIntegrationScheme term)
 {
   // length of return std::string is 14 due to usage in formatted screen output
   switch (term)

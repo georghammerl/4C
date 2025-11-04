@@ -80,18 +80,18 @@ namespace Cut
     };
 
     /** \brief Float_type for geometric intersection computation */
-    enum Cut::CutFloatType geom_intersect_floattype() const { return geomintersect_floattype_; }
+    Cut::CutFloatType geom_intersect_floattype() const { return geomintersect_floattype_; }
 
     /** \brief Float_type for geometric distance computation */
-    enum Cut::CutFloatType geom_distance_floattype() const { return geomdistance_floattype_; }
+    Cut::CutFloatType geom_distance_floattype() const { return geomdistance_floattype_; }
 
     /** \brief Which Referenceplanes are used in DirectDivergence */
-    enum CutDirectDivergenceRefplane direct_divergence_refplane() const
+    CutDirectDivergenceRefplane direct_divergence_refplane() const
     {
       return direct_divergence_refplane_;
     }
 
-    enum BoundaryCellPosition gen_boundary_cell_position() const { return gen_bcell_position_; }
+    BoundaryCellPosition gen_boundary_cell_position() const { return gen_bcell_position_; }
 
     /** \brief get the quad4 integration cell generation indicator
      *  (TRUE: QUAD4, FALSE: TRI3's are used) */
@@ -192,7 +192,7 @@ namespace Cut
 
 
     /** \brief Where to create boundary cells */
-    enum BoundaryCellPosition gen_bcell_position_;
+    BoundaryCellPosition gen_bcell_position_;
 
     /** \brief Indicator if quad4 cutsides are split into tri3 cutsides */
     bool split_cutsides_;

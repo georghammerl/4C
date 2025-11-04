@@ -71,7 +71,7 @@ namespace Solid
       //@{
 
       //! Return time integrator name
-      [[nodiscard]] enum Inpar::Solid::DynamicType method_name() const override
+      [[nodiscard]] Inpar::Solid::DynamicType method_name() const override
       {
         return Inpar::Solid::DynamicType::AdamsBashforth4;
       }
@@ -129,7 +129,7 @@ namespace Solid
     struct AdamsBashforthHelper<2>
     {
       static constexpr std::array<double, 2> exc{{1.5, -0.5}};  // extrapolation coefficients
-      static enum Inpar::Solid::DynamicType method_name()
+      static Inpar::Solid::DynamicType method_name()
       {
         return Inpar::Solid::DynamicType::AdamsBashforth2;
       }
@@ -140,7 +140,7 @@ namespace Solid
     {
       static constexpr std::array<double, 4> exc{
           {55.0 / 24.0, -59.0 / 24.0, 37.0 / 24.0, -9.0 / 24.0}};  // extrapolation coefficients
-      static enum Inpar::Solid::DynamicType method_name()
+      static Inpar::Solid::DynamicType method_name()
       {
         return Inpar::Solid::DynamicType::AdamsBashforth4;
       }

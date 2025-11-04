@@ -46,17 +46,16 @@ bool Solid::Nln::SOLVER::is_xml_status_test_file(const Teuchos::ParameterList& p
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::Nln::SOLVER::create_quantity_types(
-    std::set<enum NOX::Nln::StatusTest::QuantityType>& qtypes,
+void Solid::Nln::SOLVER::create_quantity_types(std::set<NOX::Nln::StatusTest::QuantityType>& qtypes,
     const Solid::TimeInt::BaseDataSDyn& datasdyn)
 {
   // ---------------------------------------------------------------------------
   // get the model types
   // ---------------------------------------------------------------------------
-  const std::set<enum Inpar::Solid::ModelType>& mtypes = datasdyn.get_model_types();
-  std::vector<enum NOX::Nln::StatusTest::QuantityType> qt_vec;
+  const std::set<Inpar::Solid::ModelType>& mtypes = datasdyn.get_model_types();
+  std::vector<NOX::Nln::StatusTest::QuantityType> qt_vec;
 
-  std::set<enum Inpar::Solid::ModelType>::const_iterator miter;
+  std::set<Inpar::Solid::ModelType>::const_iterator miter;
   for (miter = mtypes.begin(); miter != mtypes.end(); ++miter)
   {
     convert_model_type_to_quantity_type(*miter, qt_vec);
@@ -72,9 +71,9 @@ void Solid::Nln::SOLVER::create_quantity_types(
   // ---------------------------------------------------------------------------
   // get the element technologies
   // ---------------------------------------------------------------------------
-  const std::set<enum Inpar::Solid::EleTech>& eletechs = datasdyn.get_element_technologies();
+  const std::set<Inpar::Solid::EleTech>& eletechs = datasdyn.get_element_technologies();
 
-  std::set<enum Inpar::Solid::EleTech>::const_iterator etiter;
+  std::set<Inpar::Solid::EleTech>::const_iterator etiter;
   for (etiter = eletechs.begin(); etiter != eletechs.end(); ++etiter)
   {
     convert_ele_tech_to_quantity_type(*etiter, qt_vec);
@@ -91,8 +90,8 @@ void Solid::Nln::SOLVER::create_quantity_types(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::Nln::SOLVER::convert_model_type_to_quantity_type(const enum Inpar::Solid::ModelType& mt,
-    std::vector<enum NOX::Nln::StatusTest::QuantityType>& qt)
+void Solid::Nln::SOLVER::convert_model_type_to_quantity_type(
+    const Inpar::Solid::ModelType& mt, std::vector<NOX::Nln::StatusTest::QuantityType>& qt)
 {
   // clear quantity type vector
   qt.clear();
@@ -162,7 +161,7 @@ void Solid::Nln::SOLVER::convert_model_type_to_quantity_type(const enum Inpar::S
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::convert_ele_tech_to_quantity_type(
-    const enum Inpar::Solid::EleTech& et, std::vector<enum NOX::Nln::StatusTest::QuantityType>& qt)
+    const Inpar::Solid::EleTech& et, std::vector<NOX::Nln::StatusTest::QuantityType>& qt)
 {
   // clear quantity type vector
   qt.clear();
@@ -187,7 +186,7 @@ void Solid::Nln::SOLVER::convert_ele_tech_to_quantity_type(
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_status_test_params(Teuchos::ParameterList& pstatus,
     const Solid::TimeInt::BaseDataSDyn& datasdyn,
-    const std::set<enum NOX::Nln::StatusTest::QuantityType>& qt)
+    const std::set<NOX::Nln::StatusTest::QuantityType>& qt)
 {
   // ------ outer status test ------
   // Combo test: OR-combination:
@@ -329,16 +328,16 @@ void Solid::Nln::SOLVER::set_status_test_params(Teuchos::ParameterList& pstatus,
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_combo_quantity_test_params(Teuchos::ParameterList& p,
     const Solid::TimeInt::BaseDataSDyn& datasdyn, const std::size_t& count,
-    const std::string& testname, const std::set<enum NOX::Nln::StatusTest::QuantityType>& qtypes)
+    const std::string& testname, const std::set<NOX::Nln::StatusTest::QuantityType>& qtypes)
 {
-  std::vector<enum NOX::Nln::StatusTest::QuantityType> combo_or;
-  std::vector<enum NOX::Nln::StatusTest::QuantityType> combo_and;
+  std::vector<NOX::Nln::StatusTest::QuantityType> combo_or;
+  std::vector<NOX::Nln::StatusTest::QuantityType> combo_and;
   split_and_or_combo(combo_or, combo_and, datasdyn, testname, qtypes);
   std::ostringstream test_string;
   test_string << "Test " << count;
   Teuchos::ParameterList& ptest = p.sublist(test_string.str());
 
-  std::vector<enum NOX::Nln::StatusTest::QuantityType>::const_iterator qtiter;
+  std::vector<NOX::Nln::StatusTest::QuantityType>::const_iterator qtiter;
   // if there are any OR combinations
   std::size_t count_or = 0;
   std::size_t count_and = 0;
@@ -387,9 +386,8 @@ void Solid::Nln::SOLVER::set_combo_quantity_test_params(Teuchos::ParameterList& 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_quantity_test_params(Teuchos::ParameterList& p,
-    const Solid::TimeInt::BaseDataSDyn& datasdyn,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const std::size_t& count,
-    const std::string& testname)
+    const Solid::TimeInt::BaseDataSDyn& datasdyn, const NOX::Nln::StatusTest::QuantityType& qtype,
+    const std::size_t& count, const std::string& testname)
 {
   std::ostringstream test_string;
   test_string << "Test " << count;
@@ -401,8 +399,8 @@ void Solid::Nln::SOLVER::set_quantity_test_params(Teuchos::ParameterList& p,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_quantity_test_params(Teuchos::ParameterList& p,
-    const Solid::TimeInt::BaseDataSDyn& datasdyn,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const std::string& testname)
+    const Solid::TimeInt::BaseDataSDyn& datasdyn, const NOX::Nln::StatusTest::QuantityType& qtype,
+    const std::string& testname)
 {
   if (testname == "NormUpdate")
     set_norm_update_params(p, qtype, datasdyn.get_incr_tolerance_type(qtype),
@@ -420,18 +418,18 @@ void Solid::Nln::SOLVER::set_quantity_test_params(Teuchos::ParameterList& p,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::split_and_or_combo(
-    std::vector<enum NOX::Nln::StatusTest::QuantityType>& combo_or,
-    std::vector<enum NOX::Nln::StatusTest::QuantityType>& combo_and,
+    std::vector<NOX::Nln::StatusTest::QuantityType>& combo_or,
+    std::vector<NOX::Nln::StatusTest::QuantityType>& combo_and,
     const Solid::TimeInt::BaseDataSDyn& datasdyn, const std::string& testname,
-    const std::set<enum NOX::Nln::StatusTest::QuantityType>& qtypes)
+    const std::set<NOX::Nln::StatusTest::QuantityType>& qtypes)
 {
-  std::set<enum NOX::Nln::StatusTest::QuantityType>::const_iterator qtiter;
+  std::set<NOX::Nln::StatusTest::QuantityType>::const_iterator qtiter;
 
   for (qtiter = qtypes.begin(); qtiter != qtypes.end(); ++qtiter)
   {
     if (*qtiter == NOX::Nln::StatusTest::quantity_structure) continue;
 
-    enum Inpar::Solid::BinaryOp combotype = datasdyn.get_incr_combo_type(*qtiter);
+    Inpar::Solid::BinaryOp combotype = datasdyn.get_incr_combo_type(*qtiter);
     if (testname == "NormF")
       combotype = datasdyn.get_res_combo_type(*qtiter);
     else if (testname != "NormUpdate")
@@ -458,9 +456,8 @@ void Solid::Nln::SOLVER::split_and_or_combo(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_norm_update_params(Teuchos::ParameterList& qlist,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype,
-    const enum Inpar::Solid::ConvNorm& toltype, const double& tol,
-    const enum Inpar::Solid::VectorNorm& normtype)
+    const NOX::Nln::StatusTest::QuantityType& qtype, const Inpar::Solid::ConvNorm& toltype,
+    const double& tol, const Inpar::Solid::VectorNorm& normtype)
 {
   set_norm_update_params(qlist, qtype, 1.0, 0.5, toltype, tol, normtype, false);
 }
@@ -469,9 +466,9 @@ void Solid::Nln::SOLVER::set_norm_update_params(Teuchos::ParameterList& qlist,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_norm_update_params(Teuchos::ParameterList& qlist,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const double& alpha, const double& beta,
-    const enum Inpar::Solid::ConvNorm& toltype, const double& tol,
-    const enum Inpar::Solid::VectorNorm& normtype, const bool& isscaled)
+    const NOX::Nln::StatusTest::QuantityType& qtype, const double& alpha, const double& beta,
+    const Inpar::Solid::ConvNorm& toltype, const double& tol,
+    const Inpar::Solid::VectorNorm& normtype, const bool& isscaled)
 {
   /* Set the tolerance type
    * Be careful: This has to be done in first place because of the special
@@ -558,9 +555,8 @@ void Solid::Nln::SOLVER::set_norm_update_params(Teuchos::ParameterList& qlist,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_norm_f_params(Teuchos::ParameterList& qlist,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype,
-    const enum Inpar::Solid::ConvNorm& toltype, const double& tol,
-    const enum Inpar::Solid::VectorNorm& normtype)
+    const NOX::Nln::StatusTest::QuantityType& qtype, const Inpar::Solid::ConvNorm& toltype,
+    const double& tol, const Inpar::Solid::VectorNorm& normtype)
 {
   set_norm_f_params(qlist, qtype, toltype, tol, normtype, false);
 }
@@ -569,9 +565,8 @@ void Solid::Nln::SOLVER::set_norm_f_params(Teuchos::ParameterList& qlist,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_norm_f_params(Teuchos::ParameterList& qlist,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype,
-    const enum Inpar::Solid::ConvNorm& toltype, const double& tol,
-    const enum Inpar::Solid::VectorNorm& normtype, const bool& isscaled)
+    const NOX::Nln::StatusTest::QuantityType& qtype, const Inpar::Solid::ConvNorm& toltype,
+    const double& tol, const Inpar::Solid::VectorNorm& normtype, const bool& isscaled)
 {
   /* Set the tolerance type
    * Be careful: This has to be done in first place because of the special
@@ -651,7 +646,7 @@ void Solid::Nln::SOLVER::set_norm_f_params(Teuchos::ParameterList& qlist,
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::SOLVER::set_active_set_params(
-    Teuchos::ParameterList& qlist, const enum NOX::Nln::StatusTest::QuantityType& qtype)
+    Teuchos::ParameterList& qlist, const NOX::Nln::StatusTest::QuantityType& qtype)
 {
   qlist.set("Test Type", "ActiveSet");
   // set the quantity type

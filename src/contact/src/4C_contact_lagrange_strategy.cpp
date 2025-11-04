@@ -4042,7 +4042,7 @@ void CONTACT::LagrangeStrategy::eval_str_contact_rhs()
  *----------------------------------------------------------------------*/
 void CONTACT::LagrangeStrategy::pre_evaluate(CONTACT::ParamsInterface& cparams)
 {
-  const enum Mortar::ActionType& act = cparams.get_action_type();
+  const Mortar::ActionType& act = cparams.get_action_type();
 
   switch (act)
   {
@@ -4070,7 +4070,7 @@ void CONTACT::LagrangeStrategy::pre_evaluate(CONTACT::ParamsInterface& cparams)
  *----------------------------------------------------------------------*/
 void CONTACT::LagrangeStrategy::post_evaluate(CONTACT::ParamsInterface& cparams)
 {
-  const enum Mortar::ActionType& act = cparams.get_action_type();
+  const Mortar::ActionType& act = cparams.get_action_type();
 
   switch (act)
   {
@@ -4113,7 +4113,7 @@ void CONTACT::LagrangeStrategy::evaluate_force_stiff(CONTACT::ParamsInterface& c
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt, const ParamsInterface* cparams) const
+    const CONTACT::MatBlockType& bt, const ParamsInterface* cparams) const
 {
   // if there are no active LM contact contributions
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step())
@@ -4313,7 +4313,7 @@ void CONTACT::LagrangeStrategy::run_post_compute_x(const CONTACT::ParamsInterfac
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::LagrangeStrategy::get_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   // if there are no active LM contact contributions
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step())

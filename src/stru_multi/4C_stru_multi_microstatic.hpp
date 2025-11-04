@@ -300,10 +300,10 @@ namespace MultiScale
     double tolfres_;
     double toldisi_;
 
-    enum Inpar::Solid::BinaryOp combdisifres_;  //!< binary operator to
-                                                // combine displacement and forces
-    enum Inpar::Solid::ConvNorm normtypedisi_;  //!< convergence check for residual displacements
-    enum Inpar::Solid::ConvNorm normtypefres_;  //!< convergence check for residual forces
+    Inpar::Solid::BinaryOp combdisifres_;  //!< binary operator to
+                                           // combine displacement and forces
+    Inpar::Solid::ConvNorm normtypedisi_;  //!< convergence check for residual displacements
+    Inpar::Solid::ConvNorm normtypefres_;  //!< convergence check for residual forces
     double normcharforce_;
     double normfres_;
     double normchardis_;

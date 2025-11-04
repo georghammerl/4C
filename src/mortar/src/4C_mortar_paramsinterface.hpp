@@ -53,7 +53,7 @@ namespace Mortar
    * @param[in] act ActionType encoded as enum
    * @return String describing the action type
    */
-  static inline std::string action_type_to_string(const enum ActionType& act)
+  static inline std::string action_type_to_string(const ActionType& act)
   {
     switch (act)
     {
@@ -105,7 +105,7 @@ namespace Mortar
     virtual ~ParamsInterface() = default;
 
     //! Return the mortar/contact action type
-    virtual enum ActionType get_action_type() const = 0;
+    virtual ActionType get_action_type() const = 0;
 
     //! Get the nonlinear iteration number
     virtual int get_nln_iter() const = 0;

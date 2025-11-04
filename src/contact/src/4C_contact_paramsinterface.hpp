@@ -58,7 +58,7 @@ namespace CONTACT
     //! \brief get the currently active predictor type
     /** \note If the execution of the predictor is finished, this
      *  function will return Inpar::Solid::pred_vague. */
-    virtual enum Inpar::Solid::PredEnum get_predictor_type() const = 0;
+    virtual Inpar::Solid::PredEnum get_predictor_type() const = 0;
 
     //! get the current step length
     virtual double get_step_length() const = 0;
@@ -76,10 +76,10 @@ namespace CONTACT
     virtual std::string get_output_file_path() const = 0;
 
     //! set the coupling approach mode
-    virtual enum CONTACT::CouplingScheme get_coupling_scheme() const = 0;
+    virtual CONTACT::CouplingScheme get_coupling_scheme() const = 0;
 
     //! set the coupling scheme
-    virtual void set_coupling_scheme(const enum CONTACT::CouplingScheme scheme) = 0;
+    virtual void set_coupling_scheme(const CONTACT::CouplingScheme scheme) = 0;
 
     //! Get any additional data that has been set.
     virtual const std::any& get_user_data() const = 0;

@@ -56,7 +56,7 @@ namespace Solid
       virtual ~Generic() = default;
 
       //! initialize the base class variables
-      virtual void init(const enum Inpar::Solid::PredEnum& type,
+      virtual void init(const Inpar::Solid::PredEnum& type,
           const std::shared_ptr<Solid::IMPLICIT::Generic>& implint_ptr,
           const std::shared_ptr<Solid::Dbc>& dbc_ptr,
           const std::shared_ptr<Solid::TimeInt::BaseDataGlobalState>& gstate_ptr,
@@ -128,7 +128,7 @@ namespace Solid
 
      private:
       //! predictor type
-      enum Inpar::Solid::PredEnum type_;
+      Inpar::Solid::PredEnum type_;
 
       //! pointer to the implicit integrator
       std::shared_ptr<Solid::IMPLICIT::Generic> implint_ptr_;

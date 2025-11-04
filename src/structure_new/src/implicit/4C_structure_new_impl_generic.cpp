@@ -122,7 +122,7 @@ void Solid::IMPLICIT::Generic::print_jacobian_in_matlab_format(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::IMPLICIT::Generic::apply_correction_system(const enum NOX::Nln::CorrectionType type,
+bool Solid::IMPLICIT::Generic::apply_correction_system(const NOX::Nln::CorrectionType type,
     const std::vector<Inpar::Solid::ModelType>& constraint_models,
     const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
     Core::LinAlg::SparseOperator& jac)

@@ -69,7 +69,7 @@ namespace Core::Elements
     struct_calc_analytical_error  //!< compute L2 error in comparison to analytical solution
   };
 
-  static inline enum ActionType string_to_action_type(const std::string& action)
+  static inline ActionType string_to_action_type(const std::string& action)
   {
     if (action == "none")
       return none;
@@ -120,7 +120,7 @@ namespace Core::Elements
   }
 
   //! Map action type enum to std::string
-  static inline std::string action_type_to_string(const enum ActionType& type)
+  static inline std::string action_type_to_string(const ActionType& type)
   {
     switch (type)
     {

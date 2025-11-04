@@ -2007,7 +2007,7 @@ void Mortar::Interface::initialize()
  |  set current and old deformation state                      popp 12/07|
  *----------------------------------------------------------------------*/
 void Mortar::Interface::set_state(
-    const enum StateType& statetype, const Core::LinAlg::Vector<double>& vec)
+    const StateType& statetype, const Core::LinAlg::Vector<double>& vec)
 {
   switch (statetype)
   {

@@ -167,7 +167,7 @@ namespace Adapter
 
     /// type of monolithic XFluid-Fluid approach (decides whether ALE-mesh is fixed during
     /// Newton iteration)
-    enum Inpar::XFEM::MonolithicXffsiApproach monolithic_approach_;
+    Inpar::XFEM::MonolithicXffsiApproach monolithic_approach_;
 
     /// flag, that indicates, whether ALE-relaxation is activated
     bool relaxing_ale_;

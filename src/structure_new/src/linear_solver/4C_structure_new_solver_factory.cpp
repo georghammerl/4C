@@ -32,13 +32,13 @@ FOUR_C_NAMESPACE_OPEN
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::SOLVER::Factory::LinSolMap> Solid::SOLVER::Factory::build_lin_solvers(
-    const std::set<enum Inpar::Solid::ModelType>& modeltypes, const Teuchos::ParameterList& sdyn,
+    const std::set<Inpar::Solid::ModelType>& modeltypes, const Teuchos::ParameterList& sdyn,
     Core::FE::Discretization& actdis) const
 {
   // create a new standard map
   std::shared_ptr<LinSolMap> linsolvers = std::make_shared<LinSolMap>();
 
-  std::set<enum Inpar::Solid::ModelType>::const_iterator mt_iter;
+  std::set<Inpar::Solid::ModelType>::const_iterator mt_iter;
   // loop over all model types
   for (mt_iter = modeltypes.begin(); mt_iter != modeltypes.end(); ++mt_iter)
   {
@@ -297,8 +297,8 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_meshtying_co
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_meshtying_contact_lin_solver(
-    Core::FE::Discretization& actdis, enum CONTACT::SolvingStrategy sol_type,
-    enum CONTACT::SystemType sys_type, const int lin_solver_id)
+    Core::FE::Discretization& actdis, CONTACT::SolvingStrategy sol_type,
+    CONTACT::SystemType sys_type, const int lin_solver_id)
 {
   std::shared_ptr<Core::LinAlg::Solver> linsolver = nullptr;
 
@@ -552,8 +552,8 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_cardiovascul
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
-Solid::SOLVER::build_lin_solvers(const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+Solid::SOLVER::build_lin_solvers(const std::set<Inpar::Solid::ModelType>& modeltypes,
     const Teuchos::ParameterList& sdyn, Core::FE::Discretization& actdis)
 {
   Factory factory;

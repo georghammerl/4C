@@ -48,8 +48,7 @@ namespace NOX
        *  inclusive the pre-conditioner interfaces
        *  inclusive scaling object */
       GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
-          const std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
-              linSolvers,
+          const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& linSolvers,
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
           const OptimizationProblemType& type, const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
@@ -60,8 +59,7 @@ namespace NOX
        * inclusive the constraint interfaces map
        * without any pre-conditioner interfaces */
       GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
-          const std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
-              linSolvers,
+          const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& linSolvers,
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
           const OptimizationProblemType& type,
@@ -71,8 +69,7 @@ namespace NOX
        *  constructor without the constraint interface map (pure unconstrained optimization)
        *  without a pre-conditioner interface */
       GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
-          const std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
-              linSolvers,
+          const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& linSolvers,
           const Teuchos::RCP<::NOX::Epetra::Interface::Required>& iReq,
           const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac);
 
@@ -101,7 +98,7 @@ namespace NOX
       bool is_constrained() const;
 
       // return linear solver vector
-      const std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
+      const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
       get_linear_solvers();
 
       //! return the user-defined required interface

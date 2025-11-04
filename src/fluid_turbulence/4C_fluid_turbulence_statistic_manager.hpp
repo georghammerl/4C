@@ -259,7 +259,7 @@ namespace FLD
     bool withscatra_;
 
     //! toggle additional evaluations for turbulence models
-    enum Inpar::FLUID::TurbModelAction turbmodel_;
+    Inpar::FLUID::TurbModelAction turbmodel_;
 
     //! toggle evaluation of subgrid quantities, dissipation rates etc
     //! this is only possible for the genalpha implementation since

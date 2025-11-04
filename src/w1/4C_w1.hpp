@@ -357,7 +357,7 @@ namespace Discret
       /// eas or not
       bool iseas_;
       /// EAS type
-      enum EasType eastype_;
+      EasType eastype_;
 
       /** \brief interface ptr
        *

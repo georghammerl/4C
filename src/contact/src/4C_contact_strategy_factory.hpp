@@ -74,7 +74,7 @@ namespace CONTACT
        *
        *  */
       static std::shared_ptr<CONTACT::Interface> create_interface(
-          const enum CONTACT::SolvingStrategy stype, const int id, MPI_Comm comm, const int dim,
+          const CONTACT::SolvingStrategy stype, const int id, MPI_Comm comm, const int dim,
           Teuchos::ParameterList& icparams, const bool selfcontact,
           std::shared_ptr<CONTACT::InterfaceDataContainer> interface_data_ptr,
           const int contactconstitutivelaw_id = -1);
@@ -113,7 +113,7 @@ namespace CONTACT
       /*! \brief print strategy banner
        *
        *  \param soltype (in) : contact solving strategy type */
-      static void print_strategy_banner(const enum CONTACT::SolvingStrategy soltype);
+      static void print_strategy_banner(const CONTACT::SolvingStrategy soltype);
 
      protected:
      private:
@@ -126,8 +126,8 @@ namespace CONTACT
       /*! \brief Set Parent Elements for Poro Face Elements
        *
        *  */
-      void set_poro_parent_element(enum Mortar::Element::PhysicalType& slavetype,
-          enum Mortar::Element::PhysicalType& mastertype, CONTACT::Element& cele,
+      void set_poro_parent_element(Mortar::Element::PhysicalType& slavetype,
+          Mortar::Element::PhysicalType& mastertype, CONTACT::Element& cele,
           std::shared_ptr<Core::Elements::Element>& ele,
           const Core::FE::Discretization& discret) const;
 
@@ -135,8 +135,8 @@ namespace CONTACT
        *
        *  */
       void find_poro_interface_types(bool& poromaster, bool& poroslave, bool& structmaster,
-          bool& structslave, enum Mortar::Element::PhysicalType& slavetype,
-          enum Mortar::Element::PhysicalType& mastertype) const;
+          bool& structslave, Mortar::Element::PhysicalType& slavetype,
+          Mortar::Element::PhysicalType& mastertype) const;
 
       //!@}
 

@@ -72,7 +72,7 @@ namespace NOX
         };
 
         //! Map pseudo time step control type stl_string to enum
-        inline enum TSCType string_to_tsc_type(const std::string& name)
+        inline TSCType string_to_tsc_type(const std::string& name)
         {
           TSCType type = tsc_set;
           if (name == "SER" || name == "Switched Evolution Relaxation")
@@ -108,7 +108,7 @@ namespace NOX
         };
 
         //! Map build operator type stl_string to enum
-        inline enum BuildOpType string_to_build_op_type(const std::string& name)
+        inline BuildOpType string_to_build_op_type(const std::string& name)
         {
           BuildOpType type = build_op_everyiter;
           if (name == "every iter")
@@ -127,7 +127,7 @@ namespace NOX
         };
 
         //! Map scaling operator type stl_string to enum
-        inline enum ScaleOpType string_to_scale_op_type(const std::string& name)
+        inline ScaleOpType string_to_scale_op_type(const std::string& name)
         {
           ScaleOpType type = scale_op_identity;
           if (name == "Identity")
@@ -179,7 +179,7 @@ namespace NOX
         const double& get_scaling_factor() const;
 
         //! Returns the scaling operator type
-        const enum ScaleOpType& get_scaling_operator_type() const;
+        const ScaleOpType& get_scaling_operator_type() const;
 
         //! Returns the scaling diagonal operator
         const Core::LinAlg::Vector<double>& get_scaling_diag_operator() const;
@@ -350,13 +350,13 @@ namespace NOX
         int maxPseudoTransientIterations_;
 
         //! time step control type
-        enum TSCType tscType_;
+        TSCType tscType_;
 
         //! scaling operator type
-        enum ScaleOpType scaleOpType_;
+        ScaleOpType scaleOpType_;
 
         //! scaling operator type
-        enum BuildOpType build_scaling_op_;
+        BuildOpType build_scaling_op_;
 
         //! vector norm type (necessary for the time step control)
         enum ::NOX::Abstract::Vector::NormType normType_;

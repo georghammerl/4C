@@ -777,7 +777,7 @@ namespace Cut::Kernel
 #endif
 
   /// Convert Newton Status enumerator to string
-  static inline std::string newton_status_to_string(const enum NewtonStatus& status)
+  static inline std::string newton_status_to_string(const NewtonStatus& status)
   {
     switch (status)
     {
@@ -860,7 +860,7 @@ namespace Cut::Kernel
 
     void setup_step(int iter) {}
 
-    enum NewtonStatus test_converged(int iter) { return unconverged; }
+    NewtonStatus test_converged(int iter) { return unconverged; }
 
     bool linear_solve(int iter) { return true; }
 
@@ -902,9 +902,9 @@ namespace Cut::Kernel
       Strategy::setup_step(iter);
     }
 
-    enum NewtonStatus test_converged(int iter)
+    NewtonStatus test_converged(int iter)
     {
-      enum NewtonStatus status = Strategy::test_converged(iter);
+      NewtonStatus status = Strategy::test_converged(iter);
       std::cout << "TestConverged( iter = " << std::setw(2) << iter
                 << " ) = " << newton_status_to_string(status) << "\n"
                 << std::flush;
@@ -1073,7 +1073,7 @@ namespace Cut::Kernel
     }
 
     /// check for convergence
-    enum NewtonStatus test_converged(int iter)
+    NewtonStatus test_converged(int iter)
     {
       FloatType residual = b_.norm2();
 
@@ -1977,7 +1977,7 @@ namespace Cut::Kernel
     }
 
     /// Test the stop / convergence criterion of the Newton scheme
-    enum NewtonStatus test_converged(int iter)
+    NewtonStatus test_converged(int iter)
     {
       if (debug)
       {
@@ -2141,8 +2141,7 @@ namespace Cut::Kernel
       normal_plane_undefined
     };
 
-    enum NormalPlane detect_normal_plane(
-        const Core::LinAlg::Matrix<prob_dim, 1, FloatType>& n) const
+    NormalPlane detect_normal_plane(const Core::LinAlg::Matrix<prob_dim, 1, FloatType>& n) const
     {
       if (prob_dim < 3) FOUR_C_THROW("This function makes only sense for the 3-D case!");
 
@@ -3472,7 +3471,7 @@ namespace Cut::Kernel
     }
 
 
-    enum NewtonStatus test_converged(int iter)
+    NewtonStatus test_converged(int iter)
     {
       residual_ = b_.norm2();
 

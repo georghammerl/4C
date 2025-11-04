@@ -473,7 +473,7 @@ double PoroPressureBased::get_max_nodal_distance(
  | calculate vector norm                             kremheller 12/17   |
  *----------------------------------------------------------------------*/
 double PoroPressureBased::calculate_vector_norm(
-    const enum PoroPressureBased::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
+    const PoroPressureBased::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
 {
   // L1 norm
   // norm = sum_0^i vect[i]

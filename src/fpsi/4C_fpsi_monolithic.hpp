@@ -337,9 +337,9 @@ namespace FPSI
     //! flag for direct solver of linear system
     bool directsolve_;
 
-    enum Inpar::FPSI::ConvergenceNorm normtypeinc_;
-    enum Inpar::FPSI::ConvergenceNorm normtypefres_;
-    enum Inpar::FPSI::BinaryOp combinedconvergence_;
+    Inpar::FPSI::ConvergenceNorm normtypeinc_;
+    Inpar::FPSI::ConvergenceNorm normtypefres_;
+    Inpar::FPSI::BinaryOp combinedconvergence_;
 
     double toleranceiterinc_;
     double toleranceresidualforces_;

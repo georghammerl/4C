@@ -47,7 +47,7 @@ namespace Solid
       /*! \brief (derived)
        *
        */
-      bool apply_correction_system(const enum NOX::Nln::CorrectionType type,
+      bool apply_correction_system(const NOX::Nln::CorrectionType type,
           const std::vector<Inpar::Solid::ModelType>& constraint_models,
           const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
           Core::LinAlg::SparseOperator& jac) override
@@ -99,7 +99,7 @@ namespace Solid
       //@{
 
       //! Provide Name
-      [[nodiscard]] virtual enum Inpar::Solid::DynamicType method_name() const = 0;
+      [[nodiscard]] virtual Inpar::Solid::DynamicType method_name() const = 0;
 
       //! Provide number of steps, e.g. a single-step method returns 1,
       //! a \f$m\f$-multistep method returns \f$m\f$

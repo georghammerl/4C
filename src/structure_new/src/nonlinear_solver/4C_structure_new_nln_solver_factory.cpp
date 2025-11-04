@@ -17,7 +17,7 @@
 FOUR_C_NAMESPACE_OPEN
 
 std::shared_ptr<Solid::Nln::SOLVER::Generic> Solid::Nln::SOLVER::build_nln_solver(
-    const enum Inpar::Solid::NonlinSolTech& nlnSolType,
+    const Inpar::Solid::NonlinSolTech& nlnSolType,
     const std::shared_ptr<Solid::TimeInt::BaseDataGlobalState>& gstate,
     const std::shared_ptr<Solid::TimeInt::BaseDataSDyn>& sdyn,
     const std::shared_ptr<Solid::TimeInt::NoxInterface>& noxinterface,
@@ -137,7 +137,7 @@ std::shared_ptr<Solid::Nln::SOLVER::Generic> Solid::Nln::SOLVER::build_nln_solve
    */
   if (not is_xml_status_test_file(sdyn->get_nox_params().sublist("Status Test")))
   {
-    std::set<enum NOX::Nln::StatusTest::QuantityType> qtypes;
+    std::set<NOX::Nln::StatusTest::QuantityType> qtypes;
     Solid::Nln::SOLVER::create_quantity_types(qtypes, *sdyn);
 
     // remove the unsupported quantity of status test:

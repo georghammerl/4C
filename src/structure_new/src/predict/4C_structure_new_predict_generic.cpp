@@ -31,7 +31,7 @@ Solid::Predict::Generic::Generic()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::Predict::Generic::init(const enum Inpar::Solid::PredEnum& type,
+void Solid::Predict::Generic::init(const Inpar::Solid::PredEnum& type,
     const std::shared_ptr<Solid::IMPLICIT::Generic>& implint_ptr,
     const std::shared_ptr<Solid::Dbc>& dbc_ptr,
     const std::shared_ptr<Solid::TimeInt::BaseDataGlobalState>& gstate_ptr,

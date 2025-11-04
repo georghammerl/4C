@@ -451,7 +451,7 @@ bool CONTACT::MtPenaltyStrategy::evaluate_force_stiff(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::MtPenaltyStrategy::get_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> vec_ptr = nullptr;
   switch (bt)
@@ -475,7 +475,7 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::MtPenaltyStrategy::
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::MtPenaltyStrategy::get_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt) const
+    const CONTACT::MatBlockType& bt) const
 {
   std::shared_ptr<Core::LinAlg::SparseMatrix> mat_ptr = nullptr;
   switch (bt)

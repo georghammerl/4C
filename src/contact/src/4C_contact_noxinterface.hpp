@@ -59,15 +59,15 @@ namespace CONTACT
 
     /// Returns the active set info [derived]
     enum ::NOX::StatusTest::StatusType get_active_set_info(
-        enum NOX::Nln::StatusTest::QuantityType checkQuantity, int& activesetsize) const override;
+        NOX::Nln::StatusTest::QuantityType checkQuantity, int& activesetsize) const override;
 
     /// Returns the current active set map
     Teuchos::RCP<const Core::LinAlg::Map> get_current_active_set_map(
-        enum NOX::Nln::StatusTest::QuantityType checkQuantity) const override;
+        NOX::Nln::StatusTest::QuantityType checkQuantity) const override;
 
     /// Returns the old active set map of the previous Newton step
     Teuchos::RCP<const Core::LinAlg::Map> get_old_active_set_map(
-        enum NOX::Nln::StatusTest::QuantityType checkQuantity) const override;
+        NOX::Nln::StatusTest::QuantityType checkQuantity) const override;
     /// @}
 
     /// @name Merit function support functions
@@ -76,9 +76,9 @@ namespace CONTACT
     double get_model_value(NOX::Nln::MeritFunction::MeritFctName name) const override;
 
     double get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-        const enum NOX::Nln::MeritFunction::MeritFctName name,
-        const enum NOX::Nln::MeritFunction::LinOrder linorder,
-        const enum NOX::Nln::MeritFunction::LinType lintype) const override;
+        const NOX::Nln::MeritFunction::MeritFctName name,
+        const NOX::Nln::MeritFunction::LinOrder linorder,
+        const NOX::Nln::MeritFunction::LinType lintype) const override;
 
     /// @}
 

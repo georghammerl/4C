@@ -149,7 +149,7 @@ namespace Solid
     /*! \brief Modify the right hand side and Jacobian corresponding to the requested correction
      * action of one (or several) second order constraint (SOC) model(s)
      */
-    virtual bool apply_correction_system(const enum NOX::Nln::CorrectionType type,
+    virtual bool apply_correction_system(const NOX::Nln::CorrectionType type,
         const std::vector<Inpar::Solid::ModelType>& constraint_models,
         const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
         Core::LinAlg::SparseOperator& jac) = 0;
@@ -308,15 +308,13 @@ namespace Solid
     //! @name Accessors
     //!@{
 
-    double get_condensed_update_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+    double get_condensed_update_norm(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-    double get_condensed_previous_sol_norm(
-        const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+    double get_condensed_previous_sol_norm(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-    double get_condensed_solution_update_rms(
-        const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+    double get_condensed_solution_update_rms(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-    int get_condensed_dof_number(const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+    int get_condensed_dof_number(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
     //! Return the model evaluator control object (read and write)
     Solid::ModelEvaluatorManager& model_eval();
@@ -389,7 +387,7 @@ namespace Solid
     //! reset the time step dependent parameters for the element evaluation
     virtual void reset_eval_params() {};
 
-    double get_condensed_global_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype,
+    double get_condensed_global_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
         const enum ::NOX::Abstract::Vector::NormType& normtype, double& mynorm) const;
 
    protected:
@@ -450,7 +448,7 @@ namespace Solid
       const Integrator& integrator_;
 
       /// mid-time energy averaging type
-      enum Inpar::Solid::MidAverageEnum avg_type_;
+      Inpar::Solid::MidAverageEnum avg_type_;
 
       /// setup flag
       bool issetup_ = false;

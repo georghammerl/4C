@@ -102,7 +102,7 @@ void CONTACT::NitscheStrategy::do_read_restart(Core::IO::DiscretizationReader& r
 }
 
 void CONTACT::NitscheStrategy::set_state(
-    const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
 {
   if (statename == Mortar::state_new_displacement)
   {
@@ -141,7 +141,7 @@ void CONTACT::NitscheStrategy::set_state(
 /*------------------------------------------------------------------------*
  |                                                             seitz 10/16|
  *------------------------------------------------------------------------*/
-void CONTACT::NitscheStrategy::set_parent_state(const enum Mortar::StateType& statename,
+void CONTACT::NitscheStrategy::set_parent_state(const Mortar::StateType& statename,
     const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis)
 {
   if (statename == Mortar::state_new_displacement || statename == Mortar::state_svelocity)
@@ -244,7 +244,7 @@ void CONTACT::NitscheStrategy::integrate(const CONTACT::ParamsInterface& cparams
 }
 
 std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::setup_rhs_block_vec(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   switch (bt)
   {
@@ -259,7 +259,7 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::setup_
 }
 
 std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::create_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   if (!curr_state_eval_) FOUR_C_THROW("you didn't evaluate this contact state first");
 
@@ -281,7 +281,7 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::create
 }
 
 std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::NitscheStrategy::get_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   if (!curr_state_eval_)
     FOUR_C_THROW(
@@ -302,7 +302,7 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::NitscheStrategy::ge
 }
 
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::setup_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt)
+    const CONTACT::MatBlockType& bt)
 {
   switch (bt)
   {
@@ -318,7 +318,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::setup_matr
 }
 
 void CONTACT::NitscheStrategy::complete_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt, std::shared_ptr<Core::LinAlg::SparseMatrix> kc)
+    const CONTACT::MatBlockType& bt, std::shared_ptr<Core::LinAlg::SparseMatrix> kc)
 {
   switch (bt)
   {
@@ -332,7 +332,7 @@ void CONTACT::NitscheStrategy::complete_matrix_block_ptr(
 }
 
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::create_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt)
+    const CONTACT::MatBlockType& bt)
 {
   if (!curr_state_eval_) FOUR_C_THROW("you didn't evaluate this contact state first");
 
@@ -354,7 +354,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::create_mat
 }
 
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::get_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt, const CONTACT::ParamsInterface* cparams) const
+    const CONTACT::MatBlockType& bt, const CONTACT::ParamsInterface* cparams) const
 {
   if (!curr_state_eval_) FOUR_C_THROW("you didn't evaluate this contact state first");
 

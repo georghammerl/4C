@@ -33,7 +33,7 @@ namespace Adapter
     explicit StructureTimeAdaJoint(std::shared_ptr<Structure> structure);
 
     //! Provide the name
-    enum Inpar::Solid::TimAdaKind method_name() const override
+    Inpar::Solid::TimAdaKind method_name() const override
     {
       return Inpar::Solid::timada_kind_joint_explicit;
     }
@@ -53,7 +53,7 @@ namespace Adapter
     double method_lin_err_coeff_vel() const override;
 
     //! Provide type of algorithm
-    enum AdaEnum method_adapt_dis() const override;
+    AdaEnum method_adapt_dis() const override;
 
     //! Override since we need to setup the auxiliary time integrator
     void post_setup() override;
@@ -64,7 +64,7 @@ namespace Adapter
 
    private:
     //! type of adaptivity algorithm
-    enum AdaEnum ada_;
+    AdaEnum ada_;
 
     //! the auxiliary integrator
     std::shared_ptr<Solid::TimeInt::Base> sta_;

@@ -662,8 +662,8 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
   bool structmaster = false;
   bool structslave = false;
   bool isanyselfcontact = false;
-  enum Mortar::Element::PhysicalType slavetype = Mortar::Element::other;
-  enum Mortar::Element::PhysicalType mastertype = Mortar::Element::other;
+  Mortar::Element::PhysicalType slavetype = Mortar::Element::other;
+  Mortar::Element::PhysicalType mastertype = Mortar::Element::other;
 
   // loop over all contact condition groups
   for (auto& currentgroup : ccond_grps)
@@ -1255,7 +1255,7 @@ std::shared_ptr<CONTACT::Interface> CONTACT::STRATEGY::Factory::create_interface
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::Interface> CONTACT::STRATEGY::Factory::create_interface(
-    const enum CONTACT::SolvingStrategy stype, const int id, MPI_Comm comm, const int dim,
+    const CONTACT::SolvingStrategy stype, const int id, MPI_Comm comm, const int dim,
     Teuchos::ParameterList& icparams, const bool selfcontact,
     std::shared_ptr<CONTACT::InterfaceDataContainer> interface_data_ptr,
     const int contactconstitutivelaw_id)
@@ -1301,10 +1301,9 @@ std::shared_ptr<CONTACT::Interface> CONTACT::STRATEGY::Factory::create_interface
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void CONTACT::STRATEGY::Factory::set_poro_parent_element(
-    enum Mortar::Element::PhysicalType& slavetype, enum Mortar::Element::PhysicalType& mastertype,
-    CONTACT::Element& cele, std::shared_ptr<Core::Elements::Element>& ele,
-    const Core::FE::Discretization& discret) const
+void CONTACT::STRATEGY::Factory::set_poro_parent_element(Mortar::Element::PhysicalType& slavetype,
+    Mortar::Element::PhysicalType& mastertype, CONTACT::Element& cele,
+    std::shared_ptr<Core::Elements::Element>& ele, const Core::FE::Discretization& discret) const
 {
   // ints to communicate decision over poro bools between processors on every interface
   // safety check - because there may not be mixed interfaces and structural slave elements
@@ -1384,8 +1383,8 @@ void CONTACT::STRATEGY::Factory::set_poro_parent_element(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void CONTACT::STRATEGY::Factory::find_poro_interface_types(bool& poromaster, bool& poroslave,
-    bool& structmaster, bool& structslave, enum Mortar::Element::PhysicalType& slavetype,
-    enum Mortar::Element::PhysicalType& mastertype) const
+    bool& structmaster, bool& structslave, Mortar::Element::PhysicalType& slavetype,
+    Mortar::Element::PhysicalType& mastertype) const
 {
   // find poro and structure elements when a poro coupling condition is applied on an element
   // and restrict to pure poroelastic or pure structural interfaces' sides.
@@ -1678,7 +1677,7 @@ void CONTACT::STRATEGY::Factory::print(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void CONTACT::STRATEGY::Factory::print_strategy_banner(const enum CONTACT::SolvingStrategy soltype)
+void CONTACT::STRATEGY::Factory::print_strategy_banner(const CONTACT::SolvingStrategy soltype)
 {
   // some parameters
   const Teuchos::ParameterList& smortar = Global::Problem::instance()->mortar_coupling_params();

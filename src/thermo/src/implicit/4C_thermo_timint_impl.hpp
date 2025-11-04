@@ -244,7 +244,7 @@ namespace Thermo
     //@{
 
     //! Return time integrator name
-    enum Thermo::DynamicType method_name() const override = 0;
+    Thermo::DynamicType method_name() const override = 0;
 
     //@}
 
@@ -307,23 +307,23 @@ namespace Thermo
 
     //! @name General purpose algorithm parameters
     //@{
-    enum Thermo::PredEnum pred_;  //!< predictor
+    Thermo::PredEnum pred_;  //!< predictor
     //@}
 
     //! @name Iterative solution technique
     //@{
-    enum Thermo::NonlinSolTech itertype_;  //!< kind of iteration technique
-                                           //!< or non-linear solution technique
-    enum Thermo::ConvNorm normtypetempi_;  //!< convergence check for residual temperatures
-    enum Thermo::ConvNorm normtypefres_;   //!< convergence check for residual forces
+    Thermo::NonlinSolTech itertype_;  //!< kind of iteration technique
+                                      //!< or non-linear solution technique
+    Thermo::ConvNorm normtypetempi_;  //!< convergence check for residual temperatures
+    Thermo::ConvNorm normtypefres_;   //!< convergence check for residual forces
 
-    enum Thermo::BinaryOp combtempifres_;  //!< binary operator to combine temperatures and forces
+    Thermo::BinaryOp combtempifres_;  //!< binary operator to combine temperatures and forces
 
-    enum Thermo::VectorNorm iternorm_;    //!< vector norm to check with
-    int itermax_;                         //!< maximally permitted iterations
-    int itermin_;                         //!< minimally requested iterations
-    enum Thermo::DivContAct divcontype_;  // what to do when nonlinear solution fails
-    int divcontrefinelevel_;              //!< refinement level of adaptive time stepping
+    Thermo::VectorNorm iternorm_;    //!< vector norm to check with
+    int itermax_;                    //!< maximally permitted iterations
+    int itermin_;                    //!< minimally requested iterations
+    Thermo::DivContAct divcontype_;  // what to do when nonlinear solution fails
+    int divcontrefinelevel_;         //!< refinement level of adaptive time stepping
     int divcontfinesteps_;  //!< number of time steps already performed at current refinement level
     double toltempi_;       //!< tolerance residual temperatures
     double tolfres_;        //!< tolerance force residual

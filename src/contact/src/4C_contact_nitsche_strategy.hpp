@@ -81,10 +81,10 @@ namespace CONTACT
     virtual void integrate(const CONTACT::ParamsInterface& cparams);
 
     std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const override;
+        const CONTACT::VecBlockType& bt) const override;
 
     std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt, const ParamsInterface* cparams) const override;
+        const CONTACT::MatBlockType& bt, const ParamsInterface* cparams) const override;
 
     /*! \brief Setup this strategy object (maps, vectors, etc.)
 
@@ -115,7 +115,7 @@ namespace CONTACT
     void compute_contact_stresses() final { /* nothing stress output in nitsche strategy yet */ };
     virtual void reconnect_parent_elements();
     void set_state(
-        const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) override;
 
     /*!
      * @brief  Set the parent state
@@ -124,7 +124,7 @@ namespace CONTACT
      * @param[in] vec        corresponding state vector
      * @param[in] dis        corresponding discretization
      */
-    void set_parent_state(const enum Mortar::StateType& statename,
+    void set_parent_state(const Mortar::StateType& statename,
         const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis) override;
 
     std::shared_ptr<const Core::LinAlg::Vector<double>> lagrange_multiplier_n(
@@ -236,7 +236,7 @@ namespace CONTACT
      * @return the filled RHS vector of given vector block type
      */
     virtual std::shared_ptr<Core::LinAlg::FEVector<double>> create_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const;
+        const CONTACT::VecBlockType& bt) const;
 
     /*!
      * @brief  Create an appropriate vector for the RHS
@@ -245,7 +245,7 @@ namespace CONTACT
      * @return  vector for given vector block type
      */
     virtual std::shared_ptr<Core::LinAlg::FEVector<double>> setup_rhs_block_vec(
-        const enum CONTACT::VecBlockType& bt) const;
+        const CONTACT::VecBlockType& bt) const;
 
     /*!
      * @brief Create appropriate matrix block
@@ -254,7 +254,7 @@ namespace CONTACT
      * @return matrix block for given matrix block type
      */
     virtual std::shared_ptr<Core::LinAlg::SparseMatrix> setup_matrix_block_ptr(
-        const enum MatBlockType& bt);
+        const MatBlockType& bt);
 
     /*!
      * @brief Complete the matrix block with correct maps
@@ -263,7 +263,7 @@ namespace CONTACT
      * @param[in,out] kc  matrix block of given matrix block type that has to be completed
      */
     virtual void complete_matrix_block_ptr(
-        const enum MatBlockType& bt, std::shared_ptr<Core::LinAlg::SparseMatrix> kc);
+        const MatBlockType& bt, std::shared_ptr<Core::LinAlg::SparseMatrix> kc);
 
     /*!
      * @brief Fill block matrix of given matrix block type
@@ -272,7 +272,7 @@ namespace CONTACT
      * @return the filled block matrix of given matrix block type
      */
     virtual std::shared_ptr<Core::LinAlg::SparseMatrix> create_matrix_block_ptr(
-        const enum MatBlockType& bt);
+        const MatBlockType& bt);
 
     std::vector<std::shared_ptr<CONTACT::Interface>> interface_;
 

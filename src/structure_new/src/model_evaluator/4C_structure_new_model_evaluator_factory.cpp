@@ -35,14 +35,14 @@ Solid::ModelEvaluator::Factory::Factory()
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::ModelEvaluatorManager::Map>
 Solid::ModelEvaluator::Factory::build_model_evaluators(
-    const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+    const std::set<Inpar::Solid::ModelType>& modeltypes,
     const std::shared_ptr<Solid::ModelEvaluator::Generic>& coupling_model_ptr) const
 {
   // create a new standard map
   std::shared_ptr<Solid::ModelEvaluatorManager::Map> model_map =
       std::make_shared<Solid::ModelEvaluatorManager::Map>();
 
-  std::set<enum Inpar::Solid::ModelType>::const_iterator mt_iter;
+  std::set<Inpar::Solid::ModelType>::const_iterator mt_iter;
   for (mt_iter = modeltypes.begin(); mt_iter != modeltypes.end(); ++mt_iter)
   {
     switch (*mt_iter)
@@ -131,7 +131,7 @@ Solid::ModelEvaluator::Factory::build_structure_model_evaluator() const
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::ModelEvaluatorManager::Map> Solid::ModelEvaluator::build_model_evaluators(
-    const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+    const std::set<Inpar::Solid::ModelType>& modeltypes,
     const std::shared_ptr<Solid::ModelEvaluator::Generic>& coupling_model_ptr)
 {
   Factory factory;

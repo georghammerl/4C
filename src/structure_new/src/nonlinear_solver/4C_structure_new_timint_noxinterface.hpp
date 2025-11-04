@@ -73,7 +73,7 @@ namespace Solid
       bool compute_f_and_jacobian(
           const Epetra_Vector& x, Epetra_Vector& rhs, Epetra_Operator& jac) override;
 
-      bool compute_correction_system(const enum NOX::Nln::CorrectionType type,
+      bool compute_correction_system(const NOX::Nln::CorrectionType type,
           const ::NOX::Abstract::Group& grp, const Epetra_Vector& x, Epetra_Vector& rhs,
           Epetra_Operator& jac) override;
 
@@ -112,9 +112,9 @@ namespace Solid
           const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const override;
 
       double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-          const Epetra_Vector& dir, const enum NOX::Nln::MeritFunction::MeritFctName mf_type,
-          const enum NOX::Nln::MeritFunction::LinOrder linorder,
-          const enum NOX::Nln::MeritFunction::LinType lintype) const override;
+          const Epetra_Vector& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
+          const NOX::Nln::MeritFunction::LinOrder linorder,
+          const NOX::Nln::MeritFunction::LinType lintype) const override;
 
       /*! \brief calculate characteristic/reference norms for forces
        *
@@ -155,8 +155,8 @@ namespace Solid
       void check_init_setup() const;
 
       double get_linearized_energy_model_terms(const ::NOX::Abstract::Group* group,
-          const Epetra_Vector& dir, const enum NOX::Nln::MeritFunction::LinOrder linorder,
-          const enum NOX::Nln::MeritFunction::LinType lintype) const;
+          const Epetra_Vector& dir, const NOX::Nln::MeritFunction::LinOrder linorder,
+          const NOX::Nln::MeritFunction::LinType lintype) const;
 
       void find_constraint_models(const ::NOX::Abstract::Group* grp,
           std::vector<Inpar::Solid::ModelType>& constraint_models) const;

@@ -222,7 +222,7 @@ void Solid::Integrator::compute_mass_matrix_and_init_acc()
   // build a NOX::Nln::Solid::LinearSystem
   // ---------------------------------------------------------------------------
   // get the structural linear solver
-  std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>> str_linsolver;
+  std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>> str_linsolver;
   str_linsolver[NOX::Nln::sol_structure] = Teuchos::rcpFromRef(
       *tim_int().get_data_sdyn().get_lin_solvers().at(Inpar::Solid::model_structure));
 
@@ -470,7 +470,7 @@ void Solid::Integrator::reset_step_state()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::Integrator::get_condensed_update_norm(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
 
@@ -484,7 +484,7 @@ double Solid::Integrator::get_condensed_update_norm(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::Integrator::get_condensed_previous_sol_norm(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
 
@@ -498,7 +498,7 @@ double Solid::Integrator::get_condensed_previous_sol_norm(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::Integrator::get_condensed_solution_update_rms(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   // global relative mean square norm
@@ -517,7 +517,7 @@ double Solid::Integrator::get_condensed_solution_update_rms(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 int Solid::Integrator::get_condensed_dof_number(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   // global dof number of the given quantity
@@ -529,8 +529,7 @@ int Solid::Integrator::get_condensed_dof_number(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-double Solid::Integrator::get_condensed_global_norm(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype,
+double Solid::Integrator::get_condensed_global_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
     const enum ::NOX::Abstract::Vector::NormType& normtype, double& mynorm) const
 {
   double gnorm = 0;

@@ -467,10 +467,10 @@ int NOX::Nln::Aux::get_outer_status(const ::NOX::StatusTest::Generic& test)
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum NOX::Nln::SolutionType NOX::Nln::Aux::convert_quantity_type_to_solution_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype)
+NOX::Nln::SolutionType NOX::Nln::Aux::convert_quantity_type_to_solution_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype)
 {
-  enum NOX::Nln::SolutionType soltype = NOX::Nln::sol_unknown;
+  NOX::Nln::SolutionType soltype = NOX::Nln::sol_unknown;
   switch (qtype)
   {
     case NOX::Nln::StatusTest::quantity_structure:

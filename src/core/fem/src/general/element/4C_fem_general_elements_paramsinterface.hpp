@@ -46,7 +46,7 @@ namespace Core::Elements
     //! @name Access general control parameters
     //! @{
     //! get the desired action type
-    virtual enum ActionType get_action_type() const = 0;
+    virtual ActionType get_action_type() const = 0;
 
     //! get the current total time for the evaluate call
     virtual double get_total_time() const = 0;

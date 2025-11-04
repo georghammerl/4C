@@ -148,8 +148,7 @@ void XFEM::XFluidTimeInt::set_and_print_status(const bool screenout)
 /*----------------------------------------------------------------------*
 | returns matching std::string for each reconstruction method   schott 07/12 |
 *----------------------------------------------------------------------*/
-std::string XFEM::XFluidTimeInt::map_method_enum_to_string(
-    const enum Inpar::XFEM::XFluidTimeInt term)
+std::string XFEM::XFluidTimeInt::map_method_enum_to_string(const Inpar::XFEM::XFluidTimeInt term)
 {
   // length of return std::string is 14 due to usage in formatted screen output
   switch (term)

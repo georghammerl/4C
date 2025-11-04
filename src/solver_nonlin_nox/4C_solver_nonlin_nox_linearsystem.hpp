@@ -97,7 +97,7 @@ namespace NOX
       //! Evaluate the Jacobian and the right hand side based on the solution vector x at once.
       virtual bool compute_f_and_jacobian(const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
-      bool compute_correction_system(const enum NOX::Nln::CorrectionType type,
+      bool compute_correction_system(const NOX::Nln::CorrectionType type,
           const ::NOX::Abstract::Group& grp, const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
       bool apply_jacobian_block(const NOX::Nln::Vector& input,
@@ -152,7 +152,7 @@ namespace NOX
       Teuchos::RCP<Epetra_Operator> get_jacobian_operator() override;
 
       //! Returns the operator type of the jacobian
-      const enum NOX::Nln::LinSystem::OperatorType& get_jacobian_operator_type() const;
+      const NOX::Nln::LinSystem::OperatorType& get_jacobian_operator_type() const;
 
       //! destroy the jacobian ptr
       bool destroy_jacobian();

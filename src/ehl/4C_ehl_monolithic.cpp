@@ -1375,7 +1375,7 @@ void EHL::Monolithic::unscale_solution(Core::LinAlg::BlockSparseMatrixBase& mat,
  | calculate vector norm                                    wirtz 01/16 |
  *----------------------------------------------------------------------*/
 double EHL::Monolithic::calculate_vector_norm(
-    const enum EHL::VectorNorm norm, Core::LinAlg::Vector<double>& vect)
+    const EHL::VectorNorm norm, Core::LinAlg::Vector<double>& vect)
 {
   // L1 norm
   // norm = sum_0^i vect[i]

@@ -131,7 +131,7 @@ namespace Solid
     //@{
 
     //! Return time integrator name
-    enum Inpar::Solid::DynamicType method_name() const override
+    Inpar::Solid::DynamicType method_name() const override
     {
       return Inpar::Solid::DynamicType::CentrDiff;
     }

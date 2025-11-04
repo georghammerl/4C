@@ -250,7 +250,7 @@ void Discret::Elements::ScaTraEleCalcElch<distype, probdim>::cal_error_compared_
   *----------------------------------------------------------------------*/
 template <Core::FE::CellType distype, int probdim>
 void Discret::Elements::ScaTraEleCalcElch<distype, probdim>::calculate_conductivity(
-    const Core::Elements::Element* ele, const enum ElCh::EquPot equpot,
+    const Core::Elements::Element* ele, const ElCh::EquPot equpot,
     Core::LinAlg::SerialDenseVector& sigma_domint, bool effCond, bool specresist)
 {
   // integration points and weights

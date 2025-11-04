@@ -777,10 +777,10 @@ bool Cut::ConcreteEdge<prob_dim, edge_type, dim_edge, num_nodes_edge>::compute_c
   if (not edges_parallel)
   {
     // perform the actual edge - edge intersection
-    const enum IntersectionStatus istatus =
+    const IntersectionStatus istatus =
         inter_ptr->compute_edge_side_intersection(tolerance, true, nullptr);
 
-    enum IntersectionStatus retstatus = istatus;
+    IntersectionStatus retstatus = istatus;
 
     switch (istatus)
     {

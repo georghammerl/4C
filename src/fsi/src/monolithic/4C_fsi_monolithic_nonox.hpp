@@ -274,9 +274,9 @@ namespace FSI
 
     //! @name Iterative solution technique
     //@{
-    enum Inpar::FSI::ConvNorm normtypeinc_;   //!< convergence check for increment
-    enum Inpar::FSI::ConvNorm normtypefres_;  //!< convergence check for residual forces
-    enum Inpar::FSI::BinaryOp combincfres_;  //!< binary operator to combine temperatures and forces
+    Inpar::FSI::ConvNorm normtypeinc_;   //!< convergence check for increment
+    Inpar::FSI::ConvNorm normtypefres_;  //!< convergence check for residual forces
+    Inpar::FSI::BinaryOp combincfres_;   //!< binary operator to combine temperatures and forces
 
     double tolinc_;   //!< tolerance residual temperatures
     double tolfres_;  //!< tolerance force residual

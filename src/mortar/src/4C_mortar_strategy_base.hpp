@@ -333,7 +333,7 @@ namespace Mortar
         std::shared_ptr<const Core::LinAlg::Vector<double>> blocksol) = 0;
     virtual void save_reference_state(std::shared_ptr<const Core::LinAlg::Vector<double>> dis) = 0;
     virtual void set_state(
-        const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) = 0;
+        const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) = 0;
     virtual std::shared_ptr<const Core::LinAlg::Map> slip_row_nodes() const = 0;
     virtual void store_dirichlet_status(
         std::shared_ptr<const Core::LinAlg::MapExtractor> dbcmaps) = 0;

@@ -50,9 +50,9 @@ namespace BeamInteraction
       if (!is_init()) FOUR_C_THROW("init() has not been called yet!");
     }
 
-    inline enum BeamContact::Strategy strategy() const { return strategy_; }
+    inline BeamContact::Strategy strategy() const { return strategy_; }
 
-    inline enum BeamContact::PenaltyLaw penalty_law() const { return penalty_law_; }
+    inline BeamContact::PenaltyLaw penalty_law() const { return penalty_law_; }
 
     inline double beam_to_beam_penalty_law_regularization_g0() const
     {
@@ -103,10 +103,10 @@ namespace BeamInteraction
     bool issetup_;
 
     //! strategy
-    enum BeamContact::Strategy strategy_;
+    BeamContact::Strategy strategy_;
 
     //! penalty law
-    enum BeamContact::PenaltyLaw penalty_law_;
+    BeamContact::PenaltyLaw penalty_law_;
 
     //! regularization parameters for penalty law
     double btb_penalty_law_regularization_g0_;

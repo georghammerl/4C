@@ -308,7 +308,7 @@ namespace Core::FE
     void read_dirichlet_condition(const Teuchos::ParameterList& params,
         const Core::FE::Discretization& discret, std::span<const Conditions::Condition*> conds,
         double time, DbcInfo& info, const std::shared_ptr<std::set<int>>* dbcgids,
-        const enum Core::Conditions::ConditionType& type) const;
+        const Core::Conditions::ConditionType& type) const;
 
     /** \brief Determine dofs subject to Dirichlet condition from input file
      *
@@ -361,7 +361,7 @@ namespace Core::FE
         std::span<const Core::Conditions::Condition*> conds, double time,
         const std::shared_ptr<Core::LinAlg::Vector<double>>* systemvectors,
         const Core::LinAlg::Vector<int>& toggle, const std::shared_ptr<std::set<int>>* dbcgids,
-        const enum Core::Conditions::ConditionType& type) const;
+        const Core::Conditions::ConditionType& type) const;
 
     /** \brief Apply the Dirichlet values to the system vectors
      *

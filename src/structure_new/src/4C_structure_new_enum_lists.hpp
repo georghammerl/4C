@@ -34,7 +34,7 @@ namespace Solid
   };
 
   //! Map energy type to std::string
-  inline std::string energy_type_to_string(const enum EnergyType type)
+  inline std::string energy_type_to_string(const EnergyType type)
   {
     switch (type)
     {
@@ -103,7 +103,7 @@ namespace Solid
     lm_lm,        ///< Kzz block (of the corresponding model evaluator)
   };
 
-  inline std::string mat_block_type_to_string(const enum MatBlockType type)
+  inline std::string mat_block_type_to_string(const MatBlockType type)
   {
     switch (type)
     {

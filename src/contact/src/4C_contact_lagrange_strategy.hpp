@@ -78,7 +78,7 @@ namespace CONTACT
      *
      *  \param bt (in): Desired vector block type, e.g. displ, constraint,*/
     std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const override;
+        const CONTACT::VecBlockType& bt) const override;
 
 
     /*! \brief recover the current state
@@ -111,7 +111,7 @@ namespace CONTACT
      *  \param bt (in): Desired matrix block type, e.g. displ_displ, displ_lm, ...
      *  \param cparams (in): contact parameter interface (read-only) */
     std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt,
+        const CONTACT::MatBlockType& bt,
         const CONTACT::ParamsInterface* cparams = nullptr) const override;
 
     /*! \brief Apply modifications (e.g. condensation) directly before linear solve

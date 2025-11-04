@@ -108,7 +108,7 @@ namespace Inpar
     };
 
     //! Map type std::string to enum
-    inline enum JointType string_to_joint_type(const std::string& name)
+    inline JointType string_to_joint_type(const std::string& name)
     {
       JointType type = beam3r_line2_rigid;
       if (name == "beam3rline2rigid")
@@ -124,7 +124,7 @@ namespace Inpar
     };
 
     //! Map type std::string to enum
-    inline enum FilamentType string_to_filament_type(const std::string& name)
+    inline FilamentType string_to_filament_type(const std::string& name)
     {
       FilamentType type = filetype_arbitrary;
       if (name == "arbitrary")
@@ -142,7 +142,7 @@ namespace Inpar
     };
 
     //! Map type std::string to enum
-    inline enum CrosslinkerType string_to_crosslinker_type(const std::string& name)
+    inline CrosslinkerType string_to_crosslinker_type(const std::string& name)
     {
       CrosslinkerType type = linkertype_arbitrary;
       if (name == "arbitrary")
@@ -165,7 +165,7 @@ namespace Inpar
     };
 
     //! Map action type enum to std::string
-    static inline std::string crosslinker_type_to_string(const enum CrosslinkerType type)
+    static inline std::string crosslinker_type_to_string(const CrosslinkerType type)
     {
       switch (type)
       {

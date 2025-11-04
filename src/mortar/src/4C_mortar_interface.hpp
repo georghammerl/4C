@@ -79,7 +79,7 @@ namespace Mortar
   /*! \brief Map state type enum to std::string
    *
    *  */
-  static inline std::string state_type_to_string(const enum StateType& type)
+  static inline std::string state_type_to_string(const StateType& type)
   {
     switch (type)
     {
@@ -111,7 +111,7 @@ namespace Mortar
   /*! \brief Map std::string to state type enum
    *
    *  */
-  static inline enum Mortar::StateType string_to_state_type(const std::string& name)
+  static inline Mortar::StateType string_to_state_type(const std::string& name)
   {
     Mortar::StateType type = state_vague;
     if (name == "displacement")
@@ -189,20 +189,20 @@ namespace Mortar
 
     inline const Teuchos::ParameterList& i_mortar() const { return imortar_; }
 
-    inline enum Inpar::Mortar::ShapeFcn& shape_fcn() { return shapefcn_; }
+    inline Inpar::Mortar::ShapeFcn& shape_fcn() { return shapefcn_; }
 
-    inline enum Inpar::Mortar::ShapeFcn shape_fcn() const { return shapefcn_; }
+    inline Inpar::Mortar::ShapeFcn shape_fcn() const { return shapefcn_; }
 
     inline bool& is_quad_slave() { return quadslave_; }
 
     inline bool is_quad_slave() const { return quadslave_; }
 
-    inline const enum Inpar::Mortar::ExtendGhosting& get_extend_ghosting() const
+    inline const Inpar::Mortar::ExtendGhosting& get_extend_ghosting() const
     {
       return extendghosting_;
     }
 
-    inline void set_extend_ghosting(const enum Inpar::Mortar::ExtendGhosting& extendghosting)
+    inline void set_extend_ghosting(const Inpar::Mortar::ExtendGhosting& extendghosting)
     {
       extendghosting_ = extendghosting;
     }
@@ -402,7 +402,7 @@ namespace Mortar
 
     inline Inpar::Mortar::SearchAlgorithm& search_algorithm() { return searchalgo_; }
 
-    inline enum Inpar::Mortar::SearchAlgorithm search_algorithm() const { return searchalgo_; }
+    inline Inpar::Mortar::SearchAlgorithm search_algorithm() const { return searchalgo_; }
 
     inline std::shared_ptr<Mortar::BinaryTree>& binary_tree() { return binarytree_; }
 
@@ -1207,7 +1207,7 @@ namespace Mortar
     \param[in] Enum to encode type of state
     \param[in] Vector with state data
     */
-    void set_state(const enum StateType& statetype, const Core::LinAlg::Vector<double>& vec);
+    void set_state(const StateType& statetype, const Core::LinAlg::Vector<double>& vec);
 
     /*!
     \brief Create integration cells for interface

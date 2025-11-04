@@ -103,7 +103,7 @@ namespace TSI
         double ittol                   //!< iteration tolerance
     );
 
-    enum ConvNorm normtypeinc_;  //!< convergence check for residual temperatures
+    ConvNorm normtypeinc_;  //!< convergence check for residual temperatures
 
     //! maximum iteration steps
     int itmax_;

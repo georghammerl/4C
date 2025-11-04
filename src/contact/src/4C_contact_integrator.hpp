@@ -68,7 +68,7 @@ namespace CONTACT
     Integrator(const Integrator& old) = delete;
 
     //! get specified integration type
-    inline enum Inpar::Mortar::IntType integration_type() const { return integrationtype_; }
+    inline Inpar::Mortar::IntType integration_type() const { return integrationtype_; }
 
     MPI_Comm get_comm() const { return Comm_; }
 

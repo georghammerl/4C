@@ -14,7 +14,7 @@ FOUR_C_NAMESPACE_OPEN
  | Calculate vector norm                                    bborn 08/09 |
  *----------------------------------------------------------------------*/
 double Thermo::Aux::calculate_vector_norm(
-    const enum Thermo::VectorNorm norm, Core::LinAlg::Vector<double>& vect)
+    const Thermo::VectorNorm norm, Core::LinAlg::Vector<double>& vect)
 {
   // L1 norm
   if (norm == Thermo::norm_l1)

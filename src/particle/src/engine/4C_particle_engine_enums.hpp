@@ -102,7 +102,7 @@ namespace Particle
    *
    * \return particle state dimension
    */
-  int enum_to_state_dim(const enum ParticleState& state);
+  int enum_to_state_dim(const ParticleState& state);
 
   /*!
    * \brief convert particle state enum to name
@@ -112,7 +112,7 @@ namespace Particle
    *
    * \return particle state name
    */
-  std::string enum_to_state_name(const enum ParticleState& state);
+  std::string enum_to_state_name(const ParticleState& state);
 
   /*!
    * \brief convert particle state name to enum
@@ -128,7 +128,7 @@ namespace Particle
    *
    * \return particle state
    */
-  enum ParticleState enum_from_state_name(const std::string& name);
+  ParticleState enum_from_state_name(const std::string& name);
 
   //! @}
 
@@ -164,7 +164,7 @@ namespace Particle
    *
    * \return particle type name
    */
-  std::string enum_to_type_name(const enum ParticleType& type);
+  std::string enum_to_type_name(const ParticleType& type);
 
   /*!
    * \brief convert particle type name to enum
@@ -177,7 +177,7 @@ namespace Particle
    *
    * \return particle type
    */
-  enum ParticleType enum_from_type_name(const std::string& name);
+  ParticleType enum_from_type_name(const std::string& name);
 
   const std::vector<std::string>& get_particle_type_names();
 
@@ -207,7 +207,7 @@ namespace Particle
    *
    * \return particle status name
    */
-  std::string enum_to_status_name(const enum ParticleStatus& status);
+  std::string enum_to_status_name(const ParticleStatus& status);
 
   //! @}
 

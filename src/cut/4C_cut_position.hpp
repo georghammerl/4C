@@ -47,7 +47,7 @@ namespace Cut
     };
 
     //! Map Status enum to std::string
-    static inline std::string status_to_string(enum Status pstatus)
+    static inline std::string status_to_string(Status pstatus)
     {
       switch (pstatus)
       {
@@ -137,7 +137,7 @@ namespace Cut
 
     virtual unsigned n_prob_dim() const = 0;
 
-    virtual enum Status status() const = 0;
+    virtual Status status() const = 0;
 
     /** \brief Default Compute method
      *
@@ -273,7 +273,7 @@ namespace Cut
     /// return the problem dimension
     unsigned n_prob_dim() const override { return probdim; }
 
-    enum Status status() const override { return pos_status_; }
+    Status status() const override { return pos_status_; }
 
     /*! \brief Return the local coordinates of the given point \c px_
      *
@@ -368,7 +368,7 @@ namespace Cut
     Core::LinAlg::Matrix<dim, 1> xsi_;
 
     /// computation status of the position calculation
-    enum Status pos_status_;
+    Status pos_status_;
 
     /** contains the tolerance used for the internal Newton method
      *  ( see the Compute() routines ) */

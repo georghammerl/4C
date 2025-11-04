@@ -159,9 +159,9 @@ namespace CONTACT
     overview) \param vec (in): current global state of the quantity defined by statetype
     */
     void set_state(
-        const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
 
-    void set_parent_state(const enum Mortar::StateType& statetype,
+    void set_parent_state(const Mortar::StateType& statetype,
         const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis) override;
 
     // Flag for Poro No Penetration Condition

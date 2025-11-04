@@ -65,13 +65,13 @@ namespace CONTACT
     void integrate(const CONTACT::ParamsInterface& cparams) override;
 
     void set_state(
-        const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec) override;
 
-    void set_parent_state(const enum Mortar::StateType& statename,
+    void set_parent_state(const Mortar::StateType& statename,
         const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis) override;
 
     std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bp) const override;
+        const CONTACT::VecBlockType& bp) const override;
 
     /*!
      * @brief get the pointer to the matrix block
@@ -80,7 +80,7 @@ namespace CONTACT
      * @return pointer to matrix block
      */
     std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bp) const;
+        const CONTACT::MatBlockType& bp) const;
 
     //! don't want = operator
     NitscheStrategySsi operator=(const NitscheStrategySsi& old) = delete;
@@ -89,13 +89,13 @@ namespace CONTACT
 
    protected:
     std::shared_ptr<Core::LinAlg::FEVector<double>> setup_rhs_block_vec(
-        const enum CONTACT::VecBlockType& bt) const override;
+        const CONTACT::VecBlockType& bt) const override;
 
     std::shared_ptr<Core::LinAlg::SparseMatrix> setup_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt) override;
+        const CONTACT::MatBlockType& bt) override;
 
-    void complete_matrix_block_ptr(const enum CONTACT::MatBlockType& bt,
-        std::shared_ptr<Core::LinAlg::SparseMatrix> kc) override;
+    void complete_matrix_block_ptr(
+        const CONTACT::MatBlockType& bt, std::shared_ptr<Core::LinAlg::SparseMatrix> kc) override;
 
     //! current scalar state vector
     std::shared_ptr<Core::LinAlg::Vector<double>> curr_state_scalar_;

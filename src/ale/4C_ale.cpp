@@ -355,7 +355,7 @@ void ALE::Ale::evaluate_elements()
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-std::string ALE::Ale::element_action_string(const enum ALE::AleDynamic name)
+std::string ALE::Ale::element_action_string(const ALE::AleDynamic name)
 {
   switch (name)
   {

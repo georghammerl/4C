@@ -79,7 +79,7 @@ namespace CONTACT
       an overview) \param vec (in): current global state of the quantity defined by statetype
      */
     void set_state(
-        const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
 
     // Overload CONTACT::AbstractStrategy::apply_force_stiff_cmt as this is called in the structure
     // --> to early for monolithically coupled algorithms!

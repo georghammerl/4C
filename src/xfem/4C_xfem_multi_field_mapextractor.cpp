@@ -741,7 +741,7 @@ void XFEM::MultiFieldMapExtractor::build_element_map_extractor()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::MultiFieldMapExtractor::extract_vector(
-    const Core::LinAlg::Vector<double>& full, enum FieldName field, enum MapType map_type) const
+    const Core::LinAlg::Vector<double>& full, FieldName field, MapType map_type) const
 {
   const int dis_id = slave_id(field);
 
@@ -765,8 +765,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::MultiFieldMapExtractor::extr
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor::extract_vector(
-    const Core::LinAlg::MultiVector<double>& full, enum FieldName field,
-    enum MapType map_type) const
+    const Core::LinAlg::MultiVector<double>& full, FieldName field, MapType map_type) const
 {
   const int dis_id = slave_id(field);
 
@@ -790,7 +789,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor:
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void XFEM::MultiFieldMapExtractor::extract_vector(const Core::LinAlg::MultiVector<double>& full,
-    int block, Core::LinAlg::MultiVector<double>& partial, enum MapType map_type) const
+    int block, Core::LinAlg::MultiVector<double>& partial, MapType map_type) const
 {
   // --------------------------------------------------------------------------
   // extract the non-interface part
@@ -841,7 +840,7 @@ void XFEM::MultiFieldMapExtractor::add_element_vector(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::MultiFieldMapExtractor::insert_vector(
-    const Core::LinAlg::Vector<double>& partial, enum FieldName field, enum MapType map_type) const
+    const Core::LinAlg::Vector<double>& partial, FieldName field, MapType map_type) const
 {
   const int dis_id = slave_id(field);
   std::shared_ptr<Core::LinAlg::Vector<double>> full =
@@ -853,8 +852,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::MultiFieldMapExtractor::inse
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor::insert_vector(
-    const Core::LinAlg::MultiVector<double>& partial, enum FieldName field,
-    enum MapType map_type) const
+    const Core::LinAlg::MultiVector<double>& partial, FieldName field, MapType map_type) const
 {
   const int dis_id = slave_id(field);
 
@@ -869,7 +867,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::MultiFieldMapExtractor:
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void XFEM::MultiFieldMapExtractor::insert_vector(const Core::LinAlg::MultiVector<double>& partial,
-    int block, Core::LinAlg::MultiVector<double>& full, enum MapType map_type) const
+    int block, Core::LinAlg::MultiVector<double>& full, MapType map_type) const
 {
   // --------------------------------------------------------------------------
   // insert the non_interface part
@@ -894,7 +892,7 @@ void XFEM::MultiFieldMapExtractor::insert_vector(const Core::LinAlg::MultiVector
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void XFEM::MultiFieldMapExtractor::add_vector(const Core::LinAlg::MultiVector<double>& partial,
-    int block, Core::LinAlg::MultiVector<double>& full, double scale, enum MapType map_type) const
+    int block, Core::LinAlg::MultiVector<double>& full, double scale, MapType map_type) const
 {
   // --------------------------------------------------------------------------
   // insert the non_interface part
@@ -952,9 +950,9 @@ bool XFEM::MultiFieldMapExtractor::is_x_fem_dis(int dis_id) const
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-int XFEM::MultiFieldMapExtractor::slave_id(enum FieldName field) const
+int XFEM::MultiFieldMapExtractor::slave_id(FieldName field) const
 {
-  std::map<enum FieldName, int>::const_iterator cit = slave_discret_id_map_.find(field);
+  std::map<FieldName, int>::const_iterator cit = slave_discret_id_map_.find(field);
   if (cit == slave_discret_id_map_.end())
     FOUR_C_THROW("The slave field \"{}\" could not be found!", field);
 
@@ -1063,7 +1061,7 @@ void XFEM::MultiFieldMapExtractor::build_master_interface_node_maps(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Map> XFEM::MultiFieldMapExtractor::node_row_map(
-    enum FieldName field, enum MultiField::BlockType block) const
+    FieldName field, MultiField::BlockType block) const
 {
   switch (block)
   {
@@ -1147,7 +1145,7 @@ void XFEM::MultiFieldMapExtractor::add_matrix(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 const std::shared_ptr<const Core::LinAlg::Map>& XFEM::MultiFieldMapExtractor::full_map(
-    enum MapType map_type) const
+    MapType map_type) const
 {
   return ma_map_extractor(map_type).full_map();
 }
@@ -1206,7 +1204,7 @@ void XFEM::MultiFieldMapExtractor::i_dof(std::vector<int>& dof, Core::Nodes::Nod
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 const Core::LinAlg::Map& XFEM::MultiFieldMapExtractor::slave_node_row_map(
-    unsigned dis_id, enum MultiField::BlockType btype) const
+    unsigned dis_id, MultiField::BlockType btype) const
 {
   check_init();
   return *(sl_map_extractor(dis_id, map_nodes).map(btype));

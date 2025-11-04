@@ -362,7 +362,7 @@ bool NOX::Nln::LinearSystem::compute_f_and_jacobian(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-bool NOX::Nln::LinearSystem::compute_correction_system(const enum CorrectionType type,
+bool NOX::Nln::LinearSystem::compute_correction_system(const CorrectionType type,
     const ::NOX::Abstract::Group& grp, const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs)
 {
   prePostOperatorPtr_->run_pre_compute_f_and_jacobian(
@@ -491,8 +491,7 @@ Teuchos::RCP<Epetra_Operator> NOX::Nln::LinearSystem::get_jacobian_operator()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-const enum NOX::Nln::LinSystem::OperatorType& NOX::Nln::LinearSystem::get_jacobian_operator_type()
-    const
+const NOX::Nln::LinSystem::OperatorType& NOX::Nln::LinearSystem::get_jacobian_operator_type() const
 {
   return jacType_;
 }

@@ -67,14 +67,14 @@ void Adapter::StructureTimeAdaJoint::setup_auxiliary()
   dataio->setup();
 
   ///// setup datasdyn
-  std::shared_ptr<std::set<enum Inpar::Solid::ModelType>> modeltypes =
+  std::shared_ptr<std::set<Inpar::Solid::ModelType>> modeltypes =
       std::make_shared<std::set<enum Inpar::Solid::ModelType>>();
   modeltypes->insert(Inpar::Solid::model_structure);
   //
-  std::shared_ptr<std::set<enum Inpar::Solid::EleTech>> eletechs =
+  std::shared_ptr<std::set<Inpar::Solid::EleTech>> eletechs =
       std::make_shared<std::set<enum Inpar::Solid::EleTech>>();
   //
-  std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+  std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
       linsolvers = Solid::SOLVER::build_lin_solvers(*modeltypes, adyn, *stm_->discretization());
   //
   std::shared_ptr<Solid::TimeInt::BaseDataSDyn> datasdyn = Solid::TimeInt::build_data_sdyn(adyn);
@@ -165,7 +165,7 @@ double Adapter::StructureTimeAdaJoint::method_lin_err_coeff_vel() const
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-enum Adapter::StructureTimeAda::AdaEnum Adapter::StructureTimeAdaJoint::method_adapt_dis() const
+Adapter::StructureTimeAda::AdaEnum Adapter::StructureTimeAdaJoint::method_adapt_dis() const
 {
   return ada_;
 }

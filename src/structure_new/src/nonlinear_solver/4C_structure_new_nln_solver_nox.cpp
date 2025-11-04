@@ -54,7 +54,7 @@ Solid::Nln::SOLVER::Nox::Nox(const Teuchos::ParameterList& default_params,
       Teuchos::rcpFromRef(*nox_interface_ptr());
 
   // vector of currently present solution types
-  std::vector<enum NOX::Nln::SolutionType> soltypes;
+  std::vector<NOX::Nln::SolutionType> soltypes;
   // map of linear solvers, the key is the solution type
   NOX::Nln::LinearSystem::SolverMap linsolvers;
   /* convert the Inpar::Solid::ModelType to a NOX::Nln::SolType
@@ -178,7 +178,7 @@ void Solid::Nln::SOLVER::Nox::reset_params()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ConvergenceStatus Solid::Nln::SOLVER::Nox::solve()
+Inpar::Solid::ConvergenceStatus Solid::Nln::SOLVER::Nox::solve()
 {
 #if !(FOUR_C_TRILINOS_INTERNAL_VERSION_GE(2025, 4))
   const auto solver_type =
@@ -208,7 +208,7 @@ enum Inpar::Solid::ConvergenceStatus Solid::Nln::SOLVER::Nox::solve()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ConvergenceStatus Solid::Nln::SOLVER::Nox::convert_final_status(
+Inpar::Solid::ConvergenceStatus Solid::Nln::SOLVER::Nox::convert_final_status(
     const ::NOX::StatusTest::StatusType& finalstatus) const
 {
   Inpar::Solid::ConvergenceStatus convstatus = Inpar::Solid::conv_success;

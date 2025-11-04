@@ -324,7 +324,7 @@ void PoroElast::print_logo()
 }
 
 double PoroElast::Utils::calculate_vector_norm(
-    const enum PoroElast::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
+    const PoroElast::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
 {
   // L1 norm
   // norm = sum_0^i vect[i]

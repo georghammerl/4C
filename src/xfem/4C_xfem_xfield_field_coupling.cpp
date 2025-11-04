@@ -25,7 +25,7 @@ XFEM::XFieldField::Coupling::Coupling()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void XFEM::XFieldField::Coupling::init(const enum MinDofDiscretization& min_dof_dis)
+void XFEM::XFieldField::Coupling::init(const MinDofDiscretization& min_dof_dis)
 {
   min_dof_dis_ = min_dof_dis;
 
@@ -35,7 +35,7 @@ void XFEM::XFieldField::Coupling::init(const enum MinDofDiscretization& min_dof_
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::master_to_slave(
-    const Core::LinAlg::Vector<double>& mv, const enum XFEM::MapType& map_type) const
+    const Core::LinAlg::Vector<double>& mv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> sv = nullptr;
   switch (map_type)
@@ -55,7 +55,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::maste
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::slave_to_master(
-    const Core::LinAlg::Vector<double>& sv, const enum XFEM::MapType& map_type) const
+    const Core::LinAlg::Vector<double>& sv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> mv = nullptr;
   switch (map_type)
@@ -75,7 +75,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::slave
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::master_to_slave(
-    const Core::LinAlg::MultiVector<double>& mv, const enum XFEM::MapType& map_type) const
+    const Core::LinAlg::MultiVector<double>& mv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv = nullptr;
   switch (map_type)
@@ -95,7 +95,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::slave_to_master(
-    const Core::LinAlg::MultiVector<double>& sv, const enum XFEM::MapType& map_type) const
+    const Core::LinAlg::MultiVector<double>& sv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv = nullptr;
   switch (map_type)
@@ -115,7 +115,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVector<double>& mv,
-    const enum XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& sv) const
+    const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& sv) const
 {
   switch (map_type)
   {
@@ -147,7 +147,7 @@ void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVecto
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void XFEM::XFieldField::Coupling::slave_to_master(const Core::LinAlg::MultiVector<double>& sv,
-    const enum XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& mv) const
+    const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& mv) const
 {
   switch (map_type)
   {

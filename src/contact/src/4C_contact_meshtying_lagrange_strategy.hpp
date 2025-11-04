@@ -187,11 +187,11 @@ namespace CONTACT
 
     //! Return the desired right-hand-side block pointer (read-only) [derived]
     std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const override;
+        const CONTACT::VecBlockType& bt) const override;
 
     //! Return the desired matrix block pointer (read-only) [derived]
     std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt) const override;
+        const CONTACT::MatBlockType& bt) const override;
 
     /*! \brief Modify system before linear solve
      *
