@@ -15,8 +15,8 @@
 #include "4C_fem_nurbs_discretization.hpp"
 #include "4C_global_data.hpp"
 #include "4C_global_legacy_module.hpp"
-#include "4C_inpar_problemtype.hpp"
 #include "4C_io_legacy_table.hpp"
+#include "4C_legacy_enum_definitions_problem_type_string.hpp"
 #include "4C_rigidsphere.hpp"
 
 #include <stack>
@@ -160,7 +160,7 @@ PostProblem::PostProblem(Teuchos::CommandLineProcessor& CLP, int argc, char** ar
 
   const char* type = map_read_string(general_data, "problem_type");
   const std::string probtype(type);
-  problemtype_ = Inpar::PROBLEMTYPE::string_to_problem_type(probtype);
+  problemtype_ = Core::string_to_problem_type_map().at(probtype);
 
   spatial_approx_ = Core::FE::string_to_shape_function_type(
       map_read_string(general_data, "spatial_approximation"));
