@@ -165,7 +165,7 @@ function(_add_test_with_options)
   set(oneValueArgs
       NAME_OF_TEST
       ADDITIONAL_FIXTURE
-      NP
+      TOTAL_PROCS
       TIMEOUT
       INPUT_FILE
       OUTPUT_DIR
@@ -189,8 +189,8 @@ function(_add_test_with_options)
     set(_parsed_ADDITIONAL_FIXTURE "")
   endif()
 
-  if(NOT DEFINED _parsed_NP)
-    set(_parsed_NP 1)
+  if(NOT DEFINED _parsed_TOTAL_PROCS)
+    set(_parsed_TOTAL_PROCS 1)
   endif()
 
   if(NOT DEFINED _parsed_TIMEOUT)
@@ -216,7 +216,7 @@ function(_add_test_with_options)
   endif()
 
   require_fixture(${_parsed_NAME_OF_TEST} "${_parsed_ADDITIONAL_FIXTURE};test_cleanup")
-  set_processors(${_parsed_NAME_OF_TEST} ${_parsed_NP})
+  set_processors(${_parsed_NAME_OF_TEST} ${_parsed_TOTAL_PROCS})
   define_setup_fixture(${_parsed_NAME_OF_TEST} ${_parsed_NAME_OF_TEST})
   set_timeout(${_parsed_NAME_OF_TEST} ${_parsed_TIMEOUT})
 
@@ -303,12 +303,11 @@ function(four_c_test)
     message(FATAL_ERROR "Test source file ${file_name} does not exist!")
   endif()
 
-  set(base_NP ${_parsed_NP})
   set(name_of_test ${_parsed_TEST_FILE}-p${_parsed_NP})
   set(test_directory ${PROJECT_BINARY_DIR}/framework_test_output/${name_of_test})
 
   # Optional OpenMP threads per processor
-  set(total_procs ${base_NP})
+  set(total_procs ${_parsed_NP})
 
   if(${_parsed_OMP_THREADS})
     set(name_of_test ${name_of_test}-OMP${_parsed_OMP_THREADS})
@@ -328,7 +327,7 @@ function(four_c_test)
 
   set(test_command
       "mkdir -p ${test_directory} \
-                && ${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> ${test_file_full_path} ${test_directory}/xxx"
+                && ${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${_parsed_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> ${test_file_full_path} ${test_directory}/xxx"
       )
 
   # Optional timeout
@@ -342,7 +341,7 @@ function(four_c_test)
     ${name_of_test}
     TEST_COMMAND
     ${test_command}
-    NP
+    TOTAL_PROCS
     ${total_procs}
     TIMEOUT
     "${_parsed_TIMEOUT}"
@@ -446,6 +445,7 @@ function(four_c_test_restart)
       )
 
   # Possibly enhanced with OpenMP
+  set(total_procs ${_parsed_NP})
   if(${_parsed_OMP_THREADS})
     set(name_of_test ${name_of_test}-OMP${_parsed_OMP_THREADS})
     set(test_command
@@ -473,8 +473,8 @@ function(four_c_test_restart)
     ${test_command}
     ADDITIONAL_FIXTURE
     ${_parsed_BASED_ON}
-    NP
-    ${total_procs}
+    TOTAL_PROCS
+    "${total_procs}"
     TIMEOUT
     "${_parsed_TIMEOUT}"
     LABELS
@@ -917,7 +917,7 @@ function(four_c_test_restarted_vtk)
     ${name_of_test}
     TEST_COMMAND
     ${run1_cmd}
-    NP
+    TOTAL_PROCS
     ${base_NP}
     TIMEOUT
     "${local_timeout}"
@@ -937,7 +937,7 @@ function(four_c_test_restarted_vtk)
     ${run2_cmd}
     ADDITIONAL_FIXTURE
     ${name_of_test}
-    NP
+    TOTAL_PROCS
     ${base_NP}
     TIMEOUT
     "${local_timeout}"
