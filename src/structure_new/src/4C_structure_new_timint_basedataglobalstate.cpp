@@ -306,7 +306,7 @@ int Solid::TimeInt::BaseDataGlobalState::setup_block_information(
       const Solid::ModelEvaluator::Meshtying& mt_me =
           dynamic_cast<const Solid::ModelEvaluator::Meshtying&>(me);
 
-      enum CONTACT::SystemType systype = mt_me.strategy().system_type();
+      CONTACT::SystemType systype = mt_me.strategy().system_type();
 
       auto soltype = Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(
           mt_me.strategy().params(), "STRATEGY");
@@ -447,7 +447,7 @@ void Solid::TimeInt::BaseDataGlobalState::setup_multi_map_extractor()
   std::map<Inpar::Solid::ModelType, int>::const_iterator ci;
   for (ci = model_block_id_.begin(); ci != model_block_id_.end(); ++ci)
   {
-    enum Inpar::Solid::ModelType mt = ci->first;
+    Inpar::Solid::ModelType mt = ci->first;
     int bid = ci->second;
     maps_vec[bid] = model_maps_.at(mt);
   }
@@ -461,8 +461,8 @@ void Solid::TimeInt::BaseDataGlobalState::setup_element_technology_map_extractor
   check_init();
 
   // loop all active element technologies
-  const std::set<enum Inpar::Solid::EleTech>& ele_techs = datasdyn_->get_element_technologies();
-  for (const enum Inpar::Solid::EleTech et : ele_techs)
+  const std::set<Inpar::Solid::EleTech>& ele_techs = datasdyn_->get_element_technologies();
+  for (const Inpar::Solid::EleTech et : ele_techs)
   {
     // mapextractor for element technology
     Core::LinAlg::MultiMapExtractor mapext;
@@ -494,7 +494,7 @@ void Solid::TimeInt::BaseDataGlobalState::setup_element_technology_map_extractor
  *----------------------------------------------------------------------------*/
 const Core::LinAlg::MultiMapExtractor&
 Solid::TimeInt::BaseDataGlobalState::get_element_technology_map_extractor(
-    const enum Inpar::Solid::EleTech etech) const
+    const Inpar::Solid::EleTech etech) const
 {
   if (mapextractors_.find(etech) == mapextractors_.end())
     FOUR_C_THROW("Could not find element technology \"{}\" in map extractors.", etech);
@@ -603,7 +603,7 @@ const Core::LinAlg::MultiMapExtractor& Solid::TimeInt::BaseDataGlobalState::bloc
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<NOX::Nln::Vector> Solid::TimeInt::BaseDataGlobalState::create_global_vector(
-    const enum VecInitType& vecinittype,
+    const VecInitType& vecinittype,
     const std::shared_ptr<const Solid::ModelEvaluatorManager>& modeleval) const
 {
   check_init();

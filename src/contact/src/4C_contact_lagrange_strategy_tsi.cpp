@@ -45,7 +45,7 @@ CONTACT::LagrangeStrategyTsi::LagrangeStrategyTsi(
  | Assign general thermo contact state                         seitz 08/15|
  *------------------------------------------------------------------------*/
 void CONTACT::LagrangeStrategyTsi::set_state(
-    const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
 {
   switch (statetype)
   {

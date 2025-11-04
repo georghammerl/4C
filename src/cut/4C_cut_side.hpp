@@ -89,7 +89,7 @@ namespace Cut
     void set_id(int sid) { sid_ = sid; }
 
     /// \brief Set the side ID to the input value
-    void set_marked_side_properties(int markedid, enum MarkedActions markedaction)
+    void set_marked_side_properties(int markedid, MarkedActions markedaction)
     {
       // No combination of cut-sides and marked sides!!
       if (sid_ > -1) FOUR_C_THROW("Currently a marked side and a cut side can not co-exist");
@@ -98,10 +98,10 @@ namespace Cut
         FOUR_C_THROW("Currently more than one mark on a side is NOT possible.");
 
       markedsidemap_.insert(
-          std::pair<enum MarkedActions, int>(Cut::mark_and_create_boundarycells, markedid));
+          std::pair<MarkedActions, int>(Cut::mark_and_create_boundarycells, markedid));
     }
 
-    std::map<enum MarkedActions, int>& get_markedsidemap() { return markedsidemap_; }
+    std::map<MarkedActions, int>& get_markedsidemap() { return markedsidemap_; }
 
     /// \brief Returns true if this is a cut side
     bool is_cut_side() { return (sid_ > -1); }

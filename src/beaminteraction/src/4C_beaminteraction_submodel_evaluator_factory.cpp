@@ -28,13 +28,13 @@ BeamInteraction::SubmodelEvaluator::Factory::Factory()
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map>
 BeamInteraction::SubmodelEvaluator::Factory::build_model_evaluators(
-    const std::set<enum Inpar::BeamInteraction::SubModelType>& submodeltypes) const
+    const std::set<Inpar::BeamInteraction::SubModelType>& submodeltypes) const
 {
   // create a new standard map
   std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> model_map =
       std::make_shared<Solid::ModelEvaluator::BeamInteraction::Map>();
 
-  std::set<enum Inpar::BeamInteraction::SubModelType>::const_iterator mt_iter;
+  std::set<Inpar::BeamInteraction::SubModelType>::const_iterator mt_iter;
   for (mt_iter = submodeltypes.begin(); mt_iter != submodeltypes.end(); ++mt_iter)
   {
     switch (*mt_iter)
@@ -68,7 +68,7 @@ BeamInteraction::SubmodelEvaluator::Factory::build_model_evaluators(
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map>
 BeamInteraction::SubmodelEvaluator::build_model_evaluators(
-    const std::set<enum Inpar::BeamInteraction::SubModelType>& submodeltypes)
+    const std::set<Inpar::BeamInteraction::SubModelType>& submodeltypes)
 {
   Factory factory;
   return factory.build_model_evaluators(submodeltypes);

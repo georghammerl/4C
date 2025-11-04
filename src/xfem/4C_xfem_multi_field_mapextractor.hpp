@@ -201,13 +201,13 @@ namespace XFEM
 
     /// @}
 
-    const Core::LinAlg::MultiMapExtractor& sl_dof_map_extractor(enum FieldName field) const
+    const Core::LinAlg::MultiMapExtractor& sl_dof_map_extractor(FieldName field) const
     {
       return sl_map_extractor(slave_id(field), map_dofs);
     }
 
     std::shared_ptr<const Core::LinAlg::Map> node_row_map(
-        enum FieldName field, enum MultiField::BlockType block) const;
+        FieldName field, MultiField::BlockType block) const;
 
     /** \brief return TRUE if the given global node id corresponds to an
      *  interface node
@@ -216,30 +216,29 @@ namespace XFEM
     bool is_interface_node(const int& ngid) const;
 
     /// Access the full maps
-    const std::shared_ptr<const Core::LinAlg::Map>& full_map(
-        enum MapType map_type = map_dofs) const;
+    const std::shared_ptr<const Core::LinAlg::Map>& full_map(MapType map_type = map_dofs) const;
 
     /// @name Extract vector routines
     /// @{
     std::shared_ptr<Core::LinAlg::Vector<double>> extract_vector(
-        const Core::LinAlg::Vector<double>& full, enum FieldName field,
-        enum MapType map_type = map_dofs) const;
+        const Core::LinAlg::Vector<double>& full, FieldName field,
+        MapType map_type = map_dofs) const;
 
     std::shared_ptr<Core::LinAlg::MultiVector<double>> extract_vector(
-        const Core::LinAlg::MultiVector<double>& full, enum FieldName field,
-        enum MapType map_type = map_dofs) const;
+        const Core::LinAlg::MultiVector<double>& full, FieldName field,
+        MapType map_type = map_dofs) const;
 
-    inline void extract_vector(const Core::LinAlg::MultiVector<double>& full, enum FieldName field,
-        Core::LinAlg::MultiVector<double>& partial, enum MapType map_type = map_dofs) const
+    inline void extract_vector(const Core::LinAlg::MultiVector<double>& full, FieldName field,
+        Core::LinAlg::MultiVector<double>& partial, MapType map_type = map_dofs) const
     {
       extract_vector(full, slave_id(field), partial, map_type);
     }
 
     void extract_vector(const Core::LinAlg::MultiVector<double>& full, int block,
-        Core::LinAlg::MultiVector<double>& partial, enum MapType map_type = map_dofs) const;
+        Core::LinAlg::MultiVector<double>& partial, MapType map_type = map_dofs) const;
 
     inline void extract_element_vector(const Core::LinAlg::MultiVector<double>& full,
-        enum FieldName field, Core::LinAlg::MultiVector<double>& partial) const
+        FieldName field, Core::LinAlg::MultiVector<double>& partial) const
     {
       extract_element_vector(full, slave_id(field), partial);
     }
@@ -258,8 +257,8 @@ namespace XFEM
      *
      *  */
     std::shared_ptr<Core::LinAlg::Vector<double>> insert_vector(
-        const Core::LinAlg::Vector<double>& partial, enum FieldName field,
-        enum MapType map_type = map_dofs) const;
+        const Core::LinAlg::Vector<double>& partial, FieldName field,
+        MapType map_type = map_dofs) const;
 
     /** \brief Put a partial vector into a full vector (Core::LinAlg::MultiVector<double>)
      *
@@ -268,8 +267,8 @@ namespace XFEM
      *
      *  */
     std::shared_ptr<Core::LinAlg::MultiVector<double>> insert_vector(
-        const Core::LinAlg::MultiVector<double>& partial, enum FieldName field,
-        enum MapType map_type = map_dofs) const;
+        const Core::LinAlg::MultiVector<double>& partial, FieldName field,
+        MapType map_type = map_dofs) const;
 
     /** \brief Put a partial vector into a full vector (Core::LinAlg::MultiVector<double>)
      *
@@ -278,8 +277,8 @@ namespace XFEM
      *  \param full   (out): vector to copy into
      *
      *  */
-    void insert_vector(const Core::LinAlg::MultiVector<double>& partial, enum FieldName field,
-        Core::LinAlg::MultiVector<double>& full, enum MapType map_type = map_dofs) const
+    void insert_vector(const Core::LinAlg::MultiVector<double>& partial, FieldName field,
+        Core::LinAlg::MultiVector<double>& full, MapType map_type = map_dofs) const
     {
       return insert_vector(partial, slave_id(field), full, map_type);
     }
@@ -288,10 +287,10 @@ namespace XFEM
      *
      *  */
     void insert_vector(const Core::LinAlg::MultiVector<double>& partial, int block,
-        Core::LinAlg::MultiVector<double>& full, enum MapType map_type = map_dofs) const;
+        Core::LinAlg::MultiVector<double>& full, MapType map_type = map_dofs) const;
 
     inline void insert_element_vector(const Core::LinAlg::MultiVector<double>& partial,
-        enum FieldName field, Core::LinAlg::MultiVector<double>& full) const
+        FieldName field, Core::LinAlg::MultiVector<double>& full) const
     {
       insert_element_vector(partial, slave_id(field), full);
     }
@@ -310,8 +309,8 @@ namespace XFEM
      *  \param scale   (in): scaling factor for partial vector
      *
      *  */
-    inline void add_vector(const Core::LinAlg::Vector<double>& partial, enum FieldName field,
-        Core::LinAlg::Vector<double>& full, double scale, enum MapType map_type = map_dofs) const
+    inline void add_vector(const Core::LinAlg::Vector<double>& partial, FieldName field,
+        Core::LinAlg::Vector<double>& full, double scale, MapType map_type = map_dofs) const
     {
       add_vector(partial, slave_id(field), full, scale, map_type);
     }
@@ -324,9 +323,8 @@ namespace XFEM
      *  \param scale   (in): scaling factor for partial vector
      *
      *  */
-    inline void add_vector(const Core::LinAlg::MultiVector<double>& partial, enum FieldName field,
-        Core::LinAlg::MultiVector<double>& full, double scale,
-        enum MapType map_type = map_dofs) const
+    inline void add_vector(const Core::LinAlg::MultiVector<double>& partial, FieldName field,
+        Core::LinAlg::MultiVector<double>& full, double scale, MapType map_type = map_dofs) const
     {
       return add_vector(partial, slave_id(field), full, scale, map_type);
     }
@@ -335,11 +333,10 @@ namespace XFEM
      *
      *  */
     void add_vector(const Core::LinAlg::MultiVector<double>& partial, int block,
-        Core::LinAlg::MultiVector<double>& full, double scale,
-        enum MapType map_type = map_dofs) const;
+        Core::LinAlg::MultiVector<double>& full, double scale, MapType map_type = map_dofs) const;
 
     inline void add_element_vector(const Core::LinAlg::MultiVector<double>& partial,
-        enum FieldName field, Core::LinAlg::MultiVector<double>& full, double scale) const
+        FieldName field, Core::LinAlg::MultiVector<double>& full, double scale) const
     {
       add_element_vector(partial, slave_id(field), full, scale);
     }
@@ -350,7 +347,7 @@ namespace XFEM
 
     /// @name Add a partial system-matrix to the full matrix
     /// @{
-    inline void add_matrix(const Core::LinAlg::SparseOperator& partial_mat, enum FieldName field,
+    inline void add_matrix(const Core::LinAlg::SparseOperator& partial_mat, FieldName field,
         Core::LinAlg::SparseOperator& full_mat, double scale)
     {
       add_matrix(partial_mat, slave_id(field), full_mat, scale);
@@ -369,7 +366,7 @@ namespace XFEM
      *  \param dis_id (in): entry of the slave discretization vector
      *
      */
-    bool is_x_fem_dis(enum FieldName field) const { return is_x_fem_dis(slave_id(field)); }
+    bool is_x_fem_dis(FieldName field) const { return is_x_fem_dis(slave_id(field)); }
 
    protected:
     /// check if init() has been called yet
@@ -399,7 +396,7 @@ namespace XFEM
      *  \param dis_id (in): entry of the slave discretization vector
      *
      */
-    inline const Core::LinAlg::Map& master_interface_node_row_map(enum FieldName field) const
+    inline const Core::LinAlg::Map& master_interface_node_row_map(FieldName field) const
     {
       return master_interface_node_row_map(slave_id(field));
     }
@@ -425,7 +422,7 @@ namespace XFEM
     /** \brief Access the master map extractor
      *
      */
-    const Core::LinAlg::MultiMapExtractor& ma_map_extractor(enum MapType map_type) const
+    const Core::LinAlg::MultiMapExtractor& ma_map_extractor(MapType map_type) const
     {
       if (master_map_extractor_.at(map_type) == nullptr)
         FOUR_C_THROW("The master dof/node map extractor was not initialized!");
@@ -440,15 +437,13 @@ namespace XFEM
      *
      */
     inline const Core::LinAlg::Map& slave_node_row_map(
-        enum XFEM::FieldName field, enum MultiField::BlockType btype) const
+        XFEM::FieldName field, MultiField::BlockType btype) const
     {
       return slave_node_row_map(slave_id(field), btype);
     }
-    const Core::LinAlg::Map& slave_node_row_map(
-        unsigned dis_id, enum MultiField::BlockType btype) const;
+    const Core::LinAlg::Map& slave_node_row_map(unsigned dis_id, MultiField::BlockType btype) const;
 
-    const Core::LinAlg::MultiMapExtractor& sl_map_extractor(
-        unsigned dis_id, enum MapType map_type) const
+    const Core::LinAlg::MultiMapExtractor& sl_map_extractor(unsigned dis_id, MapType map_type) const
     {
       check_init();
 
@@ -470,7 +465,7 @@ namespace XFEM
     /** \brief Access the interface matrix row transformer for the given field
      *
      *  */
-    Coupling::Adapter::MatrixRowTransform& i_mat_row_transform(enum FieldName field)
+    Coupling::Adapter::MatrixRowTransform& i_mat_row_transform(FieldName field)
     {
       return i_mat_row_transform(slave_id(field));
     }
@@ -496,7 +491,7 @@ namespace XFEM
     /** \brief Access the interface matrix column transformer for the given field
      *
      *  */
-    Coupling::Adapter::MatrixColTransform& i_mat_col_transform(enum FieldName field)
+    Coupling::Adapter::MatrixColTransform& i_mat_col_transform(FieldName field)
     {
       return i_mat_col_transform(slave_id(field));
     }
@@ -522,7 +517,7 @@ namespace XFEM
     /** \brief Access the interface matrix row and column transformer for the given field
      *
      *  */
-    Coupling::Adapter::MatrixRowColTransform& i_mat_row_col_transform(enum FieldName field)
+    Coupling::Adapter::MatrixRowColTransform& i_mat_row_col_transform(FieldName field)
     {
       return i_mat_row_col_transform(slave_id(field));
     }
@@ -554,7 +549,7 @@ namespace XFEM
       return *idiscret_;
     }
 
-    inline const Core::FE::Discretization& sl_discret(enum FieldName field) const
+    inline const Core::FE::Discretization& sl_discret(FieldName field) const
     {
       return sl_discret(slave_id(field));
     }
@@ -622,7 +617,7 @@ namespace XFEM
 
     void build_slave_discret_id_map();
 
-    int slave_id(enum FieldName field) const;
+    int slave_id(FieldName field) const;
 
     const std::vector<std::shared_ptr<const Core::FE::Discretization>>& sl_dis_vec() const
     {
@@ -664,7 +659,7 @@ namespace XFEM
     std::vector<std::shared_ptr<const Core::FE::Discretization>> slave_discret_vec_;
 
     /// mapping between the FieldName enumerator and the slave vector entry number
-    std::map<enum FieldName, int> slave_discret_id_map_;
+    std::map<FieldName, int> slave_discret_id_map_;
 
     /** \brief global interface node GID set
      *

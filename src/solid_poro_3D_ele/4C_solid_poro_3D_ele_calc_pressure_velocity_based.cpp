@@ -351,8 +351,8 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
   DiagonalBlockMatrixViews<celltype, porosity_formulation> matrix_views =
       make_optional_block_matrix_view<celltype>(diagonal_block_matrices);
 
-  enum Inpar::Solid::DampKind damping =
-      params.get<enum Inpar::Solid::DampKind>("damping", Inpar::Solid::damp_none);
+  Inpar::Solid::DampKind damping =
+      params.get<Inpar::Solid::DampKind>("damping", Inpar::Solid::damp_none);
 
   auto react_matrix = make_optional_matrix_view<num_dim_ * num_nodes_, num_dim_ * num_nodes_>(
       damping == Inpar::Solid::damp_material ? reactive_matrix : nullptr);

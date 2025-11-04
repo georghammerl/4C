@@ -19,7 +19,7 @@ FOUR_C_NAMESPACE_OPEN
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 NOX::Nln::StatusTest::ActiveSet::ActiveSet(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const int& max_cycle_size)
+    const NOX::Nln::StatusTest::QuantityType& qtype, const int& max_cycle_size)
     : qtype_(qtype),
       status_(::NOX::StatusTest::Unevaluated),
       max_cycle_size_(max_cycle_size),

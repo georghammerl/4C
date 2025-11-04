@@ -88,7 +88,7 @@ namespace ScaTra
     std::shared_ptr<FLD::Meshtying> meshtying_;
 
     //! type of fluid-fluid meshtying
-    enum Inpar::FLUID::MeshTying type_;
+    Inpar::FLUID::MeshTying type_;
 
    private:
     //! copy constructor

@@ -694,10 +694,10 @@ namespace FLD
     //---------------------------------input parameters------------------
 
     /// type of enforcing interface conditions in XFEM
-    enum Inpar::XFEM::CouplingMethod coupling_method_;
+    Inpar::XFEM::CouplingMethod coupling_method_;
 
     //! @name xfluid time integration
-    enum Inpar::XFEM::XFluidTimeIntScheme xfluid_timintapproach_;
+    Inpar::XFEM::XFluidTimeIntScheme xfluid_timintapproach_;
 
     //! @name check interfacetips in timeintegration
     bool xfluid_timint_check_interfacetips_;
@@ -707,7 +707,7 @@ namespace FLD
     //@}
 
     /// initial flow field
-    enum Inpar::FLUID::InitialField initfield_;
+    Inpar::FLUID::InitialField initfield_;
 
     /// start function number for an initial field
     int startfuncno_;
@@ -737,7 +737,7 @@ namespace FLD
     //--------------------------------------------------------------------
 
     //! do we have a turblence model?
-    enum Inpar::FLUID::TurbModelAction turbmodel_;
+    Inpar::FLUID::TurbModelAction turbmodel_;
     //@}
 
 

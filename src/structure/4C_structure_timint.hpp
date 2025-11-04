@@ -543,7 +543,7 @@ namespace Solid
     //@{
 
     //! Provide Name
-    virtual enum Inpar::Solid::DynamicType method_name() const = 0;
+    virtual Inpar::Solid::DynamicType method_name() const = 0;
 
     //! Provide title
     std::string method_title() const;
@@ -1015,7 +1015,7 @@ namespace Solid
                                                            //!< map of global DOFs on Dirichlet
                                                            //!< boundary conditions
 
-    enum Inpar::Solid::DivContAct divcontype_;  //!< what to do when nonlinear solution fails
+    Inpar::Solid::DivContAct divcontype_;  //!< what to do when nonlinear solution fails
     int divconrefinementlevel_;  //!< number of refinement level in case of divercontype_ ==
                                  //!< adapt_step
     int divconnumfinestep_;      //!< number of converged time steps on current refinement level
@@ -1059,9 +1059,9 @@ namespace Solid
     //!
     //! Rayleigh damping means \f${C} = c_\text{K} {K} + c_\text{M} {M}\f$
     //@{
-    enum Inpar::Solid::DampKind damping_;  //!< damping type
-    double dampk_;                         //!< damping factor for stiffness \f$c_\text{K}\f$
-    double dampm_;                         //!< damping factor for mass \f$c_\text{M}\f$
+    Inpar::Solid::DampKind damping_;  //!< damping type
+    double dampk_;                    //!< damping factor for stiffness \f$c_\text{K}\f$
+    double dampm_;                    //!< damping factor for mass \f$c_\text{M}\f$
     //@}
 
     //! @name Managed stuff

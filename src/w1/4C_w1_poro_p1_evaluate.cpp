@@ -243,8 +243,8 @@ int Discret::Elements::Wall1PoroP1<distype>::my_evaluate(Teuchos::ParameterList&
         Core::LinAlg::Matrix<numdof_, numdof_>* matptr = nullptr;
         if (elemat_1.is_initialized()) matptr = &elemat_1;
 
-        enum Inpar::Solid::DampKind damping =
-            params.get<enum Inpar::Solid::DampKind>("damping", Inpar::Solid::damp_none);
+        Inpar::Solid::DampKind damping =
+            params.get<Inpar::Solid::DampKind>("damping", Inpar::Solid::damp_none);
         Core::LinAlg::Matrix<numdof_, numdof_>* matptr2 = nullptr;
         if (elemat_2.is_initialized() and (damping == Inpar::Solid::damp_material))
           matptr2 = &elemat_2;

@@ -2093,7 +2093,7 @@ void TSI::Monolithic::unscale_solution(Core::LinAlg::BlockSparseMatrixBase& mat,
  | calculate vector norm                                     dano 04/13 |
  *----------------------------------------------------------------------*/
 double TSI::Monolithic::calculate_vector_norm(
-    const enum TSI::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
+    const TSI::VectorNorm norm, const Core::LinAlg::Vector<double>& vect)
 {
   // L1 norm
   // norm = sum_0^i vect[i]
@@ -2162,12 +2162,11 @@ void TSI::Monolithic::set_default_parameters()
   // what kind of norm do we wanna test for the single fields
   normtypedisi_ = Teuchos::getIntegralValue<Inpar::Solid::ConvNorm>(sdyn_, "NORM_DISP");
   normtypestrrhs_ = Teuchos::getIntegralValue<Inpar::Solid::ConvNorm>(sdyn_, "NORM_RESF");
-  enum Inpar::Solid::VectorNorm striternorm =
+  Inpar::Solid::VectorNorm striternorm =
       Teuchos::getIntegralValue<Inpar::Solid::VectorNorm>(sdyn_, "ITERNORM");
   normtypetempi_ = Teuchos::getIntegralValue<Thermo::ConvNorm>(tdyn, "NORM_TEMP");
   normtypethrrhs_ = Teuchos::getIntegralValue<Thermo::ConvNorm>(tdyn, "NORM_RESF");
-  enum Thermo::VectorNorm thriternorm =
-      Teuchos::getIntegralValue<Thermo::VectorNorm>(tdyn, "ITERNORM");
+  Thermo::VectorNorm thriternorm = Teuchos::getIntegralValue<Thermo::VectorNorm>(tdyn, "ITERNORM");
   // in total when do we reach a converged state for complete problem
   combincrhs_ = Teuchos::getIntegralValue<TSI::BinaryOp>(tsidynmono_, "NORMCOMBI_RESFINC");
 

@@ -81,7 +81,7 @@ namespace Solid
       //! @name Attribute access functions
       //@{
 
-      enum Inpar::Solid::DynamicType method_name() const override;
+      Inpar::Solid::DynamicType method_name() const override;
 
       bool is_implicit() const override { return false; }
 

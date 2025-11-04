@@ -408,7 +408,7 @@ namespace Solid
       }
 
       //! Get divcont type
-      [[nodiscard]] virtual enum Inpar::Solid::DivContAct get_divergence_action() const
+      [[nodiscard]] virtual Inpar::Solid::DivContAct get_divergence_action() const
       {
         check_init_setup();
         return datasdyn_->get_divergence_action();
@@ -672,7 +672,7 @@ namespace Solid
       //@{
 
       //! Provide Name
-      virtual enum Inpar::Solid::DynamicType method_name() const = 0;
+      virtual Inpar::Solid::DynamicType method_name() const = 0;
 
       //! Provide title
       std::string method_title() const;

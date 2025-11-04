@@ -14,7 +14,7 @@ FOUR_C_NAMESPACE_OPEN
 
 
 void CONTACT::NitscheStrategyFpi::set_state(
-    const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
 {
   CONTACT::NitscheStrategyPoro::set_state(statename, vec);
   if (statename == Mortar::state_new_displacement)

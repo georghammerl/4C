@@ -155,7 +155,7 @@ namespace Solid
     //@{
 
     //! Return time integrator name
-    enum Inpar::Solid::DynamicType method_name() const override = 0;
+    Inpar::Solid::DynamicType method_name() const override = 0;
 
     //! These time integrators are all explicit (mark their name)
     bool method_implicit() override { return false; }

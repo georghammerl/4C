@@ -161,7 +161,7 @@ void Discret::Elements::ScaTraEleCalcElchNP<distype>::evaluate_elch_boundary_kin
  *----------------------------------------------------------------------*/
 template <Core::FE::CellType distype>
 void Discret::Elements::ScaTraEleCalcElchNP<distype>::get_conductivity(
-    const enum ElCh::EquPot equpot, double& sigma_all, std::vector<double>& sigma,
+    const ElCh::EquPot equpot, double& sigma_all, std::vector<double>& sigma,
     bool effCond  // the bool effCond is not used for the NP formulation since the volume averaging
                   // is not implemented
 )

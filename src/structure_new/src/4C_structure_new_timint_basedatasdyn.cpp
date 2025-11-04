@@ -98,10 +98,9 @@ Solid::TimeInt::BaseDataSDyn::BaseDataSDyn()
  *----------------------------------------------------------------------------*/
 void Solid::TimeInt::BaseDataSDyn::init(const std::shared_ptr<Core::FE::Discretization> discret,
     const Teuchos::ParameterList& sdynparams, const Teuchos::ParameterList& xparams,
-    const std::shared_ptr<std::set<enum Inpar::Solid::ModelType>> modeltypes,
-    const std::shared_ptr<std::set<enum Inpar::Solid::EleTech>> eletechs,
-    const std::shared_ptr<
-        std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+    const std::shared_ptr<std::set<Inpar::Solid::ModelType>> modeltypes,
+    const std::shared_ptr<std::set<Inpar::Solid::EleTech>> eletechs,
+    const std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
         linsolvers)
 {
   // We have to call setup() after init()
@@ -290,7 +289,7 @@ void Solid::TimeInt::BaseDataSDyn::setup()
 {
   check_init();
 
-  std::set<enum Inpar::Solid::ModelType>::const_iterator it;
+  std::set<Inpar::Solid::ModelType>::const_iterator it;
   // setup model type specific data containers
   for (it = (*modeltypes_).begin(); it != (*modeltypes_).end(); ++it)
   {
@@ -327,7 +326,7 @@ void Solid::TimeInt::BaseDataSDyn::setup()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::TimeInt::BaseDataSDyn::get_res_tolerance(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   switch (qtype)
@@ -367,7 +366,7 @@ double Solid::TimeInt::BaseDataSDyn::get_res_tolerance(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::TimeInt::BaseDataSDyn::get_incr_tolerance(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   switch (qtype)
@@ -406,8 +405,8 @@ double Solid::TimeInt::BaseDataSDyn::get_incr_tolerance(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_res_tolerance_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_res_tolerance_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   switch (qtype)
@@ -446,8 +445,8 @@ enum Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_res_tolerance_type
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_incr_tolerance_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_incr_tolerance_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   check_init_setup();
   switch (qtype)
@@ -486,8 +485,8 @@ enum Inpar::Solid::ConvNorm Solid::TimeInt::BaseDataSDyn::get_incr_tolerance_typ
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   return get_res_combo_type(NOX::Nln::StatusTest::quantity_structure, qtype);
 }
@@ -495,9 +494,9 @@ enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_1,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_2) const
+Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype_1,
+    const NOX::Nln::StatusTest::QuantityType& qtype_2) const
 {
   check_init_setup();
   // combination: STRUCTURE <--> PRESSURE
@@ -556,8 +555,8 @@ enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_combo_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype) const
+Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype) const
 {
   return get_incr_combo_type(NOX::Nln::StatusTest::quantity_structure, qtype);
 }
@@ -565,9 +564,9 @@ enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_1,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_2) const
+Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype_1,
+    const NOX::Nln::StatusTest::QuantityType& qtype_2) const
 {
   check_init_setup();
   // combination: STRUCTURE <--> PRESSURE
@@ -626,9 +625,9 @@ enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_incr_combo_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_incr_combo_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_res,
-    const enum NOX::Nln::StatusTest::QuantityType& qtype_incr) const
+Inpar::Solid::BinaryOp Solid::TimeInt::BaseDataSDyn::get_res_incr_combo_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype_res,
+    const NOX::Nln::StatusTest::QuantityType& qtype_incr) const
 {
   check_init_setup();
   // combination: STRUCTURE (force/res) <--> STRUCTURE (displ/incr)

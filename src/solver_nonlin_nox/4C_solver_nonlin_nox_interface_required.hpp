@@ -67,13 +67,13 @@ namespace NOX
 
         //! compute and return some energy representative
         virtual double get_model_value(const Epetra_Vector& x, const Epetra_Vector& F,
-            const enum MeritFunction::MeritFctName merit_func_type) const = 0;
+            const MeritFunction::MeritFctName merit_func_type) const = 0;
 
         //! return model terms of a linear model (optional)
         virtual double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-            const Epetra_Vector& dir, const enum NOX::Nln::MeritFunction::MeritFctName mf_type,
-            const enum NOX::Nln::MeritFunction::LinOrder linorder,
-            const enum NOX::Nln::MeritFunction::LinType lintype) const
+            const Epetra_Vector& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
+            const NOX::Nln::MeritFunction::LinOrder linorder,
+            const NOX::Nln::MeritFunction::LinType lintype) const
         {
           FOUR_C_THROW("Not implemented!");
         }

@@ -32,15 +32,14 @@ namespace Discret
 
       //! ProvideImpl
       static ScaTraBoundaryInterface* provide_impl(const Core::Elements::Element* ele,
-          const enum Inpar::ScaTra::ImplType impltype, const int numdofpernode, const int numscal,
+          const Inpar::ScaTra::ImplType impltype, const int numdofpernode, const int numscal,
           const std::string& disname);
 
      private:
       //! return instance of element evaluation class depending on implementation type
       template <Core::FE::CellType distype, int probdim>
-      static ScaTraBoundaryInterface* define_problem_type(
-          const enum Inpar::ScaTra::ImplType impltype, const int numdofpernode, const int numscal,
-          const std::string& disname);
+      static ScaTraBoundaryInterface* define_problem_type(const Inpar::ScaTra::ImplType impltype,
+          const int numdofpernode, const int numscal, const std::string& disname);
     };  // class ScaTraBoundaryFactory
   }  // namespace Elements
 }  // namespace Discret

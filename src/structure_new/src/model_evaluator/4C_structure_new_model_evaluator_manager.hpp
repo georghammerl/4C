@@ -77,8 +77,7 @@ namespace Solid
   class ModelEvaluatorManager
   {
    public:
-    using Map =
-        std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Solid::ModelEvaluator::Generic>>;
+    using Map = std::map<Inpar::Solid::ModelType, std::shared_ptr<Solid::ModelEvaluator::Generic>>;
     using Vector = std::vector<std::shared_ptr<Solid::ModelEvaluator::Generic>>;
 
     //! constructor
@@ -177,12 +176,12 @@ namespace Solid
      *
      * @return Boolean flag to indicate success (true) or failure (false)
      */
-    bool apply_cheap_soc_rhs(const enum NOX::Nln::CorrectionType type,
+    bool apply_cheap_soc_rhs(const NOX::Nln::CorrectionType type,
         const std::vector<Inpar::Solid::ModelType>& constraint_models,
         const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
         const double& timefac_np) const;
 
-    bool correct_parameters(const enum NOX::Nln::CorrectionType type) const;
+    bool correct_parameters(const NOX::Nln::CorrectionType type) const;
 
     /*! \brief Remove any condensed contributions from the structural right-hand side
      *
@@ -347,8 +346,8 @@ namespace Solid
      *
      * \param[in] mt Type of model evaluator to be accessed
      */
-    Solid::ModelEvaluator::Generic& evaluator(const enum Inpar::Solid::ModelType& mt);
-    const Solid::ModelEvaluator::Generic& evaluator(const enum Inpar::Solid::ModelType& mt) const;
+    Solid::ModelEvaluator::Generic& evaluator(const Inpar::Solid::ModelType& mt);
+    const Solid::ModelEvaluator::Generic& evaluator(const Inpar::Solid::ModelType& mt) const;
 
     //!@}
 

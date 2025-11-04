@@ -301,7 +301,7 @@ namespace PoroElast
 
     //!@}
 
-    enum Inpar::Solid::DynamicType strmethodname_;  //!< enum for STR time integration
+    Inpar::Solid::DynamicType strmethodname_;  //!< enum for STR time integration
 
     //! @name Global matrixes
 
@@ -360,11 +360,11 @@ namespace PoroElast
 
     //! @name Iterative solution technique
 
-    enum PoroElast::ConvNorm normtypeinc_;   //!< convergence check for residual temperatures
-    enum PoroElast::ConvNorm normtypefres_;  //!< convergence check for residual forces
-    enum PoroElast::BinaryOp combincfres_;   //!< binary operator to combine temperatures and forces
-    enum PoroElast::VectorNorm vectornormfres_;  //!< type of norm for residual
-    enum PoroElast::VectorNorm vectornorminc_;   //!< type of norm for increments
+    PoroElast::ConvNorm normtypeinc_;       //!< convergence check for residual temperatures
+    PoroElast::ConvNorm normtypefres_;      //!< convergence check for residual forces
+    PoroElast::BinaryOp combincfres_;       //!< binary operator to combine temperatures and forces
+    PoroElast::VectorNorm vectornormfres_;  //!< type of norm for residual
+    PoroElast::VectorNorm vectornorminc_;   //!< type of norm for increments
 
     double tolinc_;   //!< tolerance residual increment
     double tolfres_;  //!< tolerance force residual

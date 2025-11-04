@@ -55,7 +55,7 @@ namespace Solid
     };
 
     //! Map evaluation error flag to a std::string
-    static inline std::string eval_error_flag_to_string(const enum EvalErrorFlag& errorflag)
+    static inline std::string eval_error_flag_to_string(const EvalErrorFlag& errorflag)
     {
       switch (errorflag)
       {
@@ -94,10 +94,10 @@ namespace Solid
     {
      public:
       //! return the damping type
-      virtual enum Inpar::Solid::DampKind get_damping_type() const = 0;
+      virtual Inpar::Solid::DampKind get_damping_type() const = 0;
 
       //! return the predictor type
-      virtual enum Inpar::Solid::PredEnum get_predictor_type() const = 0;
+      virtual Inpar::Solid::PredEnum get_predictor_type() const = 0;
 
       /// Shall errors during the element evaluation be tolerated?
       virtual bool is_tolerate_errors() const = 0;
@@ -144,7 +144,7 @@ namespace Solid
       /*! \brief set evaluation error flag
        *
        *  See the EvalErrorFlag enumerators for more information. */
-      virtual void set_ele_eval_error_flag(const enum EvalErrorFlag& error_flag) = 0;
+      virtual void set_ele_eval_error_flag(const EvalErrorFlag& error_flag) = 0;
       //! @}
 
       //! @name output related functions
@@ -158,30 +158,29 @@ namespace Solid
       virtual std::shared_ptr<std::vector<char>> opt_quantity_data_ptr() = 0;
 
       //! get the current stress type
-      virtual enum Inpar::Solid::StressType get_stress_output_type() const = 0;
+      virtual Inpar::Solid::StressType get_stress_output_type() const = 0;
 
       //! get the current strain type
-      virtual enum Inpar::Solid::StrainType get_strain_output_type() const = 0;
+      virtual Inpar::Solid::StrainType get_strain_output_type() const = 0;
 
       //! get the current plastic strain type
-      virtual enum Inpar::Solid::StrainType get_plastic_strain_output_type() const = 0;
+      virtual Inpar::Solid::StrainType get_plastic_strain_output_type() const = 0;
 
       virtual std::shared_ptr<ModelEvaluator::GaussPointDataOutputManager>&
       gauss_point_data_output_manager_ptr() = 0;
 
       //! add contribution to energy of specified type
-      virtual void add_contribution_to_energy_type(double value, enum Solid::EnergyType type) = 0;
+      virtual void add_contribution_to_energy_type(double value, Solid::EnergyType type) = 0;
 
       //! add the current partial update norm of the given quantity
-      virtual void sum_into_my_update_norm(const enum NOX::Nln::StatusTest::QuantityType& qtype,
+      virtual void sum_into_my_update_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
           const int& numentries, const double* my_update_values, const double* my_new_sol_values,
           const double& step_length, const int& owner) = 0;
 
       /*! collects and calculates the solution norm of the previous accepted Newton
        *  step on the current proc */
-      virtual void sum_into_my_previous_sol_norm(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype, const int& numentries,
-          const double* my_old_values, const int& owner) = 0;
+      virtual void sum_into_my_previous_sol_norm(const NOX::Nln::StatusTest::QuantityType& qtype,
+          const int& numentries, const double* my_old_values, const int& owner) = 0;
       //! @}
     };  // class ParamsInterface
 

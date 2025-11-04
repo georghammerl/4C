@@ -66,7 +66,7 @@ namespace Solid
     //@{
 
     //! Provide the name
-    enum Inpar::Solid::TimAdaKind method_name() const override
+    Inpar::Solid::TimAdaKind method_name() const override
     {
       return Inpar::Solid::timada_kind_zienxie;
     }
@@ -84,7 +84,7 @@ namespace Solid
     double method_lin_err_coeff_vel() const override { return -1.0 / 12.0; }
 
     //! Provide type of algorithm
-    enum AdaEnum method_adapt_dis() const override { return ada_upward; }
+    AdaEnum method_adapt_dis() const override { return ada_upward; }
 
     //@}
 

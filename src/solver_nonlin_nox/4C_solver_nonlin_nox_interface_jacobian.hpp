@@ -46,7 +46,7 @@ namespace NOX
         /*! \brief Compute the correction system of given type.
          *
          *  \return TRUE if computation was successful. */
-        virtual bool compute_correction_system(const enum CorrectionType type,
+        virtual bool compute_correction_system(const CorrectionType type,
             const ::NOX::Abstract::Group& grp, const Epetra_Vector& x, Epetra_Vector& rhs,
             Epetra_Operator& jac)
         {

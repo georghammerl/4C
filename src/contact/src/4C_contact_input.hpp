@@ -50,7 +50,7 @@ namespace CONTACT
     multiscale  ///< method for contact of rough surfaces with a multi scale approach
   };
 
-  inline std::string solving_strategy_to_string(enum SolvingStrategy stype)
+  inline std::string solving_strategy_to_string(SolvingStrategy stype)
   {
     switch (stype)
     {

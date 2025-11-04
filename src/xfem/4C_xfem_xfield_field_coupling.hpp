@@ -52,7 +52,7 @@ namespace XFEM
       Coupling();
 
       /// initialize class member variables
-      void init(const enum MinDofDiscretization& min_dof_dis);
+      void init(const MinDofDiscretization& min_dof_dis);
 
       /** \name Conversion between master and slave
        *
@@ -68,7 +68,7 @@ namespace XFEM
        *  \param map_type (in) : map type of the master vector */
       inline std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
           const std::shared_ptr<Core::LinAlg::Vector<double>>& mv,
-          const enum XFEM::MapType& map_type) const
+          const XFEM::MapType& map_type) const
       {
         return master_to_slave(
             *std::const_pointer_cast<const Core::LinAlg::Vector<double>>(mv), map_type);
@@ -79,8 +79,7 @@ namespace XFEM
        *  \param sv       (in) : slave vector (to be transferred)
        *  \param map_type (in) : map type of the slave vector */
       inline std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
-          std::shared_ptr<Core::LinAlg::Vector<double>> sv,
-          const enum XFEM::MapType& map_type) const
+          std::shared_ptr<Core::LinAlg::Vector<double>> sv, const XFEM::MapType& map_type) const
       {
         return slave_to_master(
             *std::const_pointer_cast<const Core::LinAlg::Vector<double>>(sv), map_type);
@@ -92,7 +91,7 @@ namespace XFEM
        *  \param map_type (in) : map type of the master vector */
       inline std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
           std::shared_ptr<Core::LinAlg::MultiVector<double>> mv,
-          const enum XFEM::MapType& map_type) const
+          const XFEM::MapType& map_type) const
       {
         return master_to_slave(
             *std::const_pointer_cast<const Core::LinAlg::MultiVector<double>>(mv), map_type);
@@ -104,7 +103,7 @@ namespace XFEM
        *  \param map_type (in) : map type of the slave vector */
       inline std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
           std::shared_ptr<Core::LinAlg::MultiVector<double>> sv,
-          const enum XFEM::MapType& map_type) const
+          const XFEM::MapType& map_type) const
       {
         return slave_to_master(
             *std::const_pointer_cast<const Core::LinAlg::MultiVector<double>>(sv), map_type);
@@ -115,28 +114,28 @@ namespace XFEM
        *  \param mv       (in) : master vector (to be transferred)
        *  \param map_type (in) : map type of the master vector */
       std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
-          const Core::LinAlg::Vector<double>& mv, const enum XFEM::MapType& map_type) const;
+          const Core::LinAlg::Vector<double>& mv, const XFEM::MapType& map_type) const;
 
       /** \brief transfer a nodal/dof vector from slave to master
        *
        *  \param sv       (in) : slave vector (to be transferred)
        *  \param map_type (in) : map type of the slave vector */
       std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
-          const Core::LinAlg::Vector<double>& sv, const enum XFEM::MapType& map_type) const;
+          const Core::LinAlg::Vector<double>& sv, const XFEM::MapType& map_type) const;
 
       /** \brief transfer a nodel/dof vector from master to slave
        *
        *  \param mv       (in) : master vector (to be transferred)
        *  \param map_type (in) : map type of the master vector */
       std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
-          const Core::LinAlg::MultiVector<double>& mv, const enum XFEM::MapType& map_type) const;
+          const Core::LinAlg::MultiVector<double>& mv, const XFEM::MapType& map_type) const;
 
       /** \brief transfer a nodal/dof multi vector from slave to master
        *
        *  \param sv       (in) : slave multi vector (to be transferred)
        *  \param map_type (in) : map type of the slave vector */
       std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
-          const Core::LinAlg::MultiVector<double>& sv, const enum XFEM::MapType& map_type) const;
+          const Core::LinAlg::MultiVector<double>& sv, const XFEM::MapType& map_type) const;
 
       /** \brief transfer a nodel/dof multi vector from master to slave
        *
@@ -144,7 +143,7 @@ namespace XFEM
        *  \param map_type (in) : map type of the master vector
        *  \param sv       (out): slave multi vector (target)*/
       void master_to_slave(const Core::LinAlg::MultiVector<double>& mv,
-          const enum XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& sv) const;
+          const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& sv) const;
 
       /** \brief transfer a nodal/dof multi vector from slave to master
        *
@@ -152,7 +151,7 @@ namespace XFEM
        *  \param map_type (in) : map type of the slave vector
        *  \param mv       (out): master multi vector (target)*/
       void slave_to_master(const Core::LinAlg::MultiVector<double>& sv,
-          const enum XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& mv) const;
+          const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& mv) const;
 
       //@}
 
@@ -214,12 +213,12 @@ namespace XFEM
           std::shared_ptr<Core::LinAlg::Export>& max_exporter,
           const std::map<int, unsigned>& my_mindofpernode) const;
 
-      inline const enum MinDofDiscretization& min_dof_dis() const { return min_dof_dis_; }
+      inline const MinDofDiscretization& min_dof_dis() const { return min_dof_dis_; }
 
      private:
       bool isinit_;
 
-      enum MinDofDiscretization min_dof_dis_;
+      MinDofDiscretization min_dof_dis_;
 
       std::shared_ptr<const Core::LinAlg::Map> masternodemap_;
 

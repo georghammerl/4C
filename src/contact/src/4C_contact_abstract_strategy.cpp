@@ -953,7 +953,7 @@ void CONTACT::AbstractStrategy::apply_force_stiff_cmt(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 void CONTACT::AbstractStrategy::set_state(
-    const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
 {
   switch (statetype)
   {
@@ -2527,7 +2527,7 @@ void CONTACT::AbstractStrategy::evaluate(CONTACT::ParamsInterface& cparams,
 {
   pre_evaluate(cparams);
 
-  const enum Mortar::ActionType& act = cparams.get_action_type();
+  const Mortar::ActionType& act = cparams.get_action_type();
   switch (act)
   {
     // -------------------------------------------------------------------
@@ -2906,7 +2906,7 @@ CONTACT::AbstractStrategy::lagrange_multiplier_n(const bool& redist) const
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double CONTACT::AbstractStrategy::get_potential_value(
-    const enum NOX::Nln::MeritFunction::MeritFctName mrt_type) const
+    const NOX::Nln::MeritFunction::MeritFctName mrt_type) const
 {
   FOUR_C_THROW("The currently active strategy \"{}\" does not support this method!",
       CONTACT::solving_strategy_to_string(type()));
@@ -2915,10 +2915,9 @@ double CONTACT::AbstractStrategy::get_potential_value(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double CONTACT::AbstractStrategy::get_linearized_potential_value_terms(
-    const Core::LinAlg::Vector<double>& dir,
-    const enum NOX::Nln::MeritFunction::MeritFctName mrt_type,
-    const enum NOX::Nln::MeritFunction::LinOrder linorder,
-    const enum NOX::Nln::MeritFunction::LinType lintype) const
+    const Core::LinAlg::Vector<double>& dir, const NOX::Nln::MeritFunction::MeritFctName mrt_type,
+    const NOX::Nln::MeritFunction::LinOrder linorder,
+    const NOX::Nln::MeritFunction::LinType lintype) const
 {
   FOUR_C_THROW("The currently active strategy \"{}\" does not support this method!",
       CONTACT::solving_strategy_to_string(type()));

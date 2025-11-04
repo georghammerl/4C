@@ -169,7 +169,7 @@ namespace Solid
       //@{
 
       //! Provide Name
-      enum Inpar::Solid::DynamicType method_name() const override;
+      Inpar::Solid::DynamicType method_name() const override;
 
       //! Provide number of steps, e.g. a single-step method returns 1,
       //! a \f$m\f$-multistep method returns \f$m\f$

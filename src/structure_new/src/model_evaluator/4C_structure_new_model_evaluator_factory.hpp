@@ -38,7 +38,7 @@ namespace Solid
 
 
       std::shared_ptr<Solid::ModelEvaluatorManager::Map> build_model_evaluators(
-          const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+          const std::set<Inpar::Solid::ModelType>& modeltypes,
           const std::shared_ptr<Solid::ModelEvaluator::Generic>& coupling_model_ptr) const;
 
      private:
@@ -52,7 +52,7 @@ namespace Solid
 
     //! non-member function, which relates to the Solid::ModelEvaluator::Factory
     std::shared_ptr<Solid::ModelEvaluatorManager::Map> build_model_evaluators(
-        const std::set<enum Inpar::Solid::ModelType>& modeltypes,
+        const std::set<Inpar::Solid::ModelType>& modeltypes,
         const std::shared_ptr<Solid::ModelEvaluator::Generic>& coupling_model_ptr);
 
   }  // namespace ModelEvaluator

@@ -189,8 +189,7 @@ bool Cut::IntegrationCellCreator::create_line2_cell(
   std::vector<Point*> line_corner_points;
   line_corner_points.reserve(2);
 
-  const enum Cut::BoundaryCellPosition bcell_pos =
-      mesh.create_options().gen_boundary_cell_position();
+  const Cut::BoundaryCellPosition bcell_pos = mesh.create_options().gen_boundary_cell_position();
 
   for (plain_facet_set::const_iterator cit = facets.begin(); cit != facets.end(); ++cit)
   {
@@ -231,8 +230,7 @@ bool Cut::IntegrationCellCreator::create_2d_cell(
   // check the facet number
   if (facets.size() != numfaces) return false;
 
-  const enum Cut::BoundaryCellPosition bcell_pos =
-      mesh.create_options().gen_boundary_cell_position();
+  const Cut::BoundaryCellPosition bcell_pos = mesh.create_options().gen_boundary_cell_position();
 
   Impl::SimplePointGraph2D pg = Impl::SimplePointGraph2D();
   pg.find_line_facet_cycles(facets, cell->parent_element());

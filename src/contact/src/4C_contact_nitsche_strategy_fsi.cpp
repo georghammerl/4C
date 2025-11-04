@@ -27,7 +27,7 @@ void CONTACT::NitscheStrategyFsi::apply_force_stiff_cmt(
 }
 
 void CONTACT::NitscheStrategyFsi::set_state(
-    const enum Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statename, const Core::LinAlg::Vector<double>& vec)
 {
   CONTACT::NitscheStrategy::set_state(statename, vec);
   if (statename == Mortar::state_new_displacement)

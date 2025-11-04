@@ -209,7 +209,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
   // the different conditions
   // ---------------------------------------------------------------------------
   // define and initial with default value
-  std::shared_ptr<std::set<enum Inpar::Solid::ModelType>> modeltypes =
+  std::shared_ptr<std::set<Inpar::Solid::ModelType>> modeltypes =
       std::make_shared<std::set<enum Inpar::Solid::ModelType>>();
   modeltypes->insert(Inpar::Solid::model_structure);
   set_model_types(*modeltypes);
@@ -218,7 +218,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
   // Setup a element technology set by checking
   // the elements of the discretization
   // ---------------------------------------------------------------------------
-  std::shared_ptr<std::set<enum Inpar::Solid::EleTech>> eletechs =
+  std::shared_ptr<std::set<Inpar::Solid::EleTech>> eletechs =
       std::make_shared<std::set<enum Inpar::Solid::EleTech>>();
   detect_element_technologies(*eletechs);
 
@@ -236,7 +236,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
   // ---------------------------------------------------------------------------
   // Setup and create model specific linear solvers
   // ---------------------------------------------------------------------------
-  std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+  std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
       linsolvers = Solid::SOLVER::build_lin_solvers(*modeltypes, *sdyn_, *actdis_);
 
   // ---------------------------------------------------------------------------
@@ -330,7 +330,7 @@ void Adapter::StructureBaseAlgorithmNew::setup_tim_int()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Adapter::StructureBaseAlgorithmNew::set_model_types(
-    std::set<enum Inpar::Solid::ModelType>& modeltypes) const
+    std::set<Inpar::Solid::ModelType>& modeltypes) const
 {
   if (not is_init()) FOUR_C_THROW("You have to call init() first!");
   // ---------------------------------------------------------------------------
@@ -592,7 +592,7 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Adapter::StructureBaseAlgorithmNew::detect_element_technologies(
-    std::set<enum Inpar::Solid::EleTech>& eletechs) const
+    std::set<Inpar::Solid::EleTech>& eletechs) const
 {
   int iseas_local = 0;
   int iseas_global = 0;

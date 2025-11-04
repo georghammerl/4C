@@ -459,8 +459,8 @@ namespace FSI
     //--------------------------------------------------------------------------//
     //! @name Convergence criterion and convergence tolerances for Newton scheme
 
-    const enum Inpar::FSI::ConvNorm normtypeinc_;   //!< convergence check for increment
-    const enum Inpar::FSI::ConvNorm normtypefres_;  //!< convergence check for residual forces
+    const Inpar::FSI::ConvNorm normtypeinc_;   //!< convergence check for increment
+    const Inpar::FSI::ConvNorm normtypefres_;  //!< convergence check for residual forces
     const enum Inpar::FSI::BinaryOp
         combincfres_;  //!< binary operator to check for increment plus residual convergence or not
 

@@ -165,7 +165,7 @@ namespace ALE
     virtual void evaluate_elements();
 
     /// Convert element action enum to std::string
-    virtual std::string element_action_string(const enum ALE::AleDynamic name  ///< enum to convert
+    virtual std::string element_action_string(const ALE::AleDynamic name  ///< enum to convert
     );
 
     //! @name Time step helpers

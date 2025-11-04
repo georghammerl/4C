@@ -212,8 +212,8 @@ void Solid::ModelEvaluator::Data::setup()
 {
   check_init();
 
-  const std::set<enum Inpar::Solid::ModelType>& mt = sdyn_ptr_->get_model_types();
-  std::set<enum Inpar::Solid::ModelType>::const_iterator it;
+  const std::set<Inpar::Solid::ModelType>& mt = sdyn_ptr_->get_model_types();
+  std::set<Inpar::Solid::ModelType>::const_iterator it;
   // setup model type specific data containers
   for (it = mt.begin(); it != mt.end(); ++it)
   {
@@ -260,7 +260,7 @@ void Solid::ModelEvaluator::Data::fill_norm_type_maps()
   // we have to do all this only once...
   if (isntmaps_filled_) return;
 
-  std::set<enum NOX::Nln::StatusTest::QuantityType> qtypes;
+  std::set<NOX::Nln::StatusTest::QuantityType> qtypes;
   Solid::Nln::SOLVER::create_quantity_types(qtypes, *sdyn_ptr_);
 
   // --- check if the nox nln solver is active ---------------------------------
@@ -276,7 +276,7 @@ void Solid::ModelEvaluator::Data::fill_norm_type_maps()
   }
 
   // --- get the normtypes for the different quantities -------------------------
-  std::set<enum NOX::Nln::StatusTest::QuantityType>::const_iterator qiter;
+  std::set<NOX::Nln::StatusTest::QuantityType>::const_iterator qiter;
   if (isnox)
   {
     const ::NOX::StatusTest::Generic& ostatus = nox_nln_ptr->get_outer_status_test();
@@ -339,7 +339,7 @@ void Solid::ModelEvaluator::Data::collect_norm_types_over_all_procs(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 bool Solid::ModelEvaluator::Data::get_update_norm_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype,
+    const NOX::Nln::StatusTest::QuantityType& qtype,
     enum ::NOX::Abstract::Vector::NormType& normtype)
 {
   fill_norm_type_maps();
@@ -359,12 +359,12 @@ bool Solid::ModelEvaluator::Data::get_update_norm_type(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 bool Solid::ModelEvaluator::Data::get_wrms_tolerances(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, double& atol, double& rtol)
+    const NOX::Nln::StatusTest::QuantityType& qtype, double& atol, double& rtol)
 {
   fill_norm_type_maps();
 
   // check if there is a wrms test for the corresponding quantity type
-  std::map<enum NOX::Nln::StatusTest::QuantityType, double>::const_iterator iter;
+  std::map<NOX::Nln::StatusTest::QuantityType, double>::const_iterator iter;
   iter = atol_wrms_.find(qtype);
   if (iter == atol_wrms_.end()) return false;
 
@@ -378,7 +378,7 @@ bool Solid::ModelEvaluator::Data::get_wrms_tolerances(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Data::sum_into_my_update_norm(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const int& numentries,
+    const NOX::Nln::StatusTest::QuantityType& qtype, const int& numentries,
     const double* my_update_values, const double* my_new_sol_values, const double& step_length,
     const int& owner)
 {
@@ -401,7 +401,7 @@ void Solid::ModelEvaluator::Data::sum_into_my_update_norm(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Data::sum_into_my_previous_sol_norm(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const int& numentries,
+    const NOX::Nln::StatusTest::QuantityType& qtype, const int& numentries,
     const double* my_old_sol_values, const int& owner)
 {
   if (owner != Core::Communication::my_mpi_rank(comm_)) return;
@@ -465,7 +465,7 @@ void Solid::ModelEvaluator::Data::sum_into_my_norm(const int& numentries, const 
 void Solid::ModelEvaluator::Data::reset_my_norms(const bool& isdefaultstep)
 {
   check_init_setup();
-  std::map<enum NOX::Nln::StatusTest::QuantityType, double>::iterator it;
+  std::map<NOX::Nln::StatusTest::QuantityType, double>::iterator it;
   for (it = my_update_norm_.begin(); it != my_update_norm_.end(); ++it) it->second = 0.0;
   for (it = my_rms_norm_.begin(); it != my_rms_norm_.end(); ++it) it->second = 0.0;
 
@@ -475,7 +475,7 @@ void Solid::ModelEvaluator::Data::reset_my_norms(const bool& isdefaultstep)
     // Newton step
     for (it = my_prev_sol_norm_.begin(); it != my_prev_sol_norm_.end(); ++it) it->second = 0.0;
     // reset the dof number
-    std::map<enum NOX::Nln::StatusTest::QuantityType, std::size_t>::iterator dit;
+    std::map<NOX::Nln::StatusTest::QuantityType, std::size_t>::iterator dit;
     for (dit = my_dof_number_.begin(); dit != my_dof_number_.end(); ++dit) dit->second = 0;
   }
 }
@@ -503,7 +503,7 @@ bool Solid::ModelEvaluator::Data::is_predictor_state() const
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::DampKind Solid::ModelEvaluator::Data::get_damping_type() const
+Inpar::Solid::DampKind Solid::ModelEvaluator::Data::get_damping_type() const
 {
   check_init_setup();
   return sdyn_ptr_->get_damping_type();
@@ -575,7 +575,7 @@ const std::vector<char>& Solid::ModelEvaluator::Data::opt_quantity_data() const
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::StressType Solid::ModelEvaluator::Data::get_stress_output_type() const
+Inpar::Solid::StressType Solid::ModelEvaluator::Data::get_stress_output_type() const
 {
   check_init_setup();
   return io_ptr_->get_stress_output_type();
@@ -583,7 +583,7 @@ enum Inpar::Solid::StressType Solid::ModelEvaluator::Data::get_stress_output_typ
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_strain_output_type() const
+Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_strain_output_type() const
 {
   check_init_setup();
   return io_ptr_->get_strain_output_type();
@@ -591,7 +591,7 @@ enum Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_strain_output_typ
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_plastic_strain_output_type() const
+Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_plastic_strain_output_type() const
 {
   check_init_setup();
   return io_ptr_->get_plastic_strain_output_type();
@@ -599,7 +599,7 @@ enum Inpar::Solid::StrainType Solid::ModelEvaluator::Data::get_plastic_strain_ou
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::OptQuantityType Solid::ModelEvaluator::Data::get_opt_quantity_output_type() const
+Inpar::Solid::OptQuantityType Solid::ModelEvaluator::Data::get_opt_quantity_output_type() const
 {
   check_init_setup();
 
@@ -615,14 +615,14 @@ Solid::ModelEvaluator::Data::gauss_point_data_output_manager_ptr()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::map<enum Solid::EnergyType, double> const& Solid::ModelEvaluator::Data::get_energy_data() const
+std::map<Solid::EnergyType, double> const& Solid::ModelEvaluator::Data::get_energy_data() const
 {
   return energy_data_;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-double Solid::ModelEvaluator::Data::get_energy_data(enum Solid::EnergyType type) const
+double Solid::ModelEvaluator::Data::get_energy_data(Solid::EnergyType type) const
 {
   auto check = get_energy_data().find(type);
   if (check == get_energy_data().cend())
@@ -648,15 +648,14 @@ double Solid::ModelEvaluator::Data::get_energy_data(const std::string type) cons
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Data::insert_energy_type_to_be_considered(enum Solid::EnergyType type)
+void Solid::ModelEvaluator::Data::insert_energy_type_to_be_considered(Solid::EnergyType type)
 {
   energy_data_[type] = 0.0;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Data::set_value_for_energy_type(
-    double value, enum Solid::EnergyType type)
+void Solid::ModelEvaluator::Data::set_value_for_energy_type(double value, Solid::EnergyType type)
 {
   energy_data_[type] = value;
 }
@@ -674,7 +673,7 @@ void Solid::ModelEvaluator::Data::clear_values_for_all_energy_types()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Data::add_contribution_to_energy_type(
-    const double value, const enum Solid::EnergyType type)
+    const double value, const Solid::EnergyType type)
 {
   energy_data_[type] += value;
 }

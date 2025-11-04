@@ -930,7 +930,7 @@ void CONTACT::PenaltyStrategy::assemble()
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::PenaltyStrategy::get_rhs_block_ptr(
-    const enum CONTACT::VecBlockType& bt) const
+    const CONTACT::VecBlockType& bt) const
 {
   // if there are no active contact contributions
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step()) return nullptr;
@@ -973,7 +973,7 @@ void CONTACT::PenaltyStrategy::evaluate_force_stiff(CONTACT::ParamsInterface& cp
  *----------------------------------------------------------------------*/
 void CONTACT::PenaltyStrategy::pre_evaluate(CONTACT::ParamsInterface& cparams)
 {
-  const enum Mortar::ActionType& act = cparams.get_action_type();
+  const Mortar::ActionType& act = cparams.get_action_type();
 
   switch (act)
   {
@@ -1003,7 +1003,7 @@ void CONTACT::PenaltyStrategy::pre_evaluate(CONTACT::ParamsInterface& cparams)
  *----------------------------------------------------------------------*/
 void CONTACT::PenaltyStrategy::post_evaluate(CONTACT::ParamsInterface& cparams)
 {
-  const enum Mortar::ActionType& act = cparams.get_action_type();
+  const Mortar::ActionType& act = cparams.get_action_type();
 
   switch (act)
   {
@@ -1040,7 +1040,7 @@ void CONTACT::PenaltyStrategy::post_evaluate(CONTACT::ParamsInterface& cparams)
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::PenaltyStrategy::get_matrix_block_ptr(
-    const enum CONTACT::MatBlockType& bt, const CONTACT::ParamsInterface* cparams) const
+    const CONTACT::MatBlockType& bt, const CONTACT::ParamsInterface* cparams) const
 {
   // if there are no active contact contributions
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step()) return nullptr;

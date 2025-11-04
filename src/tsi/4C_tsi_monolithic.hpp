@@ -185,8 +185,8 @@ namespace TSI
     void print_newton_conv();
 
     //! Determine norm of force residual
-    double calculate_vector_norm(const enum TSI::VectorNorm norm,  //!< norm to use
-        const Core::LinAlg::Vector<double>& vect                   //!< the vector of interest
+    double calculate_vector_norm(const TSI::VectorNorm norm,  //!< norm to use
+        const Core::LinAlg::Vector<double>& vect              //!< the vector of interest
     );
 
     //@}
@@ -280,7 +280,7 @@ namespace TSI
     //@}
 
     //! enum for STR time integartion
-    enum Inpar::Solid::DynamicType strmethodname_;
+    Inpar::Solid::DynamicType strmethodname_;
 
     //! apply structural displacements and velocities on thermo discretization
     void apply_struct_coupling_state(std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
@@ -319,21 +319,21 @@ namespace TSI
 
     //! @name iterative solution technique
 
-    enum TSI::NlnSolTech soltech_;  //!< kind of iteration technique or
-                                    //!< nonlinear solution technique
+    TSI::NlnSolTech soltech_;  //!< kind of iteration technique or
+                               //!< nonlinear solution technique
 
-    enum TSI::ConvNorm normtypeinc_;              //!< convergence check for increments
-    enum TSI::ConvNorm normtyperhs_;              //!< convergence check for residual forces
-    enum Inpar::Solid::ConvNorm normtypedisi_;    //!< convergence check for residual displacements
-    enum Inpar::Solid::ConvNorm normtypestrrhs_;  //!< convergence check for residual forces
-    enum Thermo::ConvNorm normtypetempi_;         //!< convergence check for residual temperatures
-    enum Thermo::ConvNorm normtypethrrhs_;        //!< convergence check for residual thermal forces
+    TSI::ConvNorm normtypeinc_;              //!< convergence check for increments
+    TSI::ConvNorm normtyperhs_;              //!< convergence check for residual forces
+    Inpar::Solid::ConvNorm normtypedisi_;    //!< convergence check for residual displacements
+    Inpar::Solid::ConvNorm normtypestrrhs_;  //!< convergence check for residual forces
+    Thermo::ConvNorm normtypetempi_;         //!< convergence check for residual temperatures
+    Thermo::ConvNorm normtypethrrhs_;        //!< convergence check for residual thermal forces
 
-    enum TSI::BinaryOp combincrhs_;  //!< binary operator to combine increments and forces
+    TSI::BinaryOp combincrhs_;  //!< binary operator to combine increments and forces
 
-    enum TSI::VectorNorm iternorm_;     //!< vector norm to check TSI values with
-    enum TSI::VectorNorm iternormstr_;  //!< vector norm to check structural values with
-    enum TSI::VectorNorm iternormthr_;  //!< vector norm to check thermal values with
+    TSI::VectorNorm iternorm_;     //!< vector norm to check TSI values with
+    TSI::VectorNorm iternormstr_;  //!< vector norm to check structural values with
+    TSI::VectorNorm iternormthr_;  //!< vector norm to check thermal values with
 
     double tolinc_;     //!< tolerance for increment
     double tolrhs_;     //!< tolerance for rhs

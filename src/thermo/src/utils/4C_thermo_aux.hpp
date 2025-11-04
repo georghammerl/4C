@@ -31,8 +31,8 @@ namespace Thermo
   namespace Aux
   {
     //! Determine norm of force residual
-    double calculate_vector_norm(const enum Thermo::VectorNorm norm,  //!< norm to use
-        Core::LinAlg::Vector<double>& vect                            //!< the vector of interest
+    double calculate_vector_norm(const Thermo::VectorNorm norm,  //!< norm to use
+        Core::LinAlg::Vector<double>& vect                       //!< the vector of interest
     );
 
   }  // namespace Aux

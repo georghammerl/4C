@@ -93,7 +93,7 @@ namespace Solid
         virtual void reset_params();
 
         //! Convert the final nox status into a structural status
-        enum Inpar::Solid::ConvergenceStatus convert_final_status(
+        Inpar::Solid::ConvergenceStatus convert_final_status(
             const ::NOX::StatusTest::StatusType& finalstatus) const;
 
        protected:

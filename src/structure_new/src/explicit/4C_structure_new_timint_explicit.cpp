@@ -46,7 +46,7 @@ void Solid::TimeInt::Explicit::setup()
   // ---------------------------------------------------------------------------
   // build non-linear solver
   // ---------------------------------------------------------------------------
-  enum Inpar::Solid::NonlinSolTech nlnSolverType = data_sdyn().get_nln_solver_type();
+  Inpar::Solid::NonlinSolTech nlnSolverType = data_sdyn().get_nln_solver_type();
   if (nlnSolverType != Inpar::Solid::soltech_singlestep)
   {
     std::cout << "WARNING!!!Nonlinear solver for explicit dynamics is given (in the input file) as "
@@ -310,7 +310,7 @@ void Solid::TimeInt::Explicit::use_block_matrix(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::DynamicType Solid::TimeInt::Explicit::method_name() const
+Inpar::Solid::DynamicType Solid::TimeInt::Explicit::method_name() const
 {
   return explint_ptr_->method_name();
 }

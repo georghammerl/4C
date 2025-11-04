@@ -185,7 +185,7 @@ void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& param
 void Core::FE::Dbc::read_dirichlet_condition(const Teuchos::ParameterList& params,
     const Core::FE::Discretization& discret, std::span<const Conditions::Condition*> conds,
     double time, DbcInfo& info, const std::shared_ptr<std::set<int>>* dbcgids,
-    const enum Core::Conditions::ConditionType& type) const
+    const Core::Conditions::ConditionType& type) const
 {
   int hierarchical_order;
   switch (type)
@@ -439,7 +439,7 @@ void Core::FE::Dbc::do_dirichlet_condition(const Teuchos::ParameterList& params,
     const Core::FE::Discretization& discret, std::span<const Core::Conditions::Condition*> conds,
     double time, const std::shared_ptr<Core::LinAlg::Vector<double>>* systemvectors,
     const Core::LinAlg::Vector<int>& toggle, const std::shared_ptr<std::set<int>>* dbcgids,
-    const enum Core::Conditions::ConditionType& type) const
+    const Core::Conditions::ConditionType& type) const
 {
   for (const auto& cond : conds)
   {

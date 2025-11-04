@@ -119,7 +119,7 @@ namespace Solid
     //@{
 
     //! Return name
-    enum Inpar::Solid::DynamicType method_name() const override
+    Inpar::Solid::DynamicType method_name() const override
     {
       return Inpar::Solid::DynamicType::GenAlpha;
     }
@@ -309,7 +309,7 @@ namespace Solid
     //! @name set-up
     //@{
     //! mid-average type more at MidAverageEnum
-    enum Inpar::Solid::MidAverageEnum midavg_;
+    Inpar::Solid::MidAverageEnum midavg_;
     //@}
 
     //! @name Key coefficients

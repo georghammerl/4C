@@ -64,7 +64,7 @@ namespace Discret
       bool boundaryfluxcoupling_;
 
       //! equation used for closing of the elch-system
-      enum ElCh::EquPot equpot_;
+      ElCh::EquPot equpot_;
 
       //! Faraday constant
       double faraday_;

@@ -93,7 +93,7 @@ namespace Adapter
     void post_output() override {};
 
     //! Provide the name
-    virtual enum Inpar::Solid::TimAdaKind method_name() const = 0;
+    virtual Inpar::Solid::TimAdaKind method_name() const = 0;
 
     //! Provide the name as std::string
     virtual std::string method_title() const = 0;
@@ -113,7 +113,7 @@ namespace Adapter
     virtual double method_lin_err_coeff_vel() const = 0;
 
     //! Provide type of algorithm
-    virtual enum AdaEnum method_adapt_dis() const = 0;
+    virtual AdaEnum method_adapt_dis() const = 0;
 
    protected:
     std::shared_ptr<Solid::TimeInt::Base> stm_;  //!< marching time integrator
@@ -130,19 +130,19 @@ namespace Adapter
 
     //! @name Adaptive time integration constants
     //@{
-    double stepsizemax_;     //!< maximum time step size (upper limit)
-    double stepsizemin_;     //!< minimum time step size (lower limit)
-    double sizeratiomax_;    //!< maximally permitted increase of current step size
-                             //!< relative to last converged one
-    double sizeratiomin_;    //!< minimally permitted increase
-                             //!< (or maximally permitted decrease)
-                             //!< of current step size relative to last converged one
-    double sizeratioscale_;  //!< safety factor, should be lower than 1.0
-    enum CtrlEnum errctrl_;  //!< type of control, see #CtrlEnum
-    enum Inpar::Solid::VectorNorm errnorm_;  //!< norm for local error vector
-    double errtol_;                          //!< target local error tolerance
-    int errorder_;                           //!< order of local error indication
-    int adaptstepmax_;  //!< maximally permitted trials to find tolerable step size
+    double stepsizemax_;                //!< maximum time step size (upper limit)
+    double stepsizemin_;                //!< minimum time step size (lower limit)
+    double sizeratiomax_;               //!< maximally permitted increase of current step size
+                                        //!< relative to last converged one
+    double sizeratiomin_;               //!< minimally permitted increase
+                                        //!< (or maximally permitted decrease)
+                                        //!< of current step size relative to last converged one
+    double sizeratioscale_;             //!< safety factor, should be lower than 1.0
+    CtrlEnum errctrl_;                  //!< type of control, see #CtrlEnum
+    Inpar::Solid::VectorNorm errnorm_;  //!< norm for local error vector
+    double errtol_;                     //!< target local error tolerance
+    int errorder_;                      //!< order of local error indication
+    int adaptstepmax_;                  //!< maximally permitted trials to find tolerable step size
     //@}
 
     //! @name plain time integration variables
@@ -266,8 +266,8 @@ namespace Adapter
     );
 
     /// Determine norm of force residual
-    double calculate_vector_norm(const enum Inpar::Solid::VectorNorm norm,  ///< type of norm to use
-        Core::LinAlg::Vector<double>& vect,  ///< the vector of interest
+    double calculate_vector_norm(const Inpar::Solid::VectorNorm norm,  ///< type of norm to use
+        Core::LinAlg::Vector<double>& vect,                            ///< the vector of interest
         const int numneglect =
             0  ///< number of DOFs that have to be neglected for possible length scaling
     );

@@ -285,8 +285,8 @@ namespace FLD
     //! @name Fluid-fluid specific parameters
     //@{
     enum Inpar::XFEM::MonolithicXffsiApproach
-        monolithic_approach_;  ///< type of monolithic XFFSI-approach
-    enum Inpar::XFEM::XFluidFluidTimeInt xfem_timeintapproach_;  ///< XFF time integration approach
+        monolithic_approach_;                               ///< type of monolithic XFFSI-approach
+    Inpar::XFEM::XFluidFluidTimeInt xfem_timeintapproach_;  ///< XFF time integration approach
     //@}
 
     //! name of fluid-fluid condition for access from condition manager

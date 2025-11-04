@@ -23,7 +23,7 @@ Solid::Predict::Factory::Factory()
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::Predict::Generic> Solid::Predict::Factory::build_predictor(
-    const enum Inpar::Solid::PredEnum& predType) const
+    const Inpar::Solid::PredEnum& predType) const
 {
   std::shared_ptr<Solid::Predict::Generic> predictor = nullptr;
 
@@ -53,7 +53,7 @@ std::shared_ptr<Solid::Predict::Generic> Solid::Predict::Factory::build_predicto
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<Solid::Predict::Generic> Solid::Predict::build_predictor(
-    const enum Inpar::Solid::PredEnum& predType)
+    const Inpar::Solid::PredEnum& predType)
 {
   Factory factory;
   return factory.build_predictor(predType);

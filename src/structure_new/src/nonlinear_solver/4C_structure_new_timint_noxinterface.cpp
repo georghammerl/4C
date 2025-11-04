@@ -144,9 +144,9 @@ bool Solid::TimeInt::NoxInterface::compute_f_and_jacobian(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::compute_correction_system(
-    const enum NOX::Nln::CorrectionType type, const ::NOX::Abstract::Group& grp,
-    const Epetra_Vector& x, Epetra_Vector& rhs, Epetra_Operator& jac)
+bool Solid::TimeInt::NoxInterface::compute_correction_system(const NOX::Nln::CorrectionType type,
+    const ::NOX::Abstract::Group& grp, const Epetra_Vector& x, Epetra_Vector& rhs,
+    Epetra_Operator& jac)
 {
   check_init_setup();
 
@@ -434,9 +434,9 @@ double Solid::TimeInt::NoxInterface::get_model_value(const Epetra_Vector& x, con
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double Solid::TimeInt::NoxInterface::get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-    const Epetra_Vector& dir, const enum NOX::Nln::MeritFunction::MeritFctName mf_type,
-    const enum NOX::Nln::MeritFunction::LinOrder linorder,
-    const enum NOX::Nln::MeritFunction::LinType lintype) const
+    const Epetra_Vector& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
+    const NOX::Nln::MeritFunction::LinOrder linorder,
+    const NOX::Nln::MeritFunction::LinType lintype) const
 {
   switch (mf_type)
   {
@@ -455,8 +455,8 @@ double Solid::TimeInt::NoxInterface::get_linearized_model_terms(const ::NOX::Abs
  *----------------------------------------------------------------------------*/
 double Solid::TimeInt::NoxInterface::get_linearized_energy_model_terms(
     const ::NOX::Abstract::Group* group, const Epetra_Vector& dir,
-    const enum NOX::Nln::MeritFunction::LinOrder linorder,
-    const enum NOX::Nln::MeritFunction::LinType lintype) const
+    const NOX::Nln::MeritFunction::LinOrder linorder,
+    const NOX::Nln::MeritFunction::LinType lintype) const
 {
   double lin_val = 0.0;
 
@@ -520,8 +520,8 @@ void Solid::TimeInt::NoxInterface::find_constraint_models(const ::NOX::Abstract:
 
   for (auto cit = imap.begin(); cit != imap.end(); ++cit)
   {
-    const enum NOX::Nln::SolutionType soltype = cit->first;
-    const enum Inpar::Solid::ModelType mtype = Solid::Nln::convert_sol_type2_model_type(soltype);
+    const NOX::Nln::SolutionType soltype = cit->first;
+    const Inpar::Solid::ModelType mtype = Solid::Nln::convert_sol_type2_model_type(soltype);
 
     constraint_models.push_back(mtype);
   }

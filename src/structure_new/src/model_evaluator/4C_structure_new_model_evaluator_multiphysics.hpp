@@ -86,7 +86,7 @@ namespace Solid
       //! set the active model type wrapped in this class.
       //! only active model type is evaluated.
       //! e.g. mt_fsi in case fluid-structure interaction is to be evaluated
-      void set_active_model_type(enum Solid::ModelEvaluator::MultiphysicType mtype)
+      void set_active_model_type(Solid::ModelEvaluator::MultiphysicType mtype)
       {
         active_mt_ = mtype;
       };
@@ -221,7 +221,7 @@ namespace Solid
      public:
       //! return RCP to model evaluator of specific MultiphysicType
       std::shared_ptr<Solid::ModelEvaluator::Generic> get_model_evaluator_from_map(
-          enum Solid::ModelEvaluator::MultiphysicType mtype) const
+          Solid::ModelEvaluator::MultiphysicType mtype) const
       {
         return me_map_.at(mtype);
       }

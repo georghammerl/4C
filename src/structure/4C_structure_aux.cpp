@@ -16,7 +16,7 @@ FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*/
 /* Calculate vector norm */
-double Solid::calculate_vector_norm(const enum Inpar::Solid::VectorNorm norm,
+double Solid::calculate_vector_norm(const Inpar::Solid::VectorNorm norm,
     const Core::LinAlg::Vector<double>& vect, const int numneglect)
 {
   // L1 norm

@@ -27,7 +27,7 @@ namespace Core::Elements
     //! constructor
     ParamsMinimal() : ele_action_(none), total_time_(-1.0), delta_time_(-1.0) {};
 
-    enum ActionType get_action_type() const override { return ele_action_; };
+    ActionType get_action_type() const override { return ele_action_; };
 
     double get_total_time() const override { return total_time_; };
 
@@ -43,7 +43,7 @@ namespace Core::Elements
      *  These functions are not allowed to be called by the elements! */
     //! @{
     //! set the action type
-    inline void set_action_type(const enum Core::Elements::ActionType& actiontype)
+    inline void set_action_type(const Core::Elements::ActionType& actiontype)
     {
       ele_action_ = actiontype;
     }
@@ -66,7 +66,7 @@ namespace Core::Elements
     //! @name General element control parameters
     //! @{
     //! Current action type
-    enum ActionType ele_action_;
+    ActionType ele_action_;
 
     //! total time for the evaluation
     double total_time_;

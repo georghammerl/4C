@@ -139,7 +139,7 @@ namespace XFEM
     );
 
     /// returns matching std::string for each reconstruction method
-    std::string map_method_enum_to_string(const enum Inpar::XFEM::XFluidTimeInt term);
+    std::string map_method_enum_to_string(const Inpar::XFEM::XFluidTimeInt term);
 
     /// all surrounding elements non-intersected?
     bool non_intersected_elements(Core::Nodes::Node* n, Cut::CutWizard& wizard);

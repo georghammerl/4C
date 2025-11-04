@@ -63,9 +63,9 @@ namespace NOX
 
           //! Get the desired linearization terms of the objective model
           virtual double get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-              const enum NOX::Nln::MeritFunction::MeritFctName name,
-              const enum NOX::Nln::MeritFunction::LinOrder order,
-              const enum NOX::Nln::MeritFunction::LinType type) const
+              const NOX::Nln::MeritFunction::MeritFctName name,
+              const NOX::Nln::MeritFunction::LinOrder order,
+              const NOX::Nln::MeritFunction::LinType type) const
           {
             FOUR_C_THROW("get_linearized_model_terms() is not implemented!");
           };
@@ -120,20 +120,20 @@ namespace NOX
            *  This is optional and only relevant for inequality constraint problems. */
           //! @{
           virtual enum ::NOX::StatusTest::StatusType get_active_set_info(
-              enum NOX::Nln::StatusTest::QuantityType qt, int& activeset_size) const
+              NOX::Nln::StatusTest::QuantityType qt, int& activeset_size) const
           {
             activeset_size = -1;
             return ::NOX::StatusTest::Unevaluated;
           }
 
           virtual Teuchos::RCP<const Core::LinAlg::Map> get_current_active_set_map(
-              enum NOX::Nln::StatusTest::QuantityType qt) const
+              NOX::Nln::StatusTest::QuantityType qt) const
           {
             return Teuchos::null;
           };
 
           virtual Teuchos::RCP<const Core::LinAlg::Map> get_old_active_set_map(
-              enum NOX::Nln::StatusTest::QuantityType qt) const
+              NOX::Nln::StatusTest::QuantityType qt) const
           {
             return Teuchos::null;
           };

@@ -273,7 +273,7 @@ namespace CONTACT
 
      *  */
     virtual std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr(
-        const enum CONTACT::VecBlockType& bt) const
+        const CONTACT::VecBlockType& bt) const
     {
       FOUR_C_THROW("Not yet implemented!");
 
@@ -295,7 +295,7 @@ namespace CONTACT
      *
      *  */
     virtual std::shared_ptr<const Core::LinAlg::Vector<double>> get_rhs_block_ptr_for_norm_check(
-        const enum CONTACT::VecBlockType& bt) const
+        const CONTACT::VecBlockType& bt) const
     {
       return get_rhs_block_ptr(bt);
     }
@@ -325,8 +325,7 @@ namespace CONTACT
 
      *  */
     virtual std::shared_ptr<Core::LinAlg::SparseMatrix> get_matrix_block_ptr(
-        const enum CONTACT::MatBlockType& bt,
-        const CONTACT::ParamsInterface* cparams = nullptr) const
+        const CONTACT::MatBlockType& bt, const CONTACT::ParamsInterface* cparams = nullptr) const
     {
       FOUR_C_THROW("Not yet implemented!");
 
@@ -730,7 +729,7 @@ namespace CONTACT
     \param vec (in): current global state of the quantity defined by statename
     */
     void set_state(
-        const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
+        const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec) override;
 
     /*! \brief Evaluate reference state
 
@@ -754,14 +753,13 @@ namespace CONTACT
     //!@{
 
     /// return the potential contributions of the active contact strategy
-    virtual double get_potential_value(
-        const enum NOX::Nln::MeritFunction::MeritFctName mrt_type) const;
+    virtual double get_potential_value(const NOX::Nln::MeritFunction::MeritFctName mrt_type) const;
 
     /// return contributions of the active contact strategy to the linear model
     virtual double get_linearized_potential_value_terms(const Core::LinAlg::Vector<double>& dir,
-        const enum NOX::Nln::MeritFunction::MeritFctName mrt_type,
-        const enum NOX::Nln::MeritFunction::LinOrder linorder,
-        const enum NOX::Nln::MeritFunction::LinType lintype) const;
+        const NOX::Nln::MeritFunction::MeritFctName mrt_type,
+        const NOX::Nln::MeritFunction::LinOrder linorder,
+        const NOX::Nln::MeritFunction::LinType lintype) const;
 
     //!@}
 
@@ -822,7 +820,7 @@ namespace CONTACT
      \param dbcmaps (in): MapExtractor carrying global dbc map */
     void store_dirichlet_status(std::shared_ptr<const Core::LinAlg::MapExtractor> dbcmaps) override;
 
-    virtual void set_parent_state(const enum Mortar::StateType& statetype,
+    virtual void set_parent_state(const Mortar::StateType& statetype,
         const Core::LinAlg::Vector<double>& vec, const Core::FE::Discretization& dis) {
       /* standard contact methods don't need the corresponding bulk element */
     };

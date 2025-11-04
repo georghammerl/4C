@@ -33,7 +33,7 @@ namespace NOX
     };
 
     //! Map quantity enum to std::string
-    inline std::string solution_type_to_string(const enum SolutionType type)
+    inline std::string solution_type_to_string(const SolutionType type)
     {
       switch (type)
       {
@@ -56,7 +56,7 @@ namespace NOX
     };
 
     //! Map quantity std::string to enum
-    inline enum SolutionType string_to_solution_type(const std::string& name)
+    inline SolutionType string_to_solution_type(const std::string& name)
     {
       SolutionType type = sol_unknown;
       if (name == "Structure")
@@ -93,7 +93,7 @@ namespace NOX
     };
 
     //! Map second order correction type enum to std::string
-    inline std::string correction_type_to_string(const enum CorrectionType type)
+    inline std::string correction_type_to_string(const CorrectionType type)
     {
       switch (type)
       {
@@ -119,7 +119,7 @@ namespace NOX
         max_min_ev_ratio  ///< condition number as ration of largest and smallest eigenvalue
       };
 
-      inline std::string condition_number_to_string(const enum ConditionNumber condtype)
+      inline std::string condition_number_to_string(const ConditionNumber condtype)
       {
         switch (condtype)
         {
@@ -156,7 +156,7 @@ namespace NOX
       };
 
       /// Map operator type to std::string
-      inline std::string operator_type_to_string(const enum OperatorType type)
+      inline std::string operator_type_to_string(const OperatorType type)
       {
         switch (type)
         {
@@ -213,7 +213,7 @@ namespace NOX
         mrtfct_vague                          //!< unspecified
       };
 
-      inline std::string merit_func_name_to_string(const enum MeritFctName mrt_func)
+      inline std::string merit_func_name_to_string(const MeritFctName mrt_func)
       {
         switch (mrt_func)
         {
@@ -271,7 +271,7 @@ namespace NOX
       };
 
       /// Map quantity name to std::string
-      inline std::string quantity_type_to_string(const enum QuantityType type)
+      inline std::string quantity_type_to_string(const QuantityType type)
       {
         switch (type)
         {

@@ -30,7 +30,7 @@ FOUR_C_NAMESPACE_OPEN
  |                                                 (public) rasthofer 11/13 |
  *--------------------------------------------------------------------------*/
 Discret::Elements::ScaTraBoundaryInterface* Discret::Elements::ScaTraBoundaryFactory::provide_impl(
-    const Core::Elements::Element* ele, const enum Inpar::ScaTra::ImplType impltype,
+    const Core::Elements::Element* ele, const Inpar::ScaTra::ImplType impltype,
     const int numdofpernode, const int numscal, const std::string& disname)
 {
   // number of space dimensions
@@ -125,7 +125,7 @@ Discret::Elements::ScaTraBoundaryInterface* Discret::Elements::ScaTraBoundaryFac
 template <Core::FE::CellType distype, int probdim>
 Discret::Elements::ScaTraBoundaryInterface*
 Discret::Elements::ScaTraBoundaryFactory::define_problem_type(
-    const enum Inpar::ScaTra::ImplType impltype, const int numdofpernode, const int numscal,
+    const Inpar::ScaTra::ImplType impltype, const int numdofpernode, const int numscal,
     const std::string& disname)
 {
   switch (impltype)

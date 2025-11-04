@@ -54,7 +54,7 @@ NOX::Nln::LinSystem::ConditionNumber Solid::Nln::convert2_nox_condition_number_t
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 enum ::NOX::Abstract::Vector::NormType Solid::Nln::convert2_nox_norm_type(
-    const enum Inpar::Solid::VectorNorm& normtype)
+    const Inpar::Solid::VectorNorm& normtype)
 {
   enum ::NOX::Abstract::Vector::NormType nox_normtype = ::NOX::Abstract::Vector::TwoNorm;
 
@@ -81,11 +81,10 @@ enum ::NOX::Abstract::Vector::NormType Solid::Nln::convert2_nox_norm_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::Nln::convert_model_type2_sol_type(std::vector<enum NOX::Nln::SolutionType>& soltypes,
-    std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& slinsolvers,
-    const std::set<enum Inpar::Solid::ModelType>& modeltypes,
-    const std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>&
-        mlinsolvers)
+void Solid::Nln::convert_model_type2_sol_type(std::vector<NOX::Nln::SolutionType>& soltypes,
+    std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& slinsolvers,
+    const std::set<Inpar::Solid::ModelType>& modeltypes,
+    const std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>& mlinsolvers)
 {
   // initialize the vector and/or force the length to zero
   if (soltypes.size() > 0)
@@ -98,10 +97,10 @@ void Solid::Nln::convert_model_type2_sol_type(std::vector<enum NOX::Nln::Solutio
   soltypes.reserve(modeltypes.size());
 
   // The strings of the different enums have to fit!
-  std::set<enum Inpar::Solid::ModelType>::const_iterator mt_iter;
+  std::set<Inpar::Solid::ModelType>::const_iterator mt_iter;
   for (mt_iter = modeltypes.begin(); mt_iter != modeltypes.end(); ++mt_iter)
   {
-    const enum NOX::Nln::SolutionType soltype = convert_model_type2_sol_type(*mt_iter);
+    const NOX::Nln::SolutionType soltype = convert_model_type2_sol_type(*mt_iter);
 
     soltypes.push_back(soltype);
     // copy the linsolver pointers into the new map
@@ -112,10 +111,10 @@ void Solid::Nln::convert_model_type2_sol_type(std::vector<enum NOX::Nln::Solutio
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum NOX::Nln::SolutionType Solid::Nln::convert_model_type2_sol_type(
-    const enum Inpar::Solid::ModelType& modeltype, const bool& do_check)
+NOX::Nln::SolutionType Solid::Nln::convert_model_type2_sol_type(
+    const Inpar::Solid::ModelType& modeltype, const bool& do_check)
 {
-  enum NOX::Nln::SolutionType soltype = NOX::Nln::sol_unknown;
+  NOX::Nln::SolutionType soltype = NOX::Nln::sol_unknown;
   switch (modeltype)
   {
     case Inpar::Solid::model_structure:
@@ -157,10 +156,10 @@ enum NOX::Nln::SolutionType Solid::Nln::convert_model_type2_sol_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ModelType Solid::Nln::convert_sol_type2_model_type(
-    const enum NOX::Nln::SolutionType& soltype, const bool& do_check)
+Inpar::Solid::ModelType Solid::Nln::convert_sol_type2_model_type(
+    const NOX::Nln::SolutionType& soltype, const bool& do_check)
 {
-  enum Inpar::Solid::ModelType modeltype = Inpar::Solid::model_vague;
+  Inpar::Solid::ModelType modeltype = Inpar::Solid::model_vague;
   switch (soltype)
   {
     case NOX::Nln::sol_structure:
@@ -193,8 +192,8 @@ enum Inpar::Solid::ModelType Solid::Nln::convert_sol_type2_model_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::ModelType Solid::Nln::convert_quantity_type2_model_type(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype, const bool& do_check)
+Inpar::Solid::ModelType Solid::Nln::convert_quantity_type2_model_type(
+    const NOX::Nln::StatusTest::QuantityType& qtype, const bool& do_check)
 {
   const NOX::Nln::SolutionType st = NOX::Nln::Aux::convert_quantity_type_to_solution_type(qtype);
   return convert_sol_type2_model_type(st, do_check);
@@ -202,10 +201,10 @@ enum Inpar::Solid::ModelType Solid::Nln::convert_quantity_type2_model_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum Inpar::Solid::EleTech Solid::Nln::convert_quantity_type2_ele_tech(
-    const enum NOX::Nln::StatusTest::QuantityType& qtype)
+Inpar::Solid::EleTech Solid::Nln::convert_quantity_type2_ele_tech(
+    const NOX::Nln::StatusTest::QuantityType& qtype)
 {
-  enum Inpar::Solid::EleTech eletech;
+  Inpar::Solid::EleTech eletech;
   switch (qtype)
   {
     case NOX::Nln::StatusTest::quantity_eas:
@@ -222,11 +221,11 @@ enum Inpar::Solid::EleTech Solid::Nln::convert_quantity_type2_ele_tech(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-enum NOX::Nln::OptimizationProblemType Solid::Nln::optimization_type(
-    const std::vector<enum NOX::Nln::SolutionType>& soltypes)
+NOX::Nln::OptimizationProblemType Solid::Nln::optimization_type(
+    const std::vector<NOX::Nln::SolutionType>& soltypes)
 {
-  enum NOX::Nln::OptimizationProblemType opttype = NOX::Nln::opt_unconstrained;
-  std::vector<enum NOX::Nln::SolutionType>::const_iterator st_iter;
+  NOX::Nln::OptimizationProblemType opttype = NOX::Nln::opt_unconstrained;
+  std::vector<NOX::Nln::SolutionType>::const_iterator st_iter;
 
   for (st_iter = soltypes.begin(); st_iter != soltypes.end(); ++st_iter)
   {
@@ -267,11 +266,11 @@ enum NOX::Nln::OptimizationProblemType Solid::Nln::optimization_type(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Solid::Nln::create_constraint_interfaces(NOX::Nln::CONSTRAINT::ReqInterfaceMap& iconstr,
-    Solid::Integrator& integrator, const std::vector<enum NOX::Nln::SolutionType>& soltypes)
+    Solid::Integrator& integrator, const std::vector<NOX::Nln::SolutionType>& soltypes)
 {
   if (iconstr.size() > 0) iconstr.clear();
 
-  std::vector<enum NOX::Nln::SolutionType>::const_iterator st_iter;
+  std::vector<NOX::Nln::SolutionType>::const_iterator st_iter;
   for (st_iter = soltypes.begin(); st_iter != soltypes.end(); ++st_iter)
   {
     switch (*st_iter)
@@ -314,11 +313,11 @@ void Solid::Nln::create_constraint_interfaces(NOX::Nln::CONSTRAINT::ReqInterface
  *----------------------------------------------------------------------------*/
 void Solid::Nln::create_constraint_preconditioner(
     NOX::Nln::CONSTRAINT::PrecInterfaceMap& iconstr_prec, Solid::Integrator& integrator,
-    const std::vector<enum NOX::Nln::SolutionType>& soltypes)
+    const std::vector<NOX::Nln::SolutionType>& soltypes)
 {
   if (iconstr_prec.size() > 0) iconstr_prec.clear();
 
-  std::vector<enum NOX::Nln::SolutionType>::const_iterator st_iter;
+  std::vector<NOX::Nln::SolutionType>::const_iterator st_iter;
   for (st_iter = soltypes.begin(); st_iter != soltypes.end(); ++st_iter)
   {
     switch (*st_iter)

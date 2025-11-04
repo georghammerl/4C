@@ -311,8 +311,8 @@ namespace Discret
 
       // Get conductivity from material
       void get_conductivity(
-          const enum ElCh::EquPot equpot,  //!< type of closing equation for electric potential
-          double& sigma_all,               //!< conductivity of electrolyte solution
+          const ElCh::EquPot equpot,  //!< type of closing equation for electric potential
+          double& sigma_all,          //!< conductivity of electrolyte solution
           std::vector<double>&
               sigma,    //!< conductivity of a single ion + overall electrolyte solution
           bool effCond  //!< flag if effective conductivity should be calculated

@@ -278,7 +278,7 @@ void CONTACT::MtAbstractStrategy::apply_force_stiff_cmt(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 void CONTACT::MtAbstractStrategy::set_state(
-    const enum Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
+    const Mortar::StateType& statetype, const Core::LinAlg::Vector<double>& vec)
 {
   switch (statetype)
   {

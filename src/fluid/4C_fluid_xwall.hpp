@@ -269,13 +269,13 @@ namespace FLD
     double dens_;
 
     //! when and how to update tauw
-    enum Inpar::FLUID::XWallTauwType tauwtype_;
+    Inpar::FLUID::XWallTauwType tauwtype_;
 
     //! how to calculate tauw
-    enum Inpar::FLUID::XWallTauwCalcType tauwcalctype_;
+    Inpar::FLUID::XWallTauwCalcType tauwcalctype_;
 
     //! how to blend
-    enum Inpar::FLUID::XWallBlendingType blendingtype_;
+    Inpar::FLUID::XWallBlendingType blendingtype_;
 
     //! projection
     bool proj_;

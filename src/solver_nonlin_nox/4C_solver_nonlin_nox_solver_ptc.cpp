@@ -778,7 +778,7 @@ void NOX::Nln::LinSystem::PrePostOp::PseudoTransient::run_post_compute_jacobian(
   if (not ptcsolver_.is_ptc_solve()) return;
 
   // get the type of the jacobian
-  const enum NOX::Nln::LinSystem::OperatorType& jactype = linsys.get_jacobian_operator_type();
+  const NOX::Nln::LinSystem::OperatorType& jactype = linsys.get_jacobian_operator_type();
 
   switch (jactype)
   {
@@ -823,7 +823,7 @@ void NOX::Nln::LinSystem::PrePostOp::PseudoTransient::modify_jacobian(
 {
   // get the inverse pseudo time step
   const double& deltaInv = ptcsolver_.get_inverse_pseudo_time_step();
-  const enum NOX::Nln::Solver::PseudoTransient::ScaleOpType& scaleoptype =
+  const NOX::Nln::Solver::PseudoTransient::ScaleOpType& scaleoptype =
       ptcsolver_.get_scaling_operator_type();
   const double& scaleFactor = ptcsolver_.get_scaling_factor();
 
@@ -904,7 +904,7 @@ NOX::Nln::Vector NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transi
    * step size. */
   xUpdate.update(-1.0, xOld, 1.0);
 
-  const enum NOX::Nln::Solver::PseudoTransient::ScaleOpType& scaleoptype =
+  const NOX::Nln::Solver::PseudoTransient::ScaleOpType& scaleoptype =
       ptcsolver_.get_scaling_operator_type();
   switch (scaleoptype)
   {

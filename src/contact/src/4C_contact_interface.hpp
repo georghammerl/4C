@@ -78,9 +78,9 @@ namespace CONTACT
 
     inline bool& is_two_half_pass() { return two_half_pass_; }
 
-    inline enum CONTACT::ConstraintDirection& constraint_direction() { return constr_direction_; }
+    inline CONTACT::ConstraintDirection& constraint_direction() { return constr_direction_; }
 
-    [[nodiscard]] inline enum CONTACT::ConstraintDirection constraint_direction() const
+    [[nodiscard]] inline CONTACT::ConstraintDirection constraint_direction() const
     {
       return constr_direction_;
     }

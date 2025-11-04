@@ -215,7 +215,7 @@ int Adapter::StructureTimeAda::integrate()
         accepted = false;
 
         // get the divergence action
-        enum Inpar::Solid::DivContAct div_action = stm_->data_sdyn().get_divergence_action();
+        Inpar::Solid::DivContAct div_action = stm_->data_sdyn().get_divergence_action();
 
         convergencestatus = perform_error_action(div_action, stpsiznew);
       }
@@ -485,8 +485,8 @@ double Adapter::StructureTimeAda::calculate_dt(const double norm)
 
 /*----------------------------------------------------------------------*/
 /* Calculate vector norm */
-double Adapter::StructureTimeAda::calculate_vector_norm(const enum Inpar::Solid::VectorNorm norm,
-    Core::LinAlg::Vector<double>& vect, const int numneglect)
+double Adapter::StructureTimeAda::calculate_vector_norm(
+    const Inpar::Solid::VectorNorm norm, Core::LinAlg::Vector<double>& vect, const int numneglect)
 {
   // L1 norm
   if (norm == Inpar::Solid::norm_l1)

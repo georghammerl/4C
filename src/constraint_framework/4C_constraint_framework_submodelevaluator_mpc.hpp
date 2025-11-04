@@ -71,10 +71,10 @@ namespace Constraints::SubmodelEvaluator
     double node_search_toler_ = 0.25;  // #ToDo: Add input parameter
 
     //! Dimension of the rve boundary
-    enum Constraints::MultiPoint::RveDimension rve_dim_;
+    Constraints::MultiPoint::RveDimension rve_dim_;
 
     //! Type of reference vector definition
-    enum Constraints::MultiPoint::RveReferenceDeformationDefinition rve_ref_type_;
+    Constraints::MultiPoint::RveReferenceDeformationDefinition rve_ref_type_;
 
     //@}
 

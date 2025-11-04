@@ -93,7 +93,7 @@ void Solid::IMPLICIT::GenAlpha::setup()
      * at the end-point t_{n+1} of each time interval, but never explicitly at
      * some generalized midpoint, such as t_{n+1-\alpha_f}. Thus, any cumbersome
      * extrapolation of history variables, etc. becomes obsolete. */
-    const enum Inpar::Solid::MidAverageEnum& midavg = genalpha_sdyn.get_mid_average_type();
+    const Inpar::Solid::MidAverageEnum& midavg = genalpha_sdyn.get_mid_average_type();
     if (midavg != Inpar::Solid::midavg_trlike)
       FOUR_C_THROW("mid-averaging of internal forces only implemented TR-like");
     else

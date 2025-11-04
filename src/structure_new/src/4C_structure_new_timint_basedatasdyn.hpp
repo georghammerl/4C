@@ -64,10 +64,10 @@ namespace Solid
       /// initialize class variables (already existing)
       virtual void init(const std::shared_ptr<Core::FE::Discretization> discret,
           const Teuchos::ParameterList& sDynParams, const Teuchos::ParameterList& xparams,
-          const std::shared_ptr<std::set<enum Inpar::Solid::ModelType>> modeltypes,
-          const std::shared_ptr<std::set<enum Inpar::Solid::EleTech>> eletechs,
+          const std::shared_ptr<std::set<Inpar::Solid::ModelType>> modeltypes,
+          const std::shared_ptr<std::set<Inpar::Solid::EleTech>> eletechs,
           const std::shared_ptr<
-              std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+              std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
               linsolvers);
 
       /// setup new class variables
@@ -124,14 +124,14 @@ namespace Solid
       };
 
       /// Returns dynamic type
-      enum Inpar::Solid::DynamicType get_dynamic_type() const
+      Inpar::Solid::DynamicType get_dynamic_type() const
       {
         check_init_setup();
         return dyntype_;
       };
 
       /// Get type of shell thickness scaling
-      enum Inpar::Solid::StcScale get_stc_algo_type() const
+      Inpar::Solid::StcScale get_stc_algo_type() const
       {
         check_init_setup();
         return stcscale_;
@@ -187,21 +187,21 @@ namespace Solid
       }
 
       /// Returns prestress type
-      enum Inpar::Solid::PreStress get_pre_stress_type() const
+      Inpar::Solid::PreStress get_pre_stress_type() const
       {
         check_init_setup();
         return prestresstype_;
       };
 
       /// Returns predictor type
-      enum Inpar::Solid::PredEnum get_predictor_type() const
+      Inpar::Solid::PredEnum get_predictor_type() const
       {
         check_init_setup();
         return predtype_;
       };
 
       /// Returns nonlinear solver type
-      enum Inpar::Solid::NonlinSolTech get_nln_solver_type() const
+      Inpar::Solid::NonlinSolTech get_nln_solver_type() const
       {
         check_init_setup();
         return nlnsolvertype_;
@@ -209,14 +209,14 @@ namespace Solid
 
       /// Returns the divergence action
       /// Short: What to do if the non-linear solver fails.
-      enum Inpar::Solid::DivContAct get_divergence_action() const
+      Inpar::Solid::DivContAct get_divergence_action() const
       {
         check_init_setup();
         return divergenceaction_;
       };
 
       /// Returns mid-time energy type
-      enum Inpar::Solid::MidAverageEnum get_mid_time_energy_type() const
+      Inpar::Solid::MidAverageEnum get_mid_time_energy_type() const
       {
         check_init_setup();
         return mid_time_energy_type_;
@@ -245,7 +245,7 @@ namespace Solid
       ///@{
 
       /// Returns linear solvers pointer
-      const std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>&
+      const std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>&
       get_lin_solvers() const
       {
         check_init_setup();
@@ -257,7 +257,7 @@ namespace Solid
       /// @name Get damping control parameters (read only access)
       ///@{
       /// Returns damping type
-      enum Inpar::Solid::DampKind get_damping_type() const
+      Inpar::Solid::DampKind get_damping_type() const
       {
         check_init_setup();
         return damptype_;
@@ -281,7 +281,7 @@ namespace Solid
       /// @name Get mass and inertia control parameters (read only access)
       ///@{
       /// Returns mass linearization type
-      enum Inpar::Solid::MassLin get_mass_lin_type() const
+      Inpar::Solid::MassLin get_mass_lin_type() const
       {
         check_init_setup();
         return masslintype_;
@@ -303,14 +303,14 @@ namespace Solid
       /// @name Get model evaluator control parameters (read only access)
       ///@{
       /// Returns types of the current models
-      const std::set<enum Inpar::Solid::ModelType>& get_model_types() const
+      const std::set<Inpar::Solid::ModelType>& get_model_types() const
       {
         check_init_setup();
         return *modeltypes_;
       };
 
       /// Returns current active element technologies
-      const std::set<enum Inpar::Solid::EleTech>& get_element_technologies() const
+      const std::set<Inpar::Solid::EleTech>& get_element_technologies() const
       {
         check_init_setup();
         return *eletechs_;
@@ -336,7 +336,7 @@ namespace Solid
       /// @name Get the different status test control parameters (read only)
       ///@{
       /// Returns the STR vector norm type
-      enum Inpar::Solid::VectorNorm get_norm_type() const
+      Inpar::Solid::VectorNorm get_norm_type() const
       {
         check_init_setup();
         return normtype_;
@@ -375,49 +375,47 @@ namespace Solid
       /// @name Get residual and increment related parameters
       ///@{
       /// Returns the combination type of the two quantities
-      enum Inpar::Solid::BinaryOp get_res_incr_combo_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_res,
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_incr) const;
+      Inpar::Solid::BinaryOp get_res_incr_combo_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype_res,
+          const NOX::Nln::StatusTest::QuantityType& qtype_incr) const;
       ///@}
 
       /// @name Get residual related parameters
       ///@{
       /// Returns the tolerance values for the different quantities
-      double get_res_tolerance(const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      double get_res_tolerance(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
       /// Returns the tolerance type of the different quantities
-      enum Inpar::Solid::ConvNorm get_res_tolerance_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      Inpar::Solid::ConvNorm get_res_tolerance_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
       /// Returns the combination type of the different quantities
-      enum Inpar::Solid::BinaryOp get_res_combo_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      Inpar::Solid::BinaryOp get_res_combo_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-      enum Inpar::Solid::BinaryOp get_res_combo_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_1,
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_2) const;
+      Inpar::Solid::BinaryOp get_res_combo_type(const NOX::Nln::StatusTest::QuantityType& qtype_1,
+          const NOX::Nln::StatusTest::QuantityType& qtype_2) const;
       ///@}
 
       /// @name Get increment related parameters
       ///@{
       /// Returns the tolerance values for the different quantities
-      double get_incr_tolerance(const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      double get_incr_tolerance(const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
       /// Returns the tolerance type of the different quantities
-      enum Inpar::Solid::ConvNorm get_incr_tolerance_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      Inpar::Solid::ConvNorm get_incr_tolerance_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-      enum Inpar::Solid::ConvNorm get_incr_tolerance_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_1,
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_2) const;
+      Inpar::Solid::ConvNorm get_incr_tolerance_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype_1,
+          const NOX::Nln::StatusTest::QuantityType& qtype_2) const;
 
       /// Returns the combination type of the different quantities
-      enum Inpar::Solid::BinaryOp get_incr_combo_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype) const;
+      Inpar::Solid::BinaryOp get_incr_combo_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype) const;
 
-      enum Inpar::Solid::BinaryOp get_incr_combo_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_1,
-          const enum NOX::Nln::StatusTest::QuantityType& qtype_2) const;
+      Inpar::Solid::BinaryOp get_incr_combo_type(const NOX::Nln::StatusTest::QuantityType& qtype_1,
+          const NOX::Nln::StatusTest::QuantityType& qtype_2) const;
       ///@}
       ///@}
 
@@ -480,7 +478,7 @@ namespace Solid
       /// @name Get mutable linear solver variables (read and write access)
       ///@{
       /// Returns linear solvers pointer
-      std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+      std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
       get_lin_solvers_ptr()
       {
         check_init_setup();
@@ -488,8 +486,7 @@ namespace Solid
       }
 
       /// Returns linear solvers pointer
-      std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>&
-      get_lin_solvers()
+      std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>& get_lin_solvers()
       {
         check_init_setup();
         return *linsolvers_;
@@ -508,7 +505,7 @@ namespace Solid
       /// @name Get the initial displacement method
       ///@{
       /// Returns type of initial displacement
-      enum Inpar::Solid::InitialDisp get_initial_disp() const
+      Inpar::Solid::InitialDisp get_initial_disp() const
       {
         check_init_setup();
         return initial_disp_;
@@ -569,7 +566,7 @@ namespace Solid
       /// Rayleigh damping means \f${C} = c_\text{K} {K} + c_\text{M} {M}\f$
       ///@{
       /// damping type
-      enum Inpar::Solid::DampKind damptype_;
+      Inpar::Solid::DampKind damptype_;
 
       /// damping factor for stiffness \f$c_\text{K}\f$
       double dampk_;
@@ -581,7 +578,7 @@ namespace Solid
       /// @name Mass and inertia control parameters
       ///@{
       /// have inertia forces to be linearized?
-      enum Inpar::Solid::MassLin masslintype_;
+      Inpar::Solid::MassLin masslintype_;
 
       /// lump the mass matrix?
       bool lumpmass_;
@@ -594,10 +591,10 @@ namespace Solid
       ///@{
 
       /// current active model types for the model evaluator
-      std::shared_ptr<std::set<enum Inpar::Solid::ModelType>> modeltypes_;
+      std::shared_ptr<std::set<Inpar::Solid::ModelType>> modeltypes_;
 
       /// current active element technologies
-      std::shared_ptr<std::set<enum Inpar::Solid::EleTech>> eletechs_;
+      std::shared_ptr<std::set<Inpar::Solid::EleTech>> eletechs_;
 
       /// pointer to the coupling model evaluator object
       std::shared_ptr<Solid::ModelEvaluator::Generic> coupling_model_ptr_;
@@ -607,10 +604,10 @@ namespace Solid
       /// @name implicit and explicit time integrator parameters
       ///@{
       /// dynamic type
-      enum Inpar::Solid::DynamicType dyntype_;
+      Inpar::Solid::DynamicType dyntype_;
 
       /// scaled thickness conditioning type (necessary for shells)
-      enum Inpar::Solid::StcScale stcscale_;
+      Inpar::Solid::StcScale stcscale_;
 
       /// number of layers for multilayered case
       int stclayer_;
@@ -638,19 +635,19 @@ namespace Solid
       int prestress_min_number_of_load_steps_;
 
       /// type of pre-stressing
-      enum Inpar::Solid::PreStress prestresstype_;
+      Inpar::Solid::PreStress prestresstype_;
 
       /// type of the predictor
-      enum Inpar::Solid::PredEnum predtype_;
+      Inpar::Solid::PredEnum predtype_;
 
       /// type of nonlinear solver
-      enum Inpar::Solid::NonlinSolTech nlnsolvertype_;
+      Inpar::Solid::NonlinSolTech nlnsolvertype_;
 
       /// action to be performed when the non-linear solver diverges
-      enum Inpar::Solid::DivContAct divergenceaction_;
+      Inpar::Solid::DivContAct divergenceaction_;
 
       /// mid-time energy type
-      enum Inpar::Solid::MidAverageEnum mid_time_energy_type_;
+      Inpar::Solid::MidAverageEnum mid_time_energy_type_;
 
       /// how often you want to half your timestep until you give up
       int maxdivconrefinementlevel_;
@@ -666,7 +663,7 @@ namespace Solid
       ///@{
 
       /// pointer to the linear solvers map
-      std::shared_ptr<std::map<enum Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
+      std::shared_ptr<std::map<Inpar::Solid::ModelType, std::shared_ptr<Core::LinAlg::Solver>>>
           linsolvers_;
       ///@}
 
@@ -674,7 +671,7 @@ namespace Solid
       ///@{
 
       /// vector norm type for the status/convergence test
-      enum Inpar::Solid::VectorNorm normtype_;
+      Inpar::Solid::VectorNorm normtype_;
 
       /// vector norm type for the status/convergence test
       enum ::NOX::Abstract::Vector::NormType nox_normtype_;
@@ -685,114 +682,114 @@ namespace Solid
       double tol_disp_incr_;
 
       /// tolerance type for the convergence check of the displacement vector
-      enum Inpar::Solid::ConvNorm toltype_disp_incr_;
+      Inpar::Solid::ConvNorm toltype_disp_incr_;
 
       /// tolerance force residual
       double tol_fres_;
 
       /// tolerance type for the convergence check of the force residual
-      enum Inpar::Solid::ConvNorm toltype_fres_;
+      Inpar::Solid::ConvNorm toltype_fres_;
 
       /// tolerance pressure residual
       double tol_pres_;
 
       /// tolerance type for the convergence check of the pressure residual
-      enum Inpar::Solid::ConvNorm toltype_pres_;
+      Inpar::Solid::ConvNorm toltype_pres_;
 
       /// tolerance incompressible residual/ residual pressure forces
       double tol_inco_;
 
       /// tolerance type for the convergence check if the incompressible residual/ residual
       /// pressure forces
-      enum Inpar::Solid::ConvNorm toltype_inco_;
+      Inpar::Solid::ConvNorm toltype_inco_;
 
       /// tolerance EAS residual
       double tol_eas_res_;
 
       /// tolerance type for the convergence check of the EAS residual
-      enum Inpar::Solid::ConvNorm toltype_eas_res_;
+      Inpar::Solid::ConvNorm toltype_eas_res_;
 
       /// tolerance EAS increment
       double tol_eas_incr_;
 
       /// tolerance type for the convergence check of the EAS increment
-      enum Inpar::Solid::ConvNorm toltype_eas_incr_;
+      Inpar::Solid::ConvNorm toltype_eas_incr_;
 
       /// type of combination of the displacement and the pressure test
-      enum Inpar::Solid::BinaryOp normcombo_disp_pres_;
+      Inpar::Solid::BinaryOp normcombo_disp_pres_;
 
       /// type of combination of the force and the pressure residual test
-      enum Inpar::Solid::BinaryOp normcombo_fres_inco_;
+      Inpar::Solid::BinaryOp normcombo_fres_inco_;
 
       /// type of combination of the force and the EAS residual
-      enum Inpar::Solid::BinaryOp normcombo_fres_eas_res_;
+      Inpar::Solid::BinaryOp normcombo_fres_eas_res_;
 
       /// type of combination of the displacement and the EAS increment
-      enum Inpar::Solid::BinaryOp normcombo_disp_eas_incr_;
+      Inpar::Solid::BinaryOp normcombo_disp_eas_incr_;
 
       /// type of combination of the force and the displacement test
-      enum Inpar::Solid::BinaryOp normcombo_fres_disp_;
+      Inpar::Solid::BinaryOp normcombo_fres_disp_;
       ///@}
 
       /// @name constraint variables
       ///@{
 
       /// tolerance type for the convergence check of the 0D cardiovascular residual
-      enum Inpar::Solid::ConvNorm toltype_cardvasc0d_res_;
+      Inpar::Solid::ConvNorm toltype_cardvasc0d_res_;
 
       /// tolerance 0D cardiovascular residual
       double tol_cardvasc0d_res_;
 
       /// tolerance type for the convergence check of the 0D cardiovascular dof increment
-      enum Inpar::Solid::ConvNorm toltype_cardvasc0d_incr_;
+      Inpar::Solid::ConvNorm toltype_cardvasc0d_incr_;
 
       /// tolerance 0D cardiovascular dof increment
       double tol_cardvasc0d_incr_;
 
       /// tolerance type for the convergence check of the constraint residual
-      enum Inpar::Solid::ConvNorm toltype_constr_res_;
+      Inpar::Solid::ConvNorm toltype_constr_res_;
 
       /// tolerance constraint residual
       double tol_constr_res_;
 
       /// tolerance type for the convergence check of the constraint LM increment
-      enum Inpar::Solid::ConvNorm toltype_constr_incr_;
+      Inpar::Solid::ConvNorm toltype_constr_incr_;
 
       /// tolerance constraint LM increment
       double tol_constr_incr_;
 
       /// tolerance type for the convergence check of the contact residual
-      enum Inpar::Solid::ConvNorm toltype_contact_res_;
+      Inpar::Solid::ConvNorm toltype_contact_res_;
 
       /// tolerance contact constraint residual
       double tol_contact_res_;
 
       /// tolerance type  for the convergence check of the contact lagrange increment
-      enum Inpar::Solid::ConvNorm toltype_contact_lm_incr_;
+      Inpar::Solid::ConvNorm toltype_contact_lm_incr_;
 
       /// tolerance contact lagrange increment
       double tol_contact_lm_incr_;
 
       /// type of combination of the force and the contact residual
-      enum Inpar::Solid::BinaryOp normcombo_fres_contact_res_;
+      Inpar::Solid::BinaryOp normcombo_fres_contact_res_;
 
       /// type of combination of the displacement and the contact lagrange multiplier increment
       /// test
-      enum Inpar::Solid::BinaryOp normcombo_disp_contact_lm_incr_;
+      Inpar::Solid::BinaryOp normcombo_disp_contact_lm_incr_;
 
       /// type of combination of the force and the 0D cardiovascular model residual
-      enum Inpar::Solid::BinaryOp normcombo_fres_cardvasc0d_res_;
+      Inpar::Solid::BinaryOp normcombo_fres_cardvasc0d_res_;
 
       /// type of combination of the displacement and the 0D cardiovascular model dof increment
       /// test
-      enum Inpar::Solid::BinaryOp normcombo_disp_cardvasc0d_incr_;
+      Inpar::Solid::BinaryOp normcombo_disp_cardvasc0d_incr_;
 
       /// type of combination of the force and the constraint residual
-      enum Inpar::Solid::BinaryOp normcombo_fres_constr_res_;
+      Inpar::Solid::BinaryOp normcombo_fres_constr_res_;
 
       /// type of combination of the displacement and the 0D cardiovascular model dof increment
       /// test
-      enum Inpar::Solid::BinaryOp normcombo_disp_constr_incr_;
+      Inpar::Solid::BinaryOp normcombo_disp_constr_incr_;
 
       /// random factor for modifying time-step size in case this way of continuing non-linear
       /// iteration was chosen
@@ -811,7 +808,7 @@ namespace Solid
       ///@{
 
       /// type of initial displacement initialization
-      enum Inpar::Solid::InitialDisp initial_disp_;
+      Inpar::Solid::InitialDisp initial_disp_;
       int start_func_no_;
 
       ///@}
@@ -851,7 +848,7 @@ namespace Solid
       //!@{
 
       //! returns the mid-average type (for more information see MidAverageEnum)
-      const enum Inpar::Solid::MidAverageEnum& get_mid_average_type() const
+      const Inpar::Solid::MidAverageEnum& get_mid_average_type() const
       {
         check_init_setup();
         return midavg_;
@@ -896,7 +893,7 @@ namespace Solid
 
      private:
       //! mid-average type more at MidAverageEnum
-      enum Inpar::Solid::MidAverageEnum midavg_;
+      Inpar::Solid::MidAverageEnum midavg_;
 
       //! Time integration parameter \f$\beta \in (0,1/2]\f$
       double beta_;

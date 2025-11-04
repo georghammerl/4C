@@ -518,7 +518,7 @@ namespace Solid
       double* dt_ele_ptr_;
 
       //! mass linearization type
-      enum Inpar::Solid::MassLin masslin_type_;
+      Inpar::Solid::MassLin masslin_type_;
 
       //! @name class only variables
       //! @{

@@ -107,7 +107,7 @@ namespace PoroPressureBased
       Core::FE::Discretization& dis, const Core::LinAlg::Map* nodemap);
 
   //! Determine norm of vector
-  double calculate_vector_norm(const enum PoroPressureBased::VectorNorm norm,  //!< norm to use
+  double calculate_vector_norm(const PoroPressureBased::VectorNorm norm,  //!< norm to use
       const Core::LinAlg::Vector<double>& vect  //!< the vector of interest
   );
 

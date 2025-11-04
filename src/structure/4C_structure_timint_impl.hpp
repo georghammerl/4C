@@ -561,7 +561,7 @@ namespace Solid
     //@{
 
     //! Return time integrator name
-    enum Inpar::Solid::DynamicType method_name() const override = 0;
+    Inpar::Solid::DynamicType method_name() const override = 0;
 
     //! These time integrators are all implicit (mark their name)
     bool method_implicit() override { return true; }
@@ -795,7 +795,7 @@ namespace Solid
 
     //! @name General purpose algorithm parameters
     //@{
-    enum Inpar::Solid::PredEnum pred_;  //!< predictor
+    Inpar::Solid::PredEnum pred_;  //!< predictor
     //@}
 
     //! @name Iterative solution technique
@@ -803,14 +803,14 @@ namespace Solid
     enum Inpar::Solid::NonlinSolTech
         itertype_;  //!< kind of iteration technique or non-linear solution technique
 
-    enum Inpar::Solid::ConvNorm normtypedisi_;   //!< convergence check for residual displacements
-    enum Inpar::Solid::ConvNorm normtypefres_;   //!< convergence check for residual forces
-    enum Inpar::Solid::ConvNorm normtypepres_;   //!< convergence check for residual pressure
-    enum Inpar::Solid::ConvNorm normtypepfres_;  //!< convergence check for residual pressure forces
-    enum Inpar::Solid::ConvNorm normtypecontconstr_;  //!< convergence check for contact constraints
-                                                      //!< (saddlepoint formulation only)
-    enum Inpar::Solid::ConvNorm normtypeplagrincr_;   //!< convergence check for Lagrange multiplier
-                                                      //!< increment (saddlepoint formulation only)
+    Inpar::Solid::ConvNorm normtypedisi_;        //!< convergence check for residual displacements
+    Inpar::Solid::ConvNorm normtypefres_;        //!< convergence check for residual forces
+    Inpar::Solid::ConvNorm normtypepres_;        //!< convergence check for residual pressure
+    Inpar::Solid::ConvNorm normtypepfres_;       //!< convergence check for residual pressure forces
+    Inpar::Solid::ConvNorm normtypecontconstr_;  //!< convergence check for contact constraints
+                                                 //!< (saddlepoint formulation only)
+    Inpar::Solid::ConvNorm normtypeplagrincr_;   //!< convergence check for Lagrange multiplier
+                                                 //!< increment (saddlepoint formulation only)
     enum Inpar::Solid::BinaryOp
         combfresplconstr_;  //!< binary operator to combine field norms (forces and plastic
                             //!< constraints, semi-smooth plasticity only)
@@ -824,8 +824,8 @@ namespace Solid
         combdisiEasIncr_;  //!< binary operator to combine field norms (displacement increments and
                            //!< EAS increments, semi-smooth plasticity only)
 
-    enum Inpar::Solid::BinaryOp combdispre_;     //!< binary operator to combine field norms
-    enum Inpar::Solid::BinaryOp combfrespfres_;  //!< binary operator to combine field norms
+    Inpar::Solid::BinaryOp combdispre_;     //!< binary operator to combine field norms
+    Inpar::Solid::BinaryOp combfrespfres_;  //!< binary operator to combine field norms
     enum Inpar::Solid::BinaryOp
         combdisifres_;  //!< binary operator to combine displacement and forces
     enum Inpar::Solid::BinaryOp
@@ -835,9 +835,9 @@ namespace Solid
         combdisilagr_;  //!< binary operator to combine field norms (displacement increments and LM
                         //!< increments, contact/meshtying in saddlepoint formulation only)
 
-    enum Inpar::Solid::VectorNorm iternorm_;  //!< vector norm to check with
-    int itermax_;                             //!< maximally permitted iterations
-    int itermin_;                             //!< minimally requested iterations
+    Inpar::Solid::VectorNorm iternorm_;  //!< vector norm to check with
+    int itermax_;                        //!< maximally permitted iterations
+    int itermin_;                        //!< minimally requested iterations
 
     double toldisi_;        //!< tolerance residual displacements
     double tolfres_;        //!< tolerance force residual

@@ -316,9 +316,9 @@ void Solid::TimeInt::Base::select_energy_types_to_be_written()
   Solid::ModelEvaluator::Data& evaldata = int_ptr_->eval_data();
 
   // decide which types of energy contributions shall be written separately
-  const std::set<enum Inpar::Solid::ModelType>& mtypes = datasdyn_->get_model_types();
+  const std::set<Inpar::Solid::ModelType>& mtypes = datasdyn_->get_model_types();
 
-  std::set<enum Inpar::Solid::ModelType>::const_iterator model_iter;
+  std::set<Inpar::Solid::ModelType>::const_iterator model_iter;
   for (model_iter = mtypes.begin(); model_iter != mtypes.end(); ++model_iter)
   {
     switch (*model_iter)

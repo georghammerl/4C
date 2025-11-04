@@ -439,7 +439,7 @@ bool Solid::ModelEvaluatorManager::apply_force_stiff(const Core::LinAlg::Vector<
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluatorManager::apply_cheap_soc_rhs(const enum NOX::Nln::CorrectionType type,
+bool Solid::ModelEvaluatorManager::apply_cheap_soc_rhs(const NOX::Nln::CorrectionType type,
     const std::vector<Inpar::Solid::ModelType>& constraint_models,
     const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
     const double& timefac_np) const
@@ -499,8 +499,7 @@ void Solid::ModelEvaluatorManager::assemble_cheap_soc_rhs(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluatorManager::correct_parameters(
-    const enum NOX::Nln::CorrectionType type) const
+bool Solid::ModelEvaluatorManager::correct_parameters(const NOX::Nln::CorrectionType type) const
 {
   bool ok = true;
   for (auto& cit : *me_vec_ptr_)
@@ -653,7 +652,7 @@ const std::shared_ptr<const Solid::TimeInt::Base>& Solid::ModelEvaluatorManager:
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 Solid::ModelEvaluator::Generic& Solid::ModelEvaluatorManager::evaluator(
-    const enum Inpar::Solid::ModelType& mt)
+    const Inpar::Solid::ModelType& mt)
 {
   check_init_setup();
   // sanity check, if there is a model evaluator for the given model type
@@ -667,7 +666,7 @@ Solid::ModelEvaluator::Generic& Solid::ModelEvaluatorManager::evaluator(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 const Solid::ModelEvaluator::Generic& Solid::ModelEvaluatorManager::evaluator(
-    const enum Inpar::Solid::ModelType& mt) const
+    const Inpar::Solid::ModelType& mt) const
 {
   check_init_setup();
   // sanity check, if there is a model evaluator for the given model type

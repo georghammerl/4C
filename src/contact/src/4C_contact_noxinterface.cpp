@@ -296,7 +296,7 @@ enum ::NOX::StatusTest::StatusType CONTACT::NoxInterface::get_active_set_info(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 Teuchos::RCP<const Core::LinAlg::Map> CONTACT::NoxInterface::get_current_active_set_map(
-    enum NOX::Nln::StatusTest::QuantityType checkQuantity) const
+    NOX::Nln::StatusTest::QuantityType checkQuantity) const
 {
   switch (checkQuantity)
   {
@@ -323,7 +323,7 @@ Teuchos::RCP<const Core::LinAlg::Map> CONTACT::NoxInterface::get_current_active_
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 Teuchos::RCP<const Core::LinAlg::Map> CONTACT::NoxInterface::get_old_active_set_map(
-    enum NOX::Nln::StatusTest::QuantityType checkQuantity) const
+    NOX::Nln::StatusTest::QuantityType checkQuantity) const
 {
   switch (checkQuantity)
   {
@@ -376,9 +376,9 @@ double CONTACT::NoxInterface::get_model_value(NOX::Nln::MeritFunction::MeritFctN
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 double CONTACT::NoxInterface::get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-    const enum NOX::Nln::MeritFunction::MeritFctName name,
-    const enum NOX::Nln::MeritFunction::LinOrder linorder,
-    const enum NOX::Nln::MeritFunction::LinType lintype) const
+    const NOX::Nln::MeritFunction::MeritFctName name,
+    const NOX::Nln::MeritFunction::LinOrder linorder,
+    const NOX::Nln::MeritFunction::LinType lintype) const
 {
   switch (name)
   {

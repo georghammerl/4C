@@ -35,7 +35,7 @@ namespace Solid
 
       //! build the desired predictor
       std::shared_ptr<Solid::Predict::Generic> build_predictor(
-          const enum Inpar::Solid::PredEnum& predType) const;
+          const Inpar::Solid::PredEnum& predType) const;
     };
 
     /*! \brief Non-member function, which relates to the Solid::Predict::Factory class
@@ -43,7 +43,7 @@ namespace Solid
      * \note Call this method from outside!
      */
     std::shared_ptr<Solid::Predict::Generic> build_predictor(
-        const enum Inpar::Solid::PredEnum& predType);
+        const Inpar::Solid::PredEnum& predType);
 
   }  // namespace Predict
 }  // namespace Solid

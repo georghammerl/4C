@@ -47,8 +47,7 @@ namespace NOX
 
       /// return linear system type
       NOX::Nln::LinSystem::LinearSystemType get_linear_system_type(
-          const std::map<enum NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>&
-              linsolvers);
+          const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& linsolvers);
 
       /*! \brief Calculate the root mean square for the NOX status test
        *  \f[
@@ -121,8 +120,8 @@ namespace NOX
        *
        * \param qtype : Quantity type which has to be converted.
        */
-      enum NOX::Nln::SolutionType convert_quantity_type_to_solution_type(
-          const enum NOX::Nln::StatusTest::QuantityType& qtype);
+      NOX::Nln::SolutionType convert_quantity_type_to_solution_type(
+          const NOX::Nln::StatusTest::QuantityType& qtype);
 
       /*! \brief Map norm type stl_string to norm type enum
        *

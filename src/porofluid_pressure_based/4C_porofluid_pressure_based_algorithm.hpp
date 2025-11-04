@@ -534,7 +534,7 @@ namespace PoroPressureBased
     const int fluxreconsolvernum_;
 
     //! what to do when nonlinear solution fails
-    enum PoroPressureBased::DivergenceAction divcontype_;
+    PoroPressureBased::DivergenceAction divcontype_;
 
     //! flag for finite difference check
     const bool fdcheck_;
@@ -586,9 +586,9 @@ namespace PoroPressureBased
     const int uprestart_;
 
     // vector norm for residuals
-    enum PoroPressureBased::VectorNorm vectornormfres_;
+    PoroPressureBased::VectorNorm vectornormfres_;
     // vector norm for increments
-    enum PoroPressureBased::VectorNorm vectornorminc_;
+    PoroPressureBased::VectorNorm vectornorminc_;
 
     //! convergence tolerance for increments
     double ittolres_;
