@@ -1106,18 +1106,34 @@ specs:
 
   TEST(InputSpecTest, EmitMetadataCondense)
   {
-    auto spec_inner = group("inner", {
-                                         parameter<int>("a", {.default_value = 42}),
-                                         parameter<double>("b"),
-                                     });
-    auto spec_outer = group("outer", {spec_inner});
+    InputSpec spec;
 
-    // The outer group is duplicated and should be shared. The inner group is also duplicated
-    // but it will not be shared since it is part of the already shared outer group.
-    auto spec = all_of({
-        group("first", {spec_outer}),
-        group("second", {spec_outer}),
-    });
+    // Let the various building blocks go out of scope
+    {
+      auto spec_list = list("list",
+          all_of({
+              parameter<int>("l1"),
+              parameter<double>("l2"),
+          }),
+          {.size = 2});
+
+      auto spec_inner = group("inner", {
+                                           parameter<int>("a", {.default_value = 42}),
+                                           parameter<double>("b"),
+                                           spec_list,
+                                       });
+      auto spec_outer = group("outer", {spec_inner, spec_list});
+
+      // The outer group is duplicated and should be shared. The inner group is also duplicated
+      // but it will not be shared since it is part of the already shared outer group. The list
+      // is duplicated and will be referenced on the outer level, but not inside the group, since
+      // references may not be nested.
+      spec = all_of({
+          group("first", {spec_outer}),
+          group("second", {spec_outer}),
+          spec_list,
+      });
+    }
 
 
     std::ostringstream out;
@@ -1143,6 +1159,7 @@ specs:
       - type: all_of
         specs:
           - $ref: "0"
+  - $ref: "1"
 $references:
   "0":
     name: outer
@@ -1164,6 +1181,46 @@ $references:
                   - name: b
                     type: double
                     required: true
+                  - name: list
+                    type: list
+                    required: true
+                    size: 2
+                    spec:
+                      type: all_of
+                      specs:
+                        - name: l1
+                          type: int
+                          required: true
+                        - name: l2
+                          type: double
+                          required: true
+          - name: list
+            type: list
+            required: true
+            size: 2
+            spec:
+              type: all_of
+              specs:
+                - name: l1
+                  type: int
+                  required: true
+                - name: l2
+                  type: double
+                  required: true
+  "1":
+    name: list
+    type: list
+    required: true
+    size: 2
+    spec:
+      type: all_of
+      specs:
+        - name: l1
+          type: int
+          required: true
+        - name: l2
+          type: double
+          required: true
 )";
 
     std::cout << out.str() << std::endl;
