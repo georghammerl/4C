@@ -98,6 +98,14 @@ namespace NOX
 
       const ::NOX::Abstract::Vector& getNewton() const override;
 
+      const NOX::Nln::Vector& get_x() const;
+
+      const NOX::Nln::Vector& get_f() const;
+
+      const NOX::Nln::Vector& get_gradient() const;
+
+      const NOX::Nln::Vector& get_newton() const;
+
       Teuchos::RCP<const ::NOX::Abstract::Vector> getXPtr() const override;
 
       Teuchos::RCP<const ::NOX::Abstract::Vector> getFPtr() const override;

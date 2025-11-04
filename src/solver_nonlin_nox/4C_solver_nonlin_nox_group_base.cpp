@@ -144,8 +144,8 @@ void NOX::Nln::GroupBase::computeX(
 {
   if (isF()) return ::NOX::Abstract::Group::Ok;
 
-  isValidRHS = userInterfacePtr->computeF(xVector.getEpetraVector(), RHSVector.getEpetraVector(),
-      ::NOX::Epetra::Interface::Required::Residual);
+  isValidRHS = userInterfacePtr->computeF(xVector.get_linalg_vector(),
+      RHSVector.get_linalg_vector(), ::NOX::Epetra::Interface::Required::Residual);
 
   FOUR_C_ASSERT(isValidRHS, "NOX::Nln::GroupBase::computeF() - failed");
 
@@ -259,6 +259,14 @@ const ::NOX::Abstract::Vector& NOX::Nln::GroupBase::getF() const { return RHSVec
 const ::NOX::Abstract::Vector& NOX::Nln::GroupBase::getGradient() const { return gradVector; }
 
 const ::NOX::Abstract::Vector& NOX::Nln::GroupBase::getNewton() const { return NewtonVector; }
+
+const NOX::Nln::Vector& NOX::Nln::GroupBase::get_x() const { return xVector; }
+
+const NOX::Nln::Vector& NOX::Nln::GroupBase::get_f() const { return RHSVector; }
+
+const NOX::Nln::Vector& NOX::Nln::GroupBase::get_gradient() const { return gradVector; }
+
+const NOX::Nln::Vector& NOX::Nln::GroupBase::get_newton() const { return NewtonVector; }
 
 double NOX::Nln::GroupBase::getNormF() const
 {

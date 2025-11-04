@@ -437,7 +437,7 @@ namespace NOX
               Core::LinAlg::Vector<double>& F, const NOX::Nln::Group& grp) override;
 
          protected:
-          Teuchos::RCP<NOX::Nln::Vector> eval_pseudo_transient_f_update(const NOX::Nln::Group& grp);
+          NOX::Nln::Vector eval_pseudo_transient_f_update(const NOX::Nln::Group& grp);
 
          private:
           //! read-only access

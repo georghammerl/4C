@@ -163,6 +163,9 @@ namespace Core::LinAlg
     //! Puts list of global elements on this processor into the user-provided array.
     void my_global_elements(int* MyGlobalElementList) const;
 
+    //! Number of points across all processors.
+    int num_global_points() const { return wrapped().NumGlobalPoints(); }
+
     //! Number of local points for this map; equals the sum of all element sizes on the calling
     //! processor.
     int num_my_points() const { return wrapped().NumMyPoints(); }

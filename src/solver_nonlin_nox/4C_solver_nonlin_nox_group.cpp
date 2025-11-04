@@ -88,14 +88,13 @@ void NOX::Nln::Group::computeX(const NOX::Nln::Group& grp, const NOX::Nln::Vecto
   skipUpdateX_ = false;
 
   // Some call further down will perform a const-cast on d. fixme
-  Core::LinAlg::View d_view(const_cast<Epetra_Vector&>(d.getEpetraVector()));
-  prePostOperatorPtr_->run_pre_compute_x(grp, d_view, step, *this);
+  prePostOperatorPtr_->run_pre_compute_x(grp, d.get_linalg_vector(), step, *this);
 
   reset_is_valid();
 
   if (not skipUpdateX_) xVector.update(1.0, grp.xVector, step, d);
 
-  prePostOperatorPtr_->run_post_compute_x(grp, d_view, step, *this);
+  prePostOperatorPtr_->run_post_compute_x(grp, d.get_linalg_vector(), step, *this);
 
   return;
 }
@@ -104,7 +103,7 @@ void NOX::Nln::Group::computeX(const NOX::Nln::Group& grp, const NOX::Nln::Vecto
  *----------------------------------------------------------------------------*/
 ::NOX::Abstract::Group::ReturnType NOX::Nln::Group::set_f(Teuchos::RCP<NOX::Nln::Vector> Fptr)
 {
-  if (Fptr == Teuchos::null or Fptr->getEpetraVector().Map().NumGlobalElements() == 0)
+  if (Fptr == Teuchos::null or Fptr->get_linalg_vector().get_map().num_global_elements() == 0)
     return ::NOX::Abstract::Group::BadDependency;
 
   RHSVector = *Fptr;
@@ -127,15 +126,12 @@ void NOX::Nln::Group::set_skip_update_x(bool skipUpdateX) { skipUpdateX_ = skipU
  *----------------------------------------------------------------------------*/
 ::NOX::Abstract::Group::ReturnType NOX::Nln::Group::computeF()
 {
-  {
-    Core::LinAlg::View rhs_view(RHSVector.getEpetraVector());
-    prePostOperatorPtr_->run_pre_compute_f(rhs_view, *this);
-  }
+  prePostOperatorPtr_->run_pre_compute_f(RHSVector.get_linalg_vector(), *this);
 
   if (isF()) return ::NOX::Abstract::Group::Ok;
 
-  const bool success = userInterfacePtr->computeF(xVector.getEpetraVector(),
-      RHSVector.getEpetraVector(), ::NOX::Epetra::Interface::Required::Residual);
+  const bool success = userInterfacePtr->computeF(xVector.get_linalg_vector(),
+      RHSVector.get_linalg_vector(), ::NOX::Epetra::Interface::Required::Residual);
 
   if (not success)
   {
@@ -144,10 +140,8 @@ void NOX::Nln::Group::set_skip_update_x(bool skipUpdateX) { skipUpdateX_ = skipU
 
   isValidRHS = true;
 
-  {
-    Core::LinAlg::View rhs_view(RHSVector.getEpetraVector());
-    prePostOperatorPtr_->run_post_compute_f(rhs_view, *this);
-  }
+  prePostOperatorPtr_->run_post_compute_f(RHSVector.get_linalg_vector(), *this);
+
   return ::NOX::Abstract::Group::Ok;
 }
 
@@ -167,10 +161,8 @@ void NOX::Nln::Group::set_skip_update_x(bool skipUpdateX) { skipUpdateX_ = skipU
   else if (!isJacobian())
   {
     isValidRHS = false;
-    {
-      Core::LinAlg::View rhs_view(RHSVector.getEpetraVector());
-      prePostOperatorPtr_->run_pre_compute_f(rhs_view, *this);
-    }
+    prePostOperatorPtr_->run_pre_compute_f(RHSVector.get_linalg_vector(), *this);
+
     bool status = false;
     Teuchos::RCP<NOX::Nln::LinearSystem> nlnSharedLinearSystem =
         Teuchos::rcp_dynamic_cast<NOX::Nln::LinearSystem>(linearSystemPtr);
@@ -185,18 +177,14 @@ void NOX::Nln::Group::set_skip_update_x(bool skipUpdateX) { skipUpdateX_ = skipU
     isValidJacobian = true;
 
     ret = ::NOX::Abstract::Group::Ok;
-    {
-      Core::LinAlg::View rhs_view(RHSVector.getEpetraVector());
-      prePostOperatorPtr_->run_post_compute_f(rhs_view, *this);
-    }
+
+    prePostOperatorPtr_->run_post_compute_f(RHSVector.get_linalg_vector(), *this);
   }
   // nothing to do, because all quantities are up-to-date
   else
   {
-    {
-      Core::LinAlg::View rhs_view(RHSVector.getEpetraVector());
-      prePostOperatorPtr_->run_pre_compute_f(rhs_view, *this);
-    }
+    prePostOperatorPtr_->run_pre_compute_f(RHSVector.get_linalg_vector(), *this);
+
     ret = ::NOX::Abstract::Group::Ok;
   }
 
@@ -249,7 +237,7 @@ Teuchos::RCP<const std::vector<double>> NOX::Nln::Group::get_rhs_norms(
   double rval = -1.0;
   for (std::size_t i = 0; i < chQ.size(); ++i)
   {
-    rval = get_nln_req_interface_ptr()->get_primary_rhs_norms(RHSVector.getEpetraVector(), chQ[i],
+    rval = get_nln_req_interface_ptr()->get_primary_rhs_norms(RHSVector.get_linalg_vector(), chQ[i],
         type[i], (*scale)[i] == ::NOX::StatusTest::NormF::Scaled);
     if (rval >= 0.0)
     {
@@ -276,14 +264,14 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_solution_update_rms(
     const std::vector<double>& rTol, const std::vector<NOX::Nln::StatusTest::QuantityType>& chQ,
     const std::vector<bool>& disable_implicit_weighting) const
 {
-  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
+  const auto& xOldNox = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   Teuchos::RCP<std::vector<double>> rms = Teuchos::make_rcp<std::vector<double>>(0);
 
   double rval = -1.0;
   for (std::size_t i = 0; i < chQ.size(); ++i)
   {
-    rval = get_nln_req_interface_ptr()->get_primary_solution_update_rms(xVector.getEpetraVector(),
-        xOldEpetra.getEpetraVector(), aTol[i], rTol[i], chQ[i], disable_implicit_weighting[i]);
+    rval = get_nln_req_interface_ptr()->get_primary_solution_update_rms(xVector.get_linalg_vector(),
+        xOldNox.get_linalg_vector(), aTol[i], rTol[i], chQ[i], disable_implicit_weighting[i]);
     if (rval >= 0.0)
     {
       rms->push_back(rval);
@@ -329,7 +317,7 @@ double NOX::Nln::Group::get_trial_update_norm(const ::NOX::Abstract::Vector& dir
       get_solution_update_norms(xold, normtypes, quantities, Teuchos::rcpFromRef(scales))->at(0);
 
   // un-do the changes to the x-vector
-  x_mutable.getEpetraVector().Scale(1.0, *tmp_vector_ptr_);
+  x_mutable.get_linalg_vector().scale(1.0, *tmp_vector_ptr_);
 
   return rval;
 }
@@ -341,7 +329,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_solution_update_norms(
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
+  const auto& xOldNox = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -351,8 +339,8 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_solution_update_norms(
   double rval = -1.0;
   for (std::size_t i = 0; i < chQ.size(); ++i)
   {
-    rval = get_nln_req_interface_ptr()->get_primary_solution_update_norms(xVector.getEpetraVector(),
-        xOldEpetra.getEpetraVector(), chQ[i], type[i],
+    rval = get_nln_req_interface_ptr()->get_primary_solution_update_norms(
+        xVector.get_linalg_vector(), xOldNox.get_linalg_vector(), chQ[i], type[i],
         (*scale)[i] == StatusTest::NormUpdate::Scaled);
     if (rval >= 0.0)
     {
@@ -379,7 +367,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_previous_solution_norms(
     const std::vector<StatusTest::QuantityType>& chQ,
     Teuchos::RCP<const std::vector<StatusTest::NormUpdate::ScaleType>> scale) const
 {
-  const auto& xOldEpetra = dynamic_cast<const NOX::Nln::Vector&>(xOld);
+  const auto& xOldNox = dynamic_cast<const NOX::Nln::Vector&>(xOld);
   if (scale.is_null())
     scale = Teuchos::make_rcp<std::vector<StatusTest::NormUpdate::ScaleType>>(
         chQ.size(), StatusTest::NormUpdate::Unscaled);
@@ -390,7 +378,7 @@ Teuchos::RCP<std::vector<double>> NOX::Nln::Group::get_previous_solution_norms(
   for (std::size_t i = 0; i < chQ.size(); ++i)
   {
     rval = get_nln_req_interface_ptr()->get_previous_primary_solution_norms(
-        xOldEpetra.getEpetraVector(), chQ[i], type[i],
+        xOldNox.get_linalg_vector(), chQ[i], type[i],
         (*scale)[i] == StatusTest::NormUpdate::Scaled);
     if (rval >= 0.0)
     {

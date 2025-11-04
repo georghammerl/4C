@@ -495,11 +495,10 @@ void NOX::Nln::LinSystem::PrePostOp::Dbc::run_pre_apply_jacobian_inverse(
     ::NOX::Abstract::Vector& rhs, Core::LinAlg::SparseOperator& jac,
     const NOX::Nln::LinearSystem& linsys)
 {
-  auto& rhs_epetra = dynamic_cast<NOX::Nln::Vector&>(rhs);
-  Core::LinAlg::View rhs_view(rhs_epetra.getEpetraVector());
+  auto& rhs_nox = dynamic_cast<NOX::Nln::Vector&>(rhs);
   std::shared_ptr<Core::LinAlg::SparseOperator> jac_ptr = Core::Utils::shared_ptr_from_ref(jac);
   // apply the dirichlet condition and rotate the system if desired
-  dbc_ptr_->apply_dirichlet_to_local_system(*jac_ptr, rhs_view);
+  dbc_ptr_->apply_dirichlet_to_local_system(*jac_ptr, rhs_nox.get_linalg_vector());
 }
 
 FOUR_C_NAMESPACE_CLOSE

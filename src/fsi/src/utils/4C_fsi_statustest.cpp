@@ -169,13 +169,10 @@ double NOX::FSI::PartialNormF::compute_norm(const ::NOX::Abstract::Group& grp)
 
   // extract the block epetra vector
 
-  const ::NOX::Abstract::Vector& abstract_f = grp.getF();
-  const auto& f = Teuchos::dyn_cast<const NOX::Nln::Vector>(abstract_f);
+  const auto& f = dynamic_cast<const NOX::Nln::Vector&>(grp.getF());
 
-  Core::LinAlg::Vector<double> f_copy(f.getEpetraVector());
-  // extract the inner vector elements we are interested in
-
-  std::shared_ptr<Core::LinAlg::Vector<double>> v = extractor_.extract_vector(f_copy, blocknum_);
+  std::shared_ptr<Core::LinAlg::Vector<double>> v =
+      extractor_.extract_vector(f.get_linalg_vector(), blocknum_);
 
   double norm = FSI::GenericNormF::compute_norm(*v);
 

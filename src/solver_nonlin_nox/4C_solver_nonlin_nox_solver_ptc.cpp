@@ -141,7 +141,7 @@ void NOX::Nln::Solver::PseudoTransient::create_scaling_operator()
       // identity matrix
       const auto& epetraXPtr = dynamic_cast<const NOX::Nln::Vector&>(solnPtr->getX());
       scalingDiagOpPtr_ = Teuchos::make_rcp<Core::LinAlg::Vector<double>>(
-          epetraXPtr.getEpetraVector().Map(), false);
+          epetraXPtr.get_linalg_vector().get_map(), false);
 
       scalingDiagOpPtr_->put_scalar(1.0);
 
@@ -498,8 +498,8 @@ void NOX::Nln::Solver::PseudoTransient::update_pseudo_time_step()
         {
           Teuchos::RCP<::NOX::Abstract::Vector> scaledRHS = solnPtr->getF().clone(::NOX::DeepCopy);
           auto& epetraScaledRHS = dynamic_cast<NOX::Nln::Vector&>(*scaledRHS);
-          epetraScaledRHS.getEpetraVector().ReciprocalMultiply(
-              1.0, *scalingDiagOpPtr_, epetraScaledRHS.getEpetraVector(), 0.0);
+          epetraScaledRHS.get_linalg_vector().reciprocal_multiply(
+              1.0, *scalingDiagOpPtr_, epetraScaledRHS.get_linalg_vector(), 0.0);
           normF = epetraScaledRHS.norm(normType_);
         }
         if (normF > Core::Geo::TOL12)
@@ -889,13 +889,11 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::PseudoTransient(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-Teuchos::RCP<NOX::Nln::Vector>
-NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
+NOX::Nln::Vector NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
     const NOX::Nln::Group& grp)
 {
   // get the current trial point
-  Teuchos::RCP<NOX::Nln::Vector> xUpdate =
-      Teuchos::rcp_dynamic_cast<NOX::Nln::Vector>(grp.getX().clone(::NOX::DeepCopy));
+  NOX::Nln::Vector xUpdate(grp.get_x(), ::NOX::DeepCopy);
 
   // get the old x vector
   const ::NOX::Abstract::Group& oldGrp = ptcsolver_.getPreviousSolutionGroup();
@@ -904,7 +902,7 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
   /* Calculate the difference between the old and the new solution vector.
    * This is equivalent to the search direction scaled with the
    * step size. */
-  xUpdate->update(-1.0, xOld, 1.0);
+  xUpdate.update(-1.0, xOld, 1.0);
 
   const enum NOX::Nln::Solver::PseudoTransient::ScaleOpType& scaleoptype =
       ptcsolver_.get_scaling_operator_type();
@@ -914,15 +912,15 @@ NOX::Nln::GROUP::PrePostOp::PseudoTransient::eval_pseudo_transient_f_update(
     {
       NOX::Nln::Vector v(*scaling_diag_op_ptr_);
       v.scale(ptcsolver_.get_inverse_pseudo_time_step());
-      xUpdate->scale(v);
+      xUpdate.scale(v);
 
       break;
     }
     case NOX::Nln::Solver::PseudoTransient::scale_op_element_based:
     {
-      Core::LinAlg::View xUpdate_view(xUpdate->getEpetraVector());
-      scaling_matrix_op_ptr_->multiply(false, xUpdate_view, xUpdate_view);
-      xUpdate->scale(ptcsolver_.get_inverse_pseudo_time_step());
+      scaling_matrix_op_ptr_->multiply(
+          false, xUpdate.get_linalg_vector(), xUpdate.get_linalg_vector());
+      xUpdate.scale(ptcsolver_.get_inverse_pseudo_time_step());
 
       break;
     }
@@ -948,10 +946,10 @@ void NOX::Nln::GROUP::PrePostOp::PseudoTransient::run_post_compute_f(
    * has already been added, we can skip this function. */
   if (not use_pseudo_transient_residual or is_pseudo_transient_residual_) return;
 
-  Teuchos::RCP<NOX::Nln::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
+  NOX::Nln::Vector fUpdate(eval_pseudo_transient_f_update(grp));
 
   // add the transient part
-  F.update(1.0, fUpdate->getEpetraVector(), 1.0);
+  F.update(1.0, fUpdate.get_linalg_vector(), 1.0);
 
   // set the flag
   is_pseudo_transient_residual_ = true;
@@ -977,10 +975,10 @@ void NOX::Nln::GROUP::PrePostOp::PseudoTransient::run_pre_compute_f(
    * has already been modified, though we need the static residual. */
   if (ptcsolver_.use_pseudo_transient_residual() or !is_pseudo_transient_residual_) return;
 
-  Teuchos::RCP<NOX::Nln::Vector> fUpdate = eval_pseudo_transient_f_update(grp);
+  NOX::Nln::Vector fUpdate(eval_pseudo_transient_f_update(grp));
 
   // subtract the transient part
-  F.update(-1.0, fUpdate->getEpetraVector(), 1.0);
+  F.update(-1.0, fUpdate.get_linalg_vector(), 1.0);
 
   // set flag
   is_pseudo_transient_residual_ = false;

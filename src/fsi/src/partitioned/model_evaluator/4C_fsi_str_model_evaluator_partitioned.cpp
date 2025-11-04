@@ -177,7 +177,7 @@ Solid::ModelEvaluator::PartitionedFSI::solve_relaxation_linear(
   const auto& increment = dynamic_cast<const NOX::Nln::Vector&>(grp_ptr->getNewton());
 
   // return the increment
-  return std::make_shared<Core::LinAlg::Vector<double>>(increment.getEpetraVector());
+  return std::make_shared<Core::LinAlg::Vector<double>>(increment.get_linalg_vector());
 }
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/

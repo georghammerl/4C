@@ -127,8 +127,8 @@ bool NOX::FSI::AitkenRelaxation::compute(::NOX::Abstract::Group& grp, double& st
 
   // write omega
   double fnorm = grp.getF().norm();
-  if (Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(
-          dynamic_cast<const NOX::Nln::Vector&>(F).getEpetraVector().Comm())) == 0)
+  if (Core::Communication::my_mpi_rank(
+          dynamic_cast<const NOX::Nln::Vector&>(F).get_linalg_vector().get_comm()) == 0)
   {
     static int count;
     static std::ofstream* out;

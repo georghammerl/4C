@@ -67,7 +67,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jacPtr->SetUseTranspose(false);
-  int status = jacPtr->Apply(input.getEpetraVector(), result.getEpetraVector());
+  int status = jacPtr->Apply(input.get_linalg_vector(), result.get_linalg_vector());
   return status == 0;
 }
 
@@ -76,7 +76,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
   jacPtr->SetUseTranspose(true);
-  int status = jacPtr->Apply(input.getEpetraVector(), result.getEpetraVector());
+  int status = jacPtr->Apply(input.get_linalg_vector(), result.get_linalg_vector());
   jacPtr->SetUseTranspose(false);
 
   return status == 0;
@@ -97,8 +97,9 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
   if (zeroInitialGuess) result.init(0.0);
 
   // Create Epetra linear problem object for the linear solve
-  Epetra_LinearProblem Problem(
-      jacPtr.get(), &(result.getEpetraVector()), &(nonConstInput.getEpetraVector()));
+  Epetra_LinearProblem Problem(jacPtr.get(),
+      &(result.get_linalg_vector().get_ref_of_epetra_vector()),
+      &(nonConstInput.get_linalg_vector().get_ref_of_epetra_vector()));
 
   // ************* Begin linear system scaling *******************
   if (scaling)
@@ -385,7 +386,7 @@ void NOX::FSI::LinearSystemGCR::apply_plane_rotation(double& dx, double& dy, dou
 
 bool NOX::FSI::LinearSystemGCR::compute_jacobian(const NOX::Nln::Vector& x)
 {
-  bool success = jacInterfacePtr->computeJacobian(x.getEpetraVector(), *jacPtr);
+  bool success = jacInterfacePtr->computeJacobian(x.get_linalg_vector(), *jacPtr);
   return success;
 }
 
