@@ -178,7 +178,7 @@ void Discret::Elements::SolidSurface::trace_estimate_surf_matrix(
   Core::LinAlg::Matrix<3, 1> n_v(n.data(), true);
   double detA, jac;
   Core::LinAlg::Tensor<double, 3, 3> defgrd;
-  Core::LinAlg::Matrix<3, 3> nn;
+  Core::LinAlg::Tensor<double, 3, 3> nn;
   Core::LinAlg::SymmetricTensor<double, 3, 3> glstrain, rcg;
 
   Core::LinAlg::Matrix<6, Core::FE::num_nodes(dt_vol) * 3> bop;
@@ -256,16 +256,18 @@ void Discret::Elements::SolidSurface::trace_estimate_surf_matrix(
     surface_integration(detA, n, xrefe_surf, deriv_surf);
     n_v.scale(normalfac);
     n_v.scale(1.0 / n_v.norm2());
-    nn.multiply_nt(n_v, n_v);
+    Core::LinAlg::Tensor<double, 3, 1> n_v_tensor = Core::LinAlg::make_tensor_view(n_v);
+    nn = n_v_tensor * transpose(n_v_tensor);
 
-    Core::LinAlg::Matrix<6, 6> cn;
-    Core::LinAlg::FourTensorOperations::add_symmetric_holzapfel_product(
-        cn, Core::LinAlg::make_matrix<3, 3>(Core::LinAlg::get_full(rcg)), nn, 0.25);
+
+    Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cn;
+    cn = 0.25 * Core::LinAlg::FourTensorOperations::symmetric_holzapfel_product(
+                    Core::LinAlg::get_full(rcg), nn);
 
     Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
     Core::LinAlg::Matrix<6, 6> tmp1, tmp2;
     tmp1.multiply(cmat_view, id4);
-    tmp2.multiply(tmp1, cn);
+    tmp2.multiply(tmp1, Core::LinAlg::make_stress_like_voigt_view(cn));
     tmp1.multiply(tmp2, id4);
     tmp2.multiply(tmp1, cmat_view);
 

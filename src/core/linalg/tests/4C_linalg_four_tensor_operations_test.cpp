@@ -62,6 +62,29 @@ namespace
     FOUR_C_EXPECT_NEAR(cmat_voigt_old, cmat_voigt_new, 1e-12);
   }
 
+  TEST(FourTensorOperations, SymmetricHolzapfelProductTest)
+  {
+    using T = double;
+
+    // Initialize symmetric tensor
+    Core::LinAlg::Tensor<double, 3, 3> A = {{{-0.7, 1.3, 0.5}, {2.4, 0.2, -1.1}, {3.2, 4.0, 0.8}}};
+
+    Core::LinAlg::Tensor<double, 3, 3> B = {{{2.0, 0.1, 3.0}, {4.0, 1.5, 7.0}, {1.0, 0.2, 1.8}}};
+
+    Core::LinAlg::Matrix<3, 3> A_mat = Core::LinAlg::make_matrix_view(A);
+    Core::LinAlg::Matrix<3, 3> B_mat = Core::LinAlg::make_matrix_view(B);
+
+    Core::LinAlg::Matrix<6, 6, T> X_mat_voigt_old(Core::LinAlg::Initialization::zero);
+    Core::LinAlg::FourTensorOperations::add_symmetric_holzapfel_product(
+        X_mat_voigt_old, A_mat, B_mat, 1.0);
+
+    Core::LinAlg::SymmetricTensor<T, 3, 3, 3, 3> X =
+        Core::LinAlg::FourTensorOperations::symmetric_holzapfel_product(A, B);
+
+    Core::LinAlg::Matrix<6, 6, T> X_mat_voigt_new = Core::LinAlg::make_stress_like_voigt_view(X);
+
+    FOUR_C_EXPECT_NEAR(X_mat_voigt_old, X_mat_voigt_new, 1e-12);
+  }
 }  // namespace
 
 FOUR_C_NAMESPACE_CLOSE

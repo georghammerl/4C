@@ -216,6 +216,25 @@ namespace Core::LinAlg::FourTensorOperations
   void add_symmetric_holzapfel_product(Core::LinAlg::Matrix<6, 6>& X,
       const Core::LinAlg::Matrix<3, 3>& A, const Core::LinAlg::Matrix<3, 3>& B, const double fac);
 
+  /*!
+   * @brief Calculates symmetric Holzapfel product
+   *
+   * In tensor index notation this does:
+   * \f[
+   *    X_{abcd} = \text{fac} \cdot \left( A_{ca} \cdot B_{db} + A_{da} \cdot B_{cb} + A_{db}
+   * \cdot B_{ca} + A_{cb} \cdot B_{da} \right)
+   * \f]
+   *
+   * The result is a 4th order tensor with minor symmetries, but no major symmetry, i.e. symmetric
+   * w.r.t. A and B
+   *
+   * @param[out] X 4th order tensor \f[X_{abcd}\f]
+   * @param[in] A     2nd order tensor \f[A_{ef}\f]
+   * @param[in] B     2nd order tensor \f[B_{gh}\f]
+   */
+  template <typename T>
+  Core::LinAlg::SymmetricTensor<T, 3, 3, 3, 3> symmetric_holzapfel_product(
+      const Core::LinAlg::Tensor<T, 3, 3>& A, const Core::LinAlg::Tensor<T, 3, 3>& B);
 
   /*!
    * @brief Add right non-symmetric Holzapfel product to a 4th order tensor in matrix notation
