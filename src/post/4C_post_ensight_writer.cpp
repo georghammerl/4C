@@ -9,7 +9,6 @@
 
 #include "4C_fem_nurbs_discretization.hpp"
 #include "4C_fluid_rotsym_periodicbc_utils.hpp"
-#include "4C_inpar_problemtype.hpp"
 #include "4C_io_legacy_table.hpp"
 #include "4C_io_legacy_table_iter.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"

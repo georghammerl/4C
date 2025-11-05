@@ -14,10 +14,10 @@
 #include "4C_fem_discretization_hdg.hpp"
 #include "4C_fem_general_utils_createdis.hpp"
 #include "4C_global_legacy_module.hpp"
-#include "4C_inpar_problemtype.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
 #include "4C_io_input_file_utils.hpp"
+#include "4C_legacy_enum_definitions_problem_type_string.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_rebalance_graph_based.hpp"
 #include "4C_utils_singleton_owner.hpp"
@@ -58,7 +58,7 @@ Core::ProblemType Global::Problem::get_problem_type() const { return probtype_; 
 /*----------------------------------------------------------------------*/
 std::string Global::Problem::problem_name() const
 {
-  std::map<std::string, Core::ProblemType> map = Inpar::PROBLEMTYPE::string_to_problem_type_map();
+  std::map<std::string, Core::ProblemType> map = Core::string_to_problem_type_map();
   std::map<std::string, Core::ProblemType>::const_iterator i;
 
   for (i = map.begin(); i != map.end(); ++i)
