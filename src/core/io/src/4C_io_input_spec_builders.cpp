@@ -175,6 +175,22 @@ namespace
     ryml::id_type num_children_before;
   };
 
+  /**
+   * Only allow referencing for specs that contain other specs. There is little point in referencing
+   * a single parameter spec.
+   */
+  [[nodiscard]] bool can_be_referenced(const Core::IO::InputSpec& spec)
+  {
+    switch (spec.impl().data.type)
+    {
+      case Core::IO::Internal::InputSpecType::group:
+      case Core::IO::Internal::InputSpecType::list:
+        return true;
+      default:
+        return false;
+    }
+  }
+
 }  // namespace
 
 /**
@@ -183,9 +199,14 @@ namespace
 void Core::IO::Internal::emit_metadata_helper(const Core::IO::InputSpec& spec,
     Core::IO::YamlNodeRef node, Core::IO::Internal::EmitMetadataContext& context)
 {
-  if (spec.use_count() > context.options.condense_duplicated_specs_threshold &&
-      !context.currently_emitting_to_references &&
-      spec.impl().data.type == Core::IO::Internal::InputSpecType::group)
+  // We do not know how often the spec is used, but this is the minimum: the use count of the
+  // parent plus the uses of the other references to this spec minus the current one.
+  const unsigned current_min_use_count = context.current_use_count + spec.use_count() - 1;
+  const unsigned old_use_count = context.current_use_count;
+  context.current_use_count = current_min_use_count;
+
+  if (current_min_use_count > context.options.condense_duplicated_specs_threshold &&
+      !context.currently_emitting_to_references && can_be_referenced(spec))
   {
     // We have not yet written the reference metadata for this spec, so create it first.
     if (!context.emitted_specs.contains(&spec.impl()))
@@ -223,6 +244,8 @@ void Core::IO::Internal::emit_metadata_helper(const Core::IO::InputSpec& spec,
   {
     spec.impl().emit_metadata(node, context);
   }
+
+  context.current_use_count = old_use_count;
 }
 
 

@@ -389,6 +389,11 @@ namespace Core::IO
        * nesting references.
        */
       bool currently_emitting_to_references{false};
+
+      /**
+       * Track how often the parent spec has been used.
+       */
+      unsigned current_use_count{1};
     };
 
     /**
