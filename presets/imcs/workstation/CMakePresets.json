@@ -19,6 +19,7 @@
         "FOUR_C_WITH_GOOGLETEST": "ON",
         "FOUR_C_WITH_ARBORX": "ON",
         "FOUR_C_WITH_MIRCO": "ON",
+        "FOUR_C_WITH_VTK": "ON",
         "FOUR_C_BUILD_SHARED_LIBS": "OFF"
       }
     },
