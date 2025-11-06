@@ -312,6 +312,9 @@ class VtkWriterBase
   //! containing [time value and filename] of all yet written master files
   std::stringstream collection_file_midsection_cumulated_content_;
 
+  //! full path of the existing working directory where the vtk subdirectory is created.
+  //! relative or absolute depending on output specification
+  std::string path_existing_working_directory_;
 
   //! full path of the working directory for all vtk files to be written into
   std::string working_directory_full_path_;

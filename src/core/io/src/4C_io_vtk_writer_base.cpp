@@ -184,6 +184,7 @@ VtkWriterBase::VtkWriterBase(unsigned int myrank, unsigned int num_processors,
     const std::string& restart_name, double restart_time, bool write_binary_output,
     LibB64::CompressionLevel compression_level)
     : currentPhase_(VAGUE),
+      path_existing_working_directory_(path_existing_working_directory),
       num_timestep_digits_(LibB64::ndigits(max_number_timesteps_to_be_written)),
       num_processor_digits_(LibB64::ndigits(num_processors)),
       geometry_name_(geometry_name),
@@ -707,7 +708,7 @@ void VtkWriterBase::create_restarted_initial_collection_file_mid_section(
 
   // open collection file
   std::ifstream restart_collection_file;
-  restart_collection_file.open(restartcollectionfilename.c_str(), std::ios::out);
+  restart_collection_file.open(restartcollectionfilename.c_str(), std::ios::in);
 
   // check if file was found
   if (not restart_collection_file) FOUR_C_THROW(" restart collection file could not be found");
@@ -727,10 +728,12 @@ void VtkWriterBase::create_restarted_initial_collection_file_mid_section(
         std::filesystem::path p_filename(get_xml_option_value(line, "file"));
 
         // Choose base directory: on absolute restart select its parent directory
-        // otherwise keep relative with ".")
+        // otherwise form relative path from current working directory to the restart directory
         const std::filesystem::path base_dir =
-            p_restart.is_absolute() ? p_restart.parent_path()
-                                    : (std::filesystem::path(".") / p_restart.parent_path());
+            p_restart.is_absolute()
+                ? p_restart.parent_path()
+                : std::filesystem::relative(std::filesystem::absolute(p_restart.parent_path()),
+                      std::filesystem::absolute(path_existing_working_directory_));
 
         // Resolve final path: select absolute file paths, otherwise anchor at base directory
         const std::filesystem::path resolved =
@@ -741,7 +744,9 @@ void VtkWriterBase::create_restarted_initial_collection_file_mid_section(
             resolved.lexically_normal().generic_string(), readtime);
       }
       else
+      {
         break;
+      }
     }
   }
 
