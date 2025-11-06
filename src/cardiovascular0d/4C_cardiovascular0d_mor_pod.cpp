@@ -151,7 +151,7 @@ Cardiovascular0D::ProperOrthogonalDecomposition::reduce_residual(Core::LinAlg::V
 
   std::shared_ptr<Core::LinAlg::Vector<double>> v_red =
       std::make_shared<Core::LinAlg::Vector<double>>(*structmapr_);
-  v_red->import(v_tmp, *structrimpo_, Insert);
+  v_red->import(v_tmp, *structrimpo_, Core::LinAlg::CombineMode::insert);
 
   return v_red;
 }
@@ -163,7 +163,7 @@ Cardiovascular0D::ProperOrthogonalDecomposition::extend_solution(
     Core::LinAlg::Vector<double>& v_red)
 {
   Core::LinAlg::Vector<double> v_tmp(*redstructmapr_, true);
-  v_tmp.import(v_red, *structrinvimpo_, Insert);
+  v_tmp.import(v_red, *structrinvimpo_, Core::LinAlg::CombineMode::insert);
   std::shared_ptr<Core::LinAlg::Vector<double>> v =
       std::make_shared<Core::LinAlg::Vector<double>>(*full_model_dof_row_map_);
   v->multiply('N', 'N', 1.0, *projmatrix_, v_tmp, 0.0);

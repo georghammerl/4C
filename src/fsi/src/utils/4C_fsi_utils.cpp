@@ -250,8 +250,8 @@ void FSI::Utils::SlideAleUtils::remeshing(Adapter::FSIStructureWrapper& structur
   Core::LinAlg::Import msimpo(*dofrowmap, *structdofrowmap_);
   Core::LinAlg::Import slimpo(*dofrowmap, *fluiddofrowmap_);
 
-  idispms_->import(*idisptotal, msimpo, Add);
-  idispms_->import(iprojdispale, slimpo, Add);
+  idispms_->import(*idisptotal, msimpo, Core::LinAlg::CombineMode::add);
+  idispms_->import(iprojdispale, slimpo, Core::LinAlg::CombineMode::add);
 
   iprojhist_->update(1.0, iprojdispale, 0.0);
 
@@ -271,8 +271,8 @@ void FSI::Utils::SlideAleUtils::evaluate_mortar(Core::LinAlg::Vector<double>& id
   Core::LinAlg::Import master_importer(*dofrowmap, *structdofrowmap_);
   Core::LinAlg::Import slave_importer(*dofrowmap, *fluiddofrowmap_);
 
-  idispms_->import(idispstruct, master_importer, Add);
-  idispms_->import(idispfluid, slave_importer, Add);
+  idispms_->import(idispstruct, master_importer, Core::LinAlg::CombineMode::add);
+  idispms_->import(idispfluid, slave_importer, Core::LinAlg::CombineMode::add);
 
   // new D,M,Dinv out of disp of struct and fluid side
   coupsf.evaluate(idispms_);
@@ -444,7 +444,7 @@ void FSI::Utils::SlideAleUtils::slide_projection(
   Core::LinAlg::Import interimpo(*structfullnodemap_, *structdofrowmap_);
   std::shared_ptr<Core::LinAlg::Vector<double>> reddisp =
       std::make_shared<Core::LinAlg::Vector<double>>(*structfullnodemap_, true);
-  reddisp->import(*idispnp, interimpo, Add);
+  reddisp->import(*idispnp, interimpo, Core::LinAlg::CombineMode::add);
 
   Core::FE::Discretization& interfacedis = coupsf.interface()->discret();
   std::map<int, double> rotrat;

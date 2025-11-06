@@ -136,7 +136,7 @@ void XFEM::DiscretizationXFEM::export_initialto_active_vector(
     else
     {
       Core::LinAlg::Import importer(fullvec.get_map(), initialvec.get_map());
-      fullvec.import(initialvec, importer, Insert);
+      fullvec.import(initialvec, importer, Core::LinAlg::CombineMode::insert);
     }
   }
   fullvec.replace_map(*initialfulldofrowmap_);  /// replace |1 2 3 4|1 2 3 4| -> |1 2 3 4|5 6 7 8|

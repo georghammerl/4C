@@ -160,7 +160,7 @@ void PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::iter_update_st
       Core::LinAlg::Import pressure_import(target_pressure_map, source_pressure_map);
       tmp_pressure_vector.import(
           *porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp(),
-          pressure_import, Insert);
+          pressure_import, Core::LinAlg::CombineMode::insert);
       artery_pressure_inc_np_->update(1.0, tmp_pressure_vector, 0.0);
     }
 
@@ -176,7 +176,8 @@ void PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::iter_update_st
     {
       Core::LinAlg::Vector<double> tmp_phinp(artery_scatra_inc_np_map, /*zeroOut=*/true);
       Core::LinAlg::Import imp(artery_scatra_inc_np_map, phinp_map);
-      tmp_phinp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp, Insert);
+      tmp_phinp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp,
+          Core::LinAlg::CombineMode::insert);
       artery_scatra_inc_np_->update(1.0, tmp_phinp, 0.0);
     }
   }
@@ -229,7 +230,7 @@ bool PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::convergence_ch
       Core::LinAlg::Import pressure_import(target_pressure_map, source_pressure_map);
       tmp_pressure_vector.import(
           *porofluid_elast_algo()->porofluid_algo()->art_net_tim_int()->pressurenp(),
-          pressure_import, Insert);
+          pressure_import, Core::LinAlg::CombineMode::insert);
       artery_pressure_inc_np_->update(1.0, tmp_pressure_vector, -1.0);
     }
 
@@ -245,7 +246,8 @@ bool PoroPressureBased::PorofluidElastScatraPartitionedAlgorithm::convergence_ch
     {
       Core::LinAlg::Vector<double> tmp(artery_scatra_inc_np_map, true);
       Core::LinAlg::Import imp(artery_scatra_inc_np_map, phinp_map);
-      tmp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp, Insert);
+      tmp.import(*scatra_meshtying_strategy_->art_scatra_field()->phinp(), imp,
+          Core::LinAlg::CombineMode::insert);
       artery_scatra_inc_np_->update(1.0, tmp, -1.0);
     }
   }

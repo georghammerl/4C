@@ -193,7 +193,7 @@ void MultiScale::MicroStatic::set_up_homogenization()
 
   for (int i = 0; i < 9; ++i)
   {
-    ((*rhs_)(i)).export_to((d_matrix_transposed(i)), *importp_, Insert);
+    ((*rhs_)(i)).export_to((d_matrix_transposed(i)), *importp_, Core::LinAlg::CombineMode::insert);
   }
 }
 

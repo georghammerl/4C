@@ -1430,27 +1430,27 @@ void Airway::RedAirwayImplicitTimeInt::output(
 
     {
       Core::LinAlg::Export exporter(acini_e_volumenm_->get_map(), qexp_->get_map());
-      qexp_->export_to(*acini_e_volumenm_, exporter, Zero);
+      qexp_->export_to(*acini_e_volumenm_, exporter, Core::LinAlg::CombineMode::zero);
       output_.write_vector("acini_vnm", qexp_);
     }
     {
       Core::LinAlg::Export exporter(acini_e_volumen_->get_map(), qexp_->get_map());
-      qexp_->export_to(*acini_e_volumen_, exporter, Zero);
+      qexp_->export_to(*acini_e_volumen_, exporter, Core::LinAlg::CombineMode::zero);
       output_.write_vector("acini_vn", qexp_);
     }
     {
       Core::LinAlg::Export exporter(acini_e_volumenp_->get_map(), qexp_->get_map());
-      qexp_->export_to(*acini_e_volumenp_, exporter, Zero);
+      qexp_->export_to(*acini_e_volumenp_, exporter, Core::LinAlg::CombineMode::zero);
       output_.write_vector("acini_vnp", qexp_);
     }
     {
       Core::LinAlg::Export exporter(acini_e_volume_strain_->get_map(), qexp_->get_map());
-      qexp_->export_to(*acini_e_volume_strain_, exporter, Zero);
+      qexp_->export_to(*acini_e_volume_strain_, exporter, Core::LinAlg::CombineMode::zero);
       output_.write_vector("acini_volumetric_strain", qexp_);
     }
     {
       Core::LinAlg::Export exporter(acini_e_volume0_->get_map(), qexp_->get_map());
-      qexp_->export_to(*acini_e_volume0_, exporter, Zero);
+      qexp_->export_to(*acini_e_volume0_, exporter, Core::LinAlg::CombineMode::zero);
       output_.write_vector("acini_v0", qexp_);
     }
 
@@ -1821,11 +1821,11 @@ bool Airway::RedAirwayImplicitTimeInt::sum_all_col_elem_val(
     // define epetra exporter
     Core::LinAlg::Export exporter(vec.get_map(), qexp_->get_map());
     // export from ColMap to RowMap
-    qexp_->export_to(vec, exporter, Zero);
+    qexp_->export_to(vec, exporter, Core::LinAlg::CombineMode::zero);
 
     Core::LinAlg::Export exporter2(sumCond.get_map(), qexp2_->get_map());
     // export from ColMap to RowMap
-    qexp2_->export_to(sumCond, exporter2, Zero);
+    qexp2_->export_to(sumCond, exporter2, Core::LinAlg::CombineMode::zero);
   }
 
   // Get the mean acinar volume on the current processor

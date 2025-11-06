@@ -1185,7 +1185,7 @@ void FLD::FluidImplicitTimeInt::evaluate_mat_and_rhs(Teuchos::ParameterList& ele
         std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
     Core::LinAlg::Export exporter(residual_col->get_map(), tmp->get_map());
-    tmp->export_to(*residual_col, exporter, Add);
+    tmp->export_to(*residual_col, exporter, Core::LinAlg::CombineMode::add);
     residual_->update(1.0, *tmp, 1.0);
   }
   else
@@ -2007,7 +2007,7 @@ void FLD::FluidImplicitTimeInt::evaluate_fluid_edge_based(
   // need to export residual_col to systemvector1 (residual_)
   Core::LinAlg::Vector<double> res_tmp(systemvector1.get_map(), false);
   Core::LinAlg::Export exporter(residual_col->get_map(), res_tmp.get_map());
-  res_tmp.export_to(*residual_col, exporter, Add);
+  res_tmp.export_to(*residual_col, exporter, Core::LinAlg::CombineMode::add);
   systemvector1.update(1.0, res_tmp, 1.0);
 }
 

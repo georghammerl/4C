@@ -127,19 +127,19 @@ void Core::LinAlg::export_to(
     else if (sourceunique && targetunique)
     {
       Core::LinAlg::Export exporter(source.get_map(), target.get_map());
-      target.export_to(source, exporter, Insert);
+      target.export_to(source, exporter, Core::LinAlg::CombineMode::insert);
       return;
     }
     else if (sourceunique && !targetunique)
     {
       Core::LinAlg::Import importer(target.get_map(), source.get_map());
-      target.import(source, importer, Insert);
+      target.import(source, importer, Core::LinAlg::CombineMode::insert);
       return;
     }
     else if (!sourceunique && targetunique)
     {
       Core::LinAlg::Export exporter(source.get_map(), target.get_map());
-      target.export_to(source, exporter, Insert);
+      target.export_to(source, exporter, Core::LinAlg::CombineMode::insert);
       return;
     }
     else if (!sourceunique && !targetunique)
@@ -256,7 +256,7 @@ std::shared_ptr<Core::LinAlg::Graph> Core::LinAlg::threshold_matrix_graph(
   Core::LinAlg::Vector<double> ghosted_diagonal(A.col_map(), true);
   const Core::LinAlg::Import importer = Core::LinAlg::Import(A.col_map(), A.row_map());
   ghosted_diagonal.import(
-      diagonal.get_ref_of_epetra_vector(), importer, Epetra_CombineMode::Insert);
+      diagonal.get_ref_of_epetra_vector(), importer, Core::LinAlg::CombineMode::insert);
 
   double* D = ghosted_diagonal.get_values();
 

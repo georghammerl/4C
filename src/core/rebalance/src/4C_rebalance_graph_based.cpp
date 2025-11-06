@@ -389,7 +389,8 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
   Core::LinAlg::Import importer(my_colliding_primitives_map, *dis.element_row_map());
   Core::LinAlg::Graph my_colliding_primitives_connectivity(
       my_colliding_primitives_map, n_nodes_per_element_max);
-  my_colliding_primitives_connectivity.import_from(element_connectivity, importer, Insert);
+  my_colliding_primitives_connectivity.import_from(
+      element_connectivity, importer, Core::LinAlg::CombineMode::insert);
 
   // 4. Build and fill the graph with element internal connectivities
   auto my_graph = std::make_shared<Core::LinAlg::Graph>(

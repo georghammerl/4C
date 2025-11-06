@@ -1009,7 +1009,7 @@ void Core::Conditions::PeriodicBoundaryConditions::redistribute_and_create_dof_c
 
     {
       Core::LinAlg::Export exporter(*discret_->node_row_map(), *newrownodemap);
-      nodegraph.export_to(*oldnodegraph, exporter, Add);
+      nodegraph.export_to(*oldnodegraph, exporter, Core::LinAlg::CombineMode::add);
     }
     nodegraph.fill_complete();
     nodegraph.optimize_storage();

@@ -149,7 +149,7 @@ void Constraints::ConstrManager::setup(
     mpcnormcomp3dpen_->initialize(p);
 
     // Export redundant vector into distributed one
-    refbasevalues_->export_to(*refbaseredundant, *conimpo_, Add);
+    refbasevalues_->export_to(*refbaseredundant, *conimpo_, Core::LinAlg::CombineMode::add);
 
     // Initialize Lagrange Multipliers, reference values and errors
     actdisc_->clear_state();
@@ -201,7 +201,7 @@ void Constraints::ConstrManager::setup(
     areamonitor2d_->evaluate(p1, initialmonredundant);
 
     // Export redundant vector into distributed one
-    initialmonvalues_->export_to(initialmonredundant, *monimpo_, Add);
+    initialmonvalues_->export_to(initialmonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
     monitortypes_ = std::make_shared<Core::LinAlg::Vector<double>>(*redmonmap_);
     build_moni_type();
   }
@@ -274,12 +274,12 @@ void Constraints::ConstrManager::evaluate_force_stiff(const double time,
   mpconline2d_->evaluate(p, stiff, constr_matrix_, fint, refbaseredundant, actredundant);
   // Export redundant vectors into distributed ones
   actvalues_->put_scalar(0.0);
-  actvalues_->export_to(*actredundant, *conimpo_, Add);
+  actvalues_->export_to(*actredundant, *conimpo_, Core::LinAlg::CombineMode::add);
   Core::LinAlg::Vector<double> addrefbase(*constrmap_);
-  addrefbase.export_to(*refbaseredundant, *conimpo_, Add);
+  addrefbase.export_to(*refbaseredundant, *conimpo_, Core::LinAlg::CombineMode::add);
   refbasevalues_->update(1.0, addrefbase, 1.0);
   fact_->put_scalar(0.0);
-  fact_->export_to(*factredundant, *conimpo_, AbsMax);
+  fact_->export_to(*factredundant, *conimpo_, Core::LinAlg::CombineMode::abs_max);
   // ----------------------------------------------------
   // -----------include possible further constraints here
   // ----------------------------------------------------
@@ -326,7 +326,7 @@ void Constraints::ConstrManager::compute_error(
 
   // Export redundant vectors into distributed ones
   actvalues_->put_scalar(0.0);
-  actvalues_->export_to(*actredundant, *conimpo_, Add);
+  actvalues_->export_to(*actredundant, *conimpo_, Core::LinAlg::CombineMode::add);
 
   constrainterr_->update(1.0, *referencevalues_, -1.0, *actvalues_, 0.0);
 }
@@ -415,7 +415,7 @@ void Constraints::ConstrManager::compute_monitor_values(
   areamonitor2d_->evaluate(p, actmonredundant);
 
   Core::LinAlg::Import monimpo(*monitormap_, *redmonmap_);
-  monitorvalues_->export_to(actmonredundant, *monimpo_, Add);
+  monitorvalues_->export_to(actmonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
 }
 
 /*-----------------------------------------------------------------------*
@@ -447,7 +447,7 @@ void Constraints::ConstrManager::compute_monitor_values(const Core::LinAlg::Vect
   areamonitor2d_->evaluate(p, actmonredundant);
 
   Core::LinAlg::Import monimpo(*monitormap_, *redmonmap_);
-  monitorvalues_->export_to(actmonredundant, *monimpo_, Add);
+  monitorvalues_->export_to(actmonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
 }
 
 /*----------------------------------------------------------------------*
@@ -489,7 +489,7 @@ void Constraints::ConstrManager::build_moni_type()
   // do the volumes
   volmonitor3d_->evaluate(p1, dummymonredundant);
   // Export redundant vector into distributed one
-  dummymondist.export_to(dummymonredundant, *monimpo_, Add);
+  dummymondist.export_to(dummymonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
   // Now export back
   Core::LinAlg::export_to(dummymondist, dummymonredundant);
   for (int i = 0; i < dummymonredundant.local_length(); i++)
@@ -503,7 +503,7 @@ void Constraints::ConstrManager::build_moni_type()
   dummymondist.put_scalar(0.0);
   areamonitor3d_->evaluate(p1, dummymonredundant);
   // Export redundant vector into distributed one
-  dummymondist.export_to(dummymonredundant, *monimpo_, Add);
+  dummymondist.export_to(dummymonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
   // Now export back
   Core::LinAlg::export_to(dummymondist, dummymonredundant);
   for (int i = 0; i < dummymonredundant.local_length(); i++)
@@ -517,7 +517,7 @@ void Constraints::ConstrManager::build_moni_type()
   dummymondist.put_scalar(0.0);
   areamonitor2d_->evaluate(p1, dummymonredundant);
   // Export redundant vector into distributed one
-  dummymondist.export_to(dummymonredundant, *monimpo_, Add);
+  dummymondist.export_to(dummymonredundant, *monimpo_, Core::LinAlg::CombineMode::add);
   // Now export back
   Core::LinAlg::export_to(dummymondist, dummymonredundant);
   for (int i = 0; i < dummymonredundant.local_length(); i++)

@@ -360,7 +360,7 @@ void Core::LinAlg::EquilibrationBlock::equilibrate_matrix(
           }
           // combine this block's overlap into the owning DomainMap vector invcolsums
           Core::LinAlg::Import to_dom(invcolsums->get_map(), overlap.get_map());
-          invcolsums->import(overlap, to_dom, Add);
+          invcolsums->import(overlap, to_dom, LinAlg::CombineMode::add);
         }
 
         // invert column sums

@@ -256,7 +256,7 @@ void ScaTra::TimIntHDG::gen_alpha_intermediate_values()
 
     dst = std::make_unique<Core::LinAlg::Vector<double>>(target_map, true);
     auto importer = std::make_unique<Core::LinAlg::Import>(target_map, src.get_map());
-    dst->import(src, *importer, Insert);
+    dst->import(src, *importer, Core::LinAlg::CombineMode::insert);
     return *dst;
   };
 
@@ -679,8 +679,8 @@ void ScaTra::TimIntHDG::gen_alpha_compute_time_derivative()
   Core::LinAlg::Import importer_phin(phidtnp_->get_map(), phin_->get_map());
 
   // Bring data over
-  phinp_owned.import(*phinp_, importer_phinp, Insert);
-  phin_owned.import(*phin_, importer_phin, Insert);
+  phinp_owned.import(*phinp_, importer_phinp, Core::LinAlg::CombineMode::insert);
+  phin_owned.import(*phin_, importer_phin, Core::LinAlg::CombineMode::insert);
 
   // Now maps match and any update is safe
   phidtnp_->update(fact2, *phidtn_, 0.0);

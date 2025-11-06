@@ -99,17 +99,17 @@ void Core::LinAlg::Graph::fill_complete(const Map& domain_map, const Map& range_
 void Core::LinAlg::Graph::optimize_storage() { ASSERT_EPETRA_CALL(graph_->OptimizeStorage()); }
 
 void Core::LinAlg::Graph::export_to(const Core::LinAlg::Graph& A,
-    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      graph_->Export(A.get_epetra_crs_graph(), Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(graph_->Export(A.get_epetra_crs_graph(), Exporter.get_epetra_export(),
+      Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 void Core::LinAlg::Graph::import_from(const Core::LinAlg::Graph& A,
-    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      graph_->Import(A.get_epetra_crs_graph(), Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(graph_->Import(A.get_epetra_crs_graph(), Importer.get_epetra_import(),
+      Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 void Core::LinAlg::Graph::insert_global_indices(int GlobalRow, std::span<int>& Indices)

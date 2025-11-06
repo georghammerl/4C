@@ -12,6 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_comm_mpi_utils.hpp"
+#include "4C_linalg.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_transfer.hpp"
 
@@ -73,11 +74,11 @@ namespace Core::LinAlg
     void optimize_storage();
 
     void export_to(const Core::LinAlg::Graph& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode);
+        Core::LinAlg::CombineMode CombineMode);
 
     //! Imports a Core::LinAlg::Graph using the Core::LinAlg::Import object.
     void import_from(const Core::LinAlg::Graph& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode);
+        Core::LinAlg::CombineMode CombineMode);
 
     //! Enter a list of elements in a specified globally owned row of the graph.
     void insert_global_indices(int GlobalRow, std::span<int>& Indices);

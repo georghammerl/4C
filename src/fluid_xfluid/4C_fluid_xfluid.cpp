@@ -29,6 +29,7 @@
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
+#include "4C_linalg.hpp"
 #include "4C_linalg_krylov_projector.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
@@ -803,7 +804,7 @@ void FLD::XFluid::assemble_mat_and_rhs(int itnum)
     // need to export residual_col to state_->residual_ (row)
     Core::LinAlg::Vector<double> res_tmp(state_->residual_->get_map(), true);
     Core::LinAlg::Export exporter(state_->residual_col_->get_map(), res_tmp.get_map());
-    res_tmp.export_to(*state_->residual_col_, exporter, Add);
+    res_tmp.export_to(*state_->residual_col_, exporter, Core::LinAlg::CombineMode::add);
 
     // add Neumann loads and contributions from evaluate of volume and face integrals
     state_->residual_->update(1.0, res_tmp, 1.0, *state_->neumann_loads_, 0.0);
@@ -816,7 +817,8 @@ void FLD::XFluid::assemble_mat_and_rhs(int itnum)
     Core::LinAlg::Vector<double> res_true_tmp(state_->trueresidual_->get_map(), true);
     Core::LinAlg::Export exporter_true_residual(
         state_->trueresidual_->get_map(), res_tmp.get_map());
-    res_true_tmp.export_to(*state_->residual_, exporter_true_residual, Add);
+    res_true_tmp.export_to(
+        *state_->residual_, exporter_true_residual, Core::LinAlg::CombineMode::add);
     state_->trueresidual_->update(-1.0 * residual_scaling(), res_true_tmp, 0.0);
   }
 
@@ -1518,7 +1520,7 @@ void FLD::XFluid::integrate_shape_function(Teuchos::ParameterList& eleparams,
   // need to export residual_col to systemvector1 (residual_)
   Core::LinAlg::Vector<double> vec_tmp(vec.get_map(), false);
   Core::LinAlg::Export exporter(strategy.systemvector1()->get_map(), vec_tmp.get_map());
-  vec_tmp.export_to(*strategy.systemvector1(), exporter, Add);
+  vec_tmp.export_to(*strategy.systemvector1(), exporter, Core::LinAlg::CombineMode::add);
   vec.scale(1.0, vec_tmp);
 }
 
@@ -1604,7 +1606,7 @@ void FLD::XFluid::assemble_mat_and_rhs_gradient_penalty(
   // need to export residual_col to systemvector1 (residual_)
   Core::LinAlg::Vector<double> res_tmp(residual_gp.get_map(), false);
   Core::LinAlg::Export exporter(residual_gp_col->get_map(), res_tmp.get_map());
-  res_tmp.export_to(*residual_gp_col, exporter, Add);
+  res_tmp.export_to(*residual_gp_col, exporter, Core::LinAlg::CombineMode::add);
   residual_gp.update(1.0, res_tmp, 1.0);
 
   //-------------------------------------------------------------------------------

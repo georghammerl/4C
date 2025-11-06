@@ -138,7 +138,7 @@ void FLD::TurbulentFlowAlgorithm::transfer_inflow_velocity()
   // get exporter for transfer of dofs from inflow discretization to complete fluid discretization
   Core::LinAlg::Export exporter(inflowvelnp->get_map(), velnp_->get_map());
   // export inflow velocity
-  velnp_->export_to(*inflowvelnp, exporter, Insert);
+  velnp_->export_to(*inflowvelnp, exporter, Core::LinAlg::CombineMode::insert);
 
   if (Core::Communication::my_mpi_rank(fluiddis_->get_comm()) == 0)
     std::cout << "done\n" << std::endl;
@@ -194,15 +194,15 @@ void FLD::TurbulentFlowAlgorithm::read_restart(const int restart)
 
   // export vectors to inflow discretization
   Core::LinAlg::Export exportvelnp(fluidvelnp->get_map(), velnp->get_map());
-  velnp->export_to(*fluidvelnp, exportvelnp, Insert);
+  velnp->export_to(*fluidvelnp, exportvelnp, Core::LinAlg::CombineMode::insert);
   Core::LinAlg::Export exportveln(fluidveln->get_map(), veln->get_map());
-  veln->export_to(*fluidveln, exportveln, Insert);
+  veln->export_to(*fluidveln, exportveln, Core::LinAlg::CombineMode::insert);
   Core::LinAlg::Export exportvelnm(fluidvelnm->get_map(), velnm->get_map());
-  velnm->export_to(*fluidvelnm, exportvelnm, Insert);
+  velnm->export_to(*fluidvelnm, exportvelnm, Core::LinAlg::CombineMode::insert);
   Core::LinAlg::Export exportaccnp(fluidaccnp->get_map(), accnp->get_map());
-  accnp->export_to(*fluidaccnp, exportaccnp, Insert);
+  accnp->export_to(*fluidaccnp, exportaccnp, Core::LinAlg::CombineMode::insert);
   Core::LinAlg::Export exportaccn(fluidaccn->get_map(), accn->get_map());
-  accn->export_to(*fluidaccn, exportaccn, Insert);
+  accn->export_to(*fluidaccn, exportaccn, Core::LinAlg::CombineMode::insert);
 
 
   // set values in the inflow field

@@ -346,7 +346,7 @@ void MultiScale::MicroStatic::predict_const_dis(const Core::LinAlg::Matrix<3, 3>
   fresn_->update(-1.0, *fintn_, 0.0);
 
   // extract reaction forces
-  freactn_->import(*fresn_, *importp_, Insert);
+  freactn_->import(*fresn_, *importp_, Core::LinAlg::CombineMode::insert);
 
   // blank residual at DOFs on Dirichlet BC
   Core::LinAlg::Vector<double> fresncopy(*fresn_);
@@ -497,7 +497,7 @@ void MultiScale::MicroStatic::predict_tang_dis(const Core::LinAlg::Matrix<3, 3>*
   fresn_->update(-1.0, *fintn_, 0.0);
 
   // extract reaction forces
-  freactn_->import(*fresn_, *importp_, Insert);
+  freactn_->import(*fresn_, *importp_, Core::LinAlg::CombineMode::insert);
 
   // blank residual at DOFs on Dirichlet BC
   Core::LinAlg::Vector<double> fresncopy(*fresn_);
@@ -588,7 +588,7 @@ void MultiScale::MicroStatic::full_newton()
     fresn_->update(-1.0, *fintn_, 0.0);
 
     // extract reaction forces
-    freactn_->import(*fresn_, *importp_, Insert);
+    freactn_->import(*fresn_, *importp_, Core::LinAlg::CombineMode::insert);
 
     // blank residual DOFs which are on Dirichlet BC
     Core::LinAlg::Vector<double> fresncopy(*fresn_);

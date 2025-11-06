@@ -2570,7 +2570,7 @@ void ScaTra::ScaTraTimIntImpl::scaling_and_neumann()
           std::make_unique<Core::LinAlg::Import>(res_map, res_src.get_map());
 
       residual_owned->put_scalar(0.0);
-      residual_owned->import(res_src, *import_residual, Insert);
+      residual_owned->import(res_src, *import_residual, Core::LinAlg::CombineMode::insert);
       trueresidual_->update(residual_scaling(), *residual_owned, 0.0);
     }
     else

@@ -10,6 +10,10 @@
 
 #include "4C_config.hpp"
 
+#include <Epetra_CombineMode.h>
+
+#include <unordered_map>
+
 FOUR_C_NAMESPACE_OPEN
 
 namespace Core::LinAlg
@@ -32,6 +36,47 @@ namespace Core::LinAlg
     Copy,  ///< deep copy
     Share  ///< Shared ownership to original data
   };
+
+  /**
+   * \brief Specifies the strategy used when combining distributed data.
+   *
+   * The CombineMode enum defines how values are combined when assembling or updating
+   * distributed linear algebra objects (such as vectors or matrices) in parallel computations.
+   * It determines how overlapping entries from different processes are merged.
+   */
+  enum class CombineMode
+  {
+    zero,
+    insert,
+    add,
+    max,
+    abs_max
+  };
+
+  /**
+   * \brief Mapping between internal CombineMode values and corresponding Epetra_CombineMode
+   * constants.
+   *
+   * This lookup table allows translation between the internal linear algebra abstraction
+   * and the Epetra library's specific combine mode definitions.
+   */
+  const std::unordered_map<CombineMode, Epetra_CombineMode> linalg_to_epetra_combine_mode = {
+      {CombineMode::zero, Epetra_CombineMode::Zero},
+      {CombineMode::insert, Epetra_CombineMode::Insert},
+      {CombineMode::add, Epetra_CombineMode::Add},
+      {CombineMode::max, Epetra_CombineMode::Epetra_Max},
+      {CombineMode::abs_max, Epetra_CombineMode::AbsMax}};
+
+  /**
+   * \brief Converts a CombineMode enum value to its Epetra_CombineMode equivalent.
+   *
+   * @param combine_mode The CombineMode value to be converted.
+   * @return The corresponding Epetra_CombineMode constant.
+   */
+  inline Epetra_CombineMode to_epetra_combine_mode(CombineMode combine_mode)
+  {
+    return linalg_to_epetra_combine_mode.at(combine_mode);
+  }
 }  // namespace Core::LinAlg
 
 FOUR_C_NAMESPACE_CLOSE

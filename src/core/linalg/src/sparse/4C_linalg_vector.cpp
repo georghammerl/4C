@@ -297,30 +297,34 @@ void Core::LinAlg::Vector<T>::reciprocal_multiply(
 
 template <typename T>
 void Core::LinAlg::Vector<T>::import(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(
+      A, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::import(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Import(A, Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(
+      A, Exporter.get_epetra_export(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::export_to(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(
+      A, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
 void Core::LinAlg::Vector<T>::export_to(const Epetra_SrcDistObject& A,
-    const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+    const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(
+      A, Exporter.get_epetra_export(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
@@ -403,27 +407,31 @@ int Core::LinAlg::Vector<int>::min_value() { return vector_->MinValue(); }
 void Core::LinAlg::Vector<int>::print(std::ostream& os) const { vector_->Print(os); }
 
 void Core::LinAlg::Vector<int>::import(
-    const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+    const Vector& A, const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Import(*A.vector_, Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(
+      *A.vector_, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 void Core::LinAlg::Vector<int>::import(
-    const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+    const Vector& A, const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Import(*A.vector_, Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(
+      *A.vector_, Exporter.get_epetra_export(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 void Core::LinAlg::Vector<int>::export_to(
-    const Vector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+    const Vector& A, const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Export(*A.vector_, Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(
+      *A.vector_, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 void Core::LinAlg::Vector<int>::export_to(
-    const Vector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+    const Vector& A, const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(vector_->Export(*A.vector_, Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(
+      *A.vector_, Exporter.get_epetra_export(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
 }
 
 MPI_Comm Core::LinAlg::Vector<int>::get_comm() const

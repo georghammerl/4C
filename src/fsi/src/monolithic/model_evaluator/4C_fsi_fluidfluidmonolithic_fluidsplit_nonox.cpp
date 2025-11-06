@@ -848,7 +848,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::newton()
   {
     auto dst = std::make_shared<Core::LinAlg::Vector<double>>(target_map, true);
     Core::LinAlg::Import imp(target_map, duiinc_->get_map());
-    dst->import(*duiinc_, imp, Insert);
+    dst->import(*duiinc_, imp, Core::LinAlg::CombineMode::insert);
     duiinc_->update(1.0, *dst, 0.0);
   }
   else

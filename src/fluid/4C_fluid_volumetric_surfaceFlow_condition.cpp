@@ -1938,7 +1938,7 @@ void FLD::Utils::FluidVolumetricSurfaceFlowBc::export_and_set_boundary_values(
   // define the exporter
   Core::LinAlg::Export exporter(source.get_map(), target.get_map());
   // Export source vector to target vector
-  target.export_to(source, exporter, Zero);
+  target.export_to(source, exporter, Core::LinAlg::CombineMode::zero);
   // Set state
   discret_->set_state(name, target);
 }
@@ -1952,7 +1952,7 @@ void FLD::Utils::TotalTractionCorrector::export_and_set_boundary_values(
   // define the exporter
   Core::LinAlg::Export exporter(source.get_map(), target.get_map());
   // Export source vector to target vector
-  target.export_to(source, exporter, Zero);
+  target.export_to(source, exporter, Core::LinAlg::CombineMode::zero);
   // Set state
   discret_->set_state(name, target);
 }

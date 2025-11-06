@@ -290,9 +290,9 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
     cardvasc0d_model_->initialize(p, v_n_red, cv0ddof_n_red);
 
     v_n_->put_scalar(0.0);
-    v_n_->export_to(*v_n_red, *cardvasc0dimpo_, Add);
+    v_n_->export_to(*v_n_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::add);
 
-    cv0ddof_n_->export_to(*cv0ddof_n_red, *cardvasc0dimpo_, Insert);
+    cv0ddof_n_->export_to(*cv0ddof_n_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
 
 
     Core::LinAlg::export_to(*v_n_, *v_n_red2);
@@ -306,12 +306,14 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
         cardvasc0d_f_n_red, nullptr, cv0ddof_n_red, v_n_red2);
 
     // insert compartment volumes into vol vector
-    v_n_->export_to(*v_n_red2, *cardvasc0dimpo_, Insert);
+    v_n_->export_to(*v_n_red2, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
 
     cardvasc0d_df_n_->put_scalar(0.0);
-    cardvasc0d_df_n_->export_to(*cardvasc0d_df_n_red, *cardvasc0dimpo_, Insert);
+    cardvasc0d_df_n_->export_to(
+        *cardvasc0d_df_n_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
     cardvasc0d_f_n_->put_scalar(0.0);
-    cardvasc0d_f_n_->export_to(*cardvasc0d_f_n_red, *cardvasc0dimpo_, Insert);
+    cardvasc0d_f_n_->export_to(
+        *cardvasc0d_f_n_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
 
     // predict with initial values
     cv0ddof_np_->update(1.0, *cv0ddof_n_, 0.0);
@@ -387,7 +389,7 @@ void Utils::Cardiovascular0DManager::evaluate_force_stiff(const double time,
 
   // import into vol vector at end-point
   v_np_->put_scalar(0.0);
-  v_np_->export_to(*v_np_red, *cardvasc0dimpo_, Add);
+  v_np_->export_to(*v_np_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::add);
 
   // solution and rate of solution at generalized mid-point t_{n+theta}
   // for post-processing only - residual midpoint evaluation done separately!
@@ -405,15 +407,17 @@ void Utils::Cardiovascular0DManager::evaluate_force_stiff(const double time,
       v_np_red2);
 
   // insert compartment volumes into vol vector
-  v_np_->export_to(*v_np_red2, *cardvasc0dimpo_, Insert);
+  v_np_->export_to(*v_np_red2, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
 
   // volume at generalized mid-point t_{n+theta} - for post-processing only
   v_m_->update(theta_, *v_np_, 1. - theta_, *v_n_, 0.0);
 
   cardvasc0d_df_np_->put_scalar(0.0);
-  cardvasc0d_df_np_->export_to(*cardvasc0d_df_np_red, *cardvasc0dimpo_, Insert);
+  cardvasc0d_df_np_->export_to(
+      *cardvasc0d_df_np_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
   cardvasc0d_f_np_->put_scalar(0.0);
-  cardvasc0d_f_np_->export_to(*cardvasc0d_f_np_red, *cardvasc0dimpo_, Insert);
+  cardvasc0d_f_np_->export_to(
+      *cardvasc0d_f_np_red, *cardvasc0dimpo_, Core::LinAlg::CombineMode::insert);
   // df_m = (df_np - df_n) / dt
   cardvasc0d_df_m_->update(1. / ts_size, *cardvasc0d_df_np_, -1. / ts_size, *cardvasc0d_df_n_, 0.0);
   // f_m = theta * f_np + (1-theta) * f_n

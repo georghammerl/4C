@@ -498,8 +498,8 @@ void Constraints::MPConstraint3Penalty::evaluate_error(Core::FE::Discretization&
   }
 
   Core::LinAlg::Vector<double> acterrdist(*errormap_);
-  acterrdist.export_to(systemvector, *errorexport_, Add);
-  systemvector.import(acterrdist, *errorimport_, Insert);
+  acterrdist.export_to(systemvector, *errorexport_, Core::LinAlg::CombineMode::add);
+  systemvector.import(acterrdist, *errorimport_, Core::LinAlg::CombineMode::insert);
   return;
 }  // end of evaluate_error
 

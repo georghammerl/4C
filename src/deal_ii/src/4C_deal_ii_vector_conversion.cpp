@@ -130,7 +130,8 @@ void DealiiWrappers::VectorConverter<VectorType, dim, spacedim>::to_dealii(
   FOUR_C_ASSERT(n_local_elements == dealii_to_four_c_map_.num_my_elements(), "Internal error.");
 
 
-  vector_in_dealii_layout_.export_to(four_c_vector, dealii_to_four_c_importer_, Insert);
+  vector_in_dealii_layout_.export_to(
+      four_c_vector, dealii_to_four_c_importer_, Core::LinAlg::CombineMode::insert);
 
   std::copy(vector_in_dealii_layout_.get_values(),
       vector_in_dealii_layout_.get_values() + n_local_elements, dealii_vector.begin());
@@ -152,7 +153,8 @@ void DealiiWrappers::VectorConverter<VectorType, dim, spacedim>::to_four_c(
   vector_in_dealii_layout_.replace_local_values(
       n_local_elements, dealii_vector.begin(), indices.data());
 
-  four_c_vector.import(vector_in_dealii_layout_, dealii_to_four_c_importer_, Insert);
+  four_c_vector.import(
+      vector_in_dealii_layout_, dealii_to_four_c_importer_, Core::LinAlg::CombineMode::insert);
 }
 
 
