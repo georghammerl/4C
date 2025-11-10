@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fevector.hpp"
 
@@ -49,6 +50,57 @@ namespace Core::LinAlg
 
 namespace BeamInteraction
 {
+  /**
+   * \brief Data container for parameters for the mortar manager.
+   */
+  struct MortarManagerParameters
+  {
+    //! The start value for the Lagrange multiplier global IDs.
+    int start_value_lambda_gid = 0;
+
+    //! Number of Lagrange multiplier DOFs on a node for translational coupling.
+    unsigned int n_lambda_node_translational = 0;
+
+    //! Number of Lagrange multiplier DOFs on an element for translational coupling.
+    unsigned int n_lambda_element_translational = 0;
+
+    //! Number of Lagrange multiplier DOFs on a node for rotational coupling.
+    unsigned int n_lambda_node_rotational = 0;
+
+    //! Number of Lagrange multiplier DOFs on an element for rotational coupling.
+    unsigned int n_lambda_element_rotational = 0;
+
+    //! Flag on how to enforce the coupling constraints.
+    Inpar::BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement =
+        Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::none;
+
+    //! Flag on how the extended system is built up.
+    Inpar::BeamToSolid::BeamToSolidLagrangeFormulation lagrange_formulation =
+        Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::none;
+
+    //! Penalty parameter for positional coupling.
+    double penalty_parameter_translational = 0.0;
+
+    //! Penalty parameter for rotational coupling.
+    double penalty_parameter_rotational = 0.0;
+
+    /**
+     * \brief Get the total number of Lagrange multiplier DOFs on a node.
+     */
+    [[nodiscard]] unsigned int n_lambda_node() const
+    {
+      return n_lambda_node_translational + n_lambda_node_rotational;
+    }
+
+    /**
+     * \brief Get the total number of Lagrange multiplier DOFs on an element.
+     */
+    [[nodiscard]] unsigned int n_lambda_element() const
+    {
+      return n_lambda_element_translational + n_lambda_element_rotational;
+    }
+  };
+
   /**
    * \brief In beam to solid interactions with mortar contact discretization, we need to create a
    * map with the Lagrange multiplier DOFs (in contrast to solid meshtying / mortar we do not create
@@ -92,8 +144,7 @@ namespace BeamInteraction
      * @param start_value_lambda_gid (in) Start value for the Lagrange multiplier global IDs.
      */
     BeamToSolidMortarManager(const std::shared_ptr<const Core::FE::Discretization>& discret,
-        const std::shared_ptr<const BeamInteraction::BeamToSolidParamsBase>& params,
-        int start_value_lambda_gid);
+        const MortarManagerParameters& parameters);
 
     /**
      * \brief Virtual Destructor
@@ -301,32 +352,11 @@ namespace BeamInteraction
     //! Flag if global maps were build.
     bool is_global_maps_build_;
 
-    //! The start value for the Lagrange multiplier global IDs.
-    int start_value_lambda_gid_;
-
-    //! Number of Lagrange multiplier DOFs on a node.
-    unsigned int n_lambda_node_;
-
-    //! Number of Lagrange multiplier DOFs on an element.
-    unsigned int n_lambda_element_;
-
-    //! Number of Lagrange multiplier DOFs on a node for translational coupling.
-    unsigned int n_lambda_node_translational_;
-
-    //! Number of Lagrange multiplier DOFs on an element for translational coupling.
-    unsigned int n_lambda_element_translational_;
-
-    //! Number of Lagrange multiplier DOFs on a node for rotational coupling.
-    unsigned int n_lambda_node_rotational_;
-
-    //! Number of Lagrange multiplier DOFs on an element for rotational coupling.
-    unsigned int n_lambda_element_rotational_;
+    //! Parameters for the Lagrange multiplier DOFs.
+    MortarManagerParameters parameters_;
 
     //! Pointer to the discretization containing the solid and beam elements.
     std::shared_ptr<const Core::FE::Discretization> discret_;
-
-    //! Pointer to the beam contact parameters.
-    std::shared_ptr<const BeamInteraction::BeamToSolidParamsBase> beam_to_solid_params_;
 
     //! Row map of the additional Lagrange multiplier DOFs for translations.
     std::shared_ptr<Core::LinAlg::Map> lambda_dof_rowmap_translations_;

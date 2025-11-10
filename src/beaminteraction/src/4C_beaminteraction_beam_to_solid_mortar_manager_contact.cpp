@@ -12,7 +12,6 @@
 #include "4C_beaminteraction_beam_to_solid_utils.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_beaminteraction_str_model_evaluator_datastate.hpp"
-#include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_fad.hpp"
 
@@ -24,9 +23,9 @@ FOUR_C_NAMESPACE_OPEN
  */
 BeamInteraction::BeamToSolidMortarManagerContact::BeamToSolidMortarManagerContact(
     const std::shared_ptr<const Core::FE::Discretization>& discret,
-    const std::shared_ptr<const BeamInteraction::BeamToSolidParamsBase>& params,
-    int start_value_lambda_gid)
-    : BeamToSolidMortarManager(discret, params, start_value_lambda_gid)
+    const MortarManagerParameters& parameters,
+    const std::shared_ptr<const BeamInteraction::BeamToSolidSurfaceContactParams>& params)
+    : BeamToSolidMortarManager(discret, parameters), beam_to_surface_contact_params_(params)
 {
 }
 
@@ -39,9 +38,6 @@ BeamInteraction::BeamToSolidMortarManagerContact::get_penalty_regularization(
     const bool compute_linearization) const
 {
   using fad_type = fad_type_1st_order_2_variables;
-  const auto beam_to_solid_contact_params =
-      std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidSurfaceContactParams>(
-          beam_to_solid_params_);
 
   // Get the penalty regularized Lagrange multipliers and the derivative w.r.t. the constraint
   // vector (averaged gap) and the scaling vector (kappa)
@@ -67,7 +63,7 @@ BeamInteraction::BeamToSolidMortarManagerContact::get_penalty_regularization(
       // The -1 here is due to the way the lagrange multipliers are defined in the coupling
       // constraints.
       const fad_type local_lambda =
-          -1.0 * penalty_force(scaled_gap, beam_to_solid_contact_params->get_penalty_law());
+          -1.0 * penalty_force(scaled_gap, beam_to_surface_contact_params_->get_penalty_law());
       lambda->replace_local_value(lid, Core::FADUtils::cast_to_double(local_lambda));
       lambda_lin_constraint->replace_local_value(lid, local_lambda.dx(0));
       lambda_lin_kappa->replace_local_value(lid, local_lambda.dx(1));

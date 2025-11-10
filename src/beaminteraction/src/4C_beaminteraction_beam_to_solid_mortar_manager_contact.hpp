@@ -17,7 +17,7 @@ FOUR_C_NAMESPACE_OPEN
 // Forward declaration
 namespace BeamInteraction
 {
-  class BeamToSolidParamsBase;
+  class BeamToSolidSurfaceContactParams;
 }  // namespace BeamInteraction
 
 
@@ -33,12 +33,12 @@ namespace BeamInteraction
      * \brief Standard Constructor
      *
      * @param discret (in) Pointer to the discretization.
+     * @param parameters (in) Mortar manager parameters.
      * @param params (in) Beam-to-solid parameters.
-     * @param start_value_lambda_gid (in) Start value for the Lagrange multiplier global IDs.
      */
     BeamToSolidMortarManagerContact(const std::shared_ptr<const Core::FE::Discretization>& discret,
-        const std::shared_ptr<const BeamInteraction::BeamToSolidParamsBase>& params,
-        int start_value_lambda_gid);
+        const MortarManagerParameters& parameters,
+        const std::shared_ptr<const BeamInteraction::BeamToSolidSurfaceContactParams>& params);
 
    protected:
     /**
@@ -48,6 +48,11 @@ namespace BeamInteraction
         std::shared_ptr<Core::LinAlg::Vector<double>>,
         std::shared_ptr<Core::LinAlg::Vector<double>>>
     get_penalty_regularization(const bool compute_linearization = false) const override;
+
+   private:
+    //! Pointer to the beam contact parameters.
+    std::shared_ptr<const BeamInteraction::BeamToSolidSurfaceContactParams>
+        beam_to_surface_contact_params_;
   };
 }  // namespace BeamInteraction
 

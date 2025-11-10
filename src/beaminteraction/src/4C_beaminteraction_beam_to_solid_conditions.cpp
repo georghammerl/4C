@@ -10,6 +10,7 @@
 #include "4C_beam3_euler_bernoulli.hpp"
 #include "4C_beam3_reissner.hpp"
 #include "4C_beaminteraction_beam_to_solid_edge_contact_pair.hpp"
+#include "4C_beaminteraction_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_beam_to_solid_mortar_manager_contact.hpp"
 #include "4C_beaminteraction_beam_to_solid_surface_contact_pair.hpp"
 #include "4C_beaminteraction_beam_to_solid_surface_contact_pair_mortar.hpp"
@@ -130,20 +131,105 @@ BeamInteraction::BeamToSolidCondition::create_indirect_assembly_manager(
 {
   if (condition_data_.is_indirect_assembly_manager)
   {
-    // Create the mortar manager. We add 1 to the MaxAllGID since this gives the maximum GID and NOT
-    // the length of the GIDs.
-    const int start_gid_lambda = discret->dof_row_map()->max_all_gid() + 1;
+    const auto beam_to_volume_params =
+        std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidVolumeMeshtyingParams>(
+            beam_to_solid_params_);
+    const auto beam_to_surface_params =
+        std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidSurfaceMeshtyingParams>(
+            beam_to_solid_params_);
+    const auto beam_to_surface_contact_params =
+        std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidSurfaceContactParams>(
+            beam_to_solid_params_);
+
+    // Get the parameters for the mortar manager.
+    MortarManagerParameters mortar_manager_params{};
+
+    {
+      //
+      // We add 1 to the MaxAllGID since this gives the maximum GID and NOT the length of the GIDs.
+      //
+      mortar_manager_params.start_value_lambda_gid = discret->dof_row_map()->max_all_gid() + 1;
+
+      //
+      // Get the dimension of the Lagrange multiplier field
+      //
+      const bool is_contact = beam_to_surface_contact_params != nullptr;
+      const unsigned int n_dim = is_contact ? 1 : 3;
+
+      // Get the number of Lagrange multiplier DOF on a beam node and on a beam element.
+      const auto& [n_lambda_node_pos, n_lambda_element_pos] =
+          mortar_shape_functions_to_number_of_lagrange_values(beam_to_solid_params_,
+              beam_to_solid_params_->get_mortar_shape_function_type(), n_dim);
+      mortar_manager_params.n_lambda_node_translational = n_lambda_node_pos;
+      mortar_manager_params.n_lambda_element_translational = n_lambda_element_pos;
+
+      if (beam_to_solid_params_->is_rotational_coupling())
+      {
+        // Get the mortar shape functions for rotational coupling
+        auto mortar_shape_function_rotation =
+            Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::none;
+
+        if (beam_to_volume_params != nullptr)
+        {
+          mortar_shape_function_rotation =
+              beam_to_volume_params->get_mortar_shape_function_rotation_type();
+        }
+        else if (beam_to_surface_params != nullptr)
+        {
+          mortar_shape_function_rotation = beam_to_surface_params->get_mortar_shape_function_type();
+        }
+        else
+        {
+          FOUR_C_THROW(
+              "Rotational coupling is only implemented for beam-to-solid volume meshtying and "
+              "beam-to-solid surface meshtying.");
+        }
+
+        // Get the number of Lagrange multiplier DOF for rotational coupling on a beam node and on a
+        // beam element.
+        const auto& [n_lambda_node_rot, n_lambda_element_rot] =
+            mortar_shape_functions_to_number_of_lagrange_values(
+                beam_to_solid_params_, mortar_shape_function_rotation, n_dim);
+        mortar_manager_params.n_lambda_node_rotational = n_lambda_node_rot;
+        mortar_manager_params.n_lambda_element_rotational = n_lambda_element_rot;
+      }
+
+      //
+      // Get the penalty parameters
+      //
+      mortar_manager_params.penalty_parameter_translational =
+          beam_to_solid_params_->get_penalty_parameter();
+      if (beam_to_volume_params != nullptr)
+      {
+        mortar_manager_params.penalty_parameter_rotational =
+            beam_to_volume_params->get_rotational_coupling_penalty_parameter();
+      }
+      else if (beam_to_surface_params != nullptr)
+      {
+        mortar_manager_params.penalty_parameter_rotational =
+            beam_to_surface_params->get_rotational_coupling_penalty_parameter();
+      }
+
+      //
+      // Get constraint enforcement flags
+      //
+      mortar_manager_params.lagrange_formulation =
+          beam_to_solid_params_->get_lagrange_formulation();
+      mortar_manager_params.constraint_enforcement =
+          beam_to_solid_params_->get_constraint_enforcement();
+    }
+
+    // Create the mortar manager as required for the current problem.
     std::shared_ptr<BeamToSolidMortarManager> mortar_manager = nullptr;
-    if (std::dynamic_pointer_cast<const BeamToSolidSurfaceContactParams>(beam_to_solid_params_) ==
-        nullptr)
+    if (beam_to_surface_contact_params == nullptr)
     {
       mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManager>(
-          discret, beam_to_solid_params_, start_gid_lambda);
+          discret, mortar_manager_params);
     }
     else
     {
       mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManagerContact>(
-          discret, beam_to_solid_params_, start_gid_lambda);
+          discret, mortar_manager_params, beam_to_surface_contact_params);
     }
 
     // Setup the mortar manager.

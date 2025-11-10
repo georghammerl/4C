@@ -7,14 +7,9 @@
 
 #include "4C_beaminteraction_beam_to_solid_mortar_manager.hpp"
 
-#include "4C_beaminteraction_beam_to_solid_params_base.hpp"
-#include "4C_beaminteraction_beam_to_solid_surface_contact_params.hpp"
-#include "4C_beaminteraction_beam_to_solid_surface_meshtying_params.hpp"
 #include "4C_beaminteraction_beam_to_solid_utils.hpp"
-#include "4C_beaminteraction_beam_to_solid_volume_meshtying_params.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
-#include "4C_beaminteraction_contact_params.hpp"
 #include "4C_beaminteraction_str_model_evaluator_datastate.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair.hpp"
@@ -35,67 +30,13 @@ FOUR_C_NAMESPACE_OPEN
  */
 BeamInteraction::BeamToSolidMortarManager::BeamToSolidMortarManager(
     const std::shared_ptr<const Core::FE::Discretization>& discret,
-    const std::shared_ptr<const BeamInteraction::BeamToSolidParamsBase>& params,
-    int start_value_lambda_gid)
+    const MortarManagerParameters& parameters)
     : is_setup_(false),
       is_local_maps_build_(false),
       is_global_maps_build_(false),
-      start_value_lambda_gid_(start_value_lambda_gid),
-      n_lambda_node_translational_(0),
-      n_lambda_element_translational_(0),
-      n_lambda_node_rotational_(0),
-      n_lambda_element_rotational_(0),
-      discret_(discret),
-      beam_to_solid_params_(params)
+      parameters_(parameters),
+      discret_(discret)
 {
-  // Get the dimension of the Lagrange multiplier field
-  const bool is_contact = std::dynamic_pointer_cast<const BeamToSolidSurfaceContactParams>(
-                              beam_to_solid_params_) != nullptr;
-  const unsigned int n_dim = is_contact ? 1 : 3;
-
-  // Get the number of Lagrange multiplier DOF on a beam node and on a beam element.
-  const auto& [n_lambda_node_pos, n_lambda_element_pos] =
-      mortar_shape_functions_to_number_of_lagrange_values(
-          beam_to_solid_params_, beam_to_solid_params_->get_mortar_shape_function_type(), n_dim);
-  n_lambda_node_ = n_lambda_node_pos;
-  n_lambda_node_translational_ = n_lambda_node_pos;
-  n_lambda_element_ = n_lambda_element_pos;
-  n_lambda_element_translational_ = n_lambda_element_pos;
-
-  if (beam_to_solid_params_->is_rotational_coupling())
-  {
-    // Get the mortar shape functions for rotational coupling
-    auto mortar_shape_function_rotation = Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::none;
-
-    const auto beam_to_volume_params =
-        std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidVolumeMeshtyingParams>(
-            beam_to_solid_params_);
-    const auto beam_to_surface_params =
-        std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidSurfaceMeshtyingParams>(
-            beam_to_solid_params_);
-
-    FOUR_C_ASSERT_ALWAYS(beam_to_volume_params || beam_to_surface_params,
-        "The params object should be either of beam-to-solid volume or surface type.");
-    if (beam_to_volume_params != nullptr)
-    {
-      mortar_shape_function_rotation =
-          beam_to_volume_params->get_mortar_shape_function_rotation_type();
-    }
-    else
-    {
-      mortar_shape_function_rotation = beam_to_surface_params->get_mortar_shape_function_type();
-    }
-
-    // Get the number of Lagrange multiplier DOF for rotational coupling on a beam node and on a
-    // beam element.
-    const auto& [n_lambda_node_rot, n_lambda_element_rot] =
-        mortar_shape_functions_to_number_of_lagrange_values(
-            beam_to_solid_params_, mortar_shape_function_rotation, n_dim);
-    n_lambda_node_ += n_lambda_node_rot;
-    n_lambda_node_rotational_ = n_lambda_node_rot;
-    n_lambda_element_ += n_lambda_element_rot;
-    n_lambda_element_rotational_ = n_lambda_element_rot;
-  }
 }
 
 /**
@@ -122,7 +63,8 @@ void BeamInteraction::BeamToSolidMortarManager::setup()
   // Calculate the local number of centerline nodes, beam elements and Lagrange multiplier DOF.
   const unsigned int n_nodes = my_nodes_gid.size();
   const unsigned int n_element = my_elements_gid.size();
-  const unsigned int n_lambda_dof = n_nodes * n_lambda_node_ + n_element * n_lambda_element_;
+  const unsigned int n_lambda_dof =
+      n_nodes * parameters_.n_lambda_node() + n_element * parameters_.n_lambda_element();
 
 
   // Tell all other processors how many lambda DOFs this processor has. This information is needed
@@ -133,36 +75,37 @@ void BeamInteraction::BeamToSolidMortarManager::setup()
       &temp_my_n_lambda_dof, lambda_dof_per_rank.data(), 1, discret_->get_comm());
 
   // Get the start GID for the lambda DOFs on this processor.
-  int my_lambda_gid_start_value = start_value_lambda_gid_;
+  int my_lambda_gid_start_value = parameters_.start_value_lambda_gid;
   for (int pid = 0; pid < Core::Communication::my_mpi_rank(discret_->get_comm()); pid++)
     my_lambda_gid_start_value += lambda_dof_per_rank[pid];
 
   // Fill in all GIDs of the lambda DOFs on this processor (for translations and rotations).
   std::vector<int> my_lambda_gid_translational;
-  my_lambda_gid_translational.reserve(
-      n_nodes * n_lambda_node_translational_ + n_element * n_lambda_element_translational_);
+  my_lambda_gid_translational.reserve(n_nodes * parameters_.n_lambda_node_translational +
+                                      n_element * parameters_.n_lambda_element_translational);
   std::vector<int> my_lambda_gid_rotational;
-  my_lambda_gid_rotational.reserve(
-      n_nodes * n_lambda_node_rotational_ + n_element * n_lambda_element_rotational_);
+  my_lambda_gid_rotational.reserve(n_nodes * parameters_.n_lambda_node_rotational +
+                                   n_element * parameters_.n_lambda_element_rotational);
   for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
   {
-    for (unsigned int i_dof = 0; i_dof < n_lambda_node_translational_; i_dof++)
+    for (unsigned int i_dof = 0; i_dof < parameters_.n_lambda_node_translational; i_dof++)
       my_lambda_gid_translational.push_back(
-          my_lambda_gid_start_value + i_dof + i_node * n_lambda_node_);
-    for (unsigned int i_dof = 0; i_dof < n_lambda_node_rotational_; i_dof++)
+          my_lambda_gid_start_value + i_dof + i_node * parameters_.n_lambda_node());
+    for (unsigned int i_dof = 0; i_dof < parameters_.n_lambda_node_rotational; i_dof++)
       my_lambda_gid_rotational.push_back(my_lambda_gid_start_value + i_dof +
-                                         i_node * n_lambda_node_ + n_lambda_node_translational_);
+                                         i_node * parameters_.n_lambda_node() +
+                                         parameters_.n_lambda_node_translational);
   }
-  my_lambda_gid_start_value += static_cast<int>(n_nodes * n_lambda_node_);
+  my_lambda_gid_start_value += static_cast<int>(n_nodes * parameters_.n_lambda_node());
   for (unsigned int i_element = 0; i_element < n_element; i_element++)
   {
-    for (unsigned int i_dof = 0; i_dof < n_lambda_element_translational_; i_dof++)
+    for (unsigned int i_dof = 0; i_dof < parameters_.n_lambda_element_translational; i_dof++)
       my_lambda_gid_translational.push_back(
-          my_lambda_gid_start_value + i_dof + i_element * n_lambda_element_);
-    for (unsigned int i_dof = 0; i_dof < n_lambda_element_rotational_; i_dof++)
+          my_lambda_gid_start_value + i_dof + i_element * parameters_.n_lambda_element());
+    for (unsigned int i_dof = 0; i_dof < parameters_.n_lambda_element_rotational; i_dof++)
       my_lambda_gid_rotational.push_back(my_lambda_gid_start_value + i_dof +
-                                         i_element * n_lambda_element_ +
-                                         n_lambda_element_translational_);
+                                         i_element * parameters_.n_lambda_element() +
+                                         parameters_.n_lambda_element_translational);
   }
 
   // Rowmap for the additional GIDs used by the mortar contact discretization.
@@ -184,22 +127,22 @@ void BeamInteraction::BeamToSolidMortarManager::setup()
   // multivector if it hase one or more columns.
   node_gid_to_lambda_gid_ = nullptr;
   element_gid_to_lambda_gid_ = nullptr;
-  if (n_lambda_node_ > 0)
-    node_gid_to_lambda_gid_ =
-        std::make_shared<Core::LinAlg::MultiVector<double>>(node_gid_rowmap, n_lambda_node_, true);
-  if (n_lambda_element_ > 0)
+  if (parameters_.n_lambda_node() > 0)
+    node_gid_to_lambda_gid_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
+        node_gid_rowmap, parameters_.n_lambda_node(), true);
+  if (parameters_.n_lambda_element() > 0)
     element_gid_to_lambda_gid_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        element_gid_rowmap, n_lambda_element_, true);
+        element_gid_rowmap, parameters_.n_lambda_element(), true);
 
   // Fill in the entries in the node / element global id to Lagrange multiplier global id vector.
   int lagrange_gid = -1;
   if (node_gid_to_lambda_gid_ != nullptr)
   {
     for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-      for (unsigned int i_lambda = 0; i_lambda < n_lambda_node_; i_lambda++)
+      for (unsigned int i_lambda = 0; i_lambda < parameters_.n_lambda_node(); i_lambda++)
       {
         // Get the global Lagrange multiplier id for this node.
-        lagrange_gid = lambda_dof_rowmap_->gid(i_node * n_lambda_node_ + i_lambda);
+        lagrange_gid = lambda_dof_rowmap_->gid(i_node * parameters_.n_lambda_node() + i_lambda);
 
         // Set the global Lagrange multiplier id for this node.
         node_gid_to_lambda_gid_->replace_local_value(i_node, i_lambda, lagrange_gid);
@@ -208,11 +151,12 @@ void BeamInteraction::BeamToSolidMortarManager::setup()
   if (element_gid_to_lambda_gid_ != nullptr)
   {
     for (unsigned int i_element = 0; i_element < n_element; i_element++)
-      for (unsigned int i_lambda = 0; i_lambda < n_lambda_element_; i_lambda++)
+      for (unsigned int i_lambda = 0; i_lambda < parameters_.n_lambda_element(); i_lambda++)
       {
         // Get the global Lagrange multiplier id for this element.
-        lagrange_gid = lambda_dof_rowmap_->gid(
-            n_nodes * n_lambda_node_ + i_element * n_lambda_element_ + i_lambda);
+        lagrange_gid =
+            lambda_dof_rowmap_->gid(n_nodes * parameters_.n_lambda_node() +
+                                    i_element * parameters_.n_lambda_element() + i_lambda);
 
         // Set the global Lagrange multiplier id for this element.
         element_gid_to_lambda_gid_->replace_local_value(i_element, i_lambda, lagrange_gid);
@@ -315,13 +259,13 @@ void BeamInteraction::BeamToSolidMortarManager::set_local_maps(
           "same processor as the pair!");
 
     // Get the global id of the nodes / elements that the pairs on this rank need.
-    if (n_lambda_node_ > 0)
+    if (parameters_.n_lambda_node() > 0)
       // There are nodal lambda DOFs, add the gid for the nodes in this element to the vector.
       // The first two nodes are the centerline nodes.
       for (unsigned int i_node = 0; i_node < 2; i_node++)
         node_gid_needed.push_back(pair->element1()->nodes()[i_node]->id());
 
-    if (n_lambda_element_ > 0)
+    if (parameters_.n_lambda_element() > 0)
       // There are element lambda DOFs, add the gid for this element to the vector.
       element_gid_needed.push_back(pair->element1()->id());
   }
@@ -346,10 +290,10 @@ void BeamInteraction::BeamToSolidMortarManager::set_local_maps(
   std::shared_ptr<Core::LinAlg::MultiVector<double>> element_gid_to_lambda_gid_copy = nullptr;
   if (node_gid_to_lambda_gid_ != nullptr)
     node_gid_to_lambda_gid_copy = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        node_gid_needed_rowmap, n_lambda_node_, true);
+        node_gid_needed_rowmap, parameters_.n_lambda_node(), true);
   if (element_gid_to_lambda_gid_ != nullptr)
     element_gid_to_lambda_gid_copy = std::make_shared<Core::LinAlg::MultiVector<double>>(
-        element_gid_needed_rowmap, n_lambda_element_, true);
+        element_gid_needed_rowmap, parameters_.n_lambda_element(), true);
 
   // Export values from the global multi vector to the ones needed on this rank.
   if (node_gid_to_lambda_gid_ != nullptr)
@@ -364,10 +308,10 @@ void BeamInteraction::BeamToSolidMortarManager::set_local_maps(
   element_gid_to_lambda_gid_map_.clear();
   if (node_gid_to_lambda_gid_ != nullptr)
   {
-    std::vector<int> temp_node(n_lambda_node_);
+    std::vector<int> temp_node(parameters_.n_lambda_node());
     for (int i_node = 0; i_node < node_gid_needed_rowmap.num_my_elements(); i_node++)
     {
-      for (unsigned int i_temp = 0; i_temp < n_lambda_node_; i_temp++)
+      for (unsigned int i_temp = 0; i_temp < parameters_.n_lambda_node(); i_temp++)
         temp_node[i_temp] =
             (int)(((*node_gid_to_lambda_gid_copy)(i_temp)).local_values_as_span()[i_node]);
       node_gid_to_lambda_gid_map_[node_gid_needed_rowmap.gid(i_node)] = temp_node;
@@ -377,10 +321,10 @@ void BeamInteraction::BeamToSolidMortarManager::set_local_maps(
   }
   if (element_gid_to_lambda_gid_ != nullptr)
   {
-    std::vector<int> temp_elements(n_lambda_element_);
+    std::vector<int> temp_elements(parameters_.n_lambda_element());
     for (int i_element = 0; i_element < element_gid_needed_rowmap.num_my_elements(); i_element++)
     {
-      for (unsigned int i_temp = 0; i_temp < n_lambda_element_; i_temp++)
+      for (unsigned int i_temp = 0; i_temp < parameters_.n_lambda_element(); i_temp++)
         temp_elements[i_temp] =
             (int)(((*element_gid_to_lambda_gid_copy)(i_temp)).local_values_as_span()[i_element]);
       element_gid_to_lambda_gid_map_[element_gid_needed_rowmap.gid(i_element)] = temp_elements;
@@ -412,7 +356,7 @@ BeamInteraction::BeamToSolidMortarManager::location_vector(
   std::vector<int> lambda_rot_row;
 
   // Get the global DOFs ids of the nodal Lagrange multipliers.
-  if (n_lambda_node_ > 0)
+  if (parameters_.n_lambda_node() > 0)
   {
     for (int i_node = 0; i_node < contact_pair.element1()->num_node(); i_node++)
     {
@@ -427,20 +371,21 @@ BeamInteraction::BeamToSolidMortarManager::location_vector(
         if (search_key_in_map == node_gid_to_lambda_gid_map_.end())
           FOUR_C_THROW("Global node id {} not in map!", node_id);
         const auto node_lambda_gid = search_key_in_map->second;
-        for (unsigned int i_pos = 0; i_pos < n_lambda_node_translational_; i_pos++)
+        for (unsigned int i_pos = 0; i_pos < parameters_.n_lambda_node_translational; i_pos++)
         {
           lambda_pos_row.push_back(node_lambda_gid[i_pos]);
         }
-        for (unsigned int i_rot = 0; i_rot < n_lambda_node_rotational_; i_rot++)
+        for (unsigned int i_rot = 0; i_rot < parameters_.n_lambda_node_rotational; i_rot++)
         {
-          lambda_rot_row.push_back(node_lambda_gid[n_lambda_node_translational_ + i_rot]);
+          lambda_rot_row.push_back(
+              node_lambda_gid[parameters_.n_lambda_node_translational + i_rot]);
         }
       }
     }
   }
 
   // Get the global DOFs ids of the element Lagrange multipliers.
-  if (n_lambda_element_ > 0)
+  if (parameters_.n_lambda_element() > 0)
   {
     if (BeamInteraction::Utils::is_beam_element(*contact_pair.element1()))
     {
@@ -452,13 +397,14 @@ BeamInteraction::BeamToSolidMortarManager::location_vector(
       if (search_key_in_map == element_gid_to_lambda_gid_map_.end())
         FOUR_C_THROW("Global element id {} not in map!", element_id);
       const auto element_lambda_gid = search_key_in_map->second;
-      for (unsigned int i_pos = 0; i_pos < n_lambda_element_translational_; i_pos++)
+      for (unsigned int i_pos = 0; i_pos < parameters_.n_lambda_element_translational; i_pos++)
       {
         lambda_pos_row.push_back(element_lambda_gid[i_pos]);
       }
-      for (unsigned int i_rot = 0; i_rot < n_lambda_element_rotational_; i_rot++)
+      for (unsigned int i_rot = 0; i_rot < parameters_.n_lambda_element_rotational; i_rot++)
       {
-        lambda_rot_row.push_back(element_lambda_gid[n_lambda_element_translational_ + i_rot]);
+        lambda_rot_row.push_back(
+            element_lambda_gid[parameters_.n_lambda_element_translational + i_rot]);
       }
     }
   }
@@ -500,9 +446,8 @@ void BeamInteraction::BeamToSolidMortarManager::evaluate_coupling_terms_lagrange
  */
 bool BeamInteraction::BeamToSolidMortarManager::have_lagrange_dofs() const
 {
-  return beam_to_solid_params_ &&
-         beam_to_solid_params_->get_constraint_enforcement() ==
-             Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
+  return parameters_.constraint_enforcement ==
+         Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
 }
 
 /**
@@ -734,22 +679,8 @@ BeamInteraction::BeamToSolidMortarManager::penalty_invert_kappa() const
       std::make_shared<Core::LinAlg::Vector<double>>(*lambda_dof_rowmap_);
 
   // Get the penalty parameters.
-  const double penalty_translation = beam_to_solid_params_->get_penalty_parameter();
-  double penalty_rotation = 0.0;
-  auto beam_to_volume_params =
-      std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidVolumeMeshtyingParams>(
-          beam_to_solid_params_);
-  auto beam_to_surface_params =
-      std::dynamic_pointer_cast<const BeamInteraction::BeamToSolidSurfaceMeshtyingParams>(
-          beam_to_solid_params_);
-  if (beam_to_volume_params != nullptr)
-    penalty_rotation = beam_to_volume_params->get_rotational_coupling_penalty_parameter();
-  else if (beam_to_surface_params != nullptr)
-    penalty_rotation = beam_to_surface_params->get_rotational_coupling_penalty_parameter();
-  else if (lambda_dof_rowmap_rotations_->num_global_elements() > 0)
-    FOUR_C_THROW(
-        "Rotational penalty coupling only implemented for beam-to-volume and beam-to-surface "
-        "case.");
+  const double penalty_translation = parameters_.penalty_parameter_translational;
+  const double penalty_rotation = parameters_.penalty_parameter_rotational;
 
   // Calculate the local inverse of kappa.
   double penalty = 0.0;
@@ -810,11 +741,11 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_stiff(
   auto block_lm_displ_row_map = jac_block_sparse_matrix_base->matrix(1, 0).row_map();
   auto block_displ_lm_row_map = jac_block_sparse_matrix_base->matrix(0, 1).row_map();
 
-  const auto lagrange_formulation = beam_to_solid_params_->get_lagrange_formulation();
-  if (lagrange_formulation == Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
+  if (parameters_.lagrange_formulation ==
+      Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
   {
     // Set penalty entry
-    const double penalty_translation = beam_to_solid_params_->get_penalty_parameter();
+    const double penalty_translation = parameters_.penalty_parameter_translational;
     auto kappa_vector = Core::LinAlg::Vector<double>(block_lm_displ_row_map);
     Core::LinAlg::export_to(*kappa_, kappa_vector);
     Core::LinAlg::SparseMatrix kappa_penalty_inv_mat(kappa_vector);
