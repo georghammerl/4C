@@ -51,7 +51,6 @@ Solid::TimeInt::BaseDataIO::BaseDataIO()
       writerestartevery_(-1),
       writeresultsevery_(-1),
       writeenergyevery_(-1),
-      lastwrittenresultsstep_(-1),
       writestress_(Inpar::Solid::stress_none),
       writestrain_(Inpar::Solid::strain_none),
       writeplstrain_(Inpar::Solid::strain_none),
@@ -214,12 +213,6 @@ bool Solid::TimeInt::BaseDataIO::should_write_energy_for_this_step(const int ste
          determine_write_output(step, get_write_timestep_offset(), get_write_energy_every_n_step());
 }
 
-int Solid::TimeInt::BaseDataIO::get_last_written_results() const { return lastwrittenresultsstep_; }
-
-void Solid::TimeInt::BaseDataIO::set_last_written_results(const int step)
-{
-  lastwrittenresultsstep_ = step;
-}
 
 
 FOUR_C_NAMESPACE_CLOSE

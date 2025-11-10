@@ -404,7 +404,6 @@ namespace Solid
     void output_step(const bool forced_writerestart = false  ///< [in] Force writing of restart data
     );
 
-    bool has_final_state_been_written() const override;
 
     //! Write output for every Newton or line search iteration
     //! The step numbers are formatted in the following manner:
@@ -1192,9 +1191,6 @@ namespace Solid
 
     //! flag indicating if class is initialized
     bool isinit_;
-
-    //! load/time step of the last written results
-    int lastwrittenresultsstep_;
 
    protected:
     //! returns true if setup() was called and is still valid

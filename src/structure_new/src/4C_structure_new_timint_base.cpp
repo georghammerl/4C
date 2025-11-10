@@ -442,7 +442,6 @@ void Solid::TimeInt::Base::prepare_output(bool force_prepare_timestep)
   if ((dataio_->is_write_results_enabled() && force_prepare_timestep) ||
       dataio_->write_results_for_this_step(dataglobalstate_->get_step_np()))
   {
-    int_ptr_->determine_stress_strain();
     int_ptr_->determine_optional_quantity();
   }
   if ((dataio_->is_runtime_output_enabled() && force_prepare_timestep) ||
@@ -522,7 +521,6 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
   if (forced_writerestart || dataio_->should_write_restart_for_step(dataglobalstate_->get_step_n()))
   {
     output_restart(datawritten);
-    dataio_->set_last_written_results(dataglobalstate_->get_step_n());
   }
 
   // output results (not necessary if restart in same step)
@@ -533,7 +531,6 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
   {
     new_io_step(datawritten);
     output_state();
-    dataio_->set_last_written_results(dataglobalstate_->get_step_n());
   }
 
   // output results during runtime ( not used for restart so far )
@@ -809,10 +806,6 @@ void Solid::TimeInt::Base::post_update() { int_ptr_->post_update(); }
 
 void Solid::TimeInt::Base::post_time_loop() { int_ptr_->post_time_loop(); }
 
-bool Solid::TimeInt::Base::has_final_state_been_written() const
-{
-  return dataio_->get_last_written_results() == dataglobalstate_->get_step_n();
-}
 
 std::string Solid::TimeInt::Base::method_title() const
 {

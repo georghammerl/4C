@@ -517,10 +517,6 @@ namespace Adapter
       return structure_->model_evaluator(mtype);
     }
 
-    [[nodiscard]] bool has_final_state_been_written() const override
-    {
-      return structure_->has_final_state_been_written();
-    }
 
    protected:
     std::shared_ptr<Structure> structure_;  ///< underlying structural time integration

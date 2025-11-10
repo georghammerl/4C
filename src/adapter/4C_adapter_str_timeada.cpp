@@ -309,9 +309,6 @@ int Adapter::StructureTimeAda::integrate()
     }
   }
 
-  // force write output
-  output(true);
-
   // that's it say what went wrong
   return convergencestatus;
 }

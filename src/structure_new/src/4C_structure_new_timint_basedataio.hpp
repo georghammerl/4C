@@ -132,12 +132,6 @@ namespace Solid
       /// \brief return TRUE if energy data shall be written for this load/time step
       bool should_write_energy_for_this_step(int step) const;
 
-      /// \brief return the number of the load/time step for which the results have been written
-      int get_last_written_results() const;
-
-      /// \brief sets the last written load/time step for which the results have been written
-      void set_last_written_results(int step);
-
       /// @name Get printing and output parameters/files
       ///@{
       /// get the output file for energy
@@ -345,9 +339,6 @@ namespace Solid
 
       /// write system energy every given step
       int writeenergyevery_;
-
-      /// timestep of the last written results
-      int lastwrittenresultsstep_;
 
       /// stress output type
       Inpar::Solid::StressType writestress_;

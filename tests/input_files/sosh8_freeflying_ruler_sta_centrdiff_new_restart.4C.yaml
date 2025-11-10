@@ -2,7 +2,7 @@ TITLE:
   - "Free flying ruler with sosh8 with rho=0.9 (damping!),"
   - "with time step size adaptivity (central difference scheme for estimator)"
   - "and 'new' structural time integration (STI)"
-  - "This is used to test the restart capability of the adaptive analysis"
+  - "This is used to test the restart capability at the end of the simulation (last time step of the simulation)."
 PROBLEM SIZE:
   ELEMENTS: 30
   NODES: 96
