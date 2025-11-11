@@ -967,51 +967,6 @@ void Core::IO::DiscretizationWriter::write_mesh(const int step, const double tim
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Core::IO::DiscretizationWriter::write_mesh(
-    const int step, const double time, std::string name_base_file)
-{
-  if (binio_)
-  {
-    // ... write other mesh information
-    if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-    {
-      output_.control_file().try_end_group();
-      output_.control_file()
-          .start_group("field")
-          .write("field", dis_.name())
-          .write("time", time)
-          .write("step", step)
-          .write("num_nd", dis_.num_global_nodes())
-          .write("num_ele", dis_.num_global_elements())
-          .write("num_dof", dis_.dof_row_map(0)->num_global_elements())
-          .write("num_dim", static_cast<int>(dis_.n_dim()));
-
-      // knotvectors for nurbs-discretisation
-      // write_knotvector();
-      // create name for meshfile as in createmeshfile which is not called here
-      std::ostringstream meshname;
-
-      meshname << name_base_file << ".mesh." << dis_.name() << ".s" << step;
-      meshfilename_ = meshname.str();
-
-      if (Core::Communication::num_mpi_ranks(get_comm()) > 1)
-      {
-        output_.control_file().write(
-            "num_output_proc", Core::Communication::num_mpi_ranks(get_comm()));
-      }
-      std::string filename;
-      std::string::size_type pos = meshfilename_.find_last_of('/');
-      if (pos == std::string::npos)
-        filename = meshfilename_;
-      else
-        filename = meshfilename_.substr(pos + 1);
-      output_.control_file().write("mesh_file", filename);
-    }
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
 void Core::IO::DiscretizationWriter::write_only_nodes_in_new_field_group_to_control_file(
     const int step, const double time, const bool writerestart)
 {
