@@ -94,24 +94,4 @@ void Particle::DEMAdhesionSurfaceEnergyDistributionNormal::adhesion_surface_ener
   adjust_surface_energy_to_allowed_bounds(mean_surface_energy, surface_energy);
 }
 
-Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal::
-    DEMAdhesionSurfaceEnergyDistributionLogNormal(const Teuchos::ParameterList& params)
-    : Particle::DEMAdhesionSurfaceEnergyDistributionBase(params)
-{
-  // empty constructor
-}
-
-void Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal::adhesion_surface_energy(
-    const double& mean_surface_energy, double& surface_energy) const
-{
-  // initialize random number generator
-  Global::Problem::instance()->random()->set_mean_stddev(std::log(mean_surface_energy), variance_);
-
-  // set log-normal distributed random value for surface energy
-  surface_energy = std::exp(Global::Problem::instance()->random()->normal());
-
-  // adjust surface energy to allowed bounds
-  adjust_surface_energy_to_allowed_bounds(mean_surface_energy, surface_energy);
-}
-
 FOUR_C_NAMESPACE_CLOSE

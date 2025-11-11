@@ -152,13 +152,6 @@ void Particle::DEMAdhesion::init_adhesion_surface_energy_handler()
               new Particle::DEMAdhesionSurfaceEnergyDistributionNormal(params_dem_));
       break;
     }
-    case Particle::LogNormalSurfaceEnergyDistribution:
-    {
-      adhesionsurfaceenergy_ =
-          std::unique_ptr<Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal>(
-              new Particle::DEMAdhesionSurfaceEnergyDistributionLogNormal(params_dem_));
-      break;
-    }
     default:
     {
       FOUR_C_THROW("unknown adhesion surface energy distribution type!");

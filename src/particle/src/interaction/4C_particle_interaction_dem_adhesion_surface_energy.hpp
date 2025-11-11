@@ -98,18 +98,6 @@ namespace Particle
         const double& mean_surface_energy, double& surface_energy) const override;
   };
 
-  class DEMAdhesionSurfaceEnergyDistributionLogNormal
-      : public DEMAdhesionSurfaceEnergyDistributionBase
-  {
-   public:
-    //! constructor
-    explicit DEMAdhesionSurfaceEnergyDistributionLogNormal(const Teuchos::ParameterList& params);
-
-    //! get adhesion surface energy
-    void adhesion_surface_energy(
-        const double& mean_surface_energy, double& surface_energy) const override;
-  };
-
 }  // namespace Particle
 
 /*---------------------------------------------------------------------------*/

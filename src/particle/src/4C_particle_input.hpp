@@ -235,8 +235,7 @@ namespace Particle
   enum SurfaceEnergyDistribution
   {
     ConstantSurfaceEnergy,
-    NormalSurfaceEnergyDistribution,
-    LogNormalSurfaceEnergyDistribution
+    NormalSurfaceEnergyDistribution
   };
 
   //! type of initial particle radius assignment
