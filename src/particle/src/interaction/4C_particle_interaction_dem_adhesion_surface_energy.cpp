@@ -45,7 +45,7 @@ Particle::DEMAdhesionSurfaceEnergyConstant::DEMAdhesionSurfaceEnergyConstant(
 Particle::DEMAdhesionSurfaceEnergyDistributionBase::DEMAdhesionSurfaceEnergyDistributionBase(
     const Teuchos::ParameterList& params)
     : Particle::DEMAdhesionSurfaceEnergyBase(params),
-      variance_(params_dem_.get<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_VAR")),
+      standard_deviation_(params_dem_.get<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_STDDEV")),
       cutofffactor_(params_dem_.get<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_CUTOFF_FACTOR"))
 {
   // empty constructor
@@ -57,7 +57,8 @@ void Particle::DEMAdhesionSurfaceEnergyDistributionBase::setup()
   DEMAdhesionSurfaceEnergyBase::setup();
 
   // safety checks
-  if (variance_ < 0.0) FOUR_C_THROW("negative variance for adhesion surface energy distribution!");
+  if (standard_deviation_ < 0.0)
+    FOUR_C_THROW("negative standard deviation for adhesion surface energy distribution!");
   if (cutofffactor_ < 0.0) FOUR_C_THROW("negative cutoff factor of adhesion surface energy!");
 }
 
@@ -65,8 +66,9 @@ void Particle::DEMAdhesionSurfaceEnergyDistributionBase::adjust_surface_energy_t
     const double& mean_surface_energy, double& surface_energy) const
 {
   const double adhesion_surface_energy_min =
-      std::min(0.0, mean_surface_energy - cutofffactor_ * variance_);
-  const double adhesion_surface_energy_max = mean_surface_energy + cutofffactor_ * variance_;
+      std::min(0.0, mean_surface_energy - cutofffactor_ * standard_deviation_);
+  const double adhesion_surface_energy_max =
+      mean_surface_energy + cutofffactor_ * standard_deviation_;
 
   if (surface_energy > adhesion_surface_energy_max)
     surface_energy = adhesion_surface_energy_max;
@@ -85,7 +87,7 @@ void Particle::DEMAdhesionSurfaceEnergyDistributionNormal::adhesion_surface_ener
     const double& mean_surface_energy, double& surface_energy) const
 {
   // initialize random number generator
-  Global::Problem::instance()->random()->set_mean_stddev(mean_surface_energy, variance_);
+  Global::Problem::instance()->random()->set_mean_stddev(mean_surface_energy, standard_deviation_);
 
   // set normal distributed random value for surface energy
   surface_energy = Global::Problem::instance()->random()->normal();

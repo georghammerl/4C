@@ -80,8 +80,8 @@ namespace Particle
     void adjust_surface_energy_to_allowed_bounds(
         const double& mean_surface_energy, double& surface_energy) const;
 
-    //! variance of adhesion surface energy distribution
-    const double variance_;
+    //! Standard deviation of adhesion surface energy distribution
+    const double standard_deviation_;
 
     //! cutoff factor of adhesion surface energy to determine minimum and maximum value
     const double cutofffactor_;

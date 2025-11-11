@@ -538,13 +538,13 @@ std::vector<Core::IO::InputSpec> Particle::valid_parameters()
           parameter<double>("ADHESION_SURFACE_ENERGY",
               {.description = "adhesion surface energy for the calculation of the pull-out force",
                   .default_value = -1.0}),
-          parameter<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_VAR",
-              {.description = "variance of adhesion surface energy distribution",
+          parameter<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_STDDEV",
+              {.description = "standard deviation of adhesion surface energy distribution",
                   .default_value = -1.0}),
 
           parameter<double>("ADHESION_SURFACE_ENERGY_DISTRIBUTION_CUTOFF_FACTOR",
-              {.description =
-                      "adhesion surface energy distribution limited by multiple of variance",
+              {.description = "adhesion surface energy distribution limited by multiple of "
+                              "standard deviation",
                   .default_value = -1.0}),
           parameter<double>("ADHESION_SURFACE_ENERGY_FACTOR",
               {.description = "factor to calculate minimum adhesion surface energy",
