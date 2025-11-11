@@ -301,9 +301,6 @@ namespace Core::IO
     //! write new "field" group to control file including node and element chunks
     void write_mesh(const int step, const double time);
 
-    // for MLMC purposes do not write new meshfile but write name of base mesh file to controlfile
-    void write_mesh(const int step, const double time, std::string name_base_file);
-
     // for particle simulations: write only nodes in new "field" group to control file
     void write_only_nodes_in_new_field_group_to_control_file(
         const int step, const double time, const bool writerestart);
