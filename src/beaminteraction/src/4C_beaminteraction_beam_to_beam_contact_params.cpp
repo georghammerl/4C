@@ -35,7 +35,7 @@ BeamInteraction::BeamToBeamContactParams::BeamToBeamContactParams()
       num_integration_intervals_(0),
       btb_basicstiff_gap_(-1.0),
       btb_endpoint_penalty_(false),
-      btb_use_new_gap_function_(false)
+      btb_use_new_gap_function_(true)
 {
   // empty constructor
 }
@@ -157,8 +157,8 @@ void BeamInteraction::BeamToBeamContactParams::init()
   /****************************************************************************/
   // safety checks for currently unsupported parameter settings
   /****************************************************************************/
-  if (beam_contact_params_list.get<bool>("BEAMS_NEWGAP"))
-    btb_use_new_gap_function_ = beam_contact_params_list.get<bool>("BEAMS_NEWGAP");
+  // if (beam_contact_params_list.get<bool>("BEAMS_NEWGAP"))
+  btb_use_new_gap_function_ = beam_contact_params_list.get<bool>("BEAMS_NEWGAP");
 
   /****************************************************************************/
   // for the time being only allow all-angle-beam contact formulation ...

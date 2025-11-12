@@ -359,10 +359,13 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate(
       // create key and normal
       ElementIDKey key{(element1()->id()), (element2()->id())};
       Core::LinAlg::Matrix<3, 1, double> normal;
-      for (int i = 0; i < 3; ++i)
-        normal(i) = Core::FADUtils::cast_to_double(cpvariable->get_normal()(i));
+      auto sign = cpvariable->get_sign();
 
-      // save normal for next iteration
+      // get normal with correct sign for next iteration
+      for (int i = 0; i < 3; ++i)
+        normal(i) = sign * Core::FADUtils::cast_to_double(cpvariable->get_normal()(i));
+
+      // save it
       (*old_cp_normals_)[key] = normal;
     }
   }
@@ -2285,8 +2288,41 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::closest_p
       // Note: Even if automatic differentiation via FAD is applied, norm_delta_r has to be of type
       // double since this factor is needed for a pure scaling of the nonlinear CCP and has not to
       // be linearized!
-      double norm_delta_r = Core::FADUtils::cast_to_double(Core::FADUtils::vector_norm<3>(delta_r));
-      gap = norm_delta_r - r1_ - r2_;
+      double norm_delta_r = Core::FADUtils::vector_norm<3>(delta_r);
+
+      // calculate unit normal
+      Core::LinAlg::Matrix<3, 1, TYPE> normal(Core::LinAlg::Initialization::zero);
+      Core::LinAlg::Matrix<3, 1, TYPE> normal_old(Core::LinAlg::Initialization::zero);
+      normal.update(1.0 / norm_delta_r, delta_r, 0.0);
+
+      ElementIDKey key{static_cast<int>(element1()->id()), static_cast<int>(element2()->id())};
+      auto it = old_cp_normals_->find(key);
+      if (it != old_cp_normals_->end())
+      {
+        Core::LinAlg::Matrix<3, 1, TYPE> n_ref(Core::LinAlg::Initialization::zero);
+        for (int i = 0; i < 3; ++i) normal_old(i) = static_cast<TYPE>(it->second(i));
+      }
+
+      if (params()->beam_to_beam_contact_params()->use_new_gap_function())
+      {
+        gap = Core::FADUtils::cast_to_double(
+            Core::FADUtils::signum(Core::FADUtils::scalar_product(normal, normal_old)) *
+                norm_delta_r -
+            r1_ - r2_);
+
+        // check if we have already stored a normal
+        // if not this is probably the first time that the normal is calculated
+        // hence add it the previous existing normals.
+        auto it = old_cp_normals_->find(key);
+        if (it == old_cp_normals_->end())
+        {
+          it = old_cp_normals_->emplace(key, normal).first;
+        }
+      }
+      else
+      {
+        gap = norm_delta_r - r1_ - r2_;
+      }
 
       // The closer the beams get, the smaller is norm_delta_r, but
       // norm_delta_r is not allowed to be too small, else numerical problems occur.
@@ -4861,17 +4897,17 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::compute_n
   Core::LinAlg::Matrix<3, 1, TYPE> normal(Core::LinAlg::Initialization::zero);
   normal.update(1.0 / norm_delta_r, delta_r, 0.0);
 
-  auto normal_old_ = variables->get_old_normal();
-  // Initialize normal_old_ in the first step with valid closest point projection (in this case the
-  // vector normal_old_ is zero, since no valid normal vector was available in the last time step).
-  // In case of "sliding contact", i.e. when normal_old_ has already been calculated out of the
+  auto old_normal = variables->get_old_normal();
+  // Initialize old_normal in the first step with valid closest point projection (in this case the
+  // vector old_normal is zero, since no valid normal vector was available in the last time step).
+  // In case of "sliding contact", i.e. when old_normal has already been calculated out of the
   // neighbor element (get_neighbor_normal_old), this is not allowed. Otherwise we would overwrite
-  // the vector normal_old_ which has already been calculated via the neighbor element. (For this
-  // reason we check with the norm of normal_old_ and not with the variable firstcall_).
+  // the vector old_normal which has already been calculated via the neighbor element. (For this
+  // reason we check with the norm of old_normal and not with the variable firstcall_).
   if (Core::FADUtils::cast_to_double(Core::FADUtils::norm(Core::FADUtils::scalar_product(
-          normal_old_, normal_old_))) < std::numeric_limits<double>::epsilon())
+          old_normal, old_normal))) < std::numeric_limits<double>::epsilon())
   {
-    for (int i = 0; i < 3; i++) normal_old_(i) = normal(i);
+    for (int i = 0; i < 3; i++) old_normal(i) = normal(i);
   }
 
 
@@ -4881,22 +4917,32 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::compute_n
   if (params()->beam_to_beam_contact_params()->use_new_gap_function())
   {
     if (Core::FADUtils::cast_to_double(Core::FADUtils::norm(Core::FADUtils::scalar_product(
-            normal, normal_old_))) < std::numeric_limits<double>::epsilon())
+            normal, old_normal))) < std::numeric_limits<double>::epsilon())
       FOUR_C_THROW("ERROR: Rotation too large! --> Choose smaller Time step!");
 
     gap =
-        Core::FADUtils::signum(Core::FADUtils::scalar_product(normal, normal_old_)) * norm_delta_r -
+        Core::FADUtils::signum(Core::FADUtils::scalar_product(normal, old_normal)) * norm_delta_r -
         r1_ - r2_;
 
-    sign = Core::FADUtils::cast_to_double(
-        Core::FADUtils::signum(Core::FADUtils::scalar_product(normal, normal_old_)));
-  }
+    const double scalar_product_of_normals = Core::FADUtils::scalar_product(normal, old_normal);
+    const double norm_of_normal = Core::FADUtils::cast_to_double(Core::FADUtils::norm(normal));
+    const double norm_of_old_normal =
+        Core::FADUtils::cast_to_double(Core::FADUtils::norm(old_normal));
 
+    if (norm_of_normal > std::numeric_limits<double>::epsilon() &&
+        norm_of_old_normal > std::numeric_limits<double>::epsilon() &&
+        std::abs(Core::FADUtils::cast_to_double(scalar_product_of_normals)) /
+                (norm_of_old_normal * norm_of_normal) >
+            std::cos(M_PI / 4.0))
+    {
+      sign = Core::FADUtils::cast_to_double(Core::FADUtils::signum(scalar_product_of_normals));
+    }
+  }
 
   variables->set_gap(gap);
   variables->set_normal(normal);
   variables->set_sign(sign);
-  variables->set_old_normal(normal_old_);
+  variables->set_old_normal(old_normal);
   variables->set_angle(
       BeamInteraction::calc_angle(Core::FADUtils::cast_to_double<TYPE, 3, 1>(r1_xi),
           Core::FADUtils::cast_to_double<TYPE, 3, 1>(r2_xi)));
