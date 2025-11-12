@@ -20,7 +20,6 @@
 #include <Kokkos_Core.hpp>
 #include <unistd.h>
 
-#include <csignal>
 #include <filesystem>
 #include <format>
 #include <iostream>
@@ -216,44 +215,6 @@ namespace
                 << std::endl;
 #endif
   }
-
-#ifdef FOUR_C_ENABLE_FE_TRAPPING
-  /*!
-   * \brief FPE signal handle
-   *
-   * A function to handle floating point exceptions by raising a FOUR_C_THROW.
-   * So we get a stack-trace also on systems where this is not provided
-   * through core-dumps from MPI_Abort() (e.g. OpenMPI does whereas
-   * Intel MPI doesn't).
-   */
-  void sigfpe_handler(int sig)
-  {
-    std::string exception_string;
-    switch (sig)
-    {
-      case FE_INVALID:
-        exception_string = "FE_INVALID";
-        break;
-      case FE_DIVBYZERO:
-        exception_string = "FE_DIVBYZERO";
-        break;
-      case FE_OVERFLOW:
-        exception_string = "FE_OVERFLOW";
-        break;
-      case FE_UNDERFLOW:
-        exception_string = "FE_UNDERFLOW";
-        break;
-      case FE_INEXACT:
-        exception_string = "FE_INEXACT";
-        break;
-      default:
-        FOUR_C_THROW("4C produced an unknown floating point exception.");
-        break;
-    }
-    FOUR_C_THROW("4C produced a {} floating point exception.", exception_string);
-  }
-#endif
-
 }  // namespace
 
 /*----------------------------------------------------------------------*
@@ -381,28 +342,11 @@ int main(int argc, char* argv[])
                 << Core::Communication::num_mpi_ranks(arguments.comms.global_comm()) << '\n';
     }
 
-    /* Here we turn the NaN and INF numbers off. No need to calculate
-     * those. If those appear, the calculation needs much (!) more
-     * time. Better stop immediately if some illegal operation occurs. */
 #ifdef FOUR_C_ENABLE_FE_TRAPPING
-
-    /* This is a GNU extension thus it's only available on linux. But
-     * it's exactly what we want: SIGFPE just for the given
-     * exceptions. We don't care about FE_INEXACT. (It happens all the
-     * time.) */
-    /* Over- and underflow seem to happen sometimes. Does it worry us?
-     * Will that spoil the results? */
-    /*feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW);*/
-    feclearexcept(FE_ALL_EXCEPT);
+    // This is a GNU extension. Enable floating point exceptions for invalid operands and division
+    // by zero. When such an operation occurs, the OS will kill the process with an informative
+    // message.
     feenableexcept(FE_INVALID | FE_DIVBYZERO);
-
-    // Initialize a signal handle for SIGFPE
-    struct sigaction act;
-    act.sa_handler = sigfpe_handler;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction(SIGFPE, &act, nullptr);
-
 #endif
 
 /*----------------------------------------------- everything is in here */
