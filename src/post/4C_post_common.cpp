@@ -15,8 +15,8 @@
 #include "4C_fem_nurbs_discretization.hpp"
 #include "4C_global_data.hpp"
 #include "4C_global_legacy_module.hpp"
+#include "4C_global_legacy_module_problem_type_string.hpp"
 #include "4C_io_legacy_table.hpp"
-#include "4C_legacy_enum_definitions_problem_type_string.hpp"
 #include "4C_rigidsphere.hpp"
 
 #include <stack>

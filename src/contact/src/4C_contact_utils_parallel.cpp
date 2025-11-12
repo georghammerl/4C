@@ -9,9 +9,9 @@
 
 #include "4C_contact_input.hpp"
 #include "4C_global_data.hpp"
+#include "4C_global_legacy_module_problem_type.hpp"
 #include "4C_inpar_mortar.hpp"
 #include "4C_inpar_structure.hpp"
-#include "4C_legacy_enum_definitions_problem_type.hpp"
 
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>

@@ -13,7 +13,6 @@
 #include "4C_fem_general_dg_element.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_elementtype.hpp"
-#include "4C_legacy_enum_definitions_problem_type.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"
 #include "4C_utils_parameter_list.hpp"
 
@@ -318,9 +317,6 @@ void Core::FE::DbcHDG::read_dirichlet_condition(const Teuchos::ParameterList& pa
 
   if (discret.num_my_row_faces() > 0)
   {
-    // initialize with true on each proc except proc 0
-    bool pressureDone = Core::Communication::my_mpi_rank(discret.get_comm()) != 0;
-
     // loop over all faces
     for (int i = 0; i < discret.num_my_row_faces(); ++i)
     {
@@ -330,27 +326,6 @@ void Core::FE::DbcHDG::read_dirichlet_condition(const Teuchos::ParameterList& pa
           faceele->parent_master_element()->num_dof_per_face(faceele->face_master_number());
       const unsigned int dofpercomponent =
           faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
-      const unsigned int component = dofperface / dofpercomponent;
-
-      if (onoff.size() <= component || onoff[component] == 0 ||
-          *params.get<const Core::ProblemType*>("problem_type") != Core::ProblemType::fluid)
-        pressureDone = true;
-      if (!pressureDone)
-      {
-        if (discret.num_my_row_elements() > 0 &&
-            Core::Communication::my_mpi_rank(discret.get_comm()) == 0)
-        {
-          std::vector<int> predof = discret.dof(0, discret.l_row_element(0));
-          const int gid = predof[0];
-          const int lid = discret.dof_row_map(0)->lid(gid);
-
-          // set toggle vector
-          info.toggle.get_local_values()[lid] = 1;
-          // amend vector of DOF-IDs which are Dirichlet BCs
-          if (dbcgids[set_row] != nullptr) (*dbcgids[set_row]).insert(gid);
-          pressureDone = true;
-        }
-      }
 
       // do only faces where all nodes are present in the node list
       bool faceRelevant = true;
@@ -471,13 +446,9 @@ void Core::FE::DbcHDG::do_dirichlet_condition(const Teuchos::ParameterList& para
     Core::Elements::LocationArray dummy(1);
     Teuchos::ParameterList initParams;
 
-    const auto problem_type = *params.get<const Core::ProblemType*>("problem_type");
-    if (problem_type == Core::ProblemType::scatra)
-    {
-      initParams.set("hdg_action", true);
-      Core::Utils::add_enum_class_to_parameter_list<Core::FE::HDGAction>(
-          "action", Core::FE::HDGAction::project_dirich_field, initParams);
-    }
+    initParams.set("hdg_action", true);
+    Core::Utils::add_enum_class_to_parameter_list<Core::FE::HDGAction>(
+        "action", Core::FE::HDGAction::project_dirich_field, initParams);
 
     // TODO: Introduce a general action type that is
     // valid for all problems
@@ -497,9 +468,6 @@ void Core::FE::DbcHDG::do_dirichlet_condition(const Teuchos::ParameterList& para
     initParams.set("onoff", onoffarray);
     initParams.set("time", time);
 
-    // initialize with true if proc is not proc 0
-    bool pressureDone = Core::Communication::my_mpi_rank(discret.get_comm()) != 0;
-
     // loop over all faces
     for (int i = 0; i < discret.num_my_row_faces(); ++i)
     {
@@ -511,27 +479,6 @@ void Core::FE::DbcHDG::do_dirichlet_condition(const Teuchos::ParameterList& para
           faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
       const unsigned int component = dofperface / dofpercomponent;
 
-      if (onoff.size() <= component || onoff[component] == 0 ||
-          *params.get<const Core::ProblemType*>("problem_type") != Core::ProblemType::fluid)
-        pressureDone = true;
-      if (!pressureDone)
-      {
-        if (discret.num_my_row_elements() > 0 &&
-            Core::Communication::my_mpi_rank(discret.get_comm()) == 0)
-        {
-          std::vector<int> predof = discret.dof(0, discret.l_row_element(0));
-          const int gid = predof[0];
-          const int lid = discret.dof_row_map(0)->lid(gid);
-
-          // amend vector of DOF-IDs which are Dirichlet BCs
-          if (systemvectors[0] != nullptr) (*systemvectors[0]).get_values()[lid] = 0.0;
-          if (systemvectors[1] != nullptr) (*systemvectors[1]).get_values()[lid] = 0.0;
-          if (systemvectors[2] != nullptr) (*systemvectors[2]).get_values()[lid] = 0.0;
-
-          // --------------------------------------------------------------------------------------
-          pressureDone = true;
-        }
-      }
       int nummynodes = discret.l_row_face(i)->num_node();
       const int* mynodes = discret.l_row_face(i)->node_ids();
 

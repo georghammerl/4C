@@ -5,12 +5,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_LEGACY_ENUM_DEFINITIONS_PROBLEM_TYPE_STRING_HPP
-#define FOUR_C_LEGACY_ENUM_DEFINITIONS_PROBLEM_TYPE_STRING_HPP
+#ifndef FOUR_C_GLOBAL_LEGACY_MODULE_PROBLEM_TYPE_STRING_HPP
+#define FOUR_C_GLOBAL_LEGACY_MODULE_PROBLEM_TYPE_STRING_HPP
 
 #include "4C_config.hpp"
 
-#include "4C_legacy_enum_definitions_problem_type.hpp"
+#include "4C_global_legacy_module_problem_type.hpp"
 
 #include <map>
 #include <string>

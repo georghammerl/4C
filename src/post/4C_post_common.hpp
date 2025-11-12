@@ -13,9 +13,9 @@
 #include "4C_config.hpp"
 
 #include "4C_fem_general_shape_function_type.hpp"
+#include "4C_global_legacy_module_problem_type.hpp"
 #include "4C_io_hdf.hpp"
 #include "4C_io_legacy_types.hpp"
-#include "4C_legacy_enum_definitions_problem_type.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_vector.hpp"
