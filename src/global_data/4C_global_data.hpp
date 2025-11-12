@@ -11,8 +11,8 @@
 #include "4C_config.hpp"
 
 #include "4C_fem_general_shape_function_type.hpp"
+#include "4C_global_legacy_module_problem_type.hpp"
 #include "4C_io_walltime_based_restart.hpp"
-#include "4C_legacy_enum_definitions_problem_type.hpp"
 #include "4C_utils_function_manager.hpp"
 #include "4C_utils_random.hpp"
 #include "4C_utils_result_test.hpp"
