@@ -840,6 +840,7 @@ endfunction()
 #   TESTNAME name_of_test
 #   FILE <input_in_tests/input_files>
 #   RESTART_STEP <step>
+#   RESTARTFROM_PATHTYPE <absolute|relative|relative_from_parent>
 #   PVD_RESULTFILENAME <subdir_with_pvd_under_sim2>
 #   PVD_REFERENCEFILENAME <reference_file_under_tests/input_files>
 #   TOLERANCE <tol>
@@ -853,6 +854,7 @@ function(four_c_test_restarted_vtk)
       TESTNAME
       FILE
       RESTART_STEP
+      RESTARTFROM_PATHTYPE
       PVD_RESULTFILENAME
       PVD_REFERENCEFILENAME
       TOLERANCE
@@ -873,6 +875,7 @@ function(four_c_test_restarted_vtk)
     ITEMS TESTNAME
           FILE
           RESTART_STEP
+          RESTARTFROM_PATHTYPE
           PVD_RESULTFILENAME
           PVD_REFERENCEFILENAME
           TOLERANCE
@@ -881,6 +884,16 @@ function(four_c_test_restarted_vtk)
       message(FATAL_ERROR "four_c_test_restarted_vtk: missing required argument ${req}")
     endif()
   endforeach()
+
+  if(NOT _parsed_RESTARTFROM_PATHTYPE STREQUAL "absolute"
+     AND NOT _parsed_RESTARTFROM_PATHTYPE STREQUAL "relative"
+     AND NOT _parsed_RESTARTFROM_PATHTYPE STREQUAL "relative_from_parent"
+     )
+    message(
+      FATAL_ERROR
+        "four_c_test_restarted_vtk: RESTARTFROM_PATHTYPE must be either 'absolute', relative' or 'relative_from_parent'"
+      )
+  endif()
 
   # verify inputs exist
   set(input_path "${PROJECT_SOURCE_DIR}/tests/input_files/${_parsed_FILE}")
@@ -896,10 +909,15 @@ function(four_c_test_restarted_vtk)
   set(base_NP 1)
 
   # specify names and directories
-  set(name_of_test "${_parsed_TESTNAME}-p${base_NP}-restart_step_${_parsed_RESTART_STEP}")
+  set(name_of_test
+      "${_parsed_TESTNAME}-p${base_NP}-restart_step_${_parsed_RESTART_STEP}-restartfrom_pathtype_${_parsed_RESTARTFROM_PATHTYPE}"
+      )
   set(root_dir ${PROJECT_BINARY_DIR}/framework_test_output/${name_of_test})
-  set(sim1_dir ${root_dir}/simulation_1)
-  set(sim2_dir ${root_dir}/simulation_2)
+  set(folder_name_sim1 "simulation_1")
+  set(folder_name_sim2 "simulation_2")
+  set(sim1_dir ${root_dir}/${folder_name_sim1})
+  set(relative_path_from_sim2_to_sim1 "../${folder_name_sim1}")
+  set(sim2_dir ${root_dir}/${folder_name_sim2})
 
   # optional timeout (scaled)
   set(local_timeout "")
@@ -909,7 +927,9 @@ function(four_c_test_restarted_vtk)
 
   # First simulation in directory simulation_1
   set(run1_cmd
-      "mkdir -p ${sim1_dir} && ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> ${input_path} ${sim1_dir}/xxx"
+      "mkdir -p ${sim1_dir} && \
+      ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} \
+      $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> ${input_path} ${sim1_dir}/xxx"
       )
 
   _add_test_with_options(
@@ -927,9 +947,27 @@ function(four_c_test_restarted_vtk)
 
   # Restart second simulation previous directory simulation_1
   set(name_of_restart "${name_of_test}-restart")
-  set(run2_cmd
-      "mkdir -p ${sim2_dir} && ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> ${input_path} ${sim2_dir}/xxx restartfrom=${sim1_dir}/xxx restart=${_parsed_RESTART_STEP}"
-      )
+  if(_parsed_RESTARTFROM_PATHTYPE STREQUAL "absolute") # restartfrom sim1_dir
+    set(run2_cmd
+        "mkdir -p ${sim2_dir} \
+      && ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> \
+      ${input_path} ${sim2_dir}/xxx restartfrom=${sim1_dir}/xxx restart=${_parsed_RESTART_STEP}"
+        )
+  elseif(_parsed_RESTARTFROM_PATHTYPE STREQUAL "relative"
+         )# change into sim2_dir, then restartfrom relative_path_from_sim2_to_sim1
+    set(run2_cmd
+        "mkdir -p ${sim2_dir} && cd ${sim2_dir} && echo changing pwd to: && pwd \
+      && ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> \
+      ${input_path} ${sim2_dir}/xxx restartfrom=${relative_path_from_sim2_to_sim1}/xxx restart=${_parsed_RESTART_STEP}"
+        )
+  elseif(_parsed_RESTARTFROM_PATHTYPE STREQUAL "relative_from_parent"
+         )# change into root_dir, then restartfrom folder_name_sim1
+    set(run2_cmd
+        "mkdir -p ${sim2_dir} && cd ${root_dir} && echo changing pwd to: && pwd \
+      && ${extra_env}${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np ${base_NP} $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> \
+      ${input_path} ${sim2_dir}/xxx restartfrom=${folder_name_sim1}/xxx restart=${_parsed_RESTART_STEP}"
+        )
+  endif()
   _add_test_with_options(
     NAME_OF_TEST
     ${name_of_restart}
