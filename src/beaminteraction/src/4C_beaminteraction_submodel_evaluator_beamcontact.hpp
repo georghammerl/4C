@@ -149,6 +149,11 @@ namespace BeamInteraction
       }
 
       /**
+       * \brief Return flag if this submodel evaluator carries Lagrange multipliers.
+       */
+      [[nodiscard]] bool have_lagrange_dofs() const;
+
+      /**
        * \brief Lagrange Multiplier specific function returning the first assembly manager.
        */
       std::shared_ptr<const BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect>

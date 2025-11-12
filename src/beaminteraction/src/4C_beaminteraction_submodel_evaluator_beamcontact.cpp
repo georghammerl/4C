@@ -246,6 +246,28 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
+bool BeamInteraction::SubmodelEvaluator::BeamContact::have_lagrange_dofs() const
+{
+  if (assembly_managers_.size() == 0) return false;
+
+  const auto indirect_assembly_manager =
+      std::dynamic_pointer_cast<BeamContactAssemblyManagerInDirect>(assembly_managers_[0]);
+  if (indirect_assembly_manager)
+  {
+    const auto mortar_manager = indirect_assembly_manager->get_mortar_manager();
+    if (mortar_manager)
+    {
+      const bool have_lagrange_dofs = mortar_manager->have_lagrange_dofs();
+      if (have_lagrange_dofs && assembly_managers_.size() != 1)
+        FOUR_C_THROW("Only working for single assembly manager");
+      return have_lagrange_dofs;
+    }
+  }
+  return false;
+}
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
 std::shared_ptr<const BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect>
 BeamInteraction::SubmodelEvaluator::BeamContact::get_lagrange_multiplier_assembly_manager() const
 {
@@ -268,12 +290,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::post_setup()
   create_beam_contact_element_pairs();
 
   // The following section is specific to lagrange multiplier constraint enforcement
-  if (beam_interaction_data_state().get_lambda() == nullptr &&
-      beam_contact_params_ptr()->beam_to_solid_volume_meshtying_params() &&
-      beam_contact_params_ptr()
-              ->beam_to_solid_volume_meshtying_params()
-              ->get_constraint_enforcement() ==
-          Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange)
+  if (beam_interaction_data_state().get_lambda() == nullptr && have_lagrange_dofs())
   {
     auto lambda_dof_row_map =
         get_lagrange_multiplier_assembly_manager()->get_mortar_manager()->get_lambda_dof_row_map();
