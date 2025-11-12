@@ -257,9 +257,6 @@ namespace Solid
     /// update the structural energy variable in the end of a successful time step
     void update_structural_energy();
 
-    //! calculate an optional quantity in the different model evaluators
-    void determine_optional_quantity();
-
     /*! \brief Output to file
      *
      *  This routine prints always the last converged state, i.e.

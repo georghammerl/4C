@@ -1106,13 +1106,6 @@ void Solid::ModelEvaluator::BeamInteraction::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::determine_optional_quantity()
-{
-  // empty
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::BeamInteraction::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {

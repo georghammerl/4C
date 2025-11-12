@@ -438,12 +438,7 @@ void Solid::TimeInt::Base::get_restart_data(std::shared_ptr<int> step, std::shar
 void Solid::TimeInt::Base::prepare_output(bool force_prepare_timestep)
 {
   check_init_setup();
-  // --- stress, strain and optional quantity calculation ---------------------
-  if ((dataio_->is_write_results_enabled() && force_prepare_timestep) ||
-      dataio_->write_results_for_this_step(dataglobalstate_->get_step_np()))
-  {
-    int_ptr_->determine_optional_quantity();
-  }
+
   if ((dataio_->is_runtime_output_enabled() && force_prepare_timestep) ||
       dataio_->write_runtime_vtk_results_for_this_step(dataglobalstate_->get_step_np()) ||
       dataio_->write_runtime_vtp_results_for_this_step(dataglobalstate_->get_step_np()))

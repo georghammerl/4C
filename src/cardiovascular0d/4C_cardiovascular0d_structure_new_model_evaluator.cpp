@@ -291,14 +291,6 @@ void Solid::ModelEvaluator::Cardiovascular0D::determine_energy()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Cardiovascular0D::determine_optional_quantity()
-{
-  // nothing to do
-  return;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Cardiovascular0D::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {

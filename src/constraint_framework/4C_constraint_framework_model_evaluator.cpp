@@ -314,9 +314,6 @@ void Solid::ModelEvaluator::Constraint::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Constraint::determine_optional_quantity() {}
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Constraint::reset_step_state()
 {
   FOUR_C_THROW("This function is not implemented");

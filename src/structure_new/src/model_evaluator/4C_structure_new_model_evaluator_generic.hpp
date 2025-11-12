@@ -376,18 +376,6 @@ namespace Solid
        *  */
       virtual void determine_energy() = 0;
 
-      /*! \brief calculate optional quantity contribution of each model evaluator
-       *
-       *  \remark This function is called from Solid::TimeInt::Base::prepare_output() and calculates
-       *  missing quantities, which were not evaluated during the standard evaluate call and are
-       *  only calculated once per load/time step. You can not do the calculations during the
-       *  output_step_state() routine, because of the const status of the named function!
-       *
-       *  \sa output_step_state
-       *
-       *  */
-      virtual void determine_optional_quantity() = 0;
-
       /*! \brief Output routine for model evaluator
        *
        * @param iowriter discretization writer that actually writes binary output to the disk

@@ -460,10 +460,6 @@ void Solid::ModelEvaluator::Contact::determine_energy() {}
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Contact::determine_optional_quantity() {}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Contact::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {

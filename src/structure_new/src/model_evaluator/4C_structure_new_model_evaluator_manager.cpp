@@ -746,14 +746,6 @@ void Solid::ModelEvaluatorManager::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluatorManager::determine_optional_quantity()
-{
-  check_init_setup();
-  for (const auto& me_iter : *me_vec_ptr_) me_iter->determine_optional_quantity();
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluatorManager::output_step_state(Core::IO::DiscretizationWriter& iowriter) const
 {
   check_init_setup();
