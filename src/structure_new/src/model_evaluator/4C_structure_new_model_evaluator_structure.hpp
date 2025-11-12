@@ -142,9 +142,6 @@ namespace Solid
       void determine_strain_energy(const Core::LinAlg::Vector<double>& disnp, const bool global);
 
       //! derived
-      void determine_optional_quantity() override {}
-
-      //! derived
       void reset_step_state() override;
 
       //! derived

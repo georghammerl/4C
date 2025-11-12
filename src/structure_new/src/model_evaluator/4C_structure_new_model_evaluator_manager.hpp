@@ -369,9 +369,6 @@ namespace Solid
     //! calculation of energy
     void determine_energy();
 
-    //! calculation of an optional quantity
-    void determine_optional_quantity();
-
     //! Write the current step state
     void output_step_state(Core::IO::DiscretizationWriter& iowriter) const;
 

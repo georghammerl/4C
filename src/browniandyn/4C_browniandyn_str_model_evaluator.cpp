@@ -495,14 +495,6 @@ void Solid::ModelEvaluator::BrownianDyn::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BrownianDyn::determine_optional_quantity()
-{
-  // nothing to do
-  return;
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::ModelEvaluator::BrownianDyn::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {

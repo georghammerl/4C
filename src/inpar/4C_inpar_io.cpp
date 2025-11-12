@@ -52,7 +52,9 @@ std::vector<Core::IO::InputSpec> Inpar::IO::valid_parameters()
                   {"2PK", Inpar::Solid::stress_2pk},
                   {"2pk", Inpar::Solid::stress_2pk},
               },
-              {.description = "Output of stress", .default_value = Inpar::Solid::stress_none}),
+              {.description = "Output of stress. This is only possible in the new vtk-based "
+                              "output. Make sure to set INTERVAL_STEPS accordingly.",
+                  .default_value = Inpar::Solid::stress_none}),
           deprecated_selection<Inpar::Solid::StrainType>("STRUCT_STRAIN",
               {
                   {"No", Inpar::Solid::strain_none},
@@ -68,7 +70,9 @@ std::vector<Core::IO::InputSpec> Inpar::IO::valid_parameters()
                   {"LOG", Inpar::Solid::strain_log},
                   {"log", Inpar::Solid::strain_log},
               },
-              {.description = "Output of strains", .default_value = Inpar::Solid::strain_none}),
+              {.description = "Output of strains. This is only possible in the new vtk-based "
+                              "output. Make sure to set INTERVAL_STEPS accordingly.",
+                  .default_value = Inpar::Solid::strain_none}),
           deprecated_selection<Inpar::Solid::StrainType>("STRUCT_PLASTIC_STRAIN",
               {
                   {"No", Inpar::Solid::strain_none},

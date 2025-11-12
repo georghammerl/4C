@@ -289,13 +289,6 @@ void Solid::ModelEvaluator::LagPenConstraint::determine_energy()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::LagPenConstraint::determine_optional_quantity()
-{
-  // nothing to do
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::LagPenConstraint::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {

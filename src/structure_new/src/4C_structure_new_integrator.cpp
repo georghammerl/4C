@@ -414,14 +414,6 @@ void Solid::Integrator::update_structural_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::Integrator::determine_optional_quantity()
-{
-  check_init_setup();
-  model_eval().determine_optional_quantity();
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::Integrator::output_step_state(Core::IO::DiscretizationWriter& iowriter) const
 {
   check_init_setup();

@@ -33,8 +33,6 @@ namespace Solid::ModelEvaluator
 
     void determine_energy() override {}
 
-    void determine_optional_quantity() override {}
-
     void determine_stress_strain() override;
 
     bool evaluate_force() override { return true; }
