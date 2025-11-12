@@ -660,8 +660,6 @@ namespace Solid
         return dbc_ptr_;
       }
 
-      [[nodiscard]] bool has_final_state_been_written() const override;
-
       /// get the indicator state
       [[nodiscard]] inline const bool& is_init() const { return isinit_; }
 

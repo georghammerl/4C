@@ -145,8 +145,8 @@ std::vector<Core::IO::InputSpec> Inpar::IO::valid_parameters()
               {.description = "Do you want to write output for initial state ?",
                   .default_value = true}),
           parameter<bool>("WRITE_FINAL_STATE",
-              {.description = "Enforce to write output/restart data at the final "
-                              "state regardless of the other output/restart intervals",
+              {.description = "Enforce to write restart data at the final "
+                              "state regardless of the other output or restart intervals",
                   .default_value = false}),
 
           parameter<bool>("PREFIX_GROUP_ID",

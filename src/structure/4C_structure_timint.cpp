@@ -1924,7 +1924,6 @@ void Solid::TimInt::output_step(const bool forced_writerestart)
       Global::Problem::instance()->restart_manager()->restart(step_, discret_->get_comm()))
   {
     output_restart(datawritten);
-    lastwrittenresultsstep_ = step_;
   }
 
   // output results (not necessary if restart in same step)
@@ -1932,7 +1931,6 @@ void Solid::TimInt::output_step(const bool forced_writerestart)
       (not datawritten))
   {
     output_state(datawritten);
-    lastwrittenresultsstep_ = step_;
   }
 
   // output stress & strain
@@ -1973,10 +1971,6 @@ void Solid::TimInt::write_gmsh_struct_output_step()
   gmshfilecontent << "};" << std::endl;
 }
 
-bool Solid::TimInt::has_final_state_been_written() const
-{
-  return step_ == lastwrittenresultsstep_;
-}
 /*----------------------------------------------------------------------*/
 /* We need the restart data to perform on "restarts" on the fly for parameter
  * continuation

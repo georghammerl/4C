@@ -140,13 +140,10 @@ void dyn_nlnstructural_drt()
   // run time integration
   structadapter->integrate();
 
-  if (write_final_state && !structadapter->has_final_state_been_written())
+  if (write_final_state)
   {
     constexpr bool forceWriteRestart = true;
-    constexpr bool force_prepare = true;
-    structadapter->prepare_output(force_prepare);
     structadapter->output(forceWriteRestart);
-    structadapter->post_output();
   }
 
   // test results
