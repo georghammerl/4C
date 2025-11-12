@@ -120,8 +120,10 @@ namespace Inpar
                       .default_value = 0}),
 
               // Output type
+              // TODO: Modify docu once Contact is migrated to new vtk-based output
               parameter<int>("RESULTSEVERY",
-                  {.description = "save displacements and contact forces every RESULTSEVERY steps",
+                  {.description = "Write old HDF5-based output every RESULTSEVERY steps. Used for "
+                                  "old structure time integration and Contact quantities.",
                       .default_value = 1}),
               parameter<int>(
                   "RESEVERYERGY", {.description = "write system energies every requested step",
