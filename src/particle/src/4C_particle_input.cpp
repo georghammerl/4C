@@ -468,7 +468,7 @@ std::vector<Core::IO::InputSpec> Particle::valid_parameters()
           // type of (random) surface energy distribution
           parameter<SurfaceEnergyDistribution>("ADHESION_SURFACE_ENERGY_DISTRIBUTION",
               {.description = "type of (random) surface energy distribution",
-                  .default_value = Particle::ConstantSurfaceEnergy}),
+                  .default_value = SurfaceEnergyDistribution::Constant}),
 
           parameter<double>("MIN_RADIUS",
               {.description = "minimum allowed particle radius", .default_value = 0.0}),

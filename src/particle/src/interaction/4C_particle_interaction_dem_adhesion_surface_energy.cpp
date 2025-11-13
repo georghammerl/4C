@@ -39,7 +39,7 @@ namespace
 void Particle::verify_params_adhesion_surface_energy_distribution(
     const DEMAdhesionSurfaceEnergyDistributionParams& params)
 {
-  if (params.type == NormalSurfaceEnergyDistribution)
+  if (params.type == SurfaceEnergyDistribution::Normal)
   {
     if (params.standard_deviation < 0.0)
       FOUR_C_THROW("negative standard deviation for adhesion surface energy distribution!");
@@ -53,11 +53,11 @@ double Particle::dem_adhesion_surface_energy(
 {
   switch (params.type)
   {
-    case ConstantSurfaceEnergy:
+    case SurfaceEnergyDistribution::Constant:
     {
       return mean_surface_energy;
     }
-    case NormalSurfaceEnergyDistribution:
+    case SurfaceEnergyDistribution::Normal:
     {
       return surface_energy_from_normal_distribution(params, mean_surface_energy);
     }
