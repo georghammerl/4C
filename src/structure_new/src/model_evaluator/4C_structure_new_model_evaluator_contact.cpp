@@ -563,9 +563,6 @@ void Solid::ModelEvaluator::Contact::output_step_state(
     Core::LinAlg::export_to(*lambdaout, *lambdaoutexp);
     iowriter.write_vector("poronopen_lambda", lambdaoutexp);
   }
-
-  /// general way to write the output corresponding to the active strategy
-  strategy().write_output(iowriter);
 }
 
 /*----------------------------------------------------------------------*
