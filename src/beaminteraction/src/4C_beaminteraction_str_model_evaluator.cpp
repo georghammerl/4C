@@ -741,9 +741,7 @@ bool Solid::ModelEvaluator::BeamInteraction::have_lagrange_dofs() const
             (*me_vec_ptr_)[i]);
     if (!beam_contact_model) continue;
 
-    auto params = beam_contact_model->beam_contact_params().beam_to_solid_volume_meshtying_params();
-    if (params && params->get_constraint_enforcement() ==
-                      Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange)
+    if (beam_contact_model->have_lagrange_dofs())
     {
       lagrange_flag = true;
       if (me_vec_ptr_->size() > 1)
