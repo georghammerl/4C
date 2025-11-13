@@ -869,12 +869,6 @@ namespace CONTACT
 
     //! @name Output
     //!@{
-
-    /*! \brief Write strategy specific output
-     *
-     *  \param(in) writer: output writer */
-    virtual void write_output(Core::IO::DiscretizationWriter& writer) const { return; }
-
     //! Print interfaces
     void print(std::ostream& os) const override;
 
