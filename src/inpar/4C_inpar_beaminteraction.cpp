@@ -8,6 +8,7 @@
 #include "4C_inpar_beaminteraction.hpp"
 
 #include "4C_beamcontact_input.hpp"
+#include "4C_beaminteraction_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -258,7 +259,16 @@ void Inpar::BeamInteraction::set_valid_conditions(
             parameter<double>("PROJECTION_VALID_FACTOR",
                 {.description = "Factor multiplied with sum of cross section "
                                 "radii to define valid projection distance",
-                    .default_value = 2.0})},
+                    .default_value = 2.0}),
+            parameter<int>("MAX_NUMBER_OF_PAIRS_PER_ELEMENT",
+                {.description = "How many Lagrange multipliers shall be allocated per beam element",
+                    .default_value = 0}),
+            parameter<::FourC::BeamInteraction::BeamToBeamPointCouplingPairParameters::
+                    ConstraintEnforcement>("CONSTRAINT_ENFORCEMENT",
+                {.description = "How the constraints for this condition shall be enforced",
+                    .default_value =
+                        ::FourC::BeamInteraction::BeamToBeamPointCouplingPairParameters::
+                            ConstraintEnforcement::penalty_direct})},
         {.required = false}));
     condlist.push_back(penalty_coupling_condition_indirect);
   }

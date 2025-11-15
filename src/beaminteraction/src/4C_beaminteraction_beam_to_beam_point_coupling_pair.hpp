@@ -51,6 +51,17 @@ namespace BeamInteraction
 
     //! Factor to determine valid projection
     double projection_valid_factor = -1.0;
+
+    //! Flag on type of constraint enforcement.
+    enum class ConstraintEnforcement
+    {
+      penalty_direct,
+      penalty_indirect
+    };
+    ConstraintEnforcement constraint_enforcement = ConstraintEnforcement::penalty_direct;
+
+    //! Maximum number of pairs per beam element for indirect variant.
+    unsigned int n_pairs_per_element = 0;
   };
 
   /**
@@ -132,6 +143,16 @@ namespace BeamInteraction
      * \brief Setup the beam coupling pair.
      */
     void setup() override;
+
+    /**
+     * \brief Flag if this pair is assembled directly or not.
+     */
+    inline bool is_assembly_direct() const override
+    {
+      return parameters_.constraint_enforcement ==
+             BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::penalty_direct;
+    };
+
 
     /**
      * \brief Things that need to be done in a separate loop before the actual evaluation loop over
@@ -240,6 +261,33 @@ namespace BeamInteraction
       return ContactPairType::beam_to_beam_point_coupling;
     }
 
+    /**
+     * \brief Evaluate the global matrices and vectors resulting from mortar coupling. (derived)
+     */
+    void evaluate_and_assemble_mortar_contributions(const Core::FE::Discretization& discret,
+        const BeamToSolidMortarManager* mortar_manager,
+        Core::LinAlg::SparseMatrix& global_constraint_lin_beam,
+        Core::LinAlg::SparseMatrix& global_constraint_lin_solid,
+        Core::LinAlg::SparseMatrix& global_force_beam_lin_lambda,
+        Core::LinAlg::SparseMatrix& global_force_solid_lin_lambda,
+        Core::LinAlg::FEVector<double>& global_constraint,
+        Core::LinAlg::FEVector<double>& global_kappa,
+        Core::LinAlg::SparseMatrix& global_kappa_lin_beam,
+        Core::LinAlg::SparseMatrix& global_kappa_lin_solid,
+        Core::LinAlg::FEVector<double>& global_lambda_active,
+        const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement_vector) override;
+
+    /**
+     * \brief Evaluate the terms that directly assemble it into the global force vector and
+     * stiffness matrix (derived).
+     */
+    void evaluate_and_assemble(const Core::FE::Discretization& discret,
+        const BeamToSolidMortarManager* mortar_manager,
+        const std::shared_ptr<Core::LinAlg::FEVector<double>>& force_vector,
+        const std::shared_ptr<Core::LinAlg::SparseMatrix>& stiffness_matrix,
+        const Core::LinAlg::Vector<double>& global_lambda,
+        const Core::LinAlg::Vector<double>& displacement_vector) override;
+
    private:
     /**
      * \brief Evaluate the closest point projection for this pair.
@@ -298,6 +346,9 @@ namespace BeamInteraction
     //! Line to line evaluation data for closest point projection
     const std::shared_ptr<GeometryPair::LineToLineEvaluationData> line_to_line_evaluation_data_ =
         nullptr;
+
+    //! Lagrange multiplier GIDs
+    std::array<int, 6> lambda_gid_{-1};
   };  // namespace BeamInteraction
 
   /**

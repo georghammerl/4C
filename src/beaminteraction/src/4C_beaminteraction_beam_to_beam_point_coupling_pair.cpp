@@ -10,6 +10,7 @@
 #include "4C_beam3_base.hpp"
 #include "4C_beam3_kirchhoff.hpp"
 #include "4C_beam3_reissner.hpp"
+#include "4C_beaminteraction_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_beam_to_solid_utils.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_geometry_pair_access_traits.hpp"
@@ -145,6 +146,208 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam1, n_dof_beam_1, Beam2,
       << " beam2 gid: " << element2()->id() << ", position in parameter space: ["
       << parameters_.position_in_parameterspace[0] << ", "
       << parameters_.position_in_parameterspace[1] << "]\n";
+}
+
+
+/**
+ *
+ */
+template <typename Beam1, unsigned int n_dof_beam_1, typename Beam2, unsigned int n_dof_beam_2>
+void BeamInteraction::BeamToBeamPointCouplingPair<Beam1, n_dof_beam_1, Beam2,
+    n_dof_beam_2>::evaluate_and_assemble_mortar_contributions(const Core::FE::Discretization&
+                                                                  discret,
+    const BeamToSolidMortarManager* mortar_manager,
+    Core::LinAlg::SparseMatrix& global_constraint_lin_beam,
+    Core::LinAlg::SparseMatrix& global_constraint_lin_solid,
+    Core::LinAlg::SparseMatrix& global_force_beam_lin_lambda,
+    Core::LinAlg::SparseMatrix& global_force_solid_lin_lambda,
+    Core::LinAlg::FEVector<double>& global_constraint, Core::LinAlg::FEVector<double>& global_kappa,
+    Core::LinAlg::SparseMatrix& global_kappa_lin_beam,
+    Core::LinAlg::SparseMatrix& global_kappa_lin_solid,
+    Core::LinAlg::FEVector<double>& global_lambda_active,
+    const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement_vector)
+{
+  check_init_setup();
+
+  if (!parameters_.evaluate_pair) return;
+
+  // Get the Lagrange multiplier GIDs.
+  const auto& [lambda_gid_pos, lambda_gid_rot] = mortar_manager->location_vector(*this);
+
+
+  auto get_pair_lambda_gid = [&](const std::vector<int>& lambda_gid_total)
+  {
+    // Get the GIDs that are not taken by another coupling pair.
+    std::vector<int> available_gid;
+    for (size_t i = 0; i < lambda_gid_total.size(); i++)
+    {
+      const int gid = lambda_gid_total[i];
+      const int lid = mortar_manager->get_lambda_dof_row_map()->lid(gid);
+      if (lid < 0) FOUR_C_THROW("Could not find the GID {} in the lambda dof row map!", gid);
+      if (global_lambda_active.get_values()[lid] < 1e-5)
+      {
+        if (available_gid.size() == 0 && i % 3 != 0)
+          FOUR_C_THROW(
+              "Invalid starting Lagrange multiplier index {} for coupling pair. Expected multiple "
+              "of 3.",
+              gid);
+        available_gid.push_back(gid);
+      }
+      if (available_gid.size() == 3) break;
+    }
+
+    // Perform some sanity checks.
+    if (available_gid.size() != 3)
+      FOUR_C_THROW(
+          "Could not find enough available Lagrange multiplier GIDs for the coupling pair! "
+          "Increase the value of MAX_NUMBER_OF_PAIRS_PER_ELEMENT");
+    // Ensure a consecutive triplet
+    if (available_gid[1] != available_gid[0] + 1 || available_gid[2] != available_gid[1] + 1)
+    {
+      FOUR_C_THROW(
+          "Invalid Lagrange multiplier GIDs for coupling pair. Expected first GID multiple of 3 "
+          "and the remaining two successive. Got {}, {}, {}",
+          available_gid[0], available_gid[1], available_gid[2]);
+    }
+
+    return available_gid;
+  };
+
+  const auto lambda_gid_pos_selected = get_pair_lambda_gid(lambda_gid_pos);
+  const auto lambda_gid_rot_selected = get_pair_lambda_gid(lambda_gid_rot);
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    lambda_gid_[i] = lambda_gid_pos_selected[i];
+    lambda_gid_[3 + i] = lambda_gid_rot_selected[i];
+  }
+
+  // Evaluate the kinematics of the coupling pair.
+  const auto pair_kinematic = evaluate_kinematics(discret, *displacement_vector);
+
+  // Positional coupling terms
+  const auto coupling_terms_position = evaluate_positional_coupling(pair_kinematic);
+
+  // Rotational coupling terms
+  const auto coupling_terms_rotation = evaluate_rotational_coupling(pair_kinematic);
+
+  // Assemble into the global constraint vectors
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    global_constraint.sum_into_global_value(
+        lambda_gid_[i], 0, coupling_terms_position.constraint(i));
+    global_constraint.sum_into_global_value(
+        lambda_gid_[i + 3], 0, coupling_terms_rotation.constraint(i));
+  }
+
+  // Set the global active vector
+  for (unsigned int i = 0; i < 6; i++)
+  {
+    global_kappa.sum_into_global_value(lambda_gid_[i], 0, 1.0);
+    global_lambda_active.sum_into_global_value(lambda_gid_[i], 0, 1.0);
+  }
+
+  // Map the matrices to the pair DOFs
+  Core::LinAlg::Matrix<3, n_dof_total> constraint_position_lin_kinematic_pair(
+      Core::LinAlg::Initialization::zero);
+  constraint_position_lin_kinematic_pair.multiply(
+      coupling_terms_position.constraint_lin_kinematic, pair_kinematic.right_transformation_matrix);
+
+  Core::LinAlg::Matrix<3, n_dof_total> constraint_rotation_lin_kinematic_pair(
+      Core::LinAlg::Initialization::zero);
+  constraint_rotation_lin_kinematic_pair.multiply(
+      coupling_terms_rotation.constraint_lin_kinematic, pair_kinematic.right_transformation_matrix);
+
+  Core::LinAlg::Matrix<n_dof_total, 3> residuum_position_lin_lambda_pair(
+      Core::LinAlg::Initialization::zero);
+  residuum_position_lin_lambda_pair.multiply(
+      pair_kinematic.left_transformation_matrix, coupling_terms_position.residuum_lin_lambda);
+
+  Core::LinAlg::Matrix<n_dof_total, 3> residuum_rotation_lin_lambda_pair(
+      Core::LinAlg::Initialization::zero);
+  residuum_rotation_lin_lambda_pair.multiply(
+      pair_kinematic.left_transformation_matrix, coupling_terms_rotation.residuum_lin_lambda);
+
+  // Assemble into global matrices.
+  for (unsigned int i_dof_lambda = 0; i_dof_lambda < 3; i_dof_lambda++)
+  {
+    for (unsigned int i_dof_beam_pos = 0; i_dof_beam_pos < n_dof_total; i_dof_beam_pos++)
+    {
+      global_constraint_lin_beam.fe_assemble(
+          constraint_position_lin_kinematic_pair(i_dof_lambda, i_dof_beam_pos),
+          lambda_gid_[i_dof_lambda], pair_kinematic.pair_gid[i_dof_beam_pos]);
+      global_constraint_lin_beam.fe_assemble(
+          constraint_rotation_lin_kinematic_pair(i_dof_lambda, i_dof_beam_pos),
+          lambda_gid_[3 + i_dof_lambda], pair_kinematic.pair_gid[i_dof_beam_pos]);
+
+      global_force_beam_lin_lambda.fe_assemble(
+          residuum_position_lin_lambda_pair(i_dof_beam_pos, i_dof_lambda),
+          pair_kinematic.pair_gid[i_dof_beam_pos], lambda_gid_[i_dof_lambda]);
+      global_force_beam_lin_lambda.fe_assemble(
+          residuum_rotation_lin_lambda_pair(i_dof_beam_pos, i_dof_lambda),
+          pair_kinematic.pair_gid[i_dof_beam_pos], lambda_gid_[3 + i_dof_lambda]);
+    }
+  }
+}
+
+/**
+ *
+ */
+template <typename Beam1, unsigned int n_dof_beam_1, typename Beam2, unsigned int n_dof_beam_2>
+void BeamInteraction::BeamToBeamPointCouplingPair<Beam1, n_dof_beam_1, Beam2,
+    n_dof_beam_2>::evaluate_and_assemble(const Core::FE::Discretization& discret,
+    const BeamToSolidMortarManager* mortar_manager,
+    const std::shared_ptr<Core::LinAlg::FEVector<double>>& force_vector,
+    const std::shared_ptr<Core::LinAlg::SparseMatrix>& stiffness_matrix,
+    const Core::LinAlg::Vector<double>& global_lambda,
+    const Core::LinAlg::Vector<double>& displacement_vector)
+{
+  check_init_setup();
+
+  if (!parameters_.evaluate_pair) return;
+
+  // Get the Lagrange multiplier GIDs.
+  auto pair_lambda = Core::FE::extract_values(global_lambda, lambda_gid_);
+
+  // Evaluate the kinematics of the coupling pair.
+  const auto pair_kinematic = evaluate_kinematics(discret, displacement_vector);
+
+  // Positional coupling terms
+  const auto coupling_terms_position = evaluate_positional_coupling(pair_kinematic);
+
+  // Rotational coupling terms
+  const auto coupling_terms_rotation = evaluate_rotational_coupling(pair_kinematic);
+
+  // Store lambda for pair
+  Core::LinAlg::Matrix<3, 1> lambda_position{Core::LinAlg::Initialization::zero};
+  Core::LinAlg::Matrix<3, 1> lambda_rotation{Core::LinAlg::Initialization::zero};
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    lambda_position(i) = pair_lambda[i];
+    lambda_rotation(i) = pair_lambda[3 + i];
+  }
+
+  // Add stiffness contributions due to coupling formulation
+  Core::LinAlg::Matrix<12, 12> stiffness(Core::LinAlg::Initialization::zero);
+  add_coupling_stiffness(stiffness, pair_kinematic, coupling_terms_position, lambda_position,
+      coupling_terms_rotation, lambda_rotation);
+
+  // Map residuum and stiffness to element DOFs
+  const auto [residuum_pair, stiffness_pair] =
+      map_residuum_and_stiffness_to_pair_dof(stiffness, pair_kinematic, coupling_terms_position,
+          lambda_position, coupling_terms_rotation, lambda_rotation);
+
+  // Add the coupling terms into the global vector and matrix.
+  if (stiffness_matrix != nullptr)
+  {
+    for (unsigned int i_dof = 0; i_dof < pair_kinematic.pair_gid.size(); i_dof++)
+    {
+      for (unsigned int j_dof = 0; j_dof < pair_kinematic.pair_gid.size(); j_dof++)
+      {
+        stiffness_matrix->fe_assemble(stiffness_pair(i_dof, j_dof), pair_kinematic.pair_gid[i_dof],
+            pair_kinematic.pair_gid[j_dof]);
+      }
+    }
+  }
 }
 
 

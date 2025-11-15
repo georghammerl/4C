@@ -91,6 +91,10 @@ namespace BeamInteraction
           parameters_.penalty_parameter_rot =
               parameters.get<double>("ROTATIONAL_PENALTY_PARAMETER");
           parameters_.projection_valid_factor = parameters.get<double>("PROJECTION_VALID_FACTOR");
+          parameters_.constraint_enforcement =
+              parameters.get<BeamToBeamPointCouplingPairParameters::ConstraintEnforcement>(
+                  "CONSTRAINT_ENFORCEMENT");
+          parameters_.n_pairs_per_element = parameters.get<int>("MAX_NUMBER_OF_PAIRS_PER_ELEMENT");
           parameters_.use_closest_point_projection = true;
           return true;
         }
@@ -132,6 +136,23 @@ namespace BeamInteraction
     std::shared_ptr<BeamInteraction::BeamContactPair> create_contact_pair(
         const std::vector<Core::Elements::Element const*>& ele_ptrs) override;
 
+    /**
+     * \brief Create the indirect assembly manager for this condition. (derived)
+     */
+    std::shared_ptr<BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManager>
+    create_indirect_assembly_manager(
+        const std::shared_ptr<const Core::FE::Discretization>& discret) override;
+
+    /**
+     * \brief Clear not reusable data. (derived)
+     */
+    void clear() override
+    {
+      BeamInteractionConditionBase::clear();
+      geometry_evaluation_data_->clear();
+      contact_pairs_.clear();
+    };
+
    protected:
     /**
      * \brief Check if a ID is in a condition.
@@ -153,6 +174,9 @@ namespace BeamInteraction
 
     /// Pointer to geometry evaluation data for line-to-line projections
     std::shared_ptr<GeometryPair::LineToLineEvaluationData> geometry_evaluation_data_;
+
+    // Vector storing all created contact pairs for this condition.
+    std::vector<std::shared_ptr<BeamInteraction::BeamContactPair>> contact_pairs_;
   };
 }  // namespace BeamInteraction
 
