@@ -1376,8 +1376,8 @@ void Discret::Elements::Beam3k::get_stiffmat_resulting_from_generalized_interpol
 
   for (unsigned int icp = 0; icp < BEAM3K_COLLOCATION_POINTS; ++icp)
   {
-    stiffmat_fixedsize.update(L_i(icp), lin_v_thetaperp_moment_cp[ind], 1.0);
-    stiffmat_fixedsize.update(L_i(icp), lin_v_thetapar_moment_cp[ind], 1.0);
+    stiffmat_fixedsize.update(L_i(icp), lin_v_thetaperp_moment_cp[icp], 1.0);
+    stiffmat_fixedsize.update(L_i(icp), lin_v_thetapar_moment_cp[icp], 1.0);
   }
 }
 
