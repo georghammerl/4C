@@ -30,10 +30,81 @@ namespace Core::LargeRotations
 namespace BeamInteraction
 {
   /**
-   * \brief Class for point-wise beam to beam mesh tying.
-   * @param beam Type from GeometryPair::ElementDiscretization... representing the beam.
+   * \brief Parameters for point-wise beam-to-beam mesh tying.
    */
-  template <typename Beam>
+  struct BeamToBeamPointCouplingPairParameters
+  {
+    //! Penalty parameter for positional coupling.
+    double penalty_parameter_pos = 0.0;
+
+    //! Penalty parameter for rotational coupling.
+    double penalty_parameter_rot = 0.0;
+
+    //! If the interacting points are computed via closest point projection or not.
+    bool use_closest_point_projection = false;
+
+    //! Flag if this pair should be evaluated.
+    bool evaluate_pair = true;
+
+    //! Coupling point positions in the element parameter spaces.
+    std::array<double, 2> position_in_parameterspace = {0.0, 0.0};
+
+    //! Factor to determine valid projection
+    double projection_valid_factor = -1.0;
+  };
+
+  /**
+   * \brief Data container for beam-to-beam kinematics.
+   */
+  template <unsigned int n_dof_beam_1, unsigned int n_dof_beam_2>
+  struct BeamToBeamKinematic
+  {
+    //! Element displacement vectors.
+    std::array<std::vector<double>, 2> element_displacement;
+
+    //! Global DOFs of the coupling pair.
+    std::array<int, n_dof_beam_1 + n_dof_beam_2> pair_gid{-1};
+
+    //! Reference and current position of both coupled points.
+    std::array<Core::LinAlg::Matrix<3, 1>, 2> r_ref;
+    std::array<Core::LinAlg::Matrix<3, 1>, 2> r;
+
+    //! Cross-section orientations (reference and current) for both coupled points.
+    std::array<Core::LinAlg::Matrix<4, 1, Sacado::Fad::SLFad<double, 6>>, 2>
+        cross_section_quaternion;
+    std::array<Core::LinAlg::Matrix<4, 1, double>, 2> cross_section_quaternion_ref;
+
+    //! Transformation matrices from beam interpolation.
+    Core::LinAlg::Matrix<n_dof_beam_1 + n_dof_beam_2, 12> left_transformation_matrix{
+        Core::LinAlg::Initialization::zero};
+    Core::LinAlg::Matrix<12, n_dof_beam_1 + n_dof_beam_2> right_transformation_matrix{
+        Core::LinAlg::Initialization::zero};
+  };
+
+  /**
+   * \brief Data container for beam-to-beam coupling terms.
+   */
+  template <unsigned int n_dof_beam_1, unsigned int n_dof_beam_2>
+  struct BeamToBeamCouplingTerms
+  {
+    //! Constraints
+    Core::LinAlg::Matrix<3, 1> constraint{Core::LinAlg::Initialization::zero};
+
+    //! Constraints linearized w.rt. beam kinematics.
+    Core::LinAlg::Matrix<3, 12> constraint_lin_kinematic{Core::LinAlg::Initialization::zero};
+
+    //! Residuum linearized w.r.t. Lagrange multipliers.
+    Core::LinAlg::Matrix<12, 3> residuum_lin_lambda{Core::LinAlg::Initialization::zero};
+
+    //! Evaluation data for direct stiffness contributions.
+    std::array<Core::LinAlg::Matrix<3, 3, double>, 2> evaluation_data_position;
+    std::array<std::array<std::array<std::array<double, 3>, 3>, 3>, 2> evaluation_data_rotation{};
+  };
+
+  /**
+   * \brief Class for point-wise beam to beam mesh tying.
+   */
+  template <typename Beam1, unsigned int n_dof_beam_1, typename Beam2, unsigned int n_dof_beam_2>
   class BeamToBeamPointCouplingPair : public BeamContactPair
   {
    protected:
@@ -41,30 +112,20 @@ namespace BeamInteraction
     //! beam element.
     using scalar_type_rot = typename Sacado::Fad::SLFad<double, 6>;
 
+    //! Total number of DOFs for both beams.
+    static const unsigned int n_dof_total = n_dof_beam_1 + n_dof_beam_2;
+
+    //! Array with DOFs per beam.
+    static constexpr std::array<unsigned int, 2> n_dof_beam = {n_dof_beam_1, n_dof_beam_2};
+
    public:
     /**
-     * \brief Standard Constructor with given projection coordinates.
+     * \brief Initialize the pair.
      */
-    BeamToBeamPointCouplingPair(double penalty_parameter_rot, double penalty_parameter_pos,
-        std::array<double, 2> pos_in_parameterspace)
+    BeamToBeamPointCouplingPair(BeamToBeamPointCouplingPairParameters parameters,
+        const std::shared_ptr<GeometryPair::LineToLineEvaluationData>& line_to_line_evaluation_data)
         : BeamContactPair(),
-          penalty_parameter_pos_(penalty_parameter_pos),
-          penalty_parameter_rot_(penalty_parameter_rot),
-          use_closest_point_projection_(false),
-          position_in_parameterspace_(pos_in_parameterspace) {};
-
-    /**
-     * \brief Standard Constructor for closes point projection variant.
-     */
-    BeamToBeamPointCouplingPair(const double penalty_parameter_rot,
-        const double penalty_parameter_pos, const double projection_valid_factor,
-        std::shared_ptr<GeometryPair::LineToLineEvaluationData>& line_to_line_evaluation_data)
-        : BeamContactPair(),
-          penalty_parameter_pos_(penalty_parameter_pos),
-          penalty_parameter_rot_(penalty_parameter_rot),
-          use_closest_point_projection_(true),
-          position_in_parameterspace_({0, 0}),
-          projection_valid_factor_(projection_valid_factor),
+          parameters_(parameters),
           line_to_line_evaluation_data_(line_to_line_evaluation_data) {};
 
     /**
@@ -181,48 +242,72 @@ namespace BeamInteraction
 
    private:
     /**
+     * \brief Evaluate the closest point projection for this pair.
+     */
+    void evaluate_closest_point_projection();
+
+    /**
+     * \brief Evaluate the kinematics for this pair.
+     */
+    [[nodiscard]] BeamToBeamKinematic<n_dof_beam_1, n_dof_beam_2> evaluate_kinematics(
+        const Core::FE::Discretization& discret,
+        const Core::LinAlg::Vector<double>& displacement_vector) const;
+
+    /**
      * \brief Evaluate the positional coupling terms based on general cross-section kinematics.
      */
-    std::tuple<Core::LinAlg::Matrix<3, 1>, Core::LinAlg::Matrix<3, 12>, Core::LinAlg::Matrix<12, 3>,
-        std::array<Core::LinAlg::Matrix<3, 3, double>, 2>>
-    evaluate_positional_coupling(const std::array<Core::LinAlg::Matrix<3, 1>, 2>& r_ref,
-        const std::array<Core::LinAlg::Matrix<3, 1>, 2>& r,
-        const std::array<Core::LinAlg::Matrix<4, 1, double>, 2>& cross_section_quaternion_ref,
-        const std::array<Core::LinAlg::Matrix<4, 1, scalar_type_rot>, 2>& cross_section_quaternion);
+    [[nodiscard]] BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2> evaluate_positional_coupling(
+        const BeamToBeamKinematic<n_dof_beam_1, n_dof_beam_2>& pair_kinematic) const;
 
     /**
      * \brief Evaluate the rotational coupling terms based on general cross-section kinematics.
      */
-    static std::tuple<Core::LinAlg::Matrix<3, 1>, Core::LinAlg::Matrix<3, 12>,
-        Core::LinAlg::Matrix<12, 3>,
-        std::array<std::array<std::array<std::array<double, 3>, 3>, 3>, 2>>
-    evaluate_rotational_coupling(
-        const std::array<Core::LinAlg::Matrix<4, 1, double>, 2>& cross_section_quaternion_ref,
-        const std::array<Core::LinAlg::Matrix<4, 1, scalar_type_rot>, 2>& cross_section_quaternion);
+    [[nodiscard]] BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2> evaluate_rotational_coupling(
+        const BeamToBeamKinematic<n_dof_beam_1, n_dof_beam_2>& pair_kinematic) const;
+
+    /**
+     * \brief Add the coupling stiffness and map the residuum and stiffness to the pair degrees of
+     * freedom.
+     */
+    static void add_coupling_stiffness(Core::LinAlg::Matrix<12, 12>& stiffness,
+        const BeamToBeamKinematic<n_dof_beam_1, n_dof_beam_2>& pair_kinematic,
+        const BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2>& coupling_terms_position,
+        const Core::LinAlg::Matrix<3, 1>& lambda_position,
+        const BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2>& coupling_terms_rotation,
+        const Core::LinAlg::Matrix<3, 1>& lambda_rotation);
+
+    /**
+     * \brief Map the residuum and stiffness to the pair degrees of freedom.
+     */
+    std::pair<Core::LinAlg::Matrix<n_dof_beam_1 + n_dof_beam_2, 1>,
+        Core::LinAlg::Matrix<n_dof_beam_1 + n_dof_beam_2, n_dof_beam_1 + n_dof_beam_2>>
+    map_residuum_and_stiffness_to_pair_dof(Core::LinAlg::Matrix<12, 12>& stiffness,
+        const BeamToBeamKinematic<n_dof_beam_1, n_dof_beam_2>& pair_kinematic,
+        const BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2>& coupling_terms_position,
+        const Core::LinAlg::Matrix<3, 1>& lambda_position,
+        const BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2>& coupling_terms_rotation,
+        const Core::LinAlg::Matrix<3, 1>& lambda_rotation) const;
 
    private:
-    //! Number of rotational DOF for the SR beams;
-    static constexpr unsigned int n_dof_rot_ = 9;
+    //! Parameters for the coupling pair.
+    BeamToBeamPointCouplingPairParameters parameters_;
 
-    //! Penalty parameter for positional coupling.
-    double penalty_parameter_pos_;
-
-    //! Penalty parameter for rotational coupling.
-    double penalty_parameter_rot_;
-
-    //! If this the interacting points are computed via closest point projection or not.
-    bool use_closest_point_projection_ = false;
-
-    //! Coupling point positions in the element parameter spaces.
-    std::array<double, 2> position_in_parameterspace_;
-
-    //! Factor to determine valid projection
-    double projection_valid_factor_ = -1.0;
+    // Pointer to the two beam elements.
+    std::array<const Core::Elements::Element*, 2> beam_elements_;
 
     //! Line to line evaluation data for closest point projection
     const std::shared_ptr<GeometryPair::LineToLineEvaluationData> line_to_line_evaluation_data_ =
         nullptr;
   };  // namespace BeamInteraction
+
+  /**
+   * \brief Factory for beam-to-beam point coupling pairs.
+   */
+  std::unique_ptr<BeamInteraction::BeamContactPair> beam_to_beam_point_coupling_pair_factory(
+      const std::array<const Core::Elements::Element*, 2>& element_ptrs,
+      const BeamToBeamPointCouplingPairParameters& parameters,
+      const std::shared_ptr<GeometryPair::LineToLineEvaluationData>& line_to_line_evaluation_data);
+
 }  // namespace BeamInteraction
 
 FOUR_C_NAMESPACE_CLOSE

@@ -68,21 +68,23 @@ void BeamInteraction::BeamToBeamPointCouplingConditionDirect::create_contact_pai
       // Check that the second element also exists on this processor (can be a ghosted element)
       if (element_ptrs[1] != nullptr)
       {
+        BeamToBeamPointCouplingPairParameters parameters{
+            .penalty_parameter_pos = positional_penalty_parameter_,
+            .penalty_parameter_rot = rotational_penalty_parameter_};
+
         // Get the parameter coordinates for evaluating the coupling constraint
         for (size_t i_node = 0; i_node < 2; i_node++)
         {
           const Core::Nodes::Node* node = discretization.g_node(node_ids[i_node]);
           if (element_ptrs[i_node]->node_ids()[0] == node->id())
-            local_parameter_coordinates_[i_node] = -1;
+            parameters.position_in_parameterspace[i_node] = -1;
           else
-            local_parameter_coordinates_[i_node] = 1;
+            parameters.position_in_parameterspace[i_node] = 1;
         }
 
         // Create the pair
         contact_pairs.emplace_back(
-            std::make_shared<BeamToBeamPointCouplingPair<GeometryPair::t_hermite>>(
-                rotational_penalty_parameter_, positional_penalty_parameter_,
-                local_parameter_coordinates_));
+            beam_to_beam_point_coupling_pair_factory(element_ptrs, parameters, nullptr));
         contact_pairs.back()->init(params_ptr, {element_ptrs[0], element_ptrs[1]});
         contact_pairs.back()->setup();
         pairs_created += 1;
@@ -152,9 +154,11 @@ BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_contact_pair(
   // Check if the given elements are in this condition.
   if (!ids_in_condition(ele_ptrs[0]->id(), ele_ptrs[1]->id())) return nullptr;
 
-  return std::make_shared<BeamToBeamPointCouplingPair<GeometryPair::t_hermite>>(
-      rotational_penalty_parameter_, positional_penalty_parameter_, projection_valid_factor_,
-      geometry_evaluation_data_);
+  std::shared_ptr<BeamInteraction::BeamContactPair> contact_pair =
+      beam_to_beam_point_coupling_pair_factory(
+          {ele_ptrs[0], ele_ptrs[1]}, parameters_, geometry_evaluation_data_);
+
+  return contact_pair;
 }
 
 FOUR_C_NAMESPACE_CLOSE
