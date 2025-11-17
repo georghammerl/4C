@@ -981,26 +981,7 @@ void Solid::ModelEvaluator::Structure::output_runtime_structure_postprocess_stre
 {
   check_init_setup();
 
-  // Set all parameters in the evaluation data container.
-  eval_data().set_action_type(Core::Elements::struct_calc_stress);
-  eval_data().set_total_time(global_state().get_time_np());
-  eval_data().set_delta_time((global_state().get_delta_time())[0]);
-  eval_data().set_stress_data(std::make_shared<std::vector<char>>());
-  eval_data().set_strain_data(std::make_shared<std::vector<char>>());
-  eval_data().set_plastic_strain_data(std::make_shared<std::vector<char>>());
-
-  // Set vector values needed by elements.
-  discret().clear_state();
-  discret().set_state(0, "displacement", *global_state().get_dis_np());
-  discret().set_state(0, "residual displacement", *dis_incr_ptr_);
-
-  // Set dummy evaluation vectors and matrices.
-  std::array<std::shared_ptr<Core::LinAlg::Vector<double>>, 3> eval_vec = {
-      nullptr, nullptr, nullptr};
-  std::array<std::shared_ptr<Core::LinAlg::SparseOperator>, 2> eval_mat = {nullptr, nullptr};
-
-  evaluate_internal_specified_elements(
-      eval_mat.data(), eval_vec.data(), discret().element_row_map());
+  determine_stress_strain();
 
   auto do_postprocessing_on_element = [](const Core::Elements::Element& ele)
   {
