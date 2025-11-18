@@ -14,3 +14,4 @@ scipy
 sphinx-multibuild
 sphinx-rtd-theme
 pyyaml
+pyvista[jupyter]

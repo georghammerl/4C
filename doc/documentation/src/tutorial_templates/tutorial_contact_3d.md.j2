@@ -38,6 +38,10 @@ The mesh of the discretized problem setup used in this tutorial is shown in the 
 The discretization of the upper and lower blocks does not coincide.
 Thus, we obtain non-matching discretizations at the contact interface as soon as the bodies get into contact due to the prescribed displacement.
 
+Here is an interactive version of the mesh where you can explore the mesh on your own by rotating and zooming:
+
+{{ plot("contact/tutorial_contact_3d.e", aspect_ratio=1/1, show_edges=True) }}
+
 ## Working with 4C
 
 ### Creation of a valid 4C input file
@@ -60,7 +64,7 @@ As this is still a solid mechanics problem, many definitions are similar to thos
 Thus, it is also recommended to perform this tutorial first.
 The main difference from a solid mechanics perspective is that we do not assume a quasi-static problem setup but account for the dynamics of the system.
 
-{{ section_dump(input_file_content, "STRUCTURAL DYNAMIC", filetype="md") }}
+{{ section_dump(input_file_content, "STRUCTURAL DYNAMIC") }}
 
 Therefore, the time integration scheme is chosen to be Generalized-$\alpha$ (`DYNAMICTYPE: GenAlpha`).
 
@@ -72,7 +76,7 @@ If you want to run the whole simulation, you have to change the parameter to at 
 Moreover, as it is a contact problem, additional contact related parameters must be defined.
 This is done with the subsequent sections
 
-{{ section_dump(input_file_content, ["MORTAR COUPLING", "CONTACT DYNAMIC"], filetype="md") }}
+{{ section_dump(input_file_content, ["MORTAR COUPLING", "CONTACT DYNAMIC"]) }}
 
 In this tutorial, a segment-to-segment contact formulation, namely a mortar approach, is used for the contact interface discretization.
 Therefore, the `MORTAR COUPLING` section has been added, and the `ALGORITHM` has been chosen as `Mortar`.
@@ -107,7 +111,7 @@ On top of that, a linear solver must be defined (`LINEAR_SOLVER: 1`) for the con
 The contact interface, i.e., the surfaces that might come into contact, must be defined.
 This is done with the following lines in the input file
 
-{{ section_dump(input_file_content, "DESIGN SURF MORTAR CONTACT CONDITIONS 3D", filetype="md") }}
+{{ section_dump(input_file_content, "DESIGN SURF MORTAR CONTACT CONDITIONS 3D") }}
 
 stating that a three-dimensional contact problem shall be solved.
 Moreover, two surfaces are defined to be part of the contact interface with `InterfaceID: 1`, defining that the contact constraints shall be enforced for this pair of surfaces.
