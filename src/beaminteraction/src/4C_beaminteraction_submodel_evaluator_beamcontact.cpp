@@ -507,13 +507,6 @@ std::map<Solid::EnergyType, double> BeamInteraction::SubmodelEvaluator::BeamCont
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void BeamInteraction::SubmodelEvaluator::BeamContact::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::BeamContact::runtime_output_step_state() const {}
 
 /*----------------------------------------------------------------------------*

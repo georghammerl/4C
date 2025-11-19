@@ -495,8 +495,8 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
     if (dataio_->should_write_restart_for_step(dataglobalstate_->get_step_n()) or
         dataglobalstate_->get_step_n() == Global::Problem::instance()->restart())
       return;
-    // TODO: This if statement can be removed once Solid::ModelEvaluator::Contact::output_step_state
-    // is removed
+    // TODO: This if statement can be removed once
+    // Solid::ModelEvaluator::BeamInteraction::output_step_state is removed
     // if state already exists, add restart information
     if (dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()))
     {
@@ -519,8 +519,8 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
   }
 
   // output results (not necessary if restart in same step)
-  // TODO: This if statement can be removed once Solid::ModelEvaluator::Contact::output_step_state
-  // is removed
+  // TODO: This if statement can be removed once
+  // Solid::ModelEvaluator::BeamInteraction::output_step_state is removed
   if (dataio_->is_write_state() and
       dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()) and (not datawritten))
   {

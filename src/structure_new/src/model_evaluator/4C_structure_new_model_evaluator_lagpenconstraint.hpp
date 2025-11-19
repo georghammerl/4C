@@ -111,7 +111,7 @@ namespace Solid
       void determine_energy() override;
 
       //! derived
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override;
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
 
       //! derived
       void reset_step_state() override;

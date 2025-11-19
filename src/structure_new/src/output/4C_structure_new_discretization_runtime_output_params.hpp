@@ -57,6 +57,14 @@ namespace Discret
         return output_acceleration_state_;
       }
 
+      /// whether to contact data
+      [[nodiscard]] bool output_contact() const
+      {
+        check_init_setup();
+        return output_contact_;
+      }
+
+
       /// whether to write the owner of elements
       [[nodiscard]] bool output_element_owner() const
       {
@@ -141,6 +149,9 @@ namespace Discret
 
       /// whether to write acceleration output
       bool output_acceleration_state_;
+
+      /// whether to write contact data
+      bool output_contact_;
 
       /// whether to write the owner of elements
       bool output_element_owner_;

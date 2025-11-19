@@ -10,6 +10,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_io_discretization_visualization_writer_mesh.hpp"
 #include "4C_structure_new_enum_lists.hpp"
 #include "4C_structure_new_model_evaluator_generic.hpp"
 
@@ -43,7 +44,10 @@ namespace Solid
       //!@{
 
       //! [derived]
-      Inpar::Solid::ModelType type() const override { return Inpar::Solid::model_contact; }
+      [[nodiscard]] Inpar::Solid::ModelType type() const override
+      {
+        return Inpar::Solid::model_contact;
+      }
 
       //! reset class variables (without jacobian) [derived]
       void reset(const Core::LinAlg::Vector<double>& x) override;
@@ -121,20 +125,26 @@ namespace Solid
       void determine_energy() override;
 
       //! [derived]
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override;
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
+
+      void runtime_pre_output_step_state() override;
+
+      void runtime_output_step_state() const override;
 
       //! [derived]
       void reset_step_state() override;
 
       //! [derived]
-      std::shared_ptr<const Core::LinAlg::Map> get_block_dof_row_map_ptr() const override;
-
-      //! [derived]
-      std::shared_ptr<const Core::LinAlg::Vector<double>> get_current_solution_ptr() const override;
-
-      //! [derived]
-      std::shared_ptr<const Core::LinAlg::Vector<double>> get_last_time_step_solution_ptr()
+      [[nodiscard]] std::shared_ptr<const Core::LinAlg::Map> get_block_dof_row_map_ptr()
           const override;
+
+      //! [derived]
+      [[nodiscard]] std::shared_ptr<const Core::LinAlg::Vector<double>> get_current_solution_ptr()
+          const override;
+
+      //! [derived]
+      [[nodiscard]] std::shared_ptr<const Core::LinAlg::Vector<double>>
+      get_last_time_step_solution_ptr() const override;
 
       //! [derived]
       void post_output() override;
@@ -151,7 +161,7 @@ namespace Solid
       //! @name Call-back routines
       //!@{
 
-      std::shared_ptr<const Core::LinAlg::SparseMatrix> get_jacobian_block(
+      [[nodiscard]] std::shared_ptr<const Core::LinAlg::SparseMatrix> get_jacobian_block(
           const MatBlockType bt) const;
 
       /** \brief Assemble the structural right-hand side vector
@@ -165,7 +175,8 @@ namespace Solid
           const std::vector<Inpar::Solid::ModelType>* without_these_models = nullptr,
           const bool apply_dbc = false) const;
 
-      virtual std::shared_ptr<Core::LinAlg::SparseOperator> get_aux_displ_jacobian() const;
+      [[nodiscard]] virtual std::shared_ptr<Core::LinAlg::SparseOperator> get_aux_displ_jacobian()
+          const;
 
       void evaluate_weighted_gap_gradient_error();
 
@@ -179,13 +190,13 @@ namespace Solid
 
       //! Returns the underlying contact strategy object
       CONTACT::AbstractStrategy& strategy();
-      const CONTACT::AbstractStrategy& strategy() const;
+      [[nodiscard]] const CONTACT::AbstractStrategy& strategy() const;
 
       //!@}
 
      protected:
       Solid::ModelEvaluator::ContactData& eval_contact();
-      const Solid::ModelEvaluator::ContactData& eval_contact() const;
+      [[nodiscard]] const Solid::ModelEvaluator::ContactData& eval_contact() const;
 
       virtual void check_pseudo2d() const;
 
@@ -205,6 +216,9 @@ namespace Solid
 
       //! contact strategy
       std::shared_ptr<CONTACT::AbstractStrategy> strategy_ptr_;
+
+      //! contact runtime output writer
+      std::unique_ptr<Core::IO::DiscretizationVisualizationWriterMesh> contact_vtu_writer_ptr_;
 
     };  // class Contact
   }  // namespace ModelEvaluator

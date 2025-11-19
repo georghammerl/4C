@@ -79,14 +79,19 @@ namespace Inpar
                                     "projected to element center, raw at gauss points)",
                         .default_value = Inpar::Solid::GaussPointDataOutputType::none}),
 
-
                 deprecated_selection<Inpar::Solid::OptQuantityType>("OPTIONAL_QUANTITY",
                     {
                         {"No", Inpar::Solid::optquantity_none},
                         {"membranethickness", Inpar::Solid::optquantity_membranethickness},
                     },
                     {.description = "Output of an optional quantity",
-                        .default_value = Inpar::Solid::optquantity_none})},
+                        .default_value = Inpar::Solid::optquantity_none}),
+
+                // whether to output the structure contact related quantities
+                parameter<bool>(
+                    "OUTPUT_CONTACT", {.description = "Flag, defining if contact related "
+                                                      "quantities should be written to output.",
+                                          .default_value = false})},
             {.required = false});
         return spec;
       }

@@ -11,19 +11,18 @@
 #include "4C_contact_strategy_factory.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
-#include "4C_io_control.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
-#include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
 #include "4C_solver_nonlin_nox_solver_linesearchbased.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_dbc.hpp"
+#include "4C_structure_new_discretization_runtime_output_params.hpp"
 #include "4C_structure_new_impl_generic.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_model_evaluator_manager.hpp"
 #include "4C_structure_new_timint_base.hpp"
-#include "4C_structure_new_utils.hpp"
+#include "4C_structure_new_timint_basedataio_runtime_vtk_output.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -88,6 +87,19 @@ void Solid::ModelEvaluator::Contact::setup()
   check_pseudo2d();
 
   post_setup(cparams);
+
+  if (global_in_output().get_runtime_output_params() != nullptr and
+      global_in_output().get_runtime_output_params()->get_structure_params()->output_contact())
+  {
+    const auto discretization = this->discret_ptr();
+    auto use_all_elements = [](const Core::Elements::Element* element) { return true; };
+    contact_vtu_writer_ptr_ =
+        std::make_unique<Core::IO::DiscretizationVisualizationWriterMesh>(discretization,
+            Core::IO::visualization_parameters_factory(
+                Global::Problem::instance()->io_params().sublist("RUNTIME VTK OUTPUT"),
+                *Global::Problem::instance()->output_control_file(), global_state().get_time_n()),
+            use_all_elements, discretization->name() + "-contact");
+  }
 
   issetup_ = true;
 }
@@ -460,109 +472,117 @@ void Solid::ModelEvaluator::Contact::determine_energy() {}
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Contact::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
+void Solid::ModelEvaluator::Contact::runtime_pre_output_step_state() { determine_stress_strain(); }
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+void Solid::ModelEvaluator::Contact::runtime_output_step_state() const
 {
+  if (contact_vtu_writer_ptr_ == nullptr) return;
+
+  // reset time and time step of the writer object
+  contact_vtu_writer_ptr_->reset();
+
   // no output in nitsche Strategy
   if (strategy().is_nitsche()) return;
 
-  // *********************************************************************
   // print summary of active set to screen
-  // *********************************************************************
   strategy().print_active_set();
 
-  // *********************************************************************
-  // active contact set and slip set
-  // *********************************************************************
-
   // evaluate active set and slip set
-  Core::LinAlg::Vector<double> activeset(*strategy().active_row_nodes());
+  // TODO as soon as true int vectors are supported this should be changed to an int vector
+  Core::LinAlg::Vector<double> activeset(*strategy().active_row_nodes(), true);
   activeset.put_scalar(1.0);
   if (strategy().is_friction())
   {
-    Core::LinAlg::Vector<double> slipset(*strategy().slip_row_nodes());
+    Core::LinAlg::Vector<double> slipset(*strategy().slip_row_nodes(), true);
     slipset.put_scalar(1.0);
-    Core::LinAlg::Vector<double> slipsetexp(*strategy().active_row_nodes());
+    Core::LinAlg::Vector<double> slipsetexp(*strategy().active_row_nodes(), true);
     Core::LinAlg::export_to(slipset, slipsetexp);
     activeset.update(1.0, slipsetexp, 1.0);
   }
 
   // export to problem node row map
-  std::shared_ptr<const Core::LinAlg::Map> problemnodes = strategy().problem_nodes();
-  std::shared_ptr<Core::LinAlg::Vector<double>> activesetexp =
-      std::make_shared<Core::LinAlg::Vector<double>>(*problemnodes);
-  Core::LinAlg::export_to(activeset, *activesetexp);
+  auto problemnodes = strategy().problem_nodes();
+  auto activesetexp = Core::LinAlg::Vector<double>(*problemnodes, true);
+  Core::LinAlg::export_to(activeset, activesetexp);
 
   if (strategy().wear_both_discrete())
   {
-    Core::LinAlg::Vector<double> mactiveset(*strategy().master_active_nodes());
+    Core::LinAlg::Vector<double> mactiveset(*strategy().master_active_nodes(), true);
     mactiveset.put_scalar(1.0);
-    Core::LinAlg::Vector<double> slipset(*strategy().master_slip_nodes());
+    Core::LinAlg::Vector<double> slipset(*strategy().master_slip_nodes(), true);
     slipset.put_scalar(1.0);
-    Core::LinAlg::Vector<double> slipsetexp(*strategy().master_active_nodes());
+    Core::LinAlg::Vector<double> slipsetexp(*strategy().master_active_nodes(), true);
     Core::LinAlg::export_to(slipset, slipsetexp);
     mactiveset.update(1.0, slipsetexp, 1.0);
 
-    Core::LinAlg::Vector<double> mactivesetexp(*problemnodes);
+    Core::LinAlg::Vector<double> mactivesetexp(*problemnodes, true);
     Core::LinAlg::export_to(mactiveset, mactivesetexp);
-    activesetexp->update(1.0, mactivesetexp, 1.0);
+    activesetexp.update(1.0, mactivesetexp, 1.0);
   }
 
-  iowriter.write_vector("activeset", activesetexp, Core::IO::nodevector);
+  contact_vtu_writer_ptr_->append_result_data_vector_with_context(
+      activesetexp, Core::IO::OutputEntity::node, {"activeset"});
 
-  // *********************************************************************
   // contact tractions
-  // *********************************************************************
-
   // export to problem dof row map
-  std::shared_ptr<const Core::LinAlg::Map> problemdofs = strategy().problem_dofs();
+  auto problemdofs = strategy().problem_dofs();
 
   // normal direction
-  std::shared_ptr<const Core::LinAlg::Vector<double>> normalstresses =
-      strategy().contact_normal_stress();
-  std::shared_ptr<Core::LinAlg::Vector<double>> normalstressesexp =
-      std::make_shared<Core::LinAlg::Vector<double>>(*problemdofs);
-  Core::LinAlg::export_to(*normalstresses, *normalstressesexp);
+  auto normalstresses = strategy().contact_normal_stress();
+  auto normalstressesexp = Core::LinAlg::Vector<double>(*problemdofs, true);
+  Core::LinAlg::export_to(*normalstresses, normalstressesexp);
 
   // tangential plane
-  std::shared_ptr<const Core::LinAlg::Vector<double>> tangentialstresses =
-      strategy().contact_tangential_stress();
-  std::shared_ptr<Core::LinAlg::Vector<double>> tangentialstressesexp =
-      std::make_shared<Core::LinAlg::Vector<double>>(*problemdofs);
-  Core::LinAlg::export_to(*tangentialstresses, *tangentialstressesexp);
+  auto tangentialstresses = strategy().contact_tangential_stress();
+  auto tangentialstressesexp = Core::LinAlg::Vector<double>(*problemdofs, true);
+  Core::LinAlg::export_to(*tangentialstresses, tangentialstressesexp);
 
   // write to output
   // contact tractions in normal and tangential direction
-  iowriter.write_vector("norcontactstress", normalstressesexp);
-  iowriter.write_vector("tancontactstress", tangentialstressesexp);
+  {
+    std::vector<std::optional<std::string>> context(global_state().get_dim(), "norcontactstress");
+    contact_vtu_writer_ptr_->append_result_data_vector_with_context(
+        normalstressesexp, Core::IO::OutputEntity::dof, context);
+  }
+  {
+    std::vector<std::optional<std::string>> context(global_state().get_dim(), "tancontactstress");
+    contact_vtu_writer_ptr_->append_result_data_vector_with_context(
+        tangentialstressesexp, Core::IO::OutputEntity::dof, context);
+  }
 
-  // *********************************************************************
   // wear with internal state variable approach
-  // *********************************************************************
   if (strategy().weighted_wear())
   {
     // write output
-    std::shared_ptr<const Core::LinAlg::Vector<double>> wearoutput = strategy().contact_wear();
-    std::shared_ptr<Core::LinAlg::Vector<double>> wearoutputexp =
-        std::make_shared<Core::LinAlg::Vector<double>>(*problemdofs);
-    Core::LinAlg::export_to(*wearoutput, *wearoutputexp);
-    iowriter.write_vector("wear", wearoutputexp);
+    auto wearoutput = strategy().contact_wear();
+    auto wearoutputexp = Core::LinAlg::Vector<double>(*problemdofs, true);
+    Core::LinAlg::export_to(*wearoutput, wearoutputexp);
+
+    {
+      std::vector<std::optional<std::string>> context(global_state().get_dim(), "wear");
+      contact_vtu_writer_ptr_->append_result_data_vector_with_context(
+          wearoutputexp, Core::IO::OutputEntity::dof, context);
+    }
   }
 
-  // *********************************************************************
   // poro contact
-  // *********************************************************************
   if (strategy().has_poro_no_penetration())
   {
     // output of poro no penetration lagrange multiplier!
-    const CONTACT::LagrangeStrategyPoro& poro_strategy =
-        dynamic_cast<const CONTACT::LagrangeStrategyPoro&>(strategy());
-    std::shared_ptr<const Core::LinAlg::Vector<double>> lambdaout = poro_strategy.lambda_no_pen();
-    std::shared_ptr<Core::LinAlg::Vector<double>> lambdaoutexp =
-        std::make_shared<Core::LinAlg::Vector<double>>(*problemdofs);
-    Core::LinAlg::export_to(*lambdaout, *lambdaoutexp);
-    iowriter.write_vector("poronopen_lambda", lambdaoutexp);
+    auto lambdaout = dynamic_cast<const CONTACT::LagrangeStrategyPoro&>(strategy()).lambda_no_pen();
+    auto lambdaoutexp = Core::LinAlg::Vector<double>(*problemdofs, true);
+    Core::LinAlg::export_to(*lambdaout, lambdaoutexp);
+
+    {
+      std::vector<std::optional<std::string>> context(global_state().get_dim(), "poronopen_lambda");
+      contact_vtu_writer_ptr_->append_result_data_vector_with_context(
+          lambdaoutexp, Core::IO::OutputEntity::dof, context);
+    }
   }
+
+  contact_vtu_writer_ptr_->write_to_disk(global_state().get_time_n(), global_state().get_step_n());
 }
 
 /*----------------------------------------------------------------------*

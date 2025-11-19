@@ -547,15 +547,6 @@ std::map<Solid::EnergyType, double> BeamInteraction::SubmodelEvaluator::BeamPote
 
 /*-----------------------------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------------------------*/
-void BeamInteraction::SubmodelEvaluator::BeamPotential::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  check_init_setup();
-  // nothing to do (so far)
-}
-
-/*-----------------------------------------------------------------------------------------------*
- *-----------------------------------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::BeamPotential::runtime_output_step_state() const
 {
   check_init_setup();

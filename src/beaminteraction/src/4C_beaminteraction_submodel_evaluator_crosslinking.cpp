@@ -1121,15 +1121,6 @@ std::map<Solid::EnergyType, double> BeamInteraction::SubmodelEvaluator::Crosslin
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void BeamInteraction::SubmodelEvaluator::Crosslinking::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  check_init_setup();
-  // not used, we are writing output during runtime
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::Crosslinking::runtime_output_step_state() const
 {
   check_init_setup();

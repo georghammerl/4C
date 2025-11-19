@@ -478,14 +478,6 @@ BeamInteraction::SubmodelEvaluator::SphereBeamLinking::get_energy() const
 
 /*-------------------------------------------------------------------------------*
  *-------------------------------------------------------------------------------*/
-void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  check_init_setup();
-}
-
-/*-------------------------------------------------------------------------------*
- *-------------------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::runtime_output_step_state() const
 {
   check_init_setup();

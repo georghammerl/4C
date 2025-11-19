@@ -108,7 +108,7 @@ namespace Solid
       void determine_energy() override;
 
       //! derived
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override;
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
 
       //! derived
       std::shared_ptr<const Core::LinAlg::Map> get_block_dof_row_map_ptr() const override;

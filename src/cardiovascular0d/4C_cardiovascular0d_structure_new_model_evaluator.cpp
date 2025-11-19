@@ -291,15 +291,6 @@ void Solid::ModelEvaluator::Cardiovascular0D::determine_energy()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::Cardiovascular0D::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  // nothing to do
-  return;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::Cardiovascular0D::reset_step_state()
 {
   check_init_setup();

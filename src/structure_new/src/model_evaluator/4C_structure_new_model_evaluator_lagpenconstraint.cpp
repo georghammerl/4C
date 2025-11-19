@@ -289,14 +289,6 @@ void Solid::ModelEvaluator::LagPenConstraint::determine_energy()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::LagPenConstraint::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  // nothing to do
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::LagPenConstraint::reset_step_state()
 {
   check_init_setup();
