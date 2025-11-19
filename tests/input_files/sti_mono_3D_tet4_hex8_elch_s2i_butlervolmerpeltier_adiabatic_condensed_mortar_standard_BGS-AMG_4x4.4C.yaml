@@ -182,25 +182,25 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 366
       QUANTITY: "phi1"
-      VALUE: 1.58019412195883042e+01
+      VALUE: 1.58019385862721702e+01
       TOLERANCE: 1.6e-07
   - SCATRA:
       DIS: "scatra"
       NODE: 366
       QUANTITY: "phi2"
-      VALUE: 1.18996874262692256e-02
+      VALUE: 1.18996874263001835e-02
       TOLERANCE: 1.2e-10
   - SCATRA:
       DIS: "thermo"
       NODE: 366
       QUANTITY: "phi"
-      VALUE: 3.00065724592791923e+02
+      VALUE: 3.00065724006618154e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       NODE: 366
       QUANTITY: "flux_boundary_1_x"
-      VALUE: 1.41175569699038039e-05
+      VALUE: 1.41175608305675948e-05
       TOLERANCE: 1.4e-11
   - SCATRA:
       DIS: "scatra"
@@ -218,55 +218,55 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 200
       QUANTITY: "flux_boundary_1_x"
-      VALUE: 6.18614294659807269e-06
+      VALUE: 6.18613924545311086e-06
       TOLERANCE: 6.2e-12
   - SCATRA:
       DIS: "scatra"
       NODE: 200
       QUANTITY: "flux_boundary_1_y"
-      VALUE: -3.09307147329903634e-06
+      VALUE: -3.09306962272655543e-06
       TOLERANCE: 3.1e-12
   - SCATRA:
       DIS: "scatra"
       NODE: 200
       QUANTITY: "flux_boundary_1_z"
-      VALUE: -3.09307147329903634e-06
+      VALUE: -3.09306962272655543e-06
       TOLERANCE: 3.1e-12
   - SCATRA:
       DIS: "scatra"
       NODE: 200
       QUANTITY: "phi1"
-      VALUE: 1.00483563826037070e+00
+      VALUE: 1.00483563558352174e+00
       TOLERANCE: 1.0e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 200
       QUANTITY: "phi2"
-      VALUE: -2.74776654130745535e-01
+      VALUE: -2.74776729194386449e-01
       TOLERANCE: 2.7e-09
   - SCATRA:
       DIS: "thermo"
       NODE: 200
       QUANTITY: "phi"
-      VALUE: 3.00065724729514727e+02
+      VALUE: 3.00065724143341640e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       NODE: 100
       QUANTITY: "phi1"
-      VALUE: 9.94945402127352829e-01
+      VALUE: 9.94945400102961730e-01
       TOLERANCE: 9.9e-09
   - SCATRA:
       DIS: "scatra"
       NODE: 100
       QUANTITY: "phi2"
-      VALUE: -2.75666524704842875e-01
+      VALUE: -2.75666599809053947e-01
       TOLERANCE: 2.8e-09
   - SCATRA:
       DIS: "thermo"
       NODE: 100
       QUANTITY: "phi"
-      VALUE: 3.00065711154183646e+02
+      VALUE: 3.00065710567949395e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
@@ -278,7 +278,7 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 100
       QUANTITY: "flux_boundary_1_y"
-      VALUE: 1.15529254554576753e-05
+      VALUE: 1.15529256981184590e-05
       TOLERANCE: 1.2e-11
   - SCATRA:
       DIS: "scatra"
@@ -290,7 +290,7 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 600
       QUANTITY: "flux_boundary_1_x"
-      VALUE: 1.16333314230758614e-05
+      VALUE: 1.16333312268595712e-05
       TOLERANCE: 1.2e-11
   - SCATRA:
       DIS: "scatra"
@@ -308,37 +308,37 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 600
       QUANTITY: "phi1"
-      VALUE: 8.47066506959413879e+00
+      VALUE: 8.47066537534667496e+00
       TOLERANCE: 8.5e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 600
       QUANTITY: "phi2"
-      VALUE: 3.81527623853818199e+00
+      VALUE: 3.81527616368296307e+00
       TOLERANCE: 3.8e-08
   - SCATRA:
       DIS: "thermo"
       NODE: 600
       QUANTITY: "phi"
-      VALUE: 3.00065713378790804e+02
+      VALUE: 3.00065712792572469e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       SPECIAL: true
       QUANTITY: "soc1"
-      VALUE: 6.44625466928755775e-01
+      VALUE: 6.44625421858256664e-01
       TOLERANCE: 6.4e-09
   - SCATRA:
       DIS: "scatra"
       SPECIAL: true
       QUANTITY: "soc2"
-      VALUE: 6.45498699412143440e-01
+      VALUE: 6.45498693024567971e-01
       TOLERANCE: 6.5e-09
   - SCATRA:
       DIS: "scatra"
       SPECIAL: true
       QUANTITY: "cellvoltage"
-      VALUE: 3.80342117715288186e+00
+      VALUE: 3.80342110229997443e+00
       TOLERANCE: 3.8e-08
   - STI:
       SPECIAL: true

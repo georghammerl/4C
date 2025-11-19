@@ -36,11 +36,12 @@ void Core::LinearSolver::Parameters::compute_solver_parameters(
   auto nullspace_dof_map =
       solverlist.get<std::shared_ptr<Core::LinAlg::Map>>("null space: dof map", nullptr);
 
-  int numdf = 1;
-  int dimns = 1;
+  int dimns = -1;
 
   // set parameter information for solver
   {
+    int numdf = -1;
+
     if (nullspace_node_map == nullptr and dis.num_my_row_nodes() > 0)
     {
       // no map given, just grab the block information on the first element that appears
@@ -52,10 +53,9 @@ void Core::LinearSolver::Parameters::compute_solver_parameters(
       // if a map is given, grab the block information of the first element in that map
       for (int i = 0; i < dis.num_my_row_nodes(); ++i)
       {
-        Core::Nodes::Node* actnode = dis.l_row_node(i);
-        std::vector<int> dofs = dis.dof(0, actnode);
-
-        const int localIndex = nullspace_node_map->lid(dofs[0]);
+        auto* actnode = dis.l_row_node(i);
+        const auto node_gid = actnode->id();
+        const int localIndex = nullspace_node_map->lid(node_gid);
 
         if (localIndex == -1) continue;
 
@@ -72,6 +72,11 @@ void Core::LinearSolver::Parameters::compute_solver_parameters(
     gdata = Core::Communication::max_all(ldata, dis.get_comm());
     numdf = gdata[0];
     dimns = gdata[1];
+
+    FOUR_C_ASSERT_ALWAYS(numdf > 0,
+        "Determination of 'numdf' did not work, it has still the unphysical default value!");
+    FOUR_C_ASSERT_ALWAYS(dimns > 0,
+        "Determination of 'dimns' did not work, it has still the unphysical default value!");
 
     // store dof information in solver list
     solverlist.set("PDE equations", numdf);
