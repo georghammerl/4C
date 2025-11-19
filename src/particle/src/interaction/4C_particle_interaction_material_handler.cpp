@@ -60,9 +60,4 @@ void Particle::MaterialHandler::init()
   }
 }
 
-void Particle::MaterialHandler::setup()
-{
-  // nothing to do
-}
-
 FOUR_C_NAMESPACE_CLOSE

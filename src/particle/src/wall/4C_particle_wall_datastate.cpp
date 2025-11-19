@@ -56,11 +56,6 @@ void Particle::WallDataState::init(
   }
 }
 
-void Particle::WallDataState::setup()
-{
-  // nothing to do
-}
-
 void Particle::WallDataState::check_for_correct_maps()
 {
   if (disp_row_ != nullptr)

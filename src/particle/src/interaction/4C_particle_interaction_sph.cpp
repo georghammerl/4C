@@ -104,12 +104,6 @@ void Particle::ParticleInteractionSPH::setup(
   // call base class setup
   ParticleInteractionBase::setup(particleengineinterface, particlewallinterface);
 
-  // setup kernel handler
-  kernel_->setup();
-
-  // setup equation of state bundle
-  equationofstatebundle_->setup();
-
   // setup neighbor pair handler
   neighborpairs_->setup(particleengineinterface, particlewallinterface, kernel_);
 

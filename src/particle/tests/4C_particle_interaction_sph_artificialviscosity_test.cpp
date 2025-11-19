@@ -25,12 +25,7 @@ namespace
     {
       // create artificial viscosity handler
       artificialviscosity_ = std::make_unique<Particle::SPHArtificialViscosity>();
-
-      // setup artificial viscosity handler
-      artificialviscosity_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateGenTait are called
-    // in SetUp() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHArtificialViscosityTest, ArtificialViscosity)

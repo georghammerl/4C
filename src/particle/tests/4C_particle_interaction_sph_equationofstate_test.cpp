@@ -30,13 +30,7 @@ namespace
           std::make_unique<Particle::SPHEquationOfStateGenTait>(speedofsound, refdensfac, exponent);
       equationofstate_special_ =
           std::make_unique<Particle::SPHEquationOfStateGenTait>(speedofsound, refdensfac, 1.0);
-
-      // setup equation of state handler
-      equationofstate_->setup();
-      equationofstate_special_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateGenTait are called
-    // in SetUp() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHEquationOfStateGenTaitTest, DensityToPressure)
@@ -82,12 +76,7 @@ namespace
 
       // create equation of state handler
       equationofstate_ = std::make_unique<Particle::SPHEquationOfStateIdealGas>(speedofsound);
-
-      // setup equation of state handler
-      equationofstate_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateIdealGas are called
-    // in SetUp() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHEquationOfStateIdealGasTest, DensityToPressure)

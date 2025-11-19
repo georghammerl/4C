@@ -9,11 +9,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-void Particle::RigidBodyDataState::setup()
-{
-  // nothing to do
-}
-
 void Particle::RigidBodyDataState::allocate_stored_states(const int numrigidbodies)
 {
   mass_.resize(numrigidbodies, 0.0);

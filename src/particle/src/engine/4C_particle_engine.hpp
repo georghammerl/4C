@@ -460,12 +460,6 @@ namespace Particle
     void init_particle_unique_global_id_handler();
 
     /*!
-     * \brief setup particle unique global identifier handler
-     *
-     */
-    void setup_particle_unique_global_id_handler() const;
-
-    /*!
      * \brief setup data storage
      *
      *

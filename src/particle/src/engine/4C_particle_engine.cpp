@@ -76,9 +76,6 @@ void Particle::ParticleEngine::setup(
   // setup particle container bundle
   setup_particle_container_bundle(particlestatestotypes);
 
-  // setup particle unique global identifier handler
-  setup_particle_unique_global_id_handler();
-
   // setup data storage
   setup_data_storage(particlestatestotypes);
 
@@ -1029,12 +1026,6 @@ void Particle::ParticleEngine::init_particle_unique_global_id_handler()
   // create and init unique global identifier handler
   particleuniqueglobalidhandler_ =
       std::unique_ptr<UniqueGlobalIdHandler>(new UniqueGlobalIdHandler(comm_, "particle"));
-}
-
-void Particle::ParticleEngine::setup_particle_unique_global_id_handler() const
-{
-  // setup unique global identifier handler
-  particleuniqueglobalidhandler_->setup();
 }
 
 void Particle::ParticleEngine::setup_data_storage(

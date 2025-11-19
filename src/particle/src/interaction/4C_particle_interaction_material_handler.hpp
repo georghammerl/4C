@@ -37,9 +37,6 @@ namespace Particle
     //! init particle material handler
     void init();
 
-    //! setup particle material handler
-    void setup();
-
     //! return pointer to particle material parameter
     inline const Mat::PAR::ParticleMaterialBase* get_ptr_to_particle_mat_parameter(
         Particle::TypeEnum type_i) const

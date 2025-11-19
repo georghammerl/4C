@@ -22,11 +22,6 @@ Particle::SPHArtificialViscosity::SPHArtificialViscosity()
   // empty constructor
 }
 
-void Particle::SPHArtificialViscosity::setup()
-{
-  // nothing to do
-}
-
 void Particle::SPHArtificialViscosity::artificial_viscosity(const double* vel_i,
     const double* vel_j, const double* mass_i, const double* mass_j, const double& artvisc_i,
     const double& artvisc_j, const double& dWdrij, const double& dWdrji, const double& dens_ij,

@@ -26,11 +26,6 @@ Particle::InteractionWriter::InteractionWriter(MPI_Comm comm, const Teuchos::Par
   // empty constructor
 }
 
-void Particle::InteractionWriter::setup()
-{
-  // nothing to do
-}
-
 void Particle::InteractionWriter::read_restart(
     const std::shared_ptr<Core::IO::DiscretizationReader> reader)
 {

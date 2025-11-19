@@ -108,12 +108,6 @@ void Particle::SPHMomentum::setup(
   // set virtual wall particle handler
   virtualwallparticle_ = virtualwallparticle;
 
-  // setup momentum formulation handler
-  momentumformulation_->setup();
-
-  // setup artificial viscosity handler
-  artificialviscosity_->setup();
-
   // update with actual fluid particle types
   const auto allfluidtypes = allfluidtypes_;
   for (const auto& type_i : allfluidtypes)

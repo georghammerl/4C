@@ -31,9 +31,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHMomentumFormulationBase() = default;
 
-    //! setup momentum formulation handler
-    virtual void setup();
-
     //! evaluate specific coefficient
     virtual void specific_coefficient(const double* dens_i, const double* dens_j,
         const double* mass_i, const double* mass_j, const double& dWdrij, const double& dWdrji,

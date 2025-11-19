@@ -59,12 +59,6 @@ void Particle::RigidBodyHandler::setup(
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
 
-  // setup unique global identifier handler
-  rigidbodyuniqueglobalidhandler_->setup();
-
-  // setup rigid body data state container
-  rigidbodydatastate_->setup();
-
   // setup affiliation pair handler
   affiliationpairs_->setup(particleengineinterface);
 

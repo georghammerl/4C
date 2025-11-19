@@ -42,9 +42,6 @@ namespace Particle
     //! constructor
     explicit InteractionWriter(MPI_Comm comm, const Teuchos::ParameterList& params);
 
-    //! setup interaction writer
-    void setup();
-
     //! read restart of interaction writer
     void read_restart(const std::shared_ptr<Core::IO::DiscretizationReader> reader);
 

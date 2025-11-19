@@ -42,9 +42,6 @@ namespace Particle
     //! init equation of state bundle
     void init(Particle::MaterialHandler& particlematerial);
 
-    //! setup equation of state bundle
-    void setup();
-
     //! return pointer to specific equation of state
     inline const Particle::SPHEquationOfStateBase* get_ptr_to_specific_equation_of_state(
         Particle::TypeEnum type_i) const

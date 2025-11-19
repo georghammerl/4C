@@ -32,11 +32,6 @@ void Particle::GravityHandler::init(const std::vector<double>& gravity)
         static_cast<int>(gravity_.size()));
 }
 
-void Particle::GravityHandler::setup()
-{
-  // nothing to do
-}
-
 void Particle::GravityHandler::get_gravity_acceleration(
     const double time, std::vector<double>& scaled_gravity)
 {

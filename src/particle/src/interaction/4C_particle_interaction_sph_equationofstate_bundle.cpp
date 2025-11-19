@@ -81,9 +81,4 @@ void Particle::SPHEquationOfStateBundle::init(Particle::MaterialHandler& particl
   }
 }
 
-void Particle::SPHEquationOfStateBundle::setup()
-{
-  for (Particle::TypeEnum type_i : storedtypes_) phasetypetoequationofstate_[type_i]->setup();
-}
-
 FOUR_C_NAMESPACE_CLOSE

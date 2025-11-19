@@ -27,12 +27,7 @@ namespace
     {
       // create momentum formulation handler
       momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationMonaghan>();
-
-      // setup momentum formulation handler
-      momentumformulation_->setup();
     }
-    // note: the public functions init() and setup() of class SPHMomentumFormulationMonaghan are
-    // called in the constructor and thus implicitly tested by all following unittests
   };
   TEST_F(SPHMomentumFormulationMonaghanTest, SpecificCoefficient)
   {
@@ -823,12 +818,7 @@ namespace
     {
       // create momentum formulation handler
       momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationAdami>();
-
-      // setup momentum formulation handler
-      momentumformulation_->setup();
     }
-    // note: the public functions init() and setup() of class SPHMomentumFormulationAdami are called
-    // in setup() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHMomentumFormulationAdamiTest, SpecificCoefficient)

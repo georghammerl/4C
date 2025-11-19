@@ -822,9 +822,6 @@ void Particle::SPHDensityPredictCorrect::setup(
   // call base class setup
   SPHDensityBase::setup(particleengineinterface, particlewallinterface, kernel, particlematerial,
       equationofstatebundle, neighborpairs, virtualwallparticle);
-
-  // setup density correction handler
-  densitycorrection_->setup();
 }
 
 void Particle::SPHDensityPredictCorrect::insert_particle_states_of_particle_types(

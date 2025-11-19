@@ -82,9 +82,6 @@ void Particle::SPHInterfaceViscosity::setup(
   // set neighbor pair handler
   neighborpairs_ = neighborpairs;
 
-  // setup artificial viscosity handler
-  artificialviscosity_->setup();
-
   // safety check
   for (const auto& type_i : fluidtypes_)
     if (not particlecontainerbundle_->get_particle_types().count(type_i))

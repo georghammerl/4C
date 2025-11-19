@@ -51,12 +51,6 @@ void Particle::ParticleInteractionBase::setup(
   // set interface to particle wall handler
   particlewallinterface_ = particlewallinterface;
 
-  // setup particle material handler
-  particlematerial_->setup();
-
-  // setup particle interaction writer
-  particleinteractionwriter_->setup();
-
   // init vector
   gravity_.resize(3, 0.0);
 }

@@ -77,7 +77,7 @@ namespace
       return particle;
     }
 
-    // note: the public functions init(), setup() and AddParticle() of class ParticleContainer are
+    // note: the public functions setup() and AddParticle() of class ParticleContainer are
     // called in the constructor and thus implicitly tested by all following unittests
   };
 

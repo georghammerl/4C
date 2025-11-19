@@ -39,12 +39,6 @@ namespace Particle
   {
    public:
     /*!
-     * \brief setup rigid body data state container
-     *
-     */
-    void setup();
-
-    /*!
      * \brief allocate stored states
      *
      *

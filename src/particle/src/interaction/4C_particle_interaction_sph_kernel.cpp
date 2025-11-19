@@ -24,11 +24,6 @@ Particle::SPHKernelBase::SPHKernelBase(const Teuchos::ParameterList& params)
   // empty constructor
 }
 
-void Particle::SPHKernelBase::setup()
-{
-  // nothing to do
-}
-
 void Particle::SPHKernelBase::kernel_space_dimension(int& dim) const
 {
   switch (kernelspacedim_)

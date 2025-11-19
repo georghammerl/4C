@@ -49,12 +49,6 @@ namespace Particle
     void init(const std::vector<double>& gravity);
 
     /*!
-     * \brief setup gravity handler
-     *
-     */
-    void setup();
-
-    /*!
      * \brief get gravity acceleration
      *
      * Evaluate the gravity ramp function at the given time to get the scaled gravity acceleration.

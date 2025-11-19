@@ -47,14 +47,7 @@ namespace
       kernel_1D_ = std::make_unique<Particle::SPHKernelCubicSpline>(params_sph_1D);
       kernel_2D_ = std::make_unique<Particle::SPHKernelCubicSpline>(params_sph_2D);
       kernel_3D_ = std::make_unique<Particle::SPHKernelCubicSpline>(params_sph_3D);
-
-      // setup kernel handler
-      kernel_1D_->setup();
-      kernel_2D_->setup();
-      kernel_3D_->setup();
     }
-    // note: the public functions init() and setup() of class SPHKernelCubicSpline are called in
-    // setup() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHKernelCubicSplineTest, kernel_space_dimension)
@@ -316,14 +309,7 @@ namespace
       kernel_1D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_1D);
       kernel_2D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_2D);
       kernel_3D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_3D);
-
-      // setup kernel handler
-      kernel_1D_->setup();
-      kernel_2D_->setup();
-      kernel_3D_->setup();
     }
-    // note: the public functions init() and setup() of class SPHKernelQuinticSpline are called in
-    // setup() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHKernelQuinticSplineTest, kernel_space_dimension)

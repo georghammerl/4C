@@ -113,9 +113,6 @@ void Particle::ParticleAlgorithm::setup()
   // setup particle interaction handler
   if (particleinteraction_) particleinteraction_->setup(particleengine_, particlewall_);
 
-  // setup gravity handler
-  if (particlegravity_) particlegravity_->setup();
-
   // setup viscous damping handler
   if (viscousdamping_) viscousdamping_->setup(particleengine_);
 

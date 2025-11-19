@@ -119,7 +119,7 @@ namespace
       return particle;
     }
 
-    // note: the public functions init(), setup() and get_specific_container() of class
+    // note: the public functions setup() and get_specific_container() of class
     // ParticleContainerBundle are called in the constructor and thus implicitly tested by all
     // following unittests
   };
