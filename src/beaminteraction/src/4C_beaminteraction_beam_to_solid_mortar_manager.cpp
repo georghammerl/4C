@@ -431,7 +431,9 @@ void BeamInteraction::BeamToSolidMortarManager::evaluate_force_stiff_penalty_reg
  *
  */
 void BeamInteraction::BeamToSolidMortarManager::evaluate_coupling_terms_lagrange(
-    const std::shared_ptr<const Solid::ModelEvaluator::BeamInteractionDataState>& data_state)
+    const std::shared_ptr<const Solid::ModelEvaluator::BeamInteractionDataState>& data_state,
+    std::shared_ptr<Core::LinAlg::SparseMatrix> stiff,
+    std::shared_ptr<Core::LinAlg::FEVector<double>> force)
 {
   // Evaluate the global coupling terms
   evaluate_and_assemble_global_coupling_contributions(data_state->get_dis_col_np());
@@ -439,6 +441,13 @@ void BeamInteraction::BeamToSolidMortarManager::evaluate_coupling_terms_lagrange
   // For now we need to set a link to the global Lagrange multiplier vector in the beam interaction
   // data state.
   global_lambda_ = data_state->get_lambda();
+
+  // Add the force and stiffness contributions that are assembled directly by the pairs.
+  Core::LinAlg::Vector<double> lambda_col(*lambda_dof_colmap_);
+  Core::LinAlg::export_to(*global_lambda_, lambda_col);
+  for (const auto& elepairptr : contact_pairs_)
+    elepairptr->evaluate_and_assemble(
+        *discret_, this, force, stiff, lambda_col, *data_state->get_dis_col_np());
 }
 
 /**
