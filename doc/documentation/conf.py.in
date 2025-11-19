@@ -15,7 +15,7 @@ import os
 # Include our own python helper modules
 sys.path.append('@PROJECT_SOURCE_DIR@/utilities/four_c_python/src')
 from four_c_documentation.plot import generate_figures
-from four_c_documentation.include_yaml import convert
+from four_c_documentation.render import render
 from four_c_documentation.make_documentation import create_markdown_documentation
 
 # -- Project information -----------------------------------------------------
@@ -103,7 +103,7 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # Since up to now, we don't have these, it's not needed. Uncomment if necessary.
-html_static_path = ["@PROJECT_BINARY_DIR@/doc/tmp/_static"]
+html_static_path = ["@PROJECT_BINARY_DIR@/doc/tmp/_static", "@_sphinx_OUT_DIR@/reference_docs/_static"]
 html_css_files = ['html_extensions.css']
 #
 # for finding headers as internal link targets, we have to set the variable myst_heading_anchors
@@ -116,9 +116,9 @@ create_markdown_documentation("@_sphinx_OUT_DIR@/reference_docs/reference_guide"
 
 # -- Additional scripts to generate more fancy output -------------------------------------------------
 # Now generate the documentation files from jinja templates
-convert("@_sphinx_SOURCE_DIR@/src/tutorial_templates", "@_sphinx_OUT_DIR@/reference_docs/tutorials", "@PROJECT_BINARY_DIR@/doc/tmp")
-convert("@_sphinx_SOURCE_DIR@/src/analysis_guide_templates", "@_sphinx_OUT_DIR@/reference_docs/analysis_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
-convert("@_sphinx_SOURCE_DIR@/src/input_parameter_reference_templates", "@_sphinx_OUT_DIR@/reference_docs/reference_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
+render("@_sphinx_SOURCE_DIR@/src/tutorial_templates", "@_sphinx_OUT_DIR@/reference_docs", "tutorials", "@PROJECT_BINARY_DIR@/doc/tmp")
+render("@_sphinx_SOURCE_DIR@/src/analysis_guide_templates", "@_sphinx_OUT_DIR@/reference_docs", "analysis_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
+render("@_sphinx_SOURCE_DIR@/src/input_parameter_reference_templates", "@_sphinx_OUT_DIR@/reference_docs", "reference_guide", "@PROJECT_BINARY_DIR@/doc/tmp")
 
 # Create figures for the element node and face numbers
 generate_figures("@_sphinx_OUT_DIR@/reference_docs/elementinformation.yaml",

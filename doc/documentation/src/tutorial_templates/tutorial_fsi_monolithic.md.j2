@@ -77,11 +77,11 @@ Now, insert the first set of simulation parameters:
 
 - Define the problem type in order to solve a fluid/solid interaction problem:
 
-{{ section_dump(input_file_content, ["PROBLEM TYPE"], filetype="md") }}
+{{ section_dump(input_file_content, ["PROBLEM TYPE"]) }}
 
 - Define the spatial dimension:
 
-{{ section_dump(input_file_content, ["PROBLEM SIZE"], filetype="md") }}
+{{ section_dump(input_file_content, ["PROBLEM SIZE"]) }}
 
 ### Defining single fields
 
@@ -93,7 +93,7 @@ First, let's define the individual fields:
 
 Core parameters for the solid field and time integration strategy are given in the list `STRUCTURAL DYNAMIC`:
 
-{{ section_dump(input_file_content, ["STRUCTURAL DYNAMIC"], filetype="md") }}
+{{ section_dump(input_file_content, ["STRUCTURAL DYNAMIC"]) }}
 
 The `INT_STRATEGY: "Old"` points the solid field towards the implementation of solid time integration schemes, that is ready for FSI problems.
 For a field to be fully defined, it needs to define a `LINEAR_SOLVER` by referring to a solver section, in this case `1`, that will be defined later.
@@ -107,7 +107,7 @@ In this tutorial, we rely on the solid's default time integration scheme, Genera
 
 Core parameters for the fluid field and time integration strategy are given in the list `FLUID DYNAMIC`:
 
-{{ section_dump(input_file_content, ["FLUID DYNAMIC"], filetype="md") }}
+{{ section_dump(input_file_content, ["FLUID DYNAMIC"]) }}
 
 Similar to the solid field, a default `LINEAR_SOLVER` must be defined. `NONLINITER: Newton` instructs the fluid field to assemble _all_ linearization terms, such that the monolithic FSI scheme can solve the nonlinear problem in each time step with a Newton method using a consistent linearization of all residual terms.
 A 2nd-order backward differentiation formula (BDF2) is used to approximate the grid velocity in the ALE description of the Navier-Stokes equations based on the ALE Mesh displacements.
@@ -121,7 +121,7 @@ The fluid field performs time integration via the Generalized-alpha scheme [^Jan
 
 The mesh motion problem of the ALE formulation of the fluid domain is defined as follows:
 
-{{ section_dump(input_file_content, ["ALE DYNAMIC"], filetype="md") }}
+{{ section_dump(input_file_content, ["ALE DYNAMIC"]) }}
 
 The `ALE_TYPE` specifies the mesh motion algorithm to interpret the mesh as a network of springs. Similar to solid and fluid field, a default `LINEAR_SOLVER` must be defined.
 
@@ -131,7 +131,7 @@ We can now define the FSI algorithm. In particular, we have to specify the FSI c
 
 First, we describe the overall FSI procedure by adding the following lines to the 4C input file:
 
-{{ section_dump(input_file_content, ["FSI DYNAMIC"], filetype="md") }}
+{{ section_dump(input_file_content, ["FSI DYNAMIC"]) }}
 
 To enable non-matching grids at the FSI interface with Lagrange multiplier unknowns for constraint enforcement being discretized on the fluid side of the interface, we specify the coupling algorithm `COUPALGO` as `"iter_mortar_monolithicfluidsplit"`.
 The setting `SECONDORDER: true` yields a 2nd order conversion between displacements and velocities at the FSI interface.
@@ -145,7 +145,7 @@ For details on the FSI algorithm, see [^Kloeppel2011a],[^Mayr2015a].
 
 To solve the nonlinear FSI problem with a monolithic approach, insert the following section:
 
-{{ section_dump(input_file_content, ["FSI DYNAMIC/MONOLITHIC SOLVER"], filetype="md") }}
+{{ section_dump(input_file_content, ["FSI DYNAMIC/MONOLITHIC SOLVER"]) }}
 
 Therein, `SHAPEDERIVATIVES: true` includes the linearization of fluid residuals with respect to the mesh deformation into the FSI Jacobian matrix [^Mayr2015a].
 The choice of `LINEARBLOCKSOLVER: "LinalgSolver"` instructs the monolithic solution scheme to solve the linear system through 4C's centralized linear solver interface, `LinalgSolver`, and refers to a linear solver with ID `2` (to be defined later) for the concrete parametrization of the linear solver.
@@ -157,7 +157,7 @@ So far, we have defined time integration parameters for the involved solid, flui
 
 They are defined as follows:
 
-{{ section_dump(input_file_content, ["MATERIALS"], filetype="md") }}
+{{ section_dump(input_file_content, ["MATERIALS"]) }}
 
 Thereby, `MAT: 1` specifies a Newtonian fluid for the fluid domain, while `MAT 2` defines a St.-Venant-Kirchhoff material for the solid domain. The values correspond to the pressure wave example [^Gerbeau2003a].
 
@@ -177,7 +177,7 @@ Geometry and mesh information are provided in ready-to-use mesh files for this t
 
 The solid geometry and its mesh are pre-defined in mesh files, cf [predefined mesh files](#predefined-mesh-files). To use it in a 4C simulation, the input file needs to refer to the solid mesh as follows:
 
-{{ section_dump(input_file_content, ["STRUCTURE GEOMETRY"], filetype="md") }}
+{{ section_dump(input_file_content, ["STRUCTURE GEOMETRY"]) }}
 
 Therein, `FILE: "tutorial_fsi_monolithic_pw_m1.exo"` points to the pre-defined mesh file.
 The solid domain is defined as one of the meshes `ELEMENT_BLOCKS`, in this case the block with `ID: 1`. The elements in this block will be finite elements with `ELEMENT_NAME: SOLID` and `ELEMENT_DATA: "MAT 2 KINEM nonlinear TECH eas_full"`.
@@ -186,7 +186,7 @@ The solid domain is defined as one of the meshes `ELEMENT_BLOCKS`, in this case 
 
 Similarly, the fluid geometry and mesh is included via:
 
-{{ section_dump(input_file_content, ["FLUID GEOMETRY"], filetype="md") }}
+{{ section_dump(input_file_content, ["FLUID GEOMETRY"]) }}
 
 #### On-the-fly generation of ALE mesh
 
@@ -194,7 +194,7 @@ Meshes for solid and fluid are part of the pre-defined mesh file. It is common p
 
 Therefore, insert the following section into the 4C input file:
 
-{{ section_dump(input_file_content, ["CLONING MATERIAL MAP"], filetype="md") }}
+{{ section_dump(input_file_content, ["CLONING MATERIAL MAP"]) }}
 
 It specifies to clone a field. Source and target fields are identified via the IDs of their material. In this case, `SRC_FIELD: "fluid"` with `SRC_MAT: 1` is used as the source field. The cloning operation will generate a target field defined by `TAR_FIELD: "ale"` and will assign it the target material `TAR_MAT: 2`.
 
@@ -215,7 +215,7 @@ In the pressure wave example, there are only two types of Dirichlet conditions:
 
 We start with the two end surfaces of the solid tube. They are fully clamped, i.e., all three displacements are constrained to zero at the respective surfaces. This can be achieved by defining a `DESIGN SURF DIRICH CONDITIONS` in the 4C input file:
 
-{{ section_dump(input_file_content, ["DESIGN SURF DIRICH CONDITIONS"], filetype="md") }}
+{{ section_dump(input_file_content, ["DESIGN SURF DIRICH CONDITIONS"]) }}
 
 Explanation:
 
@@ -227,7 +227,7 @@ Explanation:
 
 The ALE mesh motion at the fluid cross section areas at both ends of the tube is constrained via `DESIGN SURF ALE DIRICH CONDITIONS`. Its internal setup is the same as a regular Dirichlet condition (for example such as the one in the solid field), however the addendum of `ALE` is required since the ALE mesh motion field is not defined in the mesh file, but has been created by cloning the fluid discretization. The boundary condition reads:
 
-{{ section_dump(input_file_content, ["DESIGN SURF ALE DIRICH CONDITIONS"], filetype="md") }}
+{{ section_dump(input_file_content, ["DESIGN SURF ALE DIRICH CONDITIONS"]) }}
 
 In order to later impose the pressure pulse on only one of the surfaces the fluid cross section areas at both ends of the tube are stored in two different nodes sets.
 Therefore, the ALE Dirichlet boundary condition must be applied for each of the surfaces, in this case in accordance with the mesh details from the [predefined mesh files](#predefined-mesh-files) for `E: 4` and `E: 5`. All other parameters follow the same logic as the Dirichlet boundary condition for the solid field and impose a zero-displacement-condition for all ALE degrees of freedom on the two surfaces.
@@ -236,7 +236,7 @@ Therefore, the ALE Dirichlet boundary condition must be applied for each of the 
 
 The pressure pulse onto the fluid will be modeled as a Neumann boundary condition. It acts onto one of the cross section surfaces of the fluid domain. Its definition in the 4C input file reads:
 
-{{ section_dump(input_file_content, ["DESIGN SURF NEUMANN CONDITIONS"], filetype="md") }}
+{{ section_dump(input_file_content, ["DESIGN SURF NEUMANN CONDITIONS"]) }}
 
 - `E: 4`: This refers to the node set `4` representing all nodes in one of the two fluid cross sections, see [predefined mesh files](#predefined-mesh-files).
 - `ENTITY_TYPE: node_set_id`: Adds context that the `E: 3` needs to be interpreted as an ID of a node set.
@@ -247,7 +247,7 @@ The pressure pulse onto the fluid will be modeled as a Neumann boundary conditio
 
 The pressure pulse will be imposed as a peak at the beginning of the simulation. It is modeled as a linear interpolation between user-given values in function `FUNCT 1` as follows:
 
-{{ section_dump(input_file_content, ["FUNCT1"], filetype="md") }}
+{{ section_dump(input_file_content, ["FUNCT1"]) }}
 
 The linear interpolation is defined by specifying `NUMPOINTS: 4` data points at time instances `TIMES: [0,0.003,0.0031,10000]` with assigned values `VALUES: [1.0,1.0,0.0,0.0]`.
 
@@ -257,7 +257,7 @@ The mesh comes with non-matching grids at the fluid/solid interface. Therefore, 
 
 According to the [predefined mesh files](#predefined-mesh-files), the solid side of the interface is stored in node set `1`, while the fluid side of the interface is stored in node set `2`. Both sides need to be defined as FSI coupling partners:
 
-{{ section_dump(input_file_content, ["DESIGN FSI COUPLING SURF CONDITIONS"], filetype="md") }}
+{{ section_dump(input_file_content, ["DESIGN FSI COUPLING SURF CONDITIONS"]) }}
 
 Again, `E: 1` and `E: 2` are the IDs with `ENTITY_TYPE: node_set_id` instructing to interpret them as node set IDs. The `coupling_id: 1` assigns both coupling surfaces to the FSI interface `1`.
 
@@ -269,7 +269,7 @@ In this tutorial, we will explore two different solver options for monolithic FS
 
 First, we start with a direct solver. It is defined as follows:
 
-{{ section_dump(input_file_content, ["SOLVER 1"], filetype="md") }}
+{{ section_dump(input_file_content, ["SOLVER 1"]) }}
 
 This enables `UMFPACK` [^Davis2004a] as direct solver, which will compute an LU factorization of the FSI system matrix and use it to solve the arising linear system of equations.
 
@@ -280,7 +280,7 @@ To tell the FSI algorithm to use this solver, make sure to assign the value `1` 
 To overcome performance and feasibility limitations of direct solvers, let us now explore iterative solvers with appropriate preconditioning.
 Therefore, define a second solver in the 4C input file by adding:
 
-{{ section_dump(input_file_content, ["SOLVER 2"], filetype="md") }}
+{{ section_dump(input_file_content, ["SOLVER 2"]) }}
 
 The parameter `SOLVER: "Belos"` enables a Generalized Minimal Residual (GMRES) solver [^Saad1986a] from Trilinos' Belos package [^Bavier2012a] as an iterative solver, which will approximate the solution of the linear system up to a user-given tolerance. The exact settings of the GMRES method are pre-defined in `iterative_gmres_template.xml`. This file is provided in `<4C-sourcedir>/tests/input_files/xml/linear_solver/`.
 To accelerate convergence of the GMRES solver, `AZPREC` points 4C to use Trilinos' `MueLu` package as a preconditioner. In this tutorial, we employ a fully coupled algebraic multigrid preconditioner tailored to FSI systems as proposed in [^Gee2011a]. It is defined in `fluid_solid_ale.xml` in `<4C-sourcedir>/tests/input_files/xml/multigrid/`.

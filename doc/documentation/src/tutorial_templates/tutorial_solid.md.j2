@@ -99,7 +99,7 @@ The documentation of the {ref}`input parameters <inputparameterreference>` can a
 
 The template input file begins with the following lines
 
-{{ section_dump(inputfile_content, ["PROBLEM TYPE", "PROBLEM SIZE", "STRUCTURE GEOMETRY"], filetype="md") }}
+{{ section_dump(inputfile_content, ["PROBLEM TYPE", "PROBLEM SIZE", "STRUCTURE GEOMETRY"]) }}
 
 in which it is defined that a solid mechanics problem shall be solved (`PROBLEMTYPE: Structure`) in a three-dimensional setting (`DIM: 3`).
 The last block (`STRUCTURE GEOMETRY`) defines how the discretized geometry is provided to the code.
@@ -108,7 +108,7 @@ It is further specified that hexahedral elements with quadratic shape functions 
 
 Moreover, settings for the solid solver need to be set. This is accomplished with the following lines within the input file
 
-{{ section_dump(inputfile_content, "STRUCTURAL DYNAMIC", filetype="md") }}
+{{ section_dump(inputfile_content, "STRUCTURAL DYNAMIC") }}
 
 Here, the time integration scheme is set to statics, as we investigate a quasi-static problem setup (`DYNAMICTYPE: Statics`).
 Furthermore, the base simulation settings consist of 60 time steps spanning from $t_0=0$ s to $t_1=12$ s (`MAXTIME`) with a time step size of $\Delta t=0.2$ s (`TIMESTEP`).
@@ -123,14 +123,14 @@ If you want to run the whole simulation including necking of the specimen, you h
 
 The next block of input file lines defines how often and what kind of output is written to visualize the results of the simulations.
 
-{{ section_dump(inputfile_content, ["IO", "IO/RUNTIME VTK OUTPUT", "IO/RUNTIME VTK OUTPUT/STRUCTURE", "IO/MONITOR STRUCTURE DBC"], filetype="md") }}
+{{ section_dump(inputfile_content, ["IO", "IO/RUNTIME VTK OUTPUT", "IO/RUNTIME VTK OUTPUT/STRUCTURE", "IO/MONITOR STRUCTURE DBC"]) }}
 
 First, it is defined that the stress output should be Cauchy stresses (`STRUCT_STRESS: Cauchy`) and the strain output should be Green--Lagrange strains (`STRUCT_STRAIN: GL`), while `INTERVAL_STEPS: 1` describes the output frequency, i.e., that output in every time step should be performed.
 Moreover, the settings in `IO/RUNTIME VTK OUTPUT/STRUCTURE` activate the output of the solid mechanics solution and define that the displacement field, the stresses, and the strains should be written to output.
 
 The next aspect to be defined is the material definition, which is chosen as follows
 
-{{ section_dump(inputfile_content, "MATERIALS", filetype="md") }}
+{{ section_dump(inputfile_content, "MATERIALS") }}
 
 Only the material with material ID 1 has been referenced above in the definition of the underlying mesh for the simulation.
 Thus, only one material needs to be defined which is called `MAT_Struct_PlasticNlnLogNeoHooke`.
@@ -161,7 +161,7 @@ It is thus set to an arbitrary value of 1 in this case.
 
 Furthermore, two linear solvers are defined in the template as follows
 
-{{ section_dump(inputfile_content, ["SOLVER 1", "SOLVER 2"], filetype="md") }}
+{{ section_dump(inputfile_content, ["SOLVER 1", "SOLVER 2"]) }}
 
 
 The `SOLVER 1` is the direct solver `Superlu`.
@@ -172,7 +172,7 @@ If you want more information on iterative solvers, please refer to the {ref}`res
 At this stage, everything besides the boundary conditions is defined.
 This is done using the following lines of the input file
 
-{{ section_dump(inputfile_content, ["DESIGN SURF DIRICH CONDITIONS", "FUNCT1"], filetype="md") }}
+{{ section_dump(inputfile_content, ["DESIGN SURF DIRICH CONDITIONS", "FUNCT1"]) }}
 
 We briefly describe the definition of the Dirichlet boundary conditions (DBC) applied to the system.
 The name `DESIGN SURF DIRICH CONDITIONS` already describes that the DBC is applied to the surfaces of the geometry.
