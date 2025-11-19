@@ -229,8 +229,8 @@ void Inpar::BeamInteraction::set_valid_conditions(
         Core::Conditions::geometry_type_line);
     penalty_coupling_condition_indirect.add_component(parameter<int>("COUPLING_ID"));
     penalty_coupling_condition_indirect.add_component(group("PARAMETERS",
-        {parameter<double>("POSITIONAL_PENALTY_PARAMETER"),
-            parameter<double>("ROTATIONAL_PENALTY_PARAMETER"),
+        {parameter<double>("POSITIONAL_PENALTY_PARAMETER", {.default_value = 0.0}),
+            parameter<double>("ROTATIONAL_PENALTY_PARAMETER", {.default_value = 0.0}),
             parameter<double>("PROJECTION_VALID_FACTOR",
                 {.description = "Factor multiplied with sum of cross section "
                                 "radii to define valid projection distance",
@@ -240,10 +240,8 @@ void Inpar::BeamInteraction::set_valid_conditions(
                     .default_value = 0}),
             parameter<::FourC::BeamInteraction::BeamToBeamPointCouplingPairParameters::
                     ConstraintEnforcement>("CONSTRAINT_ENFORCEMENT",
-                {.description = "How the constraints for this condition shall be enforced",
-                    .default_value =
-                        ::FourC::BeamInteraction::BeamToBeamPointCouplingPairParameters::
-                            ConstraintEnforcement::penalty_direct})},
+                {.description = "Specifies the constraint enforcement technique for beam-to-beam "
+                                "point couplings."})},
         {.required = false}));
     condlist.push_back(penalty_coupling_condition_indirect);
   }

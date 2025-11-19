@@ -55,8 +55,10 @@ namespace BeamInteraction
     //! Flag on type of constraint enforcement.
     enum class ConstraintEnforcement
     {
-      penalty_direct,
-      penalty_indirect
+      penalty_direct,      //! Direct assembly via penalty method.
+      penalty_indirect,    //! Set up full Lagrange-multiplier system and regularize
+      lagrange_multiplier  //! Set up full Lagrange-multiplier system and solve with Lagrange
+                           //! multipliers
     };
     ConstraintEnforcement constraint_enforcement = ConstraintEnforcement::penalty_direct;
 
@@ -238,8 +240,11 @@ namespace BeamInteraction
      */
     double get_energy() const override
     {
-      FOUR_C_THROW("get_energy not implemented yet!");
-      return 0.0;
+      if (parameters_.constraint_enforcement ==
+          BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::lagrange_multiplier)
+        return 0.0;
+      else
+        FOUR_C_THROW("get_energy not implemented yet!");
     }
 
     /**

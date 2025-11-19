@@ -780,6 +780,23 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_stiff(
   auto block_lm_displ_row_map = jac_block_sparse_matrix_base->matrix(1, 0).row_map();
   auto block_displ_lm_row_map = jac_block_sparse_matrix_base->matrix(0, 1).row_map();
 
+  Core::LinAlg::SparseMatrix lm_lm =
+      Core::LinAlg::SparseMatrix(block_lm_displ_row_map, 81, true, true);
+
+  auto lambda_non_active = Core::LinAlg::Vector<double>(lambda_active_->get_map());
+  for (int lid = 0; lid < lambda_active_->get_map().num_my_elements(); lid++)
+  {
+    if (lambda_active_->get_values()[lid] < 0.1)
+      lambda_non_active.replace_local_value(lid, 1.0);
+    else
+      lambda_non_active.replace_local_value(lid, 0.0);
+  }
+  auto lambda_non_active_structure_map = Core::LinAlg::Vector<double>(block_lm_displ_row_map);
+  Core::LinAlg::export_to(lambda_non_active, lambda_non_active_structure_map);
+  Core::LinAlg::SparseMatrix lambda_non_active_matrix(lambda_non_active_structure_map);
+  lambda_non_active_matrix.complete();
+  lm_lm.add(lambda_non_active_matrix, false, 1.0, 1.0);
+
   if (parameters_.lagrange_formulation ==
       Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
   {
@@ -790,9 +807,12 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_stiff(
     Core::LinAlg::SparseMatrix kappa_penalty_inv_mat(kappa_vector);
     kappa_penalty_inv_mat.scale(-1.0 / penalty_translation);
     kappa_penalty_inv_mat.complete();
-    gstate.assign_model_block(jac, kappa_penalty_inv_mat, Inpar::Solid::model_beaminteraction,
-        Solid::MatBlockType::lm_lm);
+    lm_lm.add(kappa_penalty_inv_mat, false, 1.0, 1.0);
   }
+
+  gstate.assign_model_block(
+      jac, lm_lm, Inpar::Solid::model_beaminteraction, Solid::MatBlockType::lm_lm);
+
 
   Core::LinAlg::SparseMatrix lm_displ =
       Core::LinAlg::SparseMatrix(*lambda_dof_rowmap_, 81, true, true);

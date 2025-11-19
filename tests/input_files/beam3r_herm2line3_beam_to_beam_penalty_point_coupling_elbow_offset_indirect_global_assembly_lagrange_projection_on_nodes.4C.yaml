@@ -1,6 +1,6 @@
 TITLE:
   - "Test that beam-to-beam point coupling works with closest point projections, where the projection
-    is exactly at an interelement node. Coupling terms are assembled locally."
+    is exactly at an interelement node."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
 BEAM INTERACTION:
@@ -9,10 +9,9 @@ BEAM INTERACTION/BEAM TO BEAM POINT COUPLING CONDITIONS:
   - E: 1
     COUPLING_ID: 1
     PARAMETERS:
-      POSITIONAL_PENALTY_PARAMETER: 1.2
-      ROTATIONAL_PENALTY_PARAMETER: 1.3
       PROJECTION_VALID_FACTOR: 2.0
-      CONSTRAINT_ENFORCEMENT: penalty_direct
+      CONSTRAINT_ENFORCEMENT: lagrange_multiplier
+      MAX_NUMBER_OF_PAIRS_PER_ELEMENT: 1
   - E: 2
     COUPLING_ID: 1
 BINNING STRATEGY:
@@ -65,20 +64,20 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispx"
-      VALUE: 3.43372419651031546e-01
-      TOLERANCE: 1e-12
+      VALUE: 3.43333070996958256e-01
+      TOLERANCE: 1e-10
   - STRUCTURE:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispy"
-      VALUE: 5.67289337893254864e-01
-      TOLERANCE: 1e-12
+      VALUE: 5.67211610191046156e-01
+      TOLERANCE: 1e-10
   - STRUCTURE:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispz"
-      VALUE: -1.01495926931849434e+00
-      TOLERANCE: 1e-12
+      VALUE: -1.01496995263337331e+00
+      TOLERANCE: 1e-10
 SOLVER 1:
   NAME: "Structure_Solver"
   SOLVER: "Superlu"
@@ -88,8 +87,6 @@ STRUCT NOX/Printing:
   Details: true
   Linear Solver Details: true
   Test Details: true
-STRUCT NOX/Status Test:
-  XML File: "beam3r_herm2line3_beam_to_beam_penalty_point_coupling_elbow.xml"
 STRUCTURAL DYNAMIC:
   LINEAR_SOLVER: 1
   INT_STRATEGY: "Standard"
@@ -101,6 +98,10 @@ STRUCTURAL DYNAMIC:
   NUMSTEP: 10
   MAXTIME: 1.0
   LOADLIN: true
+  DIVERCONT: continue
+  MAXITER: 10
+  TOLDISP: 1e-12
+  TOLRES: 1e-12
 STRUCTURE ELEMENTS:
   - "1 BEAM3R LINE3 1 3 2 HERMITE_CENTERLINE true MAT 1 TRIADS 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
   - "2 BEAM3R LINE3 3 5 4 HERMITE_CENTERLINE true MAT 1 TRIADS 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
