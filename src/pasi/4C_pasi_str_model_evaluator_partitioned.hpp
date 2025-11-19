@@ -126,7 +126,7 @@ namespace Solid
       void determine_energy() override { return; };
 
       //! [derived]
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override { return; };
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
 
       //! [derived]
       void predict(const Inpar::Solid::PredEnum& pred_type) override { return; };

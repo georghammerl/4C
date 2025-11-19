@@ -495,15 +495,6 @@ void Solid::ModelEvaluator::BrownianDyn::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BrownianDyn::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  // nothing to do
-  return;
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Map>
 Solid::ModelEvaluator::BrownianDyn::get_block_dof_row_map_ptr() const
 {

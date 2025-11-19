@@ -219,14 +219,6 @@ void Solid::ModelEvaluator::BeamInteractionOld::determine_energy()
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteractionOld::output_step_state(
-    Core::IO::DiscretizationWriter& iowriter) const
-{
-  return;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void Solid::ModelEvaluator::BeamInteractionOld::reset_step_state() { return; }
 
 /*----------------------------------------------------------------------*

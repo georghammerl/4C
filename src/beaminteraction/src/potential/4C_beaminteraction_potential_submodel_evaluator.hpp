@@ -82,7 +82,7 @@ namespace BeamInteraction
       std::map<Solid::EnergyType, double> get_energy() const override;
 
       //! derived
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override;
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
 
       //! derived
       void runtime_output_step_state() const override;

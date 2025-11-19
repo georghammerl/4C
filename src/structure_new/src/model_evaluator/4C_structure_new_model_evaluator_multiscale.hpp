@@ -96,7 +96,7 @@ namespace Solid
 
       void runtime_output_step_state() const override;
 
-      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {};
+      void output_step_state(Core::IO::DiscretizationWriter& iowriter) const override {}
 
       void reset_step_state() override {};
 

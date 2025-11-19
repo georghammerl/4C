@@ -499,6 +499,9 @@ namespace Core::IO
         {
           switch (result_num_components_per_node)
           {
+            case 1:
+              return append_visualization_node_based_result_data_vector_nurbs<celltype_t(), 1>(
+                  ele, discret, result_data_nodebased, vtu_point_result_data);
             case 2:
               return append_visualization_node_based_result_data_vector_nurbs<celltype_t(), 2>(
                   ele, discret, result_data_nodebased, vtu_point_result_data);
