@@ -31,10 +31,6 @@ namespace
       equationofstate_special_ =
           std::make_unique<Particle::SPHEquationOfStateGenTait>(speedofsound, refdensfac, 1.0);
 
-      // init equation of state handler
-      equationofstate_->init();
-      equationofstate_special_->init();
-
       // setup equation of state handler
       equationofstate_->setup();
       equationofstate_special_->setup();
@@ -86,9 +82,6 @@ namespace
 
       // create equation of state handler
       equationofstate_ = std::make_unique<Particle::SPHEquationOfStateIdealGas>(speedofsound);
-
-      // init equation of state handler
-      equationofstate_->init();
 
       // setup equation of state handler
       equationofstate_->setup();

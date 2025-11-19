@@ -39,12 +39,6 @@ namespace Particle
   {
    public:
     /*!
-     * \brief init rigid body data state container
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup rigid body data state container
      *
      */

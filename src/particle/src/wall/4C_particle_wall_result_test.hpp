@@ -47,12 +47,6 @@ namespace Particle
     explicit WallResultTest();
 
     /*!
-     * \brief init wall result test
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup wall result test
      *
      *

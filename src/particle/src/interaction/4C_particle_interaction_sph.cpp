@@ -466,9 +466,6 @@ void Particle::ParticleInteractionSPH::init_kernel_handler()
       break;
     }
   }
-
-  // init kernel handler
-  kernel_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_equation_of_state_bundle()
@@ -484,9 +481,6 @@ void Particle::ParticleInteractionSPH::init_neighbor_pair_handler()
 {
   // create neighbor pair handler
   neighborpairs_ = std::make_shared<Particle::SPHNeighborPairs>();
-
-  // init neighbor pair handler
-  neighborpairs_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_density_handler()

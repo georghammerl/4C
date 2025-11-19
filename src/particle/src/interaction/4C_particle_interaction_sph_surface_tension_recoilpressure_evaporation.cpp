@@ -29,11 +29,6 @@ Particle::SPHRecoilPressureEvaporation::SPHRecoilPressureEvaporation(
   // empty constructor
 }
 
-void Particle::SPHRecoilPressureEvaporation::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHRecoilPressureEvaporation::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {

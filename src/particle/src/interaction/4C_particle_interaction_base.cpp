@@ -146,9 +146,6 @@ void Particle::ParticleInteractionBase::init_particle_interaction_writer()
 {
   // create particle interaction writer
   particleinteractionwriter_ = std::make_shared<Particle::InteractionWriter>(comm_, params_);
-
-  // init particle interaction writer
-  particleinteractionwriter_->init();
 }
 
 double Particle::ParticleInteractionBase::max_particle_radius() const

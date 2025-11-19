@@ -42,9 +42,6 @@ namespace Particle
     //! constructor
     explicit InteractionWriter(MPI_Comm comm, const Teuchos::ParameterList& params);
 
-    //! init interaction writer
-    void init();
-
     //! setup interaction writer
     void setup();
 

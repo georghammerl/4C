@@ -38,12 +38,6 @@ namespace Particle
     explicit ParticleContainer();
 
     /*!
-     * \brief init particle container
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup particle container
      *
      *

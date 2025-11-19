@@ -19,11 +19,6 @@ Particle::SPHEquationOfStateBase::SPHEquationOfStateBase()
   // empty constructor
 }
 
-void Particle::SPHEquationOfStateBase::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHEquationOfStateBase::setup()
 {
   // nothing to do

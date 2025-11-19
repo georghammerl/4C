@@ -9,14 +9,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
-void Particle::RigidBodyDataState::init()
-{
-  // nothing to do
-}
-
 void Particle::RigidBodyDataState::setup()
 {
   // nothing to do

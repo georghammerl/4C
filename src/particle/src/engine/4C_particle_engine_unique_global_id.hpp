@@ -61,12 +61,6 @@ namespace Particle
     explicit UniqueGlobalIdHandler(MPI_Comm comm, const std::string& objectname);
 
     /*!
-     * \brief init unique global identifier handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup unique global identifier handler
      *
      */

@@ -257,9 +257,6 @@ void Particle::SPHSurfaceTension::init_recoil_pressure_evaporation_handler()
   if (params_sph_.get<bool>("VAPOR_RECOIL"))
     recoilpressureevaporation_ = std::unique_ptr<Particle::SPHRecoilPressureEvaporation>(
         new Particle::SPHRecoilPressureEvaporation(params_sph_));
-
-  // init evaporation induced recoil pressure handler
-  if (recoilpressureevaporation_) recoilpressureevaporation_->init();
 }
 
 void Particle::SPHSurfaceTension::init_barrier_force_handler()

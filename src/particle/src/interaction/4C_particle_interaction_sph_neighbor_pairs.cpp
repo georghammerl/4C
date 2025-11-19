@@ -28,11 +28,6 @@ Particle::SPHNeighborPairs::SPHNeighborPairs()
   // empty constructor
 }
 
-void Particle::SPHNeighborPairs::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHNeighborPairs::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
     const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,

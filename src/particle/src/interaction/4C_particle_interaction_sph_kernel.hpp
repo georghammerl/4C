@@ -34,9 +34,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHKernelBase() = default;
 
-    //! init kernel handler
-    virtual void init();
-
     //! setup kernel handler
     virtual void setup();
 

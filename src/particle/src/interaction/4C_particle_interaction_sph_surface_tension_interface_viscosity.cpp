@@ -125,9 +125,6 @@ void Particle::SPHInterfaceViscosity::init_artificial_viscosity_handler()
   // create artificial viscosity handler
   artificialviscosity_ =
       std::unique_ptr<Particle::SPHArtificialViscosity>(new Particle::SPHArtificialViscosity());
-
-  // init artificial viscosity handler
-  artificialviscosity_->init();
 }
 
 void Particle::SPHInterfaceViscosity::compute_interface_viscosity_particle_contribution() const

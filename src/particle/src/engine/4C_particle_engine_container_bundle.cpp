@@ -19,11 +19,6 @@ Particle::ParticleContainerBundle::ParticleContainerBundle()
   // empty constructor
 }
 
-void Particle::ParticleContainerBundle::init()
-{
-  // nothing to do
-}
-
 void Particle::ParticleContainerBundle::setup(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes)
 {
@@ -53,17 +48,14 @@ void Particle::ParticleContainerBundle::setup(
     // initial size of particle container
     int initialsize = 1;
 
-    // create and init container of owned particles
+    // create container of owned particles
     container = std::make_shared<ParticleContainer>();
-    container->init();
-    // setup container of owned particles
     container->setup(initialsize, stateset);
     // set container of owned particles
     (containers_[type])[Owned] = container;
 
-    // create and init container of ghosted particles
+    // create container of ghosted particles
     container = std::make_shared<ParticleContainer>();
-    container->init();
     // setup container of ghosted particles
     container->setup(initialsize, stateset);
     // set container of ghosted particles

@@ -213,9 +213,6 @@ void Particle::SPHMomentum::init_momentum_formulation_handler()
       break;
     }
   }
-
-  // init momentum formulation handler
-  momentumformulation_->init();
 }
 
 void Particle::SPHMomentum::init_artificial_viscosity_handler()
@@ -223,9 +220,6 @@ void Particle::SPHMomentum::init_artificial_viscosity_handler()
   // create artificial viscosity handler
   artificialviscosity_ =
       std::unique_ptr<Particle::SPHArtificialViscosity>(new Particle::SPHArtificialViscosity());
-
-  // init artificial viscosity handler
-  artificialviscosity_->init();
 }
 
 void Particle::SPHMomentum::setup_particle_interaction_writer()

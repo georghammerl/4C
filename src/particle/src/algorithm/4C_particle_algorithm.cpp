@@ -336,10 +336,9 @@ Particle::ParticleAlgorithm::create_result_tests()
 
   // particle result test
   {
-    // create and init particle result test
+    // create particle result test
     std::shared_ptr<Particle::ParticleResultTest> particleresulttest =
         std::make_shared<Particle::ParticleResultTest>();
-    particleresulttest->init();
 
     // setup particle result test
     particleresulttest->setup(particleengine_);
@@ -350,10 +349,9 @@ Particle::ParticleAlgorithm::create_result_tests()
   // wall result test
   if (particlewall_)
   {
-    // create and init wall result test
+    // create wall result test
     std::shared_ptr<Particle::WallResultTest> wallresulttest =
         std::make_shared<Particle::WallResultTest>();
-    wallresulttest->init();
 
     // setup wall result test
     wallresulttest->setup(particlewall_);
@@ -363,10 +361,9 @@ Particle::ParticleAlgorithm::create_result_tests()
 
   if (particlerigidbody_)
   {
-    // create and init rigid body result test
+    // create rigid body result test
     std::shared_ptr<Particle::RigidBodyResultTest> rigidbodyresulttest =
         std::make_shared<Particle::RigidBodyResultTest>();
-    rigidbodyresulttest->init();
 
     // setup rigid body result test
     rigidbodyresulttest->setup(particlerigidbody_);
@@ -535,17 +532,13 @@ void Particle::ParticleAlgorithm::init_viscous_damping()
   if (viscdampfac > 0.0)
     viscousdamping_ = std::unique_ptr<Particle::ViscousDampingHandler>(
         new Particle::ViscousDampingHandler(viscdampfac));
-
-  // init viscous damping handler
-  if (viscousdamping_) viscousdamping_->init();
 }
 
 void Particle::ParticleAlgorithm::generate_initial_particles()
 {
-  // create and init particle input generator
+  // create particle input generator
   std::unique_ptr<Particle::InputGenerator> particleinputgenerator =
       std::unique_ptr<Particle::InputGenerator>(new Particle::InputGenerator(get_comm(), params_));
-  particleinputgenerator->init();
 
   // generate particles
   particleinputgenerator->generate_particles(particlestodistribute_);

@@ -22,11 +22,6 @@ Particle::SPHMomentumFormulationBase::SPHMomentumFormulationBase()
   // empty constructor
 }
 
-void Particle::SPHMomentumFormulationBase::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHMomentumFormulationBase::setup()
 {
   // nothing to do

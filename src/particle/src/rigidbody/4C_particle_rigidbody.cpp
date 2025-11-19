@@ -447,16 +447,12 @@ void Particle::RigidBodyHandler::init_rigid_body_unique_global_id_handler()
   // create and init unique global identifier handler
   rigidbodyuniqueglobalidhandler_ = std::unique_ptr<Particle::UniqueGlobalIdHandler>(
       new Particle::UniqueGlobalIdHandler(comm_, "rigidbody"));
-  rigidbodyuniqueglobalidhandler_->init();
 }
 
 void Particle::RigidBodyHandler::init_rigid_body_data_state()
 {
   // create rigid body data state container
   rigidbodydatastate_ = std::make_shared<Particle::RigidBodyDataState>();
-
-  // init rigid body data state container
-  rigidbodydatastate_->init();
 }
 
 void Particle::RigidBodyHandler::init_rigid_body_vtp_writer()
@@ -472,9 +468,6 @@ void Particle::RigidBodyHandler::init_affiliation_pair_handler()
   // create affiliation pair handler
   affiliationpairs_ = std::unique_ptr<Particle::RigidBodyAffiliationPairs>(
       new Particle::RigidBodyAffiliationPairs(comm_));
-
-  // init affiliation pair handler
-  affiliationpairs_->init();
 }
 
 void Particle::RigidBodyHandler::get_packed_rigid_body_states(std::vector<char>& buffer) const

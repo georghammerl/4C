@@ -24,11 +24,6 @@ Particle::WallResultTest::WallResultTest() : Core::Utils::ResultTest("PARTICLEWA
   // empty constructor
 }
 
-void Particle::WallResultTest::init()
-{
-  // nothing to do
-}
-
 void Particle::WallResultTest::setup(
     const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface)
 {

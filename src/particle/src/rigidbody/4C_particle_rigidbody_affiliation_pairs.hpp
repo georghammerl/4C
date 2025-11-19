@@ -58,12 +58,6 @@ namespace Particle
     explicit RigidBodyAffiliationPairs(MPI_Comm comm);
 
     /*!
-     * \brief init affiliation pair handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup affiliation pair handler
      *
      */

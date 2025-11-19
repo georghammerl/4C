@@ -217,18 +217,12 @@ void Particle::ParticleInteractionDEM::init_neighbor_pair_handler()
 {
   // create neighbor pair handler
   neighborpairs_ = std::make_shared<Particle::DEMNeighborPairs>();
-
-  // init neighbor pair handler
-  neighborpairs_->init();
 }
 
 void Particle::ParticleInteractionDEM::init_history_pair_handler()
 {
   // create history pair handler
   historypairs_ = std::make_shared<Particle::DEMHistoryPairs>(comm_);
-
-  // init history pair handler
-  historypairs_->init();
 }
 
 void Particle::ParticleInteractionDEM::init_contact_handler()

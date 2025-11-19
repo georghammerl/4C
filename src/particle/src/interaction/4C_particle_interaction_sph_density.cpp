@@ -906,9 +906,6 @@ void Particle::SPHDensityPredictCorrect::init_density_correction_handler()
       break;
     }
   }
-
-  // init density correction handler
-  densitycorrection_->init();
 }
 
 void Particle::SPHDensityPredictCorrect::correct_density() const

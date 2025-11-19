@@ -23,9 +23,8 @@ namespace
 
     ParticleContainerBundleTest()
     {
-      // create and init particle container bundle
+      // create particle container bundle
       particlecontainerbundle_ = std::make_unique<Particle::ParticleContainerBundle>();
-      particlecontainerbundle_->init();
 
       // init two phases with different particle states
       std::map<Particle::TypeEnum, std::set<Particle::StateEnum>> particlestatestotypes;

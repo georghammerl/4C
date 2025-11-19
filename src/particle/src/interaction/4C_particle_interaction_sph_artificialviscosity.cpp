@@ -22,11 +22,6 @@ Particle::SPHArtificialViscosity::SPHArtificialViscosity()
   // empty constructor
 }
 
-void Particle::SPHArtificialViscosity::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHArtificialViscosity::setup()
 {
   // nothing to do

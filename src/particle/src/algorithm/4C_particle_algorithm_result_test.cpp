@@ -22,11 +22,6 @@ Particle::ParticleResultTest::ParticleResultTest() : Core::Utils::ResultTest("PA
   // empty constructor
 }
 
-void Particle::ParticleResultTest::init()
-{
-  // nothing to do
-}
-
 void Particle::ParticleResultTest::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {

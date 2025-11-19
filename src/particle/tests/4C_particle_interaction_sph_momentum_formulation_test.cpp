@@ -28,9 +28,6 @@ namespace
       // create momentum formulation handler
       momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationMonaghan>();
 
-      // init momentum formulation handler
-      momentumformulation_->init();
-
       // setup momentum formulation handler
       momentumformulation_->setup();
     }
@@ -826,9 +823,6 @@ namespace
     {
       // create momentum formulation handler
       momentumformulation_ = std::make_unique<Particle::SPHMomentumFormulationAdami>();
-
-      // init momentum formulation handler
-      momentumformulation_->init();
 
       // setup momentum formulation handler
       momentumformulation_->setup();

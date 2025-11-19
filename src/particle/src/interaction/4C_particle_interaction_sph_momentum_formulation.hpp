@@ -31,9 +31,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHMomentumFormulationBase() = default;
 
-    //! init momentum formulation handler
-    virtual void init();
-
     //! setup momentum formulation handler
     virtual void setup();
 

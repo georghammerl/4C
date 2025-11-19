@@ -26,9 +26,6 @@ namespace
       // create artificial viscosity handler
       artificialviscosity_ = std::make_unique<Particle::SPHArtificialViscosity>();
 
-      // init artificial viscosity handler
-      artificialviscosity_->init();
-
       // setup artificial viscosity handler
       artificialviscosity_->setup();
     }

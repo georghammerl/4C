@@ -20,11 +20,6 @@ Particle::ParticleContainer::ParticleContainer()
   // empty constructor
 }
 
-void Particle::ParticleContainer::init()
-{
-  // nothing to do
-}
-
 void Particle::ParticleContainer::setup(int containersize, const std::set<ParticleState>& stateset)
 {
   // set size of particle container (at least one)

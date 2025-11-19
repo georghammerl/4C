@@ -78,9 +78,6 @@ void Particle::SPHEquationOfStateBundle::init(Particle::MaterialHandler& particl
         break;
       }
     }
-
-    // init equation of state handler
-    phasetypetoequationofstate_[type_i]->init();
   }
 }
 

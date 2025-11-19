@@ -25,9 +25,6 @@ namespace
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionInterior>();
 
-      // init density correction handler
-      densitycorrection_->init();
-
       // setup density correction handler
       densitycorrection_->setup();
     }
@@ -75,9 +72,6 @@ namespace
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionNormalized>();
 
-      // init density correction handler
-      densitycorrection_->init();
-
       // setup density correction handler
       densitycorrection_->setup();
     }
@@ -123,9 +117,6 @@ namespace
     {
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionRandles>();
-
-      // init density correction handler
-      densitycorrection_->init();
 
       // setup density correction handler
       densitycorrection_->setup();

@@ -24,11 +24,6 @@ Particle::RigidBodyResultTest::RigidBodyResultTest() : Core::Utils::ResultTest("
   // empty constructor
 }
 
-void Particle::RigidBodyResultTest::init()
-{
-  // nothing to do
-}
-
 void Particle::RigidBodyResultTest::setup(
     const std::shared_ptr<Particle::RigidBodyHandlerInterface> particlerigidbodyinterface)
 {

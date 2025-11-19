@@ -48,11 +48,6 @@ namespace
       kernel_2D_ = std::make_unique<Particle::SPHKernelCubicSpline>(params_sph_2D);
       kernel_3D_ = std::make_unique<Particle::SPHKernelCubicSpline>(params_sph_3D);
 
-      // init kernel handler
-      kernel_1D_->init();
-      kernel_2D_->init();
-      kernel_3D_->init();
-
       // setup kernel handler
       kernel_1D_->setup();
       kernel_2D_->setup();
@@ -321,11 +316,6 @@ namespace
       kernel_1D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_1D);
       kernel_2D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_2D);
       kernel_3D_ = std::make_unique<Particle::SPHKernelQuinticSpline>(params_sph_3D);
-
-      // init kernel handler
-      kernel_1D_->init();
-      kernel_2D_->init();
-      kernel_3D_->init();
 
       // setup kernel handler
       kernel_1D_->setup();

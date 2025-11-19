@@ -23,11 +23,6 @@ Particle::ViscousDampingHandler::ViscousDampingHandler(const double viscdampfac)
   // empty constructor
 }
 
-void Particle::ViscousDampingHandler::init()
-{
-  // nothing to do
-}
-
 void Particle::ViscousDampingHandler::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {

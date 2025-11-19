@@ -30,7 +30,6 @@ namespace
 
       // create, init and setup container
       container_ = std::make_unique<Particle::ParticleContainer>();
-      container_->init();
       container_->setup(size, stateEnumSet);
 
       const int maximum_stored_state_enum_set_value{*(--stateEnumSet.end())};

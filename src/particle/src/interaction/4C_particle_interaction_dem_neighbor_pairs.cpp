@@ -28,11 +28,6 @@ Particle::DEMNeighborPairs::DEMNeighborPairs()
   // empty constructor
 }
 
-void Particle::DEMNeighborPairs::init()
-{
-  // nothing to do
-}
-
 void Particle::DEMNeighborPairs::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
     const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface)

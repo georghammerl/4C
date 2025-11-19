@@ -1015,7 +1015,6 @@ void Particle::ParticleEngine::init_particle_container_bundle()
 {
   // create and init particle container bundle
   particlecontainerbundle_ = std::make_shared<ParticleContainerBundle>();
-  particlecontainerbundle_->init();
 }
 
 void Particle::ParticleEngine::setup_particle_container_bundle(
@@ -1030,7 +1029,6 @@ void Particle::ParticleEngine::init_particle_unique_global_id_handler()
   // create and init unique global identifier handler
   particleuniqueglobalidhandler_ =
       std::unique_ptr<UniqueGlobalIdHandler>(new UniqueGlobalIdHandler(comm_, "particle"));
-  particleuniqueglobalidhandler_->init();
 }
 
 void Particle::ParticleEngine::setup_particle_unique_global_id_handler() const

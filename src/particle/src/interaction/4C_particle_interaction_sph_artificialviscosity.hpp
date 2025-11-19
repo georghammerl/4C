@@ -28,9 +28,6 @@ namespace Particle
     //! constructor
     explicit SPHArtificialViscosity();
 
-    //! init artificial viscosity handler
-    void init();
-
     //! setup artificial viscosity handler
     void setup();
 

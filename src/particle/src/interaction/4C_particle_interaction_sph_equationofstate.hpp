@@ -31,9 +31,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHEquationOfStateBase() = default;
 
-    //! init equation of state handler
-    virtual void init();
-
     //! setup equation of state handler
     virtual void setup();
 

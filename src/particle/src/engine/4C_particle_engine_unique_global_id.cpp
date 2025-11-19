@@ -31,11 +31,6 @@ Particle::UniqueGlobalIdHandler::UniqueGlobalIdHandler(MPI_Comm comm, const std:
   // empty constructor
 }
 
-void Particle::UniqueGlobalIdHandler::init()
-{
-  // nothing to do
-}
-
 void Particle::UniqueGlobalIdHandler::setup()
 {
   // nothing to do
