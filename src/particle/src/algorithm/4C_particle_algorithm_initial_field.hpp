@@ -47,12 +47,6 @@ namespace Particle
     explicit InitialFieldHandler(const Teuchos::ParameterList& params);
 
     /*!
-     * \brief init initial field handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup initial field handler
      *
      *

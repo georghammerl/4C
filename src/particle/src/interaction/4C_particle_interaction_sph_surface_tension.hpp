@@ -60,9 +60,6 @@ namespace Particle
      */
     ~SPHSurfaceTension();
 
-    //! init surface tension handler
-    void init();
-
     //! setup surface tension handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::SPHKernelBase> kernel,
@@ -84,15 +81,6 @@ namespace Particle
     void add_acceleration_contribution();
 
    private:
-    //! init interface viscosity handler
-    void init_interface_viscosity_handler();
-
-    //! init evaporation induced recoil pressure handler
-    void init_recoil_pressure_evaporation_handler();
-
-    //! init barrier force handler
-    void init_barrier_force_handler();
-
     //! compute colorfield gradient
     void compute_colorfield_gradient() const;
 

@@ -62,8 +62,6 @@ namespace Particle
      */
     ~ParticleInteractionSPH() override;
 
-    //! init particle interaction handler
-    void init() override;
 
     //! setup particle interaction handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -109,6 +107,12 @@ namespace Particle
     void set_current_step_size(const double currentstepsize) override;
 
    private:
+    /*!
+     * Initialize the members by assigning the respective derived classes based on the input
+     * parameters
+     */
+    void initialize_members();
+
     //! init kernel handler
     void init_kernel_handler();
 

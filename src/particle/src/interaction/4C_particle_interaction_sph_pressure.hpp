@@ -44,9 +44,6 @@ namespace Particle
     //! constructor
     explicit SPHPressure();
 
-    //! init pressure handler
-    void init();
-
     //! setup pressure handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::MaterialHandler> particlematerial,

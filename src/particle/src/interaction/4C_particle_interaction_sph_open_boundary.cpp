@@ -36,11 +36,6 @@ Particle::SPHOpenBoundaryBase::SPHOpenBoundaryBase(const Teuchos::ParameterList&
   // empty constructor
 }
 
-void Particle::SPHOpenBoundaryBase::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHOpenBoundaryBase::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
     const std::shared_ptr<Particle::SPHKernelBase> kernel,
@@ -201,18 +196,8 @@ void Particle::SPHOpenBoundaryBase::check_open_boundary_phase_change(
 Particle::SPHOpenBoundaryDirichlet::SPHOpenBoundaryDirichlet(const Teuchos::ParameterList& params)
     : SPHOpenBoundaryBase::SPHOpenBoundaryBase(params)
 {
-  // empty constructor
-}
-
-void Particle::SPHOpenBoundaryDirichlet::init()
-{
-  // call base class init
-  SPHOpenBoundaryBase::init();
-
-  // init function id of prescribed state
   prescribedstatefunctid_ = params_sph_.get<int>("DIRICHLET_FUNCT");
 
-  // safety check
   if (not(prescribedstatefunctid_ > 0)) FOUR_C_THROW("no function id of prescribed state set!");
 
   // init outward normal
@@ -247,8 +232,8 @@ void Particle::SPHOpenBoundaryDirichlet::init()
   }
 
   // init fluid phase and open boundary phase
-  fluidphase_ = Particle::Phase1;
-  openboundaryphase_ = Particle::DirichletPhase;
+  fluidphase_ = Phase1;
+  openboundaryphase_ = DirichletPhase;
 }
 
 void Particle::SPHOpenBoundaryDirichlet::setup(
@@ -403,15 +388,6 @@ void Particle::SPHOpenBoundaryDirichlet::interpolate_open_boundary_states()
 Particle::SPHOpenBoundaryNeumann::SPHOpenBoundaryNeumann(const Teuchos::ParameterList& params)
     : SPHOpenBoundaryBase::SPHOpenBoundaryBase(params)
 {
-  // empty constructor
-}
-
-void Particle::SPHOpenBoundaryNeumann::init()
-{
-  // call base class init
-  SPHOpenBoundaryBase::init();
-
-  // init function id of prescribed state
   prescribedstatefunctid_ = params_sph_.get<int>("NEUMANN_FUNCT");
 
   // init outward normal

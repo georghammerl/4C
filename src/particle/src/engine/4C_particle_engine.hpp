@@ -79,12 +79,6 @@ namespace Particle
     ~ParticleEngine() override;
 
     /*!
-     * \brief init particle engine
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup particle engine
      *
      *
@@ -439,12 +433,6 @@ namespace Particle
     void setup_bin_ghosting();
 
     /*!
-     * \brief init particle container bundle
-     *
-     */
-    void init_particle_container_bundle();
-
-    /*!
      * \brief setup particle container bundle
      *
      *
@@ -452,12 +440,6 @@ namespace Particle
      */
     void setup_particle_container_bundle(
         const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes) const;
-
-    /*!
-     * \brief init particle unique global identifier handler
-     *
-     */
-    void init_particle_unique_global_id_handler();
 
     /*!
      * \brief setup data storage

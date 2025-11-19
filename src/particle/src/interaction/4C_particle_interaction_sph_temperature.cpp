@@ -20,6 +20,8 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -29,24 +31,16 @@ Particle::SPHTemperature::SPHTemperature(const Teuchos::ParameterList& params)
     : params_sph_(params),
       time_(0.0),
       dt_(0.0),
-      temperaturegradient_(params_sph_.get<bool>("TEMPERATUREGRADIENT"))
+      temperaturegradient_(params_sph_.get<bool>("TEMPERATUREGRADIENT")),
+      intthermotypes_({Particle::Phase1, Particle::Phase2, Particle::RigidPhase})
 {
-  // empty constructor
+  init_heat_source_handler();
+
+  if (params_sph_.get<bool>("VAPOR_HEATLOSS"))
+    heatlossevaporation_ = std::make_unique<Particle::SPHHeatLossEvaporation>(params_sph_);
 }
 
 Particle::SPHTemperature::~SPHTemperature() = default;
-
-void Particle::SPHTemperature::init()
-{
-  // init heat source handler
-  init_heat_source_handler();
-
-  // init evaporation induced heat loss handler
-  init_heat_loss_evaporation_handler();
-
-  // init with potential integrated thermo particle types
-  intthermotypes_ = {Particle::Phase1, Particle::Phase2, Particle::RigidPhase};
-}
 
 void Particle::SPHTemperature::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -200,19 +194,6 @@ void Particle::SPHTemperature::init_heat_source_handler()
       break;
     }
   }
-
-  // init heat source handler
-  if (heatsource_) heatsource_->init();
-}
-
-void Particle::SPHTemperature::init_heat_loss_evaporation_handler()
-{
-  if (params_sph_.get<bool>("VAPOR_HEATLOSS"))
-    heatlossevaporation_ = std::unique_ptr<Particle::SPHHeatLossEvaporation>(
-        new Particle::SPHHeatLossEvaporation(params_sph_));
-
-  // init evaporation induced heat loss handler
-  if (heatlossevaporation_) heatlossevaporation_->init();
 }
 
 void Particle::SPHTemperature::energy_equation() const

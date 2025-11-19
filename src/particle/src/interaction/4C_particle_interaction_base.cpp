@@ -23,19 +23,12 @@ Particle::ParticleInteractionBase::ParticleInteractionBase(
     : comm_(comm),
       myrank_(Core::Communication::my_mpi_rank(comm)),
       params_(params),
+      particlematerial_(std::make_shared<Particle::MaterialHandler>(params_)),
+      particleinteractionwriter_(std::make_shared<Particle::InteractionWriter>(comm_, params_)),
       time_(0.0),
       dt_(0.0)
 {
   // empty constructor
-}
-
-void Particle::ParticleInteractionBase::init()
-{
-  // init particle material handler
-  init_particle_material_handler();
-
-  // init particle interaction writer
-  init_particle_interaction_writer();
 }
 
 void Particle::ParticleInteractionBase::setup(
@@ -125,21 +118,6 @@ void Particle::ParticleInteractionBase::write_interaction_runtime_output(
 {
   // write particle interaction runtime output
   particleinteractionwriter_->write_particle_interaction_runtime_output(step, time);
-}
-
-void Particle::ParticleInteractionBase::init_particle_material_handler()
-{
-  // create particle material handler
-  particlematerial_ = std::make_shared<Particle::MaterialHandler>(params_);
-
-  // init particle material handler
-  particlematerial_->init();
-}
-
-void Particle::ParticleInteractionBase::init_particle_interaction_writer()
-{
-  // create particle interaction writer
-  particleinteractionwriter_ = std::make_shared<Particle::InteractionWriter>(comm_, params_);
 }
 
 double Particle::ParticleInteractionBase::max_particle_radius() const

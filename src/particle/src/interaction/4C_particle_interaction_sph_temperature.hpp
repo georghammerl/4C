@@ -65,9 +65,6 @@ namespace Particle
      */
     ~SPHTemperature();
 
-    //! init temperature handler
-    void init();
-
     //! setup temperature handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::MaterialHandler> particlematerial,
@@ -89,9 +86,6 @@ namespace Particle
    private:
     //! init heat source handler
     void init_heat_source_handler();
-
-    //! init evaporation induced heat loss handler
-    void init_heat_loss_evaporation_handler();
 
     //! evaluate energy equation
     void energy_equation() const;

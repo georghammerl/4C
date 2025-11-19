@@ -18,18 +18,9 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
-Particle::SPHPressure::SPHPressure()
+Particle::SPHPressure::SPHPressure() : fluidtypes_({Particle::Phase1, Particle::Phase2})
 {
   // empty constructor
-}
-
-void Particle::SPHPressure::init()
-{
-  // init with potential fluid particle types
-  fluidtypes_ = {Particle::Phase1, Particle::Phase2};
 }
 
 void Particle::SPHPressure::setup(

@@ -65,9 +65,6 @@ namespace Particle
     //! virtual destructor
     virtual ~ParticleInteractionBase() = default;
 
-    //! init particle interaction handler
-    virtual void init();
-
     //! setup particle interaction handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -122,13 +119,6 @@ namespace Particle
 
     //! write interaction runtime output
     virtual void write_interaction_runtime_output(const int step, const double time);
-
-   private:
-    //! init particle material handler
-    virtual void init_particle_material_handler();
-
-    //! init particle interaction writer
-    virtual void init_particle_interaction_writer();
 
    protected:
     //! maximum particle radius (on this processor)

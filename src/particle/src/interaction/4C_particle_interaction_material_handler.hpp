@@ -34,9 +34,6 @@ namespace Particle
     //! constructor
     explicit MaterialHandler(const Teuchos::ParameterList& params);
 
-    //! init particle material handler
-    void init();
-
     //! return pointer to particle material parameter
     inline const Mat::PAR::ParticleMaterialBase* get_ptr_to_particle_mat_parameter(
         Particle::TypeEnum type_i) const
@@ -48,6 +45,8 @@ namespace Particle
     inline std::set<Particle::TypeEnum> get_particle_types() const { return storedtypes_; };
 
    private:
+    void initialize_parameters();
+
     //! particle simulation parameter list
     const Teuchos::ParameterList& params_;
 

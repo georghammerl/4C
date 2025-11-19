@@ -23,11 +23,6 @@ FOUR_C_NAMESPACE_OPEN
 Particle::InitialFieldHandler::InitialFieldHandler(const Teuchos::ParameterList& params)
     : params_(params)
 {
-  // empty constructor
-}
-
-void Particle::InitialFieldHandler::init()
-{
   // get control parameters for initial/boundary conditions
   const Teuchos::ParameterList& params_conditions =
       params_.sublist("INITIAL AND BOUNDARY CONDITIONS");

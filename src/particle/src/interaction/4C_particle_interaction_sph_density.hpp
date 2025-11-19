@@ -58,9 +58,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHDensityBase() = default;
 
-    //! init density handler
-    virtual void init();
-
     //! setup density handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -212,9 +209,6 @@ namespace Particle
      *       std::unique_ptr<T> ptr_T_ is required
      */
     ~SPHDensityPredictCorrect() override;
-
-    //! init density handler
-    void init() override;
 
     //! setup density handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,

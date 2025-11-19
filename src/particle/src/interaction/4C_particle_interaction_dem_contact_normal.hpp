@@ -33,9 +33,6 @@ namespace Particle
     //! virtual destructor
     virtual ~DEMContactNormalBase() = default;
 
-    //! init normal contact handler
-    virtual void init();
-
     //! setup normal contact handler
     virtual void setup(const double& dens_max);
 
@@ -97,9 +94,6 @@ namespace Particle
     //! constructor
     explicit DEMContactNormalLinearSpringDamp(const Teuchos::ParameterList& params);
 
-    //! init normal contact handler
-    void init() override;
-
     //! setup normal contact handler
     void setup(const double& dens_max) override;
 
@@ -152,9 +146,6 @@ namespace Particle
    public:
     //! constructor
     explicit DEMContactNormalNonlinearDampBase(const Teuchos::ParameterList& params);
-
-    //! init normal contact handler
-    void init() override;
 
     //! evaluate normal contact force
     void normal_contact_force(const double& gap, const double* radius_i, const double* radius_j,

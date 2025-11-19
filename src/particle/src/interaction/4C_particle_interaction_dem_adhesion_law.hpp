@@ -33,9 +33,6 @@ namespace Particle
     //! virtual destructor
     virtual ~DEMAdhesionLawBase() = default;
 
-    //! init adhesion law handler
-    virtual void init();
-
     //! setup adhesion law handler
     virtual void setup(const double& k_normal);
 
@@ -74,9 +71,6 @@ namespace Particle
    public:
     //! constructor
     explicit DEMAdhesionLawVdWDMT(const Teuchos::ParameterList& params);
-
-    //! init adhesion law handler
-    void init() override;
 
     //! calculate adhesion force
     void adhesion_force(const double& gap, const double& surfaceenergy, const double& r_eff,

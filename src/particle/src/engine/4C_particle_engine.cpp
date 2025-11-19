@@ -29,6 +29,8 @@
 
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -40,6 +42,8 @@ Particle::ParticleEngine::ParticleEngine(MPI_Comm comm, const Teuchos::Parameter
       params_(params),
       minbinsize_(0.0),
       typevectorsize_(0),
+      particlecontainerbundle_(std::make_shared<ParticleContainerBundle>()),
+      particleuniqueglobalidhandler_(std::make_unique<UniqueGlobalIdHandler>(comm_, "particle")),
       validownedparticles_(false),
       validghostedparticles_(false),
       validparticleneighbors_(false),
@@ -47,25 +51,14 @@ Particle::ParticleEngine::ParticleEngine(MPI_Comm comm, const Teuchos::Parameter
       validdirectghosting_(false),
       validhalfneighboringbins_(false)
 {
-  // empty constructor
-}
-
-Particle::ParticleEngine::~ParticleEngine() = default;
-
-void Particle::ParticleEngine::init()
-{
   // init binning strategy
   init_binning_strategy();
-
-  // init particle container bundle
-  init_particle_container_bundle();
-
-  // init particle unique global identifier handler
-  init_particle_unique_global_id_handler();
 
   // init particle runtime vtp writer
   init_particle_vtp_writer();
 }
+
+Particle::ParticleEngine::~ParticleEngine() = default;
 
 void Particle::ParticleEngine::setup(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes)
@@ -1008,24 +1001,11 @@ void Particle::ParticleEngine::setup_bin_ghosting()
   binstrategy_->bin_discret()->extended_ghosting(*bincolmap_, true, false, true, false);
 }
 
-void Particle::ParticleEngine::init_particle_container_bundle()
-{
-  // create and init particle container bundle
-  particlecontainerbundle_ = std::make_shared<ParticleContainerBundle>();
-}
-
 void Particle::ParticleEngine::setup_particle_container_bundle(
     const std::map<ParticleType, std::set<ParticleState>>& particlestatestotypes) const
 {
   // setup particle container bundle
   particlecontainerbundle_->setup(particlestatestotypes);
-}
-
-void Particle::ParticleEngine::init_particle_unique_global_id_handler()
-{
-  // create and init unique global identifier handler
-  particleuniqueglobalidhandler_ =
-      std::unique_ptr<UniqueGlobalIdHandler>(new UniqueGlobalIdHandler(comm_, "particle"));
 }
 
 void Particle::ParticleEngine::setup_data_storage(
@@ -1045,8 +1025,7 @@ void Particle::ParticleEngine::setup_data_storage(
 void Particle::ParticleEngine::init_particle_vtp_writer()
 {
   // construct and init particle runtime vtp writer
-  particlevtpwriter_ =
-      std::unique_ptr<ParticleRuntimeVtpWriter>(new ParticleRuntimeVtpWriter(comm_));
+  particlevtpwriter_ = std::make_unique<ParticleRuntimeVtpWriter>(comm_);
   particlevtpwriter_->init(particlecontainerbundle_);
 }
 

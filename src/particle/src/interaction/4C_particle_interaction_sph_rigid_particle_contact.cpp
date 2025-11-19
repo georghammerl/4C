@@ -31,15 +31,10 @@ FOUR_C_NAMESPACE_OPEN
 Particle::SPHRigidParticleContactBase::SPHRigidParticleContactBase(
     const Teuchos::ParameterList& params)
     : params_sph_(params),
-      writeparticlewallinteraction_(params_sph_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
+      writeparticlewallinteraction_(params_sph_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION")),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase})
 {
   // empty constructor
-}
-
-void Particle::SPHRigidParticleContactBase::init()
-{
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 }
 
 void Particle::SPHRigidParticleContactBase::setup(

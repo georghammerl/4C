@@ -25,6 +25,8 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -34,6 +36,8 @@ Particle::SPHSurfaceTension::SPHSurfaceTension(const Teuchos::ParameterList& par
     : params_sph_(params),
       liquidtype_(Particle::Phase1),
       gastype_(Particle::Phase2),
+      fluidtypes_({liquidtype_, gastype_}),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase}),
       time_(0.0),
       timerampfct_(params.get<int>("SURFACETENSION_RAMP_FUNCT")),
       alpha0_(params_sph_.get<double>("SURFACETENSIONCOEFFICIENT")),
@@ -49,29 +53,17 @@ Particle::SPHSurfaceTension::SPHSurfaceTension(const Teuchos::ParameterList& par
       trans_d_t_curv_(params_sph_.get<double>("TRANS_DT_CURVATURE")),
       trans_d_t_wet_(params_sph_.get<double>("TRANS_DT_WETTING"))
 {
-  // empty constructor
-}
+  if (params_sph_.get<bool>("INTERFACE_VISCOSITY"))
+    interfaceviscosity_ = std::make_unique<Particle::SPHInterfaceViscosity>(params_sph_);
 
-Particle::SPHSurfaceTension::~SPHSurfaceTension() = default;
+  if (params_sph_.get<bool>("VAPOR_RECOIL"))
+    recoilpressureevaporation_ =
+        std::make_unique<Particle::SPHRecoilPressureEvaporation>(params_sph_);
 
-void Particle::SPHSurfaceTension::init()
-{
-  // init interface viscosity handler
-  init_interface_viscosity_handler();
+  if (params_sph_.get<bool>("BARRIER_FORCE"))
+    barrierforce_ = std::make_unique<Particle::SPHBarrierForce>(params_sph_);
 
-  // init evaporation induced recoil pressure handler
-  init_recoil_pressure_evaporation_handler();
 
-  // init barrier force handler
-  init_barrier_force_handler();
-
-  // init fluid particle types
-  fluidtypes_ = {liquidtype_, gastype_};
-
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
-
-  // safety check
   if (not(alpha0_ > 0.0))
     FOUR_C_THROW("constant factor of surface tension coefficient not positive!");
 
@@ -97,6 +89,8 @@ void Particle::SPHSurfaceTension::init()
       FOUR_C_THROW("temperature evaluation needed for linear transition of surface tension!");
   }
 }
+
+Particle::SPHSurfaceTension::~SPHSurfaceTension() = default;
 
 void Particle::SPHSurfaceTension::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -238,36 +232,6 @@ void Particle::SPHSurfaceTension::add_acceleration_contribution()
 
   // compute barrier force contribution
   if (barrierforce_) barrierforce_->compute_barrier_force_contribution();
-}
-
-void Particle::SPHSurfaceTension::init_interface_viscosity_handler()
-{
-  // create interface viscosity handler
-  if (params_sph_.get<bool>("INTERFACE_VISCOSITY"))
-    interfaceviscosity_ = std::unique_ptr<Particle::SPHInterfaceViscosity>(
-        new Particle::SPHInterfaceViscosity(params_sph_));
-
-  // init interface viscosity handler
-  if (interfaceviscosity_) interfaceviscosity_->init();
-}
-
-void Particle::SPHSurfaceTension::init_recoil_pressure_evaporation_handler()
-{
-  // create evaporation induced recoil pressure handler
-  if (params_sph_.get<bool>("VAPOR_RECOIL"))
-    recoilpressureevaporation_ = std::unique_ptr<Particle::SPHRecoilPressureEvaporation>(
-        new Particle::SPHRecoilPressureEvaporation(params_sph_));
-}
-
-void Particle::SPHSurfaceTension::init_barrier_force_handler()
-{
-  // create barrier force handler
-  if (params_sph_.get<bool>("BARRIER_FORCE"))
-    barrierforce_ =
-        std::unique_ptr<Particle::SPHBarrierForce>(new Particle::SPHBarrierForce(params_sph_));
-
-  // init barrier force handler
-  if (barrierforce_) barrierforce_->init();
 }
 
 void Particle::SPHSurfaceTension::compute_colorfield_gradient() const

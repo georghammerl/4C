@@ -26,15 +26,12 @@ Particle::DEMContactNormalBase::DEMContactNormalBase(const Teuchos::ParameterLis
       k_normal_(params_dem_.get<double>("NORMAL_STIFF")),
       k_normal_crit_(0.0)
 {
-  // empty constructor
-}
-
-void Particle::DEMContactNormalBase::init()
-{
   if (not((c_ <= 0.0 and k_normal_ > 0.0) or (c_ > 0.0 and v_max_ > 0.0 and k_normal_ <= 0.0)))
+  {
     FOUR_C_THROW(
         "specify either the relative penetration along with the maximum velocity, or the normal "
         "stiffness, but neither both nor none of them!");
+  }
 }
 
 void Particle::DEMContactNormalBase::setup(const double& dens_max)
@@ -84,14 +81,6 @@ Particle::DEMContactNormalLinearSpringDamp::DEMContactNormalLinearSpringDamp(
       d_normal_fac_(0.0)
 {
   // empty constructor
-}
-
-void Particle::DEMContactNormalLinearSpringDamp::init()
-{
-  // call base class init
-  DEMContactNormalLinearSpring::init();
-
-  // safety checks for contact parameters
   if (e_ < 0.0)
     FOUR_C_THROW("invalid input parameter COEFF_RESTITUTION for this kind of contact law!");
 }
@@ -186,15 +175,6 @@ Particle::DEMContactNormalNonlinearDampBase::DEMContactNormalNonlinearDampBase(
     : Particle::DEMContactNormalNonlinearBase(params),
       d_normal_(params_dem_.get<double>("NORMAL_DAMP"))
 {
-  // empty constructor
-}
-
-void Particle::DEMContactNormalNonlinearDampBase::init()
-{
-  // call base class init
-  DEMContactNormalNonlinearBase::init();
-
-  // safety checks for contact parameters
   if (d_normal_ < 0.0)
     FOUR_C_THROW("invalid input parameter NORMAL_DAMP for this kind of contact law!");
 }

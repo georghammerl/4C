@@ -24,11 +24,6 @@ Particle::DEMContactTangentialBase::DEMContactTangentialBase(const Teuchos::Para
   // empty constructor
 }
 
-void Particle::DEMContactTangentialBase::init()
-{
-  // nothing to do
-}
-
 void Particle::DEMContactTangentialBase::setup(const double& k_normal)
 {
   // nothing to do
@@ -47,15 +42,6 @@ Particle::DEMContactTangentialLinearSpringDamp::DEMContactTangentialLinearSpring
       k_tangential_(0.0),
       d_tangential_fac_(0.0)
 {
-  // empty constructor
-}
-
-void Particle::DEMContactTangentialLinearSpringDamp::init()
-{
-  // call base class init
-  DEMContactTangentialBase::init();
-
-  // safety checks for contact parameters
   if (nue_ <= -1.0 or nue_ > 0.5)
     FOUR_C_THROW("invalid input parameter POISSON_RATIO (expected in range ]-1.0; 0.5])!");
 

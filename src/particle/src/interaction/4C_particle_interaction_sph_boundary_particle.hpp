@@ -48,9 +48,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHBoundaryParticleBase() = default;
 
-    //! init boundary particle handler
-    virtual void init();
-
     //! setup boundary particle handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
