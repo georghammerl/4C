@@ -131,18 +131,30 @@ void PoroPressureBased::ResultTest::test_element(
 double PoroPressureBased::ResultTest::result_node(
     const std::string quantity, Core::Nodes::Node* node) const
 {
-  // initialize variable for result
-  double result(0.);
-
   // extract row map from solution vector
   const Core::LinAlg::Map& phinpmap = porofluid_algorithm_.phinp()->get_map();
 
+  // extract local id for additional output quantities store in solid_pressure nodeset
+  auto get_local_dof_id_from_solid_pressure_dofset = [&](const auto node)
+  {
+    // dof row map for dofset solid_pressure
+    const auto* solid_pressure_dof_row_map = porofluid_algorithm_.discretization()->dof_row_map(
+        porofluid_algorithm_.get_dof_set_number_of_solid_pressure());
+    // quantities using this dof set always only has one dof
+    const int dof = 0;
+    return solid_pressure_dof_row_map->lid(porofluid_algorithm_.discretization()->dof(
+        porofluid_algorithm_.get_dof_set_number_of_solid_pressure(), node, dof));
+  };
+
+
   // test result value of phi field
   if (quantity == "phi")
-    result = porofluid_algorithm_.phinp()->local_values_as_span()[phinpmap.lid(
+  {
+    return porofluid_algorithm_.phinp()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, 0))];
 
-  // test result value for a system of scalars
+    // test result value for a system of scalars
+  }
   else if (!quantity.compare(0, 3, "phi"))
   {
     // read species ID
@@ -155,16 +167,18 @@ double PoroPressureBased::ResultTest::result_node(
       FOUR_C_THROW("Species ID is larger than number of DOFs of node!");
 
     // extract result
-    result = porofluid_algorithm_.phinp()->local_values_as_span()[phinpmap.lid(
+    return porofluid_algorithm_.phinp()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, k))];
   }
 
   // test result value of phi field
   else if (quantity == "pressure")
-    result = porofluid_algorithm_.pressure()->local_values_as_span()[phinpmap.lid(
+  {
+    return porofluid_algorithm_.pressure()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, 0))];
 
-  // test result value for a system of scalars
+    // test result value for a system of scalars
+  }
   else if (!quantity.compare(0, 8, "pressure"))
   {
     // read species ID
@@ -177,16 +191,18 @@ double PoroPressureBased::ResultTest::result_node(
       FOUR_C_THROW("Pressure ID is larger than number of DOFs of node!");
 
     // extract result
-    result = porofluid_algorithm_.pressure()->local_values_as_span()[phinpmap.lid(
+    return porofluid_algorithm_.pressure()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, k))];
   }
 
   // test result value of phi field
   else if (quantity == "saturation")
-    result = porofluid_algorithm_.saturation()->local_values_as_span()[phinpmap.lid(
+  {
+    return porofluid_algorithm_.saturation()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, 0))];
 
-  // test result value for a system of scalars
+    // test result value for a system of scalars
+  }
   else if (!quantity.compare(0, 10, "saturation"))
   {
     // read species ID
@@ -199,23 +215,36 @@ double PoroPressureBased::ResultTest::result_node(
       FOUR_C_THROW("Saturation ID is larger than number of DOFs of node!");
 
     // extract result
-    result = porofluid_algorithm_.saturation()->local_values_as_span()[phinpmap.lid(
+    return porofluid_algorithm_.saturation()->local_values_as_span()[phinpmap.lid(
         porofluid_algorithm_.discretization()->dof(0, node, k))];
   }
 
   else if (quantity == "volfrac_blood_lung")
-    result = porofluid_algorithm_.volfrac_blood_lung()->local_values_as_span()[phinpmap.lid(
-        porofluid_algorithm_.discretization()->dof(0, node, 0))];
+  {
+    //! volfrac blood lung at time n+1 (lives on same dofset as solid pressure)
+    return porofluid_algorithm_.volfrac_blood_lung()
+        ->local_values_as_span()[get_local_dof_id_from_solid_pressure_dofset(node)];
+  }
 
   else if (quantity == "det_def_grad")
-    result = porofluid_algorithm_.det_def_grad()->local_values_as_span()[phinpmap.lid(
-        porofluid_algorithm_.discretization()->dof(0, node, 0))];
+  {
+    //! determinant of derformation gradient at time n+1 (lives on same dofset as solid pressure)
+    return porofluid_algorithm_.det_def_grad()
+        ->local_values_as_span()[get_local_dof_id_from_solid_pressure_dofset(node)];
+  }
+
+  else if (quantity == "solid_pressure")
+  {
+    return porofluid_algorithm_.solid_pressure()
+        ->local_values_as_span()[get_local_dof_id_from_solid_pressure_dofset(node)];
+  }
 
   // catch unknown quantity strings
   else
+  {
     FOUR_C_THROW("Quantity '{}' not supported in result test!", quantity);
+  }
 
-  return result;
 }  // POROFLUIDMULTIPHASE::ResultTest::ResultNode
 
 /*----------------------------------------------------------------------*

@@ -34,6 +34,10 @@ STRUCTURAL DYNAMIC/ONESTEPTHETA:
 porofluid_dynamic:
   initial_condition:
     type: by_condition
+  output:
+    volfrac_blood_lung: true
+    determinant_of_deformation_gradient: true
+    solid_pressure: true
 porofluid_elasticity_dynamic:
   solve_structure: true
   coupling_scheme: twoway_monolithic
@@ -263,6 +267,24 @@ RESULT DESCRIPTION:
       NODE: 11
       QUANTITY: "dispz"
       VALUE: -4.01656532514576350e-02
+      TOLERANCE: 1e-08
+  - POROFLUIDMULTIPHASE:
+      DIS: "porofluid"
+      NODE: 8
+      QUANTITY: "solid_pressure"
+      VALUE: 4.04777865720795993e-01
+      TOLERANCE: 1e-08
+  - POROFLUIDMULTIPHASE:
+      DIS: "porofluid"
+      NODE: 19
+      QUANTITY: "det_def_grad"
+      VALUE: 1.19249957115334926e+00
+      TOLERANCE: 1e-08
+  - POROFLUIDMULTIPHASE:
+      DIS: "porofluid"
+      NODE: 8
+      QUANTITY: "volfrac_blood_lung"
+      VALUE: 9.82572713935260245e-02
       TOLERANCE: 1e-08
 DESIGN SURF PORO NEUMANN CONDITIONS:
   - E: 1

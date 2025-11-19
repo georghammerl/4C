@@ -288,25 +288,25 @@ RESULT DESCRIPTION:
       DIS: "porofluid"
       NODE: 8
       QUANTITY: "det_def_grad"
-      VALUE: 1.02954297733447486e+00
+      VALUE: 1.02848653476776875e+00
       TOLERANCE: 1e-08
   - POROFLUIDMULTIPHASE:
       DIS: "porofluid"
       NODE: 3
       QUANTITY: "det_def_grad"
-      VALUE: 1.02733986975627234e+00
+      VALUE: 1.02580845308239832e+00
       TOLERANCE: 1e-08
   - POROFLUIDMULTIPHASE:
       DIS: "porofluid"
       NODE: 8
       QUANTITY: "volfrac_blood_lung"
-      VALUE: 9.91303541813164935e-02
+      VALUE: 9.91608910783433189e-02
       TOLERANCE: 1e-08
   - POROFLUIDMULTIPHASE:
       DIS: "porofluid"
       NODE: 3
       QUANTITY: "volfrac_blood_lung"
-      VALUE: 9.91940858042239804e-02
+      VALUE: 9.92385076677815975e-02
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"

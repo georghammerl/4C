@@ -293,7 +293,10 @@ namespace PoroPressureBased
     std::shared_ptr<Core::LinAlg::Vector<double>> det_def_grad() const { return det_def_grad_; }
 
     //! return number of dof set associated with solid pressure
-    int get_dof_set_number_of_solid_pressure() const override { return nds_solidpressure_; };
+    [[nodiscard]] int get_dof_set_number_of_solid_pressure() const override
+    {
+      return nds_solidpressure_;
+    };
 
     //! return valid volume fraction species
     std::shared_ptr<const Core::LinAlg::Vector<double>> valid_vol_frac_spec_dofs() const override
