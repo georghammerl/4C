@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_conditions.hpp"
 #include "4C_geometry_pair_line_to_line_evaluation_data.hpp"
 
@@ -60,8 +61,6 @@ namespace BeamInteraction
     double positional_penalty_parameter_;
     /// Penalty parameter used to couple the rotational DoFs
     double rotational_penalty_parameter_;
-    /// Element-local parameter coordinates of the coupling nodes
-    std::array<double, 2> local_parameter_coordinates_;
   };
 
   /**
@@ -87,9 +86,12 @@ namespace BeamInteraction
         if (condition.parameters().has_group("PARAMETERS"))
         {
           const auto parameters = condition.parameters().group("PARAMETERS");
-          positional_penalty_parameter_ = parameters.get<double>("POSITIONAL_PENALTY_PARAMETER");
-          rotational_penalty_parameter_ = parameters.get<double>("ROTATIONAL_PENALTY_PARAMETER");
-          projection_valid_factor_ = parameters.get<double>("PROJECTION_VALID_FACTOR");
+          parameters_.penalty_parameter_pos =
+              parameters.get<double>("POSITIONAL_PENALTY_PARAMETER");
+          parameters_.penalty_parameter_rot =
+              parameters.get<double>("ROTATIONAL_PENALTY_PARAMETER");
+          parameters_.projection_valid_factor = parameters.get<double>("PROJECTION_VALID_FACTOR");
+          parameters_.use_closest_point_projection = true;
           return true;
         }
         return false;
@@ -146,12 +148,8 @@ namespace BeamInteraction
     //! Set containing the other line element IDs.
     std::set<int> other_line_ids_;
 
-    /// Penalty parameter used to couple the positional DoFs
-    double positional_penalty_parameter_;
-    /// Penalty parameter used to couple the rotational DoFs
-    double rotational_penalty_parameter_;
-    /// Factor to determine valid projection
-    double projection_valid_factor_;
+    // Parameters for the created coupling pairs.
+    BeamToBeamPointCouplingPairParameters parameters_{};
 
     /// Pointer to geometry evaluation data for line-to-line projections
     std::shared_ptr<GeometryPair::LineToLineEvaluationData> geometry_evaluation_data_;
