@@ -1,0 +1,158 @@
+{% set solid_tutorial_file = "solid/tutorial_solid_vtu.4C.yaml" %}
+{% set inputfile_content = load_input_file(solid_tutorial_file) %}
+
+{% set mesh = read_mesh("solid/tutorial_vtu.vtu") %}
+
+(3d_solidvtututorial)=
+
+# VTU input tutorial
+
+## Introduction
+
+```{note}
+This tutorial builds upon the contents of previous 4C tutorials. If you are not familiar with the basic
+concepts of how to setup and run a simulation with 4C, please refer to the introductory
+{ref}`3D solid-mechanics tutorial <3d_solidtutorial>` first.
+```
+This tutorial demonstrates the usage of 4C with the VTU file format. In this example, we look into
+a simple 3D solid-mechanics problem. All principles are also applicable to other problem types, e.g.
+fluid-structure interaction or thermal problems.
+
+The example consists of a simple hollow quarter-cylinder, as shown in the (interactive)
+figure below. The material of the cylinder is a living soft tissue consisting of collagen fibers
+embedded in an elastin matrix. The collagen fibers are oriented in circumferential direction as shown
+in the figure.
+
+{{ plotter(aspect_ratio=2/1)
+    .add_mesh(mesh, show_edges=True)
+    .add_mesh(mesh.glyph(orient="collagen_fiber", factor=0.5), color="red")
+    .make() }}
+
+The quarter-cylinder is subjected to a pressure load on the inner surface. On the outer surface, a
+Robin spring boundary condition in reference-surface normal direction is applied. All movements on the
+lateral surfaces are fixed in their respective surface normal direction. The elastin matrix is
+stress-free in the reference configuration and the collagen fibers have a prestretch so that the
+cylinder is in mechanical equilibrium in the reference configuration under the baseline pressure.
+
+The living soft tissue tries to maintain a mechanobiological homeostatic state. We assume that the tissue
+is homeostatic in reference configuration under the baseline pressure. At the initial time, the
+pressure is increased by 60%, resulting in an immediate deformation of the cylinder and a transient
+adaptation of the collagen fiber concentration over time through a turnover process.
+
+```{note}
+We will not go into the details of the material model or the mechanobiological adaption in this tutorial.
+The interested reader is referred to the respective literature of constrained mixture models
+[[1](https://doi.org/10.1142/s0218202502001714), [2](https://doi.org/10.1007/s10237-016-0770-9), [3](https://doi.org/10.1007/s10237-023-01747-w)].
+We will also not analyze the simulation results, since it is just a simple dummy example to demonstrate
+how to input geometry and data via VTU files.
+```
+
+## Defining blocks and materials
+
+A block is used in 4C to assign a group of elements to specific physical and element parameters. In
+our case, we only have one block consisting of all elements in the mesh. The blocks are defined with
+a cell-data array of an integer type in the VTU file with the name `block_id`.
+
+{{ plotter(aspect_ratio=2/1).add_mesh(mesh, scalars="block_id", show_edges=True).make() }}
+
+```{note}
+Every block in 4C can only consist of elements of the same type (hex8, tet4, etc.).
+```
+
+```{note}
+Since 4C is using the id defined for the block to define the element properties, it is important to
+note that we must define a block-id even if the system contains only a single block.
+```
+
+To assign physics and element parameters to the block, we need to define the
+section `STRUCTURE GEOMETRY` in the input file, as shown here:
+
+{{ section_dump(inputfile_content, ["STRUCTURE GEOMETRY"]) }}
+
+Here, we define the path to the VTU file and the element-blocks. In our example, we only have one
+block with the id `1` consisting of hexahedral elements with nonlinear kinematics. We assign the
+material with the id `1` to this block (see below for the material definition).
+
+## Defining boundary conditions via point-sets
+
+Next, we want to define boundary conditions at specific surfaces of the geometry. In 4C,
+we can apply boundary conditions to point-sets. VTU does not have native support for point-set definitions,
+so 4C expects a point array of an integer type with the name `point_set_<id>` in the VTU file, where `<id>`
+is the id of the point set. Every point that belongs to the point-set should have a non-zero value (typically `1`)
+as a value in the point array. Points that do not belong to the point-set should have a value of `0`.
+
+```{note}
+4C only accepts integer-type point arrays for point-set definitions!
+```
+
+On the inner side of the quarter-cylinder, we apply a pressure load. We define the point-set
+with the id `1` with the point_array `point_set_1` which is 1 for all points on the inner surface and 0 elsewhere.
+
+{{ plotter(aspect_ratio=2/1)
+    .add_mesh(mesh, scalars="point_set_1")
+    .make() }}
+
+```{note}
+Paraview (and the interactive plot here) linearly interpolates the point-set data within the geometry so that
+it might appear as if the point-set is not an integer value. However, 4C only considers the actual point values
+and does not interpolate as Paraview does for visualization.
+```
+
+In the input file, we can now define the pressure boundary condition on point-set `1`, as shown here:
+
+{{ section_dump(inputfile_content, ["DESIGN SURF NEUMANN CONDITIONS"]) }}
+
+```{note}
+It is important to specify the `ENTITY_TYPE` indicating which entity the id refers to. Here, we use
+`node_set_id` since we define the surface based on a node set.
+```
+
+Similarly, we define the remaining boundary conditions (Robin spring conditions and lateral surface
+fixings). The respective sections in the input file are
+
+{{ section_dump(inputfile_content, ["DESIGN SURF ROBIN SPRING DASHPOT CONDITIONS",
+                                 "DESIGN SURF DIRICH CONDITIONS",
+                                 "DESIGN LINE DIRICH CONDITIONS"]) }}
+
+The interested reader can open the respective vtu-file in Paraview and visualize the point-sets to see which points
+are part of the respective point-sets.
+
+## Defining fields
+
+In this example, we define a vector field called `collagen_fiber`, which is a unit vector field in the
+domain pointing in the direction of the collagen fibers (see figure above). The field can be defined
+as point-data, cell-data, or constant data. In our case, the field is defined at the points and are interpolated
+within the cells by 4C.
+
+To access a field from the mesh, you need to define them in the input file.
+
+{{ section_dump(inputfile_content, ["fields"]) }}
+
+You define the name of the field and the discretization in which the field is used. Here, we use the
+field for a solid mechanics problem, so we define the discretization as `structure`. The source
+of the field is `from_mesh` since we want to read the values directly from the mesh file.
+Alternatively, the field can also be read from a table-like json structure, which we will not cover
+in this tutorial.
+
+In this case, the field we want to create is an interpolated field -- i.e., a field that can be
+evaluated at arbitrary points within the domain and is defined on a basis.
+In our case, we define the field on the points of the mesh and interpolate it with the shape functions.
+Hence, we use `points` as the basis. If the fibers are constant within an element, you can use the
+basis `cells` instead and provide a cell-data array.
+
+You can now refer to this field from the parameter sections in the input file. Here, we use it
+in the material definition of the collagen fiber as follows:
+
+{{ section_dump(inputfile_content, ["MATERIALS"]) }}
+
+Take a look at the `ORIENTATION` of the collagen fiber (`MIX_Constituent_ExplicitRemodelFiber`). Here,
+we specify that we want to read the fiber orientation from the mesh field `collagen_fiber`
+that we defined in the `fields` section above and in the vtu file.
+
+
+## Simulation
+
+Finally, we can run the simulation as usual with 4C. See {ref}`3D solid mechanics tutorial <3d_solidtutorial>`
+for more details on running a simulation with 4C and inspecting the results. Note, that the
+simulation shown here is not based on realistic geometries or parameters, and is only meant to
+demonstrate the usage of vtu files in 4C. Hence, we omit the analysis of the results here.

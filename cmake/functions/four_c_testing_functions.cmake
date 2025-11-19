@@ -603,9 +603,14 @@ endfunction()
 # TEST_FILE: must equal the name of the input file in directory tests/tutorials
 # NP: number of MPI ranks for this test
 # COPY_FILES: copy any additional files to the test directory
+# REQUIRED_DEPENDENCIES:        Any required external dependencies. The test will be skipped if the dependencies are not met.
+#                                Either a dependency, e.g. "Trilinos", or a dependency with a version constraint, e.g. "Trilinos>=2025.2".
+#                                The supported version constraint operators are: >=, <=, >, <, ==
+#                                If multiple dependencies are provided, all must be met for the test to run.
+#                                Note that the version is the _internal_ version that 4C assigns to the dependency.
 function(four_c_test_tutorial)
   set(oneValueArgs TEST_FILE NP)
-  set(multiValueArgs COPY_FILES)
+  set(multiValueArgs COPY_FILES REQUIRED_DEPENDENCIES)
   cmake_parse_arguments(
     _parsed
     "${options}"
@@ -618,6 +623,9 @@ function(four_c_test_tutorial)
   if(DEFINED _parsed_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "There are unparsed arguments: ${_parsed_UNPARSED_ARGUMENTS}!")
   endif()
+
+  # check whether the dependencies are required
+  check_required_dependencies(skip_message "${_parsed_REQUIRED_DEPENDENCIES}")
 
   set(name_of_input_file ${_parsed_TEST_FILE})
   set(num_proc ${_parsed_NP})

@@ -2731,7 +2731,8 @@ four_c_test_tutorial(TEST_FILE preconditioner/tutorial_prec_fsi_muelu.4C.yaml NP
         ${PROJECT_SOURCE_DIR}/tests/tutorials/preconditioner/tutorial_prec_fsi.exo
         ${PROJECT_SOURCE_DIR}/tests/tutorials/preconditioner/tutorial_prec_fsi_gmres.xml
         ${PROJECT_SOURCE_DIR}/tests/tutorials/preconditioner/tutorial_prec_fsi_muelu_fully_coupled_amg.xml)
-
+# Test vtu input tutorial
+four_c_test_tutorial(TEST_FILE solid/tutorial_solid_vtu.4C.yaml NP 2 REQUIRED_DEPENDENCIES VTK COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/solid/tutorial_vtu.vtu)
 
 # four_c_test_vtk
 four_c_test_vtk(beam_runtime_ghosting_output-vtk-beam.4C.yaml beam_runtime_ghosting_output.4C.yaml 3 xxx-structure-beams.pvd ref/beam_runtime_ghosting_output-vtk/structure-beams.pvd 1e-08 0.0 1.0)
