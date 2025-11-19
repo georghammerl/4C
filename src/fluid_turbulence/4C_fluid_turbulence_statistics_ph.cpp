@@ -43,12 +43,12 @@ FLD::TurbulenceStatisticsPh::TurbulenceStatisticsPh(
   // allocate some (toggle) vectors
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
-  squaredvelnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  squaredvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
-  toggleu_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglev_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglew_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglep_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  toggleu_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglev_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglew_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglep_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   //----------------------------------------------------------------------
   // create sets of coordinates

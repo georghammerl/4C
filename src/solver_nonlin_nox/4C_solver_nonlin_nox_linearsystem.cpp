@@ -397,7 +397,7 @@ void NOX::Nln::LinearSystem::adjust_pseudo_time_step(double& delta, const double
   if (jac.is_null())
     throw_error("adjust_pseudo_time_step()", "Cast to Core::LinAlg::SparseMatrix failed!");
   // get the diagonal terms of the jacobian
-  auto diag = Core::LinAlg::create_vector(jac->row_map(), false);
+  auto diag = std::make_shared<Core::LinAlg::Vector<double>>(jac->row_map(), false);
   jac->extract_diagonal_copy(*diag);
   diag->update(-1.0, v, 1.0);
   // Finally undo the changes
@@ -409,7 +409,7 @@ void NOX::Nln::LinearSystem::adjust_pseudo_time_step(double& delta, const double
   /* evaluate the first vector:
    *    eta^{-1} F_{n-1} + (\nabla_{x} F_{n-1})^{T} d_{n-1}             */
   double stepSizeInv = 1.0 / stepSize;
-  auto vec_1 = Core::LinAlg::create_vector(jac->row_map(), true);
+  auto vec_1 = std::make_shared<Core::LinAlg::Vector<double>>(jac->row_map(), true);
   Core::LinAlg::Vector<double> vec_2(rhs.get_linalg_vector());
   jac->multiply(false, dir.get_linalg_vector(), *vec_1);
   vec_2.scale(stepSizeInv);
@@ -426,7 +426,7 @@ void NOX::Nln::LinearSystem::adjust_pseudo_time_step(double& delta, const double
   // ---------------------------------------------------------------------
   // show the error (L2-norm)
   // ---------------------------------------------------------------------
-  auto vec_err = Core::LinAlg::create_vector(jac->row_map(), true);
+  auto vec_err = std::make_shared<Core::LinAlg::Vector<double>>(jac->row_map(), true);
   vec_err->update(delta, *vec_1, 1.0, vec_2, 0.0);
   double error_start = 0.0;
   vec_err->norm_2(&error_start);

@@ -131,14 +131,6 @@ Core::LinAlg::SparseMatrix Core::LinAlg::create_interpolation_matrix(const Spars
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Core::LinAlg::create_vector(
-    const Map& rowmap, const bool init)
-{
-  return std::make_shared<Core::LinAlg::Vector<double>>(rowmap, init);
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Map> Core::LinAlg::create_map(
     const std::vector<int>& gids, MPI_Comm comm)
 {

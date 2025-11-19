@@ -579,10 +579,13 @@ void FSI::MonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vector<dou
 
   // Reset quantities for previous iteration step since they still store values from the last time
   // step
-  ddiinc_ = Core::LinAlg::create_vector(*structure_field()->interface()->other_map(), true);
+  ddiinc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->other_map(), true);
   soliprev_ = nullptr;
-  ddginc_ = Core::LinAlg::create_vector(*structure_field()->interface()->fsi_cond_map(), true);
-  duginc_ = Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+  ddginc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->fsi_cond_map(), true);
+  duginc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *fluid_field()->interface()->fsi_cond_map(), true);
   disgprev_ = nullptr;
   sgicur_ = nullptr;
   sggcur_ = nullptr;

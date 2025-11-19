@@ -132,7 +132,7 @@ void Coupling::Adapter::CouplingMortar::setup(
   std::shared_ptr<Core::LinAlg::Map> dofrowmap =
       Core::LinAlg::merge_map(masterdofrowmap_, slavedofrowmap_, false);
   std::shared_ptr<Core::LinAlg::Vector<double>> dispn =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // set displacement state in mortar interface
   interface_->set_state(Mortar::state_new_displacement, *dispn);
@@ -214,7 +214,7 @@ void Coupling::Adapter::CouplingMortar::check_slave_dirichlet_overlap(
   std::shared_ptr<Core::LinAlg::MapExtractor> dbcmaps =
       std::make_shared<Core::LinAlg::MapExtractor>();
   std::shared_ptr<Core::LinAlg::Vector<double>> temp =
-      Core::LinAlg::create_vector(*(slavedis->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(slavedis->dof_row_map()), true);
   slavedis->evaluate_dirichlet(p, temp, nullptr, nullptr, nullptr, dbcmaps);
 
   // loop over all slave row nodes of the interface
@@ -523,9 +523,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   //**********************************************************************
   // build global vectors of slave and master coordinates
   std::shared_ptr<Core::LinAlg::Vector<double>> xs =
-      Core::LinAlg::create_vector(*slavedofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-      Core::LinAlg::create_vector(*masterdofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all slave row nodes
   for (int j = 0; j < interface_->slave_row_nodes()->num_my_elements(); ++j)
@@ -614,7 +614,7 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
       std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap);
   M_->multiply(false, *xm, *Mxm);
   std::shared_ptr<Core::LinAlg::Vector<double>> gold =
-      Core::LinAlg::create_vector(*slavedofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap, true);
   gold->update(1.0, *Dxs, 1.0);
   gold->update(-1.0, *Mxm, 1.0);
   double gnorm = 0.0;
@@ -676,7 +676,7 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   //**********************************************************************
   // fill Xmaster first
   std::shared_ptr<Core::LinAlg::Vector<double>> Xmaster =
-      Core::LinAlg::create_vector(*masterdofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all master row nodes on the current interface
   for (int j = 0; j < interface_->master_row_nodes()->num_my_elements(); ++j)
@@ -707,7 +707,7 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   //**********************************************************************
   // relocate modified slave positions
   std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod =
-      Core::LinAlg::create_vector(*slavedofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap, true);
 
   // this is trivial for dual Lagrange multipliers
   P_->multiply(false, *Xmaster, *Xslavemod);
@@ -863,8 +863,8 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   // (4) re-evaluate constraints in reference configuration
   //**********************************************************************
   // build global vectors of slave and master coordinates
-  xs = Core::LinAlg::create_vector(*slavedofrowmap, true);
-  xm = Core::LinAlg::create_vector(*masterdofrowmap, true);
+  xs = std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap, true);
+  xm = std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all slave row nodes
   for (int j = 0; j < interface_->slave_row_nodes()->num_my_elements(); ++j)
@@ -944,7 +944,7 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   Mxm = std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap);
   M_->multiply(false, *xm, *Mxm);
   std::shared_ptr<Core::LinAlg::Vector<double>> gnew =
-      Core::LinAlg::create_vector(*slavedofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap, true);
   gnew->update(1.0, *Dxs, 1.0);
   gnew->update(-1.0, *Mxm, 1.0);
   gnew->norm_2(&gnorm);
@@ -998,7 +998,7 @@ void Coupling::Adapter::CouplingMortar::create_p()
   D_->complete();
   Dinv_ = std::make_shared<Core::LinAlg::SparseMatrix>(*D_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*slavedofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap_, true);
   int err = 0;
 
   // extract diagonal of invd into diag
@@ -1077,7 +1077,7 @@ void Coupling::Adapter::CouplingMortar::evaluate(
 
   // Import master and slave displacements into a single vector
   std::shared_ptr<Core::LinAlg::Vector<double>> idisp_master_slave =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   idisp_master_slave->import(*idispma, master_importer, Add);
   idisp_master_slave->import(*idispsl, slaveImporter, Add);
 
@@ -1211,7 +1211,7 @@ void Coupling::Adapter::CouplingMortar::evaluate_with_mesh_relocation(
 
   // extract diagonal of invd into diag
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*slavedofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap_, true);
   Dinv_->extract_diagonal_copy(*diag);
 
   // set zero diagonal values to dummy 1.0

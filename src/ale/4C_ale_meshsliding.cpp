@@ -52,7 +52,7 @@ std::shared_ptr<Core::LinAlg::SparseOperator> ALE::Meshsliding::setup(
 {
   std::shared_ptr<Core::LinAlg::SparseOperator> mat = Meshtying::setup(coupleddof, dispnp);
 
-  lm_ = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+  lm_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   return mat;
 }

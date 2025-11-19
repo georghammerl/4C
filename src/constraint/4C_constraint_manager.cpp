@@ -341,7 +341,7 @@ void Constraints::ConstrManager::read_restart(
   //  consolv_->SetUzawaParameter(uzawatemp);
   std::shared_ptr<Core::LinAlg::Map> constrmap = get_constraint_map();
   std::shared_ptr<Core::LinAlg::Vector<double>> tempvec =
-      Core::LinAlg::create_vector(*constrmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*constrmap, true);
   reader.read_vector(tempvec, "lagrmultiplier");
   set_lagr_mult_vector(*tempvec);
   reader.read_vector(tempvec, "refconval");

@@ -252,7 +252,7 @@ void Adapter::StructureConstrMerged::apply_interface_forces_temporary_deprecated
 {
   // create vector with displacement and constraint DOFs
   std::shared_ptr<Core::LinAlg::Vector<double>> fifc =
-      Core::LinAlg::create_vector(*dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   // insert interface forces
   interface_->add_fsi_cond_vector(*iforce, *fifc);

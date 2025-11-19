@@ -167,8 +167,9 @@ void PoroPressureBased::PorofluidElastAlgorithm::prepare_time_loop()
     // inform the user that the structure field has been disabled
     print_structure_disabled_info();
     // directly set displacements and velocities to zero
-    set_structure_solution(Core::LinAlg::create_vector(*structure_algo_->dof_row_map(), true),
-        Core::LinAlg::create_vector(*structure_algo_->dof_row_map(), true));
+    set_structure_solution(
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo_->dof_row_map(), true),
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo_->dof_row_map(), true));
   }
   porofluid_algo()->prepare_time_loop();
 }
@@ -188,8 +189,9 @@ void PoroPressureBased::PorofluidElastAlgorithm::prepare_time_step()
     set_structure_solution(structure_algo()->dispnp(), structure_algo()->velnp());
   }
   else
-    set_structure_solution(Core::LinAlg::create_vector(*structure_algo_->dof_row_map(), true),
-        Core::LinAlg::create_vector(*structure_algo_->dof_row_map(), true));
+    set_structure_solution(
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo_->dof_row_map(), true),
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo_->dof_row_map(), true));
 
   porofluid_algo()->prepare_time_step();
 }

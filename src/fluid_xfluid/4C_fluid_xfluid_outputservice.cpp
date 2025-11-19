@@ -52,7 +52,7 @@ void FLD::XFluidOutputService::prepare_output()
       *discret_, *dofset_out_, ndim, *velpressplitter_out_);
 
   // create vector according to the dofset_out row map holding all standard fluid unknowns
-  outvec_fluid_ = Core::LinAlg::create_vector(*dofset_out_->dof_row_map(), true);
+  outvec_fluid_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofset_out_->dof_row_map(), true);
 }
 
 void FLD::XFluidOutputService::output(int step, double time, bool write_restart_data,

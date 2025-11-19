@@ -121,7 +121,7 @@ void Adapter::StructureTimeAda::setup_time_ada()
   outsizefile_ = nullptr;
 
   // allocate displacement local error vector
-  locerrdisn_ = Core::LinAlg::create_vector(*(stm_->dof_row_map()), true);
+  locerrdisn_ = std::make_shared<Core::LinAlg::Vector<double>>(*(stm_->dof_row_map()), true);
 
   // enable restart for adaptive timestepping
   const int restart = Global::Problem::instance()->restart();

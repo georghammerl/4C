@@ -285,11 +285,16 @@ void FLD::XFluid::init(bool createinitialstate)
 
   if (alefluid_)
   {
-    dispnp_ = Core::LinAlg::create_vector(*xdiscret_->initial_dof_row_map(), true);
-    dispn_ = Core::LinAlg::create_vector(*xdiscret_->initial_dof_row_map(), true);
-    dispnm_ = Core::LinAlg::create_vector(*xdiscret_->initial_dof_row_map(), true);
-    gridvnp_ = Core::LinAlg::create_vector(*xdiscret_->initial_dof_row_map(), true);
-    gridvn_ = Core::LinAlg::create_vector(*xdiscret_->initial_dof_row_map(), true);
+    dispnp_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret_->initial_dof_row_map(), true);
+    dispn_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret_->initial_dof_row_map(), true);
+    dispnm_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret_->initial_dof_row_map(), true);
+    gridvnp_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret_->initial_dof_row_map(), true);
+    gridvn_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret_->initial_dof_row_map(), true);
   }
 
 
@@ -1335,7 +1340,7 @@ void FLD::XFluid::integrate_shape_function(Teuchos::ParameterList& eleparams,
 
   // create an column vector for assembly over row elements that has to be communicated at the end
   std::shared_ptr<Core::LinAlg::Vector<double>> w_col =
-      Core::LinAlg::create_vector(*discret.dof_col_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_col_map(), true);
 
 
   //----------------------------------------------------------------------
@@ -1537,7 +1542,7 @@ void FLD::XFluid::assemble_mat_and_rhs_gradient_penalty(
 
   residual_gp.put_scalar(0.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> residual_gp_col =
-      Core::LinAlg::create_vector(*state_->xfluiddofcolmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*state_->xfluiddofcolmap_, true);
 
   //----------------------------------------------------------------------
   // set general vector values needed by elements
@@ -2871,7 +2876,7 @@ void FLD::XFluid::update_krylov_space_projection()
     // construct c by setting all pressure values to 1.0 and export to c
     presmode->put_scalar(1.0);
     std::shared_ptr<Core::LinAlg::Vector<double>> tmpc =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
     Core::LinAlg::export_to(*presmode, *tmpc);
     std::shared_ptr<Core::LinAlg::Vector<double>> tmpkspc =
         kspsplitter_->extract_ksp_cond_vector(*tmpc);
@@ -2964,7 +2969,7 @@ void FLD::XFluid::update_by_increments(std::shared_ptr<const Core::LinAlg::Vecto
     //   the DBCs are set again in velnp
 
     std::shared_ptr<Core::LinAlg::Vector<double>> velnp_tmp =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
     state_->incvel_->update(1.0, *stepinc, -1.0, *state_->velnp_, 0.0);
     state_->incvel_->update(1.0, *state_->veln_, 1.0);
@@ -3028,7 +3033,7 @@ void FLD::XFluid::evaluate(
   //    //   the DBCs are set again in velnp
   //
   //    std::shared_ptr<Core::LinAlg::Vector<double>> velnp_tmp =
-  //    Core::LinAlg::create_vector(*discret_->dof_row_map(),true);
+  //    std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(),true);
   //
   //    state_->incvel_->Update(1.0, *stepinc, -1.0, *state_->velnp_, 0.0);
   //    state_->incvel_->Update(1.0, *state_->veln_, 1.0);
@@ -4161,11 +4166,11 @@ void FLD::XFluid::x_timint_reconstruct_ghost_values(
 
 
   std::shared_ptr<Core::LinAlg::Vector<double>> zeros_gp =
-      Core::LinAlg::create_vector(*state_->xfluiddofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*state_->xfluiddofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> residual_gp =
-      Core::LinAlg::create_vector(*state_->xfluiddofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*state_->xfluiddofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> incvel_gp =
-      Core::LinAlg::create_vector(*state_->xfluiddofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*state_->xfluiddofrowmap_, true);
 
   dtsolve_ = 0.0;
   dtele_ = 0.0;
@@ -4960,7 +4965,7 @@ void FLD::XFluid::predict_tang_vel_consist_acc()
 
   // for solution increments on Dirichlet boundary
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcinc =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
   // copy last converged solution
   dbcinc->update(1.0, *state_->veln_, 0.0);
@@ -5000,7 +5005,7 @@ void FLD::XFluid::predict_tang_vel_consist_acc()
   // add linear reaction forces to residual
   // linear reactions
   std::shared_ptr<Core::LinAlg::Vector<double>> freact =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
   state_->sysmat_->multiply(false, *dbcinc, *freact);
 
   // add linear reaction forces due to prescribed Dirichlet BCs
@@ -5059,7 +5064,7 @@ void FLD::XFluid::update_iter_incrementally(std::shared_ptr<const Core::LinAlg::
     // Take Dirichlet values from velnp and add vel to veln for non-Dirichlet
     // values.
     std::shared_ptr<Core::LinAlg::Vector<double>> aux =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map(0)), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map(0)), true);
     aux->update(1.0, *state_->velnp_, 1.0, *vel, 0.0);
     //    dbcmaps_->insert_other_vector(dbcmaps_->extract_other_vector(aux), velnp_);
     state_->dbcmaps_->insert_cond_vector(

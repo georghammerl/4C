@@ -198,13 +198,13 @@ void XFEM::MeshCoupling::init_state_vectors()
 
   const Core::LinAlg::Map* cutterdofrowmap = cutter_dis_->dof_row_map();
 
-  ivelnp_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  iveln_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  ivelnm_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
+  ivelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  iveln_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  ivelnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
 
-  idispnp_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  idispn_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  idispnpi_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
+  idispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  idispn_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  idispnpi_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
 }
 
 /*--------------------------------------------------------------------------*
@@ -270,7 +270,7 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> XFEM::MeshCoupling::get_cutt
 {
   // export cut-discretization mesh displacements
   std::shared_ptr<Core::LinAlg::Vector<double>> idispcol =
-      Core::LinAlg::create_vector(*cutter_dis_->dof_col_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*cutter_dis_->dof_col_map(), true);
   Core::LinAlg::export_to(*idispnp_, *idispcol);
 
   return idispcol;
@@ -1624,8 +1624,8 @@ void XFEM::MeshCouplingFSI::init_state_vectors()
   const Core::LinAlg::Map* cutterdofrowmap = cutter_dis_->dof_row_map();
   const Core::LinAlg::Map* cutterdofcolmap = cutter_dis_->dof_col_map();
 
-  itrueresidual_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  iforcecol_ = Core::LinAlg::create_vector(*cutterdofcolmap, true);
+  itrueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  iforcecol_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofcolmap, true);
 }
 
 
@@ -1768,7 +1768,7 @@ void XFEM::MeshCouplingFSI::gmsh_output_discretization(std::ostream& gmshfilecon
 
   // write dis with zero solid displacements here!
   std::shared_ptr<Core::LinAlg::Vector<double>> solid_dispnp =
-      Core::LinAlg::create_vector(*cond_dis_->dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*cond_dis_->dof_row_map(), true);
 
   XFEM::Utils::extract_node_vectors(*cond_dis_, currsolidpositions, solid_dispnp);
 

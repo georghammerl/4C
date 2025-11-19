@@ -79,14 +79,14 @@ void CONTACT::LagrangeStrategy::initialize()
     // inactive rhs for the saddle point problem
     std::shared_ptr<Core::LinAlg::Map> gidofs =
         Core::LinAlg::split_map(*gsdofrowmap_, *gactivedofs_);
-    inactiverhs_ = Core::LinAlg::create_vector(*gidofs, true);
+    inactiverhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gidofs, true);
 
     // further terms depend on friction case
     // (re)setup global matrix containing "no-friction"-derivatives
     if (!friction_)
     {
       // tangential rhs
-      tangrhs_ = Core::LinAlg::create_vector(*gactivedofs_, true);
+      tangrhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
       tderivmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gactivedofs_, 3);
     }
     // (re)setup of global friction
@@ -97,11 +97,11 @@ void CONTACT::LagrangeStrategy::initialize()
           Core::LinAlg::split_map(*gactivedofs_, *gslipdofs_);
       linstickLM_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstickdofs, 3);
       linstickDIS_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstickdofs, 3);
-      linstickRHS_ = Core::LinAlg::create_vector(*gstickdofs, true);
+      linstickRHS_ = std::make_shared<Core::LinAlg::Vector<double>>(*gstickdofs, true);
 
       linslipLM_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gslipdofs_, 3);
       linslipDIS_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gslipdofs_, 3);
-      linslipRHS_ = Core::LinAlg::create_vector(*gslipdofs_, true);
+      linslipRHS_ = std::make_shared<Core::LinAlg::Vector<double>>(*gslipdofs_, true);
     }
   }
 
@@ -116,14 +116,14 @@ void CONTACT::LagrangeStrategy::initialize()
     // inactive rhs for the saddle point problem
     std::shared_ptr<Core::LinAlg::Map> gidofs =
         Core::LinAlg::split_map(*gsdofrowmap_, *gactivedofs_);
-    inactiverhs_ = Core::LinAlg::create_vector(*gidofs, true);
+    inactiverhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gidofs, true);
 
     // further terms depend on friction case
     // (re)setup global matrix containing "no-friction"-derivatives
     if (!friction_)
     {
       // tangential rhs
-      tangrhs_ = Core::LinAlg::create_vector(*gactivet_, true);
+      tangrhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gactivet_, true);
       tderivmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gactivet_, 3);
     }
     // (re)setup of global friction
@@ -133,11 +133,11 @@ void CONTACT::LagrangeStrategy::initialize()
       std::shared_ptr<Core::LinAlg::Map> gstickt = Core::LinAlg::split_map(*gactivet_, *gslipt_);
       linstickLM_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstickt, 3);
       linstickDIS_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstickt, 3);
-      linstickRHS_ = Core::LinAlg::create_vector(*gstickt, true);
+      linstickRHS_ = std::make_shared<Core::LinAlg::Vector<double>>(*gstickt, true);
 
       linslipLM_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gslipt_, 3);
       linslipDIS_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gslipt_, 3);
-      linslipRHS_ = Core::LinAlg::create_vector(*gslipt_, true);
+      linslipRHS_ = std::make_shared<Core::LinAlg::Vector<double>>(*gslipt_, true);
     }
   }
   return;
@@ -181,12 +181,12 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length()) Core::LinAlg::export_to(*wgap_, *gact);
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -310,11 +310,11 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
 
       // 2. invert diagonal matrices dss dee dvv
       std::shared_ptr<Core::LinAlg::Vector<double>> diagV =
-          Core::LinAlg::create_vector(*gsdofVertex_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofVertex_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagE =
-          Core::LinAlg::create_vector(*gsdofEdge_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofEdge_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagS =
-          Core::LinAlg::create_vector(*gsdofSurf_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofSurf_, true);
       Core::LinAlg::SparseMatrix invdV(*dvv);
       Core::LinAlg::SparseMatrix invdE(*dee);
       Core::LinAlg::SparseMatrix invdS(*dss);
@@ -399,7 +399,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     else
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       int err = 0;
 
       // extract diagonal of invd into diag
@@ -413,10 +413,10 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
 
@@ -1080,7 +1080,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
         std::make_shared<Core::LinAlg::SparseMatrix>(
             *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
     std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-        Core::LinAlg::create_vector(*problem_dofs());
+        std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
     //--------------------------------------------------------- FIRST LINE
     // add n submatrices to kteffnew
@@ -1916,7 +1916,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -1924,7 +1924,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -2072,11 +2072,11 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
       // 2. invert diagonal matrices dss dee dvv
       std::shared_ptr<Core::LinAlg::Vector<double>> diagV =
-          Core::LinAlg::create_vector(*gsdofVertex_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofVertex_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagE =
-          Core::LinAlg::create_vector(*gsdofEdge_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofEdge_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagS =
-          Core::LinAlg::create_vector(*gsdofSurf_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofSurf_, true);
       Core::LinAlg::SparseMatrix invdV(*dvv);
       Core::LinAlg::SparseMatrix invdE(*dee);
       Core::LinAlg::SparseMatrix invdS(*dss);
@@ -2160,7 +2160,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     else
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       int err = 0;
 
       // extract diagonal of invd into diag
@@ -2174,10 +2174,10 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
 
@@ -2704,7 +2704,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         std::make_shared<Core::LinAlg::SparseMatrix>(
             *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
     std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-        Core::LinAlg::create_vector(*problem_dofs());
+        std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
     //----------------------------------------------------------- FIRST LINE
     // add n submatrices to kteffnew
@@ -3112,11 +3112,11 @@ void CONTACT::LagrangeStrategy::build_saddle_point_system(
       mergedmap = Core::LinAlg::merge_map(problem_dofs(), glmdofrowmap_, false);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs =
-        Core::LinAlg::create_vector(*mergedmap);
+        std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol =
-        Core::LinAlg::create_vector(*mergedmap);
+        std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedzeros =
-        Core::LinAlg::create_vector(*mergedmap);
+        std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
 
     /* ToDo (mayr.mt) Is this due to symmetry BCs? Basically, slave DOFs should not carry any
      * Dirichlet BCs.
@@ -3281,7 +3281,7 @@ void CONTACT::LagrangeStrategy::evaluate_constr_rhs()
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -3289,7 +3289,7 @@ void CONTACT::LagrangeStrategy::evaluate_constr_rhs()
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gactiven_->num_global_elements())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -3572,11 +3572,11 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
 
       // 2. invert diagonal matrices dss dee dvv
       std::shared_ptr<Core::LinAlg::Vector<double>> diagV =
-          Core::LinAlg::create_vector(*gsdofVertex_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofVertex_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagE =
-          Core::LinAlg::create_vector(*gsdofEdge_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofEdge_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagS =
-          Core::LinAlg::create_vector(*gsdofSurf_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofSurf_, true);
       Core::LinAlg::SparseMatrix invdV(*dvv);
       Core::LinAlg::SparseMatrix invdE(*dee);
       Core::LinAlg::SparseMatrix invdS(*dss);
@@ -3661,7 +3661,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
     else
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       int err = 0;
 
       // extract diagonal of invd into diag
@@ -3675,10 +3675,10 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
       diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
 
@@ -3830,11 +3830,11 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
 
       // 2. invert diagonal matrices dss dee dvv
       std::shared_ptr<Core::LinAlg::Vector<double>> diagV =
-          Core::LinAlg::create_vector(*gsdofVertex_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofVertex_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagE =
-          Core::LinAlg::create_vector(*gsdofEdge_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofEdge_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagS =
-          Core::LinAlg::create_vector(*gsdofSurf_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofSurf_, true);
       Core::LinAlg::SparseMatrix invdV(*dvv);
       Core::LinAlg::SparseMatrix invdE(*dee);
       Core::LinAlg::SparseMatrix invdS(*dss);
@@ -3918,7 +3918,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
     else
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       int err = 0;
 
       // extract diagonal of invd into diag
@@ -3932,10 +3932,10 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
       diag->reciprocal(*diag);
 
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
 
@@ -5218,12 +5218,12 @@ void CONTACT::LagrangeStrategy::condense_friction(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length()) Core::LinAlg::export_to(*wgap_, *gact);
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -5800,7 +5800,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   Core::LinAlg::SparseMatrix kteffnew(
       *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
   std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-      Core::LinAlg::create_vector(*problem_dofs());
+      std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
   //--------------------------------------------------------- FIRST LINE
   // add n submatrices to kteffnew
@@ -6066,7 +6066,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -6074,7 +6074,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -6494,7 +6494,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   Core::LinAlg::SparseMatrix kteffnew(
       *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
   std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-      Core::LinAlg::create_vector(*problem_dofs());
+      std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
   //----------------------------------------------------------- FIRST LINE
   // add n submatrices to kteffnew

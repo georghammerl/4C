@@ -432,7 +432,8 @@ void FSI::MortarMonolithicStructureSplit::setup_rhs_residual(Core::LinAlg::Vecto
   std::shared_ptr<const Core::LinAlg::Vector<double>> scv =
       structure_field()->interface()->extract_fsi_cond_vector(sv);
   std::shared_ptr<Core::LinAlg::Vector<double>> fcv =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
   mortarp->multiply(true, *scv, *fcv);
   std::shared_ptr<Core::LinAlg::Vector<double>> modfv =
       fluid_field()->interface()->insert_fsi_cond_vector(*fcv);
@@ -684,7 +685,8 @@ void FSI::MortarMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vect
 
   /* Reset quantities for previous iteration step since they still store values
    * from the last time step */
-  ddiinc_ = Core::LinAlg::create_vector(*structure_field()->interface()->other_map(), true);
+  ddiinc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->other_map(), true);
   disiprev_ = nullptr;
   disgprev_ = nullptr;
   sgicur_ = nullptr;
@@ -1264,7 +1266,8 @@ void FSI::MortarMonolithicStructureSplit::extract_field_vectors(
 
   // convert ALE interface displacements to structure interface displacements
   std::shared_ptr<Core::LinAlg::Vector<double>> scx =
-      Core::LinAlg::create_vector(*structure_field()->interface()->fsi_cond_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *structure_field()->interface()->fsi_cond_map());
   acx = ale_to_fluid_interface(acx);
   mortarp->Apply(*acx, *scx);
   scx->update(-1.0, *ddgpred_, 1.0);

@@ -409,7 +409,7 @@ void Solid::ModelEvaluator::Meshtying::apply_mesh_initialization(
   const Core::LinAlg::Map* dof_colmap = discret_ptr()->dof_col_map();
   const Core::LinAlg::Map* node_colmap = discret_ptr()->node_col_map();
   std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemodcol =
-      Core::LinAlg::create_vector(*dof_colmap, false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_colmap, false);
   Core::LinAlg::export_to(*Xslavemod, *Xslavemodcol);
 
   const int numnode = allreduceslavemap->num_my_elements();

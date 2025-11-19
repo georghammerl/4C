@@ -4166,7 +4166,8 @@ void Mortar::Interface::create_volume_ghosting(
       {
         // get the state and export it to the rowmap to be able to reset the state
         auto statevec = structure_dis->get_state(1, "scalarfield");
-        auto statevecrowmap = Core::LinAlg::create_vector(*structure_dis->dof_row_map(1), true);
+        auto statevecrowmap =
+            std::make_shared<Core::LinAlg::Vector<double>>(*structure_dis->dof_row_map(1), true);
         Core::LinAlg::export_to(*statevec, *statevecrowmap);
 
         // now set the state again
@@ -4296,7 +4297,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Vector<double>> disp =
         outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("displacement");
     std::shared_ptr<Core::LinAlg::Vector<double>> iDisp =
-        Core::LinAlg::create_vector(*idiscret_->dof_row_map());
+        std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
     Core::LinAlg::export_to(*disp, *iDisp);
 
     // Write the interface displacement field
@@ -4309,7 +4310,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Vector<double>> lagMult =
         outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("interface traction");
     std::shared_ptr<Core::LinAlg::Vector<double>> iLagMult =
-        Core::LinAlg::create_vector(*idiscret_->dof_row_map());
+        std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
     Core::LinAlg::export_to(*lagMult, *iLagMult);
 
     // Write this interface's Lagrange multiplier field
@@ -4322,7 +4323,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Vector<double>> slaveforces =
         outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("slave forces");
     std::shared_ptr<Core::LinAlg::Vector<double>> forces =
-        Core::LinAlg::create_vector(*idiscret_->dof_row_map());
+        std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
     Core::LinAlg::export_to(*slaveforces, *forces);
 
     // Write to output
@@ -4335,7 +4336,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Vector<double>> masterforces =
         outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("master forces");
     std::shared_ptr<Core::LinAlg::Vector<double>> forces =
-        Core::LinAlg::create_vector(*idiscret_->dof_row_map());
+        std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
     Core::LinAlg::export_to(*masterforces, *forces);
 
     // Write to output
@@ -4351,7 +4352,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Map> nodeRowMap =
         Core::LinAlg::merge_map(snoderowmap_, mnoderowmap_, false);
     std::shared_ptr<Core::LinAlg::Vector<double>> masterSlaveVec =
-        Core::LinAlg::create_vector(*nodeRowMap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*nodeRowMap, true);
     Core::LinAlg::export_to(masterVec, *masterSlaveVec);
 
     writer->write_vector("slavemasternodes", masterSlaveVec, Core::IO::VectorType::nodevector);
@@ -4365,7 +4366,7 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
     std::shared_ptr<const Core::LinAlg::Map> eleRowMap =
         Core::LinAlg::merge_map(selerowmap_, melerowmap_, false);
     std::shared_ptr<Core::LinAlg::Vector<double>> masterSlaveVec =
-        Core::LinAlg::create_vector(*eleRowMap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*eleRowMap, true);
     Core::LinAlg::export_to(masterVec, *masterSlaveVec);
 
     writer->write_vector(
@@ -4376,7 +4377,8 @@ void Mortar::Interface::postprocess_quantities(const Teuchos::ParameterList& out
   {
     std::shared_ptr<const Core::LinAlg::Map> eleRowMap =
         Core::LinAlg::merge_map(selerowmap_, melerowmap_, false);
-    std::shared_ptr<Core::LinAlg::Vector<double>> owner = Core::LinAlg::create_vector(*eleRowMap);
+    std::shared_ptr<Core::LinAlg::Vector<double>> owner =
+        std::make_shared<Core::LinAlg::Vector<double>>(*eleRowMap);
 
     for (int i = 0; i < idiscret_->element_row_map()->num_my_elements(); ++i)
       (*owner).get_values()[i] = idiscret_->l_row_element(i)->owner();

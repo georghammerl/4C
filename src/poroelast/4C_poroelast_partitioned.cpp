@@ -26,7 +26,8 @@ PoroElast::Partitioned::Partitioned(MPI_Comm comm, const Teuchos::ParameterList&
   itmax_ = porodyn.get<int>("ITEMAX");            // default: =10
   ittol_ = porodyn.get<double>("TOLINC_GLOBAL");  // default: =1e-8
 
-  fluidveln_ = Core::LinAlg::create_vector(*(fluid_field()->dof_row_map()), true);
+  fluidveln_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*(fluid_field()->dof_row_map()), true);
   fluidveln_->put_scalar(0.0);
 }
 

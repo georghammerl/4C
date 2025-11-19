@@ -276,7 +276,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNodeBasedAlgorithm::
   const auto dbc_maps = std::make_shared<Core::LinAlg::MapExtractor>();
   {
     const std::shared_ptr<Core::LinAlg::Vector<double>> zeros =
-        Core::LinAlg::create_vector(*dis.dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dis.dof_row_map(), true);
     Teuchos::ParameterList ele_params;
     // other parameters needed by the elements
     ele_params.set("total time", 0.0);

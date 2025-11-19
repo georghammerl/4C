@@ -847,7 +847,7 @@ void CONTACT::LagrangeStrategyPoro::evaluate_mat_poro_no_pen(
       std::make_shared<Core::LinAlg::SparseMatrix>(
           *falldofrowmap_, 81, true, false, k_fseff->get_matrixtype());
   std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-      Core::LinAlg::create_vector(*falldofrowmap_);
+      std::make_shared<Core::LinAlg::Vector<double>>(*falldofrowmap_);
 
   //----------------------------------------------------------- FIRST LINE
   // add n submatrices to kteffnew
@@ -1518,7 +1518,7 @@ void CONTACT::LagrangeStrategyPoro::poro_mt_set_coupling_matrices()
   // invert dmatrix to invd
   invd_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dmatrix_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // extract diagonal of invd into diag
   invd_->extract_diagonal_copy(*diag);

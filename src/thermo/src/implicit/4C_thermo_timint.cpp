@@ -82,7 +82,7 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
   stepn_ = step_ + 1;
 
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   // Map containing Dirichlet DOFs
   {
@@ -102,9 +102,9 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       TimeStepping::TimIntMStep<Core::LinAlg::Vector<double>>(0, 0, discret_->dof_row_map(), true);
 
   // temperatures T_{n+1} at t_{n+1}
-  tempn_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  tempn_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // temperature rates R_{n+1} at t_{n+1}
-  raten_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  raten_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   // create empty matrix
   tang_ = std::make_shared<Core::LinAlg::SparseMatrix>(*discret_->dof_row_map(), 81, true, true);
@@ -185,9 +185,11 @@ void Thermo::TimInt::determine_capa_consist_temp_rate()
 {
   // temporary force vectors in this routine
   std::shared_ptr<Core::LinAlg::Vector<double>> fext =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(), true);  //!< external force
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(), true);  //!< external force
   std::shared_ptr<Core::LinAlg::Vector<double>> fint =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(), true);  //!< internal force
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(), true);  //!< internal force
 
   // overwrite initial state vectors with DirichletBCs
   apply_dirichlet_bc(time_[0], temp_(0), rate_(0), false);
@@ -234,7 +236,7 @@ void Thermo::TimInt::determine_capa_consist_temp_rate()
     // rhs corresponds to residual on the rhs
     // K . DT = - R_n+1 = - R_n - (fint_n+1 - fext_n+1)
     std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     rhs->update(-1.0, *fint, 1.0, *fext, -1.0);
     // blank RHS on DBC DOFs
     dbcmaps_->insert_cond_vector(*dbcmaps_->extract_cond_vector(*zeros_), *rhs);

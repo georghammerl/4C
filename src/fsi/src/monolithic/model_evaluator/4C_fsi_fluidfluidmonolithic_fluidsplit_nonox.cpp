@@ -1145,7 +1145,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::handle_fluid_dof_map_change_in_ne
 
   //  Save old sum of increments
   std::shared_ptr<Core::LinAlg::Vector<double>> x_sum_n =
-      Core::LinAlg::create_vector(*dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   *x_sum_n = *x_sum_;
   //  Extract structural increment sum
   std::shared_ptr<const Core::LinAlg::Vector<double>> sx_n;
@@ -1161,10 +1161,10 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::handle_fluid_dof_map_change_in_ne
       std::make_shared<Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>(
           extractor(), extractor(), 81, false, true);
 
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  rhs_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  x_sum_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  x_sum_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   //  Set the new increment sum x_sum_ together
 

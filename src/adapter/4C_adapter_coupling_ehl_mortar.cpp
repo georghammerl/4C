@@ -180,12 +180,12 @@ void Adapter::CouplingEhlMortar::condense_contact(
       std::make_shared<Core::LinAlg::SparseMatrix>(
           *interface_->active_dofs(), 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   std::shared_ptr<Core::LinAlg::Vector<double>> fcsa =
-      Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> g_all;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
-    g_all = Core::LinAlg::create_vector(*interface_->slave_row_dofs(), true);
+    g_all = std::make_shared<Core::LinAlg::Vector<double>>(*interface_->slave_row_dofs(), true);
   else
-    g_all = Core::LinAlg::create_vector(*interface_->slave_row_nodes(), true);
+    g_all = std::make_shared<Core::LinAlg::Vector<double>>(*interface_->slave_row_nodes(), true);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> dmatrix =
       std::make_shared<Core::LinAlg::SparseMatrix>(*interface_->slave_row_dofs(), 10);
@@ -217,7 +217,7 @@ void Adapter::CouplingEhlMortar::condense_contact(
     if (interface_->is_friction())
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> rcsa_fr =
-          Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
       interface_->assemble_lin_slip_normal_regularization(*dcsdLMc, *dcsdd, *rcsa_fr);
       interface_->assemble_lin_stick(*dcsdLMc, *dcsdd, *rcsa_fr);
       rcsa_fr->scale(-1.);
@@ -226,7 +226,7 @@ void Adapter::CouplingEhlMortar::condense_contact(
     else
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> rcsa_fr =
-          Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
       interface_->assemble_tn(dcsdLMc, nullptr);
       interface_->assemble_t_nderiv(dcsdd, nullptr);
       interface_->assemble_tangrhs(*rcsa_fr);
@@ -246,12 +246,12 @@ void Adapter::CouplingEhlMortar::condense_contact(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
     if (gact->global_length()) Core::LinAlg::export_to(*g_all, *gact);
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*interface_->active_nodes(), true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_nodes(), true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*g_all, *gact);
@@ -487,13 +487,13 @@ void Adapter::CouplingEhlMortar::condense_contact(
     if (haveDBC > 0.)
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
       dInvA->extract_diagonal_copy(*diag);
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
       Core::LinAlg::export_to(*sdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*interface_->active_dofs(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*interface_->active_dofs(), true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
       dInvA->replace_diagonal_values(*diag);

@@ -122,7 +122,7 @@ void ScaTra::LevelSetAlgorithm::setup()
     if (reinitaction_ == Inpar::ScaTra::reinitaction_sussman)
     {
       // vector for initial phi (solution of level-set equation) of reinitialization process
-      initialphireinit_ = Core::LinAlg::create_vector(*dofrowmap, true);
+      initialphireinit_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
       // get pseudo-time step size
       dtau_ = levelsetparams_->sublist("REINITIALIZATION").get<double>("TIMESTEPREINIT");

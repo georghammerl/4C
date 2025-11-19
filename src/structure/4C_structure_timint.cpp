@@ -310,14 +310,14 @@ void Solid::TimInt::create_all_solution_vectors()
       0, 0, dof_row_map_view(), true);
 
   // displacements D_{n+1} at t_{n+1}
-  disn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  disn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // velocities V_{n+1} at t_{n+1}
-  veln_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  veln_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // accelerations A_{n+1} at t_{n+1}
-  accn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  accn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // create empty interface force vector
-  fifc_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fifc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 }
 
 /*-------------------------------------------------------------------------------------------*
@@ -326,7 +326,7 @@ void Solid::TimInt::create_all_solution_vectors()
 void Solid::TimInt::create_fields()
 {
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // Map containing Dirichlet DOFs
   {
@@ -876,7 +876,7 @@ void Solid::TimInt::apply_mesh_initialization(
 
   // export modified node positions to column map of problem discretization
   std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemodcol =
-      Core::LinAlg::create_vector(*discret_->dof_col_map(), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_col_map(), false);
   Core::LinAlg::export_to(*Xslavemod, *Xslavemodcol);
 
   const int numnode = allreduceslavemap->num_my_elements();
@@ -940,12 +940,12 @@ void Solid::TimInt::determine_mass_damp_consist_accel()
 {
   // temporary right hand sinde vector in this routing
   std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);  // right hand side
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);  // right hand side
   // temporary force vectors in this routine
   std::shared_ptr<Core::LinAlg::Vector<double>> fext =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);  // external force
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);  // external force
   std::shared_ptr<Core::LinAlg::Vector<double>> fint =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);  // internal force
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);  // internal force
 
   // initialise matrices
   stiff_->zero();
@@ -955,7 +955,7 @@ void Solid::TimInt::determine_mass_damp_consist_accel()
   // Meier 2015: This contribution is necessary in order to determine correct initial
   // accelerations in case of inhomogeneous Dirichlet conditions
   std::shared_ptr<Core::LinAlg::Vector<double>> acc_aux =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   acc_aux->put_scalar(0.0);
 
   // overwrite initial state vectors with DirichletBCs
@@ -1070,7 +1070,7 @@ void Solid::TimInt::determine_mass_damp_consist_accel()
 
     // Contribution to rhs due to inertia forces of inhomogeneous Dirichlet conditions
     std::shared_ptr<Core::LinAlg::Vector<double>> finert0 =
-        Core::LinAlg::create_vector(*dof_row_map_view(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
     finert0->put_scalar(0.0);
     mass_->multiply(false, *acc_aux, *finert0);
     rhs->update(-1.0, *finert0, 1.0);
@@ -1302,14 +1302,15 @@ void Solid::TimInt::update_step_contact_vum()
           std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(mass_);
       Core::LinAlg::SparseMatrix Minv(*Mass);
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*dofmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofmap, true);
       Minv.extract_diagonal_copy(*diag);
       diag->reciprocal(*diag);
       Minv.replace_diagonal_values(*diag);
       Minv.complete(*dofmap, *dofmap);
 
       // displacement increment Dd
-      std::shared_ptr<Core::LinAlg::Vector<double>> Dd = Core::LinAlg::create_vector(*dofmap, true);
+      std::shared_ptr<Core::LinAlg::Vector<double>> Dd =
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofmap, true);
       Dd->update(1.0, *disn_, 0.0);
       Dd->update(-1.0, (*dis_)[0], 1.0);
 
@@ -1349,9 +1350,9 @@ void Solid::TimInt::update_step_contact_vum()
       std::shared_ptr<const Core::LinAlg::Vector<double>> LM =
           cmtbridge_->get_strategy().lagrange_multiplier();
       std::shared_ptr<Core::LinAlg::Vector<double>> Z =
-          Core::LinAlg::create_vector(*slavenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*slavenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> z =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       N->multiply(false, *LM, *Z);
       Core::LinAlg::export_to(*Z, *z);
 
@@ -1375,16 +1376,16 @@ void Solid::TimInt::update_step_contact_vum()
 
       // diagonal of A
       std::shared_ptr<Core::LinAlg::Vector<double>> AD =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       A->extract_diagonal_copy(*AD);
 
       // operator b
       std::shared_ptr<Core::LinAlg::Vector<double>> btemp1 =
-          Core::LinAlg::create_vector(*dofmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofmap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> btemp2 =
-          Core::LinAlg::create_vector(*slavenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*slavenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> b =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       btemp1->update(R1, *Dd, 0.0);
       btemp1->update(R2, (*vel_)[0], 1.0);
       btemp1->update(R3, (*acc_)[0], 1.0);
@@ -1393,28 +1394,28 @@ void Solid::TimInt::update_step_contact_vum()
 
       // operator c
       std::shared_ptr<Core::LinAlg::Vector<double>> ctemp =
-          Core::LinAlg::create_vector(*slavenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*slavenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> c =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       BN->multiply(true, *Dd, *ctemp);
       Core::LinAlg::export_to(*ctemp, *c);
 
       // contact work wc
       std::shared_ptr<Core::LinAlg::Vector<double>> wc =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       wc->multiply(1.0, *c, *z, 0.0);
 
       // gain and loss of energy
       double gain = 0;
       double loss = 0;
       std::shared_ptr<Core::LinAlg::Vector<double>> wp =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> wn =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> wd =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> wt =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       for (int i = 0; i < activenodemap->num_my_elements(); ++i)
       {
         if (wc->local_values_as_span()[i] > 0)
@@ -1446,11 +1447,11 @@ void Solid::TimInt::update_step_contact_vum()
       // manipulated contact work w
       double tolerance = 0.01;
       std::shared_ptr<Core::LinAlg::Vector<double>> wtemp1 =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> wtemp2 =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> w =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       if (abs(gain - loss) < 1.0e-8)
       {
         return;
@@ -1483,11 +1484,11 @@ void Solid::TimInt::update_step_contact_vum()
 
       // (1) initial solution p_0
       std::shared_ptr<Core::LinAlg::Vector<double>> p1 =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> p2 =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> p =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       if (gain > loss)
       {
         for (int i = 0; i < activenodemap->num_my_elements(); ++i)
@@ -1541,9 +1542,9 @@ void Solid::TimInt::update_step_contact_vum()
 
       // (2) initial residual f_0, |f_0|, DF_0
       std::shared_ptr<Core::LinAlg::Vector<double>> x =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> f =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       int NumEntries = 0;
       int* Indices = nullptr;
       double* Values = nullptr;
@@ -1600,9 +1601,9 @@ void Solid::TimInt::update_step_contact_vum()
 
       // (3) Newton-Iteration
       std::shared_ptr<Core::LinAlg::Vector<double>> mf =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> dp =
-          Core::LinAlg::create_vector(*activenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*activenodemap, true);
       double tol = 0.00000001;
       double numiter = 0;
       double stopcrit = 100;
@@ -1675,10 +1676,11 @@ void Solid::TimInt::update_step_contact_vum()
 
       // (4) VelocityUpdate
       std::shared_ptr<Core::LinAlg::Vector<double>> ptemp1 =
-          Core::LinAlg::create_vector(*slavenodemap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*slavenodemap, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> ptemp2 =
-          Core::LinAlg::create_vector(*dofmap, true);
-      std::shared_ptr<Core::LinAlg::Vector<double>> VU = Core::LinAlg::create_vector(*dofmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofmap, true);
+      std::shared_ptr<Core::LinAlg::Vector<double>> VU =
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofmap, true);
       Core::LinAlg::export_to(*p, *ptemp1);
       BN->multiply(false, *ptemp1, *ptemp2);
       Minv.multiply(false, *ptemp2, *VU);
@@ -2263,7 +2265,7 @@ void Solid::TimInt::determine_energy()
     kinergy_ = 0.0;  // total kinetic energy
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> linmom =
-          Core::LinAlg::create_vector(*dof_row_map_view(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
       mass_->multiply(false, *veln_, *linmom);
       linmom->dot(*veln_, &kinergy_);
       kinergy_ *= 0.5;
@@ -2851,13 +2853,13 @@ void Solid::TimInt::reset()
       0, 0, dof_row_map_view(), true);
 
   // displacements D_{n+1} at t_{n+1}
-  disn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  disn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // velocities V_{n+1} at t_{n+1}
-  veln_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  veln_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // accelerations A_{n+1} at t_{n+1}
-  accn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  accn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // create empty interface force vector
-  fifc_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fifc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // set initial fields
   set_initial_fields();

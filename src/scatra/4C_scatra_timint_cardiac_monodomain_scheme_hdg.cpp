@@ -141,7 +141,7 @@ void ScaTra::TimIntCardiacMonodomainHDG::write_restart() const
 
   // copy values from node to dof vector
   std::shared_ptr<Core::LinAlg::Vector<double>> dofphi =
-      Core::LinAlg::create_vector(*discret_->node_row_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->node_row_map());
 
   for (int i = 0; i < dofphi->local_length(); ++i)
   {

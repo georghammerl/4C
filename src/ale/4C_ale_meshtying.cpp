@@ -628,7 +628,7 @@ void ALE::Meshtying::update_slave_dof(std::shared_ptr<Core::LinAlg::Vector<doubl
 
   // define new incremental vector
   std::shared_ptr<Core::LinAlg::Vector<double>> incnew =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // delta_vp^s: add P*delta_vp^m
   Core::LinAlg::Vector<double> fs_mod(*gsdofrowmap_, true);
@@ -697,8 +697,8 @@ int ALE::Meshtying::solve_meshtying(Core::LinAlg::Solver& solver,
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> mergedmatrix = nullptr;
 
-  res = Core::LinAlg::create_vector(*mergedmap_, true);
-  dis = Core::LinAlg::create_vector(*mergedmap_, true);
+  res = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
+  dis = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
 
   mergedmatrix = std::make_shared<Core::LinAlg::SparseMatrix>(*mergedmap_, 108, false, true);
 

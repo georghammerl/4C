@@ -199,11 +199,11 @@ void PoroElastScaTra::PoroScatraMono::solve()
   norminc_ = 0.0;
 
   // incremental solution vector with length of all dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
 
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 
   //---------------------------------------------- iteration loop
@@ -1226,7 +1226,7 @@ void PoroElastScaTra::PoroScatraMono::fd_check()
   std::cout << "scatra field has " << dof_scatra << " DOFs" << std::endl;
 
   std::shared_ptr<Core::LinAlg::Vector<double>> iterinc = nullptr;
-  iterinc = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   const int dofs = iterinc->global_length();
   std::cout << "in total " << dofs << " DOFs" << std::endl;

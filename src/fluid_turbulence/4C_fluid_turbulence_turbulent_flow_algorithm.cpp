@@ -133,7 +133,7 @@ void FLD::TurbulentFlowAlgorithm::transfer_inflow_velocity()
 
   // velocity/pressure at time n+1 to be transferred to the complete fluid field
   // get a vector layout from the complete discretization
-  velnp_ = Core::LinAlg::create_vector(*fluiddis_->dof_row_map(), true);
+  velnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*fluiddis_->dof_row_map(), true);
 
   // get exporter for transfer of dofs from inflow discretization to complete fluid discretization
   Core::LinAlg::Export exporter(inflowvelnp->get_map(), velnp_->get_map());
@@ -172,15 +172,15 @@ void FLD::TurbulentFlowAlgorithm::read_restart(const int restart)
   // vectors to be transferred to the inflow field
   // get a vector layout from the inflow discretization
   std::shared_ptr<Core::LinAlg::Vector<double>> velnp;
-  velnp = Core::LinAlg::create_vector(*inflowdis_->dof_row_map(), true);
+  velnp = std::make_shared<Core::LinAlg::Vector<double>>(*inflowdis_->dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> veln;
-  veln = Core::LinAlg::create_vector(*inflowdis_->dof_row_map(), true);
+  veln = std::make_shared<Core::LinAlg::Vector<double>>(*inflowdis_->dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> velnm;
-  velnm = Core::LinAlg::create_vector(*inflowdis_->dof_row_map(), true);
+  velnm = std::make_shared<Core::LinAlg::Vector<double>>(*inflowdis_->dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> accnp;
-  accnp = Core::LinAlg::create_vector(*inflowdis_->dof_row_map(), true);
+  accnp = std::make_shared<Core::LinAlg::Vector<double>>(*inflowdis_->dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> accn;
-  accn = Core::LinAlg::create_vector(*inflowdis_->dof_row_map(), true);
+  accn = std::make_shared<Core::LinAlg::Vector<double>>(*inflowdis_->dof_row_map(), true);
 
   // get all vectors of restart
   std::shared_ptr<const Core::LinAlg::Vector<double>> fluidvelnp =

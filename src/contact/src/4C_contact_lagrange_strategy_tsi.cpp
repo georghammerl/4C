@@ -157,12 +157,12 @@ void CONTACT::LagrangeStrategyTsi::evaluate(
       std::make_shared<Core::LinAlg::SparseMatrix>(
           *gactivedofs_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   std::shared_ptr<Core::LinAlg::Vector<double>> rcsa =
-      Core::LinAlg::create_vector(*gactivedofs_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> g_all;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
-    g_all = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+    g_all = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   else
-    g_all = Core::LinAlg::create_vector(*gsnoderowmap_, true);
+    g_all = std::make_shared<Core::LinAlg::Vector<double>>(*gsnoderowmap_, true);
 
   // assemble linearization of heat conduction (thermal contact)
   Core::LinAlg::SparseMatrix dcTdd(
@@ -174,7 +174,7 @@ void CONTACT::LagrangeStrategyTsi::evaluate(
   Core::LinAlg::SparseMatrix dcTdLMt(
       *gactivedofs_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   std::shared_ptr<Core::LinAlg::Vector<double>> rcTa =
-      Core::LinAlg::create_vector(*gactivedofs_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
 
   // D and M matrix for the active nodes
   Core::LinAlg::SparseMatrix dInv(*gsdofrowmap_, 100, true, false);
@@ -255,12 +255,12 @@ void CONTACT::LagrangeStrategyTsi::evaluate(
   std::shared_ptr<Core::LinAlg::Vector<double>> gact;
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
     if (gact->global_length()) Core::LinAlg::export_to(*g_all, *gact);
   }
   else
   {
-    gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+    gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gact->global_length())
     {
       Core::LinAlg::export_to(*g_all, *gact);
@@ -648,13 +648,13 @@ void CONTACT::LagrangeStrategyTsi::evaluate(
     if (haveDBC > 0.)
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(*gactivedofs_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
       dInvA->extract_diagonal_copy(*diag);
       std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-          Core::LinAlg::create_vector(*gactivedofs_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
       Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*gactivedofs_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
       tmp->multiply(1., *diag, *lmDBC, 0.);
       diag->update(-1., *tmp, 1.);
       dInvA->replace_diagonal_values(*diag);

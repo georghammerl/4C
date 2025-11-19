@@ -130,8 +130,9 @@ namespace
 
   void set_dummy_state(Core::FE::Discretization& dis)
   {
-    auto displacement = Core::LinAlg::create_vector(*dis.dof_row_map(), true);
-    auto residual_displacements = Core::LinAlg::create_vector(displacement->get_map(), true);
+    auto displacement = std::make_shared<Core::LinAlg::Vector<double>>(*dis.dof_row_map(), true);
+    auto residual_displacements =
+        std::make_shared<Core::LinAlg::Vector<double>>(displacement->get_map(), true);
 
     // set an arbitrary state
     for (int i = 0; i < displacement->local_length(); ++i)

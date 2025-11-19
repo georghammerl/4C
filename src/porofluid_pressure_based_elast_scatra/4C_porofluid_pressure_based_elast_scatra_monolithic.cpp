@@ -931,13 +931,13 @@ void PoroPressureBased::PorofluidElastScatraMonolithicAlgorithm::setup_newton()
 
   // incremental solution vector with length of all dofs
   if (iter_inc_ == nullptr)
-    iter_inc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    iter_inc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     iter_inc_->put_scalar(0.0);
 
   // a zero vector of full length
   if (zeros_ == nullptr)
-    zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     zeros_->put_scalar(0.0);
 }
@@ -1105,7 +1105,7 @@ void PoroPressureBased::PorofluidElastScatraMonolithicAlgorithm::poro_multi_phas
   }
 
   std::shared_ptr<Core::LinAlg::Vector<double>> iter_inc;
-  iter_inc = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iter_inc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   const int dofs = iter_inc->global_length();
   std::cout << "in total " << dofs << " DOFs" << std::endl;

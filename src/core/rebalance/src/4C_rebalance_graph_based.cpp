@@ -128,7 +128,7 @@ Core::Rebalance::build_weights(const Core::FE::Discretization& dis)
 
   auto crs_ge_weights = std::make_shared<Core::LinAlg::SparseMatrix>(*noderowmap, 15);
   std::shared_ptr<Core::LinAlg::Vector<double>> vweights =
-      Core::LinAlg::create_vector(*noderowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*noderowmap, true);
 
   // loop all row elements and get their cost of evaluation
   for (int i = 0; i < dis.element_row_map()->num_my_elements(); ++i)

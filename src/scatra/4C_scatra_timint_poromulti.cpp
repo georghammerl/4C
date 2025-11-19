@@ -61,7 +61,7 @@ void ScaTra::ScaTraTimIntPoroMulti::set_l2_flux_of_multi_fluid(
   {
     // initialize velocity vectors
     std::shared_ptr<Core::LinAlg::Vector<double>> phaseflux =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(nds_vel()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
     std::stringstream statename;
     statename << stateprefix << curphase;

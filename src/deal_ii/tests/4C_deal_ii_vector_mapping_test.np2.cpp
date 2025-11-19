@@ -72,7 +72,8 @@ namespace
     dealii_vector.reinit(dof_handler.locally_owned_dofs(), locally_relevant_dofs, MPI_COMM_WORLD);
     dealii_vector = 1.0;
 
-    const auto four_c_vector = Core::LinAlg::create_vector(*discret.dof_row_map());
+    const auto four_c_vector =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_row_map());
 
     DealiiWrappers::VectorConverter<VectorType, dim> vector_mapping{dof_handler, discret, context};
     vector_mapping.to_four_c(*four_c_vector, dealii_vector);
@@ -107,7 +108,8 @@ namespace
     dealii::VectorTools::interpolate(
         dealii::MappingQ<dim>(1), dof_handler, function, dealii_vector);
 
-    const auto four_c_vector = Core::LinAlg::create_vector(*discret.dof_row_map());
+    const auto four_c_vector =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_row_map());
     ASSERT_EQ(four_c_vector->global_length(), dealii_vector.size());
 
     DealiiWrappers::VectorConverter<VectorType, dim> vector_mapping{dof_handler, discret, context};
@@ -116,7 +118,7 @@ namespace
     // check that every dof as seen by Discretization has the value prescribed in the Function
     {
       // to column map
-      auto tmp = Core::LinAlg::create_vector(*discret.dof_col_map(), false);
+      auto tmp = std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_col_map(), false);
       Core::LinAlg::export_to(*four_c_vector, *tmp);
 
       Teuchos::ParameterList params;

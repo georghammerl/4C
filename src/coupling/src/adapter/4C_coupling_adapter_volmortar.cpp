@@ -227,7 +227,7 @@ Coupling::Adapter::MortarVolCoupl::apply_vector_mapping12(
   check_init();
 
   std::shared_ptr<Core::LinAlg::Vector<double>> mapvec =
-      Core::LinAlg::create_vector(p12_->row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(p12_->row_map(), true);
   p12_->multiply(false, vec, *mapvec);
 
   return mapvec;
@@ -245,7 +245,7 @@ Coupling::Adapter::MortarVolCoupl::apply_vector_mapping21(
   check_init();
 
   std::shared_ptr<Core::LinAlg::Vector<double>> mapvec =
-      Core::LinAlg::create_vector(p21_->row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(p21_->row_map(), true);
   p21_->multiply(false, vec, *mapvec);
 
   return mapvec;
@@ -290,7 +290,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl:
 
   // create vector
   std::shared_ptr<Core::LinAlg::Vector<double>> sv =
-      Core::LinAlg::create_vector(p21_->row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(p21_->row_map(), true);
   // project
   master_to_slave(mv, *sv);
 
@@ -360,7 +360,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl:
 
   // create vector
   std::shared_ptr<Core::LinAlg::Vector<double>> mv =
-      Core::LinAlg::create_vector(p12_->row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(p12_->row_map(), true);
   // project
   slave_to_master(sv, *mv);
 

@@ -555,14 +555,14 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (phinp_ != nullptr)
   {
     old = phinp_;
-    phinp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *phinp_);
   }
 
   if (phin_ != nullptr)
   {
     old = phin_;
-    phin_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    phin_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *phin_);
   }
 
@@ -570,7 +570,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (phidtnp_ != nullptr)
   {
     old = phidtnp_;
-    phidtnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    phidtnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *phidtnp_);
   }
 
@@ -578,7 +578,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (phidtn_ != nullptr)
   {
     old = phidtn_;
-    phidtn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    phidtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *phidtn_);
   }
 
@@ -587,7 +587,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (hist_ != nullptr)
   {
     old = hist_;
-    hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *hist_);
   }
 
@@ -598,7 +598,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (zeros_ != nullptr)
   {
     old = zeros_;
-    zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *zeros_);
   }
 
@@ -609,7 +609,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (neumann_loads_ != nullptr)
   {
     old = neumann_loads_;
-    neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *neumann_loads_);
   }
 
@@ -617,7 +617,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (residual_ != nullptr)
   {
     old = residual_;
-    residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *residual_);
   }
 
@@ -625,7 +625,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (trueresidual_ != nullptr)
   {
     old = trueresidual_;
-    trueresidual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *trueresidual_);
   }
 
@@ -633,7 +633,7 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (increment_ != nullptr)
   {
     old = increment_;
-    increment_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    increment_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *increment_);
   }
 
@@ -643,14 +643,14 @@ void ScaTra::LevelSetAlgorithm::redistribute(Core::LinAlg::Graph& nodegraph)
   if (subgrdiff_ != nullptr)
   {
     old = subgrdiff_;
-    subgrdiff_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    subgrdiff_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *subgrdiff_);
   }
 
   if (initialphireinit_ != nullptr)
   {
     old = initialphireinit_;
-    initialphireinit_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    initialphireinit_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     Core::LinAlg::export_to(*old, *initialphireinit_);
   }
 

@@ -182,7 +182,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidFSI::relaxation_solv
 {
   const Core::LinAlg::Map* dofrowmap = discretization()->dof_row_map();
   std::shared_ptr<Core::LinAlg::Vector<double>> relax =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   interface()->insert_fsi_cond_vector(*ivel, *relax);
   fluidimpl_->linear_relaxation_solve(relax);
   return extract_interface_forces();

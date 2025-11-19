@@ -337,7 +337,7 @@ std::shared_ptr<FLD::XFluidState> FLD::XFluidFluid::get_new_state()
   // increment vector for merged background & embedded fluid
   // (not the classical Newton increment but the difference to
   // the value at the last time step)
-  stepinc_ = Core::LinAlg::create_vector(*state->xffluiddofrowmap_, true);
+  stepinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*state->xffluiddofrowmap_, true);
 
   // build a merged map from fluid-fluid dbc-maps
   state->create_merged_dbc_map_extractor(*embedded_fluid_->get_dbc_map_extractor());
@@ -503,7 +503,7 @@ void FLD::XFluidFluid::add_eos_pres_stab_to_emb_layer()
 
   //------------------------------------------------------------
   std::shared_ptr<Core::LinAlg::Vector<double>> residual_col =
-      Core::LinAlg::create_vector(*xdiscret->dof_col_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret->dof_col_map(), true);
 
   //------------------------------------------------------------
   auto rmap = Core::LinAlg::Map(embedded_fluid_->system_matrix()->OperatorRangeMap());

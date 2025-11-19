@@ -48,8 +48,9 @@ FLD::XFluidState::CouplingState::CouplingState(
   C_ss_ = std::make_shared<Core::LinAlg::SparseMatrix>(
       *slavediscret_mat->dof_row_map(), 300, false, true, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
-  rhC_s_ = Core::LinAlg::create_vector(*slavediscret_rhs->dof_row_map(), true);
-  rhC_s_col_ = Core::LinAlg::create_vector(*slavediscret_rhs->dof_col_map(), true);
+  rhC_s_ = std::make_shared<Core::LinAlg::Vector<double>>(*slavediscret_rhs->dof_row_map(), true);
+  rhC_s_col_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavediscret_rhs->dof_col_map(), true);
 }
 
 /*----------------------------------------------------------------------*
@@ -177,43 +178,43 @@ void FLD::XFluidState::init_state_vectors()
   // Vectors passed to the element
   // -----------------------------
   // velocity/pressure at time n+1, n and n-1
-  velnp_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
-  veln_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
-  velnm_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  velnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
+  veln_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
+  velnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // velocity/pressure at time n+alpha_F
-  velaf_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  velaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
 
   // acceleration/(scalar time derivative) at time n+1 and n
-  accnp_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
-  accn_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  accnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
+  accn_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // acceleration/(scalar time derivative) at time n+alpha_M/(n+alpha_M/n)
-  accam_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  accam_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // scalar at time n+alpha_F/n+1 and n+alpha_M/n
   // (only required for low-Mach-number case)
   // ... this is a dummy to avoid errors
-  scaaf_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
-  scaam_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  scaaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
+  scaam_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // history vector
-  hist_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // rhs: standard (stabilized) residual vector (rhs for the incremental form)
-  residual_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
-  residual_col_ = Core::LinAlg::create_vector(*xfluiddofcolmap_, true);
-  trueresidual_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
+  residual_col_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofcolmap_, true);
+  trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // nonlinear iteration increment vector
-  incvel_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  incvel_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
 }
 
 /*----------------------------------------------------------------------*
@@ -275,11 +276,11 @@ void FLD::XFluidState::init_ale_state_vectors(XFEM::DiscretizationXFEM& xdiscret
     const Core::LinAlg::Vector<double>& gridvnp_initmap)
 {
   //! @name Ale Displacement at time n+1
-  dispnp_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  dispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
   xdiscret.export_initialto_active_vector(dispnp_initmap, *dispnp_);
 
   //! @name Grid Velocity at time n+1
-  gridvnp_ = Core::LinAlg::create_vector(*xfluiddofrowmap_, true);
+  gridvnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*xfluiddofrowmap_, true);
   xdiscret.export_initialto_active_vector(gridvnp_initmap, *gridvnp_);
 }
 

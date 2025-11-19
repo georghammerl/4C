@@ -189,7 +189,8 @@ Core::LinAlg::Vector<double> SSI::MeshtyingStrategyBase::apply_meshtying_to_stru
   // make copy of structure right-hand side vector
   Core::LinAlg::Vector<double> rhs_structure(structure_rhs);
 
-  auto rhs_structure_master = Core::LinAlg::create_vector(*ssi_maps.structure_dof_row_map(), true);
+  auto rhs_structure_master =
+      std::make_shared<Core::LinAlg::Vector<double>>(*ssi_maps.structure_dof_row_map(), true);
 
   for (const auto& meshtying : ssi_structure_meshtying.mesh_tying_handlers())
   {

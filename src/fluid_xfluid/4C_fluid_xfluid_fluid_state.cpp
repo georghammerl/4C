@@ -57,11 +57,11 @@ void FLD::XFluidFluidState::init_system_matrix()
 void FLD::XFluidFluidState::init_state_vectors()
 {
   // matrices & vectors for merged background & embedded fluid
-  xffluidresidual_ = Core::LinAlg::create_vector(*xffluiddofrowmap_, true);
-  xffluidincvel_ = Core::LinAlg::create_vector(*xffluiddofrowmap_, true);
-  xffluidvelnp_ = Core::LinAlg::create_vector(*xffluiddofrowmap_, true);
-  xffluidveln_ = Core::LinAlg::create_vector(*xffluiddofrowmap_, true);
-  xffluidzeros_ = Core::LinAlg::create_vector(*xffluiddofrowmap_, true);
+  xffluidresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*xffluiddofrowmap_, true);
+  xffluidincvel_ = std::make_shared<Core::LinAlg::Vector<double>>(*xffluiddofrowmap_, true);
+  xffluidvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*xffluiddofrowmap_, true);
+  xffluidveln_ = std::make_shared<Core::LinAlg::Vector<double>>(*xffluiddofrowmap_, true);
+  xffluidzeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*xffluiddofrowmap_, true);
 }
 
 /*----------------------------------------------------------------------*

@@ -120,7 +120,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
   {
     // vector for integrated shape functions
     std::shared_ptr<Core::LinAlg::Vector<double>> integrated_shape_functions =
-        Core::LinAlg::create_vector(dofrowmap);
+        std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap);
 
     // overwrite action for elements
     Core::Utils::add_enum_class_to_parameter_list<ScaTra::Action>(
@@ -352,7 +352,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
 
     // initialize vector for nodal values of normal boundary fluxes
     std::shared_ptr<Core::LinAlg::Vector<double>> normalfluxes =
-        Core::LinAlg::create_vector(dofrowmap);
+        std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap);
 
     // create parameter list for boundary elements
     Teuchos::ParameterList params;
@@ -371,7 +371,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
 
       // create vector (+ initialization with zeros)
       const std::shared_ptr<Core::LinAlg::Vector<double>> integratedshapefunc =
-          Core::LinAlg::create_vector(dofrowmap);
+          std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap);
 
       // call loop over elements
       discret_->evaluate_condition(params, integratedshapefunc, "ScaTraFluxCalc", icond);
@@ -1337,10 +1337,10 @@ void ScaTra::ScaTraTimIntImpl::avm3_preparation()
     Sep_ = Core::LinAlg::matrix_multiply(Ptent, false, Ptent, true);
     Sep_->scale(-1.0);
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-        Core::LinAlg::create_vector(Sep_->row_map(), false);
+        std::make_shared<Core::LinAlg::Vector<double>>(Sep_->row_map(), false);
     tmp->put_scalar(1.0);
     std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-        Core::LinAlg::create_vector(Sep_->row_map(), false);
+        std::make_shared<Core::LinAlg::Vector<double>>(Sep_->row_map(), false);
     Sep_->extract_diagonal_copy(*diag);
     diag->update(1.0, *tmp, 1.0);
     Sep_->replace_diagonal_values(*diag);
@@ -1403,10 +1403,10 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> ScaTra::ScaTraTimIntImpl::di
 {
   if (dbcmaps_ == nullptr) FOUR_C_THROW("Dirichlet map has not been allocated");
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichones =
-      Core::LinAlg::create_vector(*(dbcmaps_->cond_map()), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(dbcmaps_->cond_map()), false);
   dirichones->put_scalar(1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichtoggle =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
   dbcmaps_->insert_cond_vector(*dirichones, *dirichtoggle);
   return dirichtoggle;
 }
@@ -1572,7 +1572,7 @@ void ScaTra::ScaTraTimIntImpl::calc_intermediate_solution()
       // temporary store velnp_ since it will be modified in nonlinear_solve()
       const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*dofrowmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       tmp->update(1.0, *phinp_, 0.0);
 
       // compute intermediate solution without forcing

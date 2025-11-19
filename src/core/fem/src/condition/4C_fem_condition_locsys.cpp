@@ -30,7 +30,7 @@ Core::Conditions::LocsysManager::LocsysManager(Core::FE::Discretization& discret
   const Core::LinAlg::Map* noderowmap = discret_.node_row_map();
 
   // create locsys vector and initialize to -1
-  locsystoggle_ = Core::LinAlg::create_vector(*noderowmap, false);
+  locsystoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*noderowmap, false);
   locsystoggle_->put_scalar(-1.0);
 
   // check for locsys boundary conditions
@@ -106,7 +106,7 @@ void Core::Conditions::LocsysManager::update(const double time,
   // Check if maps match, if not recreate the correct map
   if (locsystoggle_ == nullptr || !locsystoggle_->get_map().same_as(node_row_map))
   {
-    locsystoggle_ = Core::LinAlg::create_vector(node_row_map, true);
+    locsystoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(node_row_map, true);
   }
 
   //**********************************************************************
@@ -270,7 +270,7 @@ void Core::Conditions::LocsysManager::update(const double time,
   // we need to make sure that two nodes sharing the same dofs are not
   // transformed twice. This is a NURBS/periodic boundary feature.
   std::shared_ptr<Core::LinAlg::Vector<double>> already_processed =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   already_processed->put_scalar(0.0);
 
   // Perform a check for zero diagonal elements. They will crash the SGS-like preconditioners

@@ -326,9 +326,9 @@ FLD::Utils::FluidVolumetricSurfaceFlowBc::FluidVolumetricSurfaceFlowBc(
   // -------------------------------------------------------------------
   // create cond_velocities and condition traction velocity terms
   // -------------------------------------------------------------------
-  cond_velocities_ = Core::LinAlg::create_vector(*cond_dofrowmap_, true);
-  cond_traction_vel_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  drt_velocities_ = Core::LinAlg::create_vector(*drt_dofrowMap, true);
+  cond_velocities_ = std::make_shared<Core::LinAlg::Vector<double>>(*cond_dofrowmap_, true);
+  cond_traction_vel_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  drt_velocities_ = std::make_shared<Core::LinAlg::Vector<double>>(*drt_dofrowMap, true);
 
   // -------------------------------------------------------------------
   // Evaluate the area of the design surface.
@@ -421,9 +421,9 @@ void FLD::Utils::FluidVolumetricSurfaceFlowBc::eval_local_normalized_radii(
   //--------------------------------------------------------------------
   int myrank = Core::Communication::my_mpi_rank(discret_->get_comm());
 
-  local_radii_ = Core::LinAlg::create_vector(*cond_surfnoderowmap_, true);
+  local_radii_ = std::make_shared<Core::LinAlg::Vector<double>>(*cond_surfnoderowmap_, true);
 
-  border_radii_ = Core::LinAlg::create_vector(*cond_surfnoderowmap_, true);
+  border_radii_ = std::make_shared<Core::LinAlg::Vector<double>>(*cond_surfnoderowmap_, true);
   //--------------------------------------------------------------------
   // get all of the border nodes
   //--------------------------------------------------------------------
@@ -1217,7 +1217,7 @@ void FLD::Utils::FluidVolumetricSurfaceFlowBc::correct_flow_rate(
 
   // loop over all of the nodes
   std::shared_ptr<Core::LinAlg::Vector<double>> correction_velnp =
-      Core::LinAlg::create_vector(*cond_dofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*cond_dofrowmap_, true);
 
   params->set<int>("Number of Harmonics", 0);
   // condition id
@@ -1334,7 +1334,7 @@ double FLD::Utils::FluidVolumetricSurfaceFlowBc::flow_rate_calculation(
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   const std::string condstring(ds_condname);
 
@@ -1371,7 +1371,7 @@ double FLD::Utils::FluidVolumetricSurfaceFlowBc::pressure_calculation(
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   const std::string condstring(ds_condname);
   discret_->evaluate_condition(eleparams, flowrates, condstring, condid);

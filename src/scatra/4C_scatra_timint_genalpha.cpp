@@ -61,11 +61,11 @@ void ScaTra::TimIntGenAlpha::setup()
   // -----------------------------
 
   // scalar at times n+alpha_F and n+alpha_M
-  phiaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  phiam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phiaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  phiam_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // temporal derivative of scalar at times n+1, n and n+alpha_M
-  phidtam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phidtam_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // compute specific time factor for generalized-alpha time integration:
   // genalphatimefac = gamma*alpha_F/alpha_M
@@ -75,7 +75,7 @@ void ScaTra::TimIntGenAlpha::setup()
   // fine-scale vector at time n+alpha_F
   if (fssgd_ != Inpar::ScaTra::fssugrdiff_no or
       turbmodel_ == Inpar::FLUID::multifractal_subgrid_scales)
-    fsphiaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    fsphiaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // set element parameters

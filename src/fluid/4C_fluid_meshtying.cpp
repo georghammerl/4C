@@ -436,7 +436,7 @@ void FLD::Meshtying::include_dirichlet_in_condensation(
 {
   if (dconmaster_)
   {
-    valuesdc_ = Core::LinAlg::create_vector(*dofrowmap_, true);
+    valuesdc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap_, true);
     valuesdc_->update(1.0, velnp, 1.0);
     valuesdc_->update(-1.0, veln, 1.0);
 
@@ -508,7 +508,7 @@ void FLD::Meshtying::apply_pt_to_residual(Core::LinAlg::SparseOperator& sysmat,
 {
   // define residual vector for case of block matrix
   std::shared_ptr<Core::LinAlg::Vector<double>> res =
-      Core::LinAlg::create_vector(*mergedmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
 
   // split original residual vector
   split_vector_based_on3x3(residual, *res);
@@ -540,7 +540,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FLD::Meshtying::adapt_krylov_proje
       case Inpar::FLUID::condensed_bmat_merged:
       {
         std::shared_ptr<Core::LinAlg::Vector<double>> vec_mesht =
-            Core::LinAlg::create_vector(*mergedmap_, true);
+            std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
         split_vector_based_on3x3(*vec, *vec_mesht);
         vec = vec_mesht;
       }
@@ -576,9 +576,9 @@ void FLD::Meshtying::solve_meshtying(Core::LinAlg::Solver& solver,
     case Inpar::FLUID::condensed_bmat:
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> res =
-          Core::LinAlg::create_vector(*mergedmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
       std::shared_ptr<Core::LinAlg::Vector<double>> inc =
-          Core::LinAlg::create_vector(*mergedmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
 
       std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> sysmatnew =
           std::dynamic_pointer_cast<Core::LinAlg::BlockSparseMatrixBase>(sysmat);
@@ -626,8 +626,8 @@ void FLD::Meshtying::solve_meshtying(Core::LinAlg::Solver& solver,
 
       std::shared_ptr<Core::LinAlg::SparseMatrix> mergedmatrix = nullptr;
 
-      res = Core::LinAlg::create_vector(*mergedmap_, true);
-      inc = Core::LinAlg::create_vector(*mergedmap_, true);
+      res = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
+      inc = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_, true);
 
       mergedmatrix = std::make_shared<Core::LinAlg::SparseMatrix>(*mergedmap_, 108, false, true);
 
@@ -973,7 +973,7 @@ void FLD::Meshtying::condensation_operation_sparse_matrix(
   // r_s [2]
 
   std::shared_ptr<Core::LinAlg::Vector<double>> resnew =
-      Core::LinAlg::create_vector(*dofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap_, true);
 
   // r_m: add P^T*r_s
   Core::LinAlg::Vector<double> fm_mod(*gmdofrowmap_, true);
@@ -1221,7 +1221,7 @@ void FLD::Meshtying::update_slave_dof(
 
   // define new incremental vector
   std::shared_ptr<Core::LinAlg::Vector<double>> incnew =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // delta_vp^s: add P*delta_vp^m
   Core::LinAlg::Vector<double> fs_mod(*gsdofrowmap_, true);

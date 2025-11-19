@@ -124,8 +124,8 @@ void ScaTra::ScaTraTimIntElchSCL::setup()
       std::make_shared<Core::LinAlg::MultiMapExtractor>(*full_map_elch_scl_, block_map_vec_scl);
 
   // setup matrix, rhs, and increment for coupled problem
-  increment_elch_scl_ = Core::LinAlg::create_vector(*full_map_elch_scl_, true);
-  residual_elch_scl_ = Core::LinAlg::create_vector(*full_map_elch_scl_, true);
+  increment_elch_scl_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_elch_scl_, true);
+  residual_elch_scl_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_elch_scl_, true);
 
 
   switch (matrixtype_elch_scl_)
@@ -855,7 +855,7 @@ void ScaTra::ScaTraTimIntElchSCL::scale_micro_problem()
   Core::Utils::add_enum_class_to_parameter_list<ScaTra::BoundaryAction>(
       "action", ScaTra::BoundaryAction::calc_nodal_size, condparams);
 
-  auto nodal_size_macro = Core::LinAlg::create_vector(*dof_row_map(), true);
+  auto nodal_size_macro = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   discret_->evaluate_condition(
       condparams, nullptr, nullptr, nodal_size_macro, nullptr, nullptr, "S2ISCLCoupling");
 
@@ -886,7 +886,8 @@ void ScaTra::ScaTraTimIntElchSCL::scale_micro_problem()
   const auto glob_nodal_size_micro =
       Core::Communication::all_reduce(my_nodal_size_micro, discret_->get_comm());
 
-  auto micro_scale = Core::LinAlg::create_vector(*micro_scatra_field()->dof_row_map(), true);
+  auto micro_scale =
+      std::make_shared<Core::LinAlg::Vector<double>>(*micro_scatra_field()->dof_row_map(), true);
   for (int lid_micro = micro_scatra_field()->dof_row_map()->num_my_elements() - 1; lid_micro >= 0;
       --lid_micro)
   {
@@ -909,7 +910,7 @@ void ScaTra::ScaTraTimIntElchSCL::assemble_and_apply_mesh_tying()
   auto micro_residual_on_macro_side =
       macro_micro_coupling_adapter_->slave_to_master(*micro_residual);
 
-  auto full_macro_vector = Core::LinAlg::create_vector(*dof_row_map(), true);
+  auto full_macro_vector = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   macro_coupling_dofs_->insert_cond_vector(*micro_residual_on_macro_side, *full_macro_vector);
 
   residual_elch_scl_->put_scalar(0.0);
@@ -1148,7 +1149,7 @@ void ScaTra::ScaTraTimIntElchSCL::calc_initial_potential_field()
     // to hold initial concentrations constant when solving for initial potential field
     auto pseudo_dbc_scl = Core::LinAlg::merge_map(
         splitter_->other_map(), micro_scatra_field()->splitter()->other_map());
-    auto pseudo_zeros_scl = Core::LinAlg::create_vector(*pseudo_dbc_scl, true);
+    auto pseudo_zeros_scl = std::make_shared<Core::LinAlg::Vector<double>>(*pseudo_dbc_scl, true);
 
     Core::LinAlg::apply_dirichlet_to_system(*system_matrix_elch_scl_, *increment_elch_scl_,
         *residual_elch_scl_, *pseudo_zeros_scl, *pseudo_dbc_scl);

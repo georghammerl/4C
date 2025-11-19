@@ -107,10 +107,10 @@ STI::Monolithic::Monolithic(MPI_Comm comm, const Teuchos::ParameterList& stidyn,
   maps_->check_for_valid_map_extractor();
 
   // initialize global increment vector for Newton-Raphson iteration
-  increment_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  increment_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   // initialize global residual vector
-  residual_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   // initialize transformation operators
   islavetomasterrowtransformscatraod_ = std::make_shared<Coupling::Adapter::MatrixRowTransform>();
@@ -332,7 +332,7 @@ void STI::Monolithic::fd_check()
 
   // create global state vector
   std::shared_ptr<Core::LinAlg::Vector<double>> statenp(
-      Core::LinAlg::create_vector(*dof_row_map(), true));
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true));
   maps_->insert_vector(*scatra_field()->phinp(), 0, *statenp);
   maps_->insert_vector(*thermo_field()->phinp(), 1, *statenp);
 
@@ -1524,7 +1524,8 @@ void STI::Monolithic::solve()
       const std::shared_ptr<const Core::LinAlg::Vector<double>> masterincrement =
           strategythermo_->interface_maps()->extract_vector(*thermoincrement, 2);
       const std::shared_ptr<Core::LinAlg::Vector<double>> slaveincrement =
-          Core::LinAlg::create_vector(*strategythermo_->interface_maps()->map(1));
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              *strategythermo_->interface_maps()->map(1));
       switch (strategyscatra_->coupling_type())
       {
         case Inpar::S2I::coupling_matching_nodes:

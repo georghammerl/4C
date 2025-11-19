@@ -103,34 +103,34 @@ void Solid::TimIntOneStepTheta::setup()
   // create state vectors
 
   // mid-displacements
-  dist_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  dist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // mid-velocities
-  velt_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  velt_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // mid-accelerations
-  acct_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  acct_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // create force vectors
 
   // internal force vector F_{int;n} at last time
-  fint_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fint_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // internal force vector F_{int;n+1} at new time
-  fintn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // external force vector F_ext at last times
-  fext_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fext_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // external force vector F_{n+1} at new time
-  fextn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // set initial external force vector
   apply_force_external((*time_)[0], (*dis_)(0), disn_, *(*vel_)(0), *fext_);
 
   // inertial force vector F_{int;n} at last time
-  finert_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  finert_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // inertial mid-force vector F_{int;n+1-alpha_f}
-  finertt_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  finertt_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // inertial force vector F_{int;n+1} at new time
-  finertn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  finertn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // viscous mid-point force vector F_visc
-  fvisct_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fvisct_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // create parameter list
   Teuchos::ParameterList params;
@@ -666,13 +666,13 @@ void Solid::TimIntOneStepTheta::update_step_element()
     discret_->set_state("acceleration", *(*acc_)(0));
 
     std::shared_ptr<Core::LinAlg::Vector<double>> update_disp;
-    update_disp = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+    update_disp = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> update_vel;
-    update_vel = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+    update_vel = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> update_acc;
-    update_acc = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+    update_acc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
 
     discret_->evaluate(p, nullptr, nullptr, update_disp, update_vel, update_acc);

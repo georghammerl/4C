@@ -1269,7 +1269,7 @@ namespace BeamInteraction
       if (dofmapvec != nullptr)
       {
         if (old == nullptr) old = dofmapvec;
-        dofmapvec = Core::LinAlg::create_vector(*discret.dof_row_map(), true);
+        dofmapvec = std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_row_map(), true);
         Core::LinAlg::export_to(*old, *dofmapvec);
       }
     }

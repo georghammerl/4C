@@ -101,7 +101,7 @@ TSI::Monolithic::Monolithic(MPI_Comm comm, const Teuchos::ParameterList& sdynpar
   blockrowdofmap_ = std::make_shared<Core::LinAlg::MultiMapExtractor>();
 
   // initialise internal variable with new velocities V_{n+1} at t_{n+1}
-  vel_ = Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+  vel_ = std::make_shared<Core::LinAlg::Vector<double>>(*(structure_field()->dof_row_map(0)), true);
 
   // --------------------------------- TSI solver: create a linear solver
 
@@ -378,10 +378,10 @@ void TSI::Monolithic::newton_full()
   iter_ = 0;
 
   // incremental solution vector with length of all TSI dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 
   // compute residual forces #rhs_ and tangent #systemmatrix_
@@ -616,10 +616,10 @@ void TSI::Monolithic::ptc()
   iter_ = 0;
 
   // incremental solution vector with length of all TSI dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 
   // compute residual forces #rhs_ and tangent #systemmatrix_
@@ -692,10 +692,12 @@ void TSI::Monolithic::ptc()
     // modify structural diagonal block k_ss
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp_SS =
-          Core::LinAlg::create_vector(structure_field()->system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              structure_field()->system_matrix()->row_map(), false);
       tmp_SS->put_scalar(dti);
       std::shared_ptr<Core::LinAlg::Vector<double>> diag_SS =
-          Core::LinAlg::create_vector(structure_field()->system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              structure_field()->system_matrix()->row_map(), false);
       structure_field()->system_matrix()->extract_diagonal_copy(*diag_SS);
 
       diag_SS->update(1.0, *tmp_SS, 1.0);
@@ -705,10 +707,12 @@ void TSI::Monolithic::ptc()
     // modify thermal diagonal block k_tt
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp_tt =
-          Core::LinAlg::create_vector(thermo_field()->system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              thermo_field()->system_matrix()->row_map(), false);
       tmp_tt->put_scalar(dti);
       std::shared_ptr<Core::LinAlg::Vector<double>> diag_tt =
-          Core::LinAlg::create_vector(thermo_field()->system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              thermo_field()->system_matrix()->row_map(), false);
       thermo_field()->system_matrix()->extract_diagonal_copy(*diag_tt);
       diag_tt->update(1.0, *tmp_tt, 1.0);
       thermo_field()->system_matrix()->replace_diagonal_values(*diag_tt);

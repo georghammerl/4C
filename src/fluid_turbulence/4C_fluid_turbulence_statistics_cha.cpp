@@ -205,15 +205,15 @@ FLD::TurbulenceStatisticsCha::TurbulenceStatisticsCha(
   // allocate some (toggle) vectors
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
-  meanvelnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  meanvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // this vector is only necessary for low-Mach-number flow or
   // turbulent passive scalar transport
-  meanscanp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  meanscanp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
-  toggleu_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglev_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglew_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  togglep_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  toggleu_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglev_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglew_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  togglep_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // ---------------------------------------------------------------------
   // compute all planes for sampling
@@ -725,7 +725,7 @@ FLD::TurbulenceStatisticsCha::TurbulenceStatisticsCha(
   // arrays for point based averaging
   // --------------------------------
 
-  pointsquaredvelnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  pointsquaredvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // first order moments
   pointsumu_ = std::make_shared<std::vector<double>>();

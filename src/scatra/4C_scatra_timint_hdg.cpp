@@ -81,8 +81,8 @@ void ScaTra::TimIntHDG::setup()
 
   // HDG vectors passed to the element
   const Core::LinAlg::Map* intdofrowmap = discret_->dof_row_map(nds_intvar_);
-  intphinp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intphin_ = Core::LinAlg::create_vector(*intdofrowmap, true);
+  intphinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intphin_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
 
   // write number of degrees of freedom for hdg and interior variables to screen output
   if (Core::Communication::my_mpi_rank(discret_->get_comm()) == 0)
@@ -129,10 +129,12 @@ void ScaTra::TimIntHDG::setup()
   ScaTra::TimIntGenAlpha::setup();
 
   // create vector for concentration at nodes for output
-  interpolatedPhinp_ = Core::LinAlg::create_vector(*discret_->node_row_map(), true);
+  interpolatedPhinp_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->node_row_map(), true);
 
   // vector to store the elementdegree at each time step
-  elementdegree_ = Core::LinAlg::create_vector(*(discret_->element_row_map()), true);
+  elementdegree_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->element_row_map()), true);
 }
 
 
@@ -746,7 +748,7 @@ void ScaTra::TimIntHDG::fd_check()
 
   // create matrix and vector for calculation of sysmat and assemble
   systemmatrix1 = std::make_shared<Core::LinAlg::SparseMatrix>(*(discret_->dof_row_map()), 27);
-  systemvector1 = Core::LinAlg::create_vector(*dofrowmap, true);
+  systemvector1 = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   Core::FE::AssembleStrategy strategy(
       0, 0, systemmatrix1, systemmatrix2, systemvector1, systemvector2, systemvector3);
 
@@ -758,7 +760,7 @@ void ScaTra::TimIntHDG::fd_check()
   // afterwards we need to calculate also the interior vectors with the state vector with
   // perturbation without influence for this update
   std::shared_ptr<Core::LinAlg::Vector<double>> intphitemp;
-  intphitemp = Core::LinAlg::create_vector(*intdofrowmap, true);
+  intphitemp = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
 
   strategy.zero();
 
@@ -799,7 +801,7 @@ void ScaTra::TimIntHDG::fd_check()
   // make a copy of system right-hand side vector
   Core::LinAlg::Vector<double> residualVec(*systemvector1);
   std::shared_ptr<Core::LinAlg::Vector<double>> fdvec =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   for (int k = 0; k < 16; ++k)
   {
@@ -1252,11 +1254,11 @@ void ScaTra::TimIntHDG::adapt_degree()
   // copy old values of the state vectors phi and intphi into vectors, which are then used for the
   // projection
   std::shared_ptr<Core::LinAlg::Vector<double>> phinp_old =
-      Core::LinAlg::create_vector(facedofs_old, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(facedofs_old, true);
   Core::LinAlg::export_to(*phinp_, *phinp_old);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> intphinp_old =
-      Core::LinAlg::create_vector(eledofs_old, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(eledofs_old, true);
   Core::LinAlg::export_to(*intphinp_, *intphinp_old);
 
   // reset the residual, increment and sysmat to the size of the adapted new dofset

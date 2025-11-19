@@ -1166,8 +1166,8 @@ void PoroElast::Monolithic::apply_fluid_coupl_matrix(
 
   std::shared_ptr<Core::LinAlg::Vector<double>> iterinc = nullptr;
   std::shared_ptr<Core::LinAlg::Vector<double>> abs_iterinc = nullptr;
-  iterinc = Core::LinAlg::create_vector(*dof_row_map(), true);
-  abs_iterinc = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  abs_iterinc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   const int dofs = iterinc->global_length();
   std::cout << "in total " << dofs << " DOFs" << std::endl;
@@ -1506,13 +1506,13 @@ void PoroElast::Monolithic::setup_newton()
 
   // incremental solution vector with length of all dofs
   if (iterinc_ == nullptr)
-    iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     iterinc_->put_scalar(0.0);
 
   // a zero vector of full length
   if (zeros_ == nullptr)
-    zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     zeros_->put_scalar(0.0);
 
@@ -1669,8 +1669,8 @@ void PoroElast::Monolithic::aitken()
   // difference of last two solutions
   if (del_ == nullptr)  // first iteration, itnum==1
   {
-    del_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-    delhist_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    del_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+    delhist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
     del_->put_scalar(1.0e20);
     delhist_->put_scalar(0.0);
   }
@@ -1706,8 +1706,8 @@ void PoroElast::Monolithic::aitken()
 {
   if (del_ == nullptr)  // first iteration, itnum==1
   {
-    del_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-    delhist_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    del_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+    delhist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   }
   del_->put_scalar(1.0e20);
   delhist_->put_scalar(0.0);

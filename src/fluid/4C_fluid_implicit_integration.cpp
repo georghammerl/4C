@@ -215,7 +215,7 @@ void FLD::FluidImplicitTimeInt::init()
   // -----------------------------------------
 
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // object holds maps/subsets for DOFs subjected to Dirichlet BCs and otherwise
   dbcmaps_ = std::make_shared<Core::LinAlg::MapExtractor>();
@@ -234,7 +234,7 @@ void FLD::FluidImplicitTimeInt::init()
 
   // a vector containing the integrated traction in boundary normal direction for slip boundary
   // conditions (Unit: Newton [N])
-  slip_bc_normal_tractions_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  slip_bc_normal_tractions_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // manager for wall stress related things
   stressmanager_ =
@@ -304,16 +304,16 @@ void FLD::FluidImplicitTimeInt::init()
   }
 
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // Vectors used for solution process
   // ---------------------------------
   // rhs: standard (stabilized) residual vector (rhs for the incremental form)
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  trueresidual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // Nonlinear iteration increment vector
-  incvel_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  incvel_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // initialize vectors and flags for turbulence approach
@@ -627,7 +627,8 @@ void FLD::FluidImplicitTimeInt::setup_locsys_dirichlet_bc(double time)
 
     for (int i = 0; i < numlocsys; ++i)
     {
-      loc_sys_node_normals[i] = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+      loc_sys_node_normals[i] =
+          std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
       Teuchos::ParameterList nodeNormalParams;
 
@@ -1123,7 +1124,7 @@ void FLD::FluidImplicitTimeInt::evaluate_mat_and_rhs(Teuchos::ParameterList& ele
       FOUR_C_THROW("The shape derivative cannot be assembled off-proc currently");
     const Core::LinAlg::Map* dofcolmap = discret_->dof_col_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> residual_col =
-        Core::LinAlg::create_vector(*dofcolmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofcolmap, true);
     std::shared_ptr<Core::LinAlg::SparseMatrix> sysmat =
         std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(sysmat_);
     if (sysmat == nullptr) FOUR_C_THROW("expected Sparse Matrix");
@@ -1181,7 +1182,7 @@ void FLD::FluidImplicitTimeInt::evaluate_mat_and_rhs(Teuchos::ParameterList& ele
     }
     //-------------------------------------------------------------------------------
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
     Core::LinAlg::Export exporter(residual_col->get_map(), tmp->get_map());
     tmp->export_to(*residual_col, exporter, Add);
@@ -1433,7 +1434,7 @@ void FLD::FluidImplicitTimeInt::apply_nonlinear_boundary_conditions()
 
       // create vector and initialize with zeros
       std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-          Core::LinAlg::create_vector(*dofrowmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
       // set required state vectors
       discret_->clear_state();
@@ -1694,7 +1695,7 @@ void FLD::FluidImplicitTimeInt::apply_nonlinear_boundary_conditions()
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
     // initialize global slip bc normal traction variable
-    slip_bc_normal_tractions_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    slip_bc_normal_tractions_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
     // decide on whether it is a line or a surface condition and set condition
     // name accordingly. Both types simultaneously is not supported
@@ -1757,7 +1758,8 @@ void FLD::FluidImplicitTimeInt::apply_nonlinear_boundary_conditions()
 
       // temporary variable holding the scaled residual contribution
       std::shared_ptr<Core::LinAlg::Vector<double>> slip_bc_normal_tractions_scaled;
-      slip_bc_normal_tractions_scaled = Core::LinAlg::create_vector(*dofrowmap, true);
+      slip_bc_normal_tractions_scaled =
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
       // evaluate all slip supplemental curved boundary conditions
       discret_->evaluate_condition(slipsuppparams, sysmat_, nullptr,
@@ -1898,7 +1900,7 @@ void FLD::FluidImplicitTimeInt::evaluate_fluid_edge_based(
 
 
   std::shared_ptr<Core::LinAlg::Vector<double>> residual_col =
-      Core::LinAlg::create_vector(*(facediscret_->dof_col_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(facediscret_->dof_col_map()), true);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> sysmat_linalg;
   if (systemmatrix1 != nullptr)
@@ -2204,7 +2206,7 @@ void FLD::FluidImplicitTimeInt::update_krylov_space_projection()
     // construct c by setting all pressure values to 1.0 and export to c
     presmode->put_scalar(1.0);
     std::shared_ptr<Core::LinAlg::Vector<double>> tmpc =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
     Core::LinAlg::export_to(*presmode, *tmpc);
     std::shared_ptr<Core::LinAlg::Vector<double>> tmpkspc =
         kspsplitter_->extract_ksp_cond_vector(*tmpc);
@@ -2574,7 +2576,7 @@ void FLD::FluidImplicitTimeInt::ale_update(std::string condName)
 
         // Initialize global node normals vector
         std::shared_ptr<Core::LinAlg::Vector<double>> globalNodeNormals =
-            Core::LinAlg::create_vector(*dofrowmap, true);
+            std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
         // Evaluate condition to calculate the node normals
         // Note: the normal vectors do not yet have length 1.0
@@ -3001,7 +3003,7 @@ void FLD::FluidImplicitTimeInt::evaluate(
   {
     // Add stepinc to veln_ for non-Dirichlet values.
     std::shared_ptr<Core::LinAlg::Vector<double>> aux =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
     aux->update(1.0, *veln_, 1.0, *stepinc, 0.0);
 
     // Set Dirichlet values
@@ -3286,7 +3288,7 @@ void FLD::FluidImplicitTimeInt::calc_intermediate_solution()
       // temporary store velnp_ since it will be modified in Solve()
       const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*dofrowmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       tmp->update(1.0, *velnp_, 0.0);
 
       // compute intermediate solution without forcing
@@ -3840,7 +3842,8 @@ void FLD::FluidImplicitTimeInt::read_restart(int step)
   const int have_fexternal = reader.read_int("have_fexternal");
   if (have_fexternal != -1)
   {
-    external_loads_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loads_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     reader.read_vector(external_loads_, "fexternal");
     if (have_fexternal != external_loads_->global_length())
       FOUR_C_THROW("reading of external loads failed");
@@ -4089,10 +4092,10 @@ void FLD::FluidImplicitTimeInt::avm3_get_scale_separation_matrix()
   Sep_ = Core::LinAlg::matrix_multiply(Ptent, false, Ptent, true);
   Sep_->scale(-1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-      Core::LinAlg::create_vector(Sep_->row_map(), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(Sep_->row_map(), false);
   tmp->put_scalar(1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(Sep_->row_map(), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(Sep_->row_map(), false);
   Sep_->extract_diagonal_copy(*diag);
   diag->update(1.0, *tmp, 1.0);
   // Hint: replace_diagonal_values doesn't do anything if nothing in graph before
@@ -5032,7 +5035,7 @@ void FLD::FluidImplicitTimeInt::lift_drag() const
       // acting on the node, i.e. taking into account the previously neglected
       // forces perpendicular to the boundary due to slip boundary condition(s)
       std::shared_ptr<Core::LinAlg::Vector<double>> forces;
-      forces = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      forces = std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
       forces->update(1.0, *trueresidual_, 1.0, *slip_bc_normal_tractions_, 0.0);
 
@@ -5114,7 +5117,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FLD::FluidImplicitTimeInt::integra
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> integratedshapefunc =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // call loop over elements
   discret_->clear_state();
@@ -5231,7 +5234,7 @@ void FLD::FluidImplicitTimeInt::linear_relaxation_solve(
 
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> griddisp =
-        Core::LinAlg::create_vector(*dofrowmap, false);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, false);
 
     // set the grid displacement independent of the trial value at the
     // interface
@@ -5380,10 +5383,10 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> FLD::FluidImplicitTimeInt::d
 {
   if (dbcmaps_ == nullptr) FOUR_C_THROW("Dirichlet map has not been allocated");
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichones =
-      Core::LinAlg::create_vector(*(dbcmaps_->cond_map()), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(dbcmaps_->cond_map()), false);
   dirichones->put_scalar(1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichtoggle =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
   dbcmaps_->insert_cond_vector(*dirichones, *dirichtoggle);
   return dirichtoggle;
 }
@@ -5394,9 +5397,9 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> FLD::FluidImplicitTimeInt::i
 {
   if (dbcmaps_ == nullptr) FOUR_C_THROW("Dirichlet map has not been allocated");
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichzeros =
-      Core::LinAlg::create_vector(*(dbcmaps_->cond_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(dbcmaps_->cond_map()), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> invtoggle =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), false);
   invtoggle->put_scalar(1.0);
   dbcmaps_->insert_cond_vector(*dirichzeros, *invtoggle);
   return invtoggle;
@@ -5539,7 +5542,7 @@ void FLD::FluidImplicitTimeInt::set_general_turbulence_parameters()
     {
       turbmodel_ = Inpar::FLUID::multifractal_subgrid_scales;
 
-      fsvelaf_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+      fsvelaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
       Teuchos::ParameterList* modelparams = &(params_->sublist("MULTIFRACTAL SUBGRID SCALES"));
 
@@ -5565,7 +5568,7 @@ void FLD::FluidImplicitTimeInt::set_general_turbulence_parameters()
 
       // fine-scale scalar at time n+alpha_F/n+1 and n+alpha_M/n
       // (only required for low-Mach-number case)
-      fsscaaf_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+      fsscaaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     }
     else if (physmodel == "Vreman")
     {
@@ -5595,7 +5598,7 @@ void FLD::FluidImplicitTimeInt::set_general_turbulence_parameters()
   // -------------------------------------------------------------------
   if (fssgv_ != Inpar::FLUID::no_fssgv)
   {
-    fsvelaf_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    fsvelaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
     if (myrank_ == 0)
     {
@@ -5668,7 +5671,7 @@ void FLD::FluidImplicitTimeInt::update_iter_incrementally(
     // Take Dirichlet values from velnp and add vel to veln for non-Dirichlet
     // values.
     std::shared_ptr<Core::LinAlg::Vector<double>> aux =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map(0)), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map(0)), true);
     aux->update(1.0, *velnp_, 1.0, *vel, 0.0);
     //    dbcmaps_->insert_other_vector(dbcmaps_->extract_other_vector(*aux), velnp_);
     dbcmaps_->insert_cond_vector(*dbcmaps_->extract_cond_vector(*velnp_), *aux);
@@ -6079,7 +6082,8 @@ void FLD::FluidImplicitTimeInt::apply_external_forces(
     std::shared_ptr<Core::LinAlg::MultiVector<double>> fext)
 {
   if (external_loads_ == nullptr)
-    external_loads_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loads_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   external_loads_->update(1.0, *fext, 0.0);
 }
@@ -6154,41 +6158,41 @@ void FLD::FluidImplicitTimeInt::reset(int numsteps, int iter)
   // Vectors passed to the element
   // -----------------------------
   // velocity/pressure at time n+1, n and n-1
-  velnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  veln_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  velnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  velnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  veln_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  velnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // acceleration/(scalar time derivative) at time n+1 and n
-  accnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  accn_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  accnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  accnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  accn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  accnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // velocity/pressure at time n+alpha_F
-  velaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  velaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // velocity/pressure at time n+alpha_M
-  velam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  velam_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // acceleration/(scalar time derivative) at time n+alpha_M/(n+alpha_M/n)
-  accam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  accam_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // scalar at time n+alpha_F/n+1 and n+alpha_M/n
   // (only required for low-Mach-number case)
-  scaaf_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  scaam_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  scaaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  scaam_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // history vector
-  hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   if (alefluid_)
   {
     const Core::LinAlg::Map* aledofrowmap = discret_->dof_row_map(ndsale_);
 
-    if (!dispnp_) dispnp_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-    if (!dispn_) dispn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-    dispnm_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-    gridv_ = Core::LinAlg::create_vector(*aledofrowmap, true);
-    gridvn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+    if (!dispnp_) dispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
+    if (!dispn_) dispn_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
+    dispnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
+    gridv_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
+    gridvn_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
   }
 }
 
@@ -6215,7 +6219,7 @@ void FLD::FluidImplicitTimeInt::predict_tang_vel_consist_acc()
 
   // for solution increments on Dirichlet boundary
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcinc =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
   // copy last converged solution
   dbcinc->update(1.0, *veln_, 0.0);
@@ -6241,7 +6245,7 @@ void FLD::FluidImplicitTimeInt::predict_tang_vel_consist_acc()
   // add linear reaction forces to residual
   // linear reactions
   std::shared_ptr<Core::LinAlg::Vector<double>> freact =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
   sysmat_->multiply(false, *dbcinc, *freact);
 
   // add linear reaction forces due to prescribed Dirichlet BCs
@@ -6616,7 +6620,8 @@ void FLD::FluidImplicitTimeInt::add_contribution_to_external_loads(
   /// will be scaled with 1.0/residual_scaling() when applied in
   /// void FLD::FluidImplicitTimeInt::assemble_mat_and_rhs()
   if (external_loads_ == nullptr)
-    external_loads_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loads_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   external_loads_->update(1.0, *contributing_vector, 1.0);
 }
@@ -6671,7 +6676,7 @@ void FLD::FluidImplicitTimeInt::assemble_coupling_contributions()
 
     // Add the matrix multiplied with the solution of the last time step to the rhs
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     int err = couplingcontributions_->multiply(false, *velnp_, *tmp);
 
     if (err != 0) FOUR_C_THROW(" Linalg Sparse Matrix Multiply threw error code {} ", err);
@@ -6692,7 +6697,7 @@ void FLD::FluidImplicitTimeInt::init_forcing()
       special_flow_ == "decaying_homogeneous_isotropic_turbulence" or
       special_flow_ == "periodic_hill")
   {
-    forcing_ = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+    forcing_ = std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
     if (special_flow_ == "forced_homogeneous_isotropic_turbulence" or
         special_flow_ == "scatra_forced_homogeneous_isotropic_turbulence" or
@@ -6723,7 +6728,8 @@ void FLD::FluidImplicitTimeInt::update_slave_dof(Core::LinAlg::Vector<double>& f
 void FLD::FluidImplicitTimeInt::reset_external_forces()
 {
   if (external_loads_ == nullptr)
-    external_loads_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loads_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   external_loads_->put_scalar(0);
 }
 

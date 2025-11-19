@@ -359,12 +359,13 @@ void Wear::LagrangeStrategyWear::initialize_mortar()
   mmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsdofrowmap_, 100);
 
   // global gap
-  wgap_ = Core::LinAlg::create_vector(*gsnoderowmap_, true);
+  wgap_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsnoderowmap_, true);
 
   /**********************************************************************/
   /* (re)setup global wear Core::LinAlg::Vector<double> (for all wear problems)        */
   /**********************************************************************/
-  if (!wearprimvar_) wearvector_ = Core::LinAlg::create_vector(*gsnoderowmap_, true);
+  if (!wearprimvar_)
+    wearvector_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsnoderowmap_, true);
 
   /**********************************************************************/
   /* in the case of dual quad 3D, the modified D matrices are setup     */
@@ -522,12 +523,12 @@ void Wear::LagrangeStrategyWear::initialize()
     linslip_w_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gslipt_, 3);
 
     // w - rhs
-    inactive_wear_rhs_ = Core::LinAlg::create_vector(*gwinact_, true);
+    inactive_wear_rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gwinact_, true);
 
     if (sswear_)
-      wear_cond_rhs_ = Core::LinAlg::create_vector(*gactiven_, true);
+      wear_cond_rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gactiven_, true);
     else
-      wear_cond_rhs_ = Core::LinAlg::create_vector(*gslipn_, true);
+      wear_cond_rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*gslipn_, true);
 
     // both-sided discr wear
     if (wearbothpv_)
@@ -578,7 +579,7 @@ void Wear::LagrangeStrategyWear::condense_wear_impl_expl(
   std::shared_ptr<Core::LinAlg::SparseMatrix> invd =
       std::make_shared<Core::LinAlg::SparseMatrix>(*dmatrix_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   int err = 0;
 
   // extract diagonal of invd into diag
@@ -1370,7 +1371,7 @@ void Wear::LagrangeStrategyWear::condense_wear_impl_expl(
       std::make_shared<Core::LinAlg::SparseMatrix>(
           *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
   std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-      Core::LinAlg::create_vector(*problem_dofs());
+      std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
   //--------------------------------------------------------- FIRST LINE
   // add n submatrices to kteffnew
@@ -1585,7 +1586,7 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
   std::shared_ptr<Core::LinAlg::SparseMatrix> invd =
       std::make_shared<Core::LinAlg::SparseMatrix>(*dmatrix_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   int err = 0;
 
   // extract diagonal of invd into diag
@@ -1860,7 +1861,8 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
   /* (a) create inv E                                                */
   /********************************************************************/
   Core::LinAlg::SparseMatrix inve(*ematrix_);
-  std::shared_ptr<Core::LinAlg::Vector<double>> diage = Core::LinAlg::create_vector(*gslipn_, true);
+  std::shared_ptr<Core::LinAlg::Vector<double>> diage =
+      std::make_shared<Core::LinAlg::Vector<double>>(*gslipn_, true);
 
   // extract diagonal of inve into diage
   inve.extract_diagonal_copy(*diage);
@@ -2476,7 +2478,7 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
       std::make_shared<Core::LinAlg::SparseMatrix>(
           *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
   std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-      Core::LinAlg::create_vector(*problem_dofs());
+      std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
   //--------------------------------------------------------- FIRST LINE
   // add n submatrices to kteffnew
@@ -2679,7 +2681,7 @@ void Wear::LagrangeStrategyWear::evaluate_friction(
   /* Here, the additional wear is already included !!!                  */
   /**********************************************************************/
   std::shared_ptr<Core::LinAlg::Vector<double>> gact =
-      Core::LinAlg::create_vector(*gactivenodes_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
   if (gact->global_length())
   {
     Core::LinAlg::export_to(*wgap_, *gact);
@@ -3211,10 +3213,12 @@ void Wear::LagrangeStrategyWear::build_saddle_point_system(
   }
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> mergedmt = nullptr;
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs = Core::LinAlg::create_vector(*mergedmap);
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol = Core::LinAlg::create_vector(*mergedmap);
+  std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs =
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
+  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol =
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
   std::shared_ptr<Core::LinAlg::Vector<double>> mergedzeros =
-      Core::LinAlg::create_vector(*mergedmap);
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
 
   // initialize constraint r.h.s. (still with wrong map)
   std::shared_ptr<Core::LinAlg::Vector<double>> constrrhs =
@@ -3327,7 +3331,7 @@ void Wear::LagrangeStrategyWear::build_saddle_point_system(
 
     // export weighted gap vector
     std::shared_ptr<Core::LinAlg::Vector<double>> gact =
-        Core::LinAlg::create_vector(*gactivenodes_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gactiven_->num_global_elements())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -3506,7 +3510,7 @@ void Wear::LagrangeStrategyWear::build_saddle_point_system(
 
     // export weighted gap vector
     std::shared_ptr<Core::LinAlg::Vector<double>> gact =
-        Core::LinAlg::create_vector(*gactivenodes_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gactiven_->num_global_elements())
     {
       Core::LinAlg::export_to(*wgap_, *gact);
@@ -3724,7 +3728,7 @@ void Wear::LagrangeStrategyWear::build_saddle_point_system(
 
     // export weighted gap vector
     std::shared_ptr<Core::LinAlg::Vector<double>> gact =
-        Core::LinAlg::create_vector(*gactivenodes_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
     if (gactiven_->num_global_elements())
     {
       Core::LinAlg::export_to(*wgap_, *gact);

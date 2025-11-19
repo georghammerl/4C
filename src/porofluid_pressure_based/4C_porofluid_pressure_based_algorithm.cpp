@@ -182,42 +182,45 @@ void PoroPressureBased::PorofluidAlgorithm::init(bool isale, int nds_disp, int n
   // create vectors containing problem variables
   // -------------------------------------------------------------------
   // solutions at time n+1
-  phinp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // solutions at time n
-  phin_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phin_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // time derivative of solutions at time n
-  phidtn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phidtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // time derivative of solutions at time n+1
-  phidtnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phidtnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // history vector
-  hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // valid (physically meaningful) volume fraction dofs
-  valid_volfracpress_dofs_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  valid_volfracspec_dofs_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  valid_volfracpress_dofs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  valid_volfracspec_dofs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   if (output_satpress_)
   {
     // pressure at time n+1
-    pressure_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    pressure_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     // saturation at time n+1
-    saturation_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    saturation_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   }
   // solid pressure at time n+1
   if (output_solidpress_)
-    solidpressure_ = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+    solidpressure_ = std::make_shared<Core::LinAlg::Vector<double>>(
+        *discret_->dof_row_map(nds_solidpressure_), true);
   // porosity at time n+1 (lives on same dofset as solid pressure)
   if (output_porosity_)
-    porosity_ = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+    porosity_ = std::make_shared<Core::LinAlg::Vector<double>>(
+        *discret_->dof_row_map(nds_solidpressure_), true);
 
   //! volfrac blood lung at time n+1 (lives on same dofset as solid pressure)
   if (output_volfrac_blood_lung_)
-    volfrac_blood_lung_ =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+    volfrac_blood_lung_ = std::make_shared<Core::LinAlg::Vector<double>>(
+        *discret_->dof_row_map(nds_solidpressure_), true);
 
   //! determinant of derformation gradient at time n+1 (lives on same dofset as solid pressure)
   if (output_det_def_grad_)
-    det_def_grad_ = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+    det_def_grad_ = std::make_shared<Core::LinAlg::Vector<double>>(
+        *discret_->dof_row_map(nds_solidpressure_), true);
 
   if (output_phase_velocities_)
   {
@@ -228,7 +231,7 @@ void PoroPressureBased::PorofluidAlgorithm::init(bool isale, int nds_disp, int n
   }
 
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   int stream;
   std::istringstream stream_dbc_onoff(
@@ -258,16 +261,16 @@ void PoroPressureBased::PorofluidAlgorithm::init(bool isale, int nds_disp, int n
   }
 
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // the residual vector --- more or less the rhs
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // residual vector containing the normal boundary fluxes
-  trueresidual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // incremental solution vector
-  increment_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  increment_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   set_initial_field(Teuchos::getIntegralValue<PoroPressureBased::InitialField>(
                         poroparams_.sublist("initial_condition"), "type"),
@@ -1436,7 +1439,7 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_pressures_and_saturation
 
     // initialize counter vector (will store how many times the node has been evaluated)
     std::shared_ptr<Core::LinAlg::Vector<double>> counter =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
     // call loop over elements
     discret_->evaluate(eleparams, nullptr, nullptr, pressure_, saturation_, counter);
@@ -1476,7 +1479,8 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_solid_pressures()
 
   // initialize counter vector (will store how many times the node has been evaluated)
   std::shared_ptr<Core::LinAlg::Vector<double>> counter =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(nds_solidpressure_), true);
 
   // create strategy for assembly of solid pressure
   Core::FE::AssembleStrategy strategysolidpressure(
@@ -1557,7 +1561,8 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_porosity()
 
   // initialize counter vector (will store how many times the node has been evaluated)
   std::shared_ptr<Core::LinAlg::Vector<double>> counter =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(nds_solidpressure_), true);
 
   // create strategy for assembly of porosity
   Core::FE::AssembleStrategy strategyporosity(
@@ -1598,7 +1603,8 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_volfrac_blood_lung()
 
   // initialize counter vector (will store how many times the node has been evaluated)
   std::shared_ptr<Core::LinAlg::Vector<double>> counter =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(nds_solidpressure_), true);
 
   // create strategy for assembly of volfrac
   Core::FE::AssembleStrategy strategyvolfrac(
@@ -1641,7 +1647,8 @@ void PoroPressureBased::PorofluidAlgorithm::reconstruct_determinant_of_derformat
 
   // initialize counter vector (will store how many times the node has been evaluated)
   std::shared_ptr<Core::LinAlg::Vector<double>> counter =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds_solidpressure_), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *discret_->dof_row_map(nds_solidpressure_), true);
 
   // create strategy for assembly of volfrac
   Core::FE::AssembleStrategy strategydetdefgrad(

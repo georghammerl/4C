@@ -137,18 +137,18 @@ void FSI::MonolithicNoNOX::newton()
   // initialise equilibrium loop
   iter_ = 1;
 
-  x_sum_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  x_sum_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   x_sum_->put_scalar(0.0);
 
   // incremental solution vector with length of all FSI dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
 
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 
   // residual vector with length of all FSI dofs
-  rhs_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   rhs_->put_scalar(0.0);
 
   firstcall_ = true;

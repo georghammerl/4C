@@ -229,7 +229,7 @@ FLD::Utils::FluidImpedanceBc::FluidImpedanceBc(
   //                 local <-> global dof numbering
   // ---------------------------------------------------------------------
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
-  impedancetbc_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  impedancetbc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   impedancetbcsysmat_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dofrowmap, 108, false, true);
   // NOTE: do not call impedancetbcsysmat_->Complete() before it is filled, since
   // this is our check if it has already been initialized
@@ -300,7 +300,7 @@ void FLD::Utils::FluidImpedanceBc::flow_rate_calculation(const int condid)
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   discret_->evaluate_condition(eleparams, flowrates, "ImpedanceCond", condid);
 
@@ -401,7 +401,7 @@ void FLD::Utils::FluidImpedanceBc::calculate_impedance_tractions_and_update_resi
     // calculate dQ/du = ( \phi o n )_Gamma
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> dQdu =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
     Teuchos::ParameterList eleparams2;
     // action for elements

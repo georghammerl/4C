@@ -16,8 +16,8 @@ FOUR_C_NAMESPACE_OPEN
 /*-------------------------------------------------------------------------*
  *-------------------------------------------------------------------------*/
 Core::LinAlg::Equilibration::Equilibration(std::shared_ptr<const Core::LinAlg::Map> dofrowmap)
-    : invcolsums_(Core::LinAlg::create_vector(*dofrowmap, false)),
-      invrowsums_(Core::LinAlg::create_vector(*dofrowmap, false))
+    : invcolsums_(std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, false)),
+      invrowsums_(std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, false))
 {
 }
 
@@ -100,7 +100,7 @@ void Core::LinAlg::Equilibration::compute_inv_symmetry(
     const Core::LinAlg::SparseMatrix& matrix, Core::LinAlg::Vector<double>& invsymmetry) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(matrix.range_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(matrix.range_map(), true);
   matrix.extract_diagonal_copy(*diag);
 
   for (int my_row = 0; my_row < diag->get_map().num_my_elements(); ++my_row)
@@ -434,8 +434,8 @@ void Core::LinAlg::EquilibrationBlockSpecific::equilibrate_matrix(
     }
     if (method == EquilibrationMethod::symmetry)
     {
-      auto invsymmetry =
-          Core::LinAlg::create_vector(blocksparsematrix->matrix(i, i).range_map(), true);
+      auto invsymmetry = std::make_shared<Core::LinAlg::Vector<double>>(
+          blocksparsematrix->matrix(i, i).range_map(), true);
 
       compute_inv_symmetry(blocksparsematrix->matrix(i, i), *invsymmetry);
 

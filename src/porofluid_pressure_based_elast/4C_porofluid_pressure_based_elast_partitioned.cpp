@@ -61,20 +61,23 @@ void PoroPressureBased::PorofluidElastPartitionedAlgorithm::init(
   artery_coupling_active_ = fluidparams.get<bool>("artery_coupling_active");
 
   // initialize increment vectors
-  phiincnp_ = Core::LinAlg::create_vector(*porofluid_algo()->dof_row_map(0), true);
+  phiincnp_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*porofluid_algo()->dof_row_map(0), true);
   if (artery_coupling_active_)
-    arterypressincnp_ = Core::LinAlg::create_vector(*porofluid_algo()->artery_dof_row_map(), true);
-  dispincnp_ = Core::LinAlg::create_vector(*structure_algo()->dof_row_map(0), true);
+    arterypressincnp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+        *porofluid_algo()->artery_dof_row_map(), true);
+  dispincnp_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(0), true);
 
   // initialize fluid vectors
-  fluidphinp_ =
-      Core::LinAlg::create_vector(*porofluid_algo()->discretization()->dof_row_map(), true);
-  fluidphioldnp_ =
-      Core::LinAlg::create_vector(*porofluid_algo()->discretization()->dof_row_map(), true);
-  fluidphiincnp_ =
-      Core::LinAlg::create_vector(*porofluid_algo()->discretization()->dof_row_map(), true);
-  fluidphiincnpold_ =
-      Core::LinAlg::create_vector(*porofluid_algo()->discretization()->dof_row_map(), true);
+  fluidphinp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *porofluid_algo()->discretization()->dof_row_map(), true);
+  fluidphioldnp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *porofluid_algo()->discretization()->dof_row_map(), true);
+  fluidphiincnp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *porofluid_algo()->discretization()->dof_row_map(), true);
+  fluidphiincnpold_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *porofluid_algo()->discretization()->dof_row_map(), true);
 
   // Get the parameters for the convergence_check
   itmax_ = algoparams.sublist("nonlinear_solver").get<int>("maximum_number_of_iterations");
@@ -145,8 +148,9 @@ void PoroPressureBased::PorofluidElastPartitionedAlgorithm::outer_loop()
       // Inform user that structure field has been disabled
       print_structure_disabled_info();
       // just set displacements and velocities to zero
-      set_structure_solution(Core::LinAlg::create_vector(*structure_algo()->dof_row_map(), true),
-          Core::LinAlg::create_vector(*structure_algo()->dof_row_map(), true));
+      set_structure_solution(
+          std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(), true),
+          std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(), true));
     }
 
     // 1.) solve scalar transport equation
@@ -385,7 +389,8 @@ void PoroPressureBased::PorofluidElastPartitionedAlgorithm::aitken_relaxation(
 {
   // fluidphiincnpdiff =  r^{i+1}_{n+1} - r^i_{n+1}
   std::shared_ptr<Core::LinAlg::Vector<double>> fluidphiincnpdiff =
-      Core::LinAlg::create_vector(*porofluid_algo()->discretization()->dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *porofluid_algo()->discretization()->dof_row_map(), true);
   fluidphiincnpdiff->update(1.0, *fluidphiincnp_, (-1.0), *fluidphiincnpold_, 0.0);
 
   double fluidphiincnpdiffnorm = 0.0;

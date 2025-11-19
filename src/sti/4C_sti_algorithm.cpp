@@ -311,7 +311,7 @@ void STI::Algorithm::transfer_scatra_to_thermo(
       {
         // pass master-side scatra degrees of freedom to thermo discretization
         const std::shared_ptr<Core::LinAlg::Vector<double>> imasterphinp =
-            Core::LinAlg::create_vector(
+            std::make_shared<Core::LinAlg::Vector<double>>(
                 *scatra_->scatra_field()->discretization()->dof_row_map(), true);
         strategyscatra_->interface_maps()->insert_vector(
             *strategyscatra_->coupling_adapter()->master_to_slave(

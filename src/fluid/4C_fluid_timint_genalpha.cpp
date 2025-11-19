@@ -287,11 +287,11 @@ void FLD::TimIntGenAlpha::gen_alpha_intermediate_values(
   //    vec         = alpha_F * vecnp     + (1-alpha_F) *  vecn
 
   std::shared_ptr<Core::LinAlg::Vector<double>> vecam =
-      Core::LinAlg::create_vector(vecnp->get_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(vecnp->get_map(), true);
   vecam->update((alphaM_), *vecnp, (1.0 - alphaM_), *vecn, 0.0);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> vecaf =
-      Core::LinAlg::create_vector(vecnp->get_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(vecnp->get_map(), true);
   vecaf->update((alphaF_), *vecnp, (1.0 - alphaF_), *vecn, 0.0);
 
   // store computed intermediate values in given vectors

@@ -103,13 +103,13 @@ void Arteries::ArtNetImplStationary::init(const Teuchos::ParameterList& globalti
       std::make_shared<Core::LinAlg::SparseMatrix>(*(discret_->dof_row_map()), 3, false, true);
 
   // right hand side vector
-  rhs_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // create vectors associated to boundary conditions
   // -------------------------------------------------------------------
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // object holds maps/subsets for DOFs subjected to Dirichlet BCs and otherwise
   dbcmaps_ = std::make_shared<Core::LinAlg::MapExtractor>();
@@ -124,20 +124,20 @@ void Arteries::ArtNetImplStationary::init(const Teuchos::ParameterList& globalti
   }
 
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // create vectors containing problem variables
   // -------------------------------------------------------------------
   // solutions at time n+1
-  pressurenp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  pressureincnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  pressurenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  pressureincnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // for output of volumetric flow
-  ele_volflow_ = Core::LinAlg::create_vector(*discret_->element_row_map());
+  ele_volflow_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->element_row_map());
 
   // for output of element radius
-  ele_radius_ = Core::LinAlg::create_vector(*discret_->element_row_map());
+  ele_radius_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->element_row_map());
 
   // -------------------------------------------------------------------
   // set initial field
@@ -656,7 +656,7 @@ void Arteries::ArtNetImplStationary::read_restart(int step, bool coupledTo3D)
   // read restart for diameter of previous time step
   reader.read_vector(ele_radius_, "ele_radius");
   std::shared_ptr<Core::LinAlg::Vector<double>> ele_radius_col =
-      Core::LinAlg::create_vector(*discret_->element_col_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->element_col_map(), true);
   Core::LinAlg::export_to(*ele_radius_, *ele_radius_col);
 
   // set the diameter in material

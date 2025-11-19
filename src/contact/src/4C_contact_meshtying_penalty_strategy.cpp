@@ -152,7 +152,7 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
   //**********************************************************************
   // fill Xmaster first
   std::shared_ptr<Core::LinAlg::Vector<double>> Xmaster =
-      Core::LinAlg::create_vector(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
   assemble_coords("master", true, *Xmaster);
 
   //**********************************************************************
@@ -160,9 +160,9 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
   //**********************************************************************
   // create linear problem
   std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   mmatrix_->multiply(false, *Xmaster, *rhs);
 
   // solve with default solver

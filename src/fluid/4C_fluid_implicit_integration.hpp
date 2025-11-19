@@ -717,7 +717,7 @@ namespace FLD
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> create_dispnp()
     {
       const Core::LinAlg::Map* aledofrowmap = discret_->dof_row_map(ndsale_);
-      dispnp_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+      dispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
       return dispnp_;
     }
 
@@ -728,7 +728,7 @@ namespace FLD
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> create_dispn()
     {
       const Core::LinAlg::Map* aledofrowmap = discret_->dof_row_map(ndsale_);
-      dispn_ = Core::LinAlg::create_vector(*aledofrowmap, true);
+      dispn_ = std::make_shared<Core::LinAlg::Vector<double>>(*aledofrowmap, true);
       return dispn_;
     }
     std::shared_ptr<Core::LinAlg::SparseMatrix> system_matrix() override

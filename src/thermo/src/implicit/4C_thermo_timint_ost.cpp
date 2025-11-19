@@ -59,24 +59,24 @@ Thermo::TimIntOneStepTheta::TimIntOneStepTheta(const Teuchos::ParameterList& iop
 
   // create state vectors
   // mid-temperatures
-  tempt_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  tempt_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   // create force vectors
   // internal force vector F_{int;n} at last time
-  fint_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fint_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // internal force vector F_{int;n+1} at new time
-  fintn_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // stored force vector F_{transient;n} at last time
-  fcap_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fcap_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // stored force vector F_{transient;n+1} at new time
-  fcapn_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fcapn_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // set initial internal force vector
   apply_force_tang_internal(time_[0], dt_[0], temp_(0), zeros_, fcap_, fint_, tang_);
 
   // external force vector F_ext at last times
-  fext_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fext_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // external force vector F_{n+1} at new time
-  fextn_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   // set initial external force vector
   apply_force_external(time_[0], temp_(0), *fext_);
   // set initial external force vector of convective heat transfer boundary
@@ -252,7 +252,7 @@ void Thermo::TimIntOneStepTheta::update_iter_incrementally()
   // DOFs of overwriting; they already hold the
   // correctly 'predicted', final values.
   std::shared_ptr<Core::LinAlg::Vector<double>> aux =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), false);
 
   // new end-point temperatures
   // T_{n+1}^{i+1} := T_{n+1}^{<k>} + IncT_{n+1}^{i}

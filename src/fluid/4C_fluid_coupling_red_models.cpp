@@ -727,7 +727,7 @@ FLD::Utils::FluidCouplingBc::FluidCouplingBc(std::shared_ptr<Core::FE::Discretiz
   //                 local <-> global dof numbering
   // ---------------------------------------------------------------------
   const Core::LinAlg::Map* dofrowmap = discret_3d_->dof_row_map();
-  couplingbc_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  couplingbc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   flowrate_ = 0.0;
 
@@ -942,7 +942,7 @@ double FLD::Utils::FluidCouplingBc::flow_rate_calculation(double time, double dt
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   const std::string condstring("Art_3D_redD_CouplingCond");
   discret_3d_->evaluate_condition(eleparams, flowrates, condstring, condid);
 

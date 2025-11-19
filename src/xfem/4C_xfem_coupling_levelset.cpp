@@ -162,7 +162,7 @@ void XFEM::LevelSetCoupling::init_state_vectors_bg()
   // background-dis (fluid) related state vectors
   const Core::LinAlg::Map* bg_dofrowmap = bg_dis_->dof_row_map(bg_nds_phi_);
 
-  phinp_ = Core::LinAlg::create_vector(*bg_dofrowmap, true);
+  phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*bg_dofrowmap, true);
 }
 
 
@@ -178,14 +178,14 @@ void XFEM::LevelSetCoupling::init_state_vectors_cutter()
   const Core::LinAlg::Map* cutter_dofcolmap =
       cutter_dis_->dof_col_map(cutter_nds_phi_);  // used for level set field and its derivatives
 
-  cutter_phinp_ = Core::LinAlg::create_vector(*cutter_dofrowmap, true);
-  cutter_phinp_col_ = Core::LinAlg::create_vector(*cutter_dofcolmap, true);
+  cutter_phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutter_dofrowmap, true);
+  cutter_phinp_col_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutter_dofcolmap, true);
   gradphinp_smoothed_node_ =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*cutter_dofrowmap, nsd_, true);
   gradphinp_smoothed_node_col_ =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*cutter_dofcolmap, nsd_, true);
-  curvaturenp_node_ = Core::LinAlg::create_vector(*cutter_dofrowmap, true);
-  curvaturenp_node_col_ = Core::LinAlg::create_vector(*cutter_dofcolmap, true);
+  curvaturenp_node_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutter_dofrowmap, true);
+  curvaturenp_node_col_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutter_dofcolmap, true);
 }
 
 
@@ -371,7 +371,7 @@ bool XFEM::LevelSetCoupling::set_level_set_field(const double time)
   // make a copy of last time step
 
   std::shared_ptr<Core::LinAlg::Vector<double>> delta_phi =
-      Core::LinAlg::create_vector(cutter_phinp_->get_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(cutter_phinp_->get_map(), true);
   delta_phi->update(1.0, *cutter_phinp_, 0.0);
 
   // initializations
@@ -571,7 +571,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 XFEM::LevelSetCoupling::get_level_set_field_as_node_row_vector()
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> bg_phinp_nodemap_ =
-      Core::LinAlg::create_vector(*bg_dis_->node_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bg_dis_->node_row_map(), true);
 
   // loop the nodes
   for (int lnodeid = 0; lnodeid < bg_dis_->num_my_row_nodes(); ++lnodeid)

@@ -793,7 +793,7 @@ void Core::Binstrategy::BinningStrategy::write_bin_output(int const step, double
 
   // create vector that shows ghosting
   std::shared_ptr<Core::LinAlg::Vector<double>> ownedghostsvec =
-      Core::LinAlg::create_vector(*visbindis_->element_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*visbindis_->element_row_map(), true);
   for (int i = 0; i < visbindis_->num_my_row_elements(); ++i)
   {
     Core::Elements::Element* ele = visbindis_->l_row_element(i);
@@ -1178,7 +1178,7 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
   // Now we're going to create a Core::LinAlg::Vector<double> with vertex/node weights to be
   // used for the partitioning operation (weights must be at least one for zoltan)
   std::shared_ptr<Core::LinAlg::Vector<double>> vweights =
-      Core::LinAlg::create_vector(*rowbins, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*rowbins, true);
 
   // set weights of bins related to the number of nodes of discrets that are contained
   // empty bins have weight of 1
@@ -1464,7 +1464,7 @@ void Core::Binstrategy::BinningStrategy::standard_discretization_ghosting(
     });
     std::shared_ptr<Core::LinAlg::Vector<double>> old;
     old = disnp;
-    disnp = Core::LinAlg::create_vector(*discret->dof_row_map(), true);
+    disnp = std::make_shared<Core::LinAlg::Vector<double>>(*discret->dof_row_map(), true);
     Core::LinAlg::export_to(*old, *disnp);
   }
 

@@ -54,7 +54,7 @@ void ScaTra::TimIntCardiacMonodomain::setup()
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
   // Activation time at time n+1
-  activation_time_np_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  activation_time_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   activation_threshold_ = ep_params_->get<double>("ACTTHRES");
   // Assumes that maximum nb_max_mat_int_state_vars_ internal state variables will be written
   nb_max_mat_int_state_vars_ = ep_params_->get<int>(
@@ -64,7 +64,7 @@ void ScaTra::TimIntCardiacMonodomain::setup()
     material_internal_state_np_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
         *(discret_->element_row_map()), nb_max_mat_int_state_vars_, true);
     material_internal_state_np_component_ =
-        Core::LinAlg::create_vector(*(discret_->element_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->element_row_map()), true);
   }
   // Assumes that maximum nb_max_mat_ionic_currents_ ionic_currents variables will be written
   nb_max_mat_ionic_currents_ = ep_params_->get<int>(
@@ -74,7 +74,7 @@ void ScaTra::TimIntCardiacMonodomain::setup()
     material_ionic_currents_np_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
         *(discret_->element_row_map()), nb_max_mat_ionic_currents_, true);
     material_ionic_currents_np_component_ =
-        Core::LinAlg::create_vector(*(discret_->element_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->element_row_map()), true);
   }
 }
 

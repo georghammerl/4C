@@ -324,10 +324,12 @@ void SSTI::SSTIMono::setup_system()
   ssti_maps_mono_ = std::make_shared<SSTI::SSTIMapsMono>(*this);
 
   // initialize global increment vector for Newton-Raphson iteration
-  increment_ = Core::LinAlg::create_vector(*ssti_maps_mono_->maps_sub_problems()->full_map(), true);
+  increment_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *ssti_maps_mono_->maps_sub_problems()->full_map(), true);
 
   // initialize global residual vector
-  residual_ = Core::LinAlg::create_vector(*ssti_maps_mono_->maps_sub_problems()->full_map(), true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *ssti_maps_mono_->maps_sub_problems()->full_map(), true);
 
   if (matrixtype_ == Core::LinAlg::MatrixType::block_field)
   {

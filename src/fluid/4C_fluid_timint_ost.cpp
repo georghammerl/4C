@@ -229,8 +229,10 @@ void FLD::TimIntOneStepTheta::apply_external_forces(
   if (step_ <= numstasteps_)
   {
     external_loadsn_ = std::make_shared<Core::LinAlg::Vector<double>>((*fext)(0));
-    external_loadsnp_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
-    external_loads_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loadsnp_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
+    external_loads_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
   }
 
   if (external_loadsn_ == nullptr)
@@ -277,8 +279,10 @@ void FLD::TimIntOneStepTheta::read_restart(int step)
   const int have_fexternal = reader.read_int("have_fexternal");
   if (have_fexternal != -1)
   {
-    external_loadsn_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
-    external_loadsnp_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    external_loadsn_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
+    external_loadsnp_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     if (step_ > numstasteps_ && params_->get<double>("theta") != 1.0)
     {
       reader.read_vector(external_loadsn_, "fexternal_n");

@@ -86,16 +86,16 @@ void Solid::TimIntStatics::setup()
   // create force vectors
 
   // internal force vector F_{int;n+1} at new time
-  fintn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // external force vector F_{n+1} at new time
-  fextn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // internal force vector F_{int;n} at new time
-  fint_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fint_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // external force vector F_{n} at new time
-  fext_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fext_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   return;
 }
@@ -136,7 +136,7 @@ void Solid::TimIntStatics::predict_const_vel_consist_acc()
   {
     // Displacement increment over last time step
     std::shared_ptr<Core::LinAlg::Vector<double>> disp_inc =
-        Core::LinAlg::create_vector(*dof_row_map_view(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
     disp_inc->update((*dt_)[0], *(*vel_)(0), 0.);
     Core::LinAlg::apply_dirichlet_to_system(*disp_inc, *zeros_, *(dbcmaps_->cond_map()));
     disn_->update(1.0, *(*dis_)(0), 0.0);
@@ -168,7 +168,7 @@ void Solid::TimIntStatics::predict_const_acc()
   {
     // Displacement increment over last time step
     std::shared_ptr<Core::LinAlg::Vector<double>> disp_inc =
-        Core::LinAlg::create_vector(*dof_row_map_view(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
     disp_inc->update((*dt_)[0], *(*vel_)(0), 0.);
     disp_inc->update(.5 * (*dt_)[0] * (*dt_)[0], *(*acc_)(0), 1.);
     Core::LinAlg::apply_dirichlet_to_system(*disp_inc, *zeros_, *(dbcmaps_->cond_map()));

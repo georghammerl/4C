@@ -351,25 +351,29 @@ void PoroElast::MonolithicFluidSplit::recover_lagrange_multiplier_after_time_ste
 
     // store the product F_{\GammaI} \Delta u_I^{n+1} in here
     std::shared_ptr<Core::LinAlg::Vector<double>> fgiddi =
-        Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *fluid_field()->interface()->fsi_cond_map(), true);
     // compute the above mentioned product
     fgicur_->multiply(false, *duiinc_, *fgiddi);
 
     // store the product C_{\GammaI} \Delta d_I^{n+1} in here
     std::shared_ptr<Core::LinAlg::Vector<double>> sgiddi =
-        Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *fluid_field()->interface()->fsi_cond_map(), true);
     // compute the above mentioned product
     cgicur_->multiply(false, *ddiinc_, *sgiddi);
 
     // store the product F_{\Gamma\Gamma} \Delta u_\Gamma^{n+1} in here
     std::shared_ptr<Core::LinAlg::Vector<double>> sggddg =
-        Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *fluid_field()->interface()->fsi_cond_map(), true);
     // compute the above mentioned product
     fggcur_->multiply(false, *duginc_, *sggddg);
 
     // store the product C_{\Gamma\Gamma} \Delta d_\Gamma^{n+1} in here
     std::shared_ptr<Core::LinAlg::Vector<double>> cggddg =
-        Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *fluid_field()->interface()->fsi_cond_map(), true);
     // compute the above mentioned product
     cggcur_->multiply(false, *duginc_, *cggddg);
     cggddg->scale(1.0 / timescale);

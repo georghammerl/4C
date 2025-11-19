@@ -75,11 +75,11 @@ void Solid::TimIntCentrDiff::setup()
   resize_m_step();
 
   // allocate force vectors
-  fextn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fintn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fviscn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fcmtn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  frimpn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fviscn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fcmtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  frimpn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
 
   return;
@@ -220,7 +220,7 @@ int Solid::TimIntCentrDiff::integrate_step()
       std::shared_ptr<Core::LinAlg::SparseMatrix> massmatrix =
           std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(mass_);
       std::shared_ptr<Core::LinAlg::Vector<double>> diagonal =
-          Core::LinAlg::create_vector(*dof_row_map_view(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
       massmatrix->extract_diagonal_copy(*diagonal);
       accn_->reciprocal_multiply(1.0, *diagonal, *frimpn_, 0.0);
     }

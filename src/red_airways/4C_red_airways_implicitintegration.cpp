@@ -81,7 +81,8 @@ Airway::RedAirwayImplicitTimeInt::RedAirwayImplicitTimeInt(
   // ensure that degrees of freedom in the discretization have been set
   if (!discret_->filled() || !actdis->have_dofs()) discret_->fill_complete();
 
-  airway_acinus_dep_ = Core::LinAlg::create_vector(*discret_->element_col_map(), true);
+  airway_acinus_dep_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->element_col_map(), true);
 
   // extend ghosting of discretization to ensure correct neighbor search
   if (compAwAcInter_)
@@ -132,7 +133,8 @@ Airway::RedAirwayImplicitTimeInt::RedAirwayImplicitTimeInt(
     Core::Rebalance::print_parallel_distribution(*discret_);
 
     // Neighbouring acinus
-    airway_acinus_dep_ = Core::LinAlg::create_vector(*discret_->element_col_map(), true);
+    airway_acinus_dep_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->element_col_map(), true);
     compute_nearest_acinus(*discret_, nullptr, nullptr, airway_acinus_dep_);
   }
 
@@ -164,77 +166,77 @@ Airway::RedAirwayImplicitTimeInt::RedAirwayImplicitTimeInt(
 
   // Vectors passed to the element
   // Pressures at time n+1, n and n-1
-  pnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  on_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  pnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  pnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  on_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  pnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
-  p_nonlin_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  n_intr_ac_ln_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  p_nonlin_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  n_intr_ac_ln_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // Inlet volumetric flow rates at time n+1, n and n-1
-  qin_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  qin_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  qin_nm_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  qin_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  qin_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  qin_nm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // Trajectory vector x at time n+1 and n
-  x_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  x_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  x_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  x_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // State of airway
-  open_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  open_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // External pressure
-  p_extnp_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  p_extn_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  p_extnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  p_extn_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
-  pnp_colmap_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  on_colmap_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  pnp_colmap_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  on_colmap_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // Outlet volumetric flow rates at time n+1, n and n-1
-  qout_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  qout_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  qout_nm_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  qout_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  qout_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  qout_nm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // This vector will be used for exportation and restart reasons
-  qexp_ = Core::LinAlg::create_vector(*elementrowmap, true);
-  qexp2_ = Core::LinAlg::create_vector(*elementrowmap, true);
-  pexp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  qexp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementrowmap, true);
+  qexp2_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementrowmap, true);
+  pexp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // Element volume at time n+1, n and n-1
-  elemVolumenp_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  elemVolumen_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  elemVolumenm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  elemVolume0_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  elemArea0_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  elemVolumenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  elemVolumen_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  elemVolumenm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  elemVolume0_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  elemArea0_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // Element radius at time n+1
-  elemRadiusnp_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  elemRadiusnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // This vector will be used to test convergence
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  bc_residual_ = Core::LinAlg::create_vector(*dofcolmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  bc_residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofcolmap, true);
 
   // Vectors for postprocessing, Element Node Ids, radii, generations, etc ...
-  nodeIds_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  radii_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  generations_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  nodeIds_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  radii_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  generations_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // A vector of zeros to be used to enforce zero dirichlet boundary conditions
   // This part might be optimized later
-  bcval_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  dbctog_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  bcval_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  dbctog_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
-  acini_bc_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_e_volume0_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_e_volumenm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_e_volumen_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_e_volumenp_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_e_volume_strain_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  acini_max_strain_location_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  acini_bc_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_e_volume0_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_e_volumenm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_e_volumen_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_e_volumenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_e_volume_strain_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  acini_max_strain_location_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // Vectors used for solution process
   // right hand side vector and right hand side corrector
-  rhs_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // ---------------------------------------------------------------------------------------
   // Initialize all the arteries' cross-sectional areas to the initial crossectional area Ao
@@ -259,9 +261,9 @@ Airway::RedAirwayImplicitTimeInt::RedAirwayImplicitTimeInt(
   eleparams.set("action", "get_initial_state");
 
   std::shared_ptr<Core::LinAlg::Vector<double>> radii_in =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> radii_out =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   discret_->evaluate(eleparams, nullptr, nullptr, radii_in, radii_out, n_intr_ac_ln_);
 
@@ -1235,33 +1237,33 @@ void Airway::RedAirwayImplicitTimeInt::init_save_state()
   const Core::LinAlg::Map* elementcolmap = discret_->element_col_map();
 
   // saving vector for pressure
-  saved_pnm_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  saved_on_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  saved_pnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  saved_pnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  saved_on_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  saved_pnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // saving vector for inflow rate
-  saved_qin_nm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_qin_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_qin_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  saved_qin_nm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_qin_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_qin_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // saving vector for outflow rate
-  saved_qout_nm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_qout_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_qout_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  saved_qout_nm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_qout_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_qout_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // saving vector for trajectory
-  saved_x_n_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_x_np_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  saved_x_n_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_x_np_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // saving vector for acinar volume
-  saved_acini_e_volumenm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_acini_e_volumen_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_acini_e_volumenp_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  saved_acini_e_volumenm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_acini_e_volumen_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_acini_e_volumenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
   // saving vector for element volume
-  saved_elemVolumenm_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_elemVolumen_ = Core::LinAlg::create_vector(*elementcolmap, true);
-  saved_elemVolumenp_ = Core::LinAlg::create_vector(*elementcolmap, true);
+  saved_elemVolumenm_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_elemVolumen_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
+  saved_elemVolumenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*elementcolmap, true);
 
 }  // RedAirwayImplicitTimeInt::InitSaveState()
 

@@ -168,28 +168,28 @@ void Solid::TimeInt::BaseDataGlobalState::setup()
   acc_ = TimeStepping::TimIntMStep<Core::LinAlg::Vector<double>>(0, 0, dof_row_map_view(), true);
 
   // displacements D_{n+1} at t_{n+1}
-  disnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  disnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // velocities V_{n+1} at t_{n+1}
-  velnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  velnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   // accelerations A_{n+1} at t_{n+1}
-  accnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  accnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  fintn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fintnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fintnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  fextn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fextnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fextnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  freactn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  freactnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  freactn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  freactnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  finertialn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  finertialnp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  finertialn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  finertialnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  fviscon_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fvisconp_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fviscon_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fvisconp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
-  fstructold_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fstructold_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // --------------------------------------
   // sparse operators

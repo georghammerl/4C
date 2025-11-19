@@ -72,8 +72,8 @@ CONTACT::Beam3cmanager::Beam3cmanager(Core::FE::Discretization& discret, double 
       step_(0)
 {
   // initialize vectors of contact forces
-  fc_ = Core::LinAlg::create_vector(*discret.dof_row_map(), false);
-  fcold_ = Core::LinAlg::create_vector(*discret.dof_row_map(), false);
+  fc_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_row_map(), false);
+  fcold_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret.dof_row_map(), false);
   fc_->put_scalar(0.0);
   fcold_->put_scalar(0.0);
 
@@ -243,8 +243,8 @@ CONTACT::Beam3cmanager::Beam3cmanager(Core::FE::Discretization& discret, double 
     std::cout << "================================================================\n" << std::endl;
   }
 
-  dis_ = Core::LinAlg::create_vector(*problem_discret().dof_row_map(), true);
-  dis_old_ = Core::LinAlg::create_vector(*problem_discret().dof_row_map(), true);
+  dis_ = std::make_shared<Core::LinAlg::Vector<double>>(*problem_discret().dof_row_map(), true);
+  dis_old_ = std::make_shared<Core::LinAlg::Vector<double>>(*problem_discret().dof_row_map(), true);
 
   return;
 }
