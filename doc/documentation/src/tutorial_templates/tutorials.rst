@@ -22,6 +22,7 @@ If you are new to |FOURC|, we recommend to start with a tutorial that fits to yo
 - Contact mechanics: start with the :ref:`solid mechanics tutorial <3d_solidtutorial>`
   and proceed to the :ref:`3D contact tutorial <contacttutorial>`.
 - Fluid dynamics: start with the :ref:`fluid mechanics tutorial <fluidtutorial>`.
+- VTU mesh input (solid mechanics example) :ref:`solid mechanics tutorial <3d_solidvtututorial>`.
 
 The other tutorials are more advanced and show some of the multiphysics capabilities of |FOURC|.
 
@@ -50,5 +51,6 @@ Here is the outline of all available tutorials:
    tutorial_fsi_2d
    tutorial_fsi_3d
    tutorial_fsi_monolithic
+   tutorial_vtu
    tutorial_battery
    tutorial_preconditioning

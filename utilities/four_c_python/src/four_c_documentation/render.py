@@ -30,6 +30,67 @@ class Context:
     filetype: str
 
 
+def hash_options(*args, **kwargs):
+    data = json.dumps(
+        {
+            "args": [hash(id(arg)) for arg in args],
+            "kwargs": {hash(id(key)): hash(id(value)) for key, value in kwargs.items()},
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha256(data.encode()).hexdigest()
+
+
+class PlotBuilder:
+
+    def __init__(self, context: Context, aspect_ratio: float = 16 / 9):
+        self.plotter = pv.Plotter()
+        self.hash = "empty"
+        self.context = context
+        self.aspect_ratio = aspect_ratio
+
+    def __getattr__(self, name):
+        attr = getattr(self.plotter, name)
+
+        assert callable(attr), f"Attribute {name} is not callable on plotter."
+
+        # return a wrapper that calls the plotter method and returns self
+        def method(*args, **kwargs):
+            attr(*args, **kwargs)
+
+            # we need to update the hash with the options used for this method call
+            self.hash = hash_options(self.hash, name, *args, **kwargs)
+            return self
+
+        return method
+
+    def make(self):
+        # export as a standalone html file
+        relative_path = f"plot_{self.hash}.html"
+
+        output_file = (
+            self.context.base_rendering_path
+            / "_static"
+            / self.context.subdirectory
+            / relative_path
+        )
+
+        os.makedirs(output_file.parent, exist_ok=True)
+        self.plotter.export_html(str(output_file))
+        print("Generated plot at " + str(output_file))
+
+        num_subdirs = len(self.context.subdirectory.split("/"))
+
+        embedded_html = f'<div style="aspect-ratio: {self.aspect_ratio};"><iframe src="{"../"*num_subdirs}_static/{self.context.subdirectory}/{relative_path}" width="100%" height="100%" style="border:none;"></iframe></div>'
+
+        if self.context.filetype == "rst":
+            return f".. raw:: html\n\n   {embedded_html}"
+        elif self.context.filetype == "md":
+            return f"```{{raw}} html\n{embedded_html}\n```"
+
+        raise ValueError(f"Unsupported filetype: {self.context.filetype}")
+
+
 def load_input_file(context: Context, yaml_file):
     """Returns the dictionary of parameters for the given yaml file."""
     data = yaml.safe_load((context.input_file_path / yaml_file).read_text())
@@ -111,41 +172,13 @@ def find_sections_in_meta(
     return yaml_dump(context, section_names)
 
 
-def hash_options(**kwargs):
-    data = json.dumps(kwargs, sort_keys=True)
-    return hashlib.sha256(data.encode()).hexdigest()
-
-
 def plot(context: Context, input_file: str, aspect_ratio: float = 16 / 9, **kwargs):
-    """
-    Includes an interactive plot in the documentation using pyvista and the vtk library
-    """
-    plotter = pv.Plotter()
-
     mesh = pv.read(context.input_file_path / pathlib.Path(input_file))
-    plotter.add_mesh(mesh, **kwargs)
+    return PlotBuilder(context, aspect_ratio).add_mesh(mesh, **kwargs).make()
 
-    # export as a standalone html file
-    relative_path = (
-        pathlib.Path(input_file).stem + "_" + hash_options(**kwargs) + "_plot.html"
-    )
 
-    output_file = (
-        context.base_rendering_path / "_static" / context.subdirectory / relative_path
-    )
-
-    os.makedirs(output_file.parent, exist_ok=True)
-    plotter.export_html(str(output_file))
-    print("Generated plot at " + str(output_file))
-
-    num_subdirs = len(context.subdirectory.split("/"))
-
-    embedded_html = f'<div style="aspect-ratio: {aspect_ratio};"><iframe src="{"../"*num_subdirs}_static/{context.subdirectory}/{relative_path}" width="100%" height="100%" style="border:none;"></iframe></div>'
-
-    if context.filetype == "rst":
-        return f".. raw:: html\n\n   {embedded_html}"
-    elif context.filetype == "md":
-        return f"```{{raw}} html\n{embedded_html}\n```"
+def plotter(context: Context, aspect_ratio: float = 16 / 9):
+    return PlotBuilder(context, aspect_ratio)
 
 
 def render(template_path, base_rendering_path, subdirectory, input_file_path):
@@ -190,6 +223,10 @@ def render(template_path, base_rendering_path, subdirectory, input_file_path):
                 ),
                 len=len,
                 plot=functools.partial(plot, context),
+                plotter=functools.partial(plotter, context),
+                read_mesh=lambda input_file: pv.read(
+                    context.input_file_path / pathlib.Path(input_file)
+                ),
             )
         )
 
