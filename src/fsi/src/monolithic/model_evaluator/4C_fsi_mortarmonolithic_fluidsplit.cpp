@@ -402,7 +402,8 @@ void FSI::MortarMonolithicFluidSplit::setup_rhs_residual(Core::LinAlg::Vector<do
   std::shared_ptr<Core::LinAlg::Vector<double>> fcv =
       fluid_field()->interface()->extract_fsi_cond_vector(fv);
   std::shared_ptr<Core::LinAlg::Vector<double>> scv =
-      Core::LinAlg::create_vector(*structure_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *structure_field()->interface()->fsi_cond_map(), true);
   mortarp->multiply(true, *fcv, *scv);
   std::shared_ptr<Core::LinAlg::Vector<double>> modsv =
       structure_field()->interface()->insert_fsi_cond_vector(*scv);
@@ -723,8 +724,10 @@ void FSI::MortarMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<d
 
   // Reset quantities of previous iteration step since they still store values from the last time
   // step
-  ddginc_ = Core::LinAlg::create_vector(*structure_field()->interface()->fsi_cond_map(), true);
-  duiinc_ = Core::LinAlg::create_vector(*fluid_field()->interface()->other_map(), true);
+  ddginc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->fsi_cond_map(), true);
+  duiinc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *fluid_field()->interface()->other_map(), true);
   veliprev_ = nullptr;
   velgprev_ = nullptr;
   fgicur_ = nullptr;
@@ -1363,7 +1366,7 @@ void FSI::MortarMonolithicFluidSplit::extract_field_vectors(
       structure_field()->interface()->extract_fsi_cond_vector(*sx);
   scx->update(1.0, *ddgpred_, 1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> acx =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->interface()->fsi_cond_map());
   mortarp->Apply(*scx, *acx);
   acx = fluid_to_ale_interface(acx);
 

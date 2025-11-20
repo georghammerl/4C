@@ -562,7 +562,7 @@ void FS3I::PartFS3I::setup_system()
       const Core::LinAlg::Map* dofrowmap =
           scatravec_[i]->scatra_field()->discretization()->dof_row_map();
       std::shared_ptr<Core::LinAlg::Vector<double>> zeros =
-          Core::LinAlg::create_vector(*dofrowmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       scatrazeros_.push_back(zeros);
     }
   }
@@ -822,7 +822,8 @@ void FS3I::PartFS3I::extract_wss(
 
   // insert structure interface entries into vector with full structure length
   std::shared_ptr<Core::LinAlg::Vector<double>> structure =
-      Core::LinAlg::create_vector(*(fsi_->structure_field()->interface()->full_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *(fsi_->structure_field()->interface()->full_map()), true);
 
   // Parameter int block of function InsertVector: (0: inner dofs of structure, 1: interface dofs of
   // structure, 2: inner dofs of porofluid, 3: interface dofs of porofluid )

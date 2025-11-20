@@ -117,8 +117,10 @@ void Solid::IMPLICIT::Statics::write_restart(
   check_init_setup();
 
   // create empty dynamic forces
-  auto finertialn = Core::LinAlg::create_vector(*global_state().dof_row_map_view(), true);
-  auto fviscon = Core::LinAlg::create_vector(*global_state().dof_row_map_view(), true);
+  auto finertialn =
+      std::make_shared<Core::LinAlg::Vector<double>>(*global_state().dof_row_map_view(), true);
+  auto fviscon =
+      std::make_shared<Core::LinAlg::Vector<double>>(*global_state().dof_row_map_view(), true);
 
   // write dynamic forces, so that it can be used later on for restart dynamics analysis
   iowriter.write_vector("finert", finertialn);

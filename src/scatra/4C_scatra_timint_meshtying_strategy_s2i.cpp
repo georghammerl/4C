@@ -2138,12 +2138,12 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
       // Although the interface vector only contains the transformed master interface dofs, we still
       // initialize it with the full dof_row_map of the discretization to make it work for parallel
       // computations.
-      islavephidtnp_ =
-          Core::LinAlg::create_vector(*(scatratimint_->discretization()->dof_row_map()), false);
-      imasterphidt_on_slave_side_np_ =
-          Core::LinAlg::create_vector(*(scatratimint_->discretization()->dof_row_map()), false);
-      imasterphi_on_slave_side_np_ =
-          Core::LinAlg::create_vector(*(scatratimint_->discretization()->dof_row_map()), false);
+      islavephidtnp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+          *(scatratimint_->discretization()->dof_row_map()), false);
+      imasterphidt_on_slave_side_np_ = std::make_shared<Core::LinAlg::Vector<double>>(
+          *(scatratimint_->discretization()->dof_row_map()), false);
+      imasterphi_on_slave_side_np_ = std::make_shared<Core::LinAlg::Vector<double>>(
+          *(scatratimint_->discretization()->dof_row_map()), false);
 
       // initialize auxiliary system matrices and associated transformation operators
       islavematrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*(icoup_->slave_dof_map()), 81);
@@ -2464,7 +2464,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           // compute vector for lumped interface area fractions associated with slave-side nodes
           const Core::LinAlg::Map& dofrowmap_slave = *interface.slave_row_dofs();
           std::shared_ptr<Core::LinAlg::Vector<double>> islavenodeslumpedareas_dofvector =
-              Core::LinAlg::create_vector(dofrowmap_slave);
+              std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap_slave);
           evaluate_mortar_elements(elecolmap_slave, islaveelementsimpltypes, idiscret, eleparams,
               nullptr, Inpar::S2I::side_undefined, Inpar::S2I::side_undefined, nullptr,
               Inpar::S2I::side_undefined, Inpar::S2I::side_undefined, nullptr,
@@ -2479,7 +2479,7 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           // transform map of result vector
           std::shared_ptr<Core::LinAlg::Vector<double>>& islavenodeslumpedareas =
               islavenodeslumpedareas_[condid];
-          islavenodeslumpedareas = Core::LinAlg::create_vector(noderowmap_slave);
+          islavenodeslumpedareas = std::make_shared<Core::LinAlg::Vector<double>>(noderowmap_slave);
           for (int inode = 0; inode < noderowmap_slave.num_my_elements(); ++inode)
           {
             (*islavenodeslumpedareas).get_values()[inode] =
@@ -2614,9 +2614,9 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
               // set up mortar projector P
               std::shared_ptr<Core::LinAlg::Vector<double>> D_diag(nullptr);
               if (lmside_ == Inpar::S2I::side_slave)
-                D_diag = Core::LinAlg::create_vector(*interfacemaps_->map(1));
+                D_diag = std::make_shared<Core::LinAlg::Vector<double>>(*interfacemaps_->map(1));
               else
-                D_diag = Core::LinAlg::create_vector(*interfacemaps_->map(2));
+                D_diag = std::make_shared<Core::LinAlg::Vector<double>>(*interfacemaps_->map(2));
               D_->extract_diagonal_copy(*D_diag);
               D_diag->reciprocal(*D_diag);
 
@@ -3761,12 +3761,12 @@ void ScaTra::MeshtyingStrategyS2I::solve(const std::shared_ptr<Core::LinAlg::Sol
               *scatratimint_->dirich_maps()->cond_map(), false);
 
           std::shared_ptr<Core::LinAlg::Vector<double>> extendedresidual =
-              Core::LinAlg::create_vector(*extendedmaps_->full_map());
+              std::make_shared<Core::LinAlg::Vector<double>>(*extendedmaps_->full_map());
           extendedmaps_->insert_vector(*scatratimint_->residual(), 0, *extendedresidual);
           extendedmaps_->insert_vector(*lmresidual_, 1, *extendedresidual);
 
           std::shared_ptr<Core::LinAlg::Vector<double>> extendedincrement =
-              Core::LinAlg::create_vector(*extendedmaps_->full_map());
+              std::make_shared<Core::LinAlg::Vector<double>>(*extendedmaps_->full_map());
           extendedmaps_->insert_vector(*scatratimint_->increment(), 0, *extendedincrement);
           extendedmaps_->insert_vector(*lmincrement_, 1, *extendedincrement);
 

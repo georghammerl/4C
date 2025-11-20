@@ -1307,9 +1307,9 @@ void CONTACT::AbstractStrategy::initialize_mortar()
   mmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(slave_dof_row_map(true), 100);
 
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
-    wgap_ = Core::LinAlg::create_vector(slave_dof_row_map(true), true);
+    wgap_ = std::make_shared<Core::LinAlg::Vector<double>>(slave_dof_row_map(true), true);
   else if (constr_direction_ == CONTACT::ConstraintDirection::ntt)
-    wgap_ = Core::LinAlg::create_vector(slave_row_nodes(), true);
+    wgap_ = std::make_shared<Core::LinAlg::Vector<double>>(slave_row_nodes(), true);
   else
     FOUR_C_THROW("unknown contact constraint direction");
 
@@ -1781,7 +1781,8 @@ void CONTACT::AbstractStrategy::store_dirichlet_status(
     }
   }
   // create old style dirichtoggle vector (supposed to go away)
-  non_redist_gsdirichtoggle_ = Core::LinAlg::create_vector(slave_dof_row_map(true), true);
+  non_redist_gsdirichtoggle_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(slave_dof_row_map(true), true);
   Core::LinAlg::Vector<double> temp(*(dbcmaps->cond_map()));
   temp.put_scalar(1.0);
   Core::LinAlg::export_to(temp, *non_redist_gsdirichtoggle_);

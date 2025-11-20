@@ -143,7 +143,7 @@ void CONTACT::PenaltyStrategy::initialize()
       *gmdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
   // (re)setup global vector containing lagrange multipliers
-  z_ = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+  z_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // (re)setup global matrix containing lagrange multiplier derivatives
   linzmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsdofrowmap_, 100);
@@ -371,7 +371,7 @@ void CONTACT::PenaltyStrategy::evaluate_contact(
 
   {
     std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-        Core::LinAlg::create_vector(*gmdofrowmap_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
     mmatrix_->multiply(true, *z_, *fcmm);
     Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
     Core::LinAlg::export_to(*fcmm, fcmmtemp);
@@ -520,7 +520,7 @@ void CONTACT::PenaltyStrategy::initialize_uzawa(
   feff->update(1 - alphaf_, fcmdtemp, 1.0);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-      Core::LinAlg::create_vector(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
   mmatrix_->multiply(true, *z_, *fcmm);
   Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
   Core::LinAlg::export_to(*fcmm, fcmmtemp);
@@ -596,12 +596,12 @@ void CONTACT::PenaltyStrategy::update_constraint_norm(int uzawaiter)
     std::shared_ptr<Core::LinAlg::Vector<double>> gact;
     if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
     {
-      gact = Core::LinAlg::create_vector(*gactivedofs_, true);
+      gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivedofs_, true);
       Core::LinAlg::export_to(*wgap_, *gact);
     }
     else
     {
-      gact = Core::LinAlg::create_vector(*gactivenodes_, true);
+      gact = std::make_shared<Core::LinAlg::Vector<double>>(*gactivenodes_, true);
       if (gact->global_length()) Core::LinAlg::export_to(*wgap_, *gact);
     }
 
@@ -911,7 +911,7 @@ void CONTACT::PenaltyStrategy::assemble()
 
   {
     std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-        Core::LinAlg::create_vector(*gmdofrowmap_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
     mmatrix_->multiply(true, *z_, *fcmm);
     Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
     Core::LinAlg::export_to(*fcmm, fcmmtemp);

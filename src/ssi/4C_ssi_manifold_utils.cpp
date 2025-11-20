@@ -138,8 +138,8 @@ SSI::ScaTraManifoldScaTraFluxEvaluator::ScaTraManifoldScaTraFluxEvaluator(
     }
   }
 
-  rhs_manifold_ = Core::LinAlg::create_vector(*full_map_manifold_, true);
-  rhs_scatra_ = Core::LinAlg::create_vector(*full_map_scatra_, true);
+  rhs_manifold_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_manifold_, true);
+  rhs_scatra_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_scatra_, true);
 
   switch (scatra_->scatra_field()->matrix_type())
   {
@@ -180,8 +180,8 @@ SSI::ScaTraManifoldScaTraFluxEvaluator::ScaTraManifoldScaTraFluxEvaluator(
     }
   }
 
-  rhs_manifold_cond_ = Core::LinAlg::create_vector(*full_map_manifold_, true);
-  rhs_scatra_cond_ = Core::LinAlg::create_vector(*full_map_scatra_, true);
+  rhs_manifold_cond_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_manifold_, true);
+  rhs_scatra_cond_ = std::make_shared<Core::LinAlg::Vector<double>>(*full_map_scatra_, true);
 
   systemmatrix_manifold_cond_ = SSI::Utils::SSIMatrices::setup_sparse_matrix(*full_map_manifold_);
   systemmatrix_scatra_cond_ = SSI::Utils::SSIMatrices::setup_sparse_matrix(*full_map_scatra_);

@@ -246,9 +246,9 @@ namespace FLD
 
     // allocate some (toggle) vectors
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
-    toggleu_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    togglev_ = Core::LinAlg::create_vector(*dofrowmap, true);
-    togglew_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    toggleu_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+    togglev_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+    togglew_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
     // set number of samples to zero
     numsamp_ = 0;
@@ -640,7 +640,7 @@ namespace FLD
     // compute squared values of velocity
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> squaredvelnp =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     squaredvelnp->multiply(1.0, *velnp, *velnp, 0.0);
 
     //----------------------------------
@@ -1049,7 +1049,7 @@ namespace FLD
     // compute squared values of velocity
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> squaredvelnp =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     squaredvelnp->multiply(1.0, *velnp, *velnp, 0.0);
 
     //----------------------------------

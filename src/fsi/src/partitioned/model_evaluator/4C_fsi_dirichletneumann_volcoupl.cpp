@@ -205,7 +205,7 @@ void FSI::InterfaceCorrector::correct_interface_displacements(
 
   // std::cout<<*finterface->FullMap()<<std::endl;
   // std::cout<<*disp_fluid<<std::endl;
-  deltadisp_ = Core::LinAlg::create_vector(*finterface->fsi_cond_map(), true);
+  deltadisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*finterface->fsi_cond_map(), true);
 
   Core::LinAlg::export_to(*disp_fluid, *deltadisp_);
   // deltadisp_ = finterface->extract_fsi_cond_vector(disp_fluid);

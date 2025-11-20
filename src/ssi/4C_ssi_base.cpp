@@ -214,7 +214,7 @@ void SSI::SSIBase::setup()
   }
 
   // construct vector of zeroes
-  zeros_structure_ = Core::LinAlg::create_vector(*structure_->dof_row_map());
+  zeros_structure_ = std::make_shared<Core::LinAlg::Vector<double>>(*structure_->dof_row_map());
 
   // set flag
   set_is_setup(true);

@@ -473,7 +473,7 @@ void FS3I::PartFPS3I::setup_system()
       const Core::LinAlg::Map* dofrowmap =
           scatravec_[i]->scatra_field()->discretization()->dof_row_map();
       std::shared_ptr<Core::LinAlg::Vector<double>> zeros =
-          Core::LinAlg::create_vector(*dofrowmap, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       scatrazeros_.push_back(zeros);
     }
   }
@@ -776,7 +776,8 @@ void FS3I::PartFPS3I::extract_wss(
 
   // insert porofluid interface entries into vector with full porofluid length
   std::shared_ptr<Core::LinAlg::Vector<double>> porofluid =
-      Core::LinAlg::create_vector(*(fpsi_->poro_field()->fluid_field()->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *(fpsi_->poro_field()->fluid_field()->dof_row_map()), true);
 
   // Parameter int block of function InsertVector:
   fpsi_->fpsi_coupl()->poro_fluid_fpsi_vel_pres_extractor()->insert_vector(

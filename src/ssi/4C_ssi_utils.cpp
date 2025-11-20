@@ -421,14 +421,18 @@ void SSI::Utils::SSIMatrices::clear_matrices() const
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 SSI::Utils::SSIVectors::SSIVectors(const SSIMaps& ssi_maps, const bool is_scatra_manifold)
-    : increment_(create_vector(*ssi_maps.maps_sub_problems()->full_map(), true)),
+    : increment_(std::make_shared<Core::LinAlg::Vector<double>>(
+          *ssi_maps.maps_sub_problems()->full_map(), true)),
       is_scatra_manifold_(is_scatra_manifold),
-      manifold_residual_(is_scatra_manifold
-                             ? create_vector(*ssi_maps.scatra_manifold_dof_row_map(), true)
-                             : nullptr),
-      residual_(create_vector(*ssi_maps.maps_sub_problems()->full_map(), true)),
-      scatra_residual_(create_vector(*ssi_maps.scatra_dof_row_map(), true)),
-      structure_residual_(create_vector(*ssi_maps.structure_dof_row_map(), true))
+      manifold_residual_(is_scatra_manifold ? std::make_shared<Core::LinAlg::Vector<double>>(
+                                                  *ssi_maps.scatra_manifold_dof_row_map(), true)
+                                            : nullptr),
+      residual_(std::make_shared<Core::LinAlg::Vector<double>>(
+          *ssi_maps.maps_sub_problems()->full_map(), true)),
+      scatra_residual_(
+          std::make_shared<Core::LinAlg::Vector<double>>(*ssi_maps.scatra_dof_row_map(), true)),
+      structure_residual_(
+          std::make_shared<Core::LinAlg::Vector<double>>(*ssi_maps.structure_dof_row_map(), true))
 {
 }
 

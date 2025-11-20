@@ -274,7 +274,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FLD::Utils::StressManager::integra
 
   // create vector (+ initialization with zeros)
   std::shared_ptr<Core::LinAlg::Vector<double>> integratedshapefunc =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // call loop over elements
   discret_->clear_state();
@@ -310,7 +310,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FLD::Utils::StressManager::calc_wa
 
   // vector ndnorm0 with pressure-entries is needed for evaluate_condition
   std::shared_ptr<Core::LinAlg::Vector<double>> ndnorm0 =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // call loop over elements, note: normal vectors do not yet have length = 1.0
   discret_->clear_state();  // TODO: (Thon) Do we really have to to this in here?
@@ -848,7 +848,7 @@ std::map<int, double> FLD::Utils::compute_flow_rates(Core::FE::Discretization& d
 
     // create vector (+ initialization with zeros)
     std::shared_ptr<Core::LinAlg::Vector<double>> flowrates =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
     // call loop over elements
     dis.clear_state();

@@ -102,7 +102,7 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
       algochoice_(Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DSolveAlgo>(
           cv0dparams, "SOLALGORITHM")),
       dirichtoggle_(nullptr),
-      zeros_(Core::LinAlg::create_vector(*(actdisc_->dof_row_map()), true)),
+      zeros_(std::make_shared<Core::LinAlg::Vector<double>>(*(actdisc_->dof_row_map()), true)),
       theta_(cv0dparams.get("TIMINT_THETA", 0.5)),
       enhanced_output_(cv0dparams.get<bool>("ENHANCED_OUTPUT")),
       ptc_3d0d_(cv0dparams.get<bool>("PTC_3D0D")),
@@ -550,7 +550,7 @@ void Utils::Cardiovascular0DManager::read_restart(
   {
     std::shared_ptr<Core::LinAlg::Map> cardvasc0d = get_cardiovascular0_d_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> tempvec =
-        Core::LinAlg::create_vector(*cardvasc0d, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*cardvasc0d, true);
     // old rhs contributions
     reader.read_vector(tempvec, "cv0d_df_np");
     set0_d_df_n(*tempvec);
@@ -968,10 +968,10 @@ int Utils::Cardiovascular0DManager::solve(Core::LinAlg::SparseMatrix& mat_struct
   {
     // PTC on structural matrix
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp3D =
-        Core::LinAlg::create_vector(mat_structstiff.row_map(), false);
+        std::make_shared<Core::LinAlg::Vector<double>>(mat_structstiff.row_map(), false);
     tmp3D->put_scalar(k_ptc);
     std::shared_ptr<Core::LinAlg::Vector<double>> diag3D =
-        Core::LinAlg::create_vector(mat_structstiff.row_map(), false);
+        std::make_shared<Core::LinAlg::Vector<double>>(mat_structstiff.row_map(), false);
     mat_structstiff.extract_diagonal_copy(*diag3D);
     diag3D->update(1.0, *tmp3D, 1.0);
     mat_structstiff.replace_diagonal_values(*diag3D);

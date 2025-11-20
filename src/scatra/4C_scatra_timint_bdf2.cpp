@@ -52,12 +52,12 @@ void ScaTra::TimIntBDF2::setup()
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
   // state vector for solution at time t_{n-1}
-  phinm_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phinm_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // fine-scale vector at time n+1
   if (fssgd_ != Inpar::ScaTra::fssugrdiff_no or
       turbmodel_ == Inpar::FLUID::multifractal_subgrid_scales)
-    fsphinp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    fsphinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // set element parameters

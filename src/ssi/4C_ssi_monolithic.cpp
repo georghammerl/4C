@@ -1652,7 +1652,8 @@ void SSI::SsiMono::print_system_matrix_rhs_to_mat_lab_format() const
 void SSI::SsiMono::set_scatra_manifold_solution(const Core::LinAlg::Vector<double>& phi) const
 {
   // scatra values on master side copied to manifold
-  auto manifold_on_scatra = create_vector(*scatra_field()->discretization()->dof_row_map(), true);
+  auto manifold_on_scatra = std::make_shared<Core::LinAlg::Vector<double>>(
+      *scatra_field()->discretization()->dof_row_map(), true);
 
   for (const auto& coup : manifoldscatraflux_->scatra_manifold_couplings())
   {

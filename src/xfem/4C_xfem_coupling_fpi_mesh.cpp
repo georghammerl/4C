@@ -83,8 +83,8 @@ void XFEM::MeshCouplingFPI::init_state_vectors()
   const Core::LinAlg::Map* cutterdofrowmap = cutter_dis_->dof_row_map();
   const Core::LinAlg::Map* cutterdofcolmap = cutter_dis_->dof_col_map();
 
-  itrueresidual_ = Core::LinAlg::create_vector(*cutterdofrowmap, true);
-  iforcecol_ = Core::LinAlg::create_vector(*cutterdofcolmap, true);
+  itrueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofrowmap, true);
+  iforcecol_ = std::make_shared<Core::LinAlg::Vector<double>>(*cutterdofcolmap, true);
 }
 
 /*--------------------------------------------------------------------------*

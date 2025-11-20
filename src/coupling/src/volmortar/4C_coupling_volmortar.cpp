@@ -1063,15 +1063,15 @@ void Coupling::VolMortar::VolMortarCoupl::check_initial_residuum()
 {
   // create vectors of initial primary variables
   std::shared_ptr<Core::LinAlg::Vector<double>> var_A =
-      Core::LinAlg::create_vector(*discret1()->dof_row_map(0), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(0), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> var_B =
-      Core::LinAlg::create_vector(*discret2()->dof_row_map(1), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(1), true);
 
   // solution
   std::shared_ptr<Core::LinAlg::Vector<double>> result_A =
-      Core::LinAlg::create_vector(*discret2()->dof_row_map(1), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(1), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> result_B =
-      Core::LinAlg::create_vector(*discret2()->dof_row_map(1), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(1), true);
 
   // node positions for Discr A
   for (int i = 0; i < discret1()->num_my_row_elements(); ++i)
@@ -1161,9 +1161,9 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
 
   // init zero residuum vector for old iteration
   std::shared_ptr<Core::LinAlg::Vector<double>> ResoldA =
-      Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> ResoldB =
-      Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb), true);
 
   // output
   if (myrank_ == 0)
@@ -1231,13 +1231,13 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     mergedmap_ = Core::LinAlg::merge_map(
         *discret1()->dof_row_map(dofseta), *discret2()->dof_row_map(dofsetb), false);
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol =
-        Core::LinAlg::create_vector(*mergedmap_);
+        std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_);
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedX =
-        Core::LinAlg::create_vector(*mergedmap_);
+        std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_);
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedXa =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedXb =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
 
     for (int n = 0; n < dis1_->node_row_map()->num_my_elements(); ++n)
     {
@@ -1291,17 +1291,17 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     //--------------------------------------------------------------
     // Check:
     std::shared_ptr<Core::LinAlg::Vector<double>> solDA =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
     std::shared_ptr<Core::LinAlg::Vector<double>> solMA =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
 
     dmatrix_xa_->multiply(false, *mergedXa, *solDA);
     mmatrix_xa_->multiply(false, *mergedXb, *solMA);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> solDB =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
     std::shared_ptr<Core::LinAlg::Vector<double>> solMB =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
 
     dmatrix_xb_->multiply(false, *mergedXb, *solDB);
     mmatrix_xb_->multiply(false, *mergedXa, *solMB);
@@ -1328,9 +1328,9 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     {
       double fac = 0.0;
       std::shared_ptr<Core::LinAlg::Vector<double>> DiffA =
-          Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta), true);
       std::shared_ptr<Core::LinAlg::Vector<double>> DiffB =
-          Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb), true);
       DiffA->update(1.0, *solDA, 0.0);
       DiffA->update(-1.0, *ResoldA, 1.0);
       DiffB->update(1.0, *solDB, 0.0);
@@ -1389,9 +1389,9 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     solver.solve(Core::Utils::shared_ptr_from_ref(k), mergedsol, mergedX, solver_params);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> sola =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
     std::shared_ptr<Core::LinAlg::Vector<double>> solb =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
 
     Core::LinAlg::MapExtractor mapext(*mergedmap_,
         std::make_shared<Core::LinAlg::Map>(*(discret1()->dof_row_map(dofseta))),
@@ -1453,9 +1453,9 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
 
     // last check:
     std::shared_ptr<Core::LinAlg::Vector<double>> checka =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
     std::shared_ptr<Core::LinAlg::Vector<double>> checkb =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
 
     for (int n = 0; n < dis1_->node_row_map()->num_my_elements(); ++n)
     {
@@ -1507,17 +1507,17 @@ void Coupling::VolMortar::VolMortarCoupl::mesh_init()
     //--------------------------------------------------------------
     // Check:
     std::shared_ptr<Core::LinAlg::Vector<double>> finalDA =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
     std::shared_ptr<Core::LinAlg::Vector<double>> finalMA =
-        Core::LinAlg::create_vector(*discret1()->dof_row_map(dofseta));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret1()->dof_row_map(dofseta));
 
     dmatrix_xa_->multiply(false, *checka, *finalDA);
     mmatrix_xa_->multiply(false, *checkb, *finalMA);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> finalDB =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
     std::shared_ptr<Core::LinAlg::Vector<double>> finalMB =
-        Core::LinAlg::create_vector(*discret2()->dof_row_map(dofsetb));
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret2()->dof_row_map(dofsetb));
 
     dmatrix_xb_->multiply(false, *checkb, *finalDB);
     mmatrix_xb_->multiply(false, *checka, *finalMB);
@@ -3681,7 +3681,7 @@ void Coupling::VolMortar::VolMortarCoupl::create_projection_operator()
   /********************************************************************/
   Core::LinAlg::SparseMatrix invd1(*d1_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag1 =
-      Core::LinAlg::create_vector(*p12_dofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*p12_dofrowmap_, true);
 
   // extract diagonal of invd into diag
   invd1.extract_diagonal_copy(*diag1);
@@ -3705,7 +3705,7 @@ void Coupling::VolMortar::VolMortarCoupl::create_projection_operator()
   /********************************************************************/
   Core::LinAlg::SparseMatrix invd2(*d2_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag2 =
-      Core::LinAlg::create_vector(*p21_dofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*p21_dofrowmap_, true);
 
   // extract diagonal of invd into diag
   invd2.extract_diagonal_copy(*diag2);

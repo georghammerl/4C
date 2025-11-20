@@ -228,7 +228,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
     // can insert the embedded dofrowmap into it
     // kruse 30.04. --> we don't, see adapter
     // std::shared_ptr<Core::LinAlg::Vector<double>> fluidfluidtmp =
-    // Core::LinAlg::create_vector(*fluid_field()->dof_row_map(),true);
+    // std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->dof_row_map(),true);
 
     // ---------- inner fluid DOFs
     /* The following terms are added to the inner fluid DOFs of right hand side:
@@ -310,9 +310,11 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
   // -----------------------------------------------------
   // Reset quantities for previous iteration step since they still store values from the last time
   // step
-  ddiinc_ = Core::LinAlg::create_vector(*structure_field()->interface()->other_map(), true);
+  ddiinc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->other_map(), true);
   solipre_ = nullptr;
-  ddginc_ = Core::LinAlg::create_vector(*structure_field()->interface()->fsi_cond_map(), true);
+  ddginc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *structure_field()->interface()->fsi_cond_map(), true);
   solgpre_ = nullptr;
 }
 
@@ -964,7 +966,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::handle_fluid_dof_map_change_i
 
   // save the old x_sum
   std::shared_ptr<Core::LinAlg::Vector<double>> x_sum_n =
-      Core::LinAlg::create_vector(*dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   *x_sum_n = *x_sum_;
   std::shared_ptr<const Core::LinAlg::Vector<double>> sx_n;
   std::shared_ptr<const Core::LinAlg::Vector<double>> ax_n;
@@ -978,10 +980,10 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::handle_fluid_dof_map_change_i
       std::make_shared<Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>(
           extractor(), extractor(), 81, false, true);
 
-  rhs_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
-  x_sum_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  x_sum_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   // build the new iter_sum
   extractor().insert_vector(*sx_n, 0, *x_sum_);

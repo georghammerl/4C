@@ -237,7 +237,8 @@ void XFEM::DiscretizationXFEM::set_initial_state(unsigned nds, const std::string
           name.c_str());
     }
 #endif
-    std::shared_ptr<Core::LinAlg::Vector<double>> tmp = Core::LinAlg::create_vector(*colmap, false);
+    std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
+        std::make_shared<Core::LinAlg::Vector<double>>(*colmap, false);
     Core::LinAlg::export_to(*state, *tmp);
     state_[nds][name] = tmp;
   }

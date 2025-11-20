@@ -99,7 +99,7 @@ void FLD::TimIntStationaryHDG::reset(int numsteps, int iter)
 {
   FluidImplicitTimeInt::reset(numsteps, iter);
   const Core::LinAlg::Map* intdofrowmap = discret_->dof_row_map(1);
-  intvelnp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
+  intvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
   if (Core::Communication::my_mpi_rank(discret_->get_comm()) == 0)
     std::cout << "Number of degrees of freedom in HDG system: "
               << discret_->dof_row_map(0)->num_global_elements() << std::endl;

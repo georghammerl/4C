@@ -80,11 +80,11 @@ void Solid::TimIntExplEuler::setup()
   resize_m_step();
 
   // allocate force vectors
-  fextn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fintn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fviscn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  fcmtn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-  frimpn_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  fextn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fviscn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  fcmtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+  frimpn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   return;
 }
@@ -226,8 +226,9 @@ int Solid::TimIntExplEuler::integrate_step()
     else
     {
       // extract the diagonal values of the mass matrix
-      std::shared_ptr<Core::LinAlg::Vector<double>> diag = Core::LinAlg::create_vector(
-          (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(mass_))->row_map());
+      std::shared_ptr<Core::LinAlg::Vector<double>> diag =
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(mass_))->row_map());
       (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(mass_))->extract_diagonal_copy(*diag);
       // A_{n+1} = M^{-1} . ( -fint + fext )
       accn_->reciprocal_multiply(1.0, *diag, *frimpn_, 0.0);

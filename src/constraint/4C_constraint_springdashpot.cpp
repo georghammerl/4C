@@ -1090,7 +1090,7 @@ void Constraints::SpringDashpot::initialize_cur_surf_normal()
 
   // empty displacement vector
   std::shared_ptr<Core::LinAlg::Vector<double>> disp;
-  disp = Core::LinAlg::create_vector(*(actdisc_->dof_row_map()), true);
+  disp = std::make_shared<Core::LinAlg::Vector<double>>(*(actdisc_->dof_row_map()), true);
 
   // initialize gap in reference configuration
   mortar_->interface()->evaluate_distances(disp, tmpnormals_, tmpdnormals_, gap0_, tmpdgap_);

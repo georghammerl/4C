@@ -839,7 +839,7 @@ void NOX::Nln::LinSystem::PrePostOp::PseudoTransient::modify_jacobian(
       // Scale v with scaling factor
       v.scale(deltaInv * scaleFactor);
       // get the diagonal terms of the jacobian
-      auto diag = Core::LinAlg::create_vector(jac.row_map(), false);
+      auto diag = std::make_shared<Core::LinAlg::Vector<double>>(jac.row_map(), false);
       jac.extract_diagonal_copy(*diag);
       diag->update(1.0, v, 1.0);
       // Finally modify the jacobian

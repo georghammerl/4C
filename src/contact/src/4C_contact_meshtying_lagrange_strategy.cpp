@@ -67,7 +67,7 @@ void CONTACT::MtLagrangeStrategy::mortar_coupling(
   //----------------------------------------------------------------------
   invd_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dmatrix_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   int err = 0;
 
   // extract diagonal of invd into diag
@@ -199,7 +199,7 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   //**********************************************************************
   // fill Xmaster first
   std::shared_ptr<Core::LinAlg::Vector<double>> Xmaster =
-      Core::LinAlg::create_vector(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
   assemble_coords("master", true, *Xmaster);
 
   //**********************************************************************
@@ -207,7 +207,7 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   //**********************************************************************
   // initialize modified slave positions
   std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // shape function type and type of LM interpolation for quadratic elements
   auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
@@ -235,7 +235,7 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
 
       // build rhs
       std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-          Core::LinAlg::create_vector(*gmdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
       assemble_coords("master", true, *xm);
       std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
           std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_);
@@ -275,7 +275,7 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
     {
       // create linear problem
       std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-          Core::LinAlg::create_vector(*gsdofrowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
       mmatrix_->multiply(false, *Xmaster, *rhs);
 
       // solve with default solver
@@ -312,7 +312,7 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   //**********************************************************************
   invd_ = std::make_shared<Core::LinAlg::SparseMatrix>(*dmatrix_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   int err = 0;
 
   // extract diagonal of invd into diag
@@ -326,10 +326,10 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   diag->reciprocal(*diag);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> lmDBC =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   Core::LinAlg::export_to(*non_redist_gsdirichtoggle_, *lmDBC);
   std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   tmp->multiply(1., *diag, *lmDBC, 0.);
   diag->update(-1., *tmp, 1.);
 
@@ -618,7 +618,7 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
         std::make_shared<Core::LinAlg::SparseMatrix>(
             *problem_dofs(), 81, true, false, kteffmatrix->get_matrixtype());
     std::shared_ptr<Core::LinAlg::Vector<double>> feffnew =
-        Core::LinAlg::create_vector(*problem_dofs());
+        std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
 
     // add n submatrices to kteffnew
     kteffnew->add(*knn, false, 1.0, 1.0);
@@ -769,10 +769,12 @@ void CONTACT::MtLagrangeStrategy::build_saddle_point_system(
   // initialize merged system (matrix, rhs, sol)
   std::shared_ptr<Core::LinAlg::Map> mergedmap =
       Core::LinAlg::merge_map(problem_dofs(), glmdofrowmap_, false);
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs = Core::LinAlg::create_vector(*mergedmap);
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol = Core::LinAlg::create_vector(*mergedmap);
+  std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs =
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
+  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol =
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
   std::shared_ptr<Core::LinAlg::Vector<double>> mergedzeros =
-      Core::LinAlg::create_vector(*mergedmap);
+      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
 
   //**********************************************************************
   // finalize matrix and vector blocks

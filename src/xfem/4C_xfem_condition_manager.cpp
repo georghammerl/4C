@@ -366,7 +366,7 @@ void XFEM::ConditionManager::create()
     levelset_gid_ = numglobal_coupling_sides_;
     numglobal_coupling_sides_ += 1;
 
-    bg_phinp_ = Core::LinAlg::create_vector(*bg_dis_->node_row_map(), true);
+    bg_phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*bg_dis_->node_row_map(), true);
 
     // information about the coupling condition for level-sets is obtained via the background
     // element for which we store the index of the level-set coupling object we allow for multiple

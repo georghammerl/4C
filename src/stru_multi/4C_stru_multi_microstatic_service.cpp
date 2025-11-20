@@ -133,7 +133,7 @@ void MultiScale::MicroStatic::set_up_homogenization()
     }
   }
 
-  material_coords_boundary_nodes_ = Core::LinAlg::create_vector(*pdof_, true);
+  material_coords_boundary_nodes_ = std::make_shared<Core::LinAlg::Vector<double>>(*pdof_, true);
   *material_coords_boundary_nodes_ = Xp_temp;
 
   // now create D and its transpose DT (following Miehe et al., 2002)

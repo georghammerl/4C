@@ -117,8 +117,9 @@ void Adapter::FBIPenaltyConstraintenforcer::print_violation(double time, int ste
   {
     double penalty_parameter = bridge()->get_params()->get_penalty_parameter();
 
-    std::shared_ptr<Core::LinAlg::Vector<double>> violation = Core::LinAlg::create_vector(
-        std::dynamic_pointer_cast<Adapter::FBIFluidMB>(get_fluid())->velnp()->get_map());
+    std::shared_ptr<Core::LinAlg::Vector<double>> violation =
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            std::dynamic_pointer_cast<Adapter::FBIFluidMB>(get_fluid())->velnp()->get_map());
 
     int err = std::dynamic_pointer_cast<const Adapter::FBIConstraintBridgePenalty>(get_bridge())
                   ->get_cff()

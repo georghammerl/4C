@@ -845,10 +845,12 @@ void FPSI::MonolithicPlain::setup_rhs_first_iter(Core::LinAlg::Vector<double>& f
 
   // Reset quantities of previous iteration step since they still store values from the last time
   // step
-  ddginc_ = Core::LinAlg::create_vector(
+  ddginc_ = std::make_shared<Core::LinAlg::Vector<double>>(
       *poro_field()->structure_field()->interface()->fsi_cond_map(), true);
-  duiinc_ = Core::LinAlg::create_vector(*fluid_field()->interface()->other_map(), true);
-  ddialeinc_ = Core::LinAlg::create_vector(*ale_field()->interface()->other_map(), true);
+  duiinc_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *fluid_field()->interface()->other_map(), true);
+  ddialeinc_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*ale_field()->interface()->other_map(), true);
   soliprev_ = nullptr;
   solgprev_ = nullptr;
   fgicur_ = nullptr;

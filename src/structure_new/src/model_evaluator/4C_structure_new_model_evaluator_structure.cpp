@@ -1667,7 +1667,7 @@ void Solid::ModelEvaluator::Structure::determine_energy(const Core::LinAlg::Vect
     double kinetic_energy_times2 = 0.0;
 
     std::shared_ptr<Core::LinAlg::Vector<double>> linear_momentum =
-        Core::LinAlg::create_vector(*global_state().dof_row_map_view(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*global_state().dof_row_map_view(), true);
 
     mass().multiply(false, *velnp, *linear_momentum);
 

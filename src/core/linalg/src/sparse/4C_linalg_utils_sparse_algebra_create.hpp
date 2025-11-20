@@ -47,15 +47,6 @@ namespace Core::LinAlg
       const Core::LinAlg::MultiVector<double>& nullspace, Teuchos::ParameterList& params);
 
   /*!
- \brief Create a new Core::LinAlg::Vector<double> and return RefcountPtr to it
-
- \param rowmap (in): row map of vector
- \param init (in): initialize vector to zero upon construction
- */
-  std::shared_ptr<Core::LinAlg::Vector<double>> create_vector(
-      const Core::LinAlg::Map& rowmap, const bool init = true);
-
-  /*!
    \brief Create an Core::LinAlg::Map from a vector of gids
 
    This is one of the basic operations that is needed every so often.

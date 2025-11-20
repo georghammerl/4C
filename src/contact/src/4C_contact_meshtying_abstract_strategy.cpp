@@ -330,7 +330,7 @@ void CONTACT::MtAbstractStrategy::mortar_coupling(
   // (re)setup global Mortar Core::LinAlg::SparseMatrices and Core::LinAlg::Vectors
   dmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsdofrowmap_, 10);
   mmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsdofrowmap_, 100);
-  g_ = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+  g_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // assemble D- and M-matrix on all interfaces
   for (int i = 0; i < (int)interface_.size(); ++i) interface_[i]->assemble_dm(*dmatrix_, *mmatrix_);
@@ -341,9 +341,9 @@ void CONTACT::MtAbstractStrategy::mortar_coupling(
 
   // compute g-vector at global level
   std::shared_ptr<Core::LinAlg::Vector<double>> xs =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-      Core::LinAlg::create_vector(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
   assemble_coords("slave", true, *xs);
   assemble_coords("master", true, *xm);
   Core::LinAlg::Vector<double> Dxs(*gsdofrowmap_);
@@ -568,13 +568,13 @@ void CONTACT::MtAbstractStrategy::mesh_initialization(
   // (2) re-evaluate constraints in reference configuration
   //**********************************************************************
   // initialize
-  g_ = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+  g_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // compute g-vector at global level
   std::shared_ptr<Core::LinAlg::Vector<double>> xs =
-      Core::LinAlg::create_vector(*gsdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-      Core::LinAlg::create_vector(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
   assemble_coords("slave", true, *xs);
   assemble_coords("master", true, *xm);
   Core::LinAlg::Vector<double> Dxs(*gsdofrowmap_);
@@ -747,7 +747,7 @@ void CONTACT::MtAbstractStrategy::store_dirichlet_status(
   }
 
   // create old style dirichtoggle vector (supposed to go away)
-  non_redist_gsdirichtoggle_ = Core::LinAlg::create_vector(*gsdofrowmap_, true);
+  non_redist_gsdirichtoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   Core::LinAlg::Vector<double> temp(*(dbcmaps->cond_map()));
   temp.put_scalar(1.0);
   Core::LinAlg::export_to(temp, *non_redist_gsdirichtoggle_);

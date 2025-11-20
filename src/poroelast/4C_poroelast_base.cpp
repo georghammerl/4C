@@ -362,7 +362,8 @@ std::shared_ptr<Core::LinAlg::Vector<double>> PoroElast::PoroBase::structure_to_
     std::shared_ptr<const Core::LinAlg::Vector<double>> mv = volcoupl_->apply_vector_mapping21(iv);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> sv =
-        Core::LinAlg::create_vector(*(fluid_field()->vel_pres_splitter()->other_map()));
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *(fluid_field()->vel_pres_splitter()->other_map()));
 
     std::copy(mv->get_values(),
         mv->get_values() + (static_cast<ptrdiff_t>(mv->local_length() * mv->num_vectors())),

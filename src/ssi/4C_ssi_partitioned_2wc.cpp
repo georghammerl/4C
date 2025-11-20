@@ -90,8 +90,10 @@ void SSI::SSIPart2WC::setup()
   SSI::SSIPart::setup();
 
   // construct increment vectors
-  scaincnp_ = Core::LinAlg::create_vector(*scatra_field()->discretization()->dof_row_map(0), true);
-  dispincnp_ = Core::LinAlg::create_vector(*structure_field()->dof_row_map(0), true);
+  scaincnp_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *scatra_field()->discretization()->dof_row_map(0), true);
+  dispincnp_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map(0), true);
 }
 
 /*----------------------------------------------------------------------*
@@ -482,9 +484,9 @@ void SSI::SSIPart2WCSolidToScatraRelax::outer_loop()
 
   // these are the relaxed inputs
   std::shared_ptr<Core::LinAlg::Vector<double>> dispnp =
-      Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(structure_field()->dof_row_map(0)), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> velnp =
-      Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(structure_field()->dof_row_map(0)), true);
 
   while (!stopnonliniter)
   {
@@ -581,7 +583,8 @@ void SSI::SSIPart2WCSolidToScatraRelaxAitken::setup()
   SSI::SSIPart2WC::setup();
 
   // setup old scatra increment vector
-  dispincnpold_ = Core::LinAlg::create_vector(*structure_field()->dof_row_map(0), true);
+  dispincnpold_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map(0), true);
 }
 
 /*----------------------------------------------------------------------*
@@ -600,7 +603,7 @@ void SSI::SSIPart2WCSolidToScatraRelaxAitken::calc_omega(double& omega, const in
   // calculate difference of current (i+1) and old (i) residual vector
   // dispincnpdiff = ( r^{i+1}_{n+1} - r^i_{n+1} )
   std::shared_ptr<Core::LinAlg::Vector<double>> dispincnpdiff =
-      Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(structure_field()->dof_row_map(0)), true);
   dispincnpdiff->update(
       1.0, *dispincnp_, (-1.0), *dispincnpold_, 0.0);  // update r^{i+1}_{n+1} - r^i_{n+1}
 
@@ -718,7 +721,8 @@ void SSI::SSIPart2WCScatraToSolidRelax::outer_loop()
 
   // this is the relaxed input
   std::shared_ptr<Core::LinAlg::Vector<double>> phinp =
-      Core::LinAlg::create_vector(*scatra_field()->discretization()->dof_row_map(0), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *scatra_field()->discretization()->dof_row_map(0), true);
 
   while (!stopnonliniter)
   {
@@ -799,8 +803,8 @@ void SSI::SSIPart2WCScatraToSolidRelaxAitken::setup()
   SSI::SSIPart2WC::setup();
 
   // setup old scatra increment vector
-  scaincnpold_ =
-      Core::LinAlg::create_vector(*scatra_field()->discretization()->dof_row_map(), true);
+  scaincnpold_ = std::make_shared<Core::LinAlg::Vector<double>>(
+      *scatra_field()->discretization()->dof_row_map(), true);
 }
 
 /*----------------------------------------------------------------------*
@@ -818,7 +822,8 @@ void SSI::SSIPart2WCScatraToSolidRelaxAitken::calc_omega(double& omega, const in
 
   // scaincnpdiff =  r^{i+1}_{n+1} - r^i_{n+1}
   std::shared_ptr<Core::LinAlg::Vector<double>> scaincnpdiff =
-      Core::LinAlg::create_vector(*scatra_field()->discretization()->dof_row_map(0), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *scatra_field()->discretization()->dof_row_map(0), true);
   scaincnpdiff->update(1.0, *scaincnp_, (-1.0), *scaincnpold_, 0.0);
 
   double scaincnpdiffnorm = 0.0;

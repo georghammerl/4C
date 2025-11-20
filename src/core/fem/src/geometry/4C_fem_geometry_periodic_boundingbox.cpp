@@ -148,8 +148,8 @@ void Core::Geo::MeshFree::BoundingBox::setup(const Teuchos::ParameterList& io_pa
   if (boxdiscret_->has_condition("Dirichlet")) havedirichletbc_ = true;
 
   // displacement vector in row and col format
-  disn_row_ = Core::LinAlg::create_vector(*boxdiscret_->dof_row_map(), true);
-  disn_col_ = Core::LinAlg::create_vector(*boxdiscret_->dof_col_map(), true);
+  disn_row_ = std::make_shared<Core::LinAlg::Vector<double>>(*boxdiscret_->dof_row_map(), true);
+  disn_col_ = std::make_shared<Core::LinAlg::Vector<double>>(*boxdiscret_->dof_col_map(), true);
 
   // initialize bounding box runtime output
   if (io_params.sublist("RUNTIME VTK OUTPUT").get<int>("INTERVAL_STEPS") != -1)

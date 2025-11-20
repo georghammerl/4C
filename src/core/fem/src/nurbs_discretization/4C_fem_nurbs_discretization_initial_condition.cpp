@@ -114,7 +114,7 @@ namespace
     // create empty right hand side vector
     // -------------------------------------------------------------------
     std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
     // -------------------------------------------------------------------
     // call elements to calculate massmatrix and righthandside

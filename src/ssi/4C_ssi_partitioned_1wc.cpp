@@ -102,7 +102,8 @@ void SSI::SSIPart1WC::do_scatra_step()
       {
         // create vector with noderowmap from previously performed scatra calculation
         std::shared_ptr<Core::LinAlg::Vector<double>> phinptemp =
-            Core::LinAlg::create_vector(*cardmono->discretization()->node_row_map());
+            std::make_shared<Core::LinAlg::Vector<double>>(
+                *cardmono->discretization()->node_row_map());
 
         // read phinp from restart file
         reader.read_vector(phinptemp, "phinp");
@@ -280,7 +281,8 @@ void SSI::SSIPart1WCScatraToSolid::timeloop()
   }
 
   // set zero velocity and displacement field for scatra
-  auto zeros_structure = Core::LinAlg::create_vector(*structure_field()->dof_row_map(), true);
+  auto zeros_structure =
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map(), true);
   set_struct_solution(*zeros_structure, zeros_structure, false);
 
   scatra_field()->prepare_time_loop();

@@ -334,7 +334,7 @@ void ScaTra::LevelSetAlgorithm::calc_node_based_reinit_vel()
     // define vector for velocity component
     const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
     std::shared_ptr<Core::LinAlg::Vector<double>> velcomp =
-        Core::LinAlg::create_vector(*dofrowmap, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     velcomp->put_scalar(0.0);
 
     if (lsdim_ == Inpar::ScaTra::ls_3D or (lsdim_ == Inpar::ScaTra::ls_2Dx and idim != 0) or
@@ -1434,7 +1434,8 @@ void ScaTra::LevelSetAlgorithm::reinitialize_with_elliptic_equation()
   // this vector is only initialized: currently function calc_node_based_reinit_vel() is also
   // used to compute nodal level-set gradients, and this function expects that initialphireinit_ has
   // been set although it is not used for the present purposes
-  initialphireinit_ = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+  initialphireinit_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
   //-------------------------------------------------
   // solve

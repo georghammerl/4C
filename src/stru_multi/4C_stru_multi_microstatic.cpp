@@ -176,34 +176,34 @@ MultiScale::MicroStatic::MicroStatic(const int microdisnum, const double V0)
   // create empty vectors
   // -------------------------------------------------------------------
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // vector of full length; for each component
   //                /  1   i-th DOF is supported, ie Dirichlet BC
   //    vector_i =  <
   //                \  0   i-th DOF is free
-  dirichtoggle_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  dirichtoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // opposite of dirichtoggle vector, ie for each component
   //                /  0   i-th DOF is supported, ie Dirichlet BC
   //    vector_i =  <
   //                \  1   i-th DOF is free
-  invtoggle_ = Core::LinAlg::create_vector(*dofrowmap, false);
+  invtoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, false);
 
   // displacements D_{n+1} at new time
-  disn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  disn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // displacements D_{n+1} at old time
-  dis_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  dis_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // iterative displacement increments IncD_{n+1}
   // also known as residual displacements
-  disi_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  disi_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // internal force vector F_int
-  fintn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  fintn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // dynamic force residual
   // also known as out-of-balance-force
-  fresn_ = Core::LinAlg::create_vector(*dofrowmap, false);
+  fresn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, false);
 
   // -------------------------------------------------------------------
   // call elements to calculate stiffness and mass
@@ -233,7 +233,7 @@ MultiScale::MicroStatic::MicroStatic(const int microdisnum, const double V0)
   MultiScale::MicroStatic::set_up_homogenization();
 
   // reaction force vector at different times
-  freactn_ = Core::LinAlg::create_vector(*pdof_, true);
+  freactn_ = std::make_shared<Core::LinAlg::Vector<double>>(*pdof_, true);
 
   //----------------------- compute an inverse of the dirichtoggle vector
   invtoggle_->put_scalar(1.0);
@@ -366,7 +366,7 @@ void MultiScale::MicroStatic::predict_tang_dis(const Core::LinAlg::Matrix<3, 3>*
 {
   // for displacement increments on Dirichlet boundary
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcinc =
-      Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
   // copy last converged displacements
   dbcinc->update(1.0, *disn_, 0.0);
@@ -417,7 +417,7 @@ void MultiScale::MicroStatic::predict_tang_dis(const Core::LinAlg::Matrix<3, 3>*
   {
     // linear reactions
     std::shared_ptr<Core::LinAlg::Vector<double>> freact =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
     stiff_->multiply(false, *dbcinc, *freact);
 
     // add linear reaction forces due to prescribed Dirichlet BCs

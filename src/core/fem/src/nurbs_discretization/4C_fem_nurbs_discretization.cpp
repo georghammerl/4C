@@ -257,24 +257,25 @@ void Core::FE::DbcNurbs::do_dirichlet_condition(const Teuchos::ParameterList& pa
   // -------------------------------------------------------------------
   // create empty right hand side vector
   // -------------------------------------------------------------------
-  std::shared_ptr<Core::LinAlg::Vector<double>> rhs = Core::LinAlg::create_vector(*dofrowmap, true);
+  std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcvector =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> rhsd = nullptr;
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcvectord = nullptr;
   if (systemvectors[1] != nullptr)
   {
-    rhsd = Core::LinAlg::create_vector(*dofrowmap, true);
-    dbcvectord = Core::LinAlg::create_vector(*dofrowmap, true);
+    rhsd = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+    dbcvectord = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   }
 
   std::shared_ptr<Core::LinAlg::Vector<double>> rhsdd = nullptr;
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcvectordd = nullptr;
   if (systemvectors[2] != nullptr)
   {
-    rhsdd = Core::LinAlg::create_vector(*dofrowmap, true);
-    dbcvectordd = Core::LinAlg::create_vector(*dofrowmap, true);
+    rhsdd = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+    dbcvectordd = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   }
 
   const bool assemblevecd = rhsd != nullptr;

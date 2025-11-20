@@ -165,11 +165,11 @@ void EHL::Monolithic::newton_full()
   iter_ = 1;
 
   // incremental solution vector with length of all EHL dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
 
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 
   //------------------------------------------------------ iteration loop
@@ -479,14 +479,16 @@ void EHL::Monolithic::setup_system_matrix()
   // 1.2.1 Derivative due to deformation-dependent Mortar matrices
   // d(D^T)/dd * t
   std::shared_ptr<Core::LinAlg::Vector<double>> stritraction_D_col =
-      Core::LinAlg::create_vector(*(mortaradapter_->interface()->slave_col_dofs()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *(mortaradapter_->interface()->slave_col_dofs()), true);
   Core::LinAlg::export_to(*stritraction_D_, *stritraction_D_col);
   std::shared_ptr<Core::LinAlg::SparseMatrix> slaveiforce_derivd1 =
       mortaradapter_->assemble_ehl_lin_d(stritraction_D_col);
 
   // d(-M^T)/dd * t
   std::shared_ptr<Core::LinAlg::Vector<double>> stritraction_M_col =
-      Core::LinAlg::create_vector(*(mortaradapter_->interface()->slave_col_dofs()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *(mortaradapter_->interface()->slave_col_dofs()), true);
   Core::LinAlg::export_to(*stritraction_M_, *stritraction_M_col);
   std::shared_ptr<Core::LinAlg::SparseMatrix> masteriforce_derivd1 =
       mortaradapter_->assemble_ehl_lin_m(stritraction_M_col);

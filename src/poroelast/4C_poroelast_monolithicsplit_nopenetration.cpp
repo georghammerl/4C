@@ -184,25 +184,29 @@ void PoroElast::MonolithicSplitNoPenetration::recover_lagrange_multiplier_after_
 
   // store the product Cfs_{\GammaI} \Delta d_I^{n+1} in here
   std::shared_ptr<Core::LinAlg::Vector<double>> cfsgiddi =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
   // compute the above mentioned product
   cfsgicur_->multiply(false, *ddiinc_, *cfsgiddi);
 
   // store the product F_{\GammaI} \Delta u_I^{n+1} in here
   std::shared_ptr<Core::LinAlg::Vector<double>> fgiddi =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
   // compute the above mentioned product
   fgicur_->multiply(false, *duiinc_, *fgiddi);
 
   // store the product Cfs_{\Gamma\Gamma} \Delta d_\Gamma^{n+1} in here
   std::shared_ptr<Core::LinAlg::Vector<double>> cfsggddg =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
   // compute the above mentioned product
   cfsggcur_->multiply(false, *ddginc_, *cfsggddg);
 
   // store the product F_{\Gamma\Gamma} \Delta u_\Gamma^{n+1} in here
   std::shared_ptr<Core::LinAlg::Vector<double>> fggddg =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
   // compute the above mentioned product
   fggcur_->multiply(false, *duginc_, *fggddg);
 
@@ -505,7 +509,8 @@ void PoroElast::MonolithicSplitNoPenetration::apply_fluid_coupl_matrix(
   // invd->Complete();
 
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*fluid_field()->interface()->fsi_cond_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(
+          *fluid_field()->interface()->fsi_cond_map(), true);
 
 
   // extract diagonal of invd into diag

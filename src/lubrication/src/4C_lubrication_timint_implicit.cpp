@@ -118,13 +118,13 @@ void Lubrication::TimIntImpl::init()
   // create vectors containing problem variables
   // -------------------------------------------------------------------
   // solutions at time n+1 and n
-  prenp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  prenp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // create vectors associated to boundary conditions
   // -------------------------------------------------------------------
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // object holds maps/subsets for DOFs subjected to Dirichlet BCs and otherwise
   dbcmaps_ = std::make_shared<Core::LinAlg::MapExtractor>();
@@ -142,20 +142,20 @@ void Lubrication::TimIntImpl::init()
   // create vectors associated to solution process
   // -------------------------------------------------------------------
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // the residual vector --- more or less the rhs
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // residual vector containing the normal boundary fluxes
-  trueresidual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // incremental solution vector
-  increment_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  increment_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // iterative pressure increments Incp_{n+1}
   // also known as residual pressures
-  prei_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  prei_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   return;
 }  // TimIntImpl::init()
@@ -272,7 +272,7 @@ void Lubrication::TimIntImpl::set_height_field_pure_lub(const int nds)
 
   // initialize height vectors
   std::shared_ptr<Core::LinAlg::Vector<double>> height =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds), true);
 
   const int heightfuncno = params_->get<int>("HFUNCNO");
   for (auto lnode : discret_->my_row_node_range())
@@ -310,7 +310,7 @@ void Lubrication::TimIntImpl::set_average_velocity_field_pure_lub(const int nds)
 
   // initialize velocity vectors
   std::shared_ptr<Core::LinAlg::Vector<double>> vel =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(nds), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds), true);
 
   const int velfuncno = params_->get<int>("VELFUNCNO");
   for (auto lnode : discret_->my_row_node_range())

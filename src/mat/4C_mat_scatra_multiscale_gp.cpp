@@ -97,11 +97,11 @@ void Mat::ScatraMultiScaleGP::init()
   std::shared_ptr<Core::FE::Discretization> microdis = microproblem->get_dis(microdisname.str());
 
   // instantiate and initialize micro-scale state vectors
-  phin_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
-  phinp_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
-  phidtn_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
-  phidtnp_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
-  hist_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
+  phin_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
+  phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
+  phidtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
+  phidtnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
+  hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
 
   // set up micro-scale time integrator for micro-scale problem if not already done
   if (global_micro_state().microdisnum_microtimint_map_.find(microdisnum_) ==

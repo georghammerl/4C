@@ -544,7 +544,8 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> Core::Rebalance::get_col_ver
   // if it's not in column map export and allocate
   else
   {
-    std::shared_ptr<Core::LinAlg::Vector<double>> tmp = Core::LinAlg::create_vector(*colmap, false);
+    std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
+        std::make_shared<Core::LinAlg::Vector<double>>(*colmap, false);
     Core::LinAlg::export_to(*state, *tmp);
     return tmp;
   }

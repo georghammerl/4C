@@ -1161,17 +1161,17 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::write_output_runtime_stru
   Core::FE::Discretization const& bindis = bin_discret();
   // node
   std::shared_ptr<Core::LinAlg::Vector<double>> numbond =
-      Core::LinAlg::create_vector(*bindis.node_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bindis.node_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> owner =
-      Core::LinAlg::create_vector(*bindis.node_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bindis.node_row_map(), true);
 
   // dof
   std::shared_ptr<Core::LinAlg::Vector<double>> dis =
-      Core::LinAlg::create_vector(*bindis.dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bindis.dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> orientation =
-      Core::LinAlg::create_vector(*bindis.dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bindis.dof_row_map(), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> force =
-      Core::LinAlg::create_vector(*bindis.dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*bindis.dof_row_map(), true);
 
   fill_state_data_vectors_for_output(*dis, *orientation, *numbond, *owner, *force);
 

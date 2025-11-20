@@ -628,7 +628,8 @@ void Core::FE::Discretization::set_state(
         "col map of discretization {} and state vector {} are different. This is a fatal bug!",
         name_.c_str(), name.c_str());
     // make a copy as in parallel such that no additional RCP points to the state vector
-    std::shared_ptr<Core::LinAlg::Vector<double>> tmp = Core::LinAlg::create_vector(*colmap, false);
+    std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
+        std::make_shared<Core::LinAlg::Vector<double>>(*colmap, false);
     tmp->update(1.0, state, 0.0);
     state_[nds][name] = tmp;
   }
@@ -637,7 +638,8 @@ void Core::FE::Discretization::set_state(
     FOUR_C_ASSERT(dof_row_map(nds)->same_as(state.get_map()),
         "row map of discretization {} and state vector {} are different. This is a fatal bug!",
         name_.c_str(), name.c_str());
-    std::shared_ptr<Core::LinAlg::Vector<double>> tmp = Core::LinAlg::create_vector(*colmap, false);
+    std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
+        std::make_shared<Core::LinAlg::Vector<double>>(*colmap, false);
 
     // this is necessary to find out the number of nodesets in the beginning
     if (stateimporter_.size() <= nds)

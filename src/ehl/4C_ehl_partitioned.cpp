@@ -24,9 +24,9 @@ EHL::Partitioned::Partitioned(MPI_Comm comm, const Teuchos::ParameterList& globa
     const std::string struct_disname, const std::string lubrication_disname)
     : Base(comm, globaltimeparams, lubricationparams, structparams, struct_disname,
           lubrication_disname),
-      preincnp_(Core::LinAlg::create_vector(
+      preincnp_(std::make_shared<Core::LinAlg::Vector<double>>(
           *lubrication_->lubrication_field()->discretization()->dof_row_map(0), true)),
-      dispincnp_(Core::LinAlg::create_vector(*structure_->dof_row_map(0), true))
+      dispincnp_(std::make_shared<Core::LinAlg::Vector<double>>(*structure_->dof_row_map(0), true))
 {
   // call the EHL parameter lists
   const Teuchos::ParameterList& ehlparams =

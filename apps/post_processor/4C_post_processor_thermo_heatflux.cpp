@@ -119,9 +119,9 @@ struct WriteNodalHeatfluxStep : SpecialFieldInterface
     p.set("total time", -1.0);
 
     // create heatfluxes, three scalarvalued vectors
-    auto heatfluxx = Core::LinAlg::create_vector(*(dis->dof_row_map()), true);
-    auto heatfluxy = Core::LinAlg::create_vector(*(dis->dof_row_map()), true);
-    auto heatfluxz = Core::LinAlg::create_vector(*(dis->dof_row_map()), true);
+    auto heatfluxx = std::make_shared<Core::LinAlg::Vector<double>>(*(dis->dof_row_map()), true);
+    auto heatfluxy = std::make_shared<Core::LinAlg::Vector<double>>(*(dis->dof_row_map()), true);
+    auto heatfluxz = std::make_shared<Core::LinAlg::Vector<double>>(*(dis->dof_row_map()), true);
     dis->evaluate(p, nullptr, nullptr, heatfluxx, heatfluxy, heatfluxz);
 
     // change the dis from a dof_row_map to a NodeRowMap, because Paraview can only visualize

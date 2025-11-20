@@ -187,7 +187,7 @@ FSI::Utils::SlideAleUtils::SlideAleUtils(std::shared_ptr<Core::FE::Discretizatio
 
   std::shared_ptr<Core::LinAlg::Map> dofrowmap =
       Core::LinAlg::merge_map(*structdofrowmap_, *fluiddofrowmap_, true);
-  idispms_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  idispms_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   iprojhist_ = std::make_shared<Core::LinAlg::Vector<double>>(*fluiddofrowmap_, true);
 
@@ -443,7 +443,7 @@ void FSI::Utils::SlideAleUtils::slide_projection(
   // Redistribute displacement of structnodes on the interface to all processors.
   Core::LinAlg::Import interimpo(*structfullnodemap_, *structdofrowmap_);
   std::shared_ptr<Core::LinAlg::Vector<double>> reddisp =
-      Core::LinAlg::create_vector(*structfullnodemap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*structfullnodemap_, true);
   reddisp->import(*idispnp, interimpo, Add);
 
   Core::FE::Discretization& interfacedis = coupsf.interface()->discret();
@@ -456,7 +456,7 @@ void FSI::Utils::SlideAleUtils::slide_projection(
   std::vector<double> centerdisp_v = centerdisp(structure, comm);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> frotfull =
-      Core::LinAlg::create_vector(*fluiddofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*fluiddofrowmap_, true);
   if (aletype_ == Inpar::FSI::ALEprojection_rot_z ||
       aletype_ == Inpar::FSI::ALEprojection_rot_zsphere)
   {
@@ -679,7 +679,7 @@ void FSI::Utils::SlideAleUtils::rotation(
 )
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> idispstep =
-      Core::LinAlg::create_vector(*fluiddofrowmap_, false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*fluiddofrowmap_, false);
   idispstep->update(1.0, idispale, -1.0, *iprojhist_, 0.0);
 
   // get structure and fluid discretizations  and set state for element evaluation

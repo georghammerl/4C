@@ -362,24 +362,25 @@ void ScaTra::ScaTraTimIntImpl::setup()
   // create vectors containing problem variables
   // -------------------------------------------------------------------
   // solutions at time n+1 and n
-  phinp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  phin_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  phin_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   setup_context_vector();
 
   if (nds_micro() != -1)
-    phinp_micro_ = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_micro()));
+    phinp_micro_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_micro()));
 
   if (solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro or
       solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro_aitken or
       solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro_aitken_dofsplit or
       solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_microtomacro)
   {
-    phinp_inc_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    phinp_inc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     if (solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro_aitken or
         solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro_aitken_dofsplit)
     {
-      phinp_inc_old_ = Core::LinAlg::create_vector(*dofrowmap, true);
+      phinp_inc_old_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       if (solvtype_ == Inpar::ScaTra::solvertype_nonlinear_multiscale_macrotomicro_aitken)
         omega_.resize(1, 1.);
       else
@@ -388,19 +389,19 @@ void ScaTra::ScaTraTimIntImpl::setup()
   }
 
   // temporal solution derivative at time n+1
-  phidtnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phidtnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
   // temporal solution derivative at time n
-  phidtn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  phidtn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // history vector (a linear combination of phinm, phin (BDF)
   // or phin, phidtn (One-Step-Theta, Generalized-alpha))
-  hist_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  hist_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // create vectors associated to boundary conditions
   // -------------------------------------------------------------------
   // a vector of zeros to be used to enforce zero dirichlet boundary conditions
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // object holds maps/subsets for DOFs subjected to Dirichlet BCs and otherwise
   dbcmaps_ = std::make_shared<Core::LinAlg::MapExtractor>();
@@ -420,22 +421,22 @@ void ScaTra::ScaTraTimIntImpl::setup()
   // create vectors associated to solution process
   // -------------------------------------------------------------------
   // the vector containing body and surface forces
-  neumann_loads_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  neumann_loads_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // the residual vector --- more or less the rhs
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // residual vector containing the normal boundary fluxes
-  trueresidual_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  trueresidual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // incremental solution vector
-  increment_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  increment_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // subgrid-diffusivity(-scaling) vector
   // (used either for AVM3 approach or temperature equation
   //  with all-scale subgrid-diffusivity model)
   if (fssgd_ != Inpar::ScaTra::fssugrdiff_no)
-    subgrdiff_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    subgrdiff_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // -------------------------------------------------------------------
   // set parameters associated to potential statistical flux evaluations
@@ -527,7 +528,7 @@ void ScaTra::ScaTraTimIntImpl::setup()
   if (params_->get<bool>("NATURAL_CONVECTION"))
   {
     // allocate global density vector and initialize
-    densafnp_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+    densafnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     densafnp_->put_scalar(1.);
   }
 
@@ -887,7 +888,7 @@ void ScaTra::ScaTraTimIntImpl::init_turbulence_model(
   {
     if (extraparams_->sublist("TURBULENCE MODEL").get<std::string>("SCALAR_FORCING") == "isotropic")
     {
-      forcing_ = Core::LinAlg::create_vector(*dofrowmap, true);
+      forcing_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
       forcing_->put_scalar(0.0);
     }
   }
@@ -1227,9 +1228,9 @@ void ScaTra::ScaTraTimIntImpl::set_velocity_field_from_function()
 
   // initialize velocity vectors
   std::shared_ptr<Core::LinAlg::Vector<double>> convel =
-      create_vector(*discret_->dof_row_map(nds_vel()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
   std::shared_ptr<Core::LinAlg::Vector<double>> vel =
-      create_vector(*discret_->dof_row_map(nds_vel()), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
   switch (velocity_field_type_)
   {
@@ -1298,17 +1299,21 @@ void ScaTra::ScaTraTimIntImpl::set_external_force() const
     FOUR_C_THROW("Too few dofsets on scatra discretization!");
 
   // vector for the external force
-  auto external_force = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_vel()), true);
+  auto external_force =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
   // vector for the intrinsic mobility
-  auto intrinsic_mobility = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_vel()), true);
+  auto intrinsic_mobility =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
   // vector for the velocity due to the external force:
   // force_velocity = intrinsic_mobility * external_force
-  auto force_velocity = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_vel()), true);
+  auto force_velocity =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
   // magnetic field
-  auto magnetic_field = Core::LinAlg::create_vector(*discret_->dof_row_map(nds_vel()), true);
+  auto magnetic_field =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(nds_vel()), true);
 
   for (int lnodeid = 0; lnodeid < discret_->num_my_row_nodes(); lnodeid++)
   {

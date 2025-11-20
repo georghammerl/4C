@@ -140,9 +140,9 @@ void ScaTra::ScaTraTimIntElch::setup()
   // for certain ELCH problem formulations we have to provide
   // additional flux terms / currents across Dirichlet boundaries for the standard element call
   std::shared_ptr<Core::LinAlg::Vector<double>> dirichones =
-      Core::LinAlg::create_vector(*(dbcmaps_->cond_map()), false);
+      std::make_shared<Core::LinAlg::Vector<double>>(*(dbcmaps_->cond_map()), false);
   dirichones->put_scalar(1.0);
-  dctoggle_ = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+  dctoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
   dbcmaps_->insert_cond_vector(*dirichones, *dctoggle_);
 
   // screen output (has to come after SetInitialField)
@@ -1826,7 +1826,9 @@ void ScaTra::ScaTraTimIntElch::init_nernst_bc()
 
       if (elchparams_->get<bool>("DIFFCOND_FORMULATION"))
       {
-        if (icond == 0) ektoggle_ = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+        if (icond == 0)
+          ektoggle_ =
+              std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
         // 1.0 for electrode-kinetics toggle
         const double one = 1.0;

@@ -431,7 +431,8 @@ void TSI::Partitioned::outer_iteration_loop()
       // d^p_n+1 = d_n, v^p_n+1 = v_n
       // initialise new time step n+1 with values of old time step n
       std::shared_ptr<Core::LinAlg::Vector<double>> dispnp =
-          Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              *(structure_field()->dof_row_map(0)), true);
       if (step() == 1)
       {
         dispnp->update(1.0, *(structure_field()->dispn()), 0.0);
@@ -601,7 +602,8 @@ void TSI::Partitioned::outer_iteration_loop()
       // d^p_n+1 = d_n, v^p_n+1 = v_n
       // initialise new time step n+1 with values of old time step n
       std::shared_ptr<Core::LinAlg::Vector<double>> dispnp =
-          Core::LinAlg::create_vector(*(structure_field()->dof_row_map(0)), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(
+              *(structure_field()->dof_row_map(0)), true);
       if (step() == 1)
       {
         dispnp->update(1.0, *(structure_field()->dispn()), 0.0);
@@ -727,8 +729,10 @@ void TSI::Partitioned::outer_iteration_loop()
           // difference of last two solutions
           if (del_ == nullptr)  // first iteration, itnum==1
           {
-            del_ = Core::LinAlg::create_vector(*(thermo_field()->dof_row_map(0)), true);
-            delhist_ = Core::LinAlg::create_vector(*(thermo_field()->dof_row_map(0)), true);
+            del_ = std::make_shared<Core::LinAlg::Vector<double>>(
+                *(thermo_field()->dof_row_map(0)), true);
+            delhist_ = std::make_shared<Core::LinAlg::Vector<double>>(
+                *(thermo_field()->dof_row_map(0)), true);
             del_->put_scalar(1.0e20);
             delhist_->put_scalar(0.0);
           }
@@ -950,8 +954,10 @@ void TSI::Partitioned::outer_iteration_loop()
           // difference of last two solutions
           if (del_ == nullptr)  // first iteration, itnum==1
           {
-            del_ = Core::LinAlg::create_vector(*(thermo_field()->dof_row_map(0)), true);
-            delhist_ = Core::LinAlg::create_vector(*(thermo_field()->dof_row_map(0)), true);
+            del_ = std::make_shared<Core::LinAlg::Vector<double>>(
+                *(thermo_field()->dof_row_map(0)), true);
+            delhist_ = std::make_shared<Core::LinAlg::Vector<double>>(
+                *(thermo_field()->dof_row_map(0)), true);
             del_->put_scalar(1.0e20);
             delhist_->put_scalar(0.0);
           }

@@ -46,11 +46,11 @@ FLD::TurbulenceStatisticsCcy::TurbulenceStatisticsCcy(
   // allocate some vectors
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
-  meanvelnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  meanvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   if (withscatra_)
   {
-    meanscanp_ = Core::LinAlg::create_vector(*dofrowmap, true);
+    meanscanp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
     // meanfullphinp_ is initialized in ApplyScatraResults()
   }
 
@@ -1495,7 +1495,8 @@ void FLD::TurbulenceStatisticsCcy::add_scatra_results(
       scatradis_ = scatradis;  // now we have access
 
     // we do not have to cast to a NURBSDiscretization here!
-    meanfullphinp_ = Core::LinAlg::create_vector(*(scatradis_->dof_row_map()), true);
+    meanfullphinp_ =
+        std::make_shared<Core::LinAlg::Vector<double>>(*(scatradis_->dof_row_map()), true);
     numscatradofpernode_ = scatradis_->num_dof(scatradis_->l_row_node(0));
 
     // now we know about the number of scatra dofs and can allocate:

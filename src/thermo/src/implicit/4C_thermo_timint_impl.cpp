@@ -58,14 +58,14 @@ Thermo::TimIntImpl::TimIntImpl(const Teuchos::ParameterList& ioparams,
       freact_(nullptr)
 {
   // create empty residual force vector
-  fres_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), false);
+  fres_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), false);
 
   // create empty reaction force vector of full length
-  freact_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), false);
+  freact_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), false);
 
   // iterative temperature increments IncT_{n+1}
   // also known as residual temperatures
-  tempi_ = Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+  tempi_ = std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   // We assume the material is not time dependent, thus can be assembled here once and for all!
   // Also assume the same bulk material at every element, we pre-initialize with the conductivity
@@ -242,7 +242,7 @@ void Thermo::TimIntImpl::predict_tang_temp_consist_rate()
 
   // for temperature increments on Dirichlet boundary
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcinc =
-      Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
 
   // copy last converged temperatures
   dbcinc->update(1.0, *temp_(0), 0.0);
@@ -263,7 +263,7 @@ void Thermo::TimIntImpl::predict_tang_temp_consist_rate()
   {
     // linear reactions
     std::shared_ptr<Core::LinAlg::Vector<double>> freact =
-        Core::LinAlg::create_vector(*discret_->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     tang_->multiply(false, *dbcinc, *freact);
 
     // add linear reaction forces due to prescribed Dirichlet BCs

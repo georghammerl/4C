@@ -239,7 +239,7 @@ void ScaTra::LevelSetTimIntOneStepTheta::redistribute(Core::LinAlg::Graph& nodeg
   if (fsphinp_ != nullptr)
   {
     old = fsphinp_;
-    fsphinp_ = Core::LinAlg::create_vector(*newdofrowmap, true);
+    fsphinp_ = std::make_shared<Core::LinAlg::Vector<double>>(*newdofrowmap, true);
     Core::LinAlg::export_to(*old, *fsphinp_);
   }
 }

@@ -3551,7 +3551,8 @@ void Wear::WearInterface::assemble_inactive_wear_rhs_master(
 
   const std::shared_ptr<Core::LinAlg::Map> allredi = Core::LinAlg::allreduce_e_map(*(inactivedofs));
 
-  std::shared_ptr<Core::LinAlg::Vector<double>> rhs = Core::LinAlg::create_vector(*allredi, true);
+  std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
+      std::make_shared<Core::LinAlg::Vector<double>>(*allredi, true);
 
   for (int i = 0; i < inactivenodes->num_my_elements(); ++i)
   {
@@ -3727,7 +3728,8 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
       Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
   const std::shared_ptr<Core::LinAlg::Map> slmastern = Core::LinAlg::allreduce_e_map(*(slipmn_));
 
-  std::shared_ptr<Core::LinAlg::Vector<double>> rhs = Core::LinAlg::create_vector(*slmastern, true);
+  std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
+      std::make_shared<Core::LinAlg::Vector<double>>(*slmastern, true);
 
   for (int i = 0; i < slmasternodes->num_my_elements(); ++i)
   {

@@ -1137,7 +1137,7 @@ bool FSI::MonolithicXFEM::newton()
       //     this vector remains unchanged/non-permuted until the next restart has to be performed.
       //     In order to update this vector and to use it for further evaluate-calls permutations
       //     backward/forward of the fluid block have to be applied
-      x_sum_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+      x_sum_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
 
       //-------------------
@@ -1155,18 +1155,18 @@ bool FSI::MonolithicXFEM::newton()
       // permuted dofsets,
       //       directly after the linear_solve the vector is permuted backwards to the initial
       //       ordering of creation
-      iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+      iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
       // Global residual vector, unchanged/permuting dofsets (the same as for the iterinc_ vector)
       // note: for the assembly and during the solve the residual vector can have permuted dofsets,
       //       directly after the linear_solve the vector is permuted backwards to the initial
       //       ordering of creation
-      rhs_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+      rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
       // Global zero vector for DBCs, unchanged/permuting dofsets (the same as for the iterinc_
       // vector) note: this vector is just used during the solve and is NOT permuted backwards as
       // iterinc or rhs
-      zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+      zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
     }
     else
     {

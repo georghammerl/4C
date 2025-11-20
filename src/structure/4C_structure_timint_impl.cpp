@@ -281,14 +281,14 @@ void Solid::TimIntImpl::setup()
   if (itertype_ == Inpar::Solid::soltech_newtonls) prepare_line_search();
 
   // create empty residual force vector
-  fres_ = Core::LinAlg::create_vector(*dof_row_map_view(), false);
+  fres_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), false);
 
   // create empty reaction force vector of full length
-  freact_ = Core::LinAlg::create_vector(*dof_row_map_view(), false);
+  freact_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), false);
 
   // iterative displacement increments IncD_{n+1}
   // also known as residual displacements
-  disi_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+  disi_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   return;
 }
@@ -550,8 +550,8 @@ void Solid::TimIntImpl::prepare_line_search()
       Core::Communication::max_all(haveCondensationLocal, discret_->get_comm());
   if (haveCondensationGlobal)
   {
-    fresn_str_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
-    fintn_str_ = Core::LinAlg::create_vector(*dof_row_map_view(), true);
+    fresn_str_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
+    fintn_str_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
   }
   return;
 }
@@ -581,7 +581,7 @@ void Solid::TimIntImpl::predict_tang_dis_consist_vel_acc()
 
   // for displacement increments on Dirichlet boundary
   std::shared_ptr<Core::LinAlg::Vector<double>> dbcinc =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
 
   // copy last converged displacements
   dbcinc->update(1.0, *(*dis_)(0), 0.0);
@@ -606,7 +606,7 @@ void Solid::TimIntImpl::predict_tang_dis_consist_vel_acc()
   {
     // linear reactions
     std::shared_ptr<Core::LinAlg::Vector<double>> freact =
-        Core::LinAlg::create_vector(*dof_row_map_view(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);
     stiff_->multiply(false, *dbcinc, *freact);
 
     // add linear reaction forces due to prescribed Dirichlet BCs
@@ -3269,10 +3269,10 @@ int Solid::TimIntImpl::ptc()
     // modify stiffness matrix with dti
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(system_matrix()->row_map(), false);
       tmp->put_scalar(dti);
       std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-          Core::LinAlg::create_vector(system_matrix()->row_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(system_matrix()->row_map(), false);
       system_matrix()->extract_diagonal_copy(*diag);
       diag->update(1.0, *tmp, 1.0);
       system_matrix()->replace_diagonal_values(*diag);
@@ -4101,7 +4101,7 @@ void Solid::TimIntImpl::use_block_matrix(
   // recalculate mass and damping matrices
 
   std::shared_ptr<Core::LinAlg::Vector<double>> fint =
-      Core::LinAlg::create_vector(*dof_row_map_view(), true);  // internal force
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map_view(), true);  // internal force
 
   stiff_->zero();
   mass_->zero();
@@ -4118,7 +4118,8 @@ void Solid::TimIntImpl::use_block_matrix(
     std::shared_ptr<Core::LinAlg::Vector<double>> finert = nullptr;
     if (have_nonlinear_mass() != Inpar::Solid::MassLin::ml_none)
     {
-      finert = Core::LinAlg::create_vector(*dof_row_map_view(), true);  // inertial force
+      finert = std::make_shared<Core::LinAlg::Vector<double>>(
+          *dof_row_map_view(), true);  // inertial force
       // Note: the following parameters are just dummies, since they are only needed to calculate
       // finert which we will not use anyway
       p.set("timintfac_dis", 0.0);  // dummy!

@@ -60,8 +60,8 @@ Mat::MicroMaterialGP::MicroMaterialGP(const int gp, const int ele_ID, const bool
 {
   Global::Problem* microproblem = Global::Problem::instance(microdisnum_);
   std::shared_ptr<Core::FE::Discretization> microdis = microproblem->get_dis("structure");
-  dis_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
-  disn_ = Core::LinAlg::create_vector(*microdis->dof_row_map(), true);
+  dis_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
+  disn_ = std::make_shared<Core::LinAlg::Vector<double>>(*microdis->dof_row_map(), true);
 
   // data must be consistent between micro and macro input file
   const Teuchos::ParameterList& sdyn_macro =

@@ -1274,7 +1274,7 @@ void SSTI::AssembleStrategyBase::assemble_rhs(std::shared_ptr<Core::LinAlg::Vect
     Core::LinAlg::Vector<double> residual_structure(RHSstructure);
 
     auto rhs_structure_master =
-        Core::LinAlg::create_vector(*structure_field()->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_field()->dof_row_map(), true);
 
     for (const auto& meshtying : ssti_structure_meshtying()->mesh_tying_handlers())
     {

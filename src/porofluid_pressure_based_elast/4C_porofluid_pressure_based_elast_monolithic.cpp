@@ -312,8 +312,9 @@ void PoroPressureBased::PorofluidElastMonolithicAlgorithm::evaluate(
   else
   {
     // (4) Set structure solution on fluid field
-    set_structure_solution(Core::LinAlg::create_vector(*structure_algo()->dof_row_map(), true),
-        Core::LinAlg::create_vector(*structure_algo()->dof_row_map(), true));
+    set_structure_solution(
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(), true),
+        std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(), true));
     structure_algo()->system_matrix()->zero();
     structure_algo()->system_matrix()->complete(structure_algo()->system_matrix()->range_map(),
         structure_algo()->system_matrix()->range_map());
@@ -717,13 +718,13 @@ void PoroPressureBased::PorofluidElastMonolithicAlgorithm::setup_newton()
 
   // incremental solution vector with length of all dofs
   if (iterinc_ == nullptr)
-    iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     iterinc_->put_scalar(0.0);
 
   // a zero vector of full length
   if (zeros_ == nullptr)
-    zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   else
     zeros_->put_scalar(0.0);
 
@@ -974,7 +975,7 @@ PoroPressureBased::PorofluidElastMonolithicAlgorithm::setup_structure_partof_rhs
 {
   // Copy from TSI
   std::shared_ptr<Core::LinAlg::Vector<double>> str_rhs =
-      Core::LinAlg::create_vector(*structure_algo()->dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->dof_row_map(), true);
   if (solve_structure_)
     str_rhs = std::make_shared<Core::LinAlg::Vector<double>>(*structure_algo()->rhs());
   if (locsysman_ != nullptr) locsysman_->rotate_global_to_local(*str_rhs);
@@ -1056,8 +1057,8 @@ void PoroPressureBased::PorofluidElastMonolithicAlgorithm::poro_fd_check()
 
   std::shared_ptr<Core::LinAlg::Vector<double>> iterinc = nullptr;
   std::shared_ptr<Core::LinAlg::Vector<double>> abs_iterinc = nullptr;
-  iterinc = Core::LinAlg::create_vector(*dof_row_map(), true);
-  abs_iterinc = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
+  abs_iterinc = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
 
   const int dofs = iterinc->global_length();
   std::cout << "in total " << dofs << " DOFs" << std::endl;

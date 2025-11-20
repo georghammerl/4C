@@ -337,7 +337,7 @@ void FLD::TimIntHDGWeakComp::iter_update(
 
   // initialize increments of local variables
   std::shared_ptr<Core::LinAlg::Vector<double>> intvelincnp =
-      Core::LinAlg::create_vector(*intdofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
 
   // set state
   set_state_tim_int();
@@ -632,14 +632,14 @@ void FLD::TimIntHDGWeakComp::reset(int numsteps, int iter)
 {
   FluidImplicitTimeInt::reset(numsteps, iter);
   const Core::LinAlg::Map* intdofrowmap = discret_->dof_row_map(1);
-  intvelnp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intvelaf_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intvelnm_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intveln_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intaccnp_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intaccam_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intaccnm_ = Core::LinAlg::create_vector(*intdofrowmap, true);
-  intaccn_ = Core::LinAlg::create_vector(*intdofrowmap, true);
+  intvelnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intvelaf_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intvelnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intveln_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intaccnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intaccam_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intaccnm_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
+  intaccn_ = std::make_shared<Core::LinAlg::Vector<double>>(*intdofrowmap, true);
   if (Core::Communication::my_mpi_rank(discret_->get_comm()) == 0)
     std::cout << "Number of degrees of freedom in HDG system: "
               << discret_->dof_row_map(0)->num_global_elements() << std::endl;

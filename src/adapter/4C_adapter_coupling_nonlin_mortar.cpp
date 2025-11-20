@@ -756,7 +756,7 @@ void Adapter::CouplingNonLinMortar::setup_spring_dashpot(
   std::shared_ptr<Core::LinAlg::Map> dofrowmap =
       Core::LinAlg::merge_map(masterdofrowmap_, slavedofrowmap_, false);
   std::shared_ptr<Core::LinAlg::Vector<double>> dispn =
-      Core::LinAlg::create_vector(*dofrowmap, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   // set displacement state in mortar interface
   interface_->set_state(Mortar::state_new_displacement, *dispn);
@@ -932,7 +932,7 @@ void Adapter::CouplingNonLinMortar::matrix_row_col_transform()
     if (gap_ != nullptr)
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> pgap =
-          Core::LinAlg::create_vector(*pslavenoderowmap_, true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*pslavenoderowmap_, true);
       Core::LinAlg::export_to(*gap_, *pgap);
       gap_ = pgap;
     }
@@ -1059,7 +1059,7 @@ void Adapter::CouplingNonLinMortar::create_p()
   D_->complete();
   Dinv_ = std::make_shared<Core::LinAlg::SparseMatrix>(*D_);
   std::shared_ptr<Core::LinAlg::Vector<double>> diag =
-      Core::LinAlg::create_vector(*slavedofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*slavedofrowmap_, true);
 
   // extract diagonal of invd into diag
   Dinv_->extract_diagonal_copy(*diag);

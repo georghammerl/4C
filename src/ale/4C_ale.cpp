@@ -72,15 +72,17 @@ ALE::Ale::Ale(std::shared_ptr<Core::FE::Discretization> actdis,
 {
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
-  dispn_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  dispnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  disi_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  residual_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  rhs_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  zeros_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  dispn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  dispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  disi_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  residual_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  rhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
-  eledetjac_ = Core::LinAlg::create_vector(*discretization()->element_row_map(), true);
-  elequality_ = Core::LinAlg::create_vector(*discretization()->element_row_map(), true);
+  eledetjac_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discretization()->element_row_map(), true);
+  elequality_ =
+      std::make_shared<Core::LinAlg::Vector<double>>(*discretization()->element_row_map(), true);
 
   // -------------------------------------------------------------------
   // set initial displacement
@@ -725,8 +727,8 @@ void ALE::Ale::reset()
 {
   const Core::LinAlg::Map* dofrowmap = discret_->dof_row_map();
 
-  dispnp_ = Core::LinAlg::create_vector(*dofrowmap, true);
-  dispn_ = Core::LinAlg::create_vector(*dofrowmap, true);
+  dispnp_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
+  dispn_ = std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
 
   return;
 }

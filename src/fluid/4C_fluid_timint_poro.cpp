@@ -153,7 +153,7 @@ void FLD::TimIntPoro::update_iter_incrementally(
     // Take Dirichlet values from velnp and add vel to veln for non-Dirichlet
     // values.
     std::shared_ptr<Core::LinAlg::Vector<double>> aux =
-        Core::LinAlg::create_vector(*(discret_->dof_row_map(0)), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map(0)), true);
 
     // only one step theta
     // new end-point accelerations

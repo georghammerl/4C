@@ -105,7 +105,7 @@ Solid::TimAda::TimAda(const Teuchos::ParameterList& timeparams,  //!< TIS input 
       outsizefile_(nullptr)
 {
   // allocate displacement local error vector
-  locerrdisn_ = Core::LinAlg::create_vector(*(discret_->dof_row_map()), true);
+  locerrdisn_ = std::make_shared<Core::LinAlg::Vector<double>>(*(discret_->dof_row_map()), true);
 
   // check whether energyout_ file handle was attached
   if ((not sti_->attached_energy_file()) and (outeneperiod_ != 0.0) and (myrank_ == 0))

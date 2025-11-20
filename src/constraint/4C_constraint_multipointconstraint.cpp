@@ -47,7 +47,7 @@ void Constraints::MPConstraint::set_constr_state(
     for (discrit = constraintdis_.begin(); discrit != constraintdis_.end(); ++discrit)
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
-          Core::LinAlg::create_vector(*(discrit->second)->dof_col_map(), false);
+          std::make_shared<Core::LinAlg::Vector<double>>(*(discrit->second)->dof_col_map(), false);
       Core::LinAlg::export_to(V, *tmp);
       (discrit->second)->clear_state();
       (discrit->second)->set_state(state, *tmp);

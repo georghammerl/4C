@@ -295,7 +295,8 @@ void SSTI::SSTIAlgorithm::distribute_structure_solution() const
   thermo_field()->apply_mesh_movement(*structure_->dispnp());
 
   // convective velocity is set to zero
-  const auto convective_velocity = Core::LinAlg::create_vector(*structure_->dof_row_map());
+  const auto convective_velocity =
+      std::make_shared<Core::LinAlg::Vector<double>>(*structure_->dof_row_map());
 
   scatra_field()->set_convective_velocity(*convective_velocity);
   scatra_field()->set_velocity_field(*structure_->velnp());
@@ -315,7 +316,8 @@ void SSTI::SSTIAlgorithm::distribute_scatra_solution() const
   {
     // pass master-side scatra degrees of freedom to thermo discretization
     const std::shared_ptr<Core::LinAlg::Vector<double>> imasterphinp =
-        Core::LinAlg::create_vector(*scatra_field()->discretization()->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *scatra_field()->discretization()->dof_row_map(), true);
     meshtying_strategy_scatra_->interface_maps()->insert_vector(
         *meshtying_strategy_scatra_->coupling_adapter()->master_to_slave(
             *meshtying_strategy_scatra_->interface_maps()->extract_vector(
@@ -338,7 +340,8 @@ void SSTI::SSTIAlgorithm::distribute_thermo_solution()
   {
     // extract master side temperatures and copy to slave side dof map
     const std::shared_ptr<Core::LinAlg::Vector<double>> imastertempnp =
-        Core::LinAlg::create_vector(*thermo_field()->discretization()->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *thermo_field()->discretization()->dof_row_map(), true);
     meshtying_strategy_thermo_->interface_maps()->insert_vector(
         *meshtying_strategy_thermo_->coupling_adapter()->master_to_slave(
             *meshtying_strategy_thermo_->interface_maps()->extract_vector(
@@ -347,7 +350,8 @@ void SSTI::SSTIAlgorithm::distribute_thermo_solution()
 
     // extract slave side temperatures
     const std::shared_ptr<Core::LinAlg::Vector<double>> islavetempnp =
-        Core::LinAlg::create_vector(*thermo_field()->discretization()->dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(
+            *thermo_field()->discretization()->dof_row_map(), true);
     meshtying_strategy_thermo_->interface_maps()->insert_vector(
         *meshtying_strategy_thermo_->interface_maps()->extract_vector(*thermo_field()->phinp(), 1),
         1, *islavetempnp);

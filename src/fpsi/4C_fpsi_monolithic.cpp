@@ -900,7 +900,7 @@ void FPSI::Monolithic::line_search(Core::LinAlg::SparseMatrix& sparse)
   // copy the old iterinc_ before new solve
   if (linesearch_ and islinesearch_ == false)
   {
-    rhsold_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    rhsold_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
     rhsold_->update(1.0, *rhs_, 0.0);
     rhsold_->norm_2(&normofrhsold_);
     if (abs(normofrhs_ - normofrhsold_) > 1.e-12 and iter_ > 1)
@@ -921,7 +921,7 @@ void FPSI::Monolithic::line_search(Core::LinAlg::SparseMatrix& sparse)
   {
     // check whether iterinc_ points in right direction
     std::shared_ptr<Core::LinAlg::Vector<double>> tempvec =
-        Core::LinAlg::create_vector(*dof_row_map(), true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
     sparse.multiply(true, *rhs_, *tempvec);
     double climb = 0.0;
     tempvec->dot(*iterinc_, &climb);
@@ -949,7 +949,7 @@ void FPSI::Monolithic::line_search(Core::LinAlg::SparseMatrix& sparse)
 
   if (linesearch_ and islinesearch_ == false)
   {
-    iterincold_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+    iterincold_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
     iterincold_->update(1.0, *iterinc_, 0.0);
     iterincold_->norm_2(&normofiterincold_);
   }
@@ -1505,11 +1505,11 @@ void FPSI::Monolithic::setup_newton()
 
 
   // incremental solution vector with length of all dofs
-  iterinc_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  iterinc_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   iterinc_->put_scalar(0.0);
 
   // a zero vector of full length
-  zeros_ = Core::LinAlg::create_vector(*dof_row_map(), true);
+  zeros_ = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   zeros_->put_scalar(0.0);
 }
 
@@ -1558,7 +1558,7 @@ void FPSI::Monolithic::fpsifd_check()
   //////////////////////////////////////////////////////////////
   // build artificial iteration increment
   std::shared_ptr<Core::LinAlg::Vector<double>> iterinc =
-      Core::LinAlg::create_vector(*dof_row_map(), true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   const int dofs = iterinc->global_length();
   iterinc->put_scalar(0.0);
   iterinc->replace_global_value(0, delta);
