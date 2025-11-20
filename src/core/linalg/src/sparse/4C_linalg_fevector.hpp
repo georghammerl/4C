@@ -14,8 +14,8 @@
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_multi_vector.hpp"
 #include "4C_linalg_transfer.hpp"
+#include "4C_linalg_utils_exceptions.hpp"
 #include "4C_linalg_view.hpp"
-#include "4C_utils_epetra_exceptions.hpp"
 
 #include <Epetra_FEVector.h>
 
@@ -180,106 +180,100 @@ namespace Core::LinAlg
 
     void replace_local_value(int MyRow, int FEVectorIndex, double ScalarValue)
     {
-      CHECK_EPETRA_CALL(vector_->ReplaceMyValue(MyRow, FEVectorIndex, ScalarValue));
+      ASSERT_EPETRA_CALL(vector_->ReplaceMyValue(MyRow, FEVectorIndex, ScalarValue));
     }
 
     void replace_global_value(int GlobalRow, int FEVectorIndex, double ScalarValue)
     {
-      CHECK_EPETRA_CALL(vector_->ReplaceGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
+      ASSERT_EPETRA_CALL(vector_->ReplaceGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
     }
 
     void replace_global_values(
         int numIDs, const int* GIDs, const double* values, int vectorIndex = 0)
     {
-      CHECK_EPETRA_CALL(vector_->ReplaceGlobalValues(numIDs, GIDs, values, vectorIndex));
+      ASSERT_EPETRA_CALL(vector_->ReplaceGlobalValues(numIDs, GIDs, values, vectorIndex));
     }
 
     //! Matrix-Matrix multiplication, \e this = ScalarThis*\e this + ScalarAB*A*B.
     void multiply(char TransA, char TransB, double ScalarAB, const Epetra_MultiVector& A,
         const Epetra_MultiVector& B, double ScalarThis)
     {
-      CHECK_EPETRA_CALL(vector_->Multiply(TransA, TransB, ScalarAB, A, B, ScalarThis));
+      ASSERT_EPETRA_CALL(vector_->Multiply(TransA, TransB, ScalarAB, A, B, ScalarThis));
     }
 
     //! Puts element-wise reciprocal values of input Multi-vector in target.
-    void reciprocal(const Epetra_MultiVector& A) { CHECK_EPETRA_CALL(vector_->Reciprocal(A)); }
+    void reciprocal(const Epetra_MultiVector& A) { ASSERT_EPETRA_CALL(vector_->Reciprocal(A)); }
 
     //! Multiply a Core::LinAlg::MultiVector<double> with another, element-by-element.
     void multiply(double ScalarAB, const Epetra_MultiVector& A, const Epetra_MultiVector& B,
-        double ScalarThis)
-    {
-      CHECK_EPETRA_CALL(vector_->Multiply(ScalarAB, A, B, ScalarThis));
-    }
+        double ScalarThis);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
     void import(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode)
-    {
-      CHECK_EPETRA_CALL(vector_->Import(A, Importer.get_epetra_import(), CombineMode));
-    }
+        Epetra_CombineMode CombineMode);
 
     //! Imports an Epetra_DistObject using the Epetra_Export object.
     void import(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
         Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Import(A, Exporter, CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Import(A, Exporter, CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
         Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
         Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
         Epetra_CombineMode CombineMode)
     {
-      CHECK_EPETRA_CALL(vector_->Export(A, Exporter, CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Export(A, Exporter, CombineMode));
     }
 
     void complete(Epetra_CombineMode mode = Add, bool reuse_map_and_exporter = false)
     {
-      CHECK_EPETRA_CALL(vector_->GlobalAssemble(mode, reuse_map_and_exporter));
+      ASSERT_EPETRA_CALL(vector_->GlobalAssemble(mode, reuse_map_and_exporter));
     }
 
     void sum_into_global_value(int GlobalRow, int FEVectorIndex, double ScalarValue)
     {
-      CHECK_EPETRA_CALL(vector_->SumIntoGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
+      ASSERT_EPETRA_CALL(vector_->SumIntoGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
     }
 
     void sum_into_global_value(long long GlobalRow, int FEVectorIndex, double ScalarValue)
     {
-      CHECK_EPETRA_CALL(vector_->SumIntoGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
+      ASSERT_EPETRA_CALL(vector_->SumIntoGlobalValue(GlobalRow, FEVectorIndex, ScalarValue));
     }
 
     void sum_into_global_values(int numIDs, const int* GIDs, const int* numValuesPerID,
         const double* values, int vectorIndex = 0)
     {
-      CHECK_EPETRA_CALL(
+      ASSERT_EPETRA_CALL(
           vector_->SumIntoGlobalValues(numIDs, GIDs, numValuesPerID, values, vectorIndex));
     }
 
     void sum_into_global_values(
         int numIDs, const int* GIDs, const double* values, int vectorIndex = 0)
     {
-      CHECK_EPETRA_CALL(vector_->SumIntoGlobalValues(numIDs, GIDs, values, vectorIndex));
+      ASSERT_EPETRA_CALL(vector_->SumIntoGlobalValues(numIDs, GIDs, values, vectorIndex));
     }
 
     void reciprocal_multiply(double ScalarAB, const Epetra_MultiVector& A,
         const Epetra_MultiVector& B, double ScalarThis)
     {
-      CHECK_EPETRA_CALL(vector_->ReciprocalMultiply(ScalarAB, A, B, ScalarThis));
+      ASSERT_EPETRA_CALL(vector_->ReciprocalMultiply(ScalarAB, A, B, ScalarThis));
     }
 
     void sum_into_local_value(int MyRow, int FEVectorIndex, double ScalarValue)
     {
-      CHECK_EPETRA_CALL(vector_->SumIntoMyValue(MyRow, FEVectorIndex, ScalarValue));
+      ASSERT_EPETRA_CALL(vector_->SumIntoMyValue(MyRow, FEVectorIndex, ScalarValue));
     }
 
 

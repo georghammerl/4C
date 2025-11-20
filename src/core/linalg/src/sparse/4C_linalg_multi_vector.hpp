@@ -14,7 +14,6 @@
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_transfer.hpp"
 #include "4C_linalg_view.hpp"
-#include "4C_utils_epetra_exceptions.hpp"
 #include "4C_utils_owner_or_view.hpp"
 
 #include <Epetra_FEVector.h>

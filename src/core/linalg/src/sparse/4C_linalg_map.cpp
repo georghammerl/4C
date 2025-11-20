@@ -11,7 +11,7 @@
 
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_comm_utils.hpp"
-#include "4C_utils_epetra_exceptions.hpp"
+#include "4C_linalg_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -130,7 +130,7 @@ Core::LinAlg::Map::Map(const Epetra_BlockMap& Source)
 
 void Core::LinAlg::Map::my_global_elements(int* MyGlobalElementList) const
 {
-  CHECK_EPETRA_CALL(wrapped().MyGlobalElements(MyGlobalElementList));
+  ASSERT_EPETRA_CALL(wrapped().MyGlobalElements(MyGlobalElementList));
 }
 
 FOUR_C_NAMESPACE_CLOSE

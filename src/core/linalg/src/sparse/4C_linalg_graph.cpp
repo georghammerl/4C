@@ -7,7 +7,7 @@
 
 #include "4C_linalg_graph.hpp"
 
-#include "4C_utils_epetra_exceptions.hpp"
+#include "4C_linalg_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -74,11 +74,11 @@ void Core::LinAlg::Graph::fill_complete()
 {
   if (graphtype_ == CRS_GRAPH)
   {
-    CHECK_EPETRA_CALL(graph_->FillComplete());
+    ASSERT_EPETRA_CALL(graph_->FillComplete());
   }
   else if (graphtype_ == FE_GRAPH)
   {
-    CHECK_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())->GlobalAssemble());
+    ASSERT_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())->GlobalAssemble());
   }
 }
 
@@ -86,29 +86,29 @@ void Core::LinAlg::Graph::fill_complete(const Map& domain_map, const Map& range_
 {
   if (graphtype_ == CRS_GRAPH)
   {
-    CHECK_EPETRA_CALL(
+    ASSERT_EPETRA_CALL(
         graph_->FillComplete(domain_map.get_epetra_block_map(), range_map.get_epetra_block_map()));
   }
   else if (graphtype_ == FE_GRAPH)
   {
-    CHECK_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())
+    ASSERT_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())
             ->GlobalAssemble(domain_map.get_epetra_map(), range_map.get_epetra_map()));
   }
 }
 
-void Core::LinAlg::Graph::optimize_storage() { CHECK_EPETRA_CALL(graph_->OptimizeStorage()); }
+void Core::LinAlg::Graph::optimize_storage() { ASSERT_EPETRA_CALL(graph_->OptimizeStorage()); }
 
 void Core::LinAlg::Graph::export_to(const Core::LinAlg::Graph& A,
     const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
+  ASSERT_EPETRA_CALL(
       graph_->Export(A.get_epetra_crs_graph(), Exporter.get_epetra_export(), CombineMode));
 }
 
 void Core::LinAlg::Graph::import_from(const Core::LinAlg::Graph& A,
     const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
 {
-  CHECK_EPETRA_CALL(
+  ASSERT_EPETRA_CALL(
       graph_->Import(A.get_epetra_crs_graph(), Importer.get_epetra_import(), CombineMode));
 }
 
@@ -116,11 +116,11 @@ void Core::LinAlg::Graph::insert_global_indices(int GlobalRow, std::span<int>& I
 {
   if (graphtype_ == CRS_GRAPH)
   {
-    CHECK_EPETRA_CALL(graph_->InsertGlobalIndices(GlobalRow, Indices.size(), Indices.data()));
+    ASSERT_EPETRA_CALL(graph_->InsertGlobalIndices(GlobalRow, Indices.size(), Indices.data()));
   }
   else if (graphtype_ == FE_GRAPH)
   {
-    CHECK_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())
+    ASSERT_EPETRA_CALL(static_cast<Epetra_FECrsGraph*>(graph_.get())
             ->InsertGlobalIndices(1, &GlobalRow, Indices.size(), Indices.data()));
   }
 }
@@ -129,7 +129,7 @@ void Core::LinAlg::Graph::extract_local_row_view(int LocalRow, std::span<int>& I
 {
   int num_indices;
   int* indices;
-  CHECK_EPETRA_CALL(graph_->ExtractMyRowView(LocalRow, num_indices, indices));
+  ASSERT_EPETRA_CALL(graph_->ExtractMyRowView(LocalRow, num_indices, indices));
   Indices = std::span(indices, num_indices);
 }
 
@@ -137,7 +137,7 @@ void Core::LinAlg::Graph::extract_global_row_view(int GlobalRow, std::span<int>&
 {
   int num_indices;
   int* indices;
-  CHECK_EPETRA_CALL(graph_->ExtractGlobalRowView(GlobalRow, num_indices, indices));
+  ASSERT_EPETRA_CALL(graph_->ExtractGlobalRowView(GlobalRow, num_indices, indices));
   Indices = std::span(indices, num_indices);
 }
 

@@ -14,6 +14,7 @@
 #include "4C_linalg_graph.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_linalg_sparseoperator.hpp"
+#include "4C_linalg_utils_exceptions.hpp"
 
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_FECrsMatrix.h>
@@ -603,14 +604,14 @@ namespace Core::LinAlg
     void import(const SparseMatrix& A, const Core::LinAlg::Import& importer,
         Epetra_CombineMode combine_mode)
     {
-      CHECK_EPETRA_CALL(
+      ASSERT_EPETRA_CALL(
           sysmat_->Import(A.epetra_matrix(), importer.get_epetra_import(), combine_mode));
     }
 
     void import(const SparseMatrix& A, const Core::LinAlg::Export& exporter,
         Epetra_CombineMode combine_mode)
     {
-      CHECK_EPETRA_CALL(
+      ASSERT_EPETRA_CALL(
           sysmat_->Import(A.epetra_matrix(), exporter.get_epetra_export(), combine_mode));
     }
 

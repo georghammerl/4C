@@ -22,7 +22,6 @@
 #include "4C_solver_nonlin_nox_solver_ptc.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_nln_linearsystem_scaling.hpp"
-#include "4C_utils_epetra_exceptions.hpp"
 
 #include <Teuchos_LAPACK.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -574,7 +573,7 @@ void NOX::Nln::LinearSystem::replace_diagonal_of_jacobian(
   const Core::LinAlg::SparseMatrix& diag_block = get_jacobian_block(diag_bid, diag_bid);
   Core::LinAlg::SparseMatrix& mod_diag_block = const_cast<Core::LinAlg::SparseMatrix&>(diag_block);
 
-  CHECK_EPETRA_CALL(mod_diag_block.replace_diagonal_values(new_diag));
+  mod_diag_block.replace_diagonal_values(new_diag);
 }
 
 /*----------------------------------------------------------------------*
