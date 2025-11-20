@@ -8,10 +8,12 @@
 #include "4C_beaminteraction_beam_to_beam_point_coupling_pair_condition.hpp"
 
 #include "4C_beaminteraction_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_beaminteraction_beam_to_solid_mortar_manager.hpp"
+#include "4C_beaminteraction_submodel_evaluator_beamcontact_assembly_manager_indirect.hpp"
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
-#include "4C_geometry_pair_element.hpp"
+#include "4C_inpar_beam_to_solid.hpp"
 
 #include <array>
 
@@ -157,8 +159,43 @@ BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_contact_pair(
   std::shared_ptr<BeamInteraction::BeamContactPair> contact_pair =
       beam_to_beam_point_coupling_pair_factory(
           {ele_ptrs[0], ele_ptrs[1]}, parameters_, geometry_evaluation_data_);
+  contact_pairs_.push_back(contact_pair);
 
   return contact_pair;
 }
+
+/**
+ *
+ */
+std::shared_ptr<BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManager>
+BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_indirect_assembly_manager(
+    const std::shared_ptr<const Core::FE::Discretization>& discret)
+{
+  if (parameters_.constraint_enforcement ==
+      BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::penalty_direct)
+  {
+    return nullptr;
+  }
+  else
+  {
+    MortarManagerParameters mortar_manager_parameters{
+        .start_value_lambda_gid = discret->dof_row_map()->max_all_gid() + 1,
+        .n_lambda_node_translational = 0,
+        .n_lambda_element_translational = 3 * parameters_.n_pairs_per_element,
+        .n_lambda_node_rotational = 0,
+        .n_lambda_element_rotational = 3 * parameters_.n_pairs_per_element,
+        .penalty_parameter_translational = parameters_.penalty_parameter_pos,
+        .penalty_parameter_rotational = parameters_.penalty_parameter_rot};
+
+    auto mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManager>(
+        discret, mortar_manager_parameters);
+    mortar_manager->setup();
+    mortar_manager->set_local_maps(contact_pairs_);
+
+    // Create the indirect assembly manager with the mortar manager
+    return std::make_shared<SubmodelEvaluator::BeamContactAssemblyManagerInDirect>(mortar_manager);
+  }
+}
+
 
 FOUR_C_NAMESPACE_CLOSE

@@ -1,5 +1,6 @@
 TITLE:
-  - "Test that beam-to-beam point coupling works with closest point projections"
+  - "Test that beam-to-beam point coupling works with closest point projections. This test case couples
+    a Simo-Reisner beam with an Kirchhoff-Love beam. Coupling terms are assembled locally."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
 BEAM INTERACTION/BEAM TO BEAM POINT COUPLING CONDITIONS:

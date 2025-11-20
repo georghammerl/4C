@@ -1,6 +1,6 @@
 TITLE:
   - "Test that beam-to-beam point coupling works with closest point projections, where the projection
-    is exactly at an interelement node."
+    is exactly at an interelement node. Coupling terms are assembled locally."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
 BEAM CONTACT:

@@ -52,9 +52,6 @@ void GeometryPair::LineToLineEvaluationData::clear()
 {
   // Call reset on the base method.
   GeometryEvaluationDataBase::clear();
-
-  // Initialize an empty map for tracking evaluated nodes.
-  for (size_t i = 0; i < 2; ++i) condition_node_to_min_element_gid_map_[i].clear();
 }
 
 /**
