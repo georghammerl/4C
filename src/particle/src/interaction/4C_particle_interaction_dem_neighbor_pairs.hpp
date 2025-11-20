@@ -53,9 +53,6 @@ namespace Particle
     //! constructor
     explicit DEMNeighborPairs();
 
-    //! init neighbor pair handler
-    void init();
-
     //! setup neighbor pair handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface);

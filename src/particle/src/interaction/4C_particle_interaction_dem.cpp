@@ -28,39 +28,26 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
 Particle::ParticleInteractionDEM::ParticleInteractionDEM(
     MPI_Comm comm, const Teuchos::ParameterList& params)
     : Particle::ParticleInteractionBase(comm, params),
       params_dem_(params.sublist("DEM")),
+      neighborpairs_(std::make_shared<Particle::DEMNeighborPairs>()),
+      historypairs_(std::make_shared<Particle::DEMHistoryPairs>(comm_)),
+      contact_(std::make_unique<Particle::DEMContact>(params_dem_)),
       writeparticleenergy_(params_dem_.get<bool>("WRITE_PARTICLE_ENERGY"))
 {
-  // empty constructor
+  auto adhesionlaw = Teuchos::getIntegralValue<Particle::AdhesionLaw>(params_dem_, "ADHESIONLAW");
+
+  if (adhesionlaw != Particle::NoAdhesion)
+    adhesion_ = std::make_unique<Particle::DEMAdhesion>(params_dem_);
 }
 
 Particle::ParticleInteractionDEM::~ParticleInteractionDEM() = default;
-
-void Particle::ParticleInteractionDEM::init()
-{
-  // call base class init
-  ParticleInteractionBase::init();
-
-  // init neighbor pair handler
-  init_neighbor_pair_handler();
-
-  // init history pair handler
-  init_history_pair_handler();
-
-  // init contact handler
-  init_contact_handler();
-
-  // init adhesion handler
-  init_adhesion_handler();
-}
 
 void Particle::ParticleInteractionDEM::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -211,46 +198,6 @@ void Particle::ParticleInteractionDEM::set_current_step_size(const double curren
 
   // set current step size
   contact_->set_current_step_size(currentstepsize);
-}
-
-void Particle::ParticleInteractionDEM::init_neighbor_pair_handler()
-{
-  // create neighbor pair handler
-  neighborpairs_ = std::make_shared<Particle::DEMNeighborPairs>();
-
-  // init neighbor pair handler
-  neighborpairs_->init();
-}
-
-void Particle::ParticleInteractionDEM::init_history_pair_handler()
-{
-  // create history pair handler
-  historypairs_ = std::make_shared<Particle::DEMHistoryPairs>(comm_);
-
-  // init history pair handler
-  historypairs_->init();
-}
-
-void Particle::ParticleInteractionDEM::init_contact_handler()
-{
-  // create contact handler
-  contact_ = std::unique_ptr<Particle::DEMContact>(new Particle::DEMContact(params_dem_));
-
-  // init contact handler
-  contact_->init();
-}
-
-void Particle::ParticleInteractionDEM::init_adhesion_handler()
-{
-  // get type of adhesion law
-  auto adhesionlaw = Teuchos::getIntegralValue<Particle::AdhesionLaw>(params_dem_, "ADHESIONLAW");
-
-  // create adhesion handler
-  if (adhesionlaw != Particle::NoAdhesion)
-    adhesion_ = std::unique_ptr<Particle::DEMAdhesion>(new Particle::DEMAdhesion(params_dem_));
-
-  // init adhesion handler
-  if (adhesion_) adhesion_->init();
 }
 
 void Particle::ParticleInteractionDEM::setup_particle_interaction_writer()

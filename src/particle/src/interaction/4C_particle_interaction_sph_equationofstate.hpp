@@ -31,12 +31,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHEquationOfStateBase() = default;
 
-    //! init equation of state handler
-    virtual void init();
-
-    //! setup equation of state handler
-    virtual void setup();
-
     //! determine the pressure
     virtual double density_to_pressure(const double& density, const double& density0) const = 0;
 

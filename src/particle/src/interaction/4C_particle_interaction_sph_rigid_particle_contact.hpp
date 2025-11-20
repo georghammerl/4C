@@ -54,9 +54,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHRigidParticleContactBase() = default;
 
-    //! init rigid particle contact handler
-    virtual void init();
-
     //! setup rigid particle contact handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,

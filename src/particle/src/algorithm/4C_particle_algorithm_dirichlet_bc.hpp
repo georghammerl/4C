@@ -47,12 +47,6 @@ namespace Particle
     explicit DirichletBoundaryConditionHandler(const Teuchos::ParameterList& params);
 
     /*!
-     * \brief init dirichlet boundary condition handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup dirichlet boundary condition handler
      *
      *

@@ -74,9 +74,6 @@ namespace Particle
      */
     ~SPHMomentum();
 
-    //! init momentum handler
-    void init();
-
     //! setup momentum handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,
@@ -97,9 +94,6 @@ namespace Particle
    private:
     //! init momentum formulation handler
     void init_momentum_formulation_handler();
-
-    //! init artificial viscosity handler
-    void init_artificial_viscosity_handler();
 
     //! setup particle interaction writer
     void setup_particle_interaction_writer();

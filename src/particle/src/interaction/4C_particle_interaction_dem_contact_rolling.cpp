@@ -25,12 +25,6 @@ Particle::DEMContactRollingBase::DEMContactRollingBase(const Teuchos::ParameterL
       nue_(params_dem_.get<double>("POISSON_RATIO")),
       d_rolling_fac_(0.0)
 {
-  // empty constructor
-}
-
-void Particle::DEMContactRollingBase::init()
-{
-  // safety checks for contact parameters
   if (nue_ <= -1.0 or nue_ > 0.5)
     FOUR_C_THROW("invalid input parameter POISSON_RATIO (expected in range ]-1.0; 0.5])!");
 
@@ -53,15 +47,6 @@ Particle::DEMContactRollingViscous::DEMContactRollingViscous(const Teuchos::Para
       young_(params_dem_.get<double>("YOUNG_MODULUS")),
       v_max_(params_dem_.get<double>("MAX_VELOCITY"))
 {
-  // empty constructor
-}
-
-void Particle::DEMContactRollingViscous::init()
-{
-  // call base class init
-  DEMContactRollingBase::init();
-
-  // safety checks for contact parameters
   if (young_ <= 0.0)
     FOUR_C_THROW("invalid input parameter YOUNG_MODULUS (expected to be positive)!");
 

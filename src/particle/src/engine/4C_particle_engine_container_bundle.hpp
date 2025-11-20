@@ -47,12 +47,6 @@ namespace Particle
     explicit ParticleContainerBundle();
 
     /*!
-     * \brief init particle container bundle
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup particle container bundle
      *
      *

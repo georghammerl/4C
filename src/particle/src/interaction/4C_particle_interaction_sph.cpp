@@ -31,6 +31,8 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -40,16 +42,13 @@ Particle::ParticleInteractionSPH::ParticleInteractionSPH(
     MPI_Comm comm, const Teuchos::ParameterList& params)
     : Particle::ParticleInteractionBase(comm, params), params_sph_(params.sublist("SPH"))
 {
-  // empty constructor
+  initialize_members();
 }
 
 Particle::ParticleInteractionSPH::~ParticleInteractionSPH() = default;
 
-void Particle::ParticleInteractionSPH::init()
+void Particle::ParticleInteractionSPH::initialize_members()
 {
-  // call base class init
-  ParticleInteractionBase::init();
-
   // init kernel handler
   init_kernel_handler();
 
@@ -103,12 +102,6 @@ void Particle::ParticleInteractionSPH::setup(
 {
   // call base class setup
   ParticleInteractionBase::setup(particleengineinterface, particlewallinterface);
-
-  // setup kernel handler
-  kernel_->setup();
-
-  // setup equation of state bundle
-  equationofstatebundle_->setup();
 
   // setup neighbor pair handler
   neighborpairs_->setup(particleengineinterface, particlewallinterface, kernel_);
@@ -466,9 +459,6 @@ void Particle::ParticleInteractionSPH::init_kernel_handler()
       break;
     }
   }
-
-  // init kernel handler
-  kernel_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_equation_of_state_bundle()
@@ -484,9 +474,6 @@ void Particle::ParticleInteractionSPH::init_neighbor_pair_handler()
 {
   // create neighbor pair handler
   neighborpairs_ = std::make_shared<Particle::SPHNeighborPairs>();
-
-  // init neighbor pair handler
-  neighborpairs_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_density_handler()
@@ -523,9 +510,6 @@ void Particle::ParticleInteractionSPH::init_density_handler()
     }
   }
 
-  // init density handler
-  density_->init();
-
   // safety check
   if (densityevaluationscheme != Particle::DensityPredictCorrect and
       Teuchos::getIntegralValue<Particle::DensityCorrectionScheme>(
@@ -538,10 +522,7 @@ void Particle::ParticleInteractionSPH::init_density_handler()
 void Particle::ParticleInteractionSPH::init_pressure_handler()
 {
   // create pressure handler
-  pressure_ = std::unique_ptr<Particle::SPHPressure>(new Particle::SPHPressure());
-
-  // init pressure handler
-  pressure_->init();
+  pressure_ = std::make_unique<Particle::SPHPressure>();
 }
 
 void Particle::ParticleInteractionSPH::init_temperature_handler()
@@ -571,18 +552,12 @@ void Particle::ParticleInteractionSPH::init_temperature_handler()
       break;
     }
   }
-
-  // init temperature handler
-  if (temperature_) temperature_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_momentum_handler()
 {
   // create momentum handler
-  momentum_ = std::unique_ptr<Particle::SPHMomentum>(new Particle::SPHMomentum(params_sph_));
-
-  // init momentum handler
-  momentum_->init();
+  momentum_ = std::make_unique<Particle::SPHMomentum>(params_sph_);
 }
 
 void Particle::ParticleInteractionSPH::init_surface_tension_handler()
@@ -611,9 +586,6 @@ void Particle::ParticleInteractionSPH::init_surface_tension_handler()
       break;
     }
   }
-
-  // init surface tension handler
-  if (surfacetension_) surfacetension_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_boundary_particle_handler()
@@ -643,9 +615,6 @@ void Particle::ParticleInteractionSPH::init_boundary_particle_handler()
       break;
     }
   }
-
-  // init boundary particle handler
-  if (boundaryparticle_) boundaryparticle_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_dirichlet_open_boundary_handler()
@@ -674,9 +643,6 @@ void Particle::ParticleInteractionSPH::init_dirichlet_open_boundary_handler()
       break;
     }
   }
-
-  // init open boundary handler
-  if (dirichletopenboundary_) dirichletopenboundary_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_neumann_open_boundary_handler()
@@ -705,9 +671,6 @@ void Particle::ParticleInteractionSPH::init_neumann_open_boundary_handler()
       break;
     }
   }
-
-  // init open boundary handler
-  if (neumannopenboundary_) neumannopenboundary_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_virtual_wall_particle_handler()
@@ -735,9 +698,6 @@ void Particle::ParticleInteractionSPH::init_virtual_wall_particle_handler()
       break;
     }
   }
-
-  // init virtual wall particle handler
-  if (virtualwallparticle_) virtualwallparticle_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_phase_change_handler()
@@ -762,14 +722,13 @@ void Particle::ParticleInteractionSPH::init_phase_change_handler()
     }
     case Particle::OneWayScalarAboveToBelowPhaseChange:
     {
-      phasechange_ = std::unique_ptr<Particle::SPHPhaseChangeOneWayScalarAboveToBelow>(
-          new Particle::SPHPhaseChangeOneWayScalarAboveToBelow(params_sph_));
+      phasechange_ =
+          std::make_unique<Particle::SPHPhaseChangeOneWayScalarAboveToBelow>(params_sph_);
       break;
     }
     case Particle::TwoWayScalarPhaseChange:
     {
-      phasechange_ = std::unique_ptr<Particle::SPHPhaseChangeTwoWayScalar>(
-          new Particle::SPHPhaseChangeTwoWayScalar(params_sph_));
+      phasechange_ = std::make_unique<Particle::SPHPhaseChangeTwoWayScalar>(params_sph_);
       break;
     }
     default:
@@ -778,9 +737,6 @@ void Particle::ParticleInteractionSPH::init_phase_change_handler()
       break;
     }
   }
-
-  // init phase change handler
-  if (phasechange_) phasechange_->init();
 }
 
 void Particle::ParticleInteractionSPH::init_rigid_particle_contact_handler()
@@ -809,9 +765,6 @@ void Particle::ParticleInteractionSPH::init_rigid_particle_contact_handler()
       break;
     }
   }
-
-  // init rigid particle contact handler
-  if (rigidparticlecontact_) rigidparticlecontact_->init();
 }
 
 FOUR_C_NAMESPACE_CLOSE

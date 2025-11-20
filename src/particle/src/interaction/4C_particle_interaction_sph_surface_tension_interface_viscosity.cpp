@@ -21,6 +21,8 @@
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -30,28 +32,15 @@ Particle::SPHInterfaceViscosity::SPHInterfaceViscosity(const Teuchos::ParameterL
     : params_sph_(params),
       liquidtype_(Particle::Phase1),
       gastype_(Particle::Phase2),
+      fluidtypes_({liquidtype_, gastype_}),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase}),
       artvisc_lg_int_(params_sph_.get<double>("INTERFACE_VISCOSITY_LIQUIDGAS")),
       artvisc_sl_int_(params_sph_.get<double>("INTERFACE_VISCOSITY_SOLIDLIQUID")),
       trans_ref_temp_(params_sph_.get<double>("TRANS_REF_TEMPERATURE")),
       trans_d_t_intvisc_(params_sph_.get<double>("TRANS_DT_INTVISC"))
 {
-  // empty constructor
-}
-
-Particle::SPHInterfaceViscosity::~SPHInterfaceViscosity() = default;
-
-void Particle::SPHInterfaceViscosity::init()
-{
-  // init artificial viscosity handler
   init_artificial_viscosity_handler();
 
-  // init fluid particle types
-  fluidtypes_ = {liquidtype_, gastype_};
-
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
-
-  // safety check
   if (trans_d_t_intvisc_ > 0.0)
   {
     if (Teuchos::getIntegralValue<Particle::TemperatureEvaluationScheme>(
@@ -59,6 +48,8 @@ void Particle::SPHInterfaceViscosity::init()
       FOUR_C_THROW("temperature evaluation needed for linear transition of interface viscosity!");
   }
 }
+
+Particle::SPHInterfaceViscosity::~SPHInterfaceViscosity() = default;
 
 void Particle::SPHInterfaceViscosity::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -81,9 +72,6 @@ void Particle::SPHInterfaceViscosity::setup(
 
   // set neighbor pair handler
   neighborpairs_ = neighborpairs;
-
-  // setup artificial viscosity handler
-  artificialviscosity_->setup();
 
   // safety check
   for (const auto& type_i : fluidtypes_)
@@ -123,11 +111,7 @@ void Particle::SPHInterfaceViscosity::compute_interface_viscosity_contribution()
 void Particle::SPHInterfaceViscosity::init_artificial_viscosity_handler()
 {
   // create artificial viscosity handler
-  artificialviscosity_ =
-      std::unique_ptr<Particle::SPHArtificialViscosity>(new Particle::SPHArtificialViscosity());
-
-  // init artificial viscosity handler
-  artificialviscosity_->init();
+  artificialviscosity_ = std::make_unique<Particle::SPHArtificialViscosity>();
 }
 
 void Particle::SPHInterfaceViscosity::compute_interface_viscosity_particle_contribution() const

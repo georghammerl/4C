@@ -41,13 +41,10 @@ namespace
       contacttangential_ =
           std::make_unique<Particle::DEMContactTangentialLinearSpringDamp>(params_dem);
 
-      // init tangential contact handler
-      contacttangential_->init();
-
       // setup tangential contact handler
       contacttangential_->setup(k_normal_);
     }
-    // note: the public functions init() and setup() of class DEMContactTangentialLinearSpringDamp
+    // note: the public functions setup() of class DEMContactTangentialLinearSpringDamp
     // are called in the constructor and thus implicitly tested by all following unittests
   };
 

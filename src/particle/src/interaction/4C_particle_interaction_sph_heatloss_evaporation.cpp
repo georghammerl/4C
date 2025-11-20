@@ -18,9 +18,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
 Particle::SPHHeatLossEvaporation::SPHHeatLossEvaporation(const Teuchos::ParameterList& params)
     : params_sph_(params),
       evaporatingphase_(Particle::Phase1),
@@ -32,12 +29,6 @@ Particle::SPHHeatLossEvaporation::SPHHeatLossEvaporation(const Teuchos::Paramete
       heatloss_pfac_(params_sph_.get<double>("VAPOR_HEATLOSS_PFAC")),
       heatloss_tfac_(params_sph_.get<double>("VAPOR_HEATLOSS_TFAC"))
 {
-  // empty constructor
-}
-
-void Particle::SPHHeatLossEvaporation::init()
-{
-  // safety check
   if (Teuchos::getIntegralValue<Particle::SurfaceTensionFormulation>(
           params_sph_, "SURFACETENSIONFORMULATION") == Particle::NoSurfaceTension)
     FOUR_C_THROW("surface tension evaluation needed for evaporation induced heat loss!");

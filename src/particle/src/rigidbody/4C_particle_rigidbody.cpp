@@ -33,37 +33,22 @@ FOUR_C_NAMESPACE_OPEN
 Particle::RigidBodyHandler::RigidBodyHandler(MPI_Comm comm, const Teuchos::ParameterList& params)
     : comm_(comm), myrank_(Core::Communication::my_mpi_rank(comm)), params_(params)
 {
-  // empty constructor
+  init_rigid_body_unique_global_id_handler();
+
+  init_rigid_body_data_state();
+
+  init_rigid_body_vtp_writer();
+
+  init_affiliation_pair_handler();
 }
 
 Particle::RigidBodyHandler::~RigidBodyHandler() = default;
-
-void Particle::RigidBodyHandler::init()
-{
-  // init rigid body unique global identifier handler
-  init_rigid_body_unique_global_id_handler();
-
-  // init rigid body data state container
-  init_rigid_body_data_state();
-
-  // init rigid body runtime vtp writer
-  init_rigid_body_vtp_writer();
-
-  // init affiliation pair handler
-  init_affiliation_pair_handler();
-}
 
 void Particle::RigidBodyHandler::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {
   // set interface to particle engine
   particleengineinterface_ = particleengineinterface;
-
-  // setup unique global identifier handler
-  rigidbodyuniqueglobalidhandler_->setup();
-
-  // setup rigid body data state container
-  rigidbodydatastate_->setup();
 
   // setup affiliation pair handler
   affiliationpairs_->setup(particleengineinterface);
@@ -447,16 +432,12 @@ void Particle::RigidBodyHandler::init_rigid_body_unique_global_id_handler()
   // create and init unique global identifier handler
   rigidbodyuniqueglobalidhandler_ = std::unique_ptr<Particle::UniqueGlobalIdHandler>(
       new Particle::UniqueGlobalIdHandler(comm_, "rigidbody"));
-  rigidbodyuniqueglobalidhandler_->init();
 }
 
 void Particle::RigidBodyHandler::init_rigid_body_data_state()
 {
   // create rigid body data state container
   rigidbodydatastate_ = std::make_shared<Particle::RigidBodyDataState>();
-
-  // init rigid body data state container
-  rigidbodydatastate_->init();
 }
 
 void Particle::RigidBodyHandler::init_rigid_body_vtp_writer()
@@ -472,9 +453,6 @@ void Particle::RigidBodyHandler::init_affiliation_pair_handler()
   // create affiliation pair handler
   affiliationpairs_ = std::unique_ptr<Particle::RigidBodyAffiliationPairs>(
       new Particle::RigidBodyAffiliationPairs(comm_));
-
-  // init affiliation pair handler
-  affiliationpairs_->init();
 }
 
 void Particle::RigidBodyHandler::get_packed_rigid_body_states(std::vector<char>& buffer) const

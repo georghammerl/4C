@@ -43,12 +43,6 @@ namespace Particle
     explicit RigidBodyResultTest();
 
     /*!
-     * \brief init rigid body result test
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup rigid body result test
      *
      *

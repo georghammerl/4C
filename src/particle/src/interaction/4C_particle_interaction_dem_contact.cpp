@@ -41,13 +41,6 @@ Particle::DEMContact::DEMContact(const Teuchos::ParameterList& params)
       tension_cutoff_(params_dem_.get<bool>("TENSION_CUTOFF")),
       writeparticlewallinteraction_(params_dem_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
 {
-  // empty constructor
-}
-
-Particle::DEMContact::~DEMContact() = default;
-
-void Particle::DEMContact::init()
-{
   // init normal contact handler
   init_normal_contact_handler();
 
@@ -57,6 +50,8 @@ void Particle::DEMContact::init()
   // init rolling contact handler
   init_rolling_contact_handler();
 }
+
+Particle::DEMContact::~DEMContact() = default;
 
 void Particle::DEMContact::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -257,9 +252,6 @@ void Particle::DEMContact::init_normal_contact_handler()
       break;
     }
   }
-
-  // init normal contact handler
-  contactnormal_->init();
 }
 
 void Particle::DEMContact::init_tangential_contact_handler()
@@ -288,9 +280,6 @@ void Particle::DEMContact::init_tangential_contact_handler()
       break;
     }
   }
-
-  // init tangential contact handler
-  if (contacttangential_) contacttangential_->init();
 }
 
 void Particle::DEMContact::init_rolling_contact_handler()
@@ -325,9 +314,6 @@ void Particle::DEMContact::init_rolling_contact_handler()
       break;
     }
   }
-
-  // init rolling contact handler
-  if (contactrolling_) contactrolling_->init();
 }
 
 void Particle::DEMContact::setup_particle_interaction_writer()

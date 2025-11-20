@@ -30,7 +30,6 @@ namespace
 
       // create, init and setup container
       container_ = std::make_unique<Particle::ParticleContainer>();
-      container_->init();
       container_->setup(size, stateEnumSet);
 
       const int maximum_stored_state_enum_set_value{*(--stateEnumSet.end())};
@@ -78,7 +77,7 @@ namespace
       return particle;
     }
 
-    // note: the public functions init(), setup() and AddParticle() of class ParticleContainer are
+    // note: the public functions setup() and AddParticle() of class ParticleContainer are
     // called in the constructor and thus implicitly tested by all following unittests
   };
 

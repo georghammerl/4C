@@ -51,12 +51,6 @@ namespace Particle
     explicit InputGenerator(MPI_Comm comm, const Teuchos::ParameterList& params);
 
     /*!
-     * \brief init input generator
-     *
-     */
-    void init();
-
-    /*!
      * \brief generate particles
      *
      * Generate initial particles in addition to particles read in from input file. Add all

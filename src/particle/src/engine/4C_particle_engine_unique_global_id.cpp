@@ -31,16 +31,6 @@ Particle::UniqueGlobalIdHandler::UniqueGlobalIdHandler(MPI_Comm comm, const std:
   // empty constructor
 }
 
-void Particle::UniqueGlobalIdHandler::init()
-{
-  // nothing to do
-}
-
-void Particle::UniqueGlobalIdHandler::setup()
-{
-  // nothing to do
-}
-
 void Particle::UniqueGlobalIdHandler::write_restart(
     std::shared_ptr<Core::IO::DiscretizationWriter> writer) const
 {

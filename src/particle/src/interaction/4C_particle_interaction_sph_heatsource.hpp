@@ -57,9 +57,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHHeatSourceBase() = default;
 
-    //! init heat source handler
-    virtual void init();
-
     //! setup heat source handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -114,13 +111,13 @@ namespace Particle
     //! constructor
     explicit SPHHeatSourceSurface(const Teuchos::ParameterList& params);
 
-    //! init heat source handler
-    void init() override;
 
     //! evaluate heat source
     void evaluate_heat_source(const double& evaltime) const override;
 
    private:
+    void init_heat_source_direction();
+
     //! heat source direction vector
     std::vector<double> direction_;
 

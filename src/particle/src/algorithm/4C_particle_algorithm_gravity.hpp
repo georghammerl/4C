@@ -13,9 +13,6 @@
  *---------------------------------------------------------------------------*/
 #include "4C_config.hpp"
 
-#include "4C_utils_parameter_list.fwd.hpp"
-
-#include <memory>
 #include <vector>
 
 FOUR_C_NAMESPACE_OPEN
@@ -36,23 +33,10 @@ namespace Particle
      * \brief constructor
      *
      *
-     * \param[in] params particle simulation parameter list
+     * \param[in] gravity the gravity vector
+     * \param[in] gravityrampfctnumber number of function for ramping the gravity
      */
-    explicit GravityHandler(const Teuchos::ParameterList& params);
-
-    /*!
-     * \brief init gravity handler
-     *
-     *
-     * \param[in] gravity gravity acceleration
-     */
-    void init(const std::vector<double>& gravity);
-
-    /*!
-     * \brief setup gravity handler
-     *
-     */
-    void setup();
+    explicit GravityHandler(const std::vector<double>& gravity, int gravityrampfctnumber);
 
     /*!
      * \brief get gravity acceleration
@@ -66,9 +50,6 @@ namespace Particle
     void get_gravity_acceleration(const double time, std::vector<double>& scaled_gravity);
 
    protected:
-    //! particle simulation parameter list
-    const Teuchos::ParameterList& params_;
-
     //! gravity acceleration vector
     std::vector<double> gravity_;
 

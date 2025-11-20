@@ -54,12 +54,6 @@ namespace Particle
     void init(const std::shared_ptr<Core::FE::Discretization> walldiscretization);
 
     /*!
-     * \brief setup wall data state container
-     *
-     */
-    void setup();
-
-    /*!
      * \brief check for correct maps
      *
      */

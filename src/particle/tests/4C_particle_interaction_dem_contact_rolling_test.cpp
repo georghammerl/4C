@@ -46,13 +46,10 @@ namespace
       // create rolling contact handler
       contactrolling_ = std::make_unique<Particle::DEMContactRollingViscous>(params_dem);
 
-      // init rolling contact handler
-      contactrolling_->init();
-
       // setup rolling contact handler
       contactrolling_->setup(k_normal_);
     }
-    // note: the public functions init() and setup() of class DEMContactRollingViscous are
+    // note: the public functions setup() of class DEMContactRollingViscous are
     // called in the constructor and thus implicitly tested by all following unittests
   };
 
@@ -214,13 +211,10 @@ namespace
       // create rolling contact handler
       contactrolling_ = std::make_unique<Particle::DEMContactRollingCoulomb>(params_dem);
 
-      // init rolling contact handler
-      contactrolling_->init();
-
       // setup rolling contact handler
       contactrolling_->setup(k_normal_);
     }
-    // note: the public functions init() and setup() of class DEMContactRollingViscous are
+    // note: the public functions setup() of class DEMContactRollingViscous are
     // called in the constructor and thus implicitly tested by all following unittests
   };
 

@@ -34,12 +34,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHKernelBase() = default;
 
-    //! init kernel handler
-    virtual void init();
-
-    //! setup kernel handler
-    virtual void setup();
-
     //! get kernel space dimension
     virtual void kernel_space_dimension(int& dim) const final;
 

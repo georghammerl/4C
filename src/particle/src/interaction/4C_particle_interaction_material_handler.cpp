@@ -14,15 +14,12 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
 Particle::MaterialHandler::MaterialHandler(const Teuchos::ParameterList& params) : params_(params)
 {
-  // empty constructor
+  initialize_parameters();
 }
 
-void Particle::MaterialHandler::init()
+void Particle::MaterialHandler::initialize_parameters()
 {
   // init map relating particle types to material ids
   std::map<Particle::TypeEnum, int> typetomatidmap;
@@ -58,11 +55,6 @@ void Particle::MaterialHandler::init()
     // relate particle types to particle material parameters
     phasetypetoparticlematpar_[type_i] = particlematparameter;
   }
-}
-
-void Particle::MaterialHandler::setup()
-{
-  // nothing to do
 }
 
 FOUR_C_NAMESPACE_CLOSE

@@ -20,6 +20,8 @@
 
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -28,19 +30,12 @@ FOUR_C_NAMESPACE_OPEN
 Particle::TimInt::TimInt(const Teuchos::ParameterList& params)
     : params_(params), time_(0.0), dt_(params.get<double>("TIMESTEP"))
 {
-  // empty constructor
+  init_dirichlet_boundary_condition();
+
+  init_temperature_boundary_condition();
 }
 
 Particle::TimInt::~TimInt() = default;
-
-void Particle::TimInt::init()
-{
-  // init dirichlet boundary condition handler
-  init_dirichlet_boundary_condition();
-
-  // init temperature boundary condition handler
-  init_temperature_boundary_condition();
-}
 
 void Particle::TimInt::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -122,11 +117,8 @@ void Particle::TimInt::set_current_time(const double currenttime) { time_ = curr
 void Particle::TimInt::init_dirichlet_boundary_condition()
 {
   // create dirichlet boundary condition handler
-  dirichletboundarycondition_ = std::unique_ptr<Particle::DirichletBoundaryConditionHandler>(
-      new Particle::DirichletBoundaryConditionHandler(params_));
-
-  // init dirichlet boundary condition handler
-  dirichletboundarycondition_->init();
+  dirichletboundarycondition_ =
+      std::make_unique<Particle::DirichletBoundaryConditionHandler>(params_);
 
   // get reference to set of particle types subjected to dirichlet boundary conditions
   const std::set<Particle::TypeEnum>& typessubjectedtodirichletbc =
@@ -139,11 +131,8 @@ void Particle::TimInt::init_dirichlet_boundary_condition()
 void Particle::TimInt::init_temperature_boundary_condition()
 {
   // create temperature boundary condition handler
-  temperatureboundarycondition_ = std::unique_ptr<Particle::TemperatureBoundaryConditionHandler>(
-      new Particle::TemperatureBoundaryConditionHandler(params_));
-
-  // init temperature boundary condition handler
-  temperatureboundarycondition_->init();
+  temperatureboundarycondition_ =
+      std::make_unique<Particle::TemperatureBoundaryConditionHandler>(params_);
 
   // get reference to set of particle types subjected to temperature boundary conditions
   const std::set<Particle::TypeEnum>& typessubjectedtotempbc =

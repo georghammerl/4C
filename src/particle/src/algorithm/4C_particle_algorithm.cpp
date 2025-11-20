@@ -35,6 +35,8 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -112,9 +114,6 @@ void Particle::ParticleAlgorithm::setup()
 
   // setup particle interaction handler
   if (particleinteraction_) particleinteraction_->setup(particleengine_, particlewall_);
-
-  // setup gravity handler
-  if (particlegravity_) particlegravity_->setup();
 
   // setup viscous damping handler
   if (viscousdamping_) viscousdamping_->setup(particleengine_);
@@ -336,10 +335,9 @@ Particle::ParticleAlgorithm::create_result_tests()
 
   // particle result test
   {
-    // create and init particle result test
+    // create particle result test
     std::shared_ptr<Particle::ParticleResultTest> particleresulttest =
         std::make_shared<Particle::ParticleResultTest>();
-    particleresulttest->init();
 
     // setup particle result test
     particleresulttest->setup(particleengine_);
@@ -350,10 +348,9 @@ Particle::ParticleAlgorithm::create_result_tests()
   // wall result test
   if (particlewall_)
   {
-    // create and init wall result test
+    // create wall result test
     std::shared_ptr<Particle::WallResultTest> wallresulttest =
         std::make_shared<Particle::WallResultTest>();
-    wallresulttest->init();
 
     // setup wall result test
     wallresulttest->setup(particlewall_);
@@ -363,10 +360,9 @@ Particle::ParticleAlgorithm::create_result_tests()
 
   if (particlerigidbody_)
   {
-    // create and init rigid body result test
+    // create rigid body result test
     std::shared_ptr<Particle::RigidBodyResultTest> rigidbodyresulttest =
         std::make_shared<Particle::RigidBodyResultTest>();
-    rigidbodyresulttest->init();
 
     // setup rigid body result test
     rigidbodyresulttest->setup(particlerigidbody_);
@@ -381,7 +377,6 @@ void Particle::ParticleAlgorithm::init_particle_engine()
 {
   // create and init particle engine
   particleengine_ = std::make_shared<Particle::ParticleEngine>(get_comm(), params_);
-  particleengine_->init();
 }
 
 void Particle::ParticleAlgorithm::init_particle_wall()
@@ -424,9 +419,6 @@ void Particle::ParticleAlgorithm::init_particle_rigid_body()
   // create rigid body handler
   if (params_.get<bool>("RIGID_BODY_MOTION"))
     particlerigidbody_ = std::make_shared<Particle::RigidBodyHandler>(get_comm(), params_);
-
-  // init rigid body handler
-  if (particlerigidbody_) particlerigidbody_->init();
 }
 
 void Particle::ParticleAlgorithm::init_particle_time_integration()
@@ -455,9 +447,6 @@ void Particle::ParticleAlgorithm::init_particle_time_integration()
       break;
     }
   }
-
-  // init particle time integration
-  particletimint_->init();
 }
 
 void Particle::ParticleAlgorithm::init_particle_interaction()
@@ -492,9 +481,6 @@ void Particle::ParticleAlgorithm::init_particle_interaction()
       break;
     }
   }
-
-  // init particle interaction handler
-  if (particleinteraction_) particleinteraction_->init();
 }
 
 void Particle::ParticleAlgorithm::init_particle_gravity()
@@ -520,10 +506,7 @@ void Particle::ParticleAlgorithm::init_particle_gravity()
   // create particle gravity handler
   if (gravity_norm > 0.0)
     particlegravity_ =
-        std::unique_ptr<Particle::GravityHandler>(new Particle::GravityHandler(params_));
-
-  // init particle gravity handler
-  if (particlegravity_) particlegravity_->init(gravity);
+        std::make_unique<Particle::GravityHandler>(gravity, params_.get<int>("GRAVITY_RAMP_FUNCT"));
 }
 
 void Particle::ParticleAlgorithm::init_viscous_damping()
@@ -535,17 +518,13 @@ void Particle::ParticleAlgorithm::init_viscous_damping()
   if (viscdampfac > 0.0)
     viscousdamping_ = std::unique_ptr<Particle::ViscousDampingHandler>(
         new Particle::ViscousDampingHandler(viscdampfac));
-
-  // init viscous damping handler
-  if (viscousdamping_) viscousdamping_->init();
 }
 
 void Particle::ParticleAlgorithm::generate_initial_particles()
 {
-  // create and init particle input generator
+  // create particle input generator
   std::unique_ptr<Particle::InputGenerator> particleinputgenerator =
-      std::unique_ptr<Particle::InputGenerator>(new Particle::InputGenerator(get_comm(), params_));
-  particleinputgenerator->init();
+      std::make_unique<Particle::InputGenerator>(get_comm(), params_);
 
   // generate particles
   particleinputgenerator->generate_particles(particlestodistribute_);
@@ -908,8 +887,7 @@ void Particle::ParticleAlgorithm::set_initial_conditions()
 {
   // create and init particle initial field handler
   std::unique_ptr<Particle::InitialFieldHandler> initialfield =
-      std::unique_ptr<Particle::InitialFieldHandler>(new Particle::InitialFieldHandler(params_));
-  initialfield->init();
+      std::make_unique<Particle::InitialFieldHandler>(params_);
 
   // setup particle initial field handler
   initialfield->setup(particleengine_);

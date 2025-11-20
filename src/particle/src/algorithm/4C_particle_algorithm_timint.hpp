@@ -67,12 +67,6 @@ namespace Particle
     virtual ~TimInt();
 
     /*!
-     * \brief init particle time integration
-     *
-     */
-    virtual void init();
-
-    /*!
      * \brief time integration scheme specific initialization routine
      *
      */

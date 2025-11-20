@@ -30,11 +30,6 @@ Particle::SPHHeatSourceBase::SPHHeatSourceBase(const Teuchos::ParameterList& par
   // empty constructor
 }
 
-void Particle::SPHHeatSourceBase::init()
-{
-  // nothing to do
-}
-
 void Particle::SPHHeatSourceBase::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
     const std::shared_ptr<Particle::MaterialHandler> particlematerial,
@@ -147,14 +142,11 @@ void Particle::SPHHeatSourceVolume::evaluate_heat_source(const double& evaltime)
 Particle::SPHHeatSourceSurface::SPHHeatSourceSurface(const Teuchos::ParameterList& params)
     : Particle::SPHHeatSourceBase(params), eval_direction_(false)
 {
-  // empty constructor
+  init_heat_source_direction();
 }
 
-void Particle::SPHHeatSourceSurface::init()
+void Particle::SPHHeatSourceSurface::init_heat_source_direction()
 {
-  // call base class init
-  SPHHeatSourceBase::init();
-
   // init heat source direction vector
   double value;
   std::istringstream directionstream(

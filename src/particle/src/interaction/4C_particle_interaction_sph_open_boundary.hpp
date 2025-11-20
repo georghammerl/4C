@@ -51,9 +51,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHOpenBoundaryBase() = default;
 
-    //! init open boundary handler
-    virtual void init();
-
     //! setup open boundary handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -118,9 +115,6 @@ namespace Particle
     //! constructor
     explicit SPHOpenBoundaryDirichlet(const Teuchos::ParameterList& params);
 
-    //! init open boundary handler
-    void init() override;
-
     //! setup open boundary handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::SPHKernelBase> kernel,
@@ -140,9 +134,6 @@ namespace Particle
    public:
     //! constructor
     explicit SPHOpenBoundaryNeumann(const Teuchos::ParameterList& params);
-
-    //! init open boundary handler
-    void init() override;
 
     //! setup open boundary handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,

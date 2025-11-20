@@ -53,15 +53,11 @@ Particle::DEMAdhesion::DEMAdhesion(const Teuchos::ParameterList& params)
       writeparticlewallinteraction_(params_dem_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
 {
   verify_params_adhesion(adhesion_params_);
+
+  init_adhesion_law_handler();
 }
 
 Particle::DEMAdhesion::~DEMAdhesion() = default;
-
-void Particle::DEMAdhesion::init()
-{
-  // init adhesion law handler
-  init_adhesion_law_handler();
-}
 
 void Particle::DEMAdhesion::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -130,9 +126,6 @@ void Particle::DEMAdhesion::init_adhesion_law_handler()
       break;
     }
   }
-
-  // init adhesion law handler
-  adhesionlaw_->init();
 }
 
 void Particle::DEMAdhesion::setup_particle_interaction_writer()

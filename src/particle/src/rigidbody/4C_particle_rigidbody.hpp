@@ -75,12 +75,6 @@ namespace Particle
     ~RigidBodyHandler() override;
 
     /*!
-     * \brief init rigid body handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup rigid body handler
      *
      */

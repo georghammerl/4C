@@ -17,23 +17,13 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*---------------------------------------------------------------------------*
- | definitions                                                               |
- *---------------------------------------------------------------------------*/
 Particle::SPHBoundaryParticleBase::SPHBoundaryParticleBase(const Teuchos::ParameterList& params)
-    : params_sph_(params)
+    : params_sph_(params),
+      fluidtypes_(
+          {Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase}),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase})
 {
   // empty constructor
-}
-
-void Particle::SPHBoundaryParticleBase::init()
-{
-  // init with potential fluid particle types
-  fluidtypes_ = {
-      Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase};
-
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
 }
 
 void Particle::SPHBoundaryParticleBase::setup(

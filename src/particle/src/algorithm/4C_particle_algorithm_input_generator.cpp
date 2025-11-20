@@ -21,11 +21,6 @@ Particle::InputGenerator::InputGenerator(MPI_Comm comm, const Teuchos::Parameter
   // empty constructor
 }
 
-void Particle::InputGenerator::init()
-{
-  // nothing to do
-}
-
 void Particle::InputGenerator::generate_particles(
     std::vector<Particle::ParticleObjShrdPtr>& particlesgenerated) const
 {

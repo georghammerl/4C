@@ -54,9 +54,6 @@ namespace Particle
      */
     ~ParticleInteractionDEM() override;
 
-    //! init particle interaction handler
-    void init() override;
-
     //! setup particle interaction handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface) override;
@@ -98,18 +95,6 @@ namespace Particle
     void set_current_step_size(const double currentstepsize) override;
 
    private:
-    //! init neighbor pair handler
-    void init_neighbor_pair_handler();
-
-    //! init history pair handler
-    void init_history_pair_handler();
-
-    //! init contact handler
-    void init_contact_handler();
-
-    //! init adhesion handler
-    void init_adhesion_handler();
-
     //! setup particle interaction writer
     void setup_particle_interaction_writer();
 

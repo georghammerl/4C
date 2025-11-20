@@ -25,11 +25,6 @@ Particle::DEMHistoryPairs::DEMHistoryPairs(MPI_Comm comm) : comm_(comm)
   // empty constructor
 }
 
-void Particle::DEMHistoryPairs::init()
-{
-  // nothing to do
-}
-
 void Particle::DEMHistoryPairs::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {

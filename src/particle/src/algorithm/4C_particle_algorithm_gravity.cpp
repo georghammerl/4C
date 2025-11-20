@@ -15,26 +15,13 @@ FOUR_C_NAMESPACE_OPEN
 /*---------------------------------------------------------------------------*
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
-Particle::GravityHandler::GravityHandler(const Teuchos::ParameterList& params)
-    : params_(params), gravityrampfctnumber_(params.get<int>("GRAVITY_RAMP_FUNCT"))
+Particle::GravityHandler::GravityHandler(
+    const std::vector<double>& gravity, int gravityrampfctnumber)
+    : gravity_(gravity), gravityrampfctnumber_(gravityrampfctnumber)
 {
-  // empty constructor
-}
-
-void Particle::GravityHandler::init(const std::vector<double>& gravity)
-{
-  // set gravity acceleration vector
-  gravity_ = gravity;
-
-  // safety check
   if (static_cast<int>(gravity_.size()) != 3)
     FOUR_C_THROW("dimension (dim = {}) of gravity acceleration vector is wrong!",
         static_cast<int>(gravity_.size()));
-}
-
-void Particle::GravityHandler::setup()
-{
-  // nothing to do
 }
 
 void Particle::GravityHandler::get_gravity_acceleration(

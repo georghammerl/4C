@@ -24,15 +24,7 @@ namespace
     {
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionInterior>();
-
-      // init density correction handler
-      densitycorrection_->init();
-
-      // setup density correction handler
-      densitycorrection_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateGenTait are called
-    // in setup() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHDensityCorrectionInteriorTest, ComputeDensityBC)
@@ -74,15 +66,7 @@ namespace
     {
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionNormalized>();
-
-      // init density correction handler
-      densitycorrection_->init();
-
-      // setup density correction handler
-      densitycorrection_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateGenTait are called
-    // in SetUp() and thus implicitly tested by all following unittests
   };
 
   TEST_F(SPHDensityCorrectionNormalizedTest, ComputeDensityBC)
@@ -123,15 +107,7 @@ namespace
     {
       // create density correction handler
       densitycorrection_ = std::make_unique<Particle::SPHDensityCorrectionRandles>();
-
-      // init density correction handler
-      densitycorrection_->init();
-
-      // setup density correction handler
-      densitycorrection_->setup();
     }
-    // note: the public functions init() and setup() of class SPHEquationOfStateGenTait are called
-    // in SetUp() and thus implicitly tested by all following unittests
   };
   TEST_F(SPHDensityCorrectionRandlesTest, ComputeDensityBC)
   {

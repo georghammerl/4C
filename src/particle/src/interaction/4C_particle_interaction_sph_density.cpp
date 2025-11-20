@@ -34,15 +34,9 @@ FOUR_C_NAMESPACE_OPEN
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
 Particle::SPHDensityBase::SPHDensityBase(const Teuchos::ParameterList& params)
-    : params_sph_(params), dt_(0.0)
+    : params_sph_(params), fluidtypes_({Particle::Phase1, Particle::Phase2}), dt_(0.0)
 {
   // empty constructor
-}
-
-void Particle::SPHDensityBase::init()
-{
-  // init with potential fluid particle types
-  fluidtypes_ = {Particle::Phase1, Particle::Phase2};
 }
 
 void Particle::SPHDensityBase::setup(
@@ -796,19 +790,10 @@ void Particle::SPHDensityIntegration::compute_density() const
 Particle::SPHDensityPredictCorrect::SPHDensityPredictCorrect(const Teuchos::ParameterList& params)
     : Particle::SPHDensityBase(params)
 {
-  // empty constructor
+  init_density_correction_handler();
 }
 
 Particle::SPHDensityPredictCorrect::~SPHDensityPredictCorrect() = default;
-
-void Particle::SPHDensityPredictCorrect::init()
-{
-  // call base class init
-  SPHDensityBase::init();
-
-  // init density correction handler
-  init_density_correction_handler();
-}
 
 void Particle::SPHDensityPredictCorrect::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -822,9 +807,6 @@ void Particle::SPHDensityPredictCorrect::setup(
   // call base class setup
   SPHDensityBase::setup(particleengineinterface, particlewallinterface, kernel, particlematerial,
       equationofstatebundle, neighborpairs, virtualwallparticle);
-
-  // setup density correction handler
-  densitycorrection_->setup();
 }
 
 void Particle::SPHDensityPredictCorrect::insert_particle_states_of_particle_types(
@@ -906,9 +888,6 @@ void Particle::SPHDensityPredictCorrect::init_density_correction_handler()
       break;
     }
   }
-
-  // init density correction handler
-  densitycorrection_->init();
 }
 
 void Particle::SPHDensityPredictCorrect::correct_density() const

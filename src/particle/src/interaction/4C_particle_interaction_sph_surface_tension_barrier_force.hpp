@@ -45,9 +45,6 @@ namespace Particle
     //! constructor
     explicit SPHBarrierForce(const Teuchos::ParameterList& params);
 
-    //! init barrier force handler
-    void init();
-
     //! setup barrier force handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::SPHNeighborPairs> neighborpairs);

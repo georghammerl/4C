@@ -33,9 +33,6 @@ namespace Particle
     //! virtual destructor
     virtual ~DEMContactTangentialBase() = default;
 
-    //! init tangential contact handler
-    virtual void init();
-
     //! setup tangential contact handler
     virtual void setup(const double& k_normal);
 
@@ -65,9 +62,6 @@ namespace Particle
    public:
     //! constructor
     explicit DEMContactTangentialLinearSpringDamp(const Teuchos::ParameterList& params);
-
-    //! init tangential contact handler
-    void init() override;
 
     //! setup tangential contact handler
     void setup(const double& k_normal) override;

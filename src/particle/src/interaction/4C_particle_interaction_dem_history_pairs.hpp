@@ -65,9 +65,6 @@ namespace Particle
     //! constructor
     explicit DEMHistoryPairs(MPI_Comm comm);
 
-    //! init history pair handler
-    void init();
-
     //! setup history pair handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface);
 

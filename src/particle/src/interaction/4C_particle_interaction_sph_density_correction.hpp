@@ -31,12 +31,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHDensityCorrectionBase() = default;
 
-    //! init density correction handler
-    virtual void init();
-
-    //! setup density correction handler
-    virtual void setup();
-
     //! density boundary condition is needed
     virtual bool compute_density_bc() const = 0;
 

@@ -31,11 +31,6 @@ Particle::DEMAdhesionLawBase::DEMAdhesionLawBase(const Teuchos::ParameterList& p
   // empty constructor
 }
 
-void Particle::DEMAdhesionLawBase::init()
-{
-  // nothing to do
-}
-
 void Particle::DEMAdhesionLawBase::setup(const double& k_normal)
 {
   // set inverse normal contact stiffness
@@ -80,14 +75,6 @@ Particle::DEMAdhesionLawVdWDMT::DEMAdhesionLawVdWDMT(const Teuchos::ParameterLis
       hamaker_constant_(params_dem_.get<double>("ADHESION_HAMAKER"))
 {
   // empty constructor
-}
-
-void Particle::DEMAdhesionLawVdWDMT::init()
-{
-  // call base class init
-  DEMAdhesionLawBase::init();
-
-  // safety check
   if (hamaker_constant_ <= 0.0) FOUR_C_THROW("negative hamaker constant!");
 }
 

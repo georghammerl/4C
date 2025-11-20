@@ -42,12 +42,6 @@ namespace Particle
     explicit ParticleResultTest();
 
     /*!
-     * \brief init particle result test
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup particle result test
      *
      *

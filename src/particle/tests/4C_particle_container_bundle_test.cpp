@@ -23,9 +23,8 @@ namespace
 
     ParticleContainerBundleTest()
     {
-      // create and init particle container bundle
+      // create particle container bundle
       particlecontainerbundle_ = std::make_unique<Particle::ParticleContainerBundle>();
-      particlecontainerbundle_->init();
 
       // init two phases with different particle states
       std::map<Particle::TypeEnum, std::set<Particle::StateEnum>> particlestatestotypes;
@@ -120,7 +119,7 @@ namespace
       return particle;
     }
 
-    // note: the public functions init(), setup() and get_specific_container() of class
+    // note: the public functions setup() and get_specific_container() of class
     // ParticleContainerBundle are called in the constructor and thus implicitly tested by all
     // following unittests
   };

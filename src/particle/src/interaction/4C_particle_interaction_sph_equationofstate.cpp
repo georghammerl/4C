@@ -19,16 +19,6 @@ Particle::SPHEquationOfStateBase::SPHEquationOfStateBase()
   // empty constructor
 }
 
-void Particle::SPHEquationOfStateBase::init()
-{
-  // nothing to do
-}
-
-void Particle::SPHEquationOfStateBase::setup()
-{
-  // nothing to do
-}
-
 Particle::SPHEquationOfStateGenTait::SPHEquationOfStateGenTait(
     const double& speedofsound, const double& refdensfac, const double& exponent)
     : Particle::SPHEquationOfStateBase(),

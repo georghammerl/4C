@@ -24,6 +24,8 @@ Particle::SPHBarrierForce::SPHBarrierForce(const Teuchos::ParameterList& params)
     : params_sph_(params),
       liquidtype_(Particle::Phase1),
       gastype_(Particle::Phase2),
+      fluidtypes_({liquidtype_, gastype_}),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase}),
       dist_(params_sph_.get<double>("BARRIER_FORCE_DISTANCE")),
       cr_(params_sph_.get<double>("BARRIER_FORCE_TEMPSCALE")),
       trans_ref_temp_(params_sph_.get<double>("TRANS_REF_TEMPERATURE")),
@@ -33,18 +35,6 @@ Particle::SPHBarrierForce::SPHBarrierForce(const Teuchos::ParameterList& params)
       stiff_g_(params_sph_.get<double>("BARRIER_FORCE_STIFF_GAS")),
       damp_g_(params_sph_.get<double>("BARRIER_FORCE_DAMP_GAS"))
 {
-  // empty constructor
-}
-
-void Particle::SPHBarrierForce::init()
-{
-  // init fluid particle types
-  fluidtypes_ = {liquidtype_, gastype_};
-
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
-
-  // safety check
   if (not(dist_ > 0.0)) FOUR_C_THROW("barrier force distance not positive!");
 
   if (not(stiff_h_ > 0.0)) FOUR_C_THROW("stiffness of heavy phase not positive!");

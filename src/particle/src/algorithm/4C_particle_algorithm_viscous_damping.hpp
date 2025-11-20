@@ -46,12 +46,6 @@ namespace Particle
     explicit ViscousDampingHandler(const double viscdampfac);
 
     /*!
-     * \brief init viscous damping handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup viscous damping handler
      *
      *

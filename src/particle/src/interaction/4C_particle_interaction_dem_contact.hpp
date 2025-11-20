@@ -65,9 +65,6 @@ namespace Particle
      */
     ~DEMContact();
 
-    //! init contact handler
-    void init();
-
     //! setup contact handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::WallHandlerInterface> particlewallinterface,

@@ -31,6 +31,8 @@
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
+#include <memory>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -43,30 +45,19 @@ Particle::SPHMomentum::SPHMomentum(const Teuchos::ParameterList& params)
       transportvelocityformulation_(
           Teuchos::getIntegralValue<Particle::TransportVelocityFormulation>(
               params_sph_, "TRANSPORTVELOCITYFORMULATION")),
-      writeparticlewallinteraction_(params_sph_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION"))
+      writeparticlewallinteraction_(params_sph_.get<bool>("WRITE_PARTICLE_WALL_INTERACTION")),
+      allfluidtypes_(
+          {Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase}),
+      intfluidtypes_({Particle::Phase1, Particle::Phase2, Particle::NeumannPhase}),
+      purefluidtypes_({Particle::Phase1, Particle::Phase2}),
+      boundarytypes_({Particle::BoundaryPhase, Particle::RigidPhase})
 {
-  // empty constructor
+  init_momentum_formulation_handler();
+
+  artificialviscosity_ = std::make_unique<Particle::SPHArtificialViscosity>();
 }
 
 Particle::SPHMomentum::~SPHMomentum() = default;
-
-void Particle::SPHMomentum::init()
-{
-  // init momentum formulation handler
-  init_momentum_formulation_handler();
-
-  // init artificial viscosity handler
-  init_artificial_viscosity_handler();
-
-  // init with potential fluid particle types
-  allfluidtypes_ = {
-      Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase};
-  intfluidtypes_ = {Particle::Phase1, Particle::Phase2, Particle::NeumannPhase};
-  purefluidtypes_ = {Particle::Phase1, Particle::Phase2};
-
-  // init with potential boundary particle types
-  boundarytypes_ = {Particle::BoundaryPhase, Particle::RigidPhase};
-}
 
 void Particle::SPHMomentum::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -107,12 +98,6 @@ void Particle::SPHMomentum::setup(
 
   // set virtual wall particle handler
   virtualwallparticle_ = virtualwallparticle;
-
-  // setup momentum formulation handler
-  momentumformulation_->setup();
-
-  // setup artificial viscosity handler
-  artificialviscosity_->setup();
 
   // update with actual fluid particle types
   const auto allfluidtypes = allfluidtypes_;
@@ -213,19 +198,6 @@ void Particle::SPHMomentum::init_momentum_formulation_handler()
       break;
     }
   }
-
-  // init momentum formulation handler
-  momentumformulation_->init();
-}
-
-void Particle::SPHMomentum::init_artificial_viscosity_handler()
-{
-  // create artificial viscosity handler
-  artificialviscosity_ =
-      std::unique_ptr<Particle::SPHArtificialViscosity>(new Particle::SPHArtificialViscosity());
-
-  // init artificial viscosity handler
-  artificialviscosity_->init();
 }
 
 void Particle::SPHMomentum::setup_particle_interaction_writer()

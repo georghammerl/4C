@@ -66,9 +66,6 @@ namespace Particle
      */
     ~SPHInterfaceViscosity();
 
-    //! init interface viscosity handler
-    void init();
-
     //! setup interface viscosity handler
     void setup(const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
         const std::shared_ptr<Particle::SPHKernelBase> kernel,

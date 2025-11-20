@@ -25,11 +25,6 @@ Particle::RigidBodyAffiliationPairs::RigidBodyAffiliationPairs(MPI_Comm comm)
   // empty constructor
 }
 
-void Particle::RigidBodyAffiliationPairs::init()
-{
-  // nothing to do
-}
-
 void Particle::RigidBodyAffiliationPairs::setup(
     const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface)
 {

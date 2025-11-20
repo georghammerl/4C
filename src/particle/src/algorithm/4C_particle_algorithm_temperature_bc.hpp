@@ -47,12 +47,6 @@ namespace Particle
     explicit TemperatureBoundaryConditionHandler(const Teuchos::ParameterList& params);
 
     /*!
-     * \brief init temperature boundary condition handler
-     *
-     */
-    void init();
-
-    /*!
      * \brief setup temperature boundary condition handler
      *
      *

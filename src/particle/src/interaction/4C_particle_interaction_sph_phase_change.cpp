@@ -30,10 +30,10 @@ Particle::SPHPhaseChangeBase::SPHPhaseChangeBase(const Teuchos::ParameterList& p
       transitionvalue_(0.0),
       hysteresisgap_(0.0)
 {
-  // empty constructor
+  initialize_parameters();
 }
 
-void Particle::SPHPhaseChangeBase::init()
+void Particle::SPHPhaseChangeBase::initialize_parameters()
 {
   // read from input file
   std::string word;

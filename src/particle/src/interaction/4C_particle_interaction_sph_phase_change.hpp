@@ -49,9 +49,6 @@ namespace Particle
     //! virtual destructor
     virtual ~SPHPhaseChangeBase() = default;
 
-    //! init phase change handler
-    virtual void init();
-
     //! setup phase change handler
     virtual void setup(
         const std::shared_ptr<Particle::ParticleEngineInterface> particleengineinterface,
@@ -63,6 +60,8 @@ namespace Particle
         std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase) const = 0;
 
    protected:
+    virtual void initialize_parameters();
+
     //! evaluate phase change from below to above phase
     virtual void evaluate_phase_change_from_below_to_above_phase(
         std::vector<Particle::ParticleTypeToType>& particlesfromphasetophase,

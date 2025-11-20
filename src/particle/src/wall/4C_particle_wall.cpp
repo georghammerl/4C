@@ -75,9 +75,6 @@ void Particle::WallHandlerBase::setup(
 
   // create wall discretization runtime vtu writer
   create_wall_discretization_runtime_vtu_writer(restart_time);
-
-  // setup wall data state container
-  walldatastate_->setup();
 }
 
 void Particle::WallHandlerBase::write_restart(const int step, const double time) const

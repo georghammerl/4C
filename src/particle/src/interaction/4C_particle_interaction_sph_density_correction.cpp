@@ -20,16 +20,6 @@ Particle::SPHDensityCorrectionBase::SPHDensityCorrectionBase()
   // empty constructor
 }
 
-void Particle::SPHDensityCorrectionBase::init()
-{
-  // nothing to do
-}
-
-void Particle::SPHDensityCorrectionBase::setup()
-{
-  // nothing to do
-}
-
 void Particle::SPHDensityCorrectionBase::corrected_density_interior(
     const double* denssum, double* dens) const
 {

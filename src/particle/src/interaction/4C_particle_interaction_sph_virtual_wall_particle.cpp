@@ -28,17 +28,12 @@ FOUR_C_NAMESPACE_OPEN
  | definitions                                                               |
  *---------------------------------------------------------------------------*/
 Particle::SPHVirtualWallParticle::SPHVirtualWallParticle(const Teuchos::ParameterList& params)
-    : params_sph_(params)
+    : params_sph_(params),
+      allfluidtypes_(
+          {Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase}),
+      intfluidtypes_({Particle::Phase1, Particle::Phase2, Particle::NeumannPhase})
 {
   // empty constructor
-}
-
-void Particle::SPHVirtualWallParticle::init()
-{
-  // init with potential fluid particle types
-  allfluidtypes_ = {
-      Particle::Phase1, Particle::Phase2, Particle::DirichletPhase, Particle::NeumannPhase};
-  intfluidtypes_ = {Particle::Phase1, Particle::Phase2, Particle::NeumannPhase};
 }
 
 void Particle::SPHVirtualWallParticle::setup(

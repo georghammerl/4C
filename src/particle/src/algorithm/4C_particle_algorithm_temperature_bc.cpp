@@ -24,11 +24,6 @@ Particle::TemperatureBoundaryConditionHandler::TemperatureBoundaryConditionHandl
     const Teuchos::ParameterList& params)
     : params_(params)
 {
-  // empty constructor
-}
-
-void Particle::TemperatureBoundaryConditionHandler::init()
-{
   // get control parameters for conditions
   const Teuchos::ParameterList& params_conditions =
       params_.sublist("INITIAL AND BOUNDARY CONDITIONS");
