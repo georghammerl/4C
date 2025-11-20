@@ -83,10 +83,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::setup()
   bool determine_neighbors = false;
   if (params()->beam_to_beam_contact_params()->end_point_penalty()) determine_neighbors = true;
 
-#ifdef ENDPOINTSEGMENTATION
-  determine_neighbors = true;
-#endif
-
   if (determine_neighbors)
   {
     neighbors1_ = BeamInteraction::Beam3TangentSmoothing::determine_neighbors(element1());
@@ -308,7 +304,6 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate(
   // Treat small angle contact pairs if existing
   if (closesmallanglesegments.size() > 0)
   {
-#ifndef ENDPOINTSEGMENTATION
     // Get active small angle pairs (valid Gauss points) and create vector of gpvariables_
     get_active_small_angle_pairs(closesmallanglesegments);
 
@@ -316,22 +311,6 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate(
     // points found before
     evaluate_active_small_angle_pairs(
         forcevec1, forcevec2, stiffmat11, stiffmat12, stiffmat21, stiffmat22);
-#else
-    // In case of endpoint segmentation some additional quantities have to be transferred between
-    // the methods get_active_small_angle_pairs() and evaluate_active_small_angle_pairs().
-    std::pair<int, int> iminmax = std::make_pair(0, 0);
-    std::pair<bool, bool> leftrightsolutionwithinsegment = std::make_pair(false, false);
-    std::pair<double, double> eta1_leftrightboundary = std::make_pair(0.0, 0.0);
-
-    // Get active small angle pairs (valid Gauss points) and create vector of gpvariables_
-    get_active_small_angle_pairs(closesmallanglesegments, &iminmax, &leftrightsolutionwithinsegment,
-        &eta1_leftrightboundary);
-
-    // Evaluate contact contribution of small-angle-contact (residual and stiffness) for all closest
-    // points found before
-    evaluate_active_small_angle_pairs(
-        stiffmatrix, fint, &iminmax, &leftrightsolutionwithinsegment, &eta1_leftrightboundary);
-#endif
   }
 
   if (endpoint_penalty)
@@ -558,176 +537,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_activ
   int imin = 0;
   int imax = intintervals - 1;
 
-#ifdef ENDPOINTSEGMENTATION
-  double eta1_leftboundary = -1.0;
-  double eta1_rightboundary = 1.0;
-  double leftintervallength = 2.0 / intintervals;
-  double rightintervallength = 2.0 / intintervals;
-  bool leftsolutionwithinsegment = false;
-  bool rightsolutionwithinsegment = false;
-
-  if (boundarynode2_.first)
-  {
-    for (iter = closesmallanglesegments.begin(); iter != closesmallanglesegments.end(); ++iter)
-    {
-      std::pair<int, int> segment_ids = iter->first;
-      int segid2 = segment_ids.second;
-
-      if (segid2 == 0)
-      {
-        int segid1 = segment_ids.first;
-        double eta1_segleft = -1.0 + segid1 * l1;
-        double eta2_segleft = -1.0;
-        double eta1_boundary_trial = 0.0;
-        bool dummy;
-
-        bool solutionwithinsegment = false;
-
-        double gap_dummy = 0.0;
-        double alpha_dummy = 0.0;
-
-#ifndef CHANGEENDPOINTPROJECTION
-        solutionwithinsegment = point_to_line_projection(eta2_segleft, eta1_segleft, l1,
-            eta1_boundary_trial, gap_dummy, alpha_dummy, dummy, true, true);
-#else
-        solutionwithinsegment = point_to_line_projection(eta2_segleft, eta1_segleft, l1,
-            eta1_boundary_trial, gap_dummy, alpha_dummy, dummy, true, true, true);
-#endif
-
-        if (solutionwithinsegment)
-        {
-          // Determine if the projection eta1_boundary_trial is a left boundary of the integration
-          // segment or a right boundary of the integration segment This is done in the following
-          // way: First, we determine the tangent of the master boundary node in a way, such that
-          // the tangent points into the elements interior. Then, we determine the tangent on slave
-          // beam at the projection point eta1_boundary_trial. This tangent automatically points
-          // into positive eta1-direction=integration direction. Thus, if the scalar product of
-          // these two tangents is positive, the master element evolves in positive eta1-direction
-          // and consequently, eta1_boundary_trial is the left boundary of the integration segment.
-          // If the scalar product is negative, eta1_boundary_trial is the right boundary of the
-          // integration segment
-          Core::LinAlg::Matrix<3, 1, TYPE> inward_tangent_master = r_xi(eta2_segleft, Element2());
-          Core::LinAlg::Matrix<3, 1, TYPE> tangent_slave = r_xi(eta1_boundary_trial, Element1());
-          double orientation = Core::FADUtils::cast_to_double(
-              Core::FADUtils::ScalarProduct(inward_tangent_master, tangent_slave));
-          if (orientation > 0)  // left boundary
-          {
-            leftsolutionwithinsegment = true;
-            eta1_leftboundary = eta1_boundary_trial;
-            // determine ID of integration interval in which the point eta1_leftboundary lies
-            imin = BeamContact::GetIntervalId(eta1_leftboundary, intintervals, true);
-            // get length of segmented integration interval
-            leftintervallength = -1.0 + (imin + 1) * 2.0 / intintervals - eta1_leftboundary;
-            break;
-          }
-          else if (orientation < 0)  // right boundary
-          {
-            rightsolutionwithinsegment = true;
-            eta1_rightboundary = eta1_boundary_trial;
-            // determine ID of integration interval in which the point eta1_leftboundary lies
-            imax = BeamContact::GetIntervalId(eta1_rightboundary, intintervals, false);
-            // get length of segmented integration interval
-            rightintervallength = eta1_rightboundary - (-1.0 + imax * 2.0 / intintervals);
-            break;
-          }
-          else  // This can only happen, if both beams are exactly perpendicular AND the master beam
-                // endpoint projects perpendicular on the slave beam!
-            FOUR_C_THROW("The very unlikely case orientation==0 is not implemented so far!");
-        }
-      }
-    }
-  }
-  if (boundarynode2_.second)
-  {
-    for (iter = closesmallanglesegments.begin(); iter != closesmallanglesegments.end(); ++iter)
-    {
-      std::pair<int, int> segment_ids = iter->first;
-      int segid2 = segment_ids.second;
-
-      if (segid2 == numseg2_ - 1)
-      {
-        int segid1 = segment_ids.first;
-        double eta1_segleft = -1.0 + segid1 * l1;
-        double eta2_segright = 1.0;
-        double eta1_boundary_trial = 0.0;
-        bool dummy;
-
-        bool solutionwithinsegment = false;
-
-        double gap_dummy = 0.0;
-        double alpha_dummy = 0.0;
-
-#ifndef CHANGEENDPOINTPROJECTION
-        solutionwithinsegment = point_to_line_projection(eta2_segright, eta1_segleft, l1,
-            eta1_boundary_trial, gap_dummy, alpha_dummy, dummy, true, true);
-#else
-        solutionwithinsegment = point_to_line_projection(eta2_segright, eta1_segleft, l1,
-            eta1_boundary_trial, gap_dummy, alpha_dummy, dummy, true, true, true);
-#endif
-
-        if (solutionwithinsegment)
-        {
-          // Determine if the projection eta1_boundary_trial is a left boundary of the integration
-          // segment or a right boundary of the integration segment This is done in the following
-          // way: First, we determine the tangent of the master boundary node in a way, such that
-          // the tangent points into the elements interior. Then, we determine the tangent on slave
-          // beam at the projection point eta1_boundary_trial. This tangent automatically points
-          // into positive eta1-direction=integration direction. Thus, if the scalar product of
-          // these two tangents is positive, the master element evolves in positive eta1-direction
-          // and consequently, eta1_boundary_trial is the left boundary of the integration segment.
-          // If the scalar product is negative, eta1_boundary_trial is the right boundary of the
-          // integration segment
-          Core::LinAlg::Matrix<3, 1, TYPE> inward_tangent_master = r_xi(eta2_segright, Element2());
-          // Scale tangent of right element node (eta2=1.0) in order to get inward tangent!
-          inward_tangent_master.scale(-1.0);
-          Core::LinAlg::Matrix<3, 1, TYPE> tangent_slave = r_xi(eta1_boundary_trial, Element1());
-          double orientation = Core::FADUtils::cast_to_double(
-              Core::FADUtils::ScalarProduct(inward_tangent_master, tangent_slave));
-          if (orientation > 0)  // left boundary
-          {
-            if (leftsolutionwithinsegment)
-              FOUR_C_THROW(
-                  "Something went wrong here: both boundary nodes of the master beam (discretized "
-                  "by one finite element?!?) are projected as left boundary of the integration "
-                  "segment!");
-
-            leftsolutionwithinsegment = true;
-            eta1_leftboundary = eta1_boundary_trial;
-            // determine ID of integration interval in which the point eta1_leftboundary lies
-            imin = BeamContact::GetIntervalId(eta1_leftboundary, intintervals, true);
-            // get length of segmented integration interval
-            leftintervallength = -1.0 + (imin + 1) * 2.0 / intintervals - eta1_leftboundary;
-            break;
-          }
-          else if (orientation < 0)  // right boundary
-          {
-            if (rightsolutionwithinsegment)
-              FOUR_C_THROW(
-                  "Something went wrong here: both boundary nodes of the master beam (discretized "
-                  "by one finite element?!?) are projected as right boundary of the integration "
-                  "segment!");
-
-            rightsolutionwithinsegment = true;
-            eta1_rightboundary = eta1_boundary_trial;
-            // determine ID of integration interval in which the point eta1_leftboundary lies
-            imax = BeamContact::GetIntervalId(eta1_rightboundary, intintervals, false);
-            // get length of segmented integration interval
-            rightintervallength = eta1_rightboundary - (-1.0 + imax * 2.0 / intintervals);
-            break;
-          }
-          else  // This can only happen, if both beams are exactly perpendicular AND the master beam
-                // endpoint projects perpendicular on the slave beam!
-            FOUR_C_THROW("The very unlikely case orientation==0 is not implemented so far!");
-        }
-      }
-    }
-  }
-  if (leftsolutionwithinsegment and rightsolutionwithinsegment and imin == imax)
-    FOUR_C_THROW(
-        "It is not possible to cut an integration interval from both sides, choose a larger value "
-        "intintervals!");
-#endif
-
   // gaussian points
   Core::FE::IntegrationPoints1D gausspoints = Core::FE::IntegrationPoints1D(BEAMCONTACTGAUSSRULE);
 
@@ -741,26 +550,9 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_activ
     // Get jacobi factor of considered interval
     TYPE jacobi_interval = 1.0;
 
-// standard case of equidistant intervals
-#ifndef ENDPOINTSEGMENTATION
+    // standard case of equidistant intervals
     // map from segment coordinate xi to element coordinate eta
     jacobi_interval = 1.0 / intintervals;
-// case of smaller integration intervals due to segmentation at the beams endpoints
-#else
-    if (interval == imin and leftsolutionwithinsegment)
-    {
-      jacobi_interval = leftintervallength / 2.0;
-    }
-    else if (interval == imax and rightsolutionwithinsegment)
-    {
-      jacobi_interval = rightintervallength / 2.0;
-      // std::cout << "rightintervallength: " << rightintervallength << std::endl;
-    }
-    else
-    {
-      jacobi_interval = 1.0 / intintervals;
-    }
-#endif
 
     std::vector<std::pair<double, double>> curintsegpairs;
     int size = inversepairs.size();
@@ -813,25 +605,10 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_activ
         // Get Gauss point coordinate at slave element
         double eta1_slave = 0.0;
 
-// standard case of equidistant intervals
-#ifndef ENDPOINTSEGMENTATION
+        // standard case of equidistant intervals
         // map from segment coordinate xi to element coordinate eta
         eta1_slave = eta1_min + (1.0 + xi) / intintervals;
-// case of smaller integration intervals due to segmentation at the beams endpoints
-#else
-        if (interval == imin and leftsolutionwithinsegment)
-        {
-          eta1_slave = eta1_leftboundary + (1.0 + xi) / 2.0 * leftintervallength;
-        }
-        else if (interval == imax and rightsolutionwithinsegment)
-        {
-          eta1_slave = eta1_min + (1.0 + xi) / 2.0 * rightintervallength;
-        }
-        else
-        {
-          eta1_slave = eta1_min + (1.0 + xi) / intintervals;
-        }
-#endif
+
 
         for (int k = 0; k < (int)curintsegpairs.size(); k++)
         {
@@ -887,17 +664,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_activ
       }  // for (int numgp=0; numgp<gausspoints.nquad; ++numgp)
     }  // if(curintsegpairs.size()>0)
   }  // for(int interval=imin;interval<=imax;interval++)
-
-#ifdef ENDPOINTSEGMENTATION
-  if (iminmax == nullptr or leftrightsolutionwithinsegment == nullptr or
-      eta1_leftrightboundary == nullptr)
-    FOUR_C_THROW("In case of ENDPOINTSEGMENTATION no NUll pointer should be handed in!!!");
-
-  *iminmax = std::make_pair(imin, imax);
-  *leftrightsolutionwithinsegment =
-      std::make_pair(leftsolutionwithinsegment, rightsolutionwithinsegment);
-  *eta1_leftrightboundary = std::make_pair(eta1_leftboundary, eta1_rightboundary);
-#endif
 }
 /*----------------------------------------------------------------------*
  |  end: Get active small angle pairs
@@ -915,41 +681,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes,
     std::pair<bool, bool>* leftrightsolutionwithinsegment,
     std::pair<double, double>* eta1_leftrightboundary)
 {
-// Compute linearizations of integration interval boundaries if necessary
-#ifdef ENDPOINTSEGMENTATION
-
-  if (iminmax == nullptr or leftrightsolutionwithinsegment == nullptr or
-      eta1_leftrightboundary == nullptr)
-    FOUR_C_THROW("In case of ENDPOINTSEGMENTATION no NUll pointer should be handed in!!!");
-
-  int imin = (*iminmax).first;
-  int imax = (*iminmax).second;
-
-  bool leftsolutionwithinsegment = (*leftrightsolutionwithinsegment).first;
-  bool rightsolutionwithinsegment = (*leftrightsolutionwithinsegment).second;
-
-  double eta1_leftboundary = (*eta1_leftrightboundary).first;
-  double eta1_rightboundary = (*eta1_leftrightboundary).second;
-
-  Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE> delta_xi_R(
-      Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE> delta_xi_L(
-      Core::LinAlg::Initialization::zero);
-
-  if (leftsolutionwithinsegment)
-  {
-    TYPE eta1_bound = eta1_leftboundary;
-    TYPE eta2 = -1.0;
-    compute_lin_xi_bound(delta_xi_L, eta1_bound, eta2);
-  }
-  if (rightsolutionwithinsegment)
-  {
-    TYPE eta1_bound = eta1_rightboundary;
-    TYPE eta2 = 1.0;
-    compute_lin_xi_bound(delta_xi_R, eta1_bound, eta2);
-  }
-#endif
-
   // gaussian points
   Core::FE::IntegrationPoints1D gausspoints = Core::FE::IntegrationPoints1D(BEAMCONTACTGAUSSRULE);
 
@@ -1027,13 +758,7 @@ void BeamInteraction::BeamToBeamContactPair<numnodes,
     double weight = gausspoints.qwgt[numgploc];
     TYPE jacobi = gpvariables_[numgptot]->get_jacobi();
 
-#ifdef ENDPOINTSEGMENTATION
-    int numinterval = gpvariables_[numgptot]->GetIntIds().second;
-#endif
-
-    // The intfac has NOT to be of TYPE FAD in order to deal with non-constant jacobis (in case of
-    // ENDPOINTSEGMENTATION) since we explicitly consider the linearization of the jacobi in
-    // evaluate_stiffc_contact_int_seg()!
+    // The intfac has NOT to be of TYPE FAD in order to deal with non-constant jacobis
     double intfac = Core::FADUtils::cast_to_double(jacobi) * weight;
 
     // Convert the length specific energy into a 'real' energy
@@ -1048,44 +773,13 @@ void BeamInteraction::BeamToBeamContactPair<numnodes,
       evaluate_fc_contact(*forcevec1, *forcevec2, r1, r2, r1_xi, r2_xi, r1_xixi, r2_xixi, N1, N2,
           N1_xi, N2_xi, *gpvariables_[numgptot], intfac, false, true, false, false);
 
-#ifndef ENDPOINTSEGMENTATION
+
     // call function to compute contact contribution to stiffness matrix
     if (stiffmat11 != nullptr and stiffmat12 != nullptr and stiffmat21 != nullptr and
         stiffmat22 != nullptr)
       evaluate_stiffc_contact(*stiffmat11, *stiffmat12, *stiffmat21, *stiffmat22, r1, r2, r1_xi,
           r2_xi, r1_xixi, r2_xixi, N1, N2, N1_xi, N2_xi, N1_xixi, N2_xixi, *gpvariables_[numgptot],
           intfac, false, true, false, false);
-#else
-    TYPE jacobi_interval = jacobi / get_jacobi(Element1());
-    // In case of segment-based integration, we apply a special FAD linearization technique
-    // Case 1: segmentation on left side of integration interval
-    if (leftsolutionwithinsegment and numinterval == imin)
-    {
-      // We need the linearization of the mapping from the element parameter space to the
-      // integration interval parameter space:
-      // xi_ele=xi_left*(1.0-xi_local)/2.0+xi_right*(1.0+xi_local)/2.0.
-      //-> d(xi_ele)/d(xi_left)=(1.0-xi_local)/2.0 and d(xi_ele)/d(xi_right)=(1.0+xi_local)/2.0
-
-      double d_xi_ele_d_xi_left = (1.0 - gausspoints.qxg[numgploc][0]) / 2.0;
-      evaluate_stiffc_contact_int_seg(stiffmatrix, delta_xi_L, r1, r2, r1_xi, r2_xi, r1_xixi,
-          r2_xixi, N1, N2, N1_xi, N2_xi, gpvariables_[numgptot], intfac, d_xi_ele_d_xi_left,
-          -jacobi_interval);
-    }
-    // Case 2: segmentation on right side of integration interval
-    else if (rightsolutionwithinsegment and numinterval == imax)
-    {
-      double d_xi_ele_d_xi_right = (1.0 + gausspoints.qxg[numgploc][0]) / 2.0;
-      evaluate_stiffc_contact_int_seg(stiffmatrix, delta_xi_R, r1, r2, r1_xi, r2_xi, r1_xixi,
-          r2_xixi, N1, N2, N1_xi, N2_xi, gpvariables_[numgptot], intfac, d_xi_ele_d_xi_right,
-          jacobi_interval);
-    }
-    // Case 3: No segmentation necessary
-    else
-    {
-      evaluate_stiffc_contact(stiffmatrix, r1, r2, r1_xi, r2_xi, r1_xixi, r2_xixi, N1, N2, N1_xi,
-          N2_xi, N1_xixi, N2_xixi, gpvariables_[numgptot], intfac, false, true, false, false);
-    }
-#endif
   }
 }
 /*----------------------------------------------------------------------*
@@ -2632,13 +2326,9 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::point_to_
       bool endpointpenalty = params()->beam_to_beam_contact_params()->end_point_penalty();
       if (endpointpenalty) inversion_possible = true;
 
-#ifdef ENDPOINTSEGMENTATION
-      inversion_possible = true;
-#endif
-
       if (inversion_possible)
       {
-        // In the case of ENDPOINTSEGMENTATION or ENDPOINTPENALTY it can be necessary to make an
+        // In the case of ENDPOINTPENALTY it can be necessary to make an
         // invere projection (from the master beam onto the slave beam). In this case, the local
         // variables (e.g. r1, r1_xi...) inside point_to_line_projection() with index 1 represent
         // the master beam which has the global index 2. In order to get the right nodal positions
@@ -3122,15 +2812,10 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate_
     }
     else if (gp or (fixedendpointxi and
                        !fixedendpointeta))  // in case of small-angle-contact (xi remains fixed), we
-                                            // only need delta_eta, delta_xi remains zero (this does
-                                            // not hold in case of ENDPOINTSEGMENTATION)
+                                            // only need delta_eta, delta_xi remains zero
     {  // this also holds in case of ENDPOINTPENALTY when the endpoint xi is fixed and the endpoint
        // eta not!
       compute_lin_eta_fix_xi(delta_eta, delta_r, r2_xi, r2_xixi, N1, N2, N2_xi);
-#ifdef ENDPOINTSEGMENTATION
-      FOUR_C_THROW(
-          "The combination of ENDPOINTSEGMENTATION and CONSISTENTTRANSITION is not possible!");
-#endif
     }
     else if (fixedendpointeta and !fixedendpointxi)  // In case of ENDPOINTPENALTY when the endpoint
                                                      // eta is fixed and the endpoint xi not...
@@ -3306,8 +2991,7 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate_
     }
     else if (gp or (fixedendpointxi and
                        !fixedendpointeta))  // in case of small-angle-contact (xi remains fixed), we
-                                            // only need delta_eta, delta_xi remains zero (this does
-                                            // not hold in case of ENDPOINTSEGMENTATION)
+                                            // only need delta_eta, delta_xi remains zero
     {  // this also holds in case of ENDPOINTPENALTY when the endpoint xi is fixed and the endpoint
        // eta not!
       compute_lin_eta_fix_xi(delta_eta, delta_r, r2_xi, r2_xixi, N1, N2, N2_xi);
@@ -3499,8 +3183,7 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate_
     }
     else if (gp or (fixedendpointxi and
                        !fixedendpointeta))  // in case of small-angle-contact (xi remains fixed), we
-                                            // only need delta_eta, delta_xi remains zero (this does
-                                            // not hold in case of ENDPOINTSEGMENTATION)
+                                            // only need delta_eta, delta_xi remains zero
     {  // this also holds in case of ENDPOINTPENALTY when the endpoint xi is fixed and the endpoint
        // eta not!
       for (unsigned int j = 0; j < dim1 + dim2; j++)
@@ -3641,194 +3324,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::evaluate_
 /*----------------------------------------------------------------------*
  |  end: Evaluate contact stiffness
  *----------------------------------------------------------------------*/
-
-#ifdef ENDPOINTSEGMENTATION
-/*------------------------------------------------------------------------------------------*
- |  FAD-based Evaluation of contact stiffness in case of ENDPOINTSEGMENTATION    meier 10/14|
- *------------------------------------------------------------------------------------------*/
-template <unsigned int numnodes, unsigned int numnodalvalues>
-void BeamInteraction::BeamToBeamContactPair<numnodes,
-    numnodalvalues>::evaluate_stiffc_contact_int_seg(Core::LinAlg::SparseMatrix& stiffmatrix,
-    const Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE>& delta_xi_bound,
-    const Core::LinAlg::Matrix<3, 1, TYPE>& r1, const Core::LinAlg::Matrix<3, 1, TYPE>& r2,
-    const Core::LinAlg::Matrix<3, 1, TYPE>& r1_xi, const Core::LinAlg::Matrix<3, 1, TYPE>& r2_xi,
-    const Core::LinAlg::Matrix<3, 1, TYPE>& r1_xixi,
-    const Core::LinAlg::Matrix<3, 1, TYPE>& r2_xixi,
-    const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1,
-    const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N2,
-    const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1_xi,
-    const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N2_xi,
-    BeamToBeamContactVariables<numnodes, numnodalvalues>& cpvariables, const double& intfac,
-    const double& d_xi_ele_d_xi_bound, TYPE signed_jacobi_interval)
-{
-#ifndef AUTOMATICDIFF
-  FOUR_C_THROW("This method only works with automatic differentiation!");
-#endif
-
-  // get dimensions for vectors fc1 and fc2
-  const unsigned int dim1 = 3 * numnodes * numnodalvalues;
-  const unsigned int dim2 = 3 * numnodes * numnodalvalues;
-
-  // temporary matrices for stiffness and vectors for DOF-GIDs and owning procs
-  Core::LinAlg::Matrix<dim1, dim1 + dim2, TYPE> stiffc1_FAD(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Matrix<dim2, dim1 + dim2, TYPE> stiffc2_FAD(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::SerialDenseMatrix stiffcontact1(dim1, dim1 + dim2);
-  Core::LinAlg::SerialDenseMatrix stiffcontact2(dim2, dim1 + dim2);
-  std::vector<int> lmrow1(dim1);
-  std::vector<int> lmrow2(dim2);
-  std::vector<int> lmrowowner1(dim1);
-  std::vector<int> lmrowowner2(dim2);
-  std::vector<int> lmcol1(dim1 + dim2);
-  std::vector<int> lmcol2(dim1 + dim2);
-
-  // flag indicating assembly
-  bool DoNotAssemble = true;
-  TYPE gap = cpvariables->GetGap();
-
-  //**********************************************************************
-  // evaluate contact stiffness for active pairs
-  //**********************************************************************
-  if (check_contact_status(Core::FADUtils::cast_to_double(gap)))
-  {
-    DoNotAssemble = false;
-
-    // node ids of both elements
-    //    const int* node_ids1 = Element1()->NodeIds();
-    //    const int* node_ids2 = Element2()->NodeIds();
-    //
-    // TODO: Introduce this quantities as class variables?
-    //********************************************************************
-    // prepare assembly
-    //********************************************************************
-    //    // fill lmrow1 and lmrowowner1
-    //    for (unsigned int i=0;i<numnodes;++i)
-    //    {
-    //      // get pointer and dof ids
-    //      Core::Nodes::Node* node = ContactDiscret().gNode(node_ids1[i]);
-    //      std::vector<int> NodeDofGIDs =  get_global_dofs(node);
-    //
-    //      for (unsigned int j=0;j<3*numnodalvalues;++j)
-    //      {
-    //        lmrow1[3*numnodalvalues*i+j]=NodeDofGIDs[j];
-    //        lmrowowner1[3*numnodalvalues*i+j]=node->Owner();
-    //      }
-    //    }
-    //
-    //    // fill lmrow2 and lmrowowner2
-    //    for (unsigned int i=0;i<numnodes;++i)
-    //    {
-    //      // get pointer and node ids
-    //      Core::Nodes::Node* node = ContactDiscret().gNode(node_ids2[i]);
-    //      std::vector<int> NodeDofGIDs =  get_global_dofs(node);
-    //
-    //      for (unsigned int j=0;j<3*numnodalvalues;++j)
-    //      {
-    //        lmrow2[3*numnodalvalues*i+j]=NodeDofGIDs[j];
-    //        lmrowowner2[3*numnodalvalues*i+j]=node->Owner();
-    //      }
-    //    }
-    //
-    //    // fill lmcol1 and lmcol2
-    //    for (unsigned int i=0;i<numnodes;++i)
-    //    {
-    //      // get pointer and node ids
-    //      Core::Nodes::Node* node = ContactDiscret().gNode(node_ids1[i]);
-    //      std::vector<int> NodeDofGIDs =  get_global_dofs(node);
-    //
-    //      for (unsigned int j=0;j<3*numnodalvalues;++j)
-    //      {
-    //        lmcol1[3*numnodalvalues*i+j] = NodeDofGIDs[j];
-    //        lmcol2[3*numnodalvalues*i+j] = NodeDofGIDs[j];
-    //      }
-    //    }
-    //
-    //    // fill lmcol1 and lmcol2
-    //    for (unsigned int i=0;i<numnodes;++i)
-    //    {
-    //      // get pointer and node ids
-    //      Core::Nodes::Node* node = ContactDiscret().gNode(node_ids2[i]);
-    //      std::vector<int> NodeDofGIDs =  get_global_dofs(node);
-    //
-    //      for (unsigned int j=0;j<3*numnodalvalues;++j)
-    //      {
-    //        lmcol1[3*numnodalvalues*numnodes+3*numnodalvalues*i+j] = NodeDofGIDs[j];
-    //        lmcol2[3*numnodalvalues*numnodes+3*numnodalvalues*i+j] = NodeDofGIDs[j];
-    //      }
-    //    }
-
-    // initialize storage for linearizations
-    Core::LinAlg::Matrix<dim1 + dim2, 1, TYPE> delta_eta(Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Matrix<3, 1, TYPE> delta_r = Core::FADUtils::DiffVector(r1, r2);
-
-    compute_lin_eta_fix_xi(delta_eta, delta_r, r2_xi, r2_xixi, N1, N2, N2_xi);
-
-    Core::LinAlg::Matrix<dim1, 1, TYPE> fc1_FAD(Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Matrix<dim2, 1, TYPE> fc2_FAD(Core::LinAlg::Initialization::zero);
-    evaluate_fc_contact(nullptr, r1, r2, r1_xi, r2_xi, r1_xixi, r2_xixi, N1, N2, N1_xi, N2_xi,
-        cpvariables, intfac, false, true, false, false, &fc1_FAD, &fc2_FAD);
-
-#ifdef AUTOMATICDIFF
-    TYPE fac1(0.0);
-    TYPE fac2(0.0);
-    fac2 = -Core::FADUtils::ScalarProduct(r2_xi, r2_xi) +
-           Core::FADUtils::ScalarProduct(delta_r, r2_xixi);
-    fac1 = Core::FADUtils::ScalarProduct(r2_xi, r1_xi);
-    for (unsigned int j = 0; j < dim1 + dim2; j++)
-    {
-      for (unsigned int i = 0; i < dim1; i++)
-        stiffc1_FAD(i, j) =
-            fc1_FAD(i).dx(j) +
-            fc1_FAD(i).dx(dim1 + dim2) * d_xi_ele_d_xi_bound * delta_xi_bound(j) +
-            fc1_FAD(i).dx(dim1 + dim2 + 1) *
-                (delta_eta(j) - fac1 / fac2 * d_xi_ele_d_xi_bound * delta_xi_bound(j)) +
-            fc1_FAD(i).val() / (2.0 * signed_jacobi_interval) * delta_xi_bound(j);
-      // d(f)/d(disp)    +d(f)/d(xi,GP)           *d(xi,GP)/d(disp) +d(f)/d(eta,GP)
-      // *d(eta,GP)/d(disp) +d(f)/d(xi,Bound)*d(xi,Bound)/d(disp)
-
-      for (unsigned int i = 0; i < dim2; i++)
-        stiffc2_FAD(i, j) =
-            fc2_FAD(i).dx(j) +
-            fc2_FAD(i).dx(dim1 + dim2) * d_xi_ele_d_xi_bound * delta_xi_bound(j) +
-            fc2_FAD(i).dx(dim1 + dim2 + 1) *
-                (delta_eta(j) - fac1 / fac2 * d_xi_ele_d_xi_bound * delta_xi_bound(j)) +
-            fc2_FAD(i).val() / (2.0 * signed_jacobi_interval) * delta_xi_bound(j);
-    }
-#endif
-
-  }  // if (check_contact_status(gap))
-
-  //**********************************************************************
-  // assemble contact stiffness
-  //**********************************************************************
-  // change sign of stiffc1 and stiffc2 due to time integration.
-  // according to analytical derivation there is no minus sign, but for
-  // our time integration methods the negative stiffness must be assembled.
-
-  // now finally assemble stiffc1 and stiffc2
-  if (!DoNotAssemble)
-  {
-#ifndef AUTOMATICDIFF
-    FOUR_C_THROW("This method only works with AUTOMATICDIFF");
-#else
-    for (unsigned int j = 0; j < dim1 + dim2; j++)
-    {
-      for (unsigned int i = 0; i < dim1; i++)
-        stiffcontact1(i, j) = -Core::FADUtils::cast_to_double(stiffc1_FAD(i, j));
-      for (unsigned int i = 0; i < dim2; i++)
-        stiffcontact2(i, j) = -Core::FADUtils::cast_to_double(stiffc2_FAD(i, j));
-    }
-#endif
-
-    stiffmatrix.Assemble(0, stiffcontact1, lmrow1, lmrowowner1, lmcol1);
-    stiffmatrix.Assemble(0, stiffcontact2, lmrow2, lmrowowner2, lmcol2);
-  }
-
-  return;
-}
-/*------------------------------------------------------------------------------------------*
- |  end: FAD-based Evaluation of contact stiffness in case of ENDPOINTSEGMENTATION
- *------------------------------------------------------------------------------------------*/
-#endif
 
 /*----------------------------------------------------------------------*
  |  Linearizations of contact point                          meier 10/14|
@@ -4028,101 +3523,6 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::compute_l
 }
 /*----------------------------------------------------------------------*
  |  end: Lin. of contact point coordinate xi with fixed eta
- *----------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------*
- | Compute linearization of integration interval bounds      meier 10/14|
- *----------------------------------------------------------------------*/
-template <unsigned int numnodes, unsigned int numnodalvalues>
-void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::compute_lin_xi_bound(
-    Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE>& delta_xi_bound,
-    TYPE& eta1_bound, TYPE eta2)
-{
-  // vectors for shape functions and their derivatives
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N1(
-      Core::LinAlg::Initialization::zero);  // = N1
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N2(
-      Core::LinAlg::Initialization::zero);  // = N2
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N1_xi(
-      Core::LinAlg::Initialization::zero);  // = N1,xi
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N2_xi(
-      Core::LinAlg::Initialization::zero);  // = N2,eta
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N1_xixi(
-      Core::LinAlg::Initialization::zero);  // = N1,xixi
-  Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE> N2_xixi(
-      Core::LinAlg::Initialization::zero);  // = N2,etaeta
-
-  // coords and derivatives of the two contacting points
-  Core::LinAlg::Matrix<3, 1, TYPE> r1(Core::LinAlg::Initialization::zero);       // = r1
-  Core::LinAlg::Matrix<3, 1, TYPE> r2(Core::LinAlg::Initialization::zero);       // = r2
-  Core::LinAlg::Matrix<3, 1, TYPE> r1_xi(Core::LinAlg::Initialization::zero);    // = r1,xi
-  Core::LinAlg::Matrix<3, 1, TYPE> r2_xi(Core::LinAlg::Initialization::zero);    // = r2,eta
-  Core::LinAlg::Matrix<3, 1, TYPE> r1_xixi(Core::LinAlg::Initialization::zero);  // = r1,xixi
-  Core::LinAlg::Matrix<3, 1, TYPE> r2_xixi(Core::LinAlg::Initialization::zero);  // = r2,etaeta
-  Core::LinAlg::Matrix<3, 1, TYPE> delta_r(Core::LinAlg::Initialization::zero);  // = r1-r2
-
-  // update shape functions and their derivatives
-  get_shape_functions(N1, N2, N1_xi, N2_xi, N1_xixi, N2_xixi, eta1_bound, eta2);
-  // update coordinates and derivatives of contact points
-  compute_coords_and_derivs(
-      r1, r2, r1_xi, r2_xi, r1_xixi, r2_xixi, N1, N2, N1_xi, N2_xi, N1_xixi, N2_xixi);
-
-  delta_r = Core::FADUtils::diff_vector(r1, r2);
-
-  const unsigned int dim1 = 3 * numnodes * numnodalvalues;
-  const unsigned int dim2 = 3 * numnodes * numnodalvalues;
-
-  // matrices to compute Lin_Xi and Lin_Eta
-  TYPE a_11(0.0);
-  Core::LinAlg::Matrix<2, dim1 + dim2, TYPE> B(Core::LinAlg::Initialization::zero);
-
-  a_11 = Core::FADUtils::scalar_product(r1_xi, r1_xi) +
-         Core::FADUtils::scalar_product(delta_r, r1_xixi);
-
-#ifdef CHANGEENDPOINTPROJECTION
-  TYPE a_21(0.0);
-  a_21 = Core::FADUtils::ScalarProduct(r1_xi, r2_xi);
-#endif
-
-
-  for (unsigned int i = 0; i < 3; i++)
-  {
-    for (unsigned int j = 0; j < dim1; j++)
-    {
-      B(0, j) += -delta_r(i) * N1_xi(i, j) - r1_xi(i) * N1(i, j);
-      B(1, j) += -r2_xi(i) * N1(i, j);
-    }
-  }
-
-  for (unsigned int i = 0; i < 3; i++)
-  {
-    for (unsigned int j = 0; j < dim2; j++)
-    {
-      B(0, j + dim1) += r1_xi(i) * N2(i, j);
-      B(1, j + dim1) += -delta_r(i) * N2_xi(i, j) + r2_xi(i) * N2(i, j);
-    }
-  }
-
-#ifndef CHANGEENDPOINTPROJECTION
-  // finally the linearizations / directional derivatives in case the orthogonality condition is
-  // fulfilled on beam1
-  for (unsigned int i = 0; i < dim1 + dim2; i++)
-  {
-    delta_xi_bound(i) = B(0, i) / a_11;
-  }
-#else
-  // finally the linearizations / directional derivatives in case the orthogonality condition is
-  // fulfilled on beam2
-  for (unsigned int i = 0; i < dim1 + dim2; i++)
-  {
-    delta_xi_bound(i) = B(1, i) / a_21;
-  }
-#endif
-
-  return;
-}
-/*----------------------------------------------------------------------*
- |  end: Compute linearization of integration interval bounds
  *----------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------*

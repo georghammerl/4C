@@ -362,25 +362,6 @@ namespace BeamInteraction
         BeamToBeamContactVariables<numnodes, numnodalvalues>& variables, const double& intfac,
         bool cpp, bool gp, bool fixedendpointxi, bool fixedendpointeta);
 
-#ifdef ENDPOINTSEGMENTATION
-    /*!
-    \brief FAD-based Evaluation of contact stiffness in case of ENDPOINTSEGMENTATION
-    */
-    void evaluate_stiffc_contact_int_seg(Core::LinAlg::SparseMatrix& stiffmatrix,
-        const Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE>& delta_xi_bound,
-        const Core::LinAlg::Matrix<3, 1, TYPE>& r1, const Core::LinAlg::Matrix<3, 1, TYPE>& r2,
-        const Core::LinAlg::Matrix<3, 1, TYPE>& r1_xi,
-        const Core::LinAlg::Matrix<3, 1, TYPE>& r2_xi,
-        const Core::LinAlg::Matrix<3, 1, TYPE>& r1_xixi,
-        const Core::LinAlg::Matrix<3, 1, TYPE>& r2_xixi,
-        const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1,
-        const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N2,
-        const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1_xi,
-        const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N2_xi,
-        std::shared_ptr<BeamToBeamContactVariables<numnodes, numnodalvalues>> cpvariables,
-        const double& intfac, const double& d_xi_ele_d_xi_bound, TYPE signed_jacobi_interval);
-#endif
-
     /*!
     \brief Linearizations of contact point
     */
@@ -420,14 +401,6 @@ namespace BeamInteraction
         const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N2,
         const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1,
         const Core::LinAlg::Matrix<3, 3 * numnodes * numnodalvalues, TYPE>& N1_xi);
-
-    /*!
-    \brief Compute linearization of integration interval bounds (necessary in case of
-    ENDPOINTSEGMENTATION)
-    */
-    void compute_lin_xi_bound(
-        Core::LinAlg::Matrix<2 * 3 * numnodes * numnodalvalues, 1, TYPE>& delta_xi_bound,
-        TYPE& eta1_bound, TYPE eta2);
 
     /*!
     \brief Compute linearization of gap

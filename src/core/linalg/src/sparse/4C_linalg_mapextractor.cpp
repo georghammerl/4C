@@ -206,18 +206,6 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Core::LinAlg::MultiMapExtractor::i
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::LinAlg::MultiMapExtractor::insert_vector(
-    const Core::LinAlg::MultiVector<double>& partial, int block) const
-{
-  std::shared_ptr<Core::LinAlg::MultiVector<double>> full =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*fullmap_, partial.num_vectors());
-  insert_vector(partial, block, *full);
-  return full;
-}
-
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
 void Core::LinAlg::MultiMapExtractor::insert_vector(
     const Core::LinAlg::MultiVector<double>& partial, int block,
     Core::LinAlg::MultiVector<double>& full) const
@@ -259,65 +247,6 @@ void Core::LinAlg::MultiMapExtractor::put_scalar(
     full.get_values()[lid] = scalar;
   }
 }
-
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-double Core::LinAlg::MultiMapExtractor::norm2(
-    const Core::LinAlg::Vector<double>& full, int block) const
-{
-  const Core::LinAlg::Map& bm = *map(block);
-  const Core::LinAlg::Map& fm = *full_map();
-
-  int numv = bm.num_my_elements();
-  int* v = bm.my_global_elements();
-
-  double local_norm = 0;
-
-  for (int i = 0; i < numv; ++i)
-  {
-    int lid = fm.lid(v[i]);
-    if (lid == -1) FOUR_C_THROW("maps do not match");
-    double value = full.local_values_as_span()[lid];
-    local_norm += value * value;
-  }
-
-  double global_norm = 0;
-  global_norm = Core::Communication::sum_all(local_norm, fm.get_comm());
-  return std::sqrt(global_norm);
-}
-
-
-/*----------------------------------------------------------------------*
- | Scale one block only                                      fang 08/16 |
- *----------------------------------------------------------------------*/
-void Core::LinAlg::MultiMapExtractor::scale(
-    Core::LinAlg::Vector<double>& full, int block, double scalar) const
-{
-  const Core::LinAlg::Map& bm = *map(block);
-  const Core::LinAlg::Map& fm = *full_map();
-
-  int numv = bm.num_my_elements();
-  int* v = bm.my_global_elements();
-
-  for (int i = 0; i < numv; ++i)
-  {
-    int lid = fm.lid(v[i]);
-    if (lid == -1) FOUR_C_THROW("maps do not match");
-    full.get_values()[lid] *= scalar;
-  }
-}
-
-
-/*----------------------------------------------------------------------*
- | Scale one block only                                      fang 08/16 |
- *----------------------------------------------------------------------*/
-void Core::LinAlg::MultiMapExtractor::scale(
-    Core::LinAlg::MultiVector<double>& full, int block, double scalar) const
-{
-  for (int i = 0; i < full.num_vectors(); ++i) scale(full(i), block, scalar);
-}
-
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/

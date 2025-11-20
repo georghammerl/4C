@@ -139,19 +139,13 @@ using TYPE = double;
   Core::FE::GaussRule1D::line_5point  // Gauss rule applied in each segment
 // default: 5 GP
 
-// #define CONSISTENTTRANSITION 2                    //apply moment based transition: 1 -> variant
-// 1,
-//  2 -> variant 2 #define ENDPOINTSEGMENTATION                       //build integration segments
-//  at the physical beam endpoints
+// #define CONSISTENTTRANSITION 2                    //apply moment based transition: 1 -> variant 1
 #define RELSEGMENTTOL \
   0.0000000001  // default:0.0000000001              //minimal (relative) size of a cut integration
                 // interval
 // #define CONVERGENCECONTROLE                      //check, if all local Newton loops converge
 
-// #define CHANGEENDPOINTPROJECTION                 //If CHANGEENDPOINTPROJECTION is defined, the
-//  endpoint projection necessary for ENDPOINTSEGMENTATION is done as an orthogonal projection and
-//  not
-//  as an closest point projection
+// #define CHANGEENDPOINTPROJECTION
 
 // TODO
 // #define ONLYLEFTENDPOINTCONTACT                  //hack necessary for example "dynamic failure of
@@ -177,20 +171,8 @@ using TYPE = double;
 FOUR_C_THROW("So far, CONSISTENTTRANSITION does not work in combination with ENDPOINTPENALTY!");
 #endif
 
-#if defined(ENDPOINTSEGMENTATION) and !defined(AUTOMATICDIFF)
-FOUR_C_THROW("ENDPOINTSEGMENTATION only works in combination with AUTOMATICDIFF!");
-#endif
-
 #if defined(CONSISTENTTRANSITION) and !defined(AUTOMATICDIFF)
 FOUR_C_THROW("CONSISTENTTRANSITION only works in combination with AUTOMATICDIFF!")
-#endif
-
-// For the CONSISTENTTRANSITION case, the variations of the contact point coordinates are necessary.
-// For the small-angle contact formulation, this is only implemented in a way that considers
-// variable eta while xi is fixed. However, in case of ENDPOINTSEGMENTATION both, xi and eta, are
-// variable!
-#if defined(CONSISTENTTRANSITION) and defined(ENDPOINTSEGMENTATION)
-FOUR_C_THROW("CONSISTENTTRANSITION does not work in combination with ENDPOINTSEGMENTATION!")
 #endif
 
 

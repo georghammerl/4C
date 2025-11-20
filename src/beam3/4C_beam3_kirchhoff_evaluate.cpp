@@ -1252,27 +1252,6 @@ void Discret::Elements::Beam3k::calculate_internal_forces_and_stiff_sk(
   Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 3, FAD> auxmatrix2(
       Core::LinAlg::Initialization::zero);  // auxiliary matrix
 
-#ifdef CONSISTENTSPINSK
-  Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 3, FAD> v_thetapard_s(
-      Core::LinAlg::Initialization::zero);
-  std::vector<Core::LinAlg::Matrix<3, 1, FAD>> g1_cp(BEAM3K_COLLOCATION_POINTS,
-      Core::LinAlg::Matrix<3, 1, FAD>(Core::LinAlg::Initialization::zero));
-  std::vector<Core::LinAlg::Matrix<3, 1, FAD>> ttilde_cp(BEAM3K_COLLOCATION_POINTS,
-      Core::LinAlg::Matrix<3, 1, FAD>(Core::LinAlg::Initialization::zero));
-  std::vector<Core::LinAlg::Matrix<3, 6 * nnodecl + BEAM3K_COLLOCATION_POINTS, FAD>> N_s_cp(
-      BEAM3K_COLLOCATION_POINTS,
-      Core::LinAlg::Matrix<3, 6 * nnodecl + BEAM3K_COLLOCATION_POINTS, FAD>(
-          Core::LinAlg::Initialization::zero));
-  std::vector<Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD>> v1_cp(
-      BEAM3K_COLLOCATION_POINTS,
-      Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD>(
-          Core::LinAlg::Initialization::zero));
-  Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> v1(
-      Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> v1_s(
-      Core::LinAlg::Initialization::zero);
-#endif
-
   // MISC
   double xi = 0.0;       // parameter coordinated
   unsigned int ind = 0;  // position index where CP quantities have to be stored
@@ -1309,13 +1288,6 @@ void Discret::Elements::Beam3k::calculate_internal_forces_and_stiff_sk(
     v_epsilon_cp[ind].clear();
     v_epsilon_cp[ind].multiply_tn(N_s, r_s);
     v_epsilon_cp[ind].scale(1.0 / abs_r_s);
-
-#ifdef CONSISTENTSPINSK
-    N_s_cp[ind].update(1.0, N_s, 0.0);
-    g1_cp[ind].update(1.0 / abs_r_s, r_s, 0.0);
-    ttilde_cp[ind].update(1.0 / (abs_r_s * abs_r_s), r_s, 0.0);
-#endif
-
   }  // for (int node=0; node<BEAM3K_COLLOCATION_POINTS; node++)
 
   // calculate angle at cp (this has to be done in a SEPARATE loop as follows)
@@ -1336,21 +1308,6 @@ void Discret::Elements::Beam3k::calculate_internal_forces_and_stiff_sk(
     {
       phi_cp[node] += tangentref(i) * phivec(i);
     }
-
-#ifdef CONSISTENTSPINSK
-    Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> auxmatrix3(
-        Core::LinAlg::Initialization::zero);
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s_cp[node], g1_cp[REFERENCE_NODE], ttilde_cp[node], auxmatrix3);
-    v1_cp[node].update(1.0, auxmatrix3, 0.0);
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s_cp[REFERENCE_NODE], g1_cp[node], ttilde_cp[REFERENCE_NODE], auxmatrix3);
-    v1_cp[node].update(-1.0, auxmatrix3, 1.0);
-    Core::LinAlg::Matrix<1, 1, FAD> auxscalar(Core::LinAlg::Initialization::zero);
-    auxscalar.multiply_tn(g1_cp[node], g1_cp[REFERENCE_NODE]);
-    v1_cp[node].scale(1.0 / (1.0 + auxscalar(0, 0)));
-#endif
   }
   //********end: evaluate quantities at collocation points********************************
 
@@ -1490,93 +1447,6 @@ void Discret::Elements::Beam3k::calculate_internal_forces_and_stiff_sk(
     auxmatrix2.multiply_tn(N_s, auxmatrix1);
     v_theta_gp[numgp].update(-1.0, auxmatrix2, 1.0);
 
-
-// Compute contributions stemming from CONSISTENTSPINSK
-#ifdef CONSISTENTSPINSK
-    //************** to I) Compute v_thetapard_s of
-    // v_theta_s=v_thetaperp_s+v_thetapartheta_s(+v_thetapard_s) *******************
-    Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> auxmatrix3(
-        Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Matrix<1, 1, FAD> auxscalar1(Core::LinAlg::Initialization::zero);
-
-    // Calculate v1:
-    v1.clear();
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s, g1_cp[REFERENCE_NODE], ttilde, auxmatrix3);
-    v1.update(1.0, auxmatrix3, 0.0);
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s_cp[REFERENCE_NODE], g1, ttilde_cp[REFERENCE_NODE], auxmatrix3);
-    v1.update(-1.0, auxmatrix3, 1.0);
-    auxscalar1.clear();
-    auxscalar1.multiply_tn(g1, g1_cp[REFERENCE_NODE]);
-    v1.scale(1.0 / (1.0 + auxscalar1(0, 0)));
-
-    // Calculate v1_s:
-    v1_s.clear();
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s, g1_cp[REFERENCE_NODE], ttilde_s, auxmatrix3);
-    v1_s.update(1.0, auxmatrix3, 0.0);
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_ss, g1_cp[REFERENCE_NODE], ttilde, auxmatrix3);
-    v1_s.update(1.0, auxmatrix3, 1.0);
-    auxmatrix3.clear();
-    compute_triple_product<6 * nnodecl + BEAM3K_COLLOCATION_POINTS>(
-        N_s_cp[REFERENCE_NODE], g1_s, ttilde_cp[REFERENCE_NODE], auxmatrix3);
-    v1_s.update(-1.0, auxmatrix3, 1.0);
-    auxscalar1.clear();
-    auxscalar1.multiply_tn(g1_s, g1_cp[REFERENCE_NODE]);
-    v1_s.update(-auxscalar1(0, 0), v1, 1.0);
-    auxscalar1.clear();
-    auxscalar1.multiply_tn(g1, g1_cp[REFERENCE_NODE]);
-    v1_s.scale(1.0 / (1.0 + auxscalar1(0, 0)));
-
-    // Calculate vec1 and vec2
-    Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> vec1(
-        Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> vec2(
-        Core::LinAlg::Initialization::zero);
-    for (int node = 0; node < BEAM3K_COLLOCATION_POINTS; node++)
-    {
-      vec1.update(L_i_s(node), v1_cp[node], 1.0);
-      vec2.update(L_i(node), v1_cp[node], 1.0);
-    }
-    vec1.update(-1.0, v1_s, 1.0);
-    vec2.update(-1.0, v1, 1.0);
-
-    // Compute v_thetapard_s
-    v_thetapard_s.clear();
-    for (int i = 0; i < 6 * nnodecl + BEAM3K_COLLOCATION_POINTS; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-        v_thetapard_s(i, j) += vec1(i) * g1(j) + vec2(i) * g1_s(j);
-      }
-    }
-    // I d) Add v_thetapard_s contribution according to v_theta_s+=v_thetapard_s
-    v_theta_s.update(1.0, v_thetapard_s, 1.0);
-
-    // to II)  Compute v_thetapard_ of v_theta=v_thetaperp_+v_thetapartheta_(+v_thetapard_)  which
-    // is required for inertia forces******* II c) v_thetapard_ contribution
-
-    Core::LinAlg::Matrix<6 * nnodecl + BEAM3K_COLLOCATION_POINTS, 1, FAD> vec3(
-        Core::LinAlg::Initialization::zero);
-    for (int node = 0; node < BEAM3K_COLLOCATION_POINTS; node++)
-    {
-      vec3.update(L_i(node), v1_cp[node], 1.0);
-    }
-    vec3.update(-1.0, v1, 1.0);
-    for (int i = 0; i < 6 * nnodecl + BEAM3K_COLLOCATION_POINTS; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-        v_theta_gp[numgp](i, j) += vec3(i) * g1(j);
-      }
-    }
-#endif
     //***************************************************************************************************************************
     //************************End: Determine "v"-vectors representing the discrete strain
     // variations*****************************

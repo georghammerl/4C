@@ -1,5 +1,15 @@
 List of major features that were removed from 4C, including date and revision where code was removed
 
+Guarded code in beam3, beamcontact and beaminteraction
+- While cleaning up Core::LinAlg::MultiMapExtractor, some guarded code was found related to untested functions. The
+  code was guarded by the flags:
+    - CONSISTENTSPINSK: Applies consistent variant of first spin vector
+    - ENDPOINTSEGMENTATION: Applied in beamcontact and beaminteraction
+    - DEBUG_TIMINT_STD: Activates checks in xfem
+- reasons: unused in current research, untested code, might interfere in refactoring efforts
+- removed in commit 840885ccb712f0277e0094e7bf4150a300983107
+- removed by Gabriela Loera
+
 Reduced-dimensional airways with tissue coupling
 - Removal of the associated problem type and all related files
 - reasons: unused in current research, not well-tested, requires (non-modular) hacks
@@ -26,7 +36,7 @@ TSI Nitsche contact and So3Plast elements
 - removed by Amadeus Gebauer
 
 Lung monolithic fluid-structure interaction
-- The lung monolithic fluid-structure interaction implemenation is removed. In addition the special block
+- The lung monolithic fluid-structure interaction implementation is removed. In addition the special block
   preconditioner taylored to this problem type is deleted.
 - reasons: unused in current research, difficult to port to Tpetra
 - removed in commit 1dcaf89dc1a01d1c060ce77aaf3ca48678a5959b

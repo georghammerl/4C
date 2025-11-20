@@ -37,15 +37,6 @@ bool Discret::Elements::Beam3k::read_element(const std::string& eletype, const s
   weakkirchhoff_ = container.get<Beam3KirchhoffConstraintType>("CONSTRAINT") ==
                    Beam3KirchhoffConstraintType::weak;
 
-  if (weakkirchhoff_)
-  {
-#ifdef CONSISTENTSPINSK
-    FOUR_C_THROW(
-        "The flag CONSISTENTSPINSK is only possible for strong Kirchhoff constraint enforcement "
-        "(weakkirchhoff_=false)");
-#endif
-  }
-
   // extract triads at element nodes in reference configuration as rotation vectors and save them as
   // quaternions at each node, respectively
   auto nodal_thetas = container.get<std::vector<double>>("TRIADS");

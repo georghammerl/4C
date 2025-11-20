@@ -28,8 +28,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-// #define DEBUG_TIMINT_STD
-
 /*------------------------------------------------------------------------------------------------*
  * basic XFEM time-integration constructor                                           schott 07/12 *
  *------------------------------------------------------------------------------------------------*/
@@ -121,10 +119,6 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
     Core::LinAlg::Matrix<3, 1>& x2   /// global coordinates of point x2
 ) const
 {
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t\t\t check if point changed the side ";
-#endif
-
   //-----------------------------------------------------------------------
   // special case of equal coordinates x1 and x2 -> no line
   Core::LinAlg::Matrix<3, 1> diff(Core::LinAlg::Initialization::zero);
@@ -147,12 +141,6 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
   //-----------------------------------------------------------------------
   // first: find involved elements which are possibly passed through by the ray between x1 and x2
 
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t\t\t\t\t --------------------------------- ";
-  Core::IO::cout << "\n\t\t\t\t\t Find involved background elements ";
-  Core::IO::cout << "\n\t\t\t\t\t --------------------------------- ";
-#endif
-
   int mi = 0;  // we assume only cutting sides with mesh 0 (meshintersection)
 
   bool check_allsides =
@@ -172,19 +160,9 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
     if (ele1->id() == ele2->id())  // line within one element
     {
       eids.insert(ele1->id());  // just one element to check
-
-#ifdef DEBUG_TIMINT_STD
-      Core::IO::cout << "\n\t\t\t\t\t check changing side just for the unique element" << ele1->Id()
-                     << Core::IO::endl;
-#endif
     }
     else if (neighbors(ele1, ele2, common_nodes))
     {
-#ifdef DEBUG_TIMINT_STD
-      Core::IO::cout << "\n\t\t\t\t\t check changing side for neighboring elements: "
-                     << Core::IO::endl;
-#endif
-
       // get all elements adjacent to common nodes in ele1 and ele2
 
       // REMARK: if at least one common node is not a row node, then there is possibly one adjacent
@@ -205,10 +183,6 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
         for (auto ele : n->adjacent_elements())
         {
           eids.insert(ele.global_id());
-
-#ifdef DEBUG_TIMINT_STD
-          Core::IO::cout << "\n\t\t\t\t\t add element " << ele->Id() << Core::IO::endl;
-#endif
         }
       }
     }
@@ -216,25 +190,11 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
     {
       // check all sides ghosted in boundarydis
       check_allsides = true;
-
-#ifdef DEBUG_TIMINT_STD
-      Core::IO::cout
-          << "\n\t\t\t\t\t all sides on boundary discretization have to be check, ele1 = "
-          << ele1->Id() << " and ele2 = " << ele2->Id() << " are not Neighbors" << Core::IO::endl;
-#endif
     }
   }
   //-----------------------------------------------------------------------
   //-----------------------------------------------------------------------
   // second: find all boundary sides involved in cutting the determined background elements
-
-
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t\t\t\t\t --------------------------------- ";
-  Core::IO::cout << "\n\t\t\t\t\t Find involved sides with possible cuts between trace and side ";
-  Core::IO::cout << "\n\t\t\t\t\t --------------------------------- " << Core::IO::endl;
-#endif
-
 
   // collect all cutting sides
   if (check_allsides)
@@ -284,11 +244,6 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
           if (!is_elements_side)  // is a cutting side
           {
             cut_sides.insert(parent_side->id());
-
-#ifdef DEBUG_TIMINT_STD
-            Core::IO::cout << "\n\t\t\t\t\t add side with Id=" << parent_side->Id()
-                           << Core::IO::endl;
-#endif
           }  // !element's side
         }  // facets
       }  // sub elements
@@ -304,16 +259,8 @@ bool XFEM::XfluidTimeintBase::changed_side_same_time(
     // get the side via sidehandle
     Cut::SideHandle* sh = wizard->get_mesh_cutting_side(*side_it, mi);
 
-#ifdef DEBUG_TIMINT_STD
-    Core::IO::cout << "\n\t\t\t\t\t SIDE-CHECK with side=" << *side_it << Core::IO::endl;
-#endif
-
     if (call_side_edge_intersection(sh, *side_it, x1, x2))
     {
-#ifdef DEBUG_TIMINT_STD
-      Core::IO::cout << "\n\t\t\t\t\t <<< POINT CHANGED THE SIDE >>>" << Core::IO::endl;
-#endif
-
       return true;
     }
   }
@@ -864,14 +811,6 @@ XFEM::XfluidStd::XfluidStd(
     // fill timeIntData_ structure with the data for the nodes which are marked for SEMILAGRANGEAN
     // reconstruction
 
-#ifdef DEBUG_TIMINT_STD
-    Core::IO::cout
-        << "\n\t ---------------------------------------------------------------------- ";
-    Core::IO::cout << "\n\t PREPARE SEMI-LAGRANGEAN time integration: fill timeIntData for nodes";
-    Core::IO::cout << "\n\t ---------------------------------------------------------------------- "
-                   << Core::IO::endl;
-#endif
-
     // loop over processor nodes
     for (int lnodeid = 0; lnodeid < discret_->num_my_row_nodes(); lnodeid++)
     {
@@ -886,11 +825,6 @@ XFEM::XfluidStd::XfluidStd(
         {
           if ((it->second)[i] == Inpar::XFEM::Xf_TimeInt_STD_by_SL)
           {
-#ifdef DEBUG_TIMINT_STD
-            Core::IO::cout << "\t * fill timeIntData for node " << node->Id() << " and dofset " << i
-                           << Core::IO::endl;
-#endif
-
             Core::LinAlg::Matrix<3, 1> nodedispnp(Core::LinAlg::Initialization::zero);
             if (dispnp_ != nullptr)  // is alefluid
             {
@@ -1171,13 +1105,6 @@ void XFEM::XfluidStd::get_gp_values_t(Core::Elements::Element* ele,  ///< pointe
  *------------------------------------------------------------------------------------------------*/
 void XFEM::XfluidStd::startpoints()
 {
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t ---------------------------------------------------------------------- ";
-  Core::IO::cout << "\n\t compute initial start points for finding the Lagrangean origin";
-  Core::IO::cout << "\n\t ---------------------------------------------------------------------- "
-                 << Core::IO::endl;
-#endif
-
   // REMARK: we do not need parallel communication for start point values because
   // structural surface is ghosted on all procs
 
@@ -1207,10 +1134,6 @@ void XFEM::XfluidStd::startpoints()
  *------------------------------------------------------------------------------------------------*/
 void XFEM::XfluidStd::project_and_trackback(TimeIntData& data)
 {
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t * project_and_trackback for node " << data.node_.Id() << Core::IO::endl;
-#endif
-
   const std::string state = "idispnp";
 
   const int nsd = 3;
@@ -1416,12 +1339,6 @@ void XFEM::XfluidStd::project_and_trackback(TimeIntData& data)
   if (data.proj_ == TimeIntData::failed_)
     FOUR_C_THROW("projection of node {} not successful!", n_new->id());
 
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t => Projection of node lies on (side=0, line=1, point=2, failed=3): "
-                 << data.proj_ << " with distance " << min_dist << Core::IO::endl;
-#endif
-
-
   // track back the projected points on structural surface from t^(n+1)->t^n
   if (data.proj_ == TimeIntData::onSide_)
   {
@@ -1515,7 +1432,6 @@ void XFEM::XfluidStd::project_and_trackback(TimeIntData& data)
         }
         if (sid_2 == -1)
         {
-#ifdef DEBUG_TIMINT_STD
           std::cout
               << "\t\t\t\tneighbor side not found, current line seems to be a line at the boundary"
               << std::endl;
@@ -1524,11 +1440,10 @@ void XFEM::XfluidStd::project_and_trackback(TimeIntData& data)
           std::cout << "line nodeids: " << std::endl;
           for (int i = 0; i < (int)(line->first).size(); i++)
             std::cout << "\t nid: " << (line->first)[i] << std::endl;
-          std::cout << "\t\t\t\In case your simulation is a pseudo 2d case, every thing is fine "
+          std::cout << "\t\t\t In case your simulation is a pseudo 2d case, every thing is fine "
                        "and we will just use"
                     << std::endl;
           std::cout << "\t\t\t\tthe normal on the first side!" << std::endl;
-#endif
         }
       }
       else if (sides.size() == 2)
@@ -1756,10 +1671,6 @@ bool XFEM::XfluidStd::project_to_surface(
         sides  ///< side Ids of surface for that and it's lines the distances have to be computed
 )
 {
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t * find_nearest_surf_point for point " << x << Core::IO::endl;
-#endif
-
   if (points.size() == 0 and sides.size() == 0)
     FOUR_C_THROW(
         "there are no cutting sides around current point ({},{},{}), Projection on surface not "
@@ -1861,12 +1772,6 @@ bool XFEM::XfluidStd::project_to_surface(
 
   if (proj == TimeIntData::failed_)
     FOUR_C_THROW("projection of point ({},{},{}) not successful!", x(0), x(1), x(2));
-
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t => Projection of node lies on (side=0, line=1, point=2, failed=3): "
-                 << proj << " with distance " << min_dist << " coords: " << proj_x
-                 << Core::IO::endl;
-#endif
 
   return (proj != TimeIntData::failed_);
 }
@@ -2412,18 +2317,8 @@ void XFEM::XfluidStd::call_project_on_side(
   // update minimal distance if possible
   if (on_side)
   {
-#ifdef DEBUG_TIMINT_STD
-    std::cout << "\t\tprojection of current node lies on side " << side->Id() << " with distance "
-              << curr_dist << std::endl;
-#endif
-
     if (curr_dist < min_dist - TOL_dist_ && curr_dist >= 0)
     {
-#ifdef DEBUG_TIMINT_STD
-      std::cout << "\t\t\t>>> updated smallest distance! " << curr_dist << std::endl;
-#endif
-
-
       //--------------------
       // set current minimal distance w.r.t side
       proj = TimeIntData::onSide_;
@@ -2439,9 +2334,7 @@ void XFEM::XfluidStd::call_project_on_side(
     }
     else if (curr_dist < 0)
     {
-#ifdef DEBUG_TIMINT_STD
       std::cout << "\t\t\tnegative distance -> do not update" << std::endl;
-#endif
     }
   }
 
@@ -2541,19 +2434,9 @@ void XFEM::XfluidStd::call_project_on_line(
   // update minimal distance if possible
   if (on_line)
   {
-#ifdef DEBUG_TIMINT_STD
-    std::cout << "\t\tline-proj: projection lies on line " << line_count << " of side "
-              << side->Id() << std::endl;
-#endif
-
     // distance has to be smaller than the last one
     if (curr_dist < (min_dist - TOL_dist_) && curr_dist >= 0)
     {
-#ifdef DEBUG_TIMINT_STD
-      std::cout.precision(15);
-      std::cout << "\t\t\t>>> updated smallest distance!" << curr_dist << std::endl;
-#endif
-
       if (curr_dist < (min_dist - TOL_dist_))  // smaller distance found
       {
         // another line found, reset already found lines
@@ -2670,9 +2553,6 @@ void XFEM::XfluidStd::call_project_on_point(Core::Nodes::Node* node,  ///< point
   // update minimal distance if possible
   if (curr_dist < min_dist - TOL_dist_ and curr_dist >= 0)
   {
-#ifdef DEBUG_TIMINT_STD
-    std::cout << "\t\t\t>>> updated smallest distance w.r.t point-proj!" << curr_dist << std::endl;
-#endif
     //--------------------
     // set current minimal distance w.r.t point
     proj = TimeIntData::onPoint_;
@@ -2875,26 +2755,6 @@ bool XFEM::XfluidStd::project_on_side(
 
   if (!converged)
   {
-#ifdef DEBUG_TIMINT_STD
-    std::cout.precision(15);
-
-    std::cout << "increment criterion loc coord "
-              //<< sqrt(incr(0)*incr(0)+incr(1)*incr(1))/sqrt(sol(0)*sol(0)+sol(1)*sol(1))
-              << sqrt(incr(0) * incr(0) + incr(1) * incr(1)) << " \tabsTOL: " << absTolIncr
-              << std::endl;
-    std::cout << "absolute criterion for distance " << incr(2) << " \tabsTOL: " << absTOLdist
-              << std::endl;
-    std::cout << "absolute criterion whole residuum " << residuum.norm2()
-              << " \tabsTOL: " << absTolRes << std::endl;
-
-
-    std::cout << "sysmat.invert" << sysmat << std::endl;
-    std::cout << "sol-norm " << sol.norm2() << std::endl;
-    std::cout << "sol " << sol << std::endl;
-    std::cout << "x_gp_lin" << x_gp_lin << std::endl;
-    std::cout << "side " << xyze_ << std::endl;
-#endif
-
     // FOUR_C_THROW( "newton scheme in project_on_side not converged! " );
 
     xi_side(0) = INFINITY;
@@ -2931,12 +2791,6 @@ bool XFEM::XfluidStd::project_on_side(
       // set local coordinates w.r.t side
       xi_side(0) = sol(0);
       xi_side(1) = sol(1);
-
-#ifdef DEBUG_TIMINT_STD
-      std::cout << "\t\tside-proj: converged with local coordinates " << sol(0) << " " << sol(1)
-                << " "
-                << " dist: " << sol(2) * normal_length << std::endl;
-#endif
     }
     else
     {
@@ -2950,11 +2804,6 @@ bool XFEM::XfluidStd::project_on_side(
       x_side(0) = INFINITY;
       x_side(1) = INFINITY;
       x_side(2) = INFINITY;
-
-#ifdef DEBUG_TIMINT_STD
-      std::cout << "\t\tside-proj: converged with local coordinates " << sol(0) << " " << sol(1)
-                << ". Check if is on side: false" << std::endl;
-#endif
     }
   }
 
@@ -3160,10 +3009,6 @@ void XFEM::XfluidStd::set_final_data()
     //-------------------------------------------------------
     Core::Nodes::Node* node = discret_->g_node(gnodeid);
 
-#ifdef DEBUG_TIMINT_STD
-    Core::IO::cout << "dofset at new timestep " << data->nds_np_ << Core::IO::endl;
-#endif
-
     if (data->nds_np_ == -1)
       FOUR_C_THROW("cannot get dofs for dofset with number {}", data->nds_np_);
 
@@ -3276,13 +3121,6 @@ void XFEM::XfluidStd::export_start_data()
  *------------------------------------------------------------------------------------------------*/
 void XFEM::XfluidStd::export_final_data()
 {
-#ifdef DEBUG_TIMINT_STD
-  Core::IO::cout << "\n\t=============================";
-  Core::IO::cout << "\n\t  export Final Data  ";
-  Core::IO::cout << "\n\t=============================" << Core::IO::endl;
-#endif
-
-
   const int nsd = 3;  // 3 dimensions for a 3d fluid element
 
   // array of vectors which stores data for

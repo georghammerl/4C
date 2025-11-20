@@ -176,14 +176,6 @@ namespace Core::LinAlg
     /*!
       \param partial vector to copy into full vector
       \param block number of partial vector
-     */
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> insert_vector(
-        const Core::LinAlg::MultiVector<double>& partial, int block) const;
-
-    /// Put a partial vector into a full vector
-    /*!
-      \param partial vector to copy into full vector
-      \param block number of partial vector
       \param full vector to copy into
      */
     void insert_vector(const Core::LinAlg::MultiVector<double>& partial, int block,
@@ -208,15 +200,6 @@ namespace Core::LinAlg
 
     /// PutScalar to one block only
     void put_scalar(Core::LinAlg::Vector<double>& full, int block, double scalar) const;
-
-    /// L2-norm of one block only
-    double norm2(const Core::LinAlg::Vector<double>& full, int block) const;
-
-    /// Scale one block only
-    void scale(Core::LinAlg::Vector<double>& full, int block, double scalar) const;
-
-    /// Scale one block only
-    void scale(Core::LinAlg::MultiVector<double>& full, int block, double scalar) const;
 
    protected:
     /// the full row map

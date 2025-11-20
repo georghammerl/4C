@@ -68,10 +68,6 @@ FOUR_C_THROW(
 
 FOUR_C_NAMESPACE_OPEN
 
-// #define CONSISTENTSPINSK        //Apply variationally consistent variant of first spin vector
-//  component as test function for strong Kirchhoff
-//-> this interpolation enables exact energy and angular momentum balances
-
 // forward declaration
 namespace LargeRotations
 {
