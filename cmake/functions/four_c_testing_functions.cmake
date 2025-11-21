@@ -624,9 +624,6 @@ function(four_c_test_tutorial)
     message(FATAL_ERROR "There are unparsed arguments: ${_parsed_UNPARSED_ARGUMENTS}!")
   endif()
 
-  # check whether the dependencies are required
-  check_required_dependencies(skip_message "${_parsed_REQUIRED_DEPENDENCIES}")
-
   set(name_of_input_file ${_parsed_TEST_FILE})
   set(num_proc ${_parsed_NP})
   set(name_of_test ${name_of_input_file}-p${num_proc}-fw)
@@ -658,12 +655,25 @@ function(four_c_test_tutorial)
       ${MPIEXEC_EXECUTABLE}\ ${_mpiexec_all_args_for_testing}\ -np\ ${num_proc}\ $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}>\ ${test_directory}/xxx.4C.yaml\ ${test_directory}/xxx
       ) # 4C is run using the generated input file
 
-  add_test(
-    NAME ${name_of_test}
-    COMMAND
-      bash -c
-      "mkdir -p ${PROJECT_BINARY_DIR}/${test_directory} && ${_run_copy_files} && ${_run_4C}"
-    )
+  # check whether the dependencies are required
+  check_required_dependencies(skip_message "${_parsed_REQUIRED_DEPENDENCIES}")
+
+  if(NOT skip_message STREQUAL "")
+    # The dummy test needs to report a arbitrary error code that ctest interprets as "skipped".
+    set(dummy_command "echo \"${message}\"; exit 42")
+    # Add a dummy test that just prints the skip message instead of the real test
+    add_test(NAME ${name_of_test} COMMAND bash -c "${dummy_command}")
+    set_tests_properties(${name_of_test} PROPERTIES SKIP_RETURN_CODE 42)
+    message(VERBOSE "Skipping test ${name_of_test}: ${_parsed_SKIP_WITH_MESSAGE}")
+  else()
+    # Add the real test
+    add_test(
+      NAME ${name_of_test}
+      COMMAND
+        bash -c
+        "mkdir -p ${PROJECT_BINARY_DIR}/${test_directory} && ${_run_copy_files} && ${_run_4C}"
+      )
+  endif()
 
   require_fixture(${name_of_test} test_cleanup)
   set_environment(${name_of_test})
