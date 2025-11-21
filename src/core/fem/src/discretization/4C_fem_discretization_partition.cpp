@@ -299,7 +299,7 @@ std::shared_ptr<Core::LinAlg::Graph> Core::FE::Discretization::build_node_graph(
  *----------------------------------------------------------------------*/
 std::pair<std::shared_ptr<Core::LinAlg::Map>, std::shared_ptr<Core::LinAlg::Map>>
 Core::FE::Discretization::build_element_row_column(const Core::LinAlg::Map& noderowmap,
-    const Core::LinAlg::Map& nodecolmap, bool do_extended_ghosting) const
+    const Core::LinAlg::Map& nodecolmap, bool find_ghost_elements_with_no_owned_node) const
 {
   const int myrank = Core::Communication::my_mpi_rank(get_comm());
   const int numproc = Core::Communication::num_mpi_ranks(get_comm());
@@ -388,7 +388,7 @@ Core::FE::Discretization::build_element_row_column(const Core::LinAlg::Map& node
       if (!nummine)
       {
         // If the rebalance type is monolithic, activate additional ghosting
-        if (do_extended_ghosting)
+        if (find_ghost_elements_with_no_owned_node)
         {
           // If all nodes of the element are in col map we still ghost it
           bool all_nodes_in_col = true;
