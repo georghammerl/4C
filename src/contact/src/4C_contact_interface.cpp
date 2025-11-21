@@ -1016,7 +1016,7 @@ void CONTACT::Interface::redistribute()
   std::shared_ptr<Core::LinAlg::Graph> outgraph =
       std::make_shared<Core::LinAlg::Graph>(*srownodes, 108);
   Core::LinAlg::Export exporter(graph->row_map(), *srownodes);
-  outgraph->export_to(*graph, exporter, Add);
+  outgraph->export_to(*graph, exporter, Core::LinAlg::CombineMode::add);
 
   // trash old graph
   graph = nullptr;

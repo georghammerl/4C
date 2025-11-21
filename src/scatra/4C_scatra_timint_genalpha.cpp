@@ -331,14 +331,14 @@ void ScaTra::TimIntGenAlpha::compute_time_derivative()
   {
     phinp_owned->put_scalar(0.0);
     auto importer_phinp = std::make_unique<Core::LinAlg::Import>(tgtMap, phinp_->get_map());
-    phinp_owned->import(*phinp_, *importer_phinp, Insert);
+    phinp_owned->import(*phinp_, *importer_phinp, Core::LinAlg::CombineMode::insert);
     phinp_ref = phinp_owned.get();
   }
   if (!phin_->get_map().same_as(tgtMap))
   {
     auto importer_phin = std::make_unique<Core::LinAlg::Import>(tgtMap, phin_->get_map());
     phin_owned->put_scalar(0.0);
-    phin_owned->import(*phin_, *importer_phin, Insert);
+    phin_owned->import(*phin_, *importer_phin, Core::LinAlg::CombineMode::insert);
     phin_ref = phin_owned.get();
   }
 

@@ -3597,7 +3597,7 @@ void Wear::WearInterface::assemble_inactive_wear_rhs_master(
   }
 
   Core::LinAlg::Export exp(*allredi, *inactivedofs);
-  inactiverhs.export_to(*rhs, exp, Add);
+  inactiverhs.export_to(*rhs, exp, Core::LinAlg::CombineMode::add);
 
 
   return;
@@ -3797,7 +3797,7 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
   }
 
   Core::LinAlg::Export exp(*slmastern, *slipmn_);
-  RHS.export_to(*rhs, exp, Add);
+  RHS.export_to(*rhs, exp, Core::LinAlg::CombineMode::add);
 
   return;
 }

@@ -367,7 +367,7 @@ void Coupling::Adapter::Coupling::finish_coupling(const Core::FE::Discretization
       std::make_shared<Core::LinAlg::Vector<int>>(*slavenodemap);
 
   Core::LinAlg::Export masternodeexport(*permslavenodemap, *slavenodemap);
-  permmasternodevec->export_to(*masternodevec, masternodeexport, Insert);
+  permmasternodevec->export_to(*masternodevec, masternodeexport, Core::LinAlg::CombineMode::insert);
 
   std::shared_ptr<const Core::LinAlg::Map> permmasternodemap =
       std::make_shared<Core::LinAlg::Map>(-1, permmasternodevec->local_length(),
@@ -641,7 +641,7 @@ void Coupling::Adapter::Coupling::master_to_slave(
   Core::LinAlg::Vector<int> perm(*permslavedofmap_);
   std::ranges::copy(mv.get_local_values(), perm.get_local_values().begin());
 
-  sv.export_to(perm, *slaveexport_, Insert);
+  sv.export_to(perm, *slaveexport_, Core::LinAlg::CombineMode::insert);
 }
 
 
@@ -681,7 +681,7 @@ void Coupling::Adapter::Coupling::slave_to_master(
   Core::LinAlg::Vector<int> perm(*permmasterdofmap_);
   std::ranges::copy(sv.get_local_values(), perm.get_local_values().begin());
 
-  mv.export_to(perm, *masterexport_, Insert);
+  mv.export_to(perm, *masterexport_, Core::LinAlg::CombineMode::insert);
 }
 
 

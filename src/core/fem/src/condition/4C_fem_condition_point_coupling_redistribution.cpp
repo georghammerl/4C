@@ -226,7 +226,7 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
   // export nodal graph to new row node layout
   {
     const Core::LinAlg::Export exporter(*discret.node_row_map(), new_row_node_map);
-    node_graph.export_to(*old_node_graph, exporter, Add);
+    node_graph.export_to(*old_node_graph, exporter, Core::LinAlg::CombineMode::add);
   }
   node_graph.fill_complete();
   node_graph.optimize_storage();

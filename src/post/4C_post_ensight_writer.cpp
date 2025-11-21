@@ -1556,7 +1556,7 @@ void EnsightWriter::write_dof_result_step(std::ofstream& file, PostResult& resul
     // contract result values on proc0 (proc0 gets everything, other procs empty)
     Core::LinAlg::Import proc0dataimporter(*proc0datamap, datamap);
     Core::LinAlg::Vector<double> proc0data(*proc0datamap);
-    proc0data.import(*data, proc0dataimporter, Insert);
+    proc0data.import(*data, proc0dataimporter, Core::LinAlg::CombineMode::insert);
 
     const Core::LinAlg::Map& finaldatamap = proc0data.get_map();
 
@@ -1818,7 +1818,7 @@ void EnsightWriter::write_element_dof_result_step(std::ofstream& file, PostResul
   // contract result values on proc0 (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0dataimporter(*proc0datamap, datamap);
   Core::LinAlg::Vector<double> proc0data(*proc0datamap);
-  proc0data.import(*data, proc0dataimporter, Insert);
+  proc0data.import(*data, proc0dataimporter, Core::LinAlg::CombineMode::insert);
 
   const Core::LinAlg::Map& finaldatamap = proc0data.get_map();
 

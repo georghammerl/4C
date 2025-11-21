@@ -528,7 +528,7 @@ void EHL::Base::setup_unprojectable_dbc()
     }
   }
 
-  inf_gap_toggle.complete(Epetra_Max, false);
+  inf_gap_toggle.complete(Core::LinAlg::CombineMode::max, false);
 
   for (int i = 0; i < inf_gap_toggle.get_map().num_my_elements(); ++i)
     if (inf_gap_toggle.get_ref_of_epetra_fevector().operator()(0)->operator[](i) > 0.5)

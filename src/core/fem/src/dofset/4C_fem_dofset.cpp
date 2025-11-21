@@ -366,8 +366,8 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
 
     // fill ghost node entries
     Core::LinAlg::Import nodeimporter(numdfcolnodes_->get_map(), num_dof_rownodes.get_map());
-    numdfcolnodes_->import(num_dof_rownodes, nodeimporter, Insert);
-    idxcolnodes_->import(idxrownodes, nodeimporter, Insert);
+    numdfcolnodes_->import(num_dof_rownodes, nodeimporter, Core::LinAlg::CombineMode::insert);
+    idxcolnodes_->import(idxrownodes, nodeimporter, Core::LinAlg::CombineMode::insert);
 
     count = maxnodenumdf > 0 ? idxrownodes.max_value() + maxnodenumdf : 0;
 
@@ -424,8 +424,8 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
       }
 
       Core::LinAlg::Import faceimporter(numdfcolfaces_->get_map(), numdfrowfaces.get_map());
-      numdfcolfaces_->import(numdfrowfaces, faceimporter, Insert);
-      idxcolfaces_->import(idxrowfaces, faceimporter, Insert);
+      numdfcolfaces_->import(numdfrowfaces, faceimporter, Core::LinAlg::CombineMode::insert);
+      idxcolfaces_->import(idxrowfaces, faceimporter, Core::LinAlg::CombineMode::insert);
 
       count = idxrowfaces.max_value() + maxfacenumdf;
     }
@@ -464,8 +464,8 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
     }
 
     Core::LinAlg::Import elementimporter(numdfcolelements_->get_map(), numdfrowelements.get_map());
-    numdfcolelements_->import(numdfrowelements, elementimporter, Insert);
-    idxcolelements_->import(idxrowelements, elementimporter, Insert);
+    numdfcolelements_->import(numdfrowelements, elementimporter, Core::LinAlg::CombineMode::insert);
+    idxcolelements_->import(idxrowelements, elementimporter, Core::LinAlg::CombineMode::insert);
   }
 
   // Now finally we have everything in place to build the maps.

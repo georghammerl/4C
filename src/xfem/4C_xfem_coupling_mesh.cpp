@@ -1637,7 +1637,7 @@ void XFEM::MeshCouplingFSI::complete_state_vectors()
   // need to export the interface forces
   Core::LinAlg::Vector<double> iforce_tmp(itrueresidual_->get_map(), true);
   Core::LinAlg::Export exporter_iforce(iforcecol_->get_map(), iforce_tmp.get_map());
-  iforce_tmp.export_to(*iforcecol_, exporter_iforce, Add);
+  iforce_tmp.export_to(*iforcecol_, exporter_iforce, Core::LinAlg::CombineMode::add);
 
   // scale the interface trueresidual with -1.0 to get the forces acting on structural side (no
   // residual-scaling!)

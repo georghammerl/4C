@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_linalg.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_multi_vector.hpp"
 #include "4C_linalg_transfer.hpp"
@@ -210,36 +211,46 @@ namespace Core::LinAlg
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
     void import(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode);
+        Core::LinAlg::CombineMode CombineMode)
+    {
+      ASSERT_EPETRA_CALL(vector_->Import(
+          A, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
+    }
 
     //! Imports an Epetra_DistObject using the Epetra_Export object.
     void import(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
-        Epetra_CombineMode CombineMode)
+        Core::LinAlg::CombineMode CombineMode)
     {
-      ASSERT_EPETRA_CALL(vector_->Import(A, Exporter, CombineMode));
+      ASSERT_EPETRA_CALL(
+          vector_->Import(A, Exporter, Core::LinAlg::to_epetra_combine_mode(CombineMode)));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Import& Importer,
-        Epetra_CombineMode CombineMode)
+        Core::LinAlg::CombineMode CombineMode)
     {
-      ASSERT_EPETRA_CALL(vector_->Export(A, Importer.get_epetra_import(), CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Export(
+          A, Importer.get_epetra_import(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Core::LinAlg::Export& Exporter,
-        Epetra_CombineMode CombineMode)
+        Core::LinAlg::CombineMode CombineMode)
     {
-      ASSERT_EPETRA_CALL(vector_->Export(A, Exporter.get_epetra_export(), CombineMode));
+      ASSERT_EPETRA_CALL(vector_->Export(
+          A, Exporter.get_epetra_export(), Core::LinAlg::to_epetra_combine_mode(CombineMode)));
     }
 
     void export_to(const Epetra_SrcDistObject& A, const Epetra_Export& Exporter,
-        Epetra_CombineMode CombineMode)
+        Core::LinAlg::CombineMode CombineMode)
     {
-      ASSERT_EPETRA_CALL(vector_->Export(A, Exporter, CombineMode));
+      ASSERT_EPETRA_CALL(
+          vector_->Export(A, Exporter, Core::LinAlg::to_epetra_combine_mode(CombineMode)));
     }
 
-    void complete(Epetra_CombineMode mode = Add, bool reuse_map_and_exporter = false)
+    void complete(Core::LinAlg::CombineMode mode = Core::LinAlg::CombineMode::add,
+        bool reuse_map_and_exporter = false)
     {
-      ASSERT_EPETRA_CALL(vector_->GlobalAssemble(mode, reuse_map_and_exporter));
+      ASSERT_EPETRA_CALL(vector_->GlobalAssemble(
+          Core::LinAlg::to_epetra_combine_mode(mode), reuse_map_and_exporter));
     }
 
     void sum_into_global_value(int GlobalRow, int FEVectorIndex, double ScalarValue)

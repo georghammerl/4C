@@ -1908,7 +1908,7 @@ void EnsightWriter::write_dof_result_step_for_nurbs(std::ofstream& file, const i
 
   // create an importer and import the data
   Core::LinAlg::Import importer((coldata).get_map(), (data).get_map());
-  (coldata).import((data), importer, Insert);
+  (coldata).import((data), importer, Core::LinAlg::CombineMode::insert);
 
 
   // loop all available elements

@@ -132,7 +132,7 @@ void Solid::ModelEvaluator::Meshtying::setup()
           Core::LinAlg::Export exporter(
               Xslavemod->get_map(), *strategy_ptr_->non_redist_slave_row_dofs());
 
-          original_vec->export_to(*Xslavemod, exporter, Insert);
+          original_vec->export_to(*Xslavemod, exporter, Core::LinAlg::CombineMode::insert);
 
           Xslavemod_noredist = original_vec;
         }

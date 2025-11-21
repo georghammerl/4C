@@ -1433,7 +1433,7 @@ void Core::Binstrategy::BinningStrategy::standard_discretization_ghosting(
 
   newnodegraph = std::make_shared<Core::LinAlg::Graph>(*newnoderowmap, 108);
   Core::LinAlg::Export exporter(initgraph->row_map(), *newnoderowmap);
-  newnodegraph->export_to(*initgraph, exporter, Add);
+  newnodegraph->export_to(*initgraph, exporter, Core::LinAlg::CombineMode::add);
   newnodegraph->fill_complete();
   newnodegraph->optimize_storage();
 

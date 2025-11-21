@@ -652,7 +652,7 @@ void ScaTra::MeshtyingStrategyS2I::evaluate_meshtying()
           lmside_ == Inpar::S2I::side_master or couplingtype_ == Inpar::S2I::coupling_nts_standard)
       {
         imastermatrix_->complete(*interfacemaps_->full_map(), *interfacemaps_->map(2));
-        imasterresidual_->complete(Add, true);
+        imasterresidual_->complete(Core::LinAlg::CombineMode::add, true);
       }
 
       // assemble global system of equations depending on matrix type

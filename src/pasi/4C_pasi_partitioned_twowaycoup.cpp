@@ -313,7 +313,8 @@ void PaSI::PasiPartTwoWayCoup::get_interface_forces()
 
   // assemble interface forces
   Core::LinAlg::Export exporter(walldatastate->get_force_col()->get_map(), intfforcenp_->get_map());
-  intfforcenp_->export_to(*walldatastate->get_force_col(), exporter, Add);
+  intfforcenp_->export_to(
+      *walldatastate->get_force_col(), exporter, Core::LinAlg::CombineMode::add);
 }
 
 bool PaSI::PasiPartTwoWayCoup::convergence_check(int itnum)

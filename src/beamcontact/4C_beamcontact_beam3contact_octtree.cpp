@@ -1821,9 +1821,9 @@ void Beam3ContactOctTree::communicate_vector(Core::LinAlg::Vector<double>& InVec
     // zero out all vectors which are not Proc 0. Then, export Proc 0 data to InVec map.
     if (Core::Communication::my_mpi_rank(discret_.get_comm()) != 0 && zerofy)
       OutVec.put_scalar(0.0);
-    InVec.export_to(OutVec, exporter, Add);
+    InVec.export_to(OutVec, exporter, Core::LinAlg::CombineMode::add);
   }
-  if (doimport) OutVec.import(InVec, importer, Insert);
+  if (doimport) OutVec.import(InVec, importer, Core::LinAlg::CombineMode::insert);
   return;
 }
 

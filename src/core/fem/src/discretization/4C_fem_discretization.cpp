@@ -656,7 +656,7 @@ void Core::FE::Discretization::set_state(
     }
 
     // transfer data
-    tmp->import(state, (*stateimporter_[nds]), Insert);
+    tmp->import(state, (*stateimporter_[nds]), Core::LinAlg::CombineMode::insert);
 
     // save state
     state_[nds][name] = tmp;

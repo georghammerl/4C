@@ -1078,8 +1078,8 @@ void Coupling::Adapter::CouplingMortar::evaluate(
   // Import master and slave displacements into a single vector
   std::shared_ptr<Core::LinAlg::Vector<double>> idisp_master_slave =
       std::make_shared<Core::LinAlg::Vector<double>>(*dofrowmap, true);
-  idisp_master_slave->import(*idispma, master_importer, Add);
-  idisp_master_slave->import(*idispsl, slaveImporter, Add);
+  idisp_master_slave->import(*idispma, master_importer, Core::LinAlg::CombineMode::add);
+  idisp_master_slave->import(*idispsl, slaveImporter, Core::LinAlg::CombineMode::add);
 
   // set new displacement state in mortar interface
   interface_->set_state(Mortar::state_new_displacement, *idisp_master_slave);

@@ -518,7 +518,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
   }  // end loop over all nodes
 
   // call global assemble
-  nodevec.complete(Insert, false);
+  nodevec.complete(Core::LinAlg::CombineMode::insert, false);
 
   // if no pbc are involved leave here
   if (noderowmap.point_same_as(*fullnoderowmap))
