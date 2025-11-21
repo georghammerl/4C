@@ -137,12 +137,15 @@ namespace Core::Rebalance
   \pre The discretization has to be filled()==true.
 
   @param[in] dis discretization whose monolithic node graph will be build
+  @param[in] displacement vector containing displacement values that shifts coordinate values for
+                          the bounding volume construction
 
   @return Completed monolithic node graph of input discretization
   */
   std::shared_ptr<const Core::LinAlg::Graph> build_monolithic_node_graph(
       const Core::FE::Discretization& dis,
-      const Core::GeometricSearch::GeometricSearchParams& params);
+      const Core::GeometricSearch::GeometricSearchParams& params,
+      const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement = nullptr);
 
 }  // namespace Core::Rebalance
 

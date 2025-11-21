@@ -339,7 +339,8 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_graph(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_node_graph(
-    const Core::FE::Discretization& dis, const Core::GeometricSearch::GeometricSearchParams& params)
+    const Core::FE::Discretization& dis, const Core::GeometricSearch::GeometricSearchParams& params,
+    const std::shared_ptr<const Core::LinAlg::Vector<double>>& displacement)
 {
   if (!dis.filled())
     FOUR_C_THROW(
@@ -347,14 +348,21 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
         "graph.");
 
   // 1. Do a global geometric search
-  Core::LinAlg::Vector<double> zero_vector =
-      Core::LinAlg::Vector<double>(*(dis.dof_col_map()), true);
-
   std::vector<std::pair<int, Core::GeometricSearch::BoundingVolume>> bounding_boxes;
   for (auto element : dis.my_row_element_range())
   {
-    bounding_boxes.emplace_back(std::make_pair(element.global_id(),
-        element.user_element()->get_bounding_volume(dis, zero_vector, params)));
+    if (displacement == nullptr)
+    {
+      Core::LinAlg::Vector<double> zero_vector(*dis.dof_col_map(), true);
+
+      bounding_boxes.emplace_back(std::make_pair(element.global_id(),
+          element.user_element()->get_bounding_volume(dis, zero_vector, params)));
+    }
+    else
+    {
+      bounding_boxes.emplace_back(std::make_pair(element.global_id(),
+          element.user_element()->get_bounding_volume(dis, *displacement, params)));
+    }
   }
 
   auto result = Core::GeometricSearch::global_collision_search_print_results(
