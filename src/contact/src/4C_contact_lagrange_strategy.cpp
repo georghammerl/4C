@@ -26,7 +26,6 @@
 #include "4C_mortar_defines.hpp"
 #include "4C_mortar_utils.hpp"
 #include "4C_structure_new_model_evaluator_contact.hpp"
-#include "4C_utils_epetra_exceptions.hpp"
 
 #include <Teuchos_TimeMonitor.hpp>
 

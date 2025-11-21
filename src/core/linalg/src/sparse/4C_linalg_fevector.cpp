@@ -72,113 +72,113 @@ Core::LinAlg::MultiVector<T>& Core::LinAlg::FEVector<T>::as_multi_vector()
 template <typename T>
 void Core::LinAlg::FEVector<T>::norm_1(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->Norm1(Result));
+  ASSERT_EPETRA_CALL(vector_->Norm1(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::norm_2(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->Norm2(Result));
+  ASSERT_EPETRA_CALL(vector_->Norm2(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::norm_inf(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->NormInf(Result));
+  ASSERT_EPETRA_CALL(vector_->NormInf(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::min_value(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->MinValue(Result));
+  ASSERT_EPETRA_CALL(vector_->MinValue(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::max_value(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->MaxValue(Result));
+  ASSERT_EPETRA_CALL(vector_->MaxValue(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::mean_value(double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->MeanValue(Result));
+  ASSERT_EPETRA_CALL(vector_->MeanValue(Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::scale(double ScalarValue)
 {
-  CHECK_EPETRA_CALL(vector_->Scale(ScalarValue));
+  ASSERT_EPETRA_CALL(vector_->Scale(ScalarValue));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::dot(const Epetra_MultiVector& A, double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->Dot(A, Result));
+  ASSERT_EPETRA_CALL(vector_->Dot(A, Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::abs(const Epetra_MultiVector& A)
 {
-  CHECK_EPETRA_CALL(vector_->Abs(A));
+  ASSERT_EPETRA_CALL(vector_->Abs(A));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::scale(double ScalarA, const Epetra_MultiVector& A)
 {
-  CHECK_EPETRA_CALL(vector_->Scale(ScalarA, A));
+  ASSERT_EPETRA_CALL(vector_->Scale(ScalarA, A));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::update(
     double ScalarA, const Epetra_MultiVector& A, double ScalarThis)
 {
-  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
+  ASSERT_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::update(double ScalarA, const Epetra_MultiVector& A, double ScalarB,
     const Epetra_MultiVector& B, double ScalarThis)
 {
-  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarB, B, ScalarThis));
+  ASSERT_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarB, B, ScalarThis));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::dot(const FEVector& A, double* Result) const
 {
-  CHECK_EPETRA_CALL(vector_->Dot(A, Result));
+  ASSERT_EPETRA_CALL(vector_->Dot(A, Result));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::abs(const FEVector& A)
 {
-  CHECK_EPETRA_CALL(vector_->Abs(A));
+  ASSERT_EPETRA_CALL(vector_->Abs(A));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::scale(double ScalarA, const FEVector& A)
 {
-  CHECK_EPETRA_CALL(vector_->Scale(ScalarA, A));
+  ASSERT_EPETRA_CALL(vector_->Scale(ScalarA, A));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::update(double ScalarA, const FEVector& A, double ScalarThis)
 {
-  CHECK_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
+  ASSERT_EPETRA_CALL(vector_->Update(ScalarA, A, ScalarThis));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::update(
     double ScalarA, const FEVector& A, double ScalarB, const FEVector& B, double ScalarThis)
 {
-  CHECK_EPETRA_CALL(
+  ASSERT_EPETRA_CALL(
       vector_->Update(ScalarA, A, ScalarB, B.get_ref_of_epetra_fevector(), ScalarThis));
 }
 
 template <typename T>
 void Core::LinAlg::FEVector<T>::put_scalar(double ScalarConstant)
 {
-  CHECK_EPETRA_CALL(vector_->PutScalar(ScalarConstant));
+  ASSERT_EPETRA_CALL(vector_->PutScalar(ScalarConstant));
 }
 
 template <typename T>
@@ -186,7 +186,7 @@ void Core::LinAlg::FEVector<T>::replace_map(const Map& map)
 {
   multi_vector_view_.invalidate();
   map_.invalidate();
-  CHECK_EPETRA_CALL(vector_->ReplaceMap(map.get_epetra_block_map()));
+  ASSERT_EPETRA_CALL(vector_->ReplaceMap(map.get_epetra_block_map()));
 }
 
 template <typename T>

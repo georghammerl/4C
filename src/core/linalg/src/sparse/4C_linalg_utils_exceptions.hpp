@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_UTILS_EPETRA_EXCEPTIONS_HPP
-#define FOUR_C_UTILS_EPETRA_EXCEPTIONS_HPP
+#ifndef FOUR_C_LINALG_UTILS_EXCEPTIONS_HPP
+#define FOUR_C_LINALG_UTILS_EXCEPTIONS_HPP
 
 #include "4C_config.hpp"
 
@@ -18,14 +18,14 @@
  * Otherwise, an exception is thrown.
  *
  * @code
- *    CHECK_EPETRA_CALL(graph_->insert_global_value(...));
+ *    ASSERT_EPETRA_CALL(graph_->insert_global_value(...));
  * @endcode
  */
-#define CHECK_EPETRA_CALL(expr)                                     \
-  do                                                                \
-  {                                                                 \
-    int err = (expr);                                               \
-    FOUR_C_ASSERT_ALWAYS(err == 0, "Epetra error (code {}).", err); \
+#define ASSERT_EPETRA_CALL(expr)                             \
+  do                                                         \
+  {                                                          \
+    [[maybe_unused]] int err = (expr);                       \
+    FOUR_C_ASSERT(err == 0, "Epetra error (code {}).", err); \
   } while (0)
 
 #endif
