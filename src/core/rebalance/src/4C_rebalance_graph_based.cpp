@@ -348,14 +348,13 @@ std::shared_ptr<const Core::LinAlg::Graph> Core::Rebalance::build_monolithic_nod
         "graph.");
 
   // 1. Do a global geometric search
-  Core::LinAlg::Vector<double> zero_vector =
-      Core::LinAlg::Vector<double>(*(dis.dof_col_map()), true);
-
   std::vector<std::pair<int, Core::GeometricSearch::BoundingVolume>> bounding_boxes;
   for (auto element : dis.my_row_element_range())
   {
     if (displacement == nullptr)
     {
+      Core::LinAlg::Vector<double> zero_vector(*dis.dof_col_map(), true);
+
       bounding_boxes.emplace_back(std::make_pair(element.global_id(),
           element.user_element()->get_bounding_volume(dis, zero_vector, params)));
     }
