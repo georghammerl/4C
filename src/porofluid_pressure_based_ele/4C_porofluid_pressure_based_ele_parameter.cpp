@@ -147,6 +147,12 @@ void Discret::Elements::PoroFluidMultiPhaseEleParameter::set_general_parameters(
   nds_solidpressure_ = parameters.get<int>("nds_solidpressure", false);
   // set number of dof set related to solid pressure
   nds_scalar_ = parameters.get<int>("nds_scalar", false);
+
+  // set body force contribution
+  has_bodyforce_contribution_ = parameters.get<bool>("has_bodyforce_contribution", false);
+  bodyforce_contribution_values_ =
+      parameters.get<std::vector<double>>("bodyforce_contribution_values", {});
+
   // get number of domain integral functions and resize vector
   const int num_domainint_funct = parameters.get<int>("num_domainint_funct", false);
   domainint_funct_.resize(num_domainint_funct);

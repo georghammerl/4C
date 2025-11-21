@@ -66,6 +66,8 @@ PoroPressureBased::PorofluidAlgorithm::PorofluidAlgorithm(
       fdcheck_(poroparams_.sublist("fd_check").get<bool>("active")),
       fdcheckeps_(poroparams_.sublist("fd_check").get<double>("epsilon")),
       fdchecktol_(poroparams_.sublist("fd_check").get<double>("tolerance")),
+      has_bodyforce_contribution_(
+          poroparams_.get<std::optional<std::vector<double>>>("body_force").has_value()),
       stab_biot_scaling_(poroparams_.sublist("biot_stabilization").get<double>("scaling_factor")),
       time_(0.0),
       maxtime_(params_.get<double>("total_simulation_time")),
@@ -120,6 +122,18 @@ PoroPressureBased::PorofluidAlgorithm::PorofluidAlgorithm(
       theta_(params_.sublist("time_integration").get<double>("theta")),
       visualization_writer_(nullptr)
 {
+  // safety check
+  if (has_bodyforce_contribution_)
+  {
+    // set bodyforce values
+    bodyforce_contribution_values_ =
+        (poroparams_.get<std::optional<std::vector<double>>>("body_force")).value();
+    // safety check
+    FOUR_C_ASSERT_ALWAYS(static_cast<int>(bodyforce_contribution_values_.size()) ==
+                             Global::Problem::instance()->n_dim(),
+        "The dimension of your bodyforce vector and the dimension of the problem must be equal!");
+  }
+
   const int restart_step = Global::Problem::instance()->restart();
   if (restart_step > 0)
   {
@@ -339,6 +353,10 @@ void PoroPressureBased::PorofluidAlgorithm::set_element_general_parameters() con
   eleparams.set<bool>("using generalized-alpha time integration", false);
   eleparams.set<bool>("using stationary formulation", false);
   eleparams.set<double>("alpha_F", 1.0);
+
+  eleparams.set<bool>("has_bodyforce_contribution", has_bodyforce_contribution_);
+  eleparams.set<std::vector<double>>(
+      "bodyforce_contribution_values", bodyforce_contribution_values_);
 
   eleparams.set<int>("num_domainint_funct", num_domainint_funct_);
   for (int ifunct = 0; ifunct < num_domainint_funct_; ifunct++)

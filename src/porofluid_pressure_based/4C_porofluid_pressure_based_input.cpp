@@ -151,6 +151,10 @@ std::vector<Core::IO::InputSpec> PoroPressureBased::valid_parameters_porofluid()
               },
               {.required = false}),
 
+          parameter<std::optional<std::vector<double>>>("body_force",
+              {.description = "External body force contribution vector. The vector must "
+                              "have the same dimension as the problem (2D/3D)."}),
+
           // calculate error of the FE solution to the analytical solution
           group("calculate_error_to_analytical_solution",
               {

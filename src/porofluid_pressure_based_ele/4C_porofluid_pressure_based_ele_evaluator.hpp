@@ -2358,6 +2358,165 @@ namespace Discret
        * **********************************************************************
        *----------------------------------------------------------------------*/
       /*!
+      \brief class for evaluation of bodyforce contribution
+              */
+      template <int nsd, int nen>
+      class EvaluatorBodyforce : public EvaluatorBase<nsd, nen>
+      {
+       public:
+        //! constructor
+        EvaluatorBodyforce(std::shared_ptr<AssembleInterface> assembler, int curphase)
+            : EvaluatorBase<nsd, nen>(assembler, curphase) {};
+
+       protected:
+        //! evaluate element matrix
+        void evaluate_matrix_and_assemble(std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, bool inittimederiv) override {};
+
+        //! evaluate element RHS vector
+        void evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd,
+            int numdofpernode, const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double rhsfac, double fac, bool inittimederiv) override;
+
+        //! evaluate off-diagonal coupling matrix with structure
+        void evaluate_matrix_od_struct_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& deriv,
+            const Core::LinAlg::Matrix<nsd, nen>& derxy, const Core::LinAlg::Matrix<nsd, nsd>& xjm,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, double det) override {};
+
+        //! evaluate off-diagonal coupling matrix with scatra
+        void evaluate_matrix_od_scatra_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac) override {};
+      };
+
+      /*----------------------------------------------------------------------*
+       * **********************************************************************
+       *----------------------------------------------------------------------*/
+      /*!
+      \brief class for evaluation of bodyforce contribution in additional porous network with
+      closing relation type for homogenized vasculature tumor
+              */
+      template <int nsd, int nen>
+      class EvaluatorVolFracHomogenizedVasculatureTumorBodyforce : public EvaluatorBase<nsd, nen>
+      {
+       public:
+        //! constructor
+        EvaluatorVolFracHomogenizedVasculatureTumorBodyforce(
+            std::shared_ptr<AssembleInterface> assembler, int curphase)
+            : EvaluatorBase<nsd, nen>(assembler, curphase) {};
+
+       protected:
+        //! evaluate element matrix
+        void evaluate_matrix_and_assemble(std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, bool inittimederiv) override {};
+
+        //! evaluate element RHS vector
+        void evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd,
+            int numdofpernode, const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double rhsfac, double fac, bool inittimederiv) override;
+
+        //! evaluate off-diagonal coupling matrix with structure
+        void evaluate_matrix_od_struct_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& deriv,
+            const Core::LinAlg::Matrix<nsd, nen>& derxy, const Core::LinAlg::Matrix<nsd, nsd>& xjm,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, double det) override {};
+
+        //! evaluate off-diagonal coupling matrix with scatra
+        void evaluate_matrix_od_scatra_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac) override {};
+      };
+
+      /*----------------------------------------------------------------------*
+       * **********************************************************************
+       *----------------------------------------------------------------------*/
+      /*!
+      \brief class for evaluation of bodyforce contribution in additional porous network with the
+      closing relation for the blood in the lungs
+              */
+      template <int nsd, int nen>
+      class EvaluatorVolFracBloodLungBodyforce : public EvaluatorBase<nsd, nen>
+      {
+       public:
+        //! constructor
+        EvaluatorVolFracBloodLungBodyforce(
+            std::shared_ptr<AssembleInterface> assembler, int curphase)
+            : EvaluatorBase<nsd, nen>(assembler, curphase) {};
+
+       protected:
+        //! evaluate element matrix
+        void evaluate_matrix_and_assemble(std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, bool inittimederiv) override {};
+
+        //! evaluate element RHS vector
+        void evaluate_vector_and_assemble(std::vector<Core::LinAlg::SerialDenseVector*>& elevec,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            const Core::LinAlg::Matrix<nsd, nen>& xyze, int curphase, int phasetoadd,
+            int numdofpernode, const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double rhsfac, double fac, bool inittimederiv) override;
+
+        //! evaluate off-diagonal coupling matrix with structure
+        void evaluate_matrix_od_struct_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& deriv,
+            const Core::LinAlg::Matrix<nsd, nen>& derxy, const Core::LinAlg::Matrix<nsd, nsd>& xjm,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac, double det) override {};
+
+        //! evaluate off-diagonal coupling matrix with scatra
+        void evaluate_matrix_od_scatra_and_assemble(
+            std::vector<Core::LinAlg::SerialDenseMatrix*>& elemat,
+            const Core::LinAlg::Matrix<nen, 1>& funct, const Core::LinAlg::Matrix<nsd, nen>& derxy,
+            int curphase, int phasetoadd, int numdofpernode,
+            const PoroFluidManager::PhaseManagerInterface& phasemanager,
+            const PoroFluidManager::VariableManagerInterface<nsd, nen>& variablemanager,
+            double timefacfac, double fac) override {};
+      };
+
+
+
+      /*----------------------------------------------------------------------*
+       * **********************************************************************
+       *----------------------------------------------------------------------*/
+      /*!
       \brief helper class for reconstruction of flux
 
       This class implements the linearization of the flux reconstruction matrix (L_2 projection).

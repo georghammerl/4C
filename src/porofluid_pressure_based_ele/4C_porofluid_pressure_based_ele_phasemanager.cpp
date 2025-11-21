@@ -15,6 +15,7 @@
 #include "4C_mat_scatra_multiporo.hpp"
 #include "4C_mat_structporo.hpp"
 #include "4C_porofluid_pressure_based_ele_calc_utils.hpp"
+#include "4C_porofluid_pressure_based_ele_parameter.hpp"
 #include "4C_porofluid_pressure_based_ele_variablemanager.hpp"
 #include "4C_utils_enum.hpp"
 
@@ -95,13 +96,13 @@ Discret::Elements::PoroFluidManager::PhaseManagerInterface::wrap_phase_manager(
       switch (nsd)
       {
         case 1:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager, para);
           break;
         case 2:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager, para);
           break;
         case 3:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager, para);
           break;
         default:
           FOUR_C_THROW("invalid dimension for creating phase manager!");
@@ -119,13 +120,13 @@ Discret::Elements::PoroFluidManager::PhaseManagerInterface::wrap_phase_manager(
       switch (nsd)
       {
         case 1:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager, para);
           break;
         case 2:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager, para);
           break;
         case 3:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager, para);
           break;
         default:
           FOUR_C_THROW("invalid dimension for creating phase manager!");
@@ -146,13 +147,13 @@ Discret::Elements::PoroFluidManager::PhaseManagerInterface::wrap_phase_manager(
       switch (nsd)
       {
         case 1:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager, para);
           break;
         case 2:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager, para);
           break;
         case 3:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager, para);
           break;
         default:
           FOUR_C_THROW("invalid dimension for creating phase manager!");
@@ -192,13 +193,13 @@ Discret::Elements::PoroFluidManager::PhaseManagerInterface::wrap_phase_manager(
       switch (nsd)
       {
         case 1:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<1>>(phasemanager, para);
           break;
         case 2:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<2>>(phasemanager, para);
           break;
         case 3:
-          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager);
+          phasemanager = std::make_shared<PhaseManagerDiffusion<3>>(phasemanager, para);
           break;
         default:
           FOUR_C_THROW("invalid dimension for creating phase manager!");
@@ -1427,8 +1428,10 @@ Discret::Elements::PoroFluidManager::PhaseManagerReaction::scalar_to_phase(int i
  *----------------------------------------------------------------------*/
 template <int nsd>
 Discret::Elements::PoroFluidManager::PhaseManagerDiffusion<nsd>::PhaseManagerDiffusion(
-    std::shared_ptr<PoroFluidManager::PhaseManagerInterface> phasemanager)
-    : PhaseManagerDecorator(phasemanager)
+    std::shared_ptr<PoroFluidManager::PhaseManagerInterface> phasemanager,
+    const Discret::Elements::PoroFluidMultiPhaseEleParameter& para)
+    : PhaseManagerDecorator(phasemanager),
+      bodyforce_contribution_values_(para.bodyforce_contribution_values())
 {
 }
 
@@ -1835,6 +1838,13 @@ void Discret::Elements::PoroFluidManager::PhaseManagerDiffusion<
   phasemanager_->check_is_evaluated();
   // make a hard copy for now
   permeabilitytensorvolfracpressure = permeabilitytensorsvolfracpress_[volfracpressnum];
+}
+
+template <int nsd>
+const std::vector<double>& Discret::Elements::PoroFluidManager::PhaseManagerDiffusion<
+    nsd>::bodyforce_contribution_values() const
+{
+  return bodyforce_contribution_values_;
 }
 
 /*----------------------------------------------------------------------*

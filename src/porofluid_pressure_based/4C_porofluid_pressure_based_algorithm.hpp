@@ -548,6 +548,12 @@ namespace PoroPressureBased
     //! relative tolerance for finite difference check
     const double fdchecktol_;
 
+    //! flag for bodyforce contribution
+    const bool has_bodyforce_contribution_;
+
+    //! bodyforce contribution values
+    std::vector<double> bodyforce_contribution_values_{};
+
     //! scaling factor for biot stabilization
     double stab_biot_scaling_;
 
