@@ -64,6 +64,11 @@ namespace BeamInteraction
     std::shared_ptr<BeamInteraction::BeamContactPair> create_contact_pair(
         const std::vector<Core::Elements::Element const*>& ele_ptrs) override;
 
+
+    /**
+     * \brief Setup geometry data and previous calculated quantities.
+     * @param discret (in) discretization.
+     */
     void setup(const std::shared_ptr<const Core::FE::Discretization>& discret) override;
 
    protected:

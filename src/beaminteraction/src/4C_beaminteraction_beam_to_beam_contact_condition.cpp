@@ -75,6 +75,10 @@ void BeamInteraction::BeamToBeamContactCondition::clear()
 void BeamInteraction::BeamToBeamContactCondition::setup(
     const std::shared_ptr<const Core::FE::Discretization>& discret)
 {
+  // Exchange here the previously used old_cp_normals_ to ensure that each
+  // beam to beam contact pairs, which can now be on a different proc
+  // has the normal needed.
+
   // hard coded number of pair size and length of normal
   const int pair_size = 2;
   const int normal_size = 3;
@@ -187,16 +191,18 @@ void BeamInteraction::BeamToBeamContactCondition::setup(
   // Print warning on debug if some normals are not found
   if (!local_missing_keys.empty())
   {
-    Core::IO::cout(Core::IO::debug)
-        << "[Rank " << Core::Communication::my_mpi_rank(discret->get_comm())
+    const auto& ex = *local_missing_keys.begin();
+    std::ostringstream msg;
+    msg << "[Rank " << Core::Communication::my_mpi_rank(discret->get_comm())
         << "] is still missing " << local_missing_keys.size()
-        << " contact pair normals after exchange in BeamToBeamContactCondition. Example key: "
-        << Core::IO::endl;
-    auto ex = *local_missing_keys.begin();
-    Core::IO::cout(Core::IO::debug) << "(" << ex.ele1 << "," << ex.ele2 << ")" << Core::IO::endl;
+        << " contact pair normals after exchange in BeamToBeamContactCondition. "
+        << "Example key: (" << ex.ele1 << "," << ex.ele2 << ")";
+    Core::IO::cout(Core::IO::debug) << msg.str() << Core::IO::endl;
   }
 
   Core::Communication::barrier(discret->get_comm());
+
+  // done with exchanging old_cp_normals_
 }
 
 /**

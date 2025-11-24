@@ -464,14 +464,14 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_activ
         }
 
         auto& v = *cpvariables_.back();
-        ElementIDKey key{static_cast<int>(element1()->id()), static_cast<int>(element2()->id())};
+        ElementIDKey key{(element1()->id()), (element2()->id())};
 
 
         auto it = old_cp_normals_->find(key);
         if (it != old_cp_normals_->end())
         {
           Core::LinAlg::Matrix<3, 1, TYPE> n_ref(Core::LinAlg::Initialization::zero);
-          for (int i = 0; i < 3; ++i) n_ref(i) = static_cast<TYPE>(it->second(i));
+          for (int i = 0; i < 3; ++i) n_ref(i) = it->second(i);
           v.set_old_normal(n_ref);
         }
       }
@@ -2289,6 +2289,9 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::closest_p
       // double since this factor is needed for a pure scaling of the nonlinear CCP and has not to
       // be linearized!
       double norm_delta_r = Core::FADUtils::vector_norm<3>(delta_r);
+
+      if (norm_delta_r < std::numeric_limits<double>::min())
+        FOUR_C_THROW("Norm of delta_r is too small. Aborting to avoid division by 0.");
 
       // calculate unit normal
       Core::LinAlg::Matrix<3, 1, TYPE> normal(Core::LinAlg::Initialization::zero);
@@ -4914,29 +4917,19 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::compute_n
   TYPE gap = norm_delta_r - r1_ - r2_;
   double sign = 1.0;
 
+
+
   if (params()->beam_to_beam_contact_params()->use_new_gap_function())
   {
-    if (Core::FADUtils::cast_to_double(Core::FADUtils::norm(Core::FADUtils::scalar_product(
-            normal, old_normal))) < std::numeric_limits<double>::epsilon())
-      FOUR_C_THROW("ERROR: Rotation too large! --> Choose smaller Time step!");
-
-    gap =
-        Core::FADUtils::signum(Core::FADUtils::scalar_product(normal, old_normal)) * norm_delta_r -
-        r1_ - r2_;
-
     const double scalar_product_of_normals = Core::FADUtils::scalar_product(normal, old_normal);
-    const double norm_of_normal = Core::FADUtils::cast_to_double(Core::FADUtils::norm(normal));
-    const double norm_of_old_normal =
-        Core::FADUtils::cast_to_double(Core::FADUtils::norm(old_normal));
 
-    if (norm_of_normal > std::numeric_limits<double>::epsilon() &&
-        norm_of_old_normal > std::numeric_limits<double>::epsilon() &&
-        std::abs(Core::FADUtils::cast_to_double(scalar_product_of_normals)) /
-                (norm_of_old_normal * norm_of_normal) >
-            std::cos(M_PI / 4.0))
-    {
-      sign = Core::FADUtils::cast_to_double(Core::FADUtils::signum(scalar_product_of_normals));
-    }
+    if (Core::FADUtils::cast_to_double(Core::FADUtils::norm(scalar_product_of_normals)) <
+        std::numeric_limits<double>::epsilon())
+      FOUR_C_THROW("ERROR: The old normal and the current normal are orthogonal on each other!");
+
+    gap = Core::FADUtils::signum(scalar_product_of_normals) * norm_delta_r - r1_ - r2_;
+
+    sign = Core::FADUtils::cast_to_double(Core::FADUtils::signum(scalar_product_of_normals));
   }
 
   variables->set_gap(gap);
