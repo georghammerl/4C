@@ -13,11 +13,8 @@
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
 
-#include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 #include <Epetra_Operator.h>
-#include <Epetra_RowMatrix.h>
-#include <Epetra_VbrMatrix.h>
 #include <Teuchos_ParameterList.hpp>
 
 #include <vector>
