@@ -28,6 +28,7 @@
 #include "4C_inpar_fsi.hpp"
 #include "4C_io_control.hpp"
 #include "4C_solver_nonlin_nox_group_base.hpp"
+#include "4C_solver_nonlin_nox_matrixfree.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_aux.hpp"
 #include "4C_utils_enum.hpp"
@@ -500,17 +501,9 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
   Teuchos::ParameterList& newtonParams = dirParams.sublist(dirParams.get("Method", "Aitken"));
   Teuchos::ParameterList& lsParams = newtonParams.sublist("Linear Solver");
 
-  Teuchos::RCP<NOX::FSI::FSIMatrixFree> FSIMF;
-  Teuchos::RCP<::NOX::Epetra::MatrixFree> MF;
-  Teuchos::RCP<::NOX::Epetra::FiniteDifference> FD;
-  Teuchos::RCP<::NOX::Epetra::FiniteDifferenceColoring> FDC;
-  Teuchos::RCP<::NOX::Epetra::FiniteDifferenceColoring> FDC1;
-  Teuchos::RCP<::NOX::Epetra::BroydenOperator> B;
-
   Teuchos::RCP<::NOX::Epetra::Interface::Jacobian> iJac;
 
   Teuchos::RCP<Epetra_Operator> J;
-  Teuchos::RCP<Epetra_Operator> M;
 
   Teuchos::RCP<NOX::Nln::LinearSystemBase> linSys;
 
@@ -523,8 +516,6 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
   const std::string jacobian = nlParams.get("Jacobian", "None");
   std::string preconditioner = nlParams.get("Preconditioner", "None");
 
-  auto epetra_rcp_interface = Teuchos::rcpFromRef(*interface);
-
   // Special FSI based matrix free method
   if (jacobian == "FSI Matrix Free")
   {
@@ -536,7 +527,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
 
     // This is the default method.
 
-    FSIMF = Teuchos::make_rcp<NOX::FSI::FSIMatrixFree>(printParams, interface, noxSoln);
+    auto FSIMF = Teuchos::make_rcp<NOX::FSI::FSIMatrixFree>(printParams, interface, noxSoln);
     iJac = FSIMF;
     J = FSIMF;
   }
@@ -553,11 +544,12 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
     // MatrixFree seems to be the most interesting choice. But you
     // must set a rather low tolerance for the linear solver.
 
-    MF = Teuchos::make_rcp<::NOX::Epetra::MatrixFree>(
-        printParams, epetra_rcp_interface, noxSoln, kelleyPerturbation);
-    MF->setLambda(lambda);
+    auto epetra_rcp_interface = Teuchos::rcpFromRef(*interface);
+
+    auto MF = Teuchos::make_rcp<NOX::Nln::MatrixFree>(
+        printParams, epetra_rcp_interface, noxSoln, lambda, kelleyPerturbation);
     iJac = MF;
-    J = MF;
+    J = Teuchos::rcpFromRef(MF->get_matrix_free());
   }
 
   // No Jacobian at all. Do a fix point iteration.
@@ -566,32 +558,6 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
     preconditioner = "None";
   }
 
-  // This is pretty much debug code. Or rather research code.
-  else if (jacobian == "Dumb Finite Difference")
-  {
-    Teuchos::ParameterList& fdParams = nlParams.sublist("Finite Difference");
-    // fdresitemax_ = fdParams.get("itemax", -1);
-    double alpha = fdParams.get("alpha", 1.0e-4);
-    double beta = fdParams.get("beta", 1.0e-6);
-    std::string dt = fdParams.get("Difference Type", "Forward");
-    ::NOX::Epetra::FiniteDifference::DifferenceType dtype =
-        ::NOX::Epetra::FiniteDifference::Forward;
-    if (dt == "Forward")
-      dtype = ::NOX::Epetra::FiniteDifference::Forward;
-    else if (dt == "Backward")
-      dtype = ::NOX::Epetra::FiniteDifference::Backward;
-    else if (dt == "Centered")
-      dtype = ::NOX::Epetra::FiniteDifference::Centered;
-    else
-      FOUR_C_THROW("unsupported difference type '{}'", dt);
-
-    FD = Teuchos::make_rcp<::NOX::Epetra::FiniteDifference>(printParams, epetra_rcp_interface,
-        noxSoln, Teuchos::rcpFromRef(raw_graph_->get_epetra_crs_graph()), beta, alpha);
-    FD->setDifferenceMethod(dtype);
-
-    iJac = FD;
-    J = FD;
-  }
   else
   {
     FOUR_C_THROW("unsupported Jacobian '{}'", jacobian);
