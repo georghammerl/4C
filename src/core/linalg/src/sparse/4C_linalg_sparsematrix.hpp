@@ -18,7 +18,6 @@
 
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_FECrsMatrix.h>
-#include <Thyra_EpetraLinearOp.hpp>
 
 
 FOUR_C_NAMESPACE_OPEN
@@ -388,24 +387,6 @@ namespace Core::LinAlg
     /// return the internal Epetra_CrsMatrix or Epetra_FECrsMatrix
     /// (down-cast from Epetra_CrsMatrix !) (you should not need this!)
     const Epetra_CrsMatrix& epetra_matrix() const { return *sysmat_; }
-
-    Teuchos::RCP<const Thyra::LinearOpBase<double>> thyra_operator(
-        LinAlg::DataAccess access) override
-    {
-      Teuchos::RCP<Epetra_CrsMatrix> A_crs;
-
-      if (access == LinAlg::DataAccess::Copy)
-      {
-        A_crs = Teuchos::make_rcp<Epetra_CrsMatrix>(epetra_matrix());
-      }
-      else
-      {
-        A_crs = Teuchos::rcpFromRef(epetra_matrix());
-      }
-
-      return Thyra::epetraLinearOp(A_crs);
-    }
-
 
     /** \name Attribute set methods */
     //@{

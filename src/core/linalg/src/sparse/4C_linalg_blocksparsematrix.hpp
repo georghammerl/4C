@@ -13,8 +13,6 @@
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 
-#include <Thyra_DefaultBlockedLinearOp_decl.hpp>
-#include <Thyra_PhysicallyBlockedLinearOpBase.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -149,35 +147,6 @@ namespace Core::LinAlg
 
     //! \brief return the internal Epetra_Operator
     Epetra_Operator& epetra_operator() override { return *this; }
-
-    Teuchos::RCP<const Thyra::LinearOpBase<double>> thyra_operator(
-        LinAlg::DataAccess access) override
-    {
-      auto block_matrix = Thyra::defaultBlockedLinearOp<double>();
-
-      block_matrix->beginBlockFill(rows(), cols());
-      for (int row = 0; row < rows(); row++)
-      {
-        for (int col = 0; col < cols(); col++)
-        {
-          Teuchos::RCP<Epetra_CrsMatrix> A_crs;
-
-          if (access == LinAlg::DataAccess::Copy)
-          {
-            A_crs = Teuchos::make_rcp<Epetra_CrsMatrix>(matrix(row, col).epetra_matrix());
-          }
-          else
-          {
-            A_crs = Teuchos::rcpFromRef(matrix(row, col).epetra_matrix());
-          }
-
-          block_matrix->setBlock(row, col, Thyra::epetraLinearOp(A_crs));
-        }
-      }
-      block_matrix->endBlockFill();
-
-      return block_matrix;
-    }
 
     /** \name Attribute set methods */
     //@{

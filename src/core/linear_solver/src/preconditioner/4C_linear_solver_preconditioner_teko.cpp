@@ -13,6 +13,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
 #include "4C_linear_solver_method_parameters.hpp"
+#include "4C_linear_solver_thyra_utils.hpp"
 
 #include <Stratimikos_DefaultLinearSolverBuilder.hpp>
 #include <Stratimikos_MueLuHelpers.hpp>
@@ -77,11 +78,11 @@ void Core::LinearSolver::TekoPreconditioner::setup(Core::LinAlg::SparseOperator&
   if (!A)
   {
     auto A_crs = Teuchos::rcp_dynamic_cast<Core::LinAlg::SparseMatrix>(Teuchos::rcpFromRef(matrix));
-    pmatrix_ = A_crs->thyra_operator(LinAlg::DataAccess::Copy);
+    pmatrix_ = Utils::create_thyra_linear_op(*A_crs, LinAlg::DataAccess::Copy);
   }
   else
   {
-    pmatrix_ = A->thyra_operator(LinAlg::DataAccess::Copy);
+    pmatrix_ = Utils::create_thyra_linear_op(*A, LinAlg::DataAccess::Copy);
 
     // check if multigrid is used as preconditioner for single field inverse approximation and
     // attach nullspace and coordinate information to the respective inverse parameter list.
