@@ -8,19 +8,12 @@
 #include "4C_fsi_nox_linearsystem.hpp"
 
 #include "4C_global_data.hpp"
-#include "4C_linalg_blocksparsematrix.hpp"
-#include "4C_linalg_serialdensematrix.hpp"
-#include "4C_linalg_serialdensevector.hpp"
+#include "4C_linalg_sparseoperator.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 
-#include <Epetra_CrsMatrix.h>
 #include <Epetra_Operator.h>
-#include <Epetra_RowMatrix.h>
-#include <Epetra_VbrMatrix.h>
-
-#include <vector>
 
 FOUR_C_NAMESPACE_OPEN
 
