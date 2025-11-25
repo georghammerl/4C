@@ -5,7 +5,4 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-add_subdirectory(amgnxn)
-add_subdirectory(method)
-add_subdirectory(preconditioner)
-add_subdirectory(utils)
+four_c_auto_define_module()

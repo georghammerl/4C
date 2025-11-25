@@ -13,6 +13,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
 #include "4C_linear_solver_method_parameters.hpp"
+#include "4C_linear_solver_thyra_utils.hpp"
 
 #include <Stratimikos_DefaultLinearSolverBuilder.hpp>
 #include <Stratimikos_MueLuHelpers.hpp>
@@ -77,22 +78,11 @@ void Core::LinearSolver::TekoPreconditioner::setup(Core::LinAlg::SparseOperator&
   if (!A)
   {
     auto A_crs = Teuchos::rcp_dynamic_cast<Core::LinAlg::SparseMatrix>(Teuchos::rcpFromRef(matrix));
-    pmatrix_ = Thyra::epetraLinearOp(Teuchos::rcpFromRef(A_crs->epetra_matrix()));
+    pmatrix_ = Utils::create_thyra_linear_op(*A_crs, LinAlg::DataAccess::Copy);
   }
   else
   {
-    pmatrix_ = Thyra::defaultBlockedLinearOp<double>();
-
-    Teko::toBlockedLinearOp(pmatrix_)->beginBlockFill(A->rows(), A->cols());
-    for (int row = 0; row < A->rows(); row++)
-    {
-      for (int col = 0; col < A->cols(); col++)
-      {
-        auto A_crs = Teuchos::make_rcp<Epetra_CrsMatrix>(A->matrix(row, col).epetra_matrix());
-        Teko::toBlockedLinearOp(pmatrix_)->setBlock(row, col, Thyra::epetraLinearOp(A_crs));
-      }
-    }
-    Teko::toBlockedLinearOp(pmatrix_)->endBlockFill();
+    pmatrix_ = Utils::create_thyra_linear_op(*A, LinAlg::DataAccess::Copy);
 
     // check if multigrid is used as preconditioner for single field inverse approximation and
     // attach nullspace and coordinate information to the respective inverse parameter list.
