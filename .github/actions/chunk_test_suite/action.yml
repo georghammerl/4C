@@ -50,7 +50,7 @@ runs:
         ctest --show-only=json-v1 --test-dir $BUILD_DIRECTORY > 4C_ctest_suite_summary.json
         python -m venv venv
         . venv/bin/activate
-        pip install -e ./utilities/four_c_python\[build\]
+        pip install -e ./utilities/four_c_python\[ci\]
         EXTRA_ARGS="-c $NUMBER_OF_CHUNKS"
         if [ -n "$NUMBER_OF_PROCESSOR_TESTS" ]; then
           EXTRA_ARGS="$EXTRA_ARGS --max-proctests $NUMBER_OF_PROCESSOR_TESTS"
