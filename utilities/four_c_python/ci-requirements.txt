@@ -1,0 +1,2 @@
+# Requirements for Github CI actions and workflows
+junitparser==3.2.0
