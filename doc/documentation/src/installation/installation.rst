@@ -77,36 +77,6 @@ On Linux based systems the package can be installed using ``sudo apt install lib
 |FOURC| uses SuperLUDist indirectly via the Trilinos package Amesos/Amesos2 for directly solving linear systems of equations in distributed memory fashion.
 See the `superLU repository <https://github.com/xiaoyeli/superlu_dist>`_ for details and downloads.
 
-**ArborX**
-
-ArborX can be used as optional dependency inside |FOURC| for utilizing it's tree-based search algorithms.
-See the `ArborX repository <https://github.com/arborx/ArborX>`_ for details and downloads.
-
-.. _trilinos:
-
-**Trilinos**
-
-This external dependency can be downloaded from the `Trilinos Github repository <https://github.com/trilinos/Trilinos>`_ .
-Currently supported versions are listed in ``<4C_sourceDir>/dependencies/supported_version/Trilinos.txt``. An older supported version will be supported for at least six months after its introduction. Afterwards, the version may be dropped at any time.
-
-.. note:: As 4C is still depending on Epetra based Trilinos code, the last official update will for now happen with the last available Trilinos hash still supporting Epetra (currently expected for mid of November).
-
-.. _suitesparse:
-
-**SuiteSparse**
-
-|FOURC| uses SuiteSparse indirectly via the Trilinos package Amesos2 for directly solving linear systems of equations.
-See the `SuiteSparse repository <https://github.com/DrTimothyAldenDavis/SuiteSparse>`_ for details and downloads.
-
-On Linux based systems the package can be installed using ``sudo apt install libsuitesparse-dev``.
-
-.. _superludist:
-
-**SuperLUDist**
-
-|FOURC| uses SuperLUDist indirectly via the Trilinos package Amesos2 for directly solving linear systems of equations in distributed memory fashion.
-See the `superLU repository <https://github.com/xiaoyeli/superlu_dist>`_ for details and downloads.
-
 .. _arborx:
 
 **ArborX**
@@ -115,6 +85,15 @@ ArborX can be used as optional dependency inside |FOURC| for utilizing it's tree
 See the `ArborX repository <https://github.com/arborx/ArborX>`_ for details and downloads.
 
 Building |FOURC| with ArborX enabled automatically fetches the repository during the configure stage and later builds the library as dependency.
+
+.. _trilinos:
+
+**Trilinos**
+
+This external dependency can be downloaded from the `Trilinos Github repository <https://github.com/trilinos/Trilinos>`_ .
+Currently supported versions are listed in ``<4C_sourceDir>/dependencies/supported_version/Trilinos.txt``. An older supported version will be supported for at least six months after its introduction. Afterwards, the version may be dropped at any time.
+
+.. note:: As 4C is still depending on Epetra based Trilinos code, the last officially supported version is release 16.2.0.
 
 .. _mirco:
 
