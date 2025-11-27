@@ -1,6 +1,6 @@
 TITLE:
   - "Partitioned FSI: 2D Driven cavity with flexible bottom"
-  - "FSI: iter_stagg_AITKEN_rel_param"
+  - "FSI: iter_stagg_MFNK_FSI"
   - "Fluid: One_Step_Theta"
   - "Structure: GenAlpha"
 PROBLEM SIZE:
