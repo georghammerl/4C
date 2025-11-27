@@ -1120,7 +1120,7 @@ std::shared_ptr<NOX::Nln::LinearSystemBase> FSI::BlockMonolithic::create_linear_
   Teuchos::ParameterList& newtonParams = dirParams.sublist("Newton");
   Teuchos::ParameterList& lsParams = newtonParams.sublist("Linear Solver");
 
-  ::NOX::Epetra::Interface::Jacobian* iJac = this;
+  NOX::Nln::Interface::JacobianBase* iJac = this;
   const std::shared_ptr<Epetra_Operator> J = system_matrix();
   const std::shared_ptr<Epetra_Operator> M = system_matrix();
 

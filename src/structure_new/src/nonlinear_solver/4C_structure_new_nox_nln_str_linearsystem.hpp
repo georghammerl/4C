@@ -28,7 +28,7 @@ namespace NOX
             Teuchos::ParameterList& linearSolverParams,
             const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
             const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-            const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+            const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
             const NOX::Nln::Vector& cloneVector,
@@ -39,7 +39,7 @@ namespace NOX
             Teuchos::ParameterList& linearSolverParams,
             const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
             const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-            const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+            const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& M,
             const NOX::Nln::Vector& cloneVector);
@@ -49,7 +49,7 @@ namespace NOX
             Teuchos::ParameterList& linearSolverParams,
             const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
             const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-            const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+            const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const NOX::Nln::Vector& cloneVector,
             const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
@@ -59,7 +59,7 @@ namespace NOX
             Teuchos::ParameterList& linearSolverParams,
             const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
             const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-            const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+            const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
             const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
             const NOX::Nln::Vector& cloneVector);
 

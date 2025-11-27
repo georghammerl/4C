@@ -13,6 +13,7 @@
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_solver_nonlin_nox_aux.hpp"
 #include "4C_solver_nonlin_nox_direction_factory.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_linearsystem.hpp"
 #include "4C_solver_nonlin_nox_meritfunction_factory.hpp"
@@ -20,7 +21,6 @@
 #include "4C_solver_nonlin_nox_solver_prepostop_generic.hpp"
 #include "4C_utils_exceptions.hpp"
 
-#include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Utils.H>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_XMLParameterListCoreHelpers.hpp>
@@ -35,7 +35,7 @@ FOUR_C_NAMESPACE_OPEN
 NOX::Nln::GlobalData::GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
     const NOX::Nln::LinearSystem::SolverMap& linSolvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const NOX::Nln::OptimizationProblemType& type,
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
     const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
@@ -63,7 +63,7 @@ NOX::Nln::GlobalData::GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParam
 NOX::Nln::GlobalData::GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
     const NOX::Nln::LinearSystem::SolverMap& linSolvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const OptimizationProblemType& type, const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr)
     : comm_(comm),
       nlnparams_(Teuchos::rcpFromRef(noxParams)),
@@ -86,7 +86,7 @@ NOX::Nln::GlobalData::GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParam
 NOX::Nln::GlobalData::GlobalData(MPI_Comm comm, Teuchos::ParameterList& noxParams,
     const NOX::Nln::LinearSystem::SolverMap& linSolvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac)
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac)
     : comm_(comm),
       nlnparams_(Teuchos::rcpFromRef(noxParams)),
       opt_type_(opt_unconstrained),
@@ -356,10 +356,9 @@ std::shared_ptr<NOX::Nln::Interface::RequiredBase> NOX::Nln::GlobalData::get_req
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-Teuchos::RCP<::NOX::Epetra::Interface::Jacobian> NOX::Nln::GlobalData::get_jacobian_interface()
+std::shared_ptr<NOX::Nln::Interface::JacobianBase> NOX::Nln::GlobalData::get_jacobian_interface()
 {
-  if (i_jac_ptr_.is_null())
-    FOUR_C_THROW("Jacobian interface pointer iJacPtr_ was not initialized!");
+  FOUR_C_ASSERT(i_jac_ptr_, "Jacobian interface pointer iJacPtr_ was not initialized!");
 
   return i_jac_ptr_;
 }

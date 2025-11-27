@@ -10,12 +10,12 @@
 
 #include "4C_config.hpp"
 
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <Epetra_Operator.h>
 #include <NOX_Abstract_Group.H>
-#include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Utils.H>
 
 #include <memory>
@@ -35,7 +35,7 @@ namespace NOX
   namespace FSI
   {
     /// Matrix Free Newton Krylov based on an approximation of the residuum derivatives
-    class FSIMatrixFree : public Epetra_Operator, public virtual ::NOX::Epetra::Interface::Jacobian
+    class FSIMatrixFree : public Epetra_Operator, public virtual NOX::Nln::Interface::JacobianBase
     {
      public:
       /*! \brief Constructor

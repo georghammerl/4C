@@ -16,6 +16,7 @@
 #include "4C_fsi_monolithicinterface.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_linalg_mapextractor.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_linearsystem_base.hpp"
 #include "4C_timestepping_mstep.hpp"
@@ -285,7 +286,7 @@ namespace FSI
   class Monolithic : public MonolithicBase,
                      public MonolithicInterface,
                      public NOX::Nln::Interface::RequiredBase,
-                     public ::NOX::Epetra::Interface::Jacobian,
+                     public NOX::Nln::Interface::JacobianBase,
                      public ::NOX::Direction::UserDefinedFactory
   {
    public:

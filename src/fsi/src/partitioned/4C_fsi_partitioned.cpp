@@ -501,9 +501,9 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
   Teuchos::ParameterList& newtonParams = dirParams.sublist(dirParams.get("Method", "Aitken"));
   Teuchos::ParameterList& lsParams = newtonParams.sublist("Linear Solver");
 
-  Teuchos::RCP<::NOX::Epetra::Interface::Jacobian> iJac;
+  std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac;
 
-  Teuchos::RCP<Epetra_Operator> J;
+  std::shared_ptr<Epetra_Operator> J;
 
   Teuchos::RCP<NOX::Nln::LinearSystemBase> linSys;
 
@@ -527,7 +527,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
 
     // This is the default method.
 
-    auto FSIMF = Teuchos::make_rcp<NOX::FSI::FSIMatrixFree>(printParams, interface, noxSoln);
+    auto FSIMF = std::make_shared<NOX::FSI::FSIMatrixFree>(printParams, interface, noxSoln);
     iJac = FSIMF;
     J = FSIMF;
   }
@@ -546,10 +546,10 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
 
     auto epetra_rcp_interface = Teuchos::rcpFromRef(*interface);
 
-    auto MF = Teuchos::make_rcp<NOX::Nln::MatrixFree>(
+    auto MF = std::make_shared<NOX::Nln::MatrixFree>(
         printParams, epetra_rcp_interface, noxSoln, lambda, kelleyPerturbation);
     iJac = MF;
-    J = Teuchos::rcpFromRef(MF->get_matrix_free());
+    J = Core::Utils::shared_ptr_from_ref(MF->get_matrix_free());
   }
 
   // No Jacobian at all. Do a fix point iteration.

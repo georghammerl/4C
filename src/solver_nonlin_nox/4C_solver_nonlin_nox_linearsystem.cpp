@@ -36,7 +36,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
     const NOX::Nln::Vector& cloneVector, const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
@@ -62,7 +62,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
     const NOX::Nln::Vector& cloneVector)
@@ -88,7 +88,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
     const NOX::Nln::Vector& cloneVector, const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : utils_(printParams),
@@ -113,7 +113,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-    const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
     const NOX::Nln::Vector& cloneVector)
     : utils_(printParams),
@@ -350,7 +350,7 @@ bool NOX::Nln::LinearSystem::compute_f_and_jacobian(
       rhs.get_linalg_vector(), jacobian(), x.get_linalg_vector(), *this);
 
   const bool success =
-      Teuchos::rcp_dynamic_cast<NOX::Nln::Interface::Jacobian>(jacInterfacePtr_, true)
+      std::dynamic_pointer_cast<NOX::Nln::Interface::Jacobian>(jacInterfacePtr_)
           ->compute_f_and_jacobian(x.get_linalg_vector(), rhs.get_linalg_vector(), jacobian());
 
   prePostOperatorPtr_->run_post_compute_f_and_jacobian(
@@ -367,10 +367,9 @@ bool NOX::Nln::LinearSystem::compute_correction_system(const CorrectionType type
   prePostOperatorPtr_->run_pre_compute_f_and_jacobian(
       rhs.get_linalg_vector(), jacobian(), x.get_linalg_vector(), *this);
 
-  const bool success =
-      Teuchos::rcp_dynamic_cast<NOX::Nln::Interface::Jacobian>(jacInterfacePtr_, true)
-          ->compute_correction_system(
-              type, grp, x.get_linalg_vector(), rhs.get_linalg_vector(), jacobian());
+  const bool success = std::dynamic_pointer_cast<NOX::Nln::Interface::Jacobian>(jacInterfacePtr_)
+                           ->compute_correction_system(type, grp, x.get_linalg_vector(),
+                               rhs.get_linalg_vector(), jacobian());
 
   prePostOperatorPtr_->run_post_compute_f_and_jacobian(
       rhs.get_linalg_vector(), jacobian(), x.get_linalg_vector(), *this);
@@ -468,7 +467,7 @@ NOX::Nln::LinearSystem::get_required_interface() const
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-Teuchos::RCP<const ::NOX::Epetra::Interface::Jacobian>
+std::shared_ptr<const NOX::Nln::Interface::JacobianBase>
 NOX::Nln::LinearSystem::get_jacobian_interface() const
 {
   return jacInterfacePtr_;

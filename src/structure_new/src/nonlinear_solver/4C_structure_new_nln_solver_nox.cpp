@@ -42,15 +42,14 @@ Solid::Nln::SOLVER::Nox::Nox(const Teuchos::ParameterList& default_params,
    * F. (see computeF) */
   const auto ireq = nox_interface_ptr();
 
-  /* Set ::NOX::Epetra::Interface::Jacobian
+  /* Set NOX::Nln::Interface::JacobianBase
    * This interface is necessary for the evaluation of the jacobian
    * and everything, which is directly related to the jacobian.
    * This interface is optional. You can think of Finite-Differences
    * as one way to circumvent the evaluation of the jacobian.
    * Nevertheless, we always set this interface ptr in the structural
    * case. */
-  const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian> ijac =
-      Teuchos::rcpFromRef(*nox_interface_ptr());
+  const auto ijac = nox_interface_ptr();
 
   // vector of currently present solution types
   std::vector<NOX::Nln::SolutionType> soltypes;

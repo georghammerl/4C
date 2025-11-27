@@ -12,6 +12,7 @@
 
 #include "4C_solver_nonlin_nox_enum_lists.hpp"
 #include "4C_solver_nonlin_nox_forward_decl.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_linearproblem.hpp"
 #include "4C_solver_nonlin_nox_linearsystem_base.hpp"
@@ -58,7 +59,7 @@ namespace NOX
       //! Standard constructor with full functionality.
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+          const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
           const NOX::Nln::Vector& cloneVector,
@@ -67,7 +68,7 @@ namespace NOX
       //! Constructor without scaling object
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+          const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
           const NOX::Nln::Vector& cloneVector);
@@ -75,14 +76,14 @@ namespace NOX
       //! Constructor without preconditioner
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+          const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
           const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
       //! Constructor without preconditioner and scaling object
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
-          const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac,
+          const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
           const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector);
 
       //! reset the linear solver parameters
@@ -119,8 +120,8 @@ namespace NOX
       //! NOX::Nln::Interface::RequiredBase accessor
       std::shared_ptr<const NOX::Nln::Interface::RequiredBase> get_required_interface() const;
 
-      //! ::NOX::Epetra::Interface::Jacobian accessor
-      Teuchos::RCP<const ::NOX::Epetra::Interface::Jacobian> get_jacobian_interface() const;
+      //! NOX::Nln::Interface::JacobianBase accessor
+      std::shared_ptr<const NOX::Nln::Interface::JacobianBase> get_jacobian_interface() const;
 
       /** \brief return the Jacobian range map
        *
@@ -234,7 +235,7 @@ namespace NOX
       std::shared_ptr<NOX::Nln::Interface::RequiredBase> reqInterfacePtr_;
 
       //! Reference to the user supplied Jacobian interface functions
-      Teuchos::RCP<::NOX::Epetra::Interface::Jacobian> jacInterfacePtr_;
+      std::shared_ptr<NOX::Nln::Interface::JacobianBase> jacInterfacePtr_;
 
       //! Type of operator for the Jacobian.
       NOX::Nln::LinSystem::OperatorType jacType_;
