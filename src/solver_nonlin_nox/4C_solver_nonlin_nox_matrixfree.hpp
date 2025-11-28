@@ -10,12 +10,12 @@
 
 #include "4C_config.hpp"
 
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <Epetra_Operator.h>
 #include <Epetra_Vector.h>
-#include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Epetra_MatrixFree.H>
 
 FOUR_C_NAMESPACE_OPEN
@@ -24,7 +24,7 @@ namespace NOX
 {
   namespace Nln
   {
-    class MatrixFree : public ::NOX::Epetra::Interface::Jacobian
+    class MatrixFree : public NOX::Nln::Interface::JacobianBase
     {
      public:
       MatrixFree(Teuchos::ParameterList& printParams,

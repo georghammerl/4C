@@ -14,13 +14,13 @@
 #include "4C_linalg_sparseoperator.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_solver_nonlin_nox_globaldata.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_scaling.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_structure_new_nox_nln_str_linearsystem.hpp"
 #include "4C_utils_enum.hpp"
 #include "4C_utils_exceptions.hpp"
 
-#include <NOX_Epetra_Interface_Jacobian.H>
 #include <Teuchos_ParameterList.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -45,7 +45,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::LinSystem::Factory::build_lin
   // extract some stuff from the NOX::Nln::GlobalData object
   const NOX::Nln::LinearSystem::SolverMap& linSolvers = noxNlnGlobalData.get_linear_solvers();
   const auto iReq = noxNlnGlobalData.get_required_interface();
-  const Teuchos::RCP<::NOX::Epetra::Interface::Jacobian>& iJac =
+  const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac =
       noxNlnGlobalData.get_jacobian_interface();
 
   Teuchos::ParameterList& params = noxNlnGlobalData.get_nln_parameter_list();

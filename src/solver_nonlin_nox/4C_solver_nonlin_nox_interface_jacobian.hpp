@@ -12,8 +12,8 @@
 
 #include "4C_solver_nonlin_nox_enum_lists.hpp"
 #include "4C_solver_nonlin_nox_forward_decl.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 
-#include <NOX_Epetra_Interface_Jacobian.H>  // base class
 #include <Teuchos_RCPDecl.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -30,7 +30,7 @@ namespace NOX
   {
     namespace Interface
     {
-      class Jacobian : public ::NOX::Epetra::Interface::Jacobian
+      class Jacobian : public JacobianBase
       {
        public:
         //! Constructor.

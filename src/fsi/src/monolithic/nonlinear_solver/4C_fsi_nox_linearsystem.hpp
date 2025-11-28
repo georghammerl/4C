@@ -17,7 +17,6 @@
 
 #include <NOX.H>
 #include <NOX_Common.H>
-#include <NOX_Epetra_Interface_Jacobian.H>
 #include <NOX_Utils.H>
 #include <Teuchos_Time.hpp>
 
@@ -31,6 +30,11 @@ namespace Core::LinAlg
   class Solver;
 }
 
+namespace NOX::Nln::Interface
+{
+  class JacobianBase;
+}
+
 namespace NOX::FSI
 {
   class LinearSystem : public NOX::Nln::LinearSystemBase
@@ -38,7 +42,7 @@ namespace NOX::FSI
    public:
     LinearSystem(Teuchos::ParameterList& printParams,  ///< printing parameters
         Teuchos::ParameterList& linearSolverParams,    ///< parameters for linear solution
-        const std::shared_ptr<::NOX::Epetra::Interface::Jacobian>&
+        const std::shared_ptr<NOX::Nln::Interface::JacobianBase>
             iJac,  ///< NOX interface to Jacobian
         const std::shared_ptr<Core::LinAlg::SparseOperator>&
             J,                                ///< the Jacobian or stiffness matrix
@@ -78,7 +82,7 @@ namespace NOX::FSI
 
     ::NOX::Utils utils_;
 
-    std::shared_ptr<::NOX::Epetra::Interface::Jacobian> jac_interface_ptr_;
+    std::shared_ptr<NOX::Nln::Interface::JacobianBase> jac_interface_ptr_;
     mutable std::shared_ptr<Epetra_Operator> jac_ptr_;
     mutable std::shared_ptr<Core::LinAlg::SparseOperator> operator_;
     std::shared_ptr<NOX::Nln::Scaling> scaling_;

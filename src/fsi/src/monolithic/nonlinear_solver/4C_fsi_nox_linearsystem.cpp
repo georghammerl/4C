@@ -11,6 +11,7 @@
 #include "4C_linalg_sparseoperator.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
+#include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <Epetra_Operator.h>
@@ -21,7 +22,7 @@ FOUR_C_NAMESPACE_OPEN
  *----------------------------------------------------------------------*/
 NOX::FSI::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
-    const std::shared_ptr<::NOX::Epetra::Interface::Jacobian>& iJac,
+    const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const std::shared_ptr<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
     std::shared_ptr<Core::LinAlg::Solver> solver, const std::shared_ptr<NOX::Nln::Scaling> s)
     : utils_(printParams),
