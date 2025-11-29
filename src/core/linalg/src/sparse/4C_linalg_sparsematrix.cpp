@@ -1514,9 +1514,9 @@ void Core::LinAlg::SparseMatrix::inv_col_sums(Core::LinAlg::Vector<double>& x) c
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::put_scalar(double ScalarConstant)
+void Core::LinAlg::SparseMatrix::put_scalar(double ScalarConstant)
 {
-  return sysmat_->PutScalar(ScalarConstant);
+  ASSERT_EPETRA_CALL(sysmat_->PutScalar(ScalarConstant));
 }
 
 
@@ -1533,6 +1533,8 @@ int Core::LinAlg::SparseMatrix::scale(double ScalarConstant)
 int Core::LinAlg::SparseMatrix::replace_diagonal_values(
     const Core::LinAlg::Vector<double>& Diagonal)
 {
+  // For now, we cant add ASSERT_EPETRA_CALL() here, as Epetra internally handles the error flag
+  // inconsistently.
   return sysmat_->ReplaceDiagonalValues(Diagonal);
 }
 
@@ -1578,34 +1580,34 @@ void Core::LinAlg::SparseMatrix::extract_global_row_view(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::insert_my_values(
+void Core::LinAlg::SparseMatrix::insert_my_values(
     int my_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->InsertMyValues(my_row, num_entries, values, indices);
+  ASSERT_EPETRA_CALL(sysmat_->InsertMyValues(my_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::sum_into_my_values(
+void Core::LinAlg::SparseMatrix::sum_into_my_values(
     int my_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->SumIntoMyValues(my_row, num_entries, values, indices);
+  ASSERT_EPETRA_CALL(sysmat_->SumIntoMyValues(my_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::replace_my_values(
+void Core::LinAlg::SparseMatrix::replace_my_values(
     int my_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->ReplaceMyValues(my_row, num_entries, values, indices);
+  ASSERT_EPETRA_CALL(sysmat_->ReplaceMyValues(my_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::replace_global_values(
+void Core::LinAlg::SparseMatrix::replace_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->ReplaceGlobalValues(global_row, num_entries, values, indices);
+  ASSERT_EPETRA_CALL(sysmat_->ReplaceGlobalValues(global_row, num_entries, values, indices));
 }
 
 /*----------------------------------------------------------------------*

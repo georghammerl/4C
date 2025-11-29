@@ -545,7 +545,7 @@ namespace Core::LinAlg
     //@{
 
     /// Initialize all values in the matrix with constant value.
-    int put_scalar(double ScalarConstant);
+    void put_scalar(double ScalarConstant);
 
     /// Multiply all values in the matrix by a constant value (in place: A <- ScalarConstant * A).
     int scale(double ScalarConstant) override;
@@ -554,16 +554,16 @@ namespace Core::LinAlg
     int replace_diagonal_values(const Core::LinAlg::Vector<double>& Diagonal);
 
     /// Inserts values into a local row.
-    int insert_my_values(int my_row, int num_entries, const double* values, const int* indices);
+    void insert_my_values(int my_row, int num_entries, const double* values, const int* indices);
 
     /// Sum values into a local row.
-    int sum_into_my_values(int my_row, int num_entries, const double* values, const int* indices);
+    void sum_into_my_values(int my_row, int num_entries, const double* values, const int* indices);
 
     /// Replaces values in a local row.
-    int replace_my_values(int my_row, int num_entries, const double* values, const int* indices);
+    void replace_my_values(int my_row, int num_entries, const double* values, const int* indices);
 
     /// Replaces values in a global row.
-    int replace_global_values(
+    void replace_global_values(
         int global_row, int num_entries, const double* values, const int* indices);
 
     /// Inserts values into a global row.
