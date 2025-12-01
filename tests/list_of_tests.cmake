@@ -238,7 +238,6 @@ four_c_test(TEST_FILE beam3r_line2_elastoplastic_bendNeum_hard_torsion.4C.yaml N
 four_c_test_restart(BASED_ON ${current} SAME_FILE NP 2 RESTART_STEP 20)
 four_c_test(TEST_FILE beam3r_line2_elastoplastic_bendNeum_hard_woTorsion.4C.yaml NP 2 RETURN_AS current)
 four_c_test_restart(BASED_ON ${current} SAME_FILE NP 2 RESTART_STEP 20)
-four_c_test(TEST_FILE beam3r_line2_genalpha_liegroup_contact_penalty_linpen_newgap_smoothed_twocrossedbeams.4C.yaml)
 four_c_test(TEST_FILE beam3r_line2_genalpha_liegroup_contact_penalty_linpen_newgap_twocrossedbeams.4C.yaml REQUIRED_DEPENDENCIES ArborX)
 four_c_test(TEST_FILE beam3r_line2_genalpha_liegroup_contact_penalty_linpen_twocrossedbeams.4C.yaml NP 2 LABELS minimal)
 four_c_test(TEST_FILE beam3r_line2_singlefil_periodic_uniaxial_shear.4C.yaml NP 3 RETURN_AS current)
