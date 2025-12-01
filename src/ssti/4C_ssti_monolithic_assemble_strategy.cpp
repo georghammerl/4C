@@ -1171,8 +1171,10 @@ void SSTI::AssembleStrategyBase::apply_meshtying_sys_mat(
 
     // apply pseudo Dirichlet conditions to unfilled matrix, i.e., to global row and
     // column indices
-    else if (systemmatrix_structure.insert_global_values(dofgid_slave, 1, &one, &dofgid_slave))
-      FOUR_C_THROW("InsertGlobalValues failed!");
+    else
+    {
+      systemmatrix_structure.insert_global_values(dofgid_slave, 1, &one, &dofgid_slave);
+    }
   }
 }
 

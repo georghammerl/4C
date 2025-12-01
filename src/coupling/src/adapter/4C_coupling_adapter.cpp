@@ -811,25 +811,10 @@ void Coupling::Adapter::Coupling::setup_coupling_matrices(const Core::LinAlg::Ma
     int mgid = master_dof_map()->gid(i);
     int shiftedmgid = shiftedmastermap.gid(i);
 
-    int err = matmm_->insert_global_values(shiftedmgid, 1, &one, &mgid);
-    if (err != 0)
-      FOUR_C_THROW(
-          "insert_global_values() for entry ({},{}) failed with err={}", shiftedmgid, mgid, err);
-
-    err = matsm_->insert_global_values(shiftedmgid, 1, &one, &sgid);
-    if (err != 0)
-      FOUR_C_THROW(
-          "insert_global_values() for entry ({},{}) failed with err={}", shiftedmgid, sgid, err);
-
-    err = matmm_trans_->insert_global_values(mgid, 1, &one, &shiftedmgid);
-    if (err != 0)
-      FOUR_C_THROW(
-          "insert_global_values() for entry ({},{}) failed with err={}", mgid, shiftedmgid, err);
-
-    err = matsm_trans_->insert_global_values(sgid, 1, &one, &shiftedmgid);
-    if (err != 0)
-      FOUR_C_THROW(
-          "insert_global_values() for entry ({},{}) failed with err={}", sgid, shiftedmgid, err);
+    matmm_->insert_global_values(shiftedmgid, 1, &one, &mgid);
+    matsm_->insert_global_values(shiftedmgid, 1, &one, &sgid);
+    matmm_trans_->insert_global_values(mgid, 1, &one, &shiftedmgid);
+    matsm_trans_->insert_global_values(sgid, 1, &one, &shiftedmgid);
   }
 
   matmm_->complete(masterdomainmap, shiftedmastermap);

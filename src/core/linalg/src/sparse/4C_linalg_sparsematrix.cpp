@@ -1568,18 +1568,38 @@ void Core::LinAlg::SparseMatrix::replace_global_values(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::insert_global_values(
+void Core::LinAlg::SparseMatrix::insert_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
+  // For now, we cant add ASSERT_EPETRA_CALL() here, as we need to allow warnings.
+  [[maybe_unused]] int err = sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
+  FOUR_C_ASSERT(err >= 0, "Epetra error (code {}).", err);
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::sum_into_global_values(
+void Core::LinAlg::SparseMatrix::sum_into_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
-  return sysmat_->SumIntoGlobalValues(global_row, num_entries, values, indices);
+  ASSERT_EPETRA_CALL(sysmat_->SumIntoGlobalValues(global_row, num_entries, values, indices));
+}
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+void Core::LinAlg::SparseMatrix::sum_or_insert_global_values(
+    int global_row, int num_entries, const double* values, const int* indices)
+{
+  const int errone = sysmat_->SumIntoGlobalValues(global_row, num_entries, values, indices);
+  if (errone > 0)
+  {
+    [[maybe_unused]] int errtwo =
+        sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
+    FOUR_C_ASSERT(errtwo >= 0, "Epetra error (code {}).", errtwo);
+  }
+  else if (errone < 0)
+  {
+    FOUR_C_THROW("Epetra error (code {}).", errone);
+  }
 }
 
 /*----------------------------------------------------------------------*
