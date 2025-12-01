@@ -29,13 +29,6 @@ namespace Core::Conditions
 
 namespace BeamContact
 {
-  /// Type of employed solving strategy
-  /// (this enum represents the input file parameter BEAMS_STRATEGY)
-  enum Strategy
-  {
-    bstr_none,    ///< no beam contact
-    bstr_penalty  ///< penalty method
-  };
 
   enum PenaltyLaw
   {

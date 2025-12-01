@@ -23,15 +23,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
   specs.push_back(group("BEAM CONTACT",
       {
 
-          deprecated_selection<BeamContact::Strategy>("BEAMS_STRATEGY",
-              {
-                  {"None", bstr_none},
-                  {"none", bstr_none},
-                  {"Penalty", bstr_penalty},
-                  {"penalty", bstr_penalty},
-              },
-              {.description = "Type of employed solving strategy", .default_value = bstr_none}),
-
           parameter<bool>(
               "BEAMS_NEWGAP", {.description = "choose between original or enhanced gapfunction",
                                   .default_value = true}),

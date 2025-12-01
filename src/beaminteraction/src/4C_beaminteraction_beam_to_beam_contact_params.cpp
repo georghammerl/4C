@@ -19,7 +19,6 @@ FOUR_C_NAMESPACE_OPEN
 BeamInteraction::BeamToBeamContactParams::BeamToBeamContactParams()
     : isinit_(false),
       issetup_(false),
-      strategy_(BeamContact::bstr_none),
       penalty_law_(BeamContact::pl_lp),
       btb_penalty_law_regularization_g0_(-1.0),
       btb_penalty_law_regularization_f0_(-1.0),
@@ -53,13 +52,6 @@ void BeamInteraction::BeamToBeamContactParams::init()
   /****************************************************************************/
   // get and check required parameters
   /****************************************************************************/
-  strategy_ =
-      Teuchos::getIntegralValue<BeamContact::Strategy>(beam_contact_params_list, "BEAMS_STRATEGY");
-
-  if (strategy_ != BeamContact::bstr_penalty)
-    FOUR_C_THROW(
-        "currently only a penalty strategy is supported for beam contact"
-        " if not using the 'old' beam contact manager!");
 
   /****************************************************************************/
   penalty_law_ = Teuchos::getIntegralValue<BeamContact::PenaltyLaw>(
