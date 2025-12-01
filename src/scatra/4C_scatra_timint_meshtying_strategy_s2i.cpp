@@ -406,26 +406,13 @@ void ScaTra::MeshtyingStrategyS2I::evaluate_meshtying()
               // system matrix this effectively forces the slave-side degree of freedom to assume
               // the same value as the master-side degree of freedom
               const double value(-1.);
-              if (systemmatrix->insert_global_values(slavedofgid, 1, &value, &masterdofgid) < 0)
-              {
-                FOUR_C_THROW(
-                    "Cannot insert value -1. into matrix row with global ID {} and matrix column "
-                    "with global ID {}!",
-                    slavedofgid, masterdofgid);
-              }
+              systemmatrix->insert_global_values(slavedofgid, 1, &value, &masterdofgid);
 
               // insert zero into intersection of slave-side row and master-side column in temporary
               // matrix this prevents the system matrix from changing its graph when calling this
               // function again during the next Newton iteration
               const double zero(0.);
-              if (systemmatrixrowsslave.insert_global_values(slavedofgid, 1, &zero, &masterdofgid) <
-                  0)
-              {
-                FOUR_C_THROW(
-                    "Cannot insert zero into matrix row with global ID {} and matrix column with "
-                    "global ID {}!",
-                    slavedofgid, masterdofgid);
-              }
+              systemmatrixrowsslave.insert_global_values(slavedofgid, 1, &zero, &masterdofgid);
             }
 
             // finalize temporary matrix with slave-side rows of system matrix
@@ -3428,8 +3415,7 @@ void ScaTra::MeshtyingStrategyS2I::extract_matrix_rows(
     matrix.extract_global_row_copy(dofgid, length, numentries, values.data(), indices.data());
 
     // copy current source matrix row into destination matrix
-    if (rows.insert_global_values(dofgid, numentries, values.data(), indices.data()) < 0)
-      FOUR_C_THROW("Cannot insert matrix row with global ID {} into destination matrix!", dofgid);
+    rows.insert_global_values(dofgid, numentries, values.data(), indices.data());
   }
 }
 

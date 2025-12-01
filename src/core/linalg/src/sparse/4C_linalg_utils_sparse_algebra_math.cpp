@@ -495,12 +495,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
       }
     }
 
-    int err = mat.insert_global_values(grid, indices.size(), rowvals.data(), indices.data());
-    if (err < 0)
-    {
-      FOUR_C_THROW(
-          "insertion error when trying to compute krylov projection matrix (error code: {}).", err);
-    }
+    mat.insert_global_values(grid, indices.size(), rowvals.data(), indices.data());
   }
 
   // call fill complete

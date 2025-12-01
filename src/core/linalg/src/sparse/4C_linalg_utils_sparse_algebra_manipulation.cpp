@@ -406,8 +406,6 @@ void Core::LinAlg::split_matrix2x2(
   const int length = ASparse.num_my_rows();
   for (int i = 0; i < length; ++i)
   {
-    int err1 = 0;
-    int err2 = 0;
     int count1 = 0;
     int count2 = 0;
     const int grid = ASparse.global_row_index(i);
@@ -438,17 +436,14 @@ void Core::LinAlg::split_matrix2x2(
     }
     if (A11rmap.my_gid(grid))
     {
-      if (count1) err1 = A11.insert_global_values(grid, count1, gvalues1.data(), gcindices1.data());
-      if (count2) err2 = A12.insert_global_values(grid, count2, gvalues2.data(), gcindices2.data());
+      if (count1) A11.insert_global_values(grid, count1, gvalues1.data(), gcindices1.data());
+      if (count2) A12.insert_global_values(grid, count2, gvalues2.data(), gcindices2.data());
     }
     else
     {
-      if (count1) err1 = A21.insert_global_values(grid, count1, gvalues1.data(), gcindices1.data());
-      if (count2) err2 = A22.insert_global_values(grid, count2, gvalues2.data(), gcindices2.data());
+      if (count1) A21.insert_global_values(grid, count1, gvalues1.data(), gcindices1.data());
+      if (count2) A22.insert_global_values(grid, count2, gvalues2.data(), gcindices2.data());
     }
-
-    if (err1 < 0 || err2 < 0)
-      FOUR_C_THROW("InsertGlobalValues returned err1={} / err2={}", err1, err2);
   }
 }
 
@@ -527,9 +522,8 @@ void Core::LinAlg::split_matrixmxn(
         {
           if (counters[n])
           {
-            if (ABlock(m, n).insert_global_values(
-                    rowgid, counters[n], rowvalues[n].data(), colgids[n].data()))
-              FOUR_C_THROW("Couldn't insert matrix entries into BlockSparseMatrixBase!");
+            ABlock(m, n).insert_global_values(
+                rowgid, counters[n], rowvalues[n].data(), colgids[n].data());
           }
         }
         break;
@@ -570,8 +564,7 @@ int Core::LinAlg::insert_my_row_diagonal_into_unfilled_matrix(
     }
     else
     {
-      const int err = mat.insert_global_values(rgid, 1, (diag_values + lid), &rgid);
-      if (err < 0) FOUR_C_THROW("InsertGlobalValues error: {}", err);
+      mat.insert_global_values(rgid, 1, (diag_values + lid), &rgid);
     }
   }
 
@@ -876,8 +869,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_transform_g
       idx[j] = (inmat.col_map()).gid(Indices[j]);
     }
 
-    int err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
-    if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
+    outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
   }
 
   // complete output matrix
@@ -931,8 +923,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_col_transform_g
 
     Values = vals.data();
     NumEntries = vals.size();
-    int err = outmat->insert_global_values(inmat.row_map().gid(i), NumEntries, Values, idx.data());
-    if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
+    outmat->insert_global_values(inmat.row_map().gid(i), NumEntries, Values, idx.data());
   }
 
   // complete output matrix
@@ -988,8 +979,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_col_transfo
 
     Values = vals.data();
     NumEntries = vals.size();
-    int err = outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
-    if (err < 0) FOUR_C_THROW("insert_global_values error: {}", err);
+    outmat->insert_global_values(newrowmap.gid(i), NumEntries, Values, idx.data());
   }
 
   // complete output matrix

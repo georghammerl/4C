@@ -358,8 +358,7 @@ void Coupling::Adapter::MatrixLogicalSplitAndTransform::add_into_unfilled(
 
     if (edst.num_allocated_global_entries(globalRow) == 0)
     {
-      int err = edst.insert_global_values(globalRow, NumEntries, vals.data(), idx.data());
-      if (err < 0) FOUR_C_THROW("InsertGlobalValues error: {}", err);
+      edst.insert_global_values(globalRow, NumEntries, vals.data(), idx.data());
     }
     else
       for (int j = 0; j < NumEntries; ++j)

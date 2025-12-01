@@ -562,7 +562,7 @@ namespace Core::LinAlg
         int global_row, int num_entries, const double* values, const int* indices);
 
     /// Inserts values into a global row.
-    int insert_global_values(
+    void insert_global_values(
         int global_row, int num_entries, const double* values, const int* indices);
 
     /// Sum values into a global row.
