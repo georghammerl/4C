@@ -108,22 +108,7 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
               {.description = "For gaps > -BEAMS_BASICSTIFFGAP, only the basic part "
                               "of the contact linearization is applied!",
                   .default_value = -1.0}),
-
-          parameter<bool>("BEAMS_ADDITEXT",
-              {.description = "Switch between No==multiplicative extrusion factor and "
-                              "Yes==additive extrusion factor",
-                  .default_value = true}),
-          parameter<std::string>("BEAMS_EXTVAL",
-              {.description =
-                      "extrusion value(s) of the bounding box, Depending on BEAMS_ADDITIVEEXTFAC "
-                      "is either  additive or multiplicative. Give one or two values.",
-                  .default_value = "-1.0"}),
-
-          parameter<int>("BEAMS_TREEDEPTH",
-              {.description = "max. tree depth of the octree", .default_value = 6}),
-          parameter<int>(
-              "BEAMS_BOXESINOCT", {.description = "max number of bounding boxes in any leaf octant",
-                                      .default_value = 8})},
+      },
       {.required = false}));
   /* parameters for visualization of beam contact via output at runtime */
   specs.push_back(group("BEAM CONTACT/RUNTIME VTK OUTPUT",

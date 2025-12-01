@@ -298,33 +298,4 @@ Type BeamInteraction::get_closest_endpoint_dist(Core::LinAlg::Matrix<3, 1, Type>
   return minnodaldist;
 }
 
-/*----------------------------------------------------------------------------------------*
- |  Determine inpute parameter representing the additive searchbox increment   meier 10/14|
- *----------------------------------------------------------------------------------------*/
-double BeamInteraction::determine_searchbox_inc(Teuchos::ParameterList& beamcontactparams)
-{
-  double searchboxinc = 0.0;
-
-  std::vector<double> extval;
-  std::string extrusion_value_in(
-      Teuchos::getNumericStringParameter(beamcontactparams, "BEAMS_EXTVAL"));
-
-  Core::IO::ValueParser extrusionvalue_parser(
-      extrusion_value_in, {.user_scope_message = "While reading extrusion values: "});
-
-  while (!extrusionvalue_parser.at_end())
-  {
-    extval.push_back(extrusionvalue_parser.read<double>());
-  }
-
-  if ((int)extval.size() > 2)
-    FOUR_C_THROW("BEAMS_EXTVAL should contain no more than two values. Check your input file.");
-  if (extval.size() == 1)
-    searchboxinc = extval.at(0);
-  else
-    searchboxinc = std::max(extval.at(0), extval.at(1));
-
-  return searchboxinc;
-}
-
 FOUR_C_NAMESPACE_CLOSE

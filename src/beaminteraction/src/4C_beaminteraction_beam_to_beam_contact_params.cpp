@@ -170,16 +170,6 @@ void BeamInteraction::BeamToBeamContactParams::init()
   /****************************************************************************/
   if (btb_basicstiff_gap_ != -1.0) FOUR_C_THROW("BEAMS_BASICSTIFFGAP currently not supported!");
 
-  /****************************************************************************/
-  if (not beam_contact_params_list.get<bool>("BEAMS_ADDITEXT") or
-      beam_contact_params_list.get<int>("BEAMS_TREEDEPTH") != 6 or
-      beam_contact_params_list.get<int>("BEAMS_BOXESINOCT") != 8)
-    FOUR_C_THROW(
-        "you seem to have set a search-related parameter in the beam contact section! "
-        "this is not applicable in case of binning!");
-
-  // Todo BEAMS_EXTVAL is missing here
-
   isinit_ = true;
 }
 

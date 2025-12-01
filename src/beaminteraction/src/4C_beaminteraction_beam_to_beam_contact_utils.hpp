@@ -170,11 +170,6 @@ namespace BeamInteraction
       double& eta);
 
   /*
-  \brief Determine inpute parameter representing the additive searchbox increment
-  */
-  double determine_searchbox_inc(Teuchos::ParameterList& beamcontactparams);
-
-  /*
   \brief Check if a given double lies within a prescribed interval (enlarged by the tolerance
   XIETATOL)
   */
