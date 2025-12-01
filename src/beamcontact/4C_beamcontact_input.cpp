@@ -40,10 +40,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
               {.description = "choose between beam contact with and without subsegment generation",
                   .default_value = false}),
 
-          parameter<bool>("BEAMS_BTSOL",
-              {.description = "decide, if also the contact between beams and solids is possible",
-                  .default_value = false}),
-
           parameter<bool>("BEAMS_ENDPOINTPENALTY",
               {.description =
                       "Additional consideration of endpoint-line and endpoint-endpoint contacts",
