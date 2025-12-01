@@ -40,11 +40,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
               {.description = "choose between beam contact with and without subsegment generation",
                   .default_value = false}),
 
-          parameter<bool>("BEAMS_DEBUG",
-              {.description = "This flag can be used for testing purposes. When it is "
-                              "switched on, some sanity checks are not performed!",
-                  .default_value = false}),
-
           parameter<bool>("BEAMS_INACTIVESTIFF",
               {.description = "Always apply contact stiffness in first Newton step "
                               "for pairs which have active in last time step",
