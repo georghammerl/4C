@@ -9,6 +9,7 @@ four_c_auto_define_module()
 
 set(_dependencies
     # cmake-format: sortable
+    beaminteraction
     config
     contact_constitutivelaw
     core

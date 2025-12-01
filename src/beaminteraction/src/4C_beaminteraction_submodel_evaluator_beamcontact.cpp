@@ -8,7 +8,6 @@
 #include "4C_beaminteraction_submodel_evaluator_beamcontact.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_beaminteraction_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_beam_to_solid_surface_contact_params.hpp"
@@ -96,7 +95,8 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
 
   // build runtime visualization writer if desired
   if (Global::Problem::instance()
-          ->beam_contact_params()
+          ->beam_interaction_params()
+          .sublist("BEAM TO BEAM CONTACT")
           .sublist("RUNTIME VTK OUTPUT")
           .get<bool>("VTK_OUTPUT_BEAM_CONTACT"))
   {
@@ -108,9 +108,10 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
 
   contactelementtypes_.clear();
 
-  if (Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
-          Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO BEAM CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none)
+  std::vector<const Core::Conditions::Condition*> beamtobeamcontactconditions;
+  discret().get_condition("BeamToBeamContact", beamtobeamcontactconditions);
+
+  if (beamtobeamcontactconditions.size() > 0)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
 
