@@ -365,14 +365,7 @@ void Coupling::Adapter::MatrixLogicalSplitAndTransform::add_into_unfilled(
       for (int j = 0; j < NumEntries; ++j)
       {
         // add all values, including zeros, as we need a proper matrix graph
-        int err = edst.sum_into_global_values(globalRow, 1, &vals[j], &idx[j]);
-        if (err > 0)
-        {
-          err = edst.insert_global_values(globalRow, 1, &vals[j], &idx[j]);
-          if (err < 0) FOUR_C_THROW("InsertGlobalValues error: {}", err);
-        }
-        else if (err < 0)
-          FOUR_C_THROW("SumIntoGlobalValues error: {}", err);
+        edst.sum_or_insert_global_values(globalRow, 1, &vals[j], &idx[j]);
       }
   }
 }

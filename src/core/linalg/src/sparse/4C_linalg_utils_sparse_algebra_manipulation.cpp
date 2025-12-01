@@ -566,14 +566,7 @@ int Core::LinAlg::insert_my_row_diagonal_into_unfilled_matrix(
     if (mat.num_allocated_global_entries(rgid))
     {
       // add all values, including zeros, as we need a proper matrix graph
-      int err = mat.sum_into_global_values(rgid, 1, (diag_values + lid), &rgid);
-      if (err > 0)
-      {
-        err = mat.insert_global_values(rgid, 1, (diag_values + lid), &rgid);
-        if (err < 0) FOUR_C_THROW("InsertGlobalValues error: {}", err);
-      }
-      else if (err < 0)
-        FOUR_C_THROW("SumIntoGlobalValues error: {}", err);
+      mat.sum_or_insert_global_values(rgid, 1, (diag_values + lid), &rgid);
     }
     else
     {
