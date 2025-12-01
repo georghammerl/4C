@@ -43,7 +43,6 @@ Core::LinearSolver::IterativeSolver::IterativeSolver(MPI_Comm comm, Teuchos::Par
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 void Core::LinearSolver::IterativeSolver::setup(std::shared_ptr<Core::LinAlg::SparseOperator> A,
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> x,
     std::shared_ptr<Core::LinAlg::MultiVector<double>> b, const bool refactor, const bool reset,
     std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector)
 {
@@ -62,7 +61,6 @@ void Core::LinearSolver::IterativeSolver::setup(std::shared_ptr<Core::LinAlg::Sp
   }
 
   a_ = A;
-  x_ = x;
   b_ = b;
 
   if (create)
@@ -73,7 +71,7 @@ void Core::LinearSolver::IterativeSolver::setup(std::shared_ptr<Core::LinAlg::Sp
       std::cout << "*******************************************************" << std::endl;
     }
 
-    preconditioner_->setup(*a_, *x_, *b_);
+    preconditioner_->setup(*a_, *b_);
   }
   else
   {
@@ -87,13 +85,12 @@ void Core::LinearSolver::IterativeSolver::setup(std::shared_ptr<Core::LinAlg::Sp
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-int Core::LinearSolver::IterativeSolver::solve()
+int Core::LinearSolver::IterativeSolver::solve(Core::LinAlg::MultiVector<double>& x)
 {
   Teuchos::ParameterList& belist = params().sublist("Belos Parameters");
 
   auto problem = Teuchos::make_rcp<Belos::LinearProblem<double, BelosVectorType, BelosMatrixType>>(
-      Teuchos::rcpFromRef(a_->epetra_operator()),
-      Teuchos::rcpFromRef(x_->get_epetra_multi_vector()),
+      Teuchos::rcpFromRef(a_->epetra_operator()), Teuchos::rcpFromRef(x.get_epetra_multi_vector()),
       Teuchos::rcpFromRef(b_->get_epetra_multi_vector()));
 
   if (preconditioner_ != nullptr)

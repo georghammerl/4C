@@ -40,12 +40,11 @@ namespace Core::LinearSolver
      * @param projector Krylov projector
      */
     void setup(std::shared_ptr<Core::LinAlg::SparseOperator> A,
-        std::shared_ptr<Core::LinAlg::MultiVector<double>> x,
         std::shared_ptr<Core::LinAlg::MultiVector<double>> b, const bool refactor, const bool reset,
         std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector) override;
 
     //! Actual call to the underlying Belos solver
-    int solve() override;
+    int solve(Core::LinAlg::MultiVector<double>& x) override;
 
     int ncall() { return ncall_; }
 
@@ -85,9 +84,6 @@ namespace Core::LinearSolver
 
     //! (internal) parameter lists
     Teuchos::ParameterList& params_;
-
-    //! initial guess and solution
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> x_;
 
     //! right hand side vector
     std::shared_ptr<Core::LinAlg::MultiVector<double>> b_;

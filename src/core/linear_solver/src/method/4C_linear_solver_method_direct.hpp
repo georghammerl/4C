@@ -36,11 +36,10 @@ namespace Core::LinearSolver
      * @param projector Krylov projector
      */
     void setup(std::shared_ptr<Core::LinAlg::SparseOperator> matrix,
-        std::shared_ptr<Core::LinAlg::MultiVector<double>> x,
         std::shared_ptr<Core::LinAlg::MultiVector<double>> b, const bool refactor, const bool reset,
         std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector = nullptr) override;
 
-    int solve() override;
+    int solve(Core::LinAlg::MultiVector<double>& x) override;
 
     bool is_factored() { return factored_; }
 
@@ -50,9 +49,6 @@ namespace Core::LinearSolver
 
     //! flag indicating whether a valid factorization is stored
     bool factored_;
-
-    //! initial guess and solution
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> x_;
 
     //! right hand side vector
     std::shared_ptr<Core::LinAlg::MultiVector<double>> b_;

@@ -49,8 +49,8 @@ Core::LinearSolver::MueLuPreconditioner::MueLuPreconditioner(Teuchos::ParameterL
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
-    const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
+void Core::LinearSolver::MueLuPreconditioner::setup(
+    Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b)
 {
   using EpetraCrsMatrix = Xpetra::EpetraCrsMatrixT<GO, NO>;
   using EpetraMap = Xpetra::EpetraMapT<GO, NO>;
