@@ -32,15 +32,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
               },
               {.description = "Type of employed solving strategy", .default_value = bstr_none}),
 
-          deprecated_selection<BeamContact::Modelevaluator>("MODELEVALUATOR",
-              {
-                  {"Old", bstr_old},
-                  {"old", bstr_old},
-                  {"Standard", bstr_standard},
-                  {"standard", bstr_standard},
-              },
-              {.description = "Type of model evaluator", .default_value = bstr_old}),
-
           parameter<bool>(
               "BEAMS_NEWGAP", {.description = "choose between original or enhanced gapfunction",
                                   .default_value = true}),

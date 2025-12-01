@@ -496,12 +496,6 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
   // ---------------------------------------------------------------------------
   // check for beam interactions (either contact or potential-based)
   // ---------------------------------------------------------------------------
-  // get beam contact strategy
-  const Teuchos::ParameterList& beamcontact = Global::Problem::instance()->beam_contact_params();
-  auto strategy = Teuchos::getIntegralValue<BeamContact::Strategy>(beamcontact, "BEAMS_STRATEGY");
-
-  auto modelevaluator =
-      Teuchos::getIntegralValue<BeamContact::Modelevaluator>(beamcontact, "MODELEVALUATOR");
 
   // conditions for potential-based beam interaction
   std::vector<const Core::Conditions::Condition*> beampotconditions;
@@ -514,10 +508,6 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
   std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
   actdis_->get_condition(
       "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
-
-
-  if (strategy != BeamContact::bstr_none and modelevaluator == BeamContact::bstr_old)
-    modeltypes.insert(Inpar::Solid::model_beam_interaction_old);
 
   // ---------------------------------------------------------------------------
   // check for brownian dynamics
