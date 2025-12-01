@@ -491,7 +491,7 @@ In order to use the Yaml schema in VS Code, which simplifies editing |FOURC|  in
    Search for "schemas".
    You'll find the entry **JSON: Schemas** containing the link *Edit in settings.json*; click on it.
 
-   In the ``setting.json`` file, you might have entries already; add the following entry to the main dictionary
+   In the ``settings.json`` file, you might have entries already; add the following entry to the main dictionary
    (adjust the directory of the json file to your build directory, where this file is located):
 
    ::
