@@ -109,19 +109,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
                               "of the contact linearization is applied!",
                   .default_value = -1.0}),
 
-          // enable octree search and determine type of bounding box (aabb = axis aligned, cobb =
-          // cylindrical oriented)
-          deprecated_selection<BeamContact::OctreeType>("BEAMS_OCTREE",
-              {
-                  {"None", boct_none},
-                  {"none", boct_none},
-                  {"octree_axisaligned", boct_aabb},
-                  {"octree_cylorient", boct_cobb},
-                  {"octree_spherical", boct_spbb},
-              },
-              {.description = "octree and bounding box type for octree search routine",
-                  .default_value = boct_none}),
-
           parameter<bool>("BEAMS_ADDITEXT",
               {.description = "Switch between No==multiplicative extrusion factor and "
                               "Yes==additive extrusion factor",

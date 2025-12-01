@@ -171,9 +171,7 @@ void BeamInteraction::BeamToBeamContactParams::init()
   if (btb_basicstiff_gap_ != -1.0) FOUR_C_THROW("BEAMS_BASICSTIFFGAP currently not supported!");
 
   /****************************************************************************/
-  if (Teuchos::getIntegralValue<BeamContact::OctreeType>(
-          beam_contact_params_list, "BEAMS_OCTREE") != BeamContact::boct_none or
-      not beam_contact_params_list.get<bool>("BEAMS_ADDITEXT") or
+  if (not beam_contact_params_list.get<bool>("BEAMS_ADDITEXT") or
       beam_contact_params_list.get<int>("BEAMS_TREEDEPTH") != 6 or
       beam_contact_params_list.get<int>("BEAMS_BOXESINOCT") != 8)
     FOUR_C_THROW(

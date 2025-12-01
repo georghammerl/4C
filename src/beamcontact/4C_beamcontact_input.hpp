@@ -48,16 +48,6 @@ namespace BeamContact
     pl_lpep    ///< linear penalty law with exponential regularization for positive gaps
   };
 
-  /// Beam Contact Octree and Bounding Box Type
-  /// (this enum represents the input file parameter BEAMS_OCTREEBBOX)
-  enum OctreeType
-  {
-    boct_none,  ///< no bounding box -> no octree
-    boct_aabb,  ///< axis aligned bounding boxes
-    boct_cobb,  ///< cylindrical oriented bounding boxes
-    boct_spbb   ///< spherical bounding boxes
-  };
-
   /// beam contact parameters
   std::vector<Core::IO::InputSpec> valid_parameters();
 
