@@ -50,8 +50,6 @@ namespace BeamInteraction
       if (!is_init()) FOUR_C_THROW("init() has not been called yet!");
     }
 
-    inline BeamContact::Strategy strategy() const { return strategy_; }
-
     inline BeamContact::PenaltyLaw penalty_law() const { return penalty_law_; }
 
     inline double beam_to_beam_penalty_law_regularization_g0() const
@@ -103,9 +101,6 @@ namespace BeamInteraction
     bool isinit_;
 
     bool issetup_;
-
-    //! strategy
-    BeamContact::Strategy strategy_;
 
     //! penalty law
     BeamContact::PenaltyLaw penalty_law_;
