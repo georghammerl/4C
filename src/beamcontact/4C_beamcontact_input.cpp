@@ -45,15 +45,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
                       "Additional consideration of endpoint-line and endpoint-endpoint contacts",
                   .default_value = false}),
 
-          deprecated_selection<BeamContact::Smoothing>("BEAMS_SMOOTHING",
-              {
-                  {"None", bsm_none},
-                  {"none", bsm_none},
-                  {"Cpp", bsm_cpp},
-                  {"cpp", bsm_cpp},
-              },
-              {.description = "Application of smoothed tangent field", .default_value = bsm_none}),
-
           parameter<bool>("BEAMS_DAMPING",
               {.description = "Application of a contact damping force", .default_value = false}),
 

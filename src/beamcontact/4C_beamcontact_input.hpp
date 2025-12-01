@@ -37,17 +37,6 @@ namespace BeamContact
     bstr_penalty  ///< penalty method
   };
 
-  /// Application of a smoothed tangent field
-  /// (this enum represents the input file parameter BEAMS_SMOOTHING)
-  enum Smoothing
-  {
-    bsm_none,  ///< no smoothing
-    bsm_cpp    ///< smoothing only for the closest point projection; element evaluation without
-               ///< smoothing"
-  };
-
-  /// Application of a smoothed tangent field
-  /// (this enum represents the input file parameter BEAMS_SMOOTHING)
   enum PenaltyLaw
   {
     pl_lp,     ///< linear penalty law
