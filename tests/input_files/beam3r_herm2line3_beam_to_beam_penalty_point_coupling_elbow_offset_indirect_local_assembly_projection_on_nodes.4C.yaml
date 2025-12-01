@@ -3,8 +3,7 @@ TITLE:
     is exactly at an interelement node. Coupling terms are assembled locally."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
-BEAM CONTACT:
-  BEAM INTERACTION:
+BEAM INTERACTION:
   REPARTITIONSTRATEGY: "Everydt"
 BEAM INTERACTION/BEAM TO BEAM POINT COUPLING CONDITIONS:
   - E: 1

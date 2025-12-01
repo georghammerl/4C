@@ -2,8 +2,7 @@ TITLE:
   NAME: "Minimal test case for a beam to solid edge contact with penalty method"
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
-BEAM CONTACT:
-  BEAM INTERACTION:
+BEAM INTERACTION:
   REPARTITIONSTRATEGY: "Everydt"
   SEARCH_STRATEGY: "bounding_volume_hierarchy"
 BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT:
