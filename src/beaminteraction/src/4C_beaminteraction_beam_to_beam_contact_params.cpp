@@ -168,14 +168,6 @@ void BeamInteraction::BeamToBeamContactParams::init()
         " in new beam interaction framework!");
 
   /****************************************************************************/
-  if (beam_contact_params_list.get<bool>("BEAMS_DEBUG"))
-    FOUR_C_THROW("get rid of this nasty BEAMS_DEBUG flag");
-
-  /****************************************************************************/
-  if (beam_contact_params_list.get<bool>("BEAMS_INACTIVESTIFF"))
-    FOUR_C_THROW("get rid of BEAMS_INACTIVESTIFF flag; no longer supported!");
-
-  /****************************************************************************/
   if (beam_contact_params_list.get<bool>("BEAMS_BTSOL") or
       beam_contact_params_list.get<double>("BEAMS_BTSPENALTYPARAM") != 0.0)
     FOUR_C_THROW("currently only beam-to-(BEAM/SPHERE) contact supported!");
