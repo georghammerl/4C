@@ -723,17 +723,28 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_force(
   Core::LinAlg::export_to(*constraint_, constraint_rhs_map);
 
   auto lambda = get_global_lambda();
-  auto lambda_update_rhs_map = Core::LinAlg::Vector<double>(f.get_map());
+  Core::LinAlg::Vector<double> force_solid_lin_lambda_times_lambda(
+      force_solid_lin_lambda_->range_map());
+  Core::LinAlg::Vector<double> force_beam_lin_lambda_times_lambda(
+      force_beam_lin_lambda_->range_map());
 
   // obtain the matrix blocks of the rhs of the lambda incremental scheme
-  auto force_solid_lin_lambda_times_lambda = Core::LinAlg::Vector<double>(f.get_map());
-  auto force_beam_lin_lambda_times_lambda = Core::LinAlg::Vector<double>(f.get_map());
   force_solid_lin_lambda_->Apply(*lambda, force_solid_lin_lambda_times_lambda);
   force_beam_lin_lambda_->Apply(*lambda, force_beam_lin_lambda_times_lambda);
 
+  // move to global f-map
+  Core::LinAlg::Vector<double> force_solid_lin_lambda_times_lambda_on_f(f.get_map());
+  Core::LinAlg::export_to(force_solid_lin_lambda_times_lambda,
+      force_solid_lin_lambda_times_lambda_on_f);  // Export/Add as your helper does
+
+  Core::LinAlg::Vector<double> force_beam_lin_lambda_times_lambda_on_f(f.get_map());
+  Core::LinAlg::export_to(
+      force_beam_lin_lambda_times_lambda, force_beam_lin_lambda_times_lambda_on_f);
+
+
   f.update(1., constraint_rhs_map, 1.);
-  f.update(-1., force_solid_lin_lambda_times_lambda, 1.);
-  f.update(-1., force_beam_lin_lambda_times_lambda, 1.);
+  f.update(-1.0, force_solid_lin_lambda_times_lambda_on_f, 1.0);
+  f.update(-1.0, force_beam_lin_lambda_times_lambda_on_f, 1.0);
 
   if (parameters_.lagrange_formulation ==
       Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
