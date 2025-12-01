@@ -2877,6 +2877,17 @@ namespace Core::FE
         deriv2(drdr, 3) = -(9.0 / 8.0) - (81.0 / 16.0) * 2 * r;
         break;
       }
+      case Core::FE::CellType::line5:
+      {
+        FOUR_C_ASSERT_ALWAYS(
+            static_cast<int>(deriv2.num_cols()) == 5, "Internal error: size mismatch.");
+        deriv2(drdr, 0) = -1.0 / 3.0 - 4.0 * r + 8.0 * r * r;
+        deriv2(drdr, 1) = -1.0 / 3.0 + 4.0 * r + 8.0 * r * r;
+        deriv2(drdr, 2) = 16.0 / 3.0 + 8.0 * r - 32.0 * r * r;
+        deriv2(drdr, 3) = -10.0 + 48.0 * r * r;
+        deriv2(drdr, 4) = 16.0 / 3.0 - 8.0 * r - 32.0 * r * r;
+        break;
+      }
       default:
         FOUR_C_THROW("distype unknown\n");
         break;

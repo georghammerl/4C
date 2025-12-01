@@ -192,6 +192,7 @@ namespace GeometryPair
   using t_line2_scalar = ElementDiscretizationBase<Core::FE::CellType::line2, 1, 1>;
   using t_line3 = ElementDiscretizationBase<Core::FE::CellType::line3, 1>;
   using t_line4 = ElementDiscretizationBase<Core::FE::CellType::line4, 1>;
+  using t_line5 = ElementDiscretizationBase<Core::FE::CellType::line5, 1>;
 
   //! 2D elements
   using t_tri3 = ElementDiscretizationBase<Core::FE::CellType::tri3, 1>;
@@ -240,6 +241,12 @@ namespace GeometryPair
 
   template <>
   struct IsLagrangeElement<t_line4>
+  {
+    static const bool value_ = true;
+  };
+
+  template <>
+  struct IsLagrangeElement<t_line5>
   {
     static const bool value_ = true;
   };

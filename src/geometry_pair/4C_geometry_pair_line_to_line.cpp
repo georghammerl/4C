@@ -108,9 +108,92 @@ GeometryPair::ProjectionResult GeometryPair::line_to_line_closest_point_projecti
  */
 namespace GeometryPair
 {
+  // line2-xxx
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line2, t_line2>(
+      const ElementData<t_line2, double>&, const ElementData<t_line2, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line2, t_line3>(
+      const ElementData<t_line2, double>&, const ElementData<t_line3, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line2, t_line4>(
+      const ElementData<t_line2, double>&, const ElementData<t_line4, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line2, t_line5>(
+      const ElementData<t_line2, double>&, const ElementData<t_line5, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line2, t_hermite>(
+      const ElementData<t_line2, double>&, const ElementData<t_hermite, double>&, double&, double&,
+      const bool);
+
+  // line3-xxx
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line3, t_line2>(
+      const ElementData<t_line3, double>&, const ElementData<t_line2, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line3, t_line3>(
+      const ElementData<t_line3, double>&, const ElementData<t_line3, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line3, t_line4>(
+      const ElementData<t_line3, double>&, const ElementData<t_line4, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line3, t_line5>(
+      const ElementData<t_line3, double>&, const ElementData<t_line5, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line3, t_hermite>(
+      const ElementData<t_line3, double>&, const ElementData<t_hermite, double>&, double&, double&,
+      const bool);
+
+  // line4-xxx
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line4, t_line2>(
+      const ElementData<t_line4, double>&, const ElementData<t_line2, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line4, t_line3>(
+      const ElementData<t_line4, double>&, const ElementData<t_line3, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line4, t_line4>(
+      const ElementData<t_line4, double>&, const ElementData<t_line4, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line4, t_line5>(
+      const ElementData<t_line4, double>&, const ElementData<t_line5, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line4, t_hermite>(
+      const ElementData<t_line4, double>&, const ElementData<t_hermite, double>&, double&, double&,
+      const bool);
+
+  // line5-xxx
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line5, t_line2>(
+      const ElementData<t_line5, double>&, const ElementData<t_line2, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line5, t_line3>(
+      const ElementData<t_line5, double>&, const ElementData<t_line3, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line5, t_line4>(
+      const ElementData<t_line5, double>&, const ElementData<t_line4, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line5, t_line5>(
+      const ElementData<t_line5, double>&, const ElementData<t_line5, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_line5, t_hermite>(
+      const ElementData<t_line5, double>&, const ElementData<t_hermite, double>&, double&, double&,
+      const bool);
+
+  // hermite-xxx
+  template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_line2>(
+      const ElementData<t_hermite, double>&, const ElementData<t_line2, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_line3>(
+      const ElementData<t_hermite, double>&, const ElementData<t_line3, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_line4>(
+      const ElementData<t_hermite, double>&, const ElementData<t_line4, double>&, double&, double&,
+      const bool);
+  template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_line5>(
+      const ElementData<t_hermite, double>&, const ElementData<t_line5, double>&, double&, double&,
+      const bool);
   template ProjectionResult line_to_line_closest_point_projection<double, t_hermite, t_hermite>(
       const ElementData<t_hermite, double>&, const ElementData<t_hermite, double>&, double&,
       double&, const bool);
+
+  // Higher order FAD
   template ProjectionResult line_to_line_closest_point_projection<Sacado::ELRFad::DFad<double>,
       t_hermite, t_line2>(const ElementData<t_hermite, Sacado::ELRFad::DFad<double>>&,
       const ElementData<t_line2, Sacado::ELRFad::DFad<double>>&, Sacado::ELRFad::DFad<double>&,
