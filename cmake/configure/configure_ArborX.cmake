@@ -29,7 +29,7 @@ else() # Fetch ArborX from GIT repository
   # Unconditionally turn on MPI support inside ArborX
   set(ARBORX_ENABLE_MPI "ON")
   set(ARBORX_GIT_REPO "https://github.com/arborx/ArborX.git")
-  set(ARBORX_GIT_TAG "58c5d9a85380bc85c27b4124ef747e245d6e1201") #latest hash on 31.03.2025
+  set(ARBORX_GIT_TAG "f9244ba03904cc518a54d99e9f87bb42dc9ecaf3") #v2.0.1
 
   fetchcontent_declare(
     arborx
