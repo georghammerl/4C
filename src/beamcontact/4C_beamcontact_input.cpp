@@ -44,27 +44,12 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
               {.description =
                       "Additional consideration of endpoint-line and endpoint-endpoint contacts",
                   .default_value = false}),
-
-          parameter<bool>("BEAMS_DAMPING",
-              {.description = "Application of a contact damping force", .default_value = false}),
-
           parameter<double>("BEAMS_BTBPENALTYPARAM",
               {.description = "Penalty parameter for beam-to-beam point contact",
                   .default_value = 0.0}),
           parameter<double>("BEAMS_BTBLINEPENALTYPARAM",
               {.description = "Penalty parameter per unit length for beam-to-beam line contact",
                   .default_value = -1.0}),
-          parameter<double>(
-              "BEAMS_DAMPINGPARAM", {.description = "Damping parameter for contact damping force",
-                                        .default_value = -1000.0}),
-          parameter<double>("BEAMS_DAMPREGPARAM1",
-              {.description = "First (at gap1, with gap1>gap2) regularization "
-                              "parameter for contact damping force",
-                  .default_value = -1000.0}),
-          parameter<double>("BEAMS_DAMPREGPARAM2",
-              {.description = "Second (at gap2, with gap1>gap2) regularization "
-                              "parameter for contact damping force",
-                  .default_value = -1000.0}),
           parameter<double>("BEAMS_MAXDISISCALEFAC",
               {.description = "Scale factor in order to limit maximal iterative "
                               "displacement increment (resiudal displacement)",

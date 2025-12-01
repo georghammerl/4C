@@ -168,14 +168,6 @@ void BeamInteraction::BeamToBeamContactParams::init()
         " in new beam interaction framework!");
 
   /****************************************************************************/
-  if (beam_contact_params_list.get<bool>("BEAMS_DAMPING") == true ||
-      beam_contact_params_list.get<double>("BEAMS_DAMPINGPARAM") != -1000.0 ||
-      beam_contact_params_list.get<double>("BEAMS_DAMPREGPARAM1") != -1000.0 ||
-      beam_contact_params_list.get<double>("BEAMS_DAMPREGPARAM2") != -1000.0)
-    FOUR_C_THROW("BEAMS_DAMPING currently not supported!");
-
-
-  /****************************************************************************/
   if (btb_basicstiff_gap_ != -1.0) FOUR_C_THROW("BEAMS_BASICSTIFFGAP currently not supported!");
 
   /****************************************************************************/
