@@ -9,6 +9,8 @@
 
 #include "4C_utils_exceptions.hpp"
 
+#include <algorithm>
+
 FOUR_C_NAMESPACE_OPEN
 
 void Core::Utils::SingletonOwnerRegistry::finalize()
@@ -22,12 +24,14 @@ void Core::Utils::SingletonOwnerRegistry::finalize()
 void Core::Utils::SingletonOwnerRegistry::register_deleter(
     void* owner, std::function<void()> deleter)
 {
-  instance().deleters_.emplace(owner, std::move(deleter));
+  instance().deleters_.emplace_back(owner, std::move(deleter));
 }
 
 void Core::Utils::SingletonOwnerRegistry::unregister(void* owner)
 {
-  instance().deleters_.erase(owner);
+  auto& deleters = instance().deleters_;
+
+  std::erase_if(deleters, [owner](const auto& item) { return item.first == owner; });
 }
 
 void Core::Utils::SingletonOwnerRegistry::initialize() { instance(); }

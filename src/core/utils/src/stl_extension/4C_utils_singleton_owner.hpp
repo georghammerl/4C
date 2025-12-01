@@ -15,6 +15,8 @@
 #include <map>
 #include <memory>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -80,6 +82,8 @@ namespace Core::Utils
      * This function is called at the end of the program to ensure that all singletons are
      * destructed.
      *
+     * @note Singletons are destructed in the order of their registration.
+     *
      * @note Prefer to use the ScopeGuard class which calls this function at the end of scope.
      */
     static void finalize();
@@ -101,7 +105,7 @@ namespace Core::Utils
     /**
      * Store the deleters.
      */
-    std::map<void*, std::function<void()>> deleters_;
+    std::vector<std::pair<void*, std::function<void()>>> deleters_;
 
     template <typename T, typename... CreationArgs>
     friend class SingletonOwner;
