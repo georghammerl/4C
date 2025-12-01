@@ -168,10 +168,6 @@ void BeamInteraction::BeamToBeamContactParams::init()
         " in new beam interaction framework!");
 
   /****************************************************************************/
-  if (beam_contact_params_list.get<double>("BEAMS_BTSPENALTYPARAM") != 0.0)
-    FOUR_C_THROW("currently only beam-to-(BEAM/SPHERE) contact supported!");
-
-  /****************************************************************************/
   if (beam_contact_params_list.get<bool>("BEAMS_DAMPING") == true ||
       beam_contact_params_list.get<double>("BEAMS_DAMPINGPARAM") != -1000.0 ||
       beam_contact_params_list.get<double>("BEAMS_DAMPREGPARAM1") != -1000.0 ||

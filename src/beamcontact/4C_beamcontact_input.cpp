@@ -54,8 +54,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
           parameter<double>("BEAMS_BTBLINEPENALTYPARAM",
               {.description = "Penalty parameter per unit length for beam-to-beam line contact",
                   .default_value = -1.0}),
-          parameter<double>("BEAMS_BTSPENALTYPARAM",
-              {.description = "Penalty parameter for beam-to-solid contact", .default_value = 0.0}),
           parameter<double>(
               "BEAMS_DAMPINGPARAM", {.description = "Damping parameter for contact damping force",
                                         .default_value = -1000.0}),
