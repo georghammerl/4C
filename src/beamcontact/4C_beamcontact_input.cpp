@@ -41,10 +41,6 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
           parameter<double>("BEAMS_BTBLINEPENALTYPARAM",
               {.description = "Penalty parameter per unit length for beam-to-beam line contact",
                   .default_value = -1.0}),
-          parameter<double>("BEAMS_MAXDELTADISSCALEFAC",
-              {.description = "Scale factor in order to limit maximal displacement per time step",
-                  .default_value = 1.0}),
-
           parameter<double>("BEAMS_PERPSHIFTANGLE1",
               {.description =
                       "Lower shift angle (in degrees) for penalty scaling of large-angle-contact",
