@@ -369,7 +369,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
     const int grid = P.global_row_index(rr);
 
     // add identity matrix by adding 1 on diagonal entries
-    P.sum_or_insert_global_values(grid, 1, &one, &grid);
+    P.assemble(one, grid, grid);
   }
 
   // call fill complete

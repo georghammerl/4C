@@ -560,7 +560,7 @@ int Core::LinAlg::insert_my_row_diagonal_into_unfilled_matrix(
     if (mat.num_allocated_global_entries(rgid))
     {
       // add all values, including zeros, as we need a proper matrix graph
-      mat.sum_or_insert_global_values(rgid, 1, (diag_values + lid), &rgid);
+      mat.assemble(*(diag_values + lid), rgid, rgid);
     }
     else
     {

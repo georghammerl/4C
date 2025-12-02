@@ -364,7 +364,7 @@ void Coupling::Adapter::MatrixLogicalSplitAndTransform::add_into_unfilled(
       for (int j = 0; j < NumEntries; ++j)
       {
         // add all values, including zeros, as we need a proper matrix graph
-        edst.sum_or_insert_global_values(globalRow, 1, &vals[j], &idx[j]);
+        edst.assemble(vals[j], globalRow, idx[j]);
       }
   }
 }

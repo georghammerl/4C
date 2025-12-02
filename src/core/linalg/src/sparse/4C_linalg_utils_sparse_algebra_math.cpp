@@ -125,7 +125,7 @@ namespace Core::LinAlg
           for (int j = 0; j < NumEntries; ++j) Values[j] *= scalarA;
         for (int j = 0; j < NumEntries; ++j)
         {
-          B.sum_or_insert_global_values(Row, 1, &Values[j], &Indices[j]);
+          B.assemble(Values[j], Row, Indices[j]);
         }
       }
 
