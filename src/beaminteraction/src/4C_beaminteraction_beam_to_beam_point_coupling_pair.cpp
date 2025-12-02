@@ -15,6 +15,7 @@
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_geometry_pair_access_traits.hpp"
 #include "4C_fem_general_extract_values.hpp"
+#include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_evaluation_functions.hpp"
 #include "4C_geometry_pair_line_to_line.hpp"
 #include "4C_linalg_fevector.hpp"
@@ -846,40 +847,42 @@ BeamInteraction::beam_to_beam_point_coupling_pair_factory(
     return {is_hermite, element_ptrs[i_beam]->shape(), n_dof};
   };
 
-  const auto [is_hermite_1, cell_type_1, n_dof_1] = get_element_info(0);
-  const auto [is_hermite_2, cell_type_2, n_dof_2] = get_element_info(1);
+  const auto element_info_1 = get_element_info(0);
+  const auto element_info_2 = get_element_info(1);
 
-  if (is_hermite_1 && n_dof_1 == 21 && is_hermite_2 && n_dof_2 == 21)
+  auto dispatch_beam_type = []<typename F>(bool is_hermite, unsigned int n_dof,
+                                F&& f) -> std::unique_ptr<BeamInteraction::BeamContactPair>
   {
-    return std::make_unique<
-        BeamToBeamPointCouplingPair<GeometryPair::t_hermite, 21, GeometryPair::t_hermite, 21>>(
-        parameters, line_to_line_evaluation_data);
-  }
-  else if (is_hermite_1 && n_dof_1 == 15 && is_hermite_2 && n_dof_2 == 15)
-  {
-    return std::make_unique<
-        BeamToBeamPointCouplingPair<GeometryPair::t_hermite, 15, GeometryPair::t_hermite, 15>>(
-        parameters, line_to_line_evaluation_data);
-  }
-  else if (is_hermite_1 && n_dof_1 == 21 && is_hermite_2 && n_dof_2 == 15)
-  {
-    return std::make_unique<
-        BeamToBeamPointCouplingPair<GeometryPair::t_hermite, 21, GeometryPair::t_hermite, 15>>(
-        parameters, line_to_line_evaluation_data);
-  }
-  else if (is_hermite_1 && n_dof_1 == 15 && is_hermite_2 && n_dof_2 == 21)
-  {
-    return std::make_unique<
-        BeamToBeamPointCouplingPair<GeometryPair::t_hermite, 15, GeometryPair::t_hermite, 21>>(
-        parameters, line_to_line_evaluation_data);
-  }
-  else
-  {
-    FOUR_C_THROW(
-        "The beam_to_beam_point_coupling_pair_factory does not support the given beam "
-        "elements with ndof {} and {}",
-        n_dof_1, n_dof_2);
-  }
+    if (is_hermite)
+    {
+      if (n_dof == 21) return f.template operator()<GeometryPair::t_hermite, 21>();
+      if (n_dof == 15) return f.template operator()<GeometryPair::t_hermite, 15>();
+    }
+    else
+    {
+      if (n_dof == 12) return f.template operator()<GeometryPair::t_line2, 12>();
+      if (n_dof == 18) return f.template operator()<GeometryPair::t_line3, 18>();
+      if (n_dof == 24) return f.template operator()<GeometryPair::t_line4, 24>();
+      if (n_dof == 30) return f.template operator()<GeometryPair::t_line5, 30>();
+    }
+
+    FOUR_C_THROW("Unsupported beam type with ndof {}", n_dof);
+  };
+
+  return dispatch_beam_type(std::get<0>(element_info_1), std::get<2>(element_info_1),
+      [&parameters, &line_to_line_evaluation_data, &element_info_2,
+          &dispatch_beam_type]<typename Beam1, unsigned int n_dof_1_temp>()
+          -> std::unique_ptr<BeamInteraction::BeamContactPair>
+      {
+        return dispatch_beam_type(std::get<0>(element_info_2), std::get<2>(element_info_2),
+            [&parameters,
+                &line_to_line_evaluation_data]<typename Beam2, unsigned int n_dof_2_temp>()
+                -> std::unique_ptr<BeamInteraction::BeamContactPair>
+            {
+              using Pair = BeamToBeamPointCouplingPair<Beam1, n_dof_1_temp, Beam2, n_dof_2_temp>;
+              return std::make_unique<Pair>(parameters, line_to_line_evaluation_data);
+            });
+      });
 }
 
 
