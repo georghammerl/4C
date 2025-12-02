@@ -42,40 +42,6 @@ namespace Core::LinAlg::FourTensorOperations
   void add_derivative_of_squared_tensor(Core::LinAlg::Matrix<6, 6>& C, double scalar_squared_dx,
       Core::LinAlg::Matrix<3, 3> X, double scalar_this);
 
-
-
-  /*!
-   * @brief Add scaled derivative of invA*B*invA w.r.t. A
-   *
-   * Add the following contribution to the tensor out(6,6) based on
-   * - the inverse of the tensor \f$\mathbf{A}\f$
-   * - the term invA*B*invA \f$\mathbf{A}^{-1} \mathbf{B} \mathbf{A}^{-1}\f$ with the tensor B
-   *   \f$\mathbf{B}\f$
-   *
-   * \f[
-   *    \text{scalar} \cdot \frac{\partial \mathbf{A}^{-1} \mathbf{B} \mathbf{A}^{-1}}{\partial
-   *    \mathbf{A}}
-   * \f]
-   *
-   * wherein the derivative \f$\frac{\partial \mathbf{A}^{-1} \mathbf{B} \mathbf{A}^{-1}}{\partial
-   * \mathbf{A}}\f$ is computed to:
-   * \f[
-   *   - \frac{1}{2} \cdot \left( A^{-1}_{ik} A^{-1}_{jm} B_{mn} A^{-1}_{nl} + A^{-1}_{il}
-   *    A^{-1}_{jm} B_{mn} A^{-1}_{nk} + A^{-1}_{jk} A^{-1}_{im} B_{mn} A^{-1}_{nl} + A^{-1}_{jl}
-   *    A^{-1}_{im} B_{mn} A^{-1}_{nk} \right)
-   * \f]
-   *
-   * @param[in] fac         Scaling factor
-   * @param[in] invA        Inverse of the 2nd order tensor A stress-like Voigt notation
-   * @param[in] invABinvA   2nd order tensor product invA*B*invA in stress-like Voigt notation
-   * @param[in,out] out     4th order tensor derivative of invA*B*invA w.r.t. A in stress-like Voigt
-   *                        notation
-   */
-  void add_derivative_of_inva_b_inva_product(double const& fac,
-      const Core::LinAlg::Matrix<6, 1>& invA, const Core::LinAlg::Matrix<6, 1>& invABinvA,
-      Core::LinAlg::Matrix<6, 6>& out);
-
-
   /*!
    * @brief Compute the derivative of the 2nd order tensor invA*B*invA w.r.t. the 2nd order tensor A
    *

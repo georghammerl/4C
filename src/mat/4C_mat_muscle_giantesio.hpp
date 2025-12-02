@@ -266,8 +266,8 @@ namespace Mat
      * @param[in] M Structural tensor of fiber directions
      * @return Fa Active deformation gradient
      */
-    Core::LinAlg::Matrix<3, 3> act_def_grad(
-        const double omegaa, const Core::LinAlg::Matrix<3, 3>& M);
+    Core::LinAlg::SymmetricTensor<double, 3, 3> act_def_grad(
+        const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M);
 
     /*!
      * @brief Returns the first derivative of the active deformation gradient Fa w.r.t. omegaa
@@ -276,8 +276,8 @@ namespace Mat
      * @param[in] M Structural tensor of fiber directions
      * @return dFadomegaa First derivative of the active deformation gradient
      */
-    Core::LinAlg::Matrix<3, 3> d_act_def_grad_d_act_level(
-        const double omegaa, const Core::LinAlg::Matrix<3, 3>& M);
+    Core::LinAlg::SymmetricTensor<double, 3, 3> d_act_def_grad_d_act_level(
+        const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M);
 
     /*!
      * @brief Returns the second derivative of the active deformation gradient Fa w.r.t. omegaa
@@ -286,16 +286,8 @@ namespace Mat
      * @param[in] M Structural tensor of fiber directions
      * @return ddFaddomegaa Second derivative of the active deformation gradient
      */
-    Core::LinAlg::Matrix<3, 3> dd_act_def_grad_dd_act_level(
-        const double omegaa, const Core::LinAlg::Matrix<3, 3>& M);
-
-    /*!
-     * @brief Returns the inverse of the active deformation gradient Fa
-     *
-     * @param[in] Fa Active deformation gradient
-     * @return invFa Inverse of the active deformation gradient
-     */
-    Core::LinAlg::Matrix<3, 3> inv_act_def_grad(const Core::LinAlg::Matrix<3, 3>& Fa);
+    Core::LinAlg::SymmetricTensor<double, 3, 3> dd_act_def_grad_dd_act_level(
+        const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M);
 
     /*!
      * @brief Returns the first derivative of the inverse of the active deformation gradient Fa
@@ -305,8 +297,9 @@ namespace Mat
      * @param[in] dFadomegaa First derivative of the active deformation gradient
      * @return dinvFadomegaa First derivative of the inverse of the active deformation gradient
      */
-    Core::LinAlg::Matrix<3, 3> d_inv_act_def_grad_d_act_level(
-        const Core::LinAlg::Matrix<3, 3>& Fa, const Core::LinAlg::Matrix<3, 3>& dFadomegaa);
+    Core::LinAlg::SymmetricTensor<double, 3, 3> d_inv_act_def_grad_d_act_level(
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& Fa,
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& dFadomegaa);
 
     /*!
      * @brief Check if material is active at current time and fiber stretch lambdaM
