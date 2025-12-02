@@ -13,6 +13,7 @@
 #include "4C_linalg_fixedsizematrix_voigt_notation.hpp"
 #include "4C_linalg_four_tensor.hpp"
 #include "4C_linalg_four_tensor_generators.hpp"
+#include "4C_linalg_tensor_conversion.hpp"
 #include "4C_mat_service.hpp"
 #include "4C_unittest_utils_assertions_test.hpp"
 
@@ -39,6 +40,78 @@ namespace
     prinv_reference(2) = 1.7143620000000002;
 
     FOUR_C_EXPECT_NEAR(prinv, prinv_reference, 1.0e-10);
+  }
+
+
+  TEST(MaterialServiceTest, TestDerivativeOfInvaBInvaProduct)
+  {
+    Core::LinAlg::Matrix<6, 1> A(Core::LinAlg::Initialization::uninitialized);
+    A(0) = 0.5;
+    A(1) = 0.3;
+    A(2) = 0.6;
+    A(3) = 0.2;
+    A(4) = 0.4;
+    A(5) = 0.9;
+
+    Core::LinAlg::Matrix<6, 1> InvABInvB(Core::LinAlg::Initialization::uninitialized);
+    InvABInvB(0) = 1.72;
+    InvABInvB(1) = 1.65;
+    InvABInvB(2) = 1.13;
+    InvABInvB(3) = 1.27;
+    InvABInvB(4) = 1.46;
+    InvABInvB(5) = 1.23;
+
+    // Create a symmetric tensor from this
+    Core::LinAlg::SymmetricTensor<double, 3, 3> InvABInvBTensor =
+        Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(InvABInvB);
+    Core::LinAlg::SymmetricTensor<double, 3, 3> ATensor =
+        Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(A);
+
+    // result_ijkl = A_ik InvABInvB_jl +  A_il InvABInvB_jk + A_jk InvABInvB_il + A_jl InvABInvB_ik
+    auto ResultTensor = Core::LinAlg::FourTensorOperations::derivative_of_inva_b_inva_product(
+        ATensor, InvABInvBTensor);
+    Core::LinAlg::Matrix<6, 6> Result = Core::LinAlg::make_stress_like_voigt_view(ResultTensor);
+    Result.scale(0.5);
+
+    Core::LinAlg::Matrix<6, 6> Result_reference(Core::LinAlg::Initialization::uninitialized);
+    Result_reference(0, 0) = -0.86;
+    Result_reference(0, 1) = -0.254;
+    Result_reference(0, 2) = -1.107;
+    Result_reference(0, 3) = -0.4895;
+    Result_reference(0, 4) = -0.6945;
+    Result_reference(0, 5) = -1.0815;
+    Result_reference(1, 0) = -0.254;
+    Result_reference(1, 1) = -0.495;
+    Result_reference(1, 2) = -0.584;
+    Result_reference(1, 3) = -0.3555;
+    Result_reference(1, 4) = -0.549;
+    Result_reference(1, 5) = -0.40;
+    Result_reference(2, 0) = -1.107;
+    Result_reference(2, 1) = -0.584;
+    Result_reference(2, 2) = -0.678;
+    Result_reference(2, 3) = -0.903;
+    Result_reference(2, 4) = -0.664;
+    Result_reference(2, 5) = -0.8775;
+    Result_reference(3, 0) = -0.4895;
+    Result_reference(3, 1) = -0.3555;
+    Result_reference(3, 2) = -0.903;
+    Result_reference(3, 3) = -0.46225;
+    Result_reference(3, 4) = -0.6635;
+    Result_reference(3, 5) = -0.70175;
+    Result_reference(4, 0) = -0.6945;
+    Result_reference(4, 1) = -0.549;
+    Result_reference(4, 2) = -0.664;
+    Result_reference(4, 3) = -0.6635;
+    Result_reference(4, 4) = -0.62425;
+    Result_reference(4, 5) = -0.6985;
+    Result_reference(5, 0) = -1.0815;
+    Result_reference(5, 1) = -0.40;
+    Result_reference(5, 2) = -0.8775;
+    Result_reference(5, 3) = -0.70175;
+    Result_reference(5, 4) = -0.6985;
+    Result_reference(5, 5) = -0.95275;
+
+    FOUR_C_EXPECT_NEAR(Result, Result_reference, 1.0e-10);
   }
 
   TEST(MaterialServiceTest, Testadd_derivative_of_inva_b_inva_product)

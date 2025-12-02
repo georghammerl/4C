@@ -13,6 +13,8 @@
 #include "4C_config.hpp"
 
 #include "4C_linalg_fixedsizematrix.hpp"
+#include "4C_linalg_symmetric_tensor.hpp"
+#include "4C_linalg_tensor.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -72,6 +74,30 @@ namespace Core::LinAlg::FourTensorOperations
   void add_derivative_of_inva_b_inva_product(double const& fac,
       const Core::LinAlg::Matrix<6, 1>& invA, const Core::LinAlg::Matrix<6, 1>& invABinvA,
       Core::LinAlg::Matrix<6, 6>& out);
+
+
+  /*!
+   * @brief Compute the derivative of the 2nd order tensor invA*B*invA w.r.t. the 2nd order tensor A
+   *
+   * Compute the following 4th order tensor based on
+   * - the inverse of the 2nd order tensor \f$\mathbf{A}\f$
+   * - the 2nd order tensor invA*B*invA \f$\mathbf{A}^{-1} \mathbf^{B} \mathbf{A}^{-1}\f$
+   *
+   * \f[
+   *    \frac{\partial \mathbf{A}^{-1} \mathbf{B} \mathbf{A}^{-1}}{\partial
+   *    \mathbf{A}}
+   *    = - \frac{1}{2} \cdot \left( A^{-1}_{ik} A^{-1}_{jm} B_{mn} A^{-1}_{nl} + A^{-1}_{il}
+   *    A^{-1}_{jm} B_{mn} A^{-1}_{nk} + A^{-1}_{jk} A^{-1}_{im} B_{mn} A^{-1}_{nl} + A^{-1}_{jl}
+   *    A^{-1}_{im} B_{mn} A^{-1}_{nk} \right)
+   * \f]
+   *
+   * @param[in] invA  Inverse of the 2nd order tensor A
+   * @param[in] invABinvA  2nd order tensor product invA*B*invA
+   * @return  4th order tensor derivative of invA*B*invA w.r.t. A
+   */
+  Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> derivative_of_inva_b_inva_product(
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& invA,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& invABinvA);
 
 }  // namespace Core::LinAlg::FourTensorOperations
 

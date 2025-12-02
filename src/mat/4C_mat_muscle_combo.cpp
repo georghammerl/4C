@@ -12,10 +12,9 @@
 #include "4C_io_input_field.hpp"
 #include "4C_linalg_fixedsizematrix_tensor_derivatives.hpp"
 #include "4C_linalg_fixedsizematrix_tensor_products.hpp"
-#include "4C_linalg_fixedsizematrix_voigt_notation.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_linalg_tensor.hpp"
-#include "4C_linalg_tensor_conversion.hpp"
+#include "4C_linalg_tensor_generators.hpp"
 #include "4C_mat_elast_aniso_structuraltensor_strategy.hpp"
 #include "4C_mat_muscle_utils.hpp"
 #include "4C_mat_par_bundle.hpp"
@@ -228,11 +227,6 @@ void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
     Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
-  const Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrad);
-
-  Core::LinAlg::Matrix<6, 1> Sc_stress(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Matrix<6, 6> ccmat(Core::LinAlg::Initialization::zero);
-
   // get passive material parameters
   const double alpha = params_->alpha_;
   const double beta = params_->beta_;
@@ -241,46 +235,28 @@ void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
   const double omega0 = params_->omega0_;
 
   // compute matrices
-  // right Cauchy Green tensor C
-  Core::LinAlg::SymmetricTensor<double, 3, 3> C = Core::LinAlg::assume_symmetry(
-      Core::LinAlg::transpose(*defgrad) * *defgrad);  // matrix notation
-  const Core::LinAlg::Matrix<3, 3> C_mat =
-      Core::LinAlg::make_matrix(Core::LinAlg::get_full(C));                    // matrix notation
-  Core::LinAlg::Matrix<6, 1> Cv(Core::LinAlg::Initialization::uninitialized);  // Voigt notation
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(C_mat, Cv);                  // Cv
+  // right Cauchy Green tensor C = F^{T} F
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> C =
+      Core::LinAlg::assume_symmetry(Core::LinAlg::transpose(*defgrad) * *defgrad);
 
   // inverse right Cauchy Green tensor C^-1
-  Core::LinAlg::Matrix<3, 3> invC(Core::LinAlg::Initialization::uninitialized);   // matrix notation
-  invC.invert(C_mat);                                                             // invC = C^-1
-  Core::LinAlg::Matrix<6, 1> invCv(Core::LinAlg::Initialization::uninitialized);  // Voigt notation
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(invC, invCv);                   // invCv
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> invC = Core::LinAlg::inv(C);
 
   // structural tensor M, i.e. dyadic product of fibre directions
-  Core::LinAlg::SymmetricTensor<double, 3, 3> M =
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> M =
       anisotropy_extension_.get_structural_tensor(gp, 0);
-  const Core::LinAlg::Matrix<3, 3> M_mat = Core::LinAlg::make_matrix(Core::LinAlg::get_full(M));
-  Core::LinAlg::Matrix<6, 1> Mv(Core::LinAlg::Initialization::uninitialized);  // Voigt notation
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(M_mat, Mv);                  // Mv
-  // structural tensor L = omega0/3*Identity + omegap*M
-  Core::LinAlg::Matrix<3, 3> L(M_mat);
-  L.scale(1.0 - omega0);  // omegap*M
-  for (unsigned i = 0; i < 3; ++i) L(i, i) += omega0 / 3.0;
 
-  // product invC*L
-  Core::LinAlg::Matrix<3, 3> invCL(Core::LinAlg::Initialization::uninitialized);
-  invCL.multiply_nn(invC, L);
+  // structural tensor L = omega0/3*Identity + omegap*M
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> L =
+      omega0 / 3 * Core::LinAlg::TensorGenerators::identity<double, 3, 3> + (1 - omega0) * M;
 
   // product invC*L*invC
-  Core::LinAlg::Matrix<3, 3> invCLinvC(
-      Core::LinAlg::Initialization::uninitialized);  // matrix notation
-  invCLinvC.multiply_nn(invCL, invC);
-  Core::LinAlg::Matrix<6, 1> invCLinvCv(
-      Core::LinAlg::Initialization::uninitialized);  // Voigt notation
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(invCLinvC, invCLinvCv);
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> invCLinvC =
+      Core::LinAlg::assume_symmetry(invC * L * invC);
 
   // stretch in fibre direction lambdaM
   // lambdaM = sqrt(C:M) = sqrt(tr(C^T M)), see Holzapfel2000, p.14
-  double lambdaM = Mat::Utils::Muscle::fiber_stretch(C, M);
+  const double lambdaM = Mat::Utils::Muscle::fiber_stretch(C, M);
 
   // computation of active nominal stress Pa, and derivative derivPa
   double intPa = 0.0;
@@ -321,68 +297,48 @@ void Mat::MuscleCombo::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgra
            (derivOmegaa * (1 / lambdaM + alpha * dI) + derivDerivOmegaa);
   }
 
-  // compute derivative \frac{\partial omegaa}{\partial C} in Voigt notation
-  Core::LinAlg::Matrix<6, 1> domegaadCv(Mv);
-  domegaadCv.scale(derivOmegaa * 0.5 / lambdaM);
+  // compute derivative \frac{\partial omegaa}{\partial C}
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> domegaadC = derivOmegaa / (2 * lambdaM) * M;
 
-  // compute helper matrices for further calculation
-  Core::LinAlg::Matrix<3, 3> LomegaaM(L);
-  LomegaaM.update(omegaa, M_mat, 1.0);  // LomegaaM = L + omegaa*M
-  Core::LinAlg::Matrix<6, 1> LomegaaMv(Core::LinAlg::Initialization::uninitialized);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(LomegaaM, LomegaaMv);
-
-  Core::LinAlg::Matrix<3, 3> LfacomegaaM(L);  // LfacomegaaM = L + fac*M
-  LfacomegaaM.update((1.0 + omegaa * alpha * std::pow(lambdaM, 2)) / (alpha * std::pow(lambdaM, 2)),
-      M_mat, 1.0);  // + fac*M
-  Core::LinAlg::Matrix<6, 1> LfacomegaaMv(Core::LinAlg::Initialization::uninitialized);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(LfacomegaaM, LfacomegaaMv);
-
-  Core::LinAlg::Matrix<3, 3> transpCLomegaaM(Core::LinAlg::Initialization::uninitialized);
-  transpCLomegaaM.multiply_tn(1.0, C_mat, LomegaaM);  // C^T*(L+omegaa*M)
-  Core::LinAlg::Matrix<6, 1> transpCLomegaaMv(Core::LinAlg::Initialization::uninitialized);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(transpCLomegaaM, transpCLomegaaMv);
+  // compute helper quantities for further calculation
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> LomegaaM = L + omegaa * M;
+  const double fac = (1.0 + omegaa * alpha * std::pow(lambdaM, 2)) / (alpha * std::pow(lambdaM, 2));
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> LfacomegaaM = L + fac * M;
+  const Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> dyadic_M = Core::LinAlg::dyadic(M, M);
+  const Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> dyadic_invC =
+      Core::LinAlg::dyadic(invC, invC);
 
   // generalized invariants including active material properties
-  double detC = C_mat.determinant();  // detC = det(C)
+  const double detC = Core::LinAlg::det(C);  // detC = det(C)
   // I = C:(L+omegaa*M) = tr(C^T (L+omegaa*M)) since A:B = tr(A^T B) for real matrices
-  double I = transpCLomegaaM(0, 0) + transpCLomegaaM(1, 1) + transpCLomegaaM(2, 2);
+  const double I = Core::LinAlg::ddot(C, LomegaaM);
   // J = cof(C):L = tr(cof(C)^T L) = tr(adj(C) L) = tr(det(C) C^-1 L) = det(C)*tr(C^-1 L)
-  double J = detC * (invCL(0, 0) + invCL(1, 1) + invCL(2, 2));
+  const double J = detC * Core::LinAlg::trace(invC * L);
+
   // exponential prefactors
-  double expalpha = std::exp(alpha * (I - 1.0));
-  double expbeta = std::exp(beta * (J - 1.0));
+  const double expalpha = std::exp(alpha * (I - 1.0));
+  const double expbeta = std::exp(beta * (J - 1.0));
 
   // compute second Piola-Kirchhoff stress
-  Core::LinAlg::Matrix<3, 3> stressM(Core::LinAlg::Initialization::uninitialized);
-  stressM.update(expalpha, LomegaaM, 0.0);  // add contributions
-  stressM.update(-expbeta * detC, invCLinvC, 1.0);
-  stressM.update(J * expbeta - std::pow(detC, -kappa), invC, 1.0);
-  stressM.update(0.5 * eta, M_mat, 1.0);
-  stressM.scale(0.5 * gamma);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(
-      stressM, Sc_stress);  // convert to Voigt notation and update stress
+  stress = 0.5 * gamma *
+           (expalpha * LomegaaM + expbeta * (J * invC - detC * invCLinvC) -
+               std::pow(detC, -kappa) * invC + 0.5 * eta * M);
 
-  // compute cmat
-  ccmat.multiply_nt(alpha * expalpha, LomegaaMv, LomegaaMv, 1.0);  // add contributions
-  ccmat.multiply_nt(alpha * std::pow(lambdaM, 2) * expalpha, LfacomegaaMv, domegaadCv, 1.0);
-  ccmat.multiply_nt(beta * expbeta * std::pow(detC, 2.), invCLinvCv, invCLinvCv, 1.0);
-  ccmat.multiply_nt(-(beta * J + 1.) * expbeta * detC, invCv, invCLinvCv, 1.0);
-  ccmat.multiply_nt(-(beta * J + 1.) * expbeta * detC, invCLinvCv, invCv, 1.0);
-  ccmat.multiply_nt(
-      (beta * J + 1.) * J * expbeta + kappa * std::pow(detC, -kappa), invCv, invCv, 1.0);
-  // adds scalar * (invC boeppel invC) to cmat, see Holzapfel2000, p. 254
-  Core::LinAlg::FourTensorOperations::add_holzapfel_product(
-      ccmat, invCv, -(J * expbeta - std::pow(detC, -kappa)));
-  // adds -expbeta*detC * dinvCLinvCdCv to cmats
-  Core::LinAlg::FourTensorOperations::add_derivative_of_inva_b_inva_product(
-      -expbeta * detC, invCv, invCLinvCv, ccmat);
-  // additional term for corrected derivative of strain energy function
-  ccmat.multiply_nt(dEta / (8 * lambdaM), Mv, Mv, 1.0);
-  ccmat.scale(gamma);
-
-  // update stress and material tangent with the computed stress and cmat values
-  Core::LinAlg::make_stress_like_voigt_view(stress).update(1.0, Sc_stress, 1.0);
-  Core::LinAlg::make_stress_like_voigt_view(cmat).update(1.0, ccmat, 1.0);
+  // compute material tangent
+  cmat = alpha * expalpha *
+         (Core::LinAlg::dyadic(LomegaaM, LomegaaM) +
+             std::pow(lambdaM, 2) * Core::LinAlg::dyadic(LfacomegaaM, domegaadC));
+  cmat += beta * expbeta * std::pow(detC, 2.) * Core::LinAlg::dyadic(invCLinvC, invCLinvC);
+  cmat -= (beta * J + 1.) * expbeta * detC *
+          (Core::LinAlg::dyadic(invC, invCLinvC) + Core::LinAlg::dyadic(invCLinvC, invC));
+  cmat += ((beta * J + 1.) * J * expbeta) * dyadic_invC;
+  cmat += kappa * std::pow(detC, -kappa) * dyadic_invC;
+  cmat -= (J * expbeta - std::pow(detC, -kappa)) *
+          Core::LinAlg::FourTensorOperations::holzapfel_product(invC);
+  cmat -= expbeta * detC *
+          Core::LinAlg::FourTensorOperations::derivative_of_inva_b_inva_product(invC, invCLinvC);
+  cmat += dEta / (8 * lambdaM) * dyadic_M;
+  cmat *= gamma;
 }
 
 void Mat::MuscleCombo::evaluate_active_nominal_stress(const Teuchos::ParameterList& params,
@@ -408,8 +364,8 @@ void Mat::MuscleCombo::evaluate_active_nominal_stress(const Teuchos::ParameterLi
       std::visit(ActivationEvalVisitor{Popt, t_tot, element_center_reference_coordinates, eleGID},
           activation_evaluator_);
 
-  // compute the force-stretch dependency fxi, its integral in the boundaries lambdaMin to lambdaM,
-  // and its derivative w.r.t. lambdaM
+  // compute the force-stretch dependency fxi, its integral in the boundaries lambdaMin to
+  // lambdaM, and its derivative w.r.t. lambdaM
   double intFxi = Mat::Utils::Muscle::evaluate_integral_force_stretch_dependency_ehret(
       lambdaM, lambdaMin, lambdaOpt);
   double fxi =
