@@ -569,18 +569,6 @@ namespace Core::LinAlg
     void sum_into_global_values(
         int global_row, int num_entries, const double* values, const int* indices);
 
-    /*! \brief Accumulate values into a global row, inserting if summation fails.
-     *
-     * This helper centralizes the logic for handling Epetra's return codes when
-     * adding values to a matrix. Depending on the error code, it will either
-     * sum into an existing row or insert new entries.
-     *
-     * It exists primarily to work around cases where the matrix was not
-     * preallocated with sufficient storage and should be removed in the future.
-     */
-    void sum_or_insert_global_values(
-        int global_row, int num_entries, const double* values, const int* indices);
-
     //@}
 
     /** \name Extraction methods */
@@ -644,6 +632,30 @@ namespace Core::LinAlg
     void print(std::ostream& os) const { sysmat_->Print(os); }
 
    private:
+    /*! \brief Accumulate values into a global row, inserting if summation fails.
+     *
+     * This helper centralizes the logic for handling Epetra's return codes when
+     * adding values to a matrix. Depending on the error code, it will either
+     * sum into an existing row or insert new entries.
+     *
+     * It exists primarily to work around cases where the matrix was not
+     * preallocated with sufficient storage and should be removed in the future.
+     */
+    void sum_or_insert_global_values(
+        int global_row, int num_entries, const double* values, const int* indices);
+
+    /*! \brief Replace values of a global row, inserting if replacement fails.
+     *
+     * This helper centralizes the logic for handling Epetra's return codes when
+     * replacing values of a matrix. Depending on the error code, it will either
+     * replace an existing row or insert new entries.
+     *
+     * It exists primarily to work around cases where the matrix was not
+     * preallocated with sufficient storage and should be removed in the future.
+     */
+    void replace_or_insert_global_values(
+        int global_row, int num_entries, const double* values, const int* indices);
+
     /// internal epetra matrix (Epetra_CrsMatrix or Epetra_FECrsMatrix)
     std::shared_ptr<Epetra_CrsMatrix> sysmat_;
 

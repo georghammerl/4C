@@ -352,7 +352,6 @@ void Core::LinAlg::SparseMatrix::assemble(int eid, const std::vector<int>& lmstr
   const Core::LinAlg::Map& rowmap = row_map();
   const Core::LinAlg::Map& colmap = col_map();
 
-  //-----------------------------------------------------------------------------------
   auto& A = (Core::LinAlg::SerialDenseMatrix&)Aele;
   if (filled())  // assembly in local indices
   {
@@ -453,23 +452,8 @@ void Core::LinAlg::SparseMatrix::assemble(int eid, const std::vector<int>& lmstr
         {
           for (int j = 0; j < stride; ++j)
           {
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-            const int errone =
-#endif
-                sysmat_->SumIntoMyValues(rlid, 1, &A(lrow, dofcount), &localcol[dofcount]);
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-            if (errone)
-            {
-              printf("Dimensions of A: %d x %d\n", A.numRows(), A.numCols());
-              for (unsigned k = 0; k < lmstride.size(); ++k)
-                printf("lmstride[%d] %d\n", k, lmstride[k]);
-              FOUR_C_THROW(
-                  "Epetra_CrsMatrix::SumIntoMyValues returned error code {}\nrlid {} localcol[{}] "
-                  "{} dofcount {} length {} stride {} j {} node {} numnode {}",
-                  errone, rlid, dofcount, localcol[dofcount], dofcount, length, stride, j, node,
-                  numnode);
-            }
-#endif
+            sum_into_my_values(rlid, 1, &A(lrow, dofcount), &localcol[dofcount]);
+
             dofcount++;
             if (dofcount == lcoldim)
             {
@@ -482,7 +466,6 @@ void Core::LinAlg::SparseMatrix::assemble(int eid, const std::vector<int>& lmstr
       }  // for (int node=0; node<numnode; ++node)
     }  // for (int lrow=0; lrow<ldim; ++lrow)
   }
-  //-----------------------------------------------------------------------------------
   else  // assembly in global indices
   {
     // loop rows of local matrix
@@ -505,17 +488,9 @@ void Core::LinAlg::SparseMatrix::assemble(int eid, const std::vector<int>& lmstr
         int cgid = lmcol[lcol];
         // Now that we do not rebuild the sparse mask in each step, we
         // are bound to assemble the whole thing. Zeros included.
-        const int errone = sysmat_->SumIntoGlobalValues(rgid, 1, &A(lrow, lcol), &cgid);
-        if (errone > 0)
-        {
-          const int errtwo = sysmat_->InsertGlobalValues(rgid, 1, &A(lrow, lcol), &cgid);
-          if (errtwo < 0)
-            FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned error code {}", errtwo);
-        }
-        else if (errone)
-          FOUR_C_THROW("Epetra_CrsMatrix::SumIntoGlobalValues returned error code {}", errone);
-      }  // for (int lcol=0; lcol<lcoldim; ++lcol)
-    }  // for (int lrow=0; lrow<lrowdim; ++lrow)
+        sum_or_insert_global_values(rgid, 1, &A(lrow, lcol), &cgid);
+      }
+    }
   }
 }
 
@@ -612,17 +587,9 @@ void Core::LinAlg::SparseMatrix::assemble(int eid, const Core::LinAlg::SerialDen
 
         // Now that we do not rebuild the sparse mask in each step, we
         // are bound to assemble the whole thing. Zeros included.
-        const int errone = sysmat_->SumIntoGlobalValues(rgid, 1, &val, &cgid);
-        if (errone > 0)
-        {
-          const int errtwo = sysmat_->InsertGlobalValues(rgid, 1, &val, &cgid);
-          if (errtwo < 0)
-            FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned error code {}", errtwo);
-        }
-        else if (errone)
-          FOUR_C_THROW("Epetra_CrsMatrix::SumIntoGlobalValues returned error code {}", errone);
-      }  // for (int lcol=0; lcol<lcoldim; ++lcol)
-    }  // for (int lrow=0; lrow<lrowdim; ++lrow)
+        sum_or_insert_global_values(rgid, 1, &val, &cgid);
+      }
+    }
   }
 }
 
@@ -696,16 +663,7 @@ void Core::LinAlg::SparseMatrix::assemble(double val, int rgid, int cgid)
   if (dbcmaps_ != nullptr and dbcmaps_->map(1)->my_gid(rgid))
     FOUR_C_THROW("no assembling to Dirichlet row");
 
-  // SumIntoGlobalValues works for filled matrices as well!
-  int errone = sysmat_->SumIntoGlobalValues(rgid, 1, &val, &cgid);
-  if (errone > 0)
-  {
-    int errtwo = sysmat_->InsertGlobalValues(rgid, 1, &val, &cgid);
-    if (errtwo < 0)
-      FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned error code {}", errtwo);
-  }
-  else if (errone)
-    FOUR_C_THROW("Epetra_CrsMatrix::SumIntoGlobalValues returned error code {}", errone);
+  sum_or_insert_global_values(rgid, 1, &val, &cgid);
 }
 
 /*----------------------------------------------------------------------*
@@ -715,13 +673,7 @@ void Core::LinAlg::SparseMatrix::set_value(double val, int rgid, int cgid)
   if (dbcmaps_ != nullptr and dbcmaps_->map(1)->my_gid(rgid))
     FOUR_C_THROW("no assembling to Dirichlet row");
 
-  int errone = sysmat_->ReplaceGlobalValues(rgid, 1, &val, &cgid);
-  if (errone > 0)
-  {
-    int errtwo = sysmat_->InsertGlobalValues(rgid, 1, &val, &cgid);
-    if (errtwo > 0)
-      FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned error code {}", errtwo);
-  }
+  replace_or_insert_global_values(rgid, 1, &val, &cgid);
 }
 
 /*----------------------------------------------------------------------*
@@ -788,11 +740,15 @@ void Core::LinAlg::SparseMatrix::complete(const Core::LinAlg::Map& domainmap,
   if (filled() and not options_matrix_complete.enforce_complete) return;
 
   if (options_matrix_complete.enforce_complete and filled())
+  {
     ASSERT_EPETRA_CALL(
         sysmat_->ExpertStaticFillComplete(domainmap.get_epetra_map(), rangemap.get_epetra_map()));
+  }
   else
+  {
     ASSERT_EPETRA_CALL(sysmat_->FillComplete(domainmap.get_epetra_map(), rangemap.get_epetra_map(),
         options_matrix_complete.optimize_data_storage));
+  }
 
   // keep mask for further use
   if (savegraph_ and graph_ == nullptr)
@@ -905,18 +861,12 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet(
       if (dbctoggle.local_values_as_span()[i] != 1.0)
       {
         int numentries;
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-        int err = sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-        if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ExtractGlobalRowCopy returned err={}", err);
-#else
-        sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-#endif
+        extract_global_row_copy(row, maxnumentries, numentries, values.data(), indices.data());
+
         // this is also ok for FE matrices, because fill complete was called on sysmat and the
         // globalAssemble method was called already
 #ifdef FOUR_C_ENABLE_ASSERTIONS
-        err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
+        int err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
         if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned err={}", err);
 #else
         Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
@@ -994,8 +944,7 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet(
       for (int i = 0; i < numdbc; ++i)
       {
         int row = dbc[i];
-        int err = sysmat_->ReplaceGlobalValues(row, 1, &v, &row);
-        if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ReplaceGlobalValues returned err={}", err);
+        replace_global_values(row, 1, &v, &row);
       }
     }
     return;
@@ -1038,18 +987,12 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet(
       if (not dbctoggle.my_gid(row))
       {
         int numentries;
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-        int err = sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-        if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ExtractGlobalRowCopy returned err={}", err);
-#else
-        sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-#endif
+        extract_global_row_copy(row, maxnumentries, numentries, values.data(), indices.data());
+
         // this is also ok for FE matrices, because fill complete was called on sysmat and the
         // globalAssemble method was called already
 #ifdef FOUR_C_ENABLE_ASSERTIONS
-        err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
+        int err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
         if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned err={}", err);
 #else
         Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
@@ -1153,17 +1096,10 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet_with_trafo(const Core::LinAlg::
       if (not dbctoggle.my_gid(row))  // dof is not a Dirichlet dof
       {
         int numentries;
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-        int err = sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-        if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::ExtractGlobalRowCopy returned err={}", err);
-#else
-        sysmat_->ExtractGlobalRowCopy(
-            row, maxnumentries, numentries, values.data(), indices.data());
-#endif
+        extract_global_row_copy(row, maxnumentries, numentries, values.data(), indices.data());
 
 #ifdef FOUR_C_ENABLE_ASSERTIONS
-        err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
+        int err = Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
         if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::InsertGlobalValues returned err={}", err);
 #else
         Anew->InsertGlobalValues(row, numentries, values.data(), indices.data());
@@ -1241,13 +1177,7 @@ void Core::LinAlg::SparseMatrix::apply_dirichlet_with_trafo(const Core::LinAlg::
           trafo.extract_my_row_copy(
               i, trafomaxnumentries, trafonumentries, trafovalues.data(), trafoindices.data());
 
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-          err =
-              sysmat_->SumIntoMyValues(i, trafonumentries, trafovalues.data(), trafoindices.data());
-          if (err < 0) FOUR_C_THROW("Epetra_CrsMatrix::SumIntoMyValues returned err={}", err);
-#else
-          sysmat_->SumIntoMyValues(i, trafonumentries, trafovalues.data(), trafoindices.data());
-#endif
+          sum_into_my_values(i, trafonumentries, trafovalues.data(), trafoindices.data());
         }
       }
     }
@@ -1283,8 +1213,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::SparseMatrix::extract_
       extract_my_row_view(i, NumEntries, Values, Indices);
       for (int j = 0; j < NumEntries; ++j) idx[j] = colmap.gid(Indices[j]);
 
-      int err = dl->sysmat_->InsertGlobalValues(rowmap.gid(i), NumEntries, Values, idx.data());
-      if (err) FOUR_C_THROW("InsertGlobalValues: err={}", err);
+      dl->insert_global_values(rowmap.gid(i), NumEntries, Values, idx.data());
     }
   }
 
@@ -1325,8 +1254,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::SparseMatrix::extract_
     extract_my_row_view(lid, NumEntries, Values, Indices);
     for (int j = 0; j < NumEntries; ++j) idx[j] = colmap.gid(Indices[j]);
 
-    int err = dl->sysmat_->InsertGlobalValues(gid, NumEntries, Values, idx.data());
-    if (err) FOUR_C_THROW("InsertGlobalValues: err={}", err);
+    dl->insert_global_values(gid, NumEntries, Values, idx.data());
   }
 
   dl->complete(domain_map(), range_map());
@@ -1590,6 +1518,24 @@ void Core::LinAlg::SparseMatrix::sum_or_insert_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
   const int errone = sysmat_->SumIntoGlobalValues(global_row, num_entries, values, indices);
+  if (errone > 0)
+  {
+    [[maybe_unused]] int errtwo =
+        sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
+    FOUR_C_ASSERT(errtwo >= 0, "Epetra error (code {}).", errtwo);
+  }
+  else if (errone < 0)
+  {
+    FOUR_C_THROW("Epetra error (code {}).", errone);
+  }
+}
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+void Core::LinAlg::SparseMatrix::replace_or_insert_global_values(
+    int global_row, int num_entries, const double* values, const int* indices)
+{
+  const int errone = sysmat_->ReplaceGlobalValues(global_row, num_entries, values, indices);
   if (errone > 0)
   {
     [[maybe_unused]] int errtwo =

@@ -50,7 +50,7 @@ void Core::LinAlg::assemble(Core::LinAlg::SparseMatrix& A,
 
         // Now that we do not rebuild the sparse mask in each step, we
         // are bound to assemble the whole thing. Zeros included.
-        A.sum_or_insert_global_values(rgid, 1, &val, &cgid);
+        A.assemble(val, rgid, cgid);
       }
     }
   }
