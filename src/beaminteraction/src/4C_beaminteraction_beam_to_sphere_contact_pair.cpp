@@ -8,7 +8,6 @@
 #include "4C_beaminteraction_beam_to_sphere_contact_pair.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_defines.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_utils.hpp"
 #include "4C_beaminteraction_beam_to_sphere_contact_params.hpp"

@@ -11,10 +11,10 @@
 #include "4C_config.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_defines.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_tangentsmoothing.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_utils.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"

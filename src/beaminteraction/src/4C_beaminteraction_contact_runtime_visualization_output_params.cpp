@@ -47,7 +47,10 @@ void BeamInteraction::BeamContactRuntimeVisualizationOutputParams::setup()
 
   // Teuchos parameter list for beam contact
   const Teuchos::ParameterList& beam_contact_visualization_output_paramslist =
-      Global::Problem::instance()->beam_contact_params().sublist("RUNTIME VTK OUTPUT");
+      Global::Problem::instance()
+          ->beam_interaction_params()
+          .sublist("BEAM TO BEAM CONTACT")
+          .sublist("RUNTIME VTK OUTPUT");
 
   /****************************************************************************/
   // get and check required parameters

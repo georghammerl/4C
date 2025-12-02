@@ -10,6 +10,7 @@
 #include "4C_ale_input.hpp"
 #include "4C_art_net_input.hpp"
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_ehl_input.hpp"
@@ -841,6 +842,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   SSTI::set_valid_conditions(condlist);
   Particle::set_valid_conditions(condlist);
   Inpar::LevelSet::set_valid_conditions(condlist);
+  BeamInteraction::Contact::BeamToBeam::set_valid_conditions(condlist);
   BeamInteraction::Potential::set_valid_conditions(condlist);
   Constraints::set_valid_conditions(condlist);
   Inpar::BeamInteraction::set_valid_conditions(condlist);

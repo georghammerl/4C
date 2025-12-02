@@ -11,7 +11,6 @@
 #include "4C_beam3_kirchhoff.hpp"
 #include "4C_beam3_reissner.hpp"
 #include "4C_beam3_spatial_discretization_utils.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_defines.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_params.hpp"
 #include "4C_beaminteraction_beam_to_beam_contact_tangentsmoothing.hpp"
@@ -137,7 +136,8 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::setup()
   epvariables_.resize(0);
 
   if (params()->beam_to_beam_contact_params()->gap_shift() != 0.0 and
-      params()->beam_to_beam_contact_params()->penalty_law() != BeamContact::pl_lpqp)
+      params()->beam_to_beam_contact_params()->penalty_law() !=
+          BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpqp)
     FOUR_C_THROW("BEAMS_GAPSHIFTPARAM only possible for penalty law LinPosQuadPen!");
 
   double perpshiftangle1 =
@@ -1207,7 +1207,7 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
   switch (params()->beam_to_beam_contact_params()->penalty_law())
   {
-    case BeamContact::pl_lp:  // linear penalty force law
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lp:  // linear penalty force law
     {
       fp = -pp * gap;
       dfp = -pp;
@@ -1215,7 +1215,7 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_qp:  // quadratic penalty force law
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_qp:  // quadratic penalty force law
     {
       fp = pp * gap * gap;
       dfp = 2 * pp * gap;
@@ -1223,7 +1223,8 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_lnqp:  // quadratic regularization for negative gaps
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lnqp:  // quadratic regularization for
+                                                                     // negative gaps
     {
       if (g0 == -1.0)
         FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -1243,7 +1244,8 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_lpqp:  // quadratic regularization for positive gaps
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpqp:  // quadratic regularization for
+                                                                     // positive gaps
     {
       if (std::abs(-1.0 - g0) < std::numeric_limits<double>::epsilon() ||
           std::abs(g0 * g0) < std::numeric_limits<double>::epsilon())
@@ -1274,7 +1276,8 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_lpcp:  // cubic regularization for positive gaps
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpcp:  // cubic regularization for
+                                                                     // positive gaps
     {
       if (g0 == -1.0)
         FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -1310,7 +1313,8 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_lpdqp:  // double quadratic regularization for positive gaps
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::
+        pl_lpdqp:  // double quadratic regularization for positive gaps
     {
       if (g0 == -1.0)
         FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -1358,8 +1362,9 @@ void BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::calc_pena
 
       break;
     }
-    case BeamContact::pl_lpep:  // exponential regularization for positive gaps. Here g0
-                                // represents the cut off radius!
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::
+        pl_lpep:  // exponential regularization for positive gaps. Here g0
+                  // represents the cut off radius!
     {
       if (g0 == -1.0)
         FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -1649,14 +1654,14 @@ double BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_max
 
   switch (penaltylaw)
   {
-    case BeamContact::pl_lp:
-    case BeamContact::pl_qp:
-    case BeamContact::pl_lnqp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_qp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lnqp:
     {
       maxactivedist = 0.0;
       break;
     }
-    case BeamContact::pl_lpqp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpqp:
     {
       double g0 =
           params()->beam_to_beam_contact_params()->beam_to_beam_penalty_law_regularization_g0();
@@ -1670,9 +1675,9 @@ double BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_max
 
       break;
     }
-    case BeamContact::pl_lpcp:
-    case BeamContact::pl_lpdqp:
-    case BeamContact::pl_lpep:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpcp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpdqp:
+    case BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpep:
     {
       maxactivedist =
           params()->beam_to_beam_contact_params()->beam_to_beam_penalty_law_regularization_g0();
@@ -4368,7 +4373,7 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::check_con
 
   int penaltylaw = params()->beam_to_beam_contact_params()->penalty_law();
 
-  if (penaltylaw == BeamContact::pl_lp)
+  if (penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lp)
   {
     // linear penalty force law
     if (gap < 0)
@@ -4378,7 +4383,7 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::check_con
     else
       contactflag = false;
   }
-  else if (penaltylaw == BeamContact::pl_qp)
+  else if (penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_qp)
   {
     // quadratic penalty force law
     if (gap < 0)
@@ -4388,7 +4393,7 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::check_con
     else
       contactflag = false;
   }
-  else if (penaltylaw == BeamContact::pl_lpqp)
+  else if (penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpqp)
   {
     // penalty laws with regularization for positive gaps
     if (g0 == -1.0) FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -4404,8 +4409,9 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::check_con
     else
       contactflag = false;
   }
-  else if (penaltylaw == BeamContact::pl_lpcp or penaltylaw == BeamContact::pl_lpdqp or
-           penaltylaw == BeamContact::pl_lpep)
+  else if (penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpcp or
+           penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpdqp or
+           penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpep)
   {
     // penalty laws with regularization for positive gaps
     if (g0 == -1.0) FOUR_C_THROW("Invalid value of regularization parameter BEAMS_PENREGPARAM_G0!");
@@ -4417,7 +4423,7 @@ bool BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::check_con
     else
       contactflag = false;
   }
-  else if (penaltylaw == BeamContact::pl_lnqp)
+  else if (penaltylaw == BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lnqp)
   {
     // penalty law with quadratic regularization for negative gaps
     if (gap < 0)
@@ -4718,9 +4724,12 @@ void BeamInteraction::BeamToBeamContactPair<numnodes,
 template <unsigned int numnodes, unsigned int numnodalvalues>
 double BeamInteraction::BeamToBeamContactPair<numnodes, numnodalvalues>::get_energy() const
 {
-  if (params()->beam_to_beam_contact_params()->penalty_law() != BeamContact::pl_lp and
-      params()->beam_to_beam_contact_params()->penalty_law() != BeamContact::pl_qp and
-      params()->beam_to_beam_contact_params()->penalty_law() != BeamContact::pl_lpqp)
+  if (params()->beam_to_beam_contact_params()->penalty_law() !=
+          BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lp and
+      params()->beam_to_beam_contact_params()->penalty_law() !=
+          BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_qp and
+      params()->beam_to_beam_contact_params()->penalty_law() !=
+          BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lpqp)
     FOUR_C_THROW("Contact Energy calculation not implemented for the chosen penalty law!");
 
   double energy = 0.0;

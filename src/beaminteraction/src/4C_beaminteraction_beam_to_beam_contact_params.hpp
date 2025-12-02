@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_beamcontact_input.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -50,7 +50,10 @@ namespace BeamInteraction
       if (!is_init()) FOUR_C_THROW("init() has not been called yet!");
     }
 
-    inline BeamContact::PenaltyLaw penalty_law() const { return penalty_law_; }
+    inline BeamInteraction::Contact::BeamToBeam::PenaltyLaw penalty_law() const
+    {
+      return penalty_law_;
+    }
 
     inline double beam_to_beam_penalty_law_regularization_g0() const
     {
@@ -103,7 +106,7 @@ namespace BeamInteraction
     bool issetup_;
 
     //! penalty law
-    BeamContact::PenaltyLaw penalty_law_;
+    BeamInteraction::Contact::BeamToBeam::PenaltyLaw penalty_law_;
 
     //! regularization parameters for penalty law
     double btb_penalty_law_regularization_g0_;

@@ -7,7 +7,6 @@
 
 #include "4C_structure_timint.hpp"
 
-#include "4C_beamcontact_input.hpp"
 #include "4C_cardiovascular0d_manager.hpp"
 #include "4C_cardiovascular0d_mor_pod.hpp"
 #include "4C_comm_utils.hpp"
