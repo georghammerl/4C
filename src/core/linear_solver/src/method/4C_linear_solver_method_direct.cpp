@@ -24,7 +24,6 @@ Core::LinearSolver::DirectSolver::DirectSolver(std::string solvertype)
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::SparseOperator> matrix,
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> x,
     std::shared_ptr<Core::LinAlg::MultiVector<double>> b, const bool refactor, const bool reset,
     std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector)
 {
@@ -57,7 +56,6 @@ void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::Spars
     (*b)(0) = projector_->to_reduced((*b)(0));
   }
 
-  x_ = x;
   b_ = b;
   a_ = crsA;
 
@@ -89,10 +87,9 @@ void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::Spars
       klu_params.set("IsContiguous", false, "Are GIDs Contiguous");
     }
 
-    solver_ = Amesos2::create<Epetra_CrsMatrix, Epetra_MultiVector>(solver_type,
-        Teuchos::rcpFromRef(a_->epetra_matrix()),
-        Teuchos::rcpFromRef(x_->get_epetra_multi_vector()),
-        Teuchos::rcpFromRef(b_->get_epetra_multi_vector()));
+    solver_ = Amesos2::create<Epetra_CrsMatrix, Epetra_MultiVector>(
+        solver_type, Teuchos::rcpFromRef(a_->epetra_matrix()));
+    solver_->setB(Teuchos::rcpFromRef(b_->get_epetra_multi_vector()));
 
     solver_->setParameters(Teuchos::make_rcp<Teuchos::ParameterList>(std::move(params)));
 
@@ -102,8 +99,10 @@ void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::Spars
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-int Core::LinearSolver::DirectSolver::solve()
+int Core::LinearSolver::DirectSolver::solve(Core::LinAlg::MultiVector<double>& x)
 {
+  solver_->setX(Teuchos::rcpFromRef(x.get_epetra_multi_vector()));
+
   if (not is_factored())
   {
     solver_->symbolicFactorization();
@@ -116,10 +115,10 @@ int Core::LinearSolver::DirectSolver::solve()
 
   if (projector_ != nullptr)
   {
-    FOUR_C_ASSERT_ALWAYS(x_->num_vectors() == 1,
+    FOUR_C_ASSERT_ALWAYS(x.num_vectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
-        x_->num_vectors());
-    (*x_)(0) = projector_->to_full((*x_)(0));
+        x.num_vectors());
+    x(0) = projector_->to_full(x(0));
   }
 
   return 0;

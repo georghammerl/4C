@@ -25,8 +25,8 @@ Core::LinearSolver::IFPACKPreconditioner::IFPACKPreconditioner(
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void Core::LinearSolver::IFPACKPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
-    const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
+void Core::LinearSolver::IFPACKPreconditioner::setup(
+    Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b)
 {
   auto A_crs = std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(
       Core::Utils::shared_ptr_from_ref(matrix));

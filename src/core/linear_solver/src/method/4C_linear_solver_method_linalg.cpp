@@ -192,7 +192,7 @@ void Core::LinAlg::Solver::setup(std::shared_ptr<Core::LinAlg::SparseOperator> m
       FOUR_C_THROW("Unknown type of solver");
   }
 
-  solver_->setup(matrix, x, b, refactor, params.reset, params.projector);
+  solver_->setup(matrix, b, refactor, params.reset, params.projector);
 }
 
 /*----------------------------------------------------------------------*
@@ -208,7 +208,7 @@ int Core::LinAlg::Solver::solve_with_multi_vector(
   int error_value = 0;
   {
     TEUCHOS_FUNC_TIME_MONITOR("Core::LinAlg::Solver:  2)   Solve");
-    error_value = solver_->solve();
+    error_value = solver_->solve(*x);
   }
 
   return error_value;
@@ -224,7 +224,7 @@ int Core::LinAlg::Solver::solve(std::shared_ptr<Core::LinAlg::SparseOperator> ma
   int error_value = 0;
   {
     TEUCHOS_FUNC_TIME_MONITOR("Core::LinAlg::Solver:  2)   Solve");
-    error_value = solver_->solve();
+    error_value = solver_->solve(*x);
   }
 
   return error_value;
