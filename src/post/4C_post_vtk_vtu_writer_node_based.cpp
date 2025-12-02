@@ -389,7 +389,7 @@ void PostVtuWriterNode::write_nodal_result_step(std::ofstream& file,
   {
     for (int idf = 0; idf < numdf; ++idf)
     {
-      Core::LinAlg::Vector<double> column((*ghostedData)(idf));
+      Core::LinAlg::Vector<double> column(ghostedData->get_vector(idf));
       solution.push_back(column.local_values_as_span()[i]);
     }
     for (int d = numdf; d < ncomponents; ++d) solution.push_back(0.);

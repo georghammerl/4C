@@ -163,9 +163,9 @@ namespace Core::LinAlg
 
     void extract_copy(double* A, int MyLDA) const;
 
-    Core::LinAlg::Vector<double>& operator()(int i);
+    Core::LinAlg::Vector<double>& get_vector(int i);
 
-    const Core::LinAlg::Vector<double>& operator()(int i) const;
+    const Core::LinAlg::Vector<double>& get_vector(int i) const;
 
     /**
      * View a given Epetra_MultiVector under our own MultiVector wrapper.

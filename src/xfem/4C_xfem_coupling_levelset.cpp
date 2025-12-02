@@ -493,7 +493,7 @@ bool XFEM::LevelSetCoupling::set_level_set_field(const double time)
         // identical ordering
         for (int ivec = 0; ivec < gradphinp_smoothed_rownode->num_vectors(); ivec++)
         {
-          auto& itemp = (*gradphinp_smoothed_rownode)(ivec);
+          auto& itemp = gradphinp_smoothed_rownode->get_vector(ivec);
           for (int jlength = 0; jlength < itemp.local_length(); jlength++)
           {
             gradphinp_smoothed_node_->replace_local_value(

@@ -1154,8 +1154,9 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
           solver_params.refactor = true;
           solver_params.reset = true;
           solver.solve_with_multi_vector(stiff_,
-              Core::Utils::shared_ptr_from_ref((*iterinc)(i).as_multi_vector()),
-              Core::Utils::shared_ptr_from_ref((*rhs_)(i).as_multi_vector()), solver_params);
+              Core::Utils::shared_ptr_from_ref(iterinc->get_vector(i).as_multi_vector()),
+              Core::Utils::shared_ptr_from_ref(rhs_->get_vector(i).as_multi_vector()),
+              solver_params);
         }
         break;
       }
@@ -1184,8 +1185,8 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
       {
         for (int k = 0; k < d_matrix_->local_length(); k++)
         {
-          val[i * d_matrix_rows + j] +=
-              (*d_matrix_)(i).local_values_as_span()[k] * fexp(j).local_values_as_span()[k];
+          val[i * d_matrix_rows + j] += d_matrix_->get_vector(i).local_values_as_span()[k] *
+                                        fexp.get_vector(j).local_values_as_span()[k];
         }
       }
     }
@@ -1198,7 +1199,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
     {
       // write as a 9x9 matrix
       for (int i = 0; i < 9; i++)
-        for (int j = 0; j < 9; j++) ((cmatpf(j))).get_values()[i] = sum[i * 9 + j];
+        for (int j = 0; j < 9; j++) ((cmatpf.get_vector(j))).get_values()[i] = sum[i * 9 + j];
 
       // scale with inverse of RVE volume
       cmatpf.scale(1.0 / initial_volume_);

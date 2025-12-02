@@ -209,7 +209,7 @@ void Adapter::FSIStructureWrapper::apply_interface_forces_temporary_deprecated(
 {
   auto fifc = Core::LinAlg::MultiVector<double>(*dof_row_map(), 1, true);
 
-  interface_->add_fsi_cond_vector(*iforce, fifc(0));
+  interface_->add_fsi_cond_vector(*iforce, fifc.get_vector(0));
 
   set_force_interface(fifc);
 

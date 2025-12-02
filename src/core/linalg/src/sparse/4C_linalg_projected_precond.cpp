@@ -49,7 +49,7 @@ int Core::LinAlg::LinalgPrecondOperator::ApplyInverse(
     FOUR_C_ASSERT_ALWAYS(Y.NumVectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
         Y.NumVectors());
-    Y_view.underlying()(0) = projector_->to_full(Y_view.underlying()(0));
+    Y_view.underlying().get_vector(0) = projector_->to_full(Y_view.underlying().get_vector(0));
   }
 
   return (ierr);

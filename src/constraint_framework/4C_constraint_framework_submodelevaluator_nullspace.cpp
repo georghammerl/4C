@@ -140,8 +140,8 @@ void Constraints::SubmodelEvaluator::NullspaceConstraintManager::evaluate_coupli
 
   for (int mode = 0; mode < static_cast<int>(active_mode_ids_.size()); mode++)
   {
-    auto& constraint_space_column = constraint_space(mode);
-    auto& nullspace_column = (*nullspace)(active_mode_ids_[mode]);
+    auto& constraint_space_column = constraint_space.get_vector(mode);
+    auto& nullspace_column = nullspace->get_vector(active_mode_ids_[mode]);
 
     const size_t my_length = constraint_space_column.local_length();
     for (size_t j = 0; j < my_length; j++)

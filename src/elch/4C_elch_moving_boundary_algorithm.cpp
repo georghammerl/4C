@@ -361,8 +361,8 @@ void ElCh::MovingBoundaryAlgorithm::compute_interface_vectors(
         const int pos = lnodeid * numscatradof + reactingspeciesid;
         // interface growth has opposite direction of metal ion mass flow -> minus sign !!
         Values[index] = (-molarvolume_) *
-                        (theta_ * (((*fluxnp_)(index)).local_values_as_span()[pos]) +
-                            (1.0 - theta_) * (((*fluxn_)(index)).local_values_as_span()[pos]));
+                        (theta_ * fluxnp_->get_vector(index).local_values_as_span()[pos] +
+                            (1.0 - theta_) * fluxn_->get_vector(index).local_values_as_span()[pos]);
       }
 
       // now insert only the first numdim entries (pressure dof is not inserted!)

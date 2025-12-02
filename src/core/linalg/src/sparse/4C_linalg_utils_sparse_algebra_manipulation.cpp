@@ -43,7 +43,7 @@ void Core::LinAlg::export_to(
           const int lid = source.get_map().lid(gid);
           if (lid < 0) continue;
           // FOUR_C_THROW("No source for target");
-          target(k).get_values()[i] = source(k).local_values_as_span()[lid];
+          target.get_vector(k).get_values()[i] = source.get_vector(k).local_values_as_span()[lid];
         }
       return;
     }
@@ -76,7 +76,8 @@ void Core::LinAlg::export_to(
               "Export of non-unique source failed. Source data not available on target proc");
 
         for (int k = 0; k < source.num_vectors(); ++k)
-          target(k).get_values()[targetlid] = source(k).local_values_as_span()[sourcelid];
+          target.get_vector(k).get_values()[targetlid] =
+              source.get_vector(k).local_values_as_span()[sourcelid];
       }
       return;
     }

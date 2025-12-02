@@ -502,10 +502,10 @@ namespace
         if (localIndex < 0) continue;
         touchCount[localIndex]++;
         for (int d = 0; d < ndim; ++d)
-          (*velocity)(d).get_values()[localIndex] += interpolVec(i + d * ele->num_node());
+          velocity->get_vector(d).get_values()[localIndex] += interpolVec(i + d * ele->num_node());
         (*pressure).get_values()[localIndex] += interpolVec(i + ndim * ele->num_node());
         for (int d = 0; d < ndim; ++d)
-          (*tracevel)(d).get_values()[localIndex] +=
+          tracevel->get_vector(d).get_values()[localIndex] +=
               interpolVec(i + (ndim + 1 + d) * ele->num_node());
       }
       const int eleIndex = dis.element_row_map()->lid(ele->id());
@@ -516,8 +516,8 @@ namespace
     for (int i = 0; i < pressure->local_length(); ++i)
     {
       (*pressure).get_values()[i] /= touchCount[i];
-      for (int d = 0; d < ndim; ++d) (*velocity)(d).get_values()[i] /= touchCount[i];
-      for (int d = 0; d < ndim; ++d) (*tracevel)(d).get_values()[i] /= touchCount[i];
+      for (int d = 0; d < ndim; ++d) velocity->get_vector(d).get_values()[i] /= touchCount[i];
+      for (int d = 0; d < ndim; ++d) tracevel->get_vector(d).get_values()[i] /= touchCount[i];
     }
     dis.clear_state();
   }

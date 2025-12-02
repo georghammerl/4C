@@ -114,8 +114,8 @@ void ScaTra::TimIntCardiacMonodomain::collect_runtime_output_data()
 
     for (int k = 0; k < material_internal_state_np_->num_vectors(); ++k)
     {
-      material_internal_state_np_component_ =
-          std::make_shared<Core::LinAlg::Vector<double>>((*material_internal_state_np_)(k));
+      material_internal_state_np_component_ = std::make_shared<Core::LinAlg::Vector<double>>(
+          material_internal_state_np_->get_vector(k));
 
       visualization_writer().append_result_data_vector_with_context(
           *material_internal_state_np_component_, Core::IO::OutputEntity::element,
@@ -137,8 +137,8 @@ void ScaTra::TimIntCardiacMonodomain::collect_runtime_output_data()
 
     for (int k = 0; k < material_ionic_currents_np_->num_vectors(); ++k)
     {
-      material_ionic_currents_np_component_ =
-          std::make_shared<Core::LinAlg::Vector<double>>((*material_ionic_currents_np_)(k));
+      material_ionic_currents_np_component_ = std::make_shared<Core::LinAlg::Vector<double>>(
+          material_ionic_currents_np_->get_vector(k));
 
       visualization_writer().append_result_data_vector_with_context(
           *material_ionic_currents_np_component_, Core::IO::OutputEntity::element,

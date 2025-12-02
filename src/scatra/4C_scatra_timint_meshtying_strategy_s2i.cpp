@@ -4898,8 +4898,8 @@ void ScaTra::MortarCellAssemblyStrategy::assemble_cell_vector(
     {
       if (systemvector.num_vectors() != 1)
         FOUR_C_THROW("Invalid number of vectors inside Core::LinAlg::MultiVector<double>!");
-      Core::LinAlg::assemble((systemvector)(nds_rows_), cellvector, la_slave[nds_rows_].lm_,
-          la_slave[nds_rows_].lmowner_);
+      Core::LinAlg::assemble((systemvector).get_vector(nds_rows_), cellvector,
+          la_slave[nds_rows_].lm_, la_slave[nds_rows_].lmowner_);
 
       break;
     }

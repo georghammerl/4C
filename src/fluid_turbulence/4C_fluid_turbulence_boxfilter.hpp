@@ -98,7 +98,7 @@ namespace FLD
 
           for(int d=0;d<discret_->NumDof(node)-1;++d)
           {
-            double val=(*((*filtered_vel_)(d)))[n];
+            double val=(*((*filtered_vel_->get_vector(d)))[n];
 
             int    id =dofs[d];
 
@@ -123,7 +123,7 @@ namespace FLD
 
           for(int d=0;d<discret_->NumDof(node)-1;++d)
           {
-            double val=(*((*fs_vel_)(d)))[n];
+            double val=(*((*fs_vel_->get_vector(d)))[n];
 
             int    id =dofs[d];
 
@@ -147,8 +147,8 @@ namespace FLD
           Core::Nodes::Node* node = discret_->lRowNode(nid);
           int id = node->Id();
 
-          double vali=(*((*filtered_vel_)(i-1)))[nid];
-          double valj=(*((*filtered_vel_)(j-1)))[nid];
+          double vali=(*((*filtered_vel_->get_vector(i-1))->get_vec)[nid];
+          double valj=(*((*filtered_vel_->get_vector(j-1)))[nid];
           double val = vali*valj;
 
           (outvec)->ReplaceGlobalValues(1,&val,&id);
@@ -196,8 +196,8 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_filtered_vel_)(i)).local_values_as_span()[nid];
-          ((velocity)(i)).replace_local_value(nid, val);
+          double val = (col_filtered_vel_->get_vector(i)).local_values_as_span()[nid];
+          velocity.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;
@@ -212,8 +212,8 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_filtered_dens_vel_)(i)).local_values_as_span()[nid];
-          ((densvelocity)(i)).replace_local_value(nid, val);
+          double val = (col_filtered_dens_vel_->get_vector(i)).local_values_as_span()[nid];
+          densvelocity.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;
@@ -226,8 +226,8 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_filtered_dens_vel_temp_)(i)).local_values_as_span()[nid];
-          ((densvelocity)(i)).replace_local_value(nid, val);
+          double val = (col_filtered_dens_vel_temp_->get_vector(i)).local_values_as_span()[nid];
+          densvelocity.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;
@@ -240,8 +240,9 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_filtered_dens_rateofstrain_temp_)(i)).local_values_as_span()[nid];
-          ((densvelocity)(i)).replace_local_value(nid, val);
+          double val =
+              (col_filtered_dens_rateofstrain_temp_->get_vector(i)).local_values_as_span()[nid];
+          densvelocity.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;
@@ -257,8 +258,8 @@ namespace FLD
           for (int j = 0; j < 3; ++j)
           {
             const int ij = 3 * i + j;
-            double val = ((*col_filtered_reynoldsstress_)(ij)).local_values_as_span()[nid];
-            ((reystr)(ij)).replace_local_value(nid, val);
+            double val = (col_filtered_reynoldsstress_->get_vector(ij)).local_values_as_span()[nid];
+            reystr.get_vector(ij).replace_local_value(nid, val);
           }
         }
       }
@@ -275,8 +276,9 @@ namespace FLD
           for (int j = 0; j < 3; ++j)
           {
             const int ij = 3 * i + j;
-            double val = ((*col_filtered_modeled_subgrid_stress_)(ij)).local_values_as_span()[nid];
-            ((mosubstr)(ij)).replace_local_value(nid, val);
+            double val =
+                (col_filtered_modeled_subgrid_stress_->get_vector(ij)).local_values_as_span()[nid];
+            mosubstr.get_vector(ij).replace_local_value(nid, val);
           }
         }
       }
@@ -295,8 +297,8 @@ namespace FLD
           for (int j = 0; j < 3; ++j)
           {
             const int ij = 3 * i + j;
-            double val = ((*col_filtered_strainrate_)(ij)).local_values_as_span()[nid];
-            ((strainr)(ij)).replace_local_value(nid, val);
+            double val = (col_filtered_strainrate_->get_vector(ij)).local_values_as_span()[nid];
+            strainr.get_vector(ij).replace_local_value(nid, val);
           }
         }
       }
@@ -313,8 +315,8 @@ namespace FLD
           for (int j = 0; j < 3; ++j)
           {
             const int ij = 3 * i + j;
-            double val = ((*col_filtered_alphaij_)(ij)).local_values_as_span()[nid];
-            ((alphij)(ij)).replace_local_value(nid, val);
+            double val = (col_filtered_alphaij_->get_vector(ij)).local_values_as_span()[nid];
+            alphij.get_vector(ij).replace_local_value(nid, val);
           }
         }
       }
@@ -330,8 +332,8 @@ namespace FLD
           for (int j = 0; j < 3; ++j)
           {
             const int ij = 3 * i + j;
-            double val = ((*col_filtered_alphaijsc_)(ij)).local_values_as_span()[nid];
-            ((alphijsc)(ij)).replace_local_value(nid, val);
+            double val = (col_filtered_alphaijsc_->get_vector(ij)).local_values_as_span()[nid];
+            alphijsc.get_vector(ij).replace_local_value(nid, val);
           }
         }
       }
@@ -426,8 +428,8 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_fs_vel_)(i)).local_values_as_span()[nid];
-          ((velocity)(i)).replace_local_value(nid, val);
+          double val = (col_fs_vel_->get_vector(i)).local_values_as_span()[nid];
+          velocity.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;
@@ -444,7 +446,7 @@ namespace FLD
         Core::Nodes::Node* node = discret_->l_row_node(nid);
         int id = node->id();
 
-        double val = ((*filtered_reynoldsstress_)(ij)).local_values_as_span()[nid];
+        double val = filtered_reynoldsstress_->get_vector(ij).local_values_as_span()[nid];
 
         (outvec).replace_global_values(1, &val, &id);
       }
@@ -460,11 +462,11 @@ namespace FLD
         Core::Nodes::Node* node = discret_->l_row_node(nid);
         int id = node->id();
 
-        double vali = ((*filtered_vel_)(i - 1)).local_values_as_span()[nid];
-        double valj = ((*filtered_vel_)(j - 1)).local_values_as_span()[nid];
+        double vali = filtered_vel_->get_vector(i - 1).local_values_as_span()[nid];
+        double valj = filtered_vel_->get_vector(j - 1).local_values_as_span()[nid];
         double val = vali * valj;
 
-        (outvec).replace_global_values(1, &val, &id);
+        outvec.replace_global_values(1, &val, &id);
       }
       return;
     }
@@ -481,11 +483,11 @@ namespace FLD
 
         for (int d = 0; d < discret_->num_dof(node) - 1; ++d)
         {
-          double val = ((*fs_vel_)(d)).local_values_as_span()[n];
+          double val = fs_vel_->get_vector(d).local_values_as_span()[n];
 
           int id = dofs[d];
 
-          (outvec).replace_global_values(1, &val, &id);
+          outvec.replace_global_values(1, &val, &id);
         }
       }
       return;
@@ -503,11 +505,11 @@ namespace FLD
 
         for (int d = 0; d < discret_->num_dof(node) - 1; ++d)
         {
-          double val = ((*filtered_vel_)(d)).local_values_as_span()[n];
+          double val = filtered_vel_->get_vector(d).local_values_as_span()[n];
 
           int id = dofs[d];
 
-          (outvec).replace_global_values(1, &val, &id);
+          outvec.replace_global_values(1, &val, &id);
         }
       }
       return;
@@ -520,8 +522,8 @@ namespace FLD
       {
         for (int i = 0; i < 3; ++i)
         {
-          double val = ((*col_filtered_phi_)(i)).local_values_as_span()[nid];
-          ((phi)(i)).replace_local_value(nid, val);
+          double val = col_filtered_phi_->get_vector(i).local_values_as_span()[nid];
+          phi.get_vector(i).replace_local_value(nid, val);
         }
       }
       return;

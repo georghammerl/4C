@@ -153,13 +153,13 @@ void Solid::IMPLICIT::OneStepTheta::set_state(const Core::LinAlg::Vector<double>
   // new end-point velocities
   // ---------------------------------------------------------------------------
   global_state().get_vel_np()->update(
-      1.0, (*const_vel_acc_update_ptr_)(0), 1.0 / (theta_ * dt), *disnp_ptr, 0.0);
+      1.0, const_vel_acc_update_ptr_->get_vector(0), 1.0 / (theta_ * dt), *disnp_ptr, 0.0);
 
   // ---------------------------------------------------------------------------
   // new end-point accelerations
   // ---------------------------------------------------------------------------
-  global_state().get_acc_np()->update(
-      1.0, (*const_vel_acc_update_ptr_)(1), 1.0 / (theta_ * theta_ * dt * dt), *disnp_ptr, 0.0);
+  global_state().get_acc_np()->update(1.0, const_vel_acc_update_ptr_->get_vector(1),
+      1.0 / (theta_ * theta_ * dt * dt), *disnp_ptr, 0.0);
 }
 
 /*----------------------------------------------------------------------------*
@@ -171,16 +171,19 @@ void Solid::IMPLICIT::OneStepTheta::update_constant_state_contributions()
   // ---------------------------------------------------------------------------
   // velocity
   // ---------------------------------------------------------------------------
-  (*const_vel_acc_update_ptr_)(0).scale(-(1.0 - theta_) / theta_, *global_state().get_vel_n());
-  (*const_vel_acc_update_ptr_)(0).update(-1.0 / (theta_ * dt), *global_state().get_dis_n(), 1.0);
+  const_vel_acc_update_ptr_->get_vector(0).scale(
+      -(1.0 - theta_) / theta_, *global_state().get_vel_n());
+  const_vel_acc_update_ptr_->get_vector(0).update(
+      -1.0 / (theta_ * dt), *global_state().get_dis_n(), 1.0);
 
   // ---------------------------------------------------------------------------
   // acceleration
   // ---------------------------------------------------------------------------
-  (*const_vel_acc_update_ptr_)(1).scale(-(1.0 - theta_) / theta_, *global_state().get_acc_n());
-  (*const_vel_acc_update_ptr_)(1).update(
+  const_vel_acc_update_ptr_->get_vector(1).scale(
+      -(1.0 - theta_) / theta_, *global_state().get_acc_n());
+  const_vel_acc_update_ptr_->get_vector(1).update(
       -1.0 / (theta_ * theta_ * dt), *global_state().get_vel_n(), 1.0);
-  (*const_vel_acc_update_ptr_)(1).update(
+  const_vel_acc_update_ptr_->get_vector(1).update(
       -1.0 / (theta_ * theta_ * dt * dt), *global_state().get_dis_n(), 1.0);
 }
 

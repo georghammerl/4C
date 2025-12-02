@@ -259,7 +259,7 @@ void Adapter::StructureConstrMerged::apply_interface_forces_temporary_deprecated
 
   // extract the force values from the displacement DOFs only
   auto fifcdisp = Core::LinAlg::MultiVector<double>(*conmerger_->cond_map(), 1, true);
-  conmerger_->extract_cond_vector(*fifc, fifcdisp(0));
+  conmerger_->extract_cond_vector(*fifc, fifcdisp.get_vector(0));
 
   // set interface forces within the structural time integrator
   set_force_interface(fifcdisp);

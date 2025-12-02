@@ -3500,7 +3500,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
       {
         // value of nodemap-based column rr
         my_data[numdf * inode + rr] =
-            (coldata)(rr).local_values_as_span()[(coldata).get_map().lid(nodeids[inode])];
+            coldata.get_vector(rr).local_values_as_span()[(coldata).get_map().lid(nodeids[inode])];
       }
     }
 
@@ -3525,7 +3525,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
   {
     for (int idf = 0; idf < numdf; ++idf)
     {
-      Core::LinAlg::Vector<double> column((allsols)(idf));
+      Core::LinAlg::Vector<double> column(allsols.get_vector(idf));
       for (int inode = 0; inode < finalnumnode;
           inode++)  // inode == lid of node because we use proc0map_
       {

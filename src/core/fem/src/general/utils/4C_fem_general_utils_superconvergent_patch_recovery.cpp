@@ -200,13 +200,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
           {
             const int elelid = elevec_toberecovered_col.get_map().lid(adj_ele.global_id());
             for (int d = 0; d < dim; ++d)
-              p(d + 1) =
-                  centercoords_col(d).local_values_as_span()[elelid] - node->x()[d] /* + ALE_DISP*/;
+              p(d + 1) = centercoords_col.get_vector(d).local_values_as_span()[elelid] -
+                         node->x()[d] /* + ALE_DISP*/;
 
             // compute outer product of p x p and add to A
             A.multiply_nt(1.0, p, p, 1.0);
 
-            b.update((elevec_toberecovered_col(j)).local_values_as_span()[elelid], p, 1.0);
+            b.update(
+                (elevec_toberecovered_col.get_vector(j)).local_values_as_span()[elelid], p, 1.0);
           }
 
           // solve for coefficients of interpolation
@@ -267,13 +268,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
             {
               const int elelid = elevec_toberecovered_col.get_map().lid(ele.global_id());
               for (int d = 0; d < dim; ++d)
-                p(d + 1) = (centercoords_col(d)).local_values_as_span()[elelid] + eleoffsets[s][d] -
-                           node->x()[d] /* + ALE_DISP*/;
+                p(d + 1) = (centercoords_col.get_vector(d)).local_values_as_span()[elelid] +
+                           eleoffsets[s][d] - node->x()[d] /* + ALE_DISP*/;
 
               // compute outer product of p x p and add to A
               A.multiply_nt(1.0, p, p, 1.0);
 
-              b.update((elevec_toberecovered_col(j)).local_values_as_span()[elelid], p, 1.0);
+              b.update(
+                  (elevec_toberecovered_col.get_vector(j)).local_values_as_span()[elelid], p, 1.0);
             }
           }
 
@@ -353,13 +355,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
             const int elelid =
                 elevec_toberecovered_col.get_map().lid(closest_node_adjacent_ele.global_id());
             for (int d = 0; d < dim; ++d)
-              p(d + 1) = (centercoords_col(d)).local_values_as_span()[elelid] -
+              p(d + 1) = (centercoords_col.get_vector(d)).local_values_as_span()[elelid] -
                          closestnode->x()[d]; /* + ALE_DISP*/
 
             // compute outer product of p x p and add to A
             A.multiply_nt(1.0, p, p, 1.0);
 
-            b.update((elevec_toberecovered_col(j)).local_values_as_span()[elelid], p, 1.0);
+            b.update(
+                (elevec_toberecovered_col.get_vector(j)).local_values_as_span()[elelid], p, 1.0);
           }
 
           // solve for coefficients of interpolation
@@ -487,13 +490,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
             {
               const int elelid = elevec_toberecovered_col.get_map().lid(ele.global_id());
               for (int d = 0; d < dim; ++d)
-                p(d + 1) = (centercoords_col(d)).local_values_as_span()[elelid] + eleoffsets[s][d] -
-                           closestnode->x()[d]; /* + ALE_DISP*/
+                p(d + 1) = (centercoords_col.get_vector(d)).local_values_as_span()[elelid] +
+                           eleoffsets[s][d] - closestnode->x()[d]; /* + ALE_DISP*/
 
               // compute outer product of p x p and add to A
               A.multiply_nt(1.0, p, p, 1.0);
 
-              b.update((elevec_toberecovered_col(j)).local_values_as_span()[elelid], p, 1.0);
+              b.update(
+                  (elevec_toberecovered_col.get_vector(j)).local_values_as_span()[elelid], p, 1.0);
             }
           }
 

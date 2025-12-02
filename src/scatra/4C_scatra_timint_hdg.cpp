@@ -366,7 +366,8 @@ namespace
         (*phi).get_values()[localIndex] += interpolVec(i);
         (*tracephi).get_values()[localIndex] += interpolVec(i + ele->num_node());
         for (int d = 0; d < ndim; ++d)
-          (*gradphi)(d).get_values()[localIndex] += interpolVec(i + (d + 2) * ele->num_node());
+          gradphi->get_vector(d).get_values()[localIndex] +=
+              interpolVec(i + (d + 2) * ele->num_node());
       }
     }
 
@@ -375,7 +376,7 @@ namespace
     {
       (*phi).get_values()[i] /= touchCount[i];
       (*tracephi).get_values()[i] /= touchCount[i];
-      for (int d = 0; d < ndim; ++d) (*gradphi)(d).get_values()[i] /= touchCount[i];
+      for (int d = 0; d < ndim; ++d) gradphi->get_vector(d).get_values()[i] /= touchCount[i];
     }
     dis.clear_state(true);
   }

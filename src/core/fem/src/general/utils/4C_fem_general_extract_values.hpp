@@ -114,7 +114,7 @@ namespace Core::FE
       // loop over multi vector columns (numcol=1 for Core::LinAlg::Vector<double>)
       for (int col = 0; col < numcol; col++)
       {
-        local[col + (numcol * i)] = global(col).local_values_as_span()[lid];
+        local[col + (numcol * i)] = global.get_vector(col).local_values_as_span()[lid];
       }
     }
 
@@ -231,7 +231,7 @@ namespace Core::FE
         if (lid < 0)
           FOUR_C_THROW("Proc {}: Cannot find gid={} in Core::LinAlg::Vector<double>",
               Core::Communication::my_mpi_rank((global).get_comm()), nodegid);
-        localmatrix(i, j) = global(i).local_values_as_span()[lid];
+        localmatrix(i, j) = global.get_vector(i).local_values_as_span()[lid];
       }
     }
   }
@@ -263,7 +263,7 @@ namespace Core::FE
       // loop over multi vector columns (numcol=1 for Core::LinAlg::Vector<double>)
       for (int col = 0; col < numcol; col++)
       {
-        local((col + (numcol * i)), 0) = global(col).local_values_as_span()[lid];
+        local((col + (numcol * i)), 0) = global.get_vector(col).local_values_as_span()[lid];
       }
     }
   }

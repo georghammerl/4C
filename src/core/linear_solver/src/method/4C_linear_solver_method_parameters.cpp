@@ -146,8 +146,8 @@ void Core::LinearSolver::Parameters::fix_null_space(std::string field,
 
   for (int i = 0; i < ndim; i++)
   {
-    auto& nullspaceData = (*nullspace)(i);
-    auto& nullspaceDataNew = (*nullspaceNew)(i);
+    auto& nullspaceData = nullspace->get_vector(i);
+    auto& nullspaceDataNew = nullspaceNew->get_vector(i);
     const int myLength = nullspaceDataNew.local_length();
 
     for (int j = 0; j < myLength; j++)

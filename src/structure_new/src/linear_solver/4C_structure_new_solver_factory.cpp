@@ -186,8 +186,8 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_structure_li
 
         for (size_t i = 0; i < Teuchos::as<size_t>(mode_ids.size()); i++)
         {
-          auto& ci = (*c)(i);
-          auto& ni = (*nullspace)(mode_ids[i]);
+          auto& ci = c->get_vector(i);
+          auto& ni = nullspace->get_vector(mode_ids[i]);
           const size_t myLength = ci.local_length();
           for (size_t j = 0; j < myLength; j++)
           {

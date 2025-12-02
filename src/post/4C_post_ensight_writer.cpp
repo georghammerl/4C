@@ -1750,7 +1750,7 @@ void EnsightWriter::write_nodal_result_step(std::ofstream& file,
       }
       for (int idf = 0; idf < numdf; ++idf)
       {
-        Core::LinAlg::Vector<double> column((data_proc0)(mycols[idf]));
+        Core::LinAlg::Vector<double> column(data_proc0.get_vector(mycols[idf]));
 
         for (int inode = 0; inode < finalnumnode;
             inode++)  // inode == lid of node because we use proc0map_
@@ -2023,7 +2023,7 @@ void EnsightWriter::write_element_result_step(std::ofstream& file,
       for (int col = 0; col < numdf; ++col)
       {
         // extract actual column
-        Core::LinAlg::Vector<double> datacolumn((proc0data)(mycols[col] + from));
+        Core::LinAlg::Vector<double> datacolumn(proc0data.get_vector(mycols[col] + from));
         for (int iele = 0; iele < numelepertype; iele++)
         {
           // extract element global id

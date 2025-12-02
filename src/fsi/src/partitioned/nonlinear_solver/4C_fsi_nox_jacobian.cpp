@@ -52,23 +52,88 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
   }
 }
 
+Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { return *this; }
 
+void NOX::FSI::FSIMatrixFree::zero() { FOUR_C_THROW("Not implemented"); }
 
-int NOX::FSI::FSIMatrixFree::SetUseTranspose(bool UseTranspose)
+void NOX::FSI::FSIMatrixFree::reset() { FOUR_C_THROW("Not implemented"); }
+
+void NOX::FSI::FSIMatrixFree::assemble(int eid, const std::vector<int>& lmstride,
+    const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
+    const std::vector<int>& lmrowowner, const std::vector<int>& lmcol)
 {
-  if (UseTranspose == true)
-  {
-    utils.out()
-        << "ERROR: FSIMatrixFree::SetUseTranspose() - Transpose is unavailable in Matrix-Free mode!"
-        << std::endl;
-    throw "NOX Error";
-  }
-  return (-1);
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::assemble(double val, int rgid, int cgid)
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+bool NOX::FSI::FSIMatrixFree::filled() const { FOUR_C_THROW("Not implemented"); }
+
+void NOX::FSI::FSIMatrixFree::complete(Core::LinAlg::OptionsMatrixComplete options_matrix_complete)
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::complete(const Core::LinAlg::Map& domainmap,
+    const Core::LinAlg::Map& rangemap, Core::LinAlg::OptionsMatrixComplete options_matrix_complete)
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::un_complete() { FOUR_C_THROW("Not implemented"); }
+
+void NOX::FSI::FSIMatrixFree::apply_dirichlet(
+    const Core::LinAlg::Vector<double>& dbctoggle, bool diagonalblock)
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::apply_dirichlet(const Core::LinAlg::Map& dbcmap, bool diagonalblock)
+{
+  FOUR_C_THROW("Not implemented");
 }
 
 
-int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
+const Core::LinAlg::Map& NOX::FSI::FSIMatrixFree::domain_map() const
 {
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::add(const Core::LinAlg::SparseOperator& A, const bool transposeA,
+    const double scalarA, const double scalarB)
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::add_other(Core::LinAlg::SparseMatrix& A, const bool transposeA,
+    const double scalarA, const double scalarB) const
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+void NOX::FSI::FSIMatrixFree::add_other(Core::LinAlg::BlockSparseMatrixBase& A,
+    const bool transposeA, const double scalarA, const double scalarB) const
+{
+  FOUR_C_THROW("Not implemented");
+}
+
+int NOX::FSI::FSIMatrixFree::scale(double ScalarConstant) { FOUR_C_THROW("Not implemented"); }
+
+int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+    Core::LinAlg::MultiVector<double>& Y) const
+{
+  if (TransA == true)
+  {
+    utils.out()
+        << "ERROR: FSIMatrixFree::multiply() - Transpose is unavailable in Matrix-Free mode!"
+        << std::endl;
+    throw "NOX Error";
+    return -1;
+  }
+
   // Calculate the matrix-vector product:
   //
   // y = R' x = S'(F(d)) F'(d) x - x
@@ -82,15 +147,13 @@ int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVect
   // Convert X and Y from an Epetra_MultiVector to a Core::LinAlg::Vectors
   // and NOX::Nln::Vectors.  This is done so we use a consistent
   // vector space for norms and inner products.
-  Core::LinAlg::View wrappedX(X);
-  Core::LinAlg::View wrappedY(Y);
 
   // There is a const_cast introduced - should be removed
-  NOX::Nln::Vector nevX(Core::Utils::shared_ptr_from_ref(
-                            const_cast<Core::LinAlg::Vector<double>&>(wrappedX.underlying()(0))),
+  NOX::Nln::Vector nevX(
+      Core::Utils::shared_ptr_from_ref(const_cast<Core::LinAlg::Vector<double>&>(X.get_vector(0))),
       NOX::Nln::Vector::MemoryType::View);
-  NOX::Nln::Vector nevY(Core::Utils::shared_ptr_from_ref(wrappedY.underlying()(0)),
-      NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector nevY(
+      Core::Utils::shared_ptr_from_ref(Y.get_vector(0)), NOX::Nln::Vector::MemoryType::View);
 
   // The trial vector x is not guaranteed to be a suitable interface
   // displacement. It might be much too large to fit the ALE
@@ -132,43 +195,74 @@ int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVect
   return 0;
 }
 
+int NOX::FSI::FSIMatrixFree::SetUseTranspose(bool UseTranspose)
+{
+  FOUR_C_THROW("Not implemented");
+  return -1;
+}
+
+
+int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
+{
+  FOUR_C_THROW("Not implemented");
+  return -1;
+}
+
 
 int NOX::FSI::FSIMatrixFree::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
 {
-  utils.out() << "ERROR: FSIMatrixFree::ApplyInverse - Not available for Matrix Free!" << std::endl;
-  throw "NOX Error";
-  return (-1);
+  FOUR_C_THROW("Not implemented");
+  return -1;
 }
 
 
 double NOX::FSI::FSIMatrixFree::NormInf() const
 {
-  utils.out() << "ERROR: FSIMatrixFree::NormInf() - Not Available for Matrix-Free mode!"
-              << std::endl;
-  throw "NOX Error";
+  FOUR_C_THROW("Not implemented");
   return 1.0;
 }
 
 
-const char* NOX::FSI::FSIMatrixFree::Label() const { return label.c_str(); }
+const char* NOX::FSI::FSIMatrixFree::Label() const
+{
+  FOUR_C_THROW("Not implemented");
+  return label.c_str();
+}
 
 
-bool NOX::FSI::FSIMatrixFree::UseTranspose() const { return false; }
+bool NOX::FSI::FSIMatrixFree::UseTranspose() const
+{
+  FOUR_C_THROW("Not implemented");
+  return false;
+}
 
 
-bool NOX::FSI::FSIMatrixFree::HasNormInf() const { return false; }
+bool NOX::FSI::FSIMatrixFree::HasNormInf() const
+{
+  FOUR_C_THROW("Not implemented");
+  return false;
+}
 
 
 const Epetra_Comm& NOX::FSI::FSIMatrixFree::Comm() const
 {
+  FOUR_C_THROW("Not implemented");
   return Core::Communication::as_epetra_comm(currentX.get_linalg_vector().get_map().get_comm());
 }
 
 
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorDomainMap() const { return *epetraMap; }
+const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorDomainMap() const
+{
+  FOUR_C_THROW("Not implemented");
+  return *epetraMap;
+}
 
 
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const { return *epetraMap; }
+const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const
+{
+  FOUR_C_THROW("Not implemented");
+  return *epetraMap;
+}
 
 
 bool NOX::FSI::FSIMatrixFree::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac)

@@ -242,24 +242,26 @@ void Core::LinAlg::MultiVector<T>::extract_copy(double* A, int MyLDA) const
   ASSERT_EPETRA_CALL(vector_->ExtractCopy(A, MyLDA));
 }
 
-
-
 template <typename T>
-Core::LinAlg::Vector<double>& Core::LinAlg::MultiVector<T>::operator()(int i)
+Core::LinAlg::Vector<double>& Core::LinAlg::MultiVector<T>::get_vector(int i)
 {
   FOUR_C_ASSERT_ALWAYS(
       i < vector_->NumVectors(), "Index {} out of bounds [0,{}).", i, vector_->NumVectors());
+
   column_vector_view_.resize(vector_->NumVectors());
   return column_vector_view_[i].sync(*(*vector_)(i));
 }
 
 template <typename T>
-const Core::LinAlg::Vector<double>& Core::LinAlg::MultiVector<T>::operator()(int i) const
+const Core::LinAlg::Vector<double>& Core::LinAlg::MultiVector<T>::get_vector(int i) const
 {
   FOUR_C_ASSERT_ALWAYS(
       i < vector_->NumVectors(), "Index {} out of bounds [0,{}).", i, vector_->NumVectors());
-  column_vector_view_.resize(vector_->NumVectors());
-  // We may safely const_cast here, since constness is restored by the returned const reference.
+
+  const_cast<Core::LinAlg::MultiVector<T>*>(this)->column_vector_view_.resize(
+      vector_->NumVectors());
+
+  // We may safely const_cast here; constness is restored by the returned const reference.
   return column_vector_view_[i].sync(const_cast<Epetra_Vector&>(*(*vector_)(i)));
 }
 

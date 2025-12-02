@@ -1348,17 +1348,17 @@ namespace FLD
 
       for (int dimi = 0; dimi < 3; ++dimi)
       {
-        evel_hat(dimi, nn) = (col_filtered_vel)(dimi).local_values_as_span()[lid];
+        evel_hat(dimi, nn) = (col_filtered_vel).get_vector(dimi).local_values_as_span()[lid];
 
         for (int dimj = 0; dimj < 3; ++dimj)
         {
           int index = 3 * dimi + dimj;
 
           ereynoldsstress_hat(index, nn) =
-              (col_filtered_reynoldsstress)(index).local_values_as_span()[lid];
+              (col_filtered_reynoldsstress).get_vector(index).local_values_as_span()[lid];
 
           efiltered_modeled_subgrid_stress_hat(index, nn) =
-              (col_filtered_modeled_subgrid_stress)(index).local_values_as_span()[lid];
+              (col_filtered_modeled_subgrid_stress).get_vector(index).local_values_as_span()[lid];
         }
       }
     }
@@ -1374,7 +1374,8 @@ namespace FLD
 
         for (int dimi = 0; dimi < 3; ++dimi)
         {
-          edensvel_hat(dimi, nn) = (*col_filtered_dens_vel)(dimi).local_values_as_span()[lid];
+          edensvel_hat(dimi, nn) =
+              col_filtered_dens_vel->get_vector(dimi).local_values_as_span()[lid];
         }
       }
     }
@@ -1822,9 +1823,11 @@ namespace FLD
         {
           int index = 3 * dimi + dimj;
 
-          estrainrate_hat(index, nn) = (col_filtered_strainrate)(index).local_values_as_span()[lid];
+          estrainrate_hat(index, nn) =
+              col_filtered_strainrate.get_vector(index).local_values_as_span()[lid];
 
-          ealphaij_hat(index, nn) = (col_filtered_alphaij)(index).local_values_as_span()[lid];
+          ealphaij_hat(index, nn) =
+              col_filtered_alphaij.get_vector(index).local_values_as_span()[lid];
         }
       }
     }
