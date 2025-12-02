@@ -11,10 +11,11 @@
 #include "4C_global_data.hpp"
 #include "4C_linalg_fixedsizematrix_tensor_derivatives.hpp"
 #include "4C_linalg_fixedsizematrix_tensor_products.hpp"
-#include "4C_linalg_fixedsizematrix_voigt_notation.hpp"
-#include "4C_linalg_four_tensor.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
+#include "4C_linalg_tensor.hpp"
 #include "4C_linalg_tensor_conversion.hpp"
+#include "4C_linalg_tensor_einstein.hpp"
+#include "4C_linalg_tensor_generators.hpp"
 #include "4C_mat_elast_aniso_structuraltensor_strategy.hpp"
 #include "4C_mat_muscle_utils.hpp"
 #include "4C_mat_par_bundle.hpp"
@@ -26,98 +27,11 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace
 {
-  /*!
-   * @brief Returns the fourth order tensor
-   *        result_ijkl = scalar * (tensor_A_ijkm * matrix_B_mn * matrix_C_nl
-   *               + matrix_A_im * tensor_B_mjkn * matrix_C_nl
-   *               + matrix_A_im * matrix_B_mn * tensor_C_njkl)
-   */
-  Core::LinAlg::FourTensor<3> sum_multiply_tmm_mtm_mmt(const Core::LinAlg::Matrix<3, 3>& matrix_A,
-      const Core::LinAlg::Matrix<3, 3>& matrix_B, const Core::LinAlg::Matrix<3, 3>& matrix_C,
-      const Core::LinAlg::FourTensor<3>& tensor_A, const Core::LinAlg::FourTensor<3>& tensor_B,
-      const Core::LinAlg::FourTensor<3>& tensor_C, const double& scalar)
-  {
-    Core::LinAlg::Matrix<3, 3> mBmC(Core::LinAlg::Initialization::uninitialized);
-    mBmC.multiply_nn(matrix_B, matrix_C);
-
-    Core::LinAlg::Matrix<3, 3> mAmB(Core::LinAlg::Initialization::uninitialized);
-    mAmB.multiply_nn(matrix_A, matrix_B);
-
-    // part1 = tensor_A * matrix_B * matrix_C
-    Core::LinAlg::FourTensor<3> part1(true);
-    Core::LinAlg::FourTensorOperations::multiply_matrix_four_tensor_by_second_index<3>(
-        part1, mBmC, tensor_A, false);
-
-    // part2 = matrix_A * tensor_B * matrix_C
-    Core::LinAlg::FourTensor<3> mAtB(true);  // matrix_A * tensor_B
-    Core::LinAlg::FourTensorOperations::multiply_matrix_four_tensor<3>(
-        mAtB, matrix_A, tensor_B, false);
-    Core::LinAlg::FourTensor<3> part2(true);  // (matrix_A * tensor_B) * matrix_C
-    Core::LinAlg::FourTensorOperations::multiply_matrix_four_tensor_by_second_index<3>(
-        part2, matrix_C, mAtB, false);
-
-    // part3 = matrix_A * matrix_B * tensor_C
-    Core::LinAlg::FourTensor<3> part3(true);
-    Core::LinAlg::FourTensorOperations::multiply_matrix_four_tensor<3>(
-        part3, mAmB, tensor_C, false);
-
-    // result = part1 + part2 + part3
-    Core::LinAlg::FourTensor<3> tAmBmCmAtBmCmAmBtC(true);
-    for (unsigned i = 0; i < 3; ++i)
-      for (unsigned j = 0; j < 3; ++j)
-        for (unsigned k = 0; k < 3; ++k)
-          for (unsigned l = 0; l < 3; ++l)
-            tAmBmCmAtBmCmAmBtC(i, j, k, l) +=
-                scalar * (part1(i, j, k, l) + part2(i, j, k, l) + part3(i, j, k, l));
-
-    return tAmBmCmAtBmCmAmBtC;
-  }
-
-  /*!
-   * @brief Adds the triple multiplication to the result matrix
-   *        NNN_ij += scalar * left_ij middle_jk right_kl
-   */
-  void multiply_nnn(Core::LinAlg::Matrix<3, 3>& NNN, const double& scalar,
-      const Core::LinAlg::Matrix<3, 3>& left, const Core::LinAlg::Matrix<3, 3>& middle,
-      const Core::LinAlg::Matrix<3, 3>& right)
-  {
-    Core::LinAlg::Matrix<3, 3> NN(Core::LinAlg::Initialization::zero);
-    NN.multiply_nn(left, middle);
-    NNN.multiply_nn(scalar, NN, right, 1.0);
-  }
-
-  /*!
-   * @brief Compute the derivative of the Cauchy Green tensor C w.r.t. C
-   */
-  Core::LinAlg::FourTensor<3> compute_dcdc()
-  {
-    Core::LinAlg::Matrix<6, 6> dCdCv(Core::LinAlg::Initialization::zero);
-    for (int i = 0; i < 3; i++) dCdCv(i, i) = 1.0;
-    for (int i = 3; i < 6; i++) dCdCv(i, i) = 0.5;
-
-    Core::LinAlg::FourTensor<3> dCdC(true);
-    Core::LinAlg::Voigt::setup_four_tensor_from_6x6_voigt_matrix(dCdC, dCdCv);
-
-    return dCdC;
-  }
-
-  /*!
-   * @brief Compute the structural tensor L
-   */
-  Core::LinAlg::Matrix<3, 3> compute_structural_tensor_l(
-      const Core::LinAlg::Matrix<3, 3>& M, const double& omega0)
-  {
-    Core::LinAlg::Matrix<3, 3> L(M);
-    L.scale(1.0 - omega0);  // omegap*M
-    for (unsigned i = 0; i < 3; ++i) L(i, i) += omega0 / 3.0;
-
-    return L;
-  }
 
   struct StressAndDeriv
   {
-    Core::LinAlg::Matrix<3, 3> Se;
-    Core::LinAlg::FourTensor<3> dSedC;
+    Core::LinAlg::SymmetricTensor<double, 3, 3> Se;
+    Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> dSedC;
   };
 
   /*!
@@ -125,91 +39,65 @@ namespace
    * w.r.t. the right Cauchy Green tensor C
    */
   StressAndDeriv compute_se_and_d_sed_c(const double& alpha, const double& beta,
-      const double& gamma, const double& omega0, const Core::LinAlg::Matrix<3, 3>& M,
-      const Core::LinAlg::Matrix<3, 3>& invFa, const Core::LinAlg::FourTensor<3>& dinvFadC,
-      const Core::LinAlg::Matrix<3, 3>& C, const Core::LinAlg::FourTensor<3>& dCdC)
+      const double& gamma, const double& omega0,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& M,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& invFa,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& dinvFadC,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& C,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& dCdC)
   {
     // structural tensor L = omega0/3*Identity + omegap*M
-    Core::LinAlg::Matrix<3, 3> L = compute_structural_tensor_l(M, omega0);
-    Core::LinAlg::Matrix<6, 1> Lv(Core::LinAlg::Initialization::uninitialized);  // Voigt notation
-    Core::LinAlg::Voigt::Stresses::matrix_to_vector(L, Lv);
+    const auto L =
+        omega0 / 3. * Core::LinAlg::TensorGenerators::identity<double, 3, 3> + (1 - omega0) * M;
 
     // elastic right Cauchy Green tensor Ce = Fe^T Fe
     // = Fa^-T C Fa^-1 = Fa^-1 C Fa^-1 (with Fa^-1 sym.)
-    Core::LinAlg::Matrix<3, 3> Ce(Core::LinAlg::Initialization::zero);
-    multiply_nnn(Ce, 1.0, invFa, C, invFa);
+    const auto Ce = Core::LinAlg::assume_symmetry(invFa * C * invFa);
 
     // derivative of Ce w.r.t C
     // dCedC_ijkl = dinvFadC_iakl (C invFa)_aj + invFa_ia dCdC_abkl invFa_bj + (invFa C)_ab
     // dinvFadC_bjkl
-    Core::LinAlg::FourTensor<3> dCedC(true);
-    dCedC = sum_multiply_tmm_mtm_mmt(invFa, C, invFa, dinvFadC, dCdC, dinvFadC, 1.0);
-    Core::LinAlg::Matrix<6, 6> dCedCv(Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Voigt::setup_6x6_voigt_matrix_from_four_tensor(dCedCv, dCedC);
+    const auto dCedC = Core::LinAlg::einsum<"iakl", "aj">(dinvFadC, C * invFa) +
+                       Core::LinAlg::einsum<"ia", "abkl", "bj">(invFa, dCdC, invFa) +
+                       Core::LinAlg::einsum<"ab", "bjkl">(invFa * C, dinvFadC);
 
     // inverse of the elastic right Cauchy Green tensor Ce
-    Core::LinAlg::Matrix<3, 3> invCe(Core::LinAlg::Initialization::zero);
-    invCe.invert(Ce);
-    Core::LinAlg::Matrix<6, 1> invCev(Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Voigt::Stresses::matrix_to_vector(invCe, invCev);
-
-    // product invCe*L
-    Core::LinAlg::Matrix<3, 3> invCeL(Core::LinAlg::Initialization::zero);
-    invCeL.multiply_nn(invCe, L);
+    const auto invCe = Core::LinAlg::inv(Ce);
 
     // product invCe*L*invCe
-    Core::LinAlg::Matrix<3, 3> invCeLinvCe(Core::LinAlg::Initialization::zero);
-    invCeLinvCe.multiply_nn(invCeL, invCe);
-    Core::LinAlg::Matrix<6, 1> invCeLinvCev(Core::LinAlg::Initialization::zero);
-    Core::LinAlg::Voigt::Stresses::matrix_to_vector(invCeLinvCe, invCeLinvCev);
-
-    // product Ce^T*L
-    Core::LinAlg::Matrix<3, 3> transpCeL(Core::LinAlg::Initialization::zero);
-    transpCeL.multiply_tn(Ce, L);
+    const auto invCeLinvCe = Core::LinAlg::assume_symmetry(invCe * L * invCe);
 
     // generalized elastic invariants including only passive properties
-    double detCe = Ce.determinant();  // determinant of Ce
-    // Ie = C:L = tr(C^T L) since A:B = tr(A^T B) for real matrices
-    double Ie = transpCeL(0, 0) + transpCeL(1, 1) + transpCeL(2, 2);
-    // Je = cof(Ce):L = tr(cof(Ce)^T L) = tr(adj(Ce) L) = tr(det(Ce) Ce^-1 L) = det(Ce)*tr(Ce^-1 L)
-    double Je = detCe * (invCeL(0, 0) + invCeL(1, 1) + invCeL(2, 2));
+    const double detCe = Core::LinAlg::det(Ce);
+    const double Ie = Core::LinAlg::ddot(Ce, L);
+    // J = cof(Ce):L = tr(cof(Ce)^T L) = tr(adj(Ce) L) = tr(det(Ce) Ce^-1 L) = det(Ce)*tr(Ce^-1 L)
+    const double Je = detCe * Core::LinAlg::trace(invCe * L);
+
     // exponential prefactors
-    double expalpha = std::exp(alpha * (Ie - 1.0));
-    double expbeta = std::exp(beta * (Je - 1.0));
+    const double expalpha = std::exp(alpha * (Ie - 1.0));
+    const double expbeta = std::exp(beta * (Je - 1.0));
 
     // elastic second Piola Kirchhoff stress tensor Se
-    // Se = (0.5 * gamma * (expalpha * L + expbeta * (Je * invCe - invCeLinvCe)))
-    Core::LinAlg::Matrix<3, 3> Se(Core::LinAlg::Initialization::zero);
-    Se.update(expalpha, L);
-    Se.update(-expbeta * detCe, invCeLinvCe, 1.0);
-    Se.update(Je * expbeta, invCe, 1.0);
-    Se.scale(0.5 * gamma);
+    const auto Se = 0.5 * gamma * (expalpha * L + expbeta * (Je * invCe - detCe * invCeLinvCe));
 
     // derivative of Se w.r.t Ce
     // taken from Weickenmeier et al.
-    Core::LinAlg::Matrix<6, 6> dSedCev(Core::LinAlg::Initialization::zero);
-    dSedCev.multiply_nt(alpha * expalpha, Lv, Lv, 1.0);  // add contributions
-    dSedCev.multiply_nt(beta * expbeta * std::pow(detCe, 2), invCeLinvCev, invCeLinvCev, 1.0);
-    dSedCev.multiply_nt(-(beta * Je + 1.) * expbeta * detCe, invCev, invCeLinvCev, 1.0);
-    dSedCev.multiply_nt(-(beta * Je + 1.) * expbeta * detCe, invCeLinvCev, invCev, 1.0);
-    dSedCev.multiply_nt((beta * Je + 1.) * Je * expbeta, invCev, invCev, 1.0);
-    // adds scalar * (invC boeppel invC) to cmat, see Holzapfel2000, p. 254
-    Core::LinAlg::FourTensorOperations::add_holzapfel_product(dSedCev, invCev, -Je * expbeta);
-    // adds -expbeta * detCe * dinvCLinvCdCv to cmat
-    Core::LinAlg::FourTensorOperations::add_derivative_of_inva_b_inva_product(
-        -expbeta * detCe, invCev, invCeLinvCev, dSedCev);
-    dSedCev.scale(gamma / 2);
-
-    Core::LinAlg::FourTensor<3> dSedCe(true);
-    Core::LinAlg::Voigt::setup_four_tensor_from_6x6_voigt_matrix(dSedCe, dSedCev);
+    auto dSedCe = alpha * expalpha * Core::LinAlg::dyadic(L, L);
+    dSedCe += beta * expbeta * detCe * detCe * Core::LinAlg::dyadic(invCeLinvCe, invCeLinvCe);
+    dSedCe -= (beta * Je + 1.) * expbeta * detCe *
+              (Core::LinAlg::dyadic(invCe, invCeLinvCe) + Core::LinAlg::dyadic(invCeLinvCe, invCe));
+    dSedCe += (beta * Je + 1.) * Je * expbeta * Core::LinAlg::dyadic(invCe, invCe);
+    dSedCe -= Je * expbeta * Core::LinAlg::FourTensorOperations::holzapfel_product(invCe);
+    dSedCe -=
+        expbeta * detCe *
+        Core::LinAlg::FourTensorOperations::derivative_of_inva_b_inva_product(invCe, invCeLinvCe);
+    dSedCe *= gamma / 2;
 
     // derivative of Se w.r.t C
     // dSedC_ijkl = dSedCe_ijab dCedC_abkl
-    Core::LinAlg::FourTensor<3> dSedC(true);
-    Core::LinAlg::FourTensorOperations::multiply_four_tensor_four_tensor<3>(
-        dSedC, dSedCe, dCedC, true);
+    const auto dSedC = Core::LinAlg::assume_symmetry(Core::LinAlg::ddot(dSedCe, dCedC));
 
-    StressAndDeriv Se_dSedC = {.Se = Se, .dSedC = dSedC};
+    const StressAndDeriv Se_dSedC = {.Se = Se, .dSedC = dSedC};
 
     return Se_dSedC;
   }
@@ -389,12 +277,6 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
     Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, const int gp, const int eleGID)
 {
-  Core::LinAlg::Matrix<3, 3> defgrd_mat = Core::LinAlg::make_matrix_view(*defgrd);
-  Core::LinAlg::Matrix<6, 1> stress_view = Core::LinAlg::make_stress_like_voigt_view(stress);
-  Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
-  stress_view.clear();
-  cmat_view.clear();
-
   // get passive material parameters
   const double alpha = params_->alpha_;
   const double beta = params_->beta_;
@@ -410,37 +292,30 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   FOUR_C_ASSERT(context.time_step_size, "Time step size not given in evaluation context.");
   double timeStepSize = *context.time_step_size;
 
-  // compute matrices
   // right Cauchy Green tensor C
-  Core::LinAlg::SymmetricTensor<double, 3, 3> C =
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> C =
       Core::LinAlg::assume_symmetry(Core::LinAlg::transpose(*defgrd) * *defgrd);
-  const Core::LinAlg::Matrix<3, 3> C_mat = Core::LinAlg::make_matrix(Core::LinAlg::get_full(C));
 
   // determinant of C
-  double detC = Core::LinAlg::det(C);
+  const double detC = Core::LinAlg::det(C);
 
-  // derivative of C w.r.t C
-  Core::LinAlg::FourTensor<3> dCdC = compute_dcdc();
+  // derivative of C w.r.t C, i.e., forth order identity tensor
+  const auto dCdC =
+      Core::LinAlg::assume_symmetry(Core::LinAlg::TensorGenerators::identity<double, 3, 3, 3, 3>);
 
   // inverse right Cauchy Green tensor C^-1
-  Core::LinAlg::Matrix<3, 3> invC(Core::LinAlg::Initialization::zero);   // matrix notation
-  invC.invert(C_mat);                                                    // invC = C^-1
-  Core::LinAlg::Matrix<6, 1> invCv(Core::LinAlg::Initialization::zero);  // Voigt notation
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(invC, invCv);          // invCv
+  const auto invC = Core::LinAlg::inv(C);
 
   // structural tensor M, i.e. dyadic product of fibre directions
-  Core::LinAlg::SymmetricTensor<double, 3, 3> M =
+  const Core::LinAlg::SymmetricTensor<double, 3, 3> M =
       anisotropy_extension_.get_structural_tensor(gp, 0);
-  const Core::LinAlg::Matrix<3, 3> M_mat = Core::LinAlg::make_matrix(Core::LinAlg::get_full(M));
-  double lambdaM = Mat::Utils::Muscle::fiber_stretch(C, M);
+  const double lambdaM = Mat::Utils::Muscle::fiber_stretch(C, M);
+
   // derivative of lambdaM w.r.t. C
-  Core::LinAlg::Matrix<3, 3> dlambdaMdC =
-      Mat::Utils::Muscle::d_fiber_stretch_dc(lambdaM, C_mat, M_mat);
-  Core::LinAlg::Matrix<6, 1> dlambdaMdCv(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(dlambdaMdC, dlambdaMdCv);
+  const auto dlambdaMdC = Mat::Utils::Muscle::d_fiber_stretch_dc(lambdaM, C, M);
 
   // contraction velocity dotLambdaM
-  double dotLambdaM =
+  const double dotLambdaM =
       Mat::Utils::Muscle::contraction_velocity_bw_euler(lambdaM, lambda_m_old_, timeStepSize);
 
   // compute activation level omegaa and derivative w.r.t. fiber stretch if material is active
@@ -460,50 +335,42 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   // --------------------------------------------------------------
   // first derivative of omegaa w.r.t. C
   // domegaadC = domegaadlambdaM dlambdaMdC
-  Core::LinAlg::Matrix<3, 3> domegaadC(dlambdaMdC);
-  domegaadC.scale(omegaaAndDerivs.val_deriv_funct);
-  Core::LinAlg::Matrix<6, 1> domegaadCv(Core::LinAlg::Initialization::uninitialized);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(domegaadC, domegaadCv);
+  const auto domegaadC = omegaaAndDerivs.val_deriv_funct * dlambdaMdC;
 
   // second derivative of omegaa w.r.t. C
   // ddomegaaddC = (ddomegaaddlambdaM - 1/lambdaM domegaadlambdaM) dlambdaM_ij dlambdaM_kl
-  Core::LinAlg::Matrix<6, 6> ddomegaaddCv(Core::LinAlg::Initialization::uninitialized);
-  ddomegaaddCv.multiply_nt(
-      omegaaAndDerivs.val_deriv_deriv_funct - omegaaAndDerivs.val_deriv_funct / lambdaM,
-      dlambdaMdCv, dlambdaMdCv);
+  const auto ddomegaaddC =
+      (omegaaAndDerivs.val_deriv_deriv_funct - omegaaAndDerivs.val_deriv_funct / lambdaM) *
+      Core::LinAlg::dyadic(dlambdaMdC, dlambdaMdC);
 
   // --------------------------------------------------------------
   // active deformation gradient Fa
-  Core::LinAlg::Matrix<3, 3> Fa = act_def_grad(omegaaAndDerivs.val_funct, M_mat);
+  const auto Fa = act_def_grad(omegaaAndDerivs.val_funct, M);
 
   // first derivative of Fa w.r.t. omegaa
-  Core::LinAlg::Matrix<3, 3> dFadomegaa =
-      d_act_def_grad_d_act_level(omegaaAndDerivs.val_funct, M_mat);
+  const auto dFadomegaa = d_act_def_grad_d_act_level(omegaaAndDerivs.val_funct, M);
 
   // second derivative of Fa w.r.t. omegaa
-  Core::LinAlg::Matrix<3, 3> ddFaddomegaa =
-      dd_act_def_grad_dd_act_level(omegaaAndDerivs.val_funct, M_mat);
+  const auto ddFaddomegaa = dd_act_def_grad_dd_act_level(omegaaAndDerivs.val_funct, M);
 
   // determinant of Fa
-  double detFa = Fa.determinant();
+  const double detFa = Core::LinAlg::det(Fa);
 
   // --------------------------------------------------------------
   // inverse of active deformation gradient Fa^{-1}
-  Core::LinAlg::Matrix<3, 3> invFa = inv_act_def_grad(Fa);
+  const auto invFa = Core::LinAlg::inv(Fa);
 
   // first derivative of Fa^{-1} w.r.t. omegaa
-  Core::LinAlg::Matrix<3, 3> dinvFadomegaa = d_inv_act_def_grad_d_act_level(Fa, dFadomegaa);
+  const auto dinvFadomegaa = d_inv_act_def_grad_d_act_level(invFa, dFadomegaa);
 
   // first derivative of Fa^{-1} w.r.t. C
   // dinvFadC_ijkl = dinvFadomegaa_ij domegaadC_kl
-  Core::LinAlg::FourTensor<3> dinvFadC(true);
-  Core::LinAlg::FourTensorOperations::add_dyadic_product_matrix_matrix(
-      dinvFadC, dinvFadomegaa, domegaadC);
+  const auto dinvFadC = Core::LinAlg::dyadic(dinvFadomegaa, domegaadC);
 
   // --------------------------------------------------------------
   // elastic second Piola Kirchhoff stress tensor Se and its derivative w.r.t C
   StressAndDeriv Se_dSedC =
-      compute_se_and_d_sed_c(alpha, beta, gamma, omega0, M_mat, invFa, dinvFadC, C_mat, dCdC);
+      compute_se_and_d_sed_c(alpha, beta, gamma, omega0, M, invFa, dinvFadC, C, dCdC);
 
   // --------------------------------------------------------------
   // compute second Piola Kirchhoff stress components S1, S2, Svol
@@ -511,43 +378,35 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
 
   // S1 = detFa * invFa * Se * invFa^T
   // in index notation: S1_sl = detFa * invFa_sr * Se_rq * invFa_rl (with invFa sym.)
-  Core::LinAlg::Matrix<3, 3> S1(Core::LinAlg::Initialization::zero);
-  multiply_nnn(S1, detFa, invFa, Se_dSedC.Se, invFa);
-  Core::LinAlg::Matrix<6, 1> S1v(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(S1, S1v);
+  const auto S1 = detFa * Core::LinAlg::assume_symmetry(invFa * Se_dSedC.Se * invFa);
 
   // S2 = detFa * invF * dPsiedFe * (F * dinvFadF)  = 2 detFa (C Fa^-1 Se) dFa^-1dC
   // or: S2 = -2 S1 : (C Fa^-1 dFadomegaa) domegaadC
   // in index notation: S2_sl = -2 S1_ij (C Fa^-1 dFadomegaa)_ij domegaadC_sl
-  Core::LinAlg::Matrix<3, 3> CinvFadFadomegaa(Core::LinAlg::Initialization::zero);
-  multiply_nnn(CinvFadFadomegaa, 1.0, C_mat, invFa, dFadomegaa);
-
-  Core::LinAlg::Matrix<6, 1> S2v(domegaadCv);
-  double scalar_contraction =
-      -2.0 * Core::LinAlg::FourTensorOperations::contract_matrix_matrix(CinvFadFadomegaa, S1);
-  S2v.scale(scalar_contraction);
+  const auto CinvFadFadomegaa = Core::LinAlg::assume_symmetry(C * invFa * dFadomegaa);
+  const double scalar_contraction = -2.0 * Core::LinAlg::ddot(S1, CinvFadFadomegaa);
+  const auto S2 = scalar_contraction * domegaadC;
 
   // Svol = - gamma/2 * detC^-kappa
-  Core::LinAlg::Matrix<6, 1> Svolv(invCv);
-  Svolv.scale(-0.5 * gamma * std ::pow(detC, -kappa));
+  const auto Svol = -0.5 * gamma * std::pow(detC, -kappa) * invC;
 
   // --------------------------------------------------------------
   // compute material tangent components cmat1, cmat2, cmatvol
 
   // compute cmat1 = 2 dS1dC
-  Core::LinAlg::Matrix<6, 6> cmat1v(Core::LinAlg::Initialization::zero);
-
   // derivative of S1 = detFa * invFa * Se * invFa^T  w.r.t. C
   // = detFa * (dinvFadC * (Se * dinvFa^T) + invFa * dSedC * invFa^T + (invFa * Se) * dinvFadC)
-  Core::LinAlg::FourTensor<3> dS1dC(true);
-  dS1dC = sum_multiply_tmm_mtm_mmt(
-      invFa, Se_dSedC.Se, invFa, dinvFadC, Se_dSedC.dSedC, dinvFadC, detFa);
-  Core::LinAlg::Voigt::setup_6x6_voigt_matrix_from_four_tensor(cmat1v, dS1dC);
-  cmat1v.scale(2.0);
+  auto dS1dC = Core::LinAlg::einsum<"ijkm", "mn", "nl">(
+      dinvFadC, Se_dSedC.Se, Core::LinAlg::transpose(invFa));  // dinvFadC * (Se * dinvFa^T)
+  dS1dC += (Core::LinAlg::einsum<"im", "mjkn", "nl">(
+      invFa, Se_dSedC.dSedC, Core::LinAlg::transpose(invFa)));  // invFa * dSedC * invFa^T
+  dS1dC += (Core::LinAlg::einsum<"im", "mn", "njkl">(
+      invFa, Se_dSedC.Se, dinvFadC));  //  (invFa * Se) * dinvFadC
+  dS1dC *= detFa;
+
+  const auto cmat1 = 2 * Core::LinAlg::assume_symmetry(dS1dC);
 
   // compute cmat2 = 2 dS2dC
-  Core::LinAlg::Matrix<6, 6> cmat2v(Core::LinAlg::Initialization::zero);
-
   // derivative of S2 w.r.t. C
   // in index notation: S2_sl = -2 S1_ij (C Fa^-1 dFadomegaa)_ij domegaadC_sl
   // dS2dC_slpq = -4 [ S1_ij d(C Fa^-1 dFadomegaa)dC_ijpq domegaadC_sl +
@@ -555,42 +414,29 @@ void Mat::MuscleGiantesio::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* de
   // dS2dC_slpq =  2 [ dscalardC_pq domegaadC_sl + [ scalar_contraction ddomegaaddC_slpq ]
 
   // derivative of the scalar (-2 S1_ij (C Fa^-1 dFadomegaa)_ij) w.r.t. C
-  // dscalardC_pq = -2 (dS1dC_ijpq (C invFa dFadomegaa)_ij + S1_ij d(C invFa dFadomegaa)dC_ijpq )
-  Core::LinAlg::Matrix<3, 3> H(Core::LinAlg::Initialization::zero);
-  H.multiply_nn(dinvFadomegaa, dFadomegaa);
-  H.multiply_nn(1.0, invFa, ddFaddomegaa, 1.0);
-  Core::LinAlg::Matrix<3, 3> CH(Core::LinAlg::Initialization::zero);
-  CH.multiply_nn(C_mat, H);
-  double helper = Core::LinAlg::FourTensorOperations::contract_matrix_matrix(S1, CH);
+  // dscalardC_pq = -2 (dS1dC_ijpq (C invFa dFadomegaa)_ij + S1_ij d(C invFa dFadomegaa)dC_ijpq)
+  const auto H = dinvFadomegaa * dFadomegaa + invFa * ddFaddomegaa;
+  const auto CH = Core::LinAlg::assume_symmetry(C * H);
+  const double helper = Core::LinAlg::ddot(S1, CH);
 
-  Core::LinAlg::Matrix<3, 3> dscalardC(domegaadC);
-  dscalardC.scale(helper);
-  multiply_nnn(dscalardC, 1.0, S1, dFadomegaa, invFa);
-  Core::LinAlg::FourTensorOperations::add_contraction_matrix_four_tensor(
-      dscalardC, CinvFadFadomegaa, dS1dC);
-  Core::LinAlg::Matrix<6, 1> dscalardCv(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Voigt::Stresses::matrix_to_vector(
-      dscalardC, dscalardCv);  // not yet scaled with -2.0
+  const auto dscalardC =
+      helper * domegaadC + Core::LinAlg::assume_symmetry(S1 * dFadomegaa * invFa) +
+      Core::LinAlg::assume_symmetry(Core::LinAlg::einsum<"ij", "ijpq">(CinvFadFadomegaa, dS1dC));
 
   // compute cmat2 = 2 dS2dC = 2 [domegaadC_sl dscalardC_pq + scalar * ddomegaaddC_slpq]
-  cmat2v.multiply_nt(-4.0, domegaadCv, dscalardCv);            // 2 * dscalardC_pq domegaadC_sl
-  cmat2v.update(2.0 * scalar_contraction, ddomegaaddCv, 1.0);  // 2 * scalar * ddomegaaddC_slpq
+  const auto cmat2 =
+      -4.0 * Core::LinAlg::dyadic(domegaadC, dscalardC)  // 2 * domegaadC_sl dscalardC_pq
+      + 2.0 * scalar_contraction * ddomegaaddC;          // 2 * scalar * ddomegaaddC_slpq
 
-  // compute cmatvol = 2 dS2dC
-  Core::LinAlg::Matrix<6, 6> cmatvolv(Core::LinAlg::Initialization::zero);
-  cmatvolv.multiply_nt(gamma * kappa * std::pow(detC, -kappa), invCv, invCv, 1.0);
-  Core::LinAlg::FourTensorOperations::add_holzapfel_product(
-      cmatvolv, invCv, gamma * std::pow(detC, -kappa));
+  // compute cmatvol = 2 dSvoldC
+  const auto cmatvol = gamma * std::pow(detC, -kappa) *
+                       (kappa * Core::LinAlg::dyadic(invC, invC) +
+                           Core::LinAlg::FourTensorOperations::holzapfel_product(invC));
 
   // --------------------------------------------------------------
   // update constituent stress and material tangent
-  stress_view.update(1.0, S1v, 1.0);
-  stress_view.update(1.0, S2v, 1.0);
-  stress_view.update(1.0, Svolv, 1.0);
-
-  cmat_view.update(1.0, cmat1v, 1.0);
-  cmat_view.update(1.0, cmat2v, 1.0);
-  cmat_view.update(1.0, cmatvolv, 1.0);
+  stress = S1 + S2 + Svol;
+  cmat = cmat1 + cmat2 + cmatvol;
 }
 
 Core::Utils::ValuesFunctAndFunctDerivs
@@ -752,69 +598,50 @@ double Mat::MuscleGiantesio::evaluate_active_nominal_stress_integral(
   return intPa;
 }
 
-Core::LinAlg::Matrix<3, 3> Mat::MuscleGiantesio::act_def_grad(
-    const double omegaa, const Core::LinAlg::Matrix<3, 3>& M)
+Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::MuscleGiantesio::act_def_grad(
+    const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M)
 {
   // active deformation gradient Fa
-  Core::LinAlg::Matrix<3, 3> Fa(M);
-  Fa.scale(1 - omegaa - std::pow(1. - omegaa, -0.5));
-  for (unsigned j = 0; j < 3; ++j) Fa(j, j) += std::pow(1. - omegaa, -0.5);
+  auto Fa = (1 - omegaa - std::pow(1. - omegaa, -0.5)) * M;
+  Fa += std::pow(1. - omegaa, -0.5) * Core::LinAlg::TensorGenerators::identity<double, 3, 3>;
   return Fa;
 }
 
-Core::LinAlg::Matrix<3, 3> Mat::MuscleGiantesio::d_act_def_grad_d_act_level(
-    const double omegaa, const Core::LinAlg::Matrix<3, 3>& M)
+Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::MuscleGiantesio::d_act_def_grad_d_act_level(
+    const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M)
 {
   // first derivative of Fa w.r.t. omegaa
-  Core::LinAlg::Matrix<3, 3> dFadomegaa(M);
+  Core::LinAlg::SymmetricTensor<double, 3, 3> dFadomegaa{};
   if (omegaa != 0)
   {
-    dFadomegaa.scale(-1.0 - 0.5 * std::pow(1. - omegaa, -1.5));
-    for (unsigned j = 0; j < 3; ++j) dFadomegaa(j, j) += 0.5 * std::pow(1. - omegaa, -1.5);
-  }
-  else
-  {
-    dFadomegaa.clear();
+    dFadomegaa = (-1.0 - 0.5 * std::pow(1. - omegaa, -1.5)) * M;
+    dFadomegaa +=
+        0.5 * std::pow(1. - omegaa, -1.5) * Core::LinAlg::TensorGenerators::identity<double, 3, 3>;
   }
   return dFadomegaa;
 }
 
-Core::LinAlg::Matrix<3, 3> Mat::MuscleGiantesio::dd_act_def_grad_dd_act_level(
-    const double omegaa, const Core::LinAlg::Matrix<3, 3>& M)
+Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::MuscleGiantesio::dd_act_def_grad_dd_act_level(
+    const double omegaa, const Core::LinAlg::SymmetricTensor<double, 3, 3>& M)
 {
   // second derivative of Fa w.r.t. omegaa
-  Core::LinAlg::Matrix<3, 3> ddFaddomegaa(M);
+  Core::LinAlg::SymmetricTensor<double, 3, 3> ddFaddomegaa{};
   if (omegaa != 0)
   {
-    ddFaddomegaa.scale(-0.75 * std::pow(1. - omegaa, -2.5));
-    for (unsigned j = 0; j < 3; ++j) ddFaddomegaa(j, j) += 0.75 * std::pow(1. - omegaa, -2.5);
-  }
-  else
-  {
-    ddFaddomegaa.clear();
+    ddFaddomegaa = (-0.75 * std::pow(1. - omegaa, -2.5)) * M;
+    ddFaddomegaa +=
+        0.75 * std::pow(1. - omegaa, -2.5) * Core::LinAlg::TensorGenerators::identity<double, 3, 3>;
   }
   return ddFaddomegaa;
 }
 
-Core::LinAlg::Matrix<3, 3> Mat::MuscleGiantesio::inv_act_def_grad(
-    const Core::LinAlg::Matrix<3, 3>& Fa)
+Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::MuscleGiantesio::d_inv_act_def_grad_d_act_level(
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& invFa,
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& dFadomegaa)
 {
-  // inverse of active deformation gradient Fa^{-1}
-  Core::LinAlg::Matrix<3, 3> invFa(Core::LinAlg::Initialization::zero);
-  invFa.invert(Fa);
-  return invFa;
-}
-
-Core::LinAlg::Matrix<3, 3> Mat::MuscleGiantesio::d_inv_act_def_grad_d_act_level(
-    const Core::LinAlg::Matrix<3, 3>& Fa, const Core::LinAlg::Matrix<3, 3>& dFadomegaa)
-{
-  Core::LinAlg::Matrix<3, 3> invFa = inv_act_def_grad(Fa);
-
   // first derivative of Fa^{-1} w.r.t. omegaa
   // dinvFadomegaa_ij = - invFa_ik dFadomegaa_kl invFa_lj
-  Core::LinAlg::Matrix<3, 3> dinvFadomegaa(Core::LinAlg::Initialization::zero);
-  multiply_nnn(dinvFadomegaa, -1.0, invFa, dFadomegaa, invFa);
-
+  const auto dinvFadomegaa = -1.0 * Core::LinAlg::assume_symmetry(invFa * dFadomegaa * invFa);
   return dinvFadomegaa;
 }
 
