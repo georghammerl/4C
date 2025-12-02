@@ -237,9 +237,8 @@ std::unique_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_multiply(
     transB = false;
   }
 
-  int err = EpetraExt::MatrixMatrix::Multiply(A_trans->epetra_matrix(), transA,
-      B_trans->epetra_matrix(), transB, C->epetra_matrix(), complete);
-  if (err) FOUR_C_THROW("EpetraExt::MatrixMatrix::MatrixMultiply returned err = {}", err);
+  ASSERT_EPETRA_CALL(EpetraExt::MatrixMatrix::Multiply(A_trans->epetra_matrix(), transA,
+      B_trans->epetra_matrix(), transB, C->epetra_matrix(), complete));
 
   return C;
 }
@@ -275,9 +274,8 @@ std::unique_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_multiply(const 
     transB = false;
   }
 
-  int err = EpetraExt::MatrixMatrix::Multiply(A_trans->epetra_matrix(), transA,
-      B_trans->epetra_matrix(), transB, C->epetra_matrix(), complete);
-  if (err) FOUR_C_THROW("EpetraExt::MatrixMatrix::MatrixMultiply returned err = {}", err);
+  ASSERT_EPETRA_CALL(EpetraExt::MatrixMatrix::Multiply(A_trans->epetra_matrix(), transA,
+      B_trans->epetra_matrix(), transB, C->epetra_matrix(), complete));
 
   return C;
 }
