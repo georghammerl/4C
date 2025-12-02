@@ -224,13 +224,6 @@ namespace Core::LinAlg
     //@}
 
     /*!
-    \brief Return the solver name from the solver block in the input file
-
-    \note This name is purely descriptive and does not affect any computations.
-    */
-    inline std::string name() const { return params_->get<std::string>("name"); }
-
-    /*!
     \brief Return number of iterations performed by solver
     */
     int get_num_iters() const;

@@ -155,14 +155,6 @@ void Core::LinearSolver::TekoPreconditioner::setup(Core::LinAlg::SparseOperator&
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-Core::LinearSolver::LU2x2SpaiStrategy::LU2x2SpaiStrategy(
-    const Teuchos::RCP<Teko::InverseFactory>& invFA, const Teuchos::RCP<Teko::InverseFactory>& invS)
-    : inv_factory_f_(invFA), inv_factory_s_(invS)
-{
-}
-
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
 const Teko::LinearOp Core::LinearSolver::LU2x2SpaiStrategy::getHatInvA00(
     const Teko::BlockedLinearOp& A, Teko::BlockPreconditionerState& state) const
 {
