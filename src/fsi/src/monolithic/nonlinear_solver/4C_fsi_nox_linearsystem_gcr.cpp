@@ -14,7 +14,6 @@
 #include "4C_utils_shared_ptr_from_ref.hpp"
 
 #include <Epetra_LinearProblem.h>
-#include <Epetra_Operator.h>
 #include <Teuchos_ParameterList.hpp>
 
 #include <vector>
@@ -26,8 +25,8 @@ NOX::FSI::LinearSystemGCR::LinearSystemGCR(Teuchos::ParameterList& printParams,
     Teuchos::ParameterList& linearSolverParams,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const std::shared_ptr<Epetra_Operator>& jacobian, const NOX::Nln::Vector& cloneVector,
-    const Teuchos::RCP<::NOX::Epetra::Scaling> s)
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian,
+    const NOX::Nln::Vector& cloneVector, const Teuchos::RCP<::NOX::Epetra::Scaling> s)
     : utils(printParams),
       jacInterfacePtr(iJac),
       jacType(EpetraOperator),
@@ -63,8 +62,7 @@ void NOX::FSI::LinearSystemGCR::reset(Teuchos::ParameterList& linearSolverParams
 bool NOX::FSI::LinearSystemGCR::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  jacPtr->SetUseTranspose(false);
-  int status = jacPtr->Apply(input.get_linalg_vector(), result.get_linalg_vector());
+  int status = jacPtr->multiply(false, input.get_linalg_vector(), result.get_linalg_vector());
   return status == 0;
 }
 
@@ -72,10 +70,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian(
 bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  jacPtr->SetUseTranspose(true);
-  int status = jacPtr->Apply(input.get_linalg_vector(), result.get_linalg_vector());
-  jacPtr->SetUseTranspose(false);
-
+  int status = jacPtr->multiply(true, input.get_linalg_vector(), result.get_linalg_vector());
   return status == 0;
 }
 

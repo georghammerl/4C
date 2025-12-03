@@ -503,7 +503,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
 
   std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac;
 
-  std::shared_ptr<Epetra_Operator> J;
+  std::shared_ptr<Core::LinAlg::SparseOperator> J;
 
   Teuchos::RCP<NOX::Nln::LinearSystemBase> linSys;
 
@@ -549,7 +549,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> FSI::Partitioned::create_linear_system(
     auto MF = std::make_shared<NOX::Nln::MatrixFree>(
         printParams, epetra_rcp_interface, noxSoln, lambda, kelleyPerturbation);
     iJac = MF;
-    J = Core::Utils::shared_ptr_from_ref(MF->get_matrix_free());
+    J = Core::Utils::shared_ptr_from_ref(MF->get_operator());
   }
 
   // No Jacobian at all. Do a fix point iteration.

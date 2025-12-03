@@ -10,6 +10,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_linalg_sparseoperator.hpp"
 #include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_interface_required_base.hpp"
 #include "4C_solver_nonlin_nox_linearsystem_base.hpp"
@@ -57,7 +58,8 @@ namespace NOX
           Teuchos::ParameterList& linearSolverParams,
           const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-          const std::shared_ptr<Epetra_Operator>& J, const NOX::Nln::Vector& cloneVector,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+          const NOX::Nln::Vector& cloneVector,
           const Teuchos::RCP<::NOX::Epetra::Scaling> scalingObject = Teuchos::null);
 
       //! Reset the linear solver parameters.
@@ -152,7 +154,7 @@ namespace NOX
       OperatorType jacType;
 
       //! Pointer to the Jacobian operator.
-      mutable std::shared_ptr<Epetra_Operator> jacPtr;
+      std::shared_ptr<Core::LinAlg::SparseOperator> jacPtr;
 
       //! Scaling object supplied by the user
       Teuchos::RCP<::NOX::Epetra::Scaling> scaling;
