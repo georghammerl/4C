@@ -5,22 +5,23 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beamcontact_input.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 
 #include "4C_fem_condition_definition.hpp"
+#include "4C_io_input_spec.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_utils_parameter_list.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
 
-
-std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
+std::vector<Core::IO::InputSpec> BeamInteraction::Contact::BeamToBeam::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;
 
   std::vector<Core::IO::InputSpec> specs;
-  specs.push_back(group("BEAM CONTACT",
+
+  specs.push_back(group("BEAM INTERACTION/BEAM TO BEAM CONTACT",
       {
 
           parameter<bool>(
@@ -63,7 +64,7 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
           parameter<int>("BEAMS_NUMINTEGRATIONINTERVAL",
               {.description = "Number of integration intervals per element", .default_value = 1}),
 
-          deprecated_selection<BeamContact::PenaltyLaw>("BEAMS_PENALTYLAW",
+          deprecated_selection<BeamInteraction::Contact::BeamToBeam::PenaltyLaw>("BEAMS_PENALTYLAW",
               {
                   {"LinPen", pl_lp},
                   {"QuadPen", pl_qp},
@@ -97,8 +98,10 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
                   .default_value = -1.0}),
       },
       {.required = false}));
+
+
   /* parameters for visualization of beam contact via output at runtime */
-  specs.push_back(group("BEAM CONTACT/RUNTIME VTK OUTPUT",
+  specs.push_back(group("BEAM INTERACTION/BEAM TO BEAM CONTACT/RUNTIME VTK OUTPUT",
       {
 
           // whether to write visualization output for beam contact
@@ -146,7 +149,8 @@ std::vector<Core::IO::InputSpec> BeamContact::valid_parameters()
 /**
  *
  */
-void BeamContact::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist)
+void BeamInteraction::Contact::BeamToBeam::set_valid_conditions(
+    std::vector<Core::Conditions::ConditionDefinition>& condlist)
 {
   using namespace Core::IO::InputSpecBuilders;
 

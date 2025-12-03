@@ -24,15 +24,15 @@ Core::LinearSolver::ProjectionPreconditioner::ProjectionPreconditioner(
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-void Core::LinearSolver::ProjectionPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
-    const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
+void Core::LinearSolver::ProjectionPreconditioner::setup(
+    Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b)
 {
   FOUR_C_ASSERT_ALWAYS(b.num_vectors() == 1,
       "Expecting only one solution vector during projector call! Got {} vectors.", b.num_vectors());
   b.get_vector(0) = projector_->to_reduced(b.get_vector(0));
 
   // setup wrapped preconditioner
-  preconditioner_->setup(matrix, x, b);
+  preconditioner_->setup(matrix, b);
 
   // Wrap the linear operator of the contained preconditioner. This way the
   // actual preconditioner is called first and the projection is done

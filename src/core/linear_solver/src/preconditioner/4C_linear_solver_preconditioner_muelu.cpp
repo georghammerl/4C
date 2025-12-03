@@ -7,29 +7,26 @@
 
 #include "4C_linear_solver_preconditioner_muelu.hpp"
 
+#include "4C_comm_utils.hpp"
 #include "4C_io_input_parameter_container.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linear_solver_method_parameters.hpp"
+#include "4C_linear_solver_thyra_utils.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <MueLu_CreateXpetraPreconditioner.hpp>
 #include <MueLu_EpetraOperator.hpp>
 #include <MueLu_ParameterListInterpreter.hpp>
 #include <MueLu_UseDefaultTypes.hpp>
+#include <Stratimikos_MueLuHelpers.hpp>
+#include <Teko_EpetraInverseOpWrapper.hpp>
 #include <Teuchos_ParameterList.hpp>
-#include <Teuchos_RCP.hpp>
 #include <Teuchos_RCPStdSharedPtrConversions.hpp>
-#include <Xpetra_BlockedCrsMatrix.hpp>
-#include <Xpetra_CrsMatrix.hpp>
 #include <Xpetra_EpetraCrsMatrix.hpp>
 #include <Xpetra_EpetraMap.hpp>
 #include <Xpetra_EpetraMultiVector.hpp>
-#include <Xpetra_Map.hpp>
-#include <Xpetra_MapExtractor.hpp>
-#include <Xpetra_MapExtractorFactory.hpp>
 #include <Xpetra_MatrixUtils.hpp>
-#include <Xpetra_MultiVectorFactory.hpp>
-#include <Xpetra_StridedMap.hpp>
+#include <Xpetra_ThyraUtils.hpp>
 
 #include <filesystem>
 
@@ -49,37 +46,36 @@ Core::LinearSolver::MueLuPreconditioner::MueLuPreconditioner(Teuchos::ParameterL
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
-    const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
+void Core::LinearSolver::MueLuPreconditioner::setup(
+    Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b)
 {
-  using EpetraCrsMatrix = Xpetra::EpetraCrsMatrixT<GO, NO>;
-  using EpetraMap = Xpetra::EpetraMapT<GO, NO>;
   using EpetraMultiVector = Xpetra::EpetraMultiVectorT<GO, NO>;
+
+  if (!muelulist_.sublist("MueLu Parameters").isParameter("MUELU_XML_FILE"))
+    FOUR_C_THROW("MUELU_XML_FILE parameter not set!");
+  auto xmlFileName = muelulist_.sublist("MueLu Parameters").get<std::string>("MUELU_XML_FILE");
+
+  Teuchos::ParameterList muelu_params;
+  auto comm = Core::Communication::to_teuchos_comm<int>(
+      Core::Communication::unpack_epetra_comm(matrix.Comm()));
+  Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, Teuchos::Ptr(&muelu_params), *comm);
 
   Teuchos::RCP<Core::LinAlg::BlockSparseMatrixBase> A =
       Teuchos::rcp_dynamic_cast<Core::LinAlg::BlockSparseMatrixBase>(Teuchos::rcpFromRef(matrix));
 
   if (A.is_null())
   {
-    auto crsA = Teuchos::rcp_dynamic_cast<Core::LinAlg::SparseMatrix>(Teuchos::rcpFromRef(matrix));
-
-    Teuchos::RCP<Xpetra::CrsMatrix<SC, LO, GO, NO>> mueluA =
-        Teuchos::make_rcp<EpetraCrsMatrix>(Teuchos::rcpFromRef(crsA->epetra_matrix()));
-    pmatrix_ = Xpetra::MatrixFactory<SC, LO, GO, NO>::BuildCopy(
-        Teuchos::make_rcp<Xpetra::CrsMatrixWrap<SC, LO, GO, NO>>(mueluA));
+    auto A_crs = Teuchos::rcp_dynamic_cast<Core::LinAlg::SparseMatrix>(Teuchos::rcpFromRef(matrix));
+    pmatrix_ =
+        Core::LinearSolver::Utils::create_thyra_linear_op(*A_crs, Core::LinAlg::DataAccess::Copy);
 
     const Teuchos::ParameterList& inverseList = muelulist_.sublist("MueLu Parameters");
-
-    auto xmlFileName = inverseList.get<std::string>("MUELU_XML_FILE");
-
-    auto muelu_params = Teuchos::make_rcp<Teuchos::ParameterList>();
-    auto comm = pmatrix_->getRowMap()->getComm();
-    Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, muelu_params.ptr(), *comm);
-
     const int number_of_equations = inverseList.get<int>("PDE equations");
-    pmatrix_->SetFixedBlockSize(number_of_equations);
 
-    Teuchos::RCP<const Xpetra::Map<LO, GO, NO>> row_map = mueluA->getRowMap();
+    const auto epetra_map = A_crs->row_map().get_epetra_block_map();
+    const Teuchos::RCP<const Xpetra::Map<int, int, Xpetra::EpetraNode>> row_map =
+        Xpetra::toXpetra<int, Xpetra::EpetraNode>(epetra_map);
+
     Teuchos::RCP<Xpetra::MultiVector<SC, LO, GO, NO>> nullspace =
         Core::LinearSolver::Parameters::extract_nullspace_from_parameterlist(*row_map, inverseList);
 
@@ -88,8 +84,8 @@ void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator
             inverseList.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates")
                 ->get_epetra_multi_vector()));
 
-    muelu_params->set("number of equations", number_of_equations);
-    Teuchos::ParameterList& user_param_list = muelu_params->sublist("user data");
+    muelu_params.set("number of equations", number_of_equations);
+    Teuchos::ParameterList& user_param_list = muelu_params.sublist("user data");
     user_param_list.set("Nullspace", nullspace);
     user_param_list.set("Coordinates", coordinates);
 
@@ -102,11 +98,33 @@ void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator
       user_param_list.set("Material", material);
     }
 
-    H_ = MueLu::CreateXpetraPreconditioner(pmatrix_, *muelu_params);
-    P_ = Teuchos::make_rcp<MueLu::EpetraOperator>(H_);
+    // setup preconditioner builder and enable relevant packages
+    Stratimikos::LinearSolverBuilder<double> builder;
+
+    // enable multigrid
+    Stratimikos::enableMueLu<Scalar, LocalOrdinal, GlobalOrdinal, Node>(builder);
+
+    // set preconditioner parameter list
+    Teuchos::ParameterList stratimikos_params;
+    Teuchos::ParameterList& muelu_list =
+        stratimikos_params.sublist("Preconditioner Types").sublist("MueLu");
+    muelu_list.setParameters(muelu_params);
+    builder.setParameterList(Teuchos::rcpFromRef(stratimikos_params));
+
+    // construct preconditioning operator
+    Teuchos::RCP<Thyra::PreconditionerFactoryBase<double>> precFactory =
+        builder.createPreconditioningStrategy("MueLu");
+    Teuchos::RCP<Thyra::PreconditionerBase<double>> prec =
+        Thyra::prec<double>(*precFactory, pmatrix_);
+    auto inverseOp = prec->getUnspecifiedPrecOp();
+
+    p_ = std::make_shared<Teko::Epetra::EpetraInverseOpWrapper>(inverseOp);
   }
   else
   {
+    using EpetraCrsMatrix = Xpetra::EpetraCrsMatrixT<GO, NO>;
+    using EpetraMap = Xpetra::EpetraMapT<GO, NO>;
+
     std::vector<Teuchos::RCP<const Xpetra::Map<LO, GO, NO>>> maps;
 
     for (int block = 0; block < A->rows(); block++)
@@ -153,19 +171,12 @@ void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator
     }
 
     bOp->fillComplete();
-    pmatrix_ = bOp;
+    pmatrix_ = Xpetra::ThyraUtils<SC>::toThyra(bOp);
 
-    if (!muelulist_.sublist("MueLu Parameters").isParameter("MUELU_XML_FILE"))
-      FOUR_C_THROW("MUELU_XML_FILE parameter not set!");
-
-    auto xmlFileName = muelulist_.sublist("MueLu Parameters").get<std::string>("MUELU_XML_FILE");
-    auto mueluParams = Teuchos::make_rcp<Teuchos::ParameterList>();
-    auto comm = pmatrix_->getRowMap()->getComm();
-    Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, mueluParams.ptr(), *comm);
-
-    MueLu::ParameterListInterpreter<SC, LO, GO, NO> mueLuFactory(xmlFileName, *comm);
+    MueLu::ParameterListInterpreter<SC, LO, GO, NO> mueLuFactory(
+        xmlFileName, *bOp->getRowMap()->getComm());
     H_ = mueLuFactory.CreateHierarchy();
-    H_->GetLevel(0)->Set("A", Teuchos::rcp_dynamic_cast<Xpetra::Matrix<SC, LO, GO, NO>>(pmatrix_));
+    H_->GetLevel(0)->Set("A", Teuchos::rcp_dynamic_cast<Xpetra::Matrix<SC, LO, GO, NO>>(bOp));
 
     for (int block = 0; block < A->rows(); block++)
     {
@@ -208,7 +219,7 @@ void Core::LinearSolver::MueLuPreconditioner::setup(Core::LinAlg::SparseOperator
     }
 
     mueLuFactory.SetupHierarchy(*H_);
-    P_ = Teuchos::make_rcp<MueLu::EpetraOperator>(H_);
+    p_ = std::make_shared<MueLu::EpetraOperator>(H_);
   }
 }
 

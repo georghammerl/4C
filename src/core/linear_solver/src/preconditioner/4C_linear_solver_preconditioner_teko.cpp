@@ -38,8 +38,8 @@ Core::LinearSolver::TekoPreconditioner::TekoPreconditioner(Teuchos::ParameterLis
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
-void Core::LinearSolver::TekoPreconditioner::setup(Core::LinAlg::SparseOperator& matrix,
-    const Core::LinAlg::MultiVector<double>& x, Core::LinAlg::MultiVector<double>& b)
+void Core::LinearSolver::TekoPreconditioner::setup(
+    Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b)
 {
   using EpetraMultiVector = Xpetra::EpetraMultiVectorT<GlobalOrdinal, Node>;
   using XpetraMultiVector = Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>;

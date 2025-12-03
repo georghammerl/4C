@@ -17,8 +17,6 @@
 #include "4C_adapter_str_wrapper.hpp"
 #include "4C_beam3_kirchhoff.hpp"
 #include "4C_beam3_reissner.hpp"
-#include "4C_beamcontact_input.hpp"
-#include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_binstrategy.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_fem_condition.hpp"
@@ -518,6 +516,11 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
   // ---------------------------------------------------------------------------
   // check for beam interaction
   // ---------------------------------------------------------------------------
+
+  // extract beam to beam contact conditions
+  std::vector<const Core::Conditions::Condition*> beamtobeamcontactconditions;
+  actdis_->get_condition("BeamToBeamContact", beamtobeamcontactconditions);
+
   if (Global::Problem::instance()
           ->beam_interaction_params()
           .sublist("CROSSLINKING")
@@ -526,9 +529,7 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
           ->beam_interaction_params()
           .sublist("SPHERE BEAM LINK")
           .get<bool>("SPHEREBEAMLINKING") or
-      Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
-          Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO BEAM CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none or
+      beamtobeamcontactconditions.size() > 0 or
       Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
           "STRATEGY") != Inpar::BeamInteraction::bstr_none or

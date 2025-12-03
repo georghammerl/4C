@@ -314,8 +314,9 @@ namespace Mat::Utils::Muscle
    *  @param[in] M Structural tensor of fiber directions
    *  @param[out] dlambdaMdC Derivative of the fiber stretch w.r.t. the Cauchy-Green strains
    */
-  Core::LinAlg::Matrix<3, 3> d_fiber_stretch_dc(const double lambdaM,
-      const Core::LinAlg::Matrix<3, 3>& C, const Core::LinAlg::Matrix<3, 3>& M);
+  Core::LinAlg::SymmetricTensor<double, 3, 3> d_fiber_stretch_dc(const double lambdaM,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& C,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& M);
 
   /*!
    *  @brief Returns the contraction velocity computed by a Backward Euler approximation

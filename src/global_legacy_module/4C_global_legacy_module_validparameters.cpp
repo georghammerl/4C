@@ -10,8 +10,8 @@
 #include "4C_ale_input.hpp"
 #include "4C_art_net_input.hpp"
 #include "4C_beam3_discretization_runtime_output_input.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_binstrategy_input.hpp"
 #include "4C_browniandyn_input.hpp"
@@ -311,7 +311,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Inpar::IORuntimeOutput::FLUID::valid_parameters());
   push_specs(specs, Inpar::IORuntimeOutput::Solid::valid_parameters());
   push_specs(specs, Beam::IORuntimeOutput::valid_parameters());
-  push_specs(specs, BeamContact::valid_parameters());
+  push_specs(specs, BeamInteraction::Contact::BeamToBeam::valid_parameters());
   push_specs(specs, BeamInteraction::Potential::valid_parameters());
   push_specs(specs, BeamInteraction::valid_beam_to_edge_contact_parameters());
   push_specs(specs, Inpar::BeamInteraction::valid_parameters());

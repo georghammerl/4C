@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_BEAMCONTACT_INPUT_HPP
-#define FOUR_C_BEAMCONTACT_INPUT_HPP
+#ifndef FOUR_C_BEAMINTERACTION_CONTACT_BEAM_TO_BEAM_INPUT_HPP
+#define FOUR_C_BEAMINTERACTION_CONTACT_BEAM_TO_BEAM_INPUT_HPP
 
 #include "4C_config.hpp"
 
@@ -18,16 +18,13 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/*----------------------------------------------------------------------*/
-
-
 // Forward declaration.
 namespace Core::Conditions
 {
   class ConditionDefinition;
-}
+}  // namespace Core::Conditions
 
-namespace BeamContact
+namespace BeamInteraction::Contact::BeamToBeam
 {
 
   enum PenaltyLaw
@@ -41,16 +38,12 @@ namespace BeamContact
     pl_lpep    ///< linear penalty law with exponential regularization for positive gaps
   };
 
-  /// beam contact parameters
   std::vector<Core::IO::InputSpec> valid_parameters();
 
-  /**
-   * \brief Set beam beam-to-beam specific conditions.
-   */
   void set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist);
-}  // namespace BeamContact
 
-/*----------------------------------------------------------------------*/
+}  // namespace BeamInteraction::Contact::BeamToBeam
+
 FOUR_C_NAMESPACE_CLOSE
 
 #endif

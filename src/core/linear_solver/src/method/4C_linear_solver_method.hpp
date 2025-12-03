@@ -84,11 +84,10 @@ namespace Core::LinearSolver
      * @param projector Krylov projector
      */
     virtual void setup(std::shared_ptr<Core::LinAlg::SparseOperator> A,
-        std::shared_ptr<Core::LinAlg::MultiVector<double>> x,
         std::shared_ptr<Core::LinAlg::MultiVector<double>> b, const bool refactor, const bool reset,
         std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector) = 0;
 
-    virtual int solve() = 0;
+    virtual int solve(Core::LinAlg::MultiVector<double>& x) = 0;
 
     /// return number of iterations performed by solver
     virtual int get_num_iters() const

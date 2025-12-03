@@ -7,7 +7,6 @@
 
 #include "4C_inpar_beaminteraction.hpp"
 
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_inpar_beam_to_solid.hpp"
@@ -159,27 +158,6 @@ std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()
       {.required = false}));
 
   /*----------------------------------------------------------------------*/
-  /* parameters for beam to ? contact submodel*/
-  /*----------------------------------------------------------------------*/
-
-  /*----------------------------------------------------------------------*/
-  /* parameters for beam to beam contact */
-  specs.push_back(group("BEAM INTERACTION/BEAM TO BEAM CONTACT",
-      {
-
-          deprecated_selection<Inpar::BeamInteraction::Strategy>("STRATEGY",
-              {
-                  {"None", bstr_none},
-                  {"none", bstr_none},
-                  {"Penalty", bstr_penalty},
-                  {"penalty", bstr_penalty},
-              },
-              {.description = "Type of employed solving strategy", .default_value = bstr_none})},
-      {.required = false}));
-
-  // ...
-
-  /*----------------------------------------------------------------------*/
   /* parameters for beam to sphere contact */
   specs.push_back(group("BEAM INTERACTION/BEAM TO SPHERE CONTACT",
       {
@@ -237,9 +215,6 @@ void Inpar::BeamInteraction::set_valid_conditions(
       parameter<double>("ROTATIONAL_PENALTY_PARAMETER"));
 
   condlist.push_back(penalty_coupling_condition_direct);
-
-  // beam-to-beam interactions
-  BeamContact::set_valid_conditions(condlist);
 
   // beam-to-solid interactions
   Inpar::BeamToSolid::set_valid_conditions(condlist);

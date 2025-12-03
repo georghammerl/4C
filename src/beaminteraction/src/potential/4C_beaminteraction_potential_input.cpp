@@ -7,7 +7,6 @@
 
 #include "4C_beaminteraction_potential_input.hpp"
 
-#include "4C_beamcontact_input.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_global_data.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -16,7 +15,6 @@
 
 
 FOUR_C_NAMESPACE_OPEN
-
 
 
 Core::IO::InputSpec BeamInteraction::Potential::valid_parameters()

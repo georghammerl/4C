@@ -265,6 +265,34 @@ namespace Core::LinAlg
   std::shared_ptr<Core::LinAlg::MapExtractor> convert_dirichlet_toggle_vector_to_maps(
       const Core::LinAlg::Vector<double>& dbctoggle);
 
+  /*! \brief Return TRUE if all Dirichlet boundary conditions have been applied
+   to this sparse matrix
+
+  \param A (in) : Sparse Matrix A
+   \param dbcmap (in) : DBC map holding all dbc dofs
+   \param bool (in) diagonalblock: Is this matrix a diagonalblock of a blocksparsematrix?
+                              If it is only one block/matrix, this boolean should be TRUE.
+   \param trafo (in) : shared pointer to an optional trafo matrix (see LocSys).
+  */
+  bool is_dirichlet_boundary_condition_already_applied(const Core::LinAlg::SparseMatrix& A,
+      const Core::LinAlg::Map& dbcmap, bool diagonalblock,
+      const std::shared_ptr<const Core::LinAlg::SparseMatrix>& trafo);
+
+
+  /*! \brief Return TRUE if all Dirichlet boundary conditions have been applied
+   to this sparse operator
+
+  \param A (in) : SparseOperator A
+   \param dbcmap (in) : DBC map holding all dbc dofs
+   \param bool (in) diagonalblock: Is this matrix a diagonalblock of a blocksparsematrix?
+                              If it is only one block/matrix, this boolean should be TRUE.
+   \param trafo (in) : shared pointer to an optional trafo matrix (see LocSys).
+
+   */
+  bool is_dirichlet_boundary_condition_already_applied(const Core::LinAlg::SparseOperator& A,
+      const Core::LinAlg::Map& dbcmap, bool diagonalblock,
+      const std::shared_ptr<const Core::LinAlg::SparseMatrix>& trafo);
+
 }  // namespace Core::LinAlg
 
 FOUR_C_NAMESPACE_CLOSE

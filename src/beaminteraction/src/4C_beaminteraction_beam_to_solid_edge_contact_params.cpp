@@ -7,7 +7,6 @@
 
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_solid_conditions.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_global_data.hpp"

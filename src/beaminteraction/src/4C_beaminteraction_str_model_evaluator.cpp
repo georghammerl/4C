@@ -8,7 +8,6 @@
 #include "4C_beaminteraction_str_model_evaluator.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beamcontact_input.hpp"
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_beaminteraction_beam_to_solid_volume_meshtying_params.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
@@ -317,9 +316,12 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   // ---------------------------------------------------------------------------
   // check for beam contact
   // ---------------------------------------------------------------------------
-  if (Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
-          Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO BEAM CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none or
+
+  // extract beam to beam contact conditions
+  std::vector<const Core::Conditions::Condition*> beamtobeamcontactconditions;
+  discret_ptr_->get_condition("BeamToBeamContact", beamtobeamcontactconditions);
+
+  if (beamtobeamcontactconditions.size() > 0 or
       Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
           "STRATEGY") != Inpar::BeamInteraction::bstr_none or
@@ -346,10 +348,6 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   discret().get_condition("BeamPotentialLineCharge", beampotconditions);
   if (beampotconditions.size() > 0)
     submodeltypes_->insert(Inpar::BeamInteraction::submodel_potential);
-
-  // extract beam to beam contact conditions
-  std::vector<const Core::Conditions::Condition*> beamtobeamcontactconditions;
-  discret_ptr_->get_condition("BeamToBeamContact", beamtobeamcontactconditions);
 
   // Ensure that no point coupling condition connects two beams that are possibly in contact with
   // each other.

@@ -29,8 +29,7 @@ namespace Core::LinearSolver
     ProjectionPreconditioner(std::shared_ptr<PreconditionerTypeBase> preconditioner,
         std::shared_ptr<Core::LinAlg::LinearSystemProjector> projector);
 
-    void setup(Core::LinAlg::SparseOperator& matrix, const Core::LinAlg::MultiVector<double>& x,
-        Core::LinAlg::MultiVector<double>& b) override;
+    void setup(Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b) override;
 
     /// linear operator used for preconditioning
     std::shared_ptr<Epetra_Operator> prec_operator() const override { return p_; }

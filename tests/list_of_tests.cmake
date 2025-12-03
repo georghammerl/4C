@@ -2352,7 +2352,6 @@ four_c_test(TEST_FILE tsi_meshtying_nurbs.4C.yaml NP 2)
 four_c_test(TEST_FILE tsi_plexichannel_varyE_monolithic.4C.yaml NP 2)
 four_c_test(TEST_FILE tsi_pressurisedcylinder_robinson.4C.yaml NP 2)
 four_c_test(TEST_FILE tsi_simplrocketnozzle_monolithic.4C.yaml NP 2)
-four_c_test(TEST_FILE tsi_simplrocketnozzle_monolithic_ilu.4C.yaml NP 2)
 four_c_test(TEST_FILE tsi_simplrocketnozzle_monolithic_muelu.4C.yaml NP 3)
 four_c_test(TEST_FILE visco_generalized_genmax_ost_h8.4C.yaml NP 2 RETURN_AS current)
 four_c_test_restart(BASED_ON ${current} SAME_FILE NP 2 RESTART_STEP 200)
@@ -2722,7 +2721,7 @@ four_c_test_tutorial(TEST_FILE contact/tutorial_contact_3d.4C.yaml NP 2 COPY_FIL
 four_c_test_tutorial(TEST_FILE fluid/tutorial_fluid.4C.yaml NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/fluid/tutorial_fluid.e)
 four_c_test_tutorial(TEST_FILE fsi/tutorial_fsi_2d.4C.yaml NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/tutorial_fsi_2d.e)
 four_c_test_tutorial(TEST_FILE fsi/tutorial_fsi_3d.4C.yaml NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/fsi_part_struct_solver.xml ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/tutorial_fsi_3d.e)
-four_c_test_tutorial(TEST_FILE fsi/tutorial_fsi_monolithic.4C.yaml NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/tutorial_fsi_monolithic_pw_m1.exo ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/iterative_gmres_template.xml ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/fluid_solid_ale.xml)
+four_c_test_tutorial(TEST_FILE fsi/tutorial_fsi_monolithic.4C.yaml TIMEOUT 100 NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/tutorial_fsi_monolithic_pw_m1.exo ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/iterative_gmres_template.xml ${PROJECT_SOURCE_DIR}/tests/tutorials/fsi/fluid_solid_ale.xml)
 four_c_test_tutorial(TEST_FILE solid/tutorial_solid.4C.yaml NP 2 COPY_FILES ${PROJECT_SOURCE_DIR}/tests/tutorials/solid/elasticity_template.xml ${PROJECT_SOURCE_DIR}/tests/tutorials/solid/iterative_gmres_template.xml ${PROJECT_SOURCE_DIR}/tests/tutorials/solid/tutorial_solid_geo_coarse.e)
 # Test use case solid with Jacobi preconditioner on mesh 2 with 2 MPI ranks
 four_c_test_tutorial(TEST_FILE preconditioner/tutorial_prec_solid_jacobi.4C.yaml NP 2 COPY_FILES

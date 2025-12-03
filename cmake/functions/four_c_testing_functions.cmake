@@ -602,6 +602,7 @@ endfunction()
 #
 # TEST_FILE: must equal the name of the input file in directory tests/tutorials
 # NP: number of MPI ranks for this test
+# TIMEOUT: Manually defined duration for test timeout in <seconds>; defaults to global timeout if not specified
 # COPY_FILES: copy any additional files to the test directory
 # REQUIRED_DEPENDENCIES:        Any required external dependencies. The test will be skipped if the dependencies are not met.
 #                                Either a dependency, e.g. "Trilinos", or a dependency with a version constraint, e.g. "Trilinos>=2025.2".
@@ -609,7 +610,7 @@ endfunction()
 #                                If multiple dependencies are provided, all must be met for the test to run.
 #                                Note that the version is the _internal_ version that 4C assigns to the dependency.
 function(four_c_test_tutorial)
-  set(oneValueArgs TEST_FILE NP)
+  set(oneValueArgs TEST_FILE NP TIMEOUT)
   set(multiValueArgs COPY_FILES REQUIRED_DEPENDENCIES)
   cmake_parse_arguments(
     _parsed
@@ -628,6 +629,12 @@ function(four_c_test_tutorial)
   set(num_proc ${_parsed_NP})
   set(name_of_test ${name_of_input_file}-p${num_proc}-fw)
   set(test_directory tutorials/${name_of_input_file})
+
+  # optional timeout (scaled)
+  set(local_timeout "")
+  if(DEFINED _parsed_TIMEOUT AND NOT "${_parsed_TIMEOUT}" STREQUAL "")
+    math(EXPR local_timeout "${FOUR_C_TEST_TIMEOUT_SCALE} * ${_parsed_TIMEOUT}")
+  endif()
 
   list(
     APPEND
@@ -679,7 +686,7 @@ function(four_c_test_tutorial)
   set_environment(${name_of_test})
   set_fail_expression(${name_of_test})
   set_processors(${name_of_test} ${num_proc})
-  set_timeout(${name_of_test})
+  set_timeout(${name_of_test} ${local_timeout})
 endfunction()
 
 ###------------------------------------------------------------------ Cut Tests

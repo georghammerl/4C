@@ -7,6 +7,7 @@
 
 #include "4C_beaminteraction_beam_to_beam_contact_params.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_global_data.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -19,7 +20,7 @@ FOUR_C_NAMESPACE_OPEN
 BeamInteraction::BeamToBeamContactParams::BeamToBeamContactParams()
     : isinit_(false),
       issetup_(false),
-      penalty_law_(BeamContact::pl_lp),
+      penalty_law_(BeamInteraction::Contact::BeamToBeam::PenaltyLaw::pl_lp),
       btb_penalty_law_regularization_g0_(-1.0),
       btb_penalty_law_regularization_f0_(-1.0),
       btb_penalty_law_regularization_c0_(-1.0),
@@ -47,14 +48,14 @@ void BeamInteraction::BeamToBeamContactParams::init()
 
   // Teuchos parameter list for beam contact
   const Teuchos::ParameterList& beam_contact_params_list =
-      Global::Problem::instance()->beam_contact_params();
+      Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO BEAM CONTACT");
 
   /****************************************************************************/
   // get and check required parameters
   /****************************************************************************/
 
   /****************************************************************************/
-  penalty_law_ = Teuchos::getIntegralValue<BeamContact::PenaltyLaw>(
+  penalty_law_ = Teuchos::getIntegralValue<BeamInteraction::Contact::BeamToBeam::PenaltyLaw>(
       beam_contact_params_list, "BEAMS_PENALTYLAW");
 
   /****************************************************************************/
@@ -63,7 +64,8 @@ void BeamInteraction::BeamToBeamContactParams::init()
   btb_penalty_law_regularization_c0_ = beam_contact_params_list.get<double>("BEAMS_PENREGPARAM_C0");
 
   // Todo check and refine these safety checks
-  if (penalty_law_ != BeamContact::pl_lp and penalty_law_ != BeamContact::pl_qp)
+  if (penalty_law_ != BeamInteraction::Contact::BeamToBeam::pl_lp and
+      penalty_law_ != BeamInteraction::Contact::BeamToBeam::pl_qp)
   {
     if (btb_penalty_law_regularization_g0_ == -1.0 or btb_penalty_law_regularization_f0_ == -1.0 or
         btb_penalty_law_regularization_c0_ == -1.0)
@@ -75,7 +77,7 @@ void BeamInteraction::BeamToBeamContactParams::init()
   // Todo check this parameter
   gap_shift_ = beam_contact_params_list.get<double>("BEAMS_GAPSHIFTPARAM");
 
-  if (gap_shift_ != 0.0 and penalty_law_ != BeamContact::pl_lpqp)
+  if (gap_shift_ != 0.0 and penalty_law_ != BeamInteraction::Contact::BeamToBeam::pl_lpqp)
     FOUR_C_THROW("BEAMS_GAPSHIFTPARAM only possible for penalty law LinPosQuadPen!");
 
   /****************************************************************************/

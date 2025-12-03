@@ -56,30 +56,25 @@ namespace Core::LinearSolver
      * @param x Solution of the linear system
      * @param b Right-hand side of the linear system
      */
-    void setup(Core::LinAlg::SparseOperator& matrix, const Core::LinAlg::MultiVector<double>& x,
-        Core::LinAlg::MultiVector<double>& b) override;
+    void setup(Core::LinAlg::SparseOperator& matrix, Core::LinAlg::MultiVector<double>& b) override;
 
     //! linear operator used for preconditioning
-    std::shared_ptr<Epetra_Operator> prec_operator() const final
-    {
-      return Core::Utils::shared_ptr_from_ref(*P_);
-    }
+    std::shared_ptr<Epetra_Operator> prec_operator() const final { return p_; }
 
    private:
     //! system of equations used for preconditioning used by P_ only
-    Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>> pmatrix_;
+    Teuchos::RCP<const Thyra::LinearOpBase<double>> pmatrix_;
 
    protected:
     //! MueLu parameter list
     Teuchos::ParameterList& muelulist_;
 
     //! preconditioner
-    Teuchos::RCP<Epetra_Operator> P_;
+    std::shared_ptr<Epetra_Operator> p_;
 
     //! MueLu hierarchy
     Teuchos::RCP<MueLu::Hierarchy<Scalar, LocalOrdinal, GlobalOrdinal, Node>> H_;
-
-  };  // class MueLuPreconditioner
+  };
 }  // namespace Core::LinearSolver
 
 FOUR_C_NAMESPACE_CLOSE

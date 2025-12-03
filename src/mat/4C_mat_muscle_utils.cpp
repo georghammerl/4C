@@ -405,24 +405,18 @@ double Mat::Utils::Muscle::evaluate_time_space_dependent_active_stress_by_map(
 double Mat::Utils::Muscle::fiber_stretch(const Core::LinAlg::SymmetricTensor<double, 3, 3>& C,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& M)
 {
-  // product C^T*M
-  auto CM = C * M;  // C^TM = C^T*M
-
-  // stretch in fibre direction lambdaM
-  // lambdaM = sqrt(C:M) = sqrt(tr(C^T M)), see Holzapfel2000, p.14
-  double lambdaM = std::sqrt(Core::LinAlg::trace(CM));
+  // stretch in fibre direction lambdaM = sqrt(C:M)
+  double lambdaM = std::sqrt(Core::LinAlg::ddot(C, M));
 
   return lambdaM;
 }
 
-Core::LinAlg::Matrix<3, 3> Mat::Utils::Muscle::d_fiber_stretch_dc(
-    const double lambdaM, const Core::LinAlg::Matrix<3, 3>& C, const Core::LinAlg::Matrix<3, 3>& M)
+Core::LinAlg::SymmetricTensor<double, 3, 3> Mat::Utils::Muscle::d_fiber_stretch_dc(
+    const double lambdaM, const Core::LinAlg::SymmetricTensor<double, 3, 3>& C,
+    const Core::LinAlg::SymmetricTensor<double, 3, 3>& M)
 {
   // derivative of lambdaM w.r.t. C
-  Core::LinAlg::Matrix<3, 3> dlambdaMdC(M);
-  dlambdaMdC.scale(0.5 / lambdaM);
-
-  return dlambdaMdC;
+  return 0.5 / lambdaM * M;
 }
 
 double Mat::Utils::Muscle::contraction_velocity_bw_euler(

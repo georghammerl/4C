@@ -279,4 +279,161 @@ std::shared_ptr<Core::LinAlg::MapExtractor> Core::LinAlg::convert_dirichlet_togg
   return std::make_shared<Core::LinAlg::MapExtractor>(fullmap, dbcmap, freemap);
 }
 
+bool Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
+    const Core::LinAlg::SparseMatrix& A, const Core::LinAlg::Map& dbcmap, bool diagonalblock,
+    const std::shared_ptr<const Core::LinAlg::SparseMatrix>& trafo)
+{
+  if (not A.filled()) FOUR_C_THROW("The matrix must be filled!");
+
+  const int numdbcrows = dbcmap.num_my_elements();
+  const int* dbcrows = dbcmap.my_global_elements();
+
+  std::vector<int> gIndices(A.max_num_entries(), 0);
+  std::vector<int> gtIndices((trafo ? trafo->max_num_entries() : 0), 0);
+
+  bool isdbc = true;
+
+  for (int i = 0; i < numdbcrows; ++i)
+  {
+    const int row = dbcrows[i];
+    const int sys_rlid = A.row_map().lid(row);
+
+    // this can happen for blocks of a BlockSparseMatrix
+    if (sys_rlid == -1) continue;
+
+    int NumEntries = 0;
+    double* Values = nullptr;
+    int* Indices = nullptr;
+    A.extract_my_row_view(sys_rlid, NumEntries, Values, Indices);
+
+    std::fill(gIndices.begin(), gIndices.end(), 0.0);
+    for (int c = 0; c < NumEntries; ++c) gIndices[c] = A.col_map().gid(Indices[c]);
+
+    // handle a diagonal block
+    if (diagonalblock)
+    {
+      if (NumEntries == 0) FOUR_C_THROW("Row {} is empty and part of a diagonal block!", row);
+
+      if (trafo)
+      {
+        if (not trafo->filled()) FOUR_C_THROW("The trafo matrix must be filled!");
+
+        int tNumEntries = 0;
+        double* tValues = nullptr;
+        int* tIndices = nullptr;
+
+        const int trafo_rlid = trafo->row_map().lid(row);
+        trafo->epetra_matrix().ExtractMyRowView(trafo_rlid, tNumEntries, tValues, tIndices);
+
+        // get the global indices corresponding to the extracted local indices
+        std::fill(gtIndices.begin(), gtIndices.end(), 0.0);
+        for (int c = 0; c < tNumEntries; ++c) gtIndices[c] = trafo->col_map().gid(tIndices[c]);
+
+        for (int j = 0; j < tNumEntries; ++j)
+        {
+          int k = -1;
+          while (++k < NumEntries)
+            if (Indices[k] == tIndices[j]) break;
+
+          if (k == NumEntries)
+            FOUR_C_THROW("Couldn't find column index {} in row {}.", tIndices[j], row);
+
+          if (std::abs(Values[k] - tValues[j]) > std::numeric_limits<double>::epsilon())
+          {
+            isdbc = false;
+            break;
+          }
+        }
+      }
+      // handle standard diagonal blocks
+      // --> 1.0 on the diagonal
+      // --> 0.0 on all off-diagonals
+      else
+      {
+        for (int j = 0; j < NumEntries; ++j)
+        {
+          if (gIndices[j] != row and Values[j] > std::numeric_limits<double>::epsilon())
+          {
+            isdbc = false;
+            break;
+          }
+          else if (gIndices[j] == row)
+            if (std::abs(1.0 - Values[j]) > std::numeric_limits<double>::epsilon())
+            {
+              isdbc = false;
+              break;
+            }
+        }
+      }
+    }
+    // we expect only zeros on the off-diagonal blocks
+    else
+    {
+      for (int j = 0; j < NumEntries; ++j)
+      {
+        if (Values[j] > std::numeric_limits<double>::epsilon())
+        {
+          isdbc = false;
+          break;
+        }
+      }
+    }
+
+    // stop as soon as the initial status changed once
+    if (not isdbc) break;
+  }
+
+  int lisdbc = static_cast<int>(isdbc);
+  int gisdbc = 0;
+  gisdbc = Core::Communication::min_all(lisdbc, Core::Communication::unpack_epetra_comm(A.Comm()));
+
+  return (gisdbc == 1);
+}
+
+
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+bool Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
+    const Core::LinAlg::SparseOperator& A, const Core::LinAlg::Map& dbcmap, bool diagonalblock,
+    const std::shared_ptr<const Core::LinAlg::SparseMatrix>& trafo)
+{
+  // Check if provided Operator corresponds to single sparse matrix
+  auto const* sparse_matrix = dynamic_cast<const Core::LinAlg::SparseMatrix*>(&A);
+  if (sparse_matrix != nullptr)
+  {
+    return Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
+        *sparse_matrix, dbcmap, diagonalblock, trafo);
+  }
+  // Or Sparse Block Matrix
+  auto const* block = dynamic_cast<const Core::LinAlg::BlockSparseMatrixBase*>(&A);
+  if (block != nullptr)
+  {
+    for (int rblock = 0; rblock < block->rows(); ++rblock)
+    {
+      for (int cblock = 0; cblock < block->cols(); ++cblock)
+      {
+        const Core::LinAlg::SparseMatrix& submat = block->matrix(rblock, cblock);
+
+        if (not Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
+                submat, dbcmap, diagonalblock && (rblock == cblock), trafo))
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  else
+  {
+    FOUR_C_THROW(
+        "Unsupported SparseOperator type in "
+        "is_dirichlet_boundary_condition_already_applied().");
+  }
+
+
+
+  return false;
+}
+
 FOUR_C_NAMESPACE_CLOSE
