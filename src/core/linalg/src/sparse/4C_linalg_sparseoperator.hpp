@@ -196,17 +196,7 @@ namespace Core::LinAlg
     ///  manner.
     virtual void apply_dirichlet(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true) = 0;
 
-    /** \brief Return TRUE if all Dirichlet boundary conditions have been applied
-     *  to this matrix
-     *
-     *  \param (in) dbcmap: DBC map holding all dbc dofs
-     *  \param (in) diagonalblock: Is this matrix a diagonalblock of a blocksparsematrix?
-     *                             If it is only one block/matrix, this boolean should be TRUE.
-     *  \param (in) trafo: pointer to an optional trafo matrix (see LocSys).
-     *
-     *  */
-    virtual bool is_dbc_applied(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true,
-        const Core::LinAlg::SparseMatrix* trafo = nullptr) const = 0;
+
 
     /// Returns the Epetra_Map object associated with the (full) domain of this operator.
     virtual const Map& domain_map() const = 0;

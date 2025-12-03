@@ -185,23 +185,6 @@ void Core::LinAlg::BlockSparseMatrixBase::apply_dirichlet(
   }
 }
 
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-bool Core::LinAlg::BlockSparseMatrixBase::is_dbc_applied(const Core::LinAlg::Map& dbcmap,
-    bool diagonalblock, const Core::LinAlg::SparseMatrix* trafo) const
-{
-  for (int rblock = 0; rblock < rows(); ++rblock)
-  {
-    for (int cblock = 0; cblock < cols(); ++cblock)
-    {
-      if (not matrix(rblock, cblock)
-              .is_dbc_applied(dbcmap, diagonalblock and (rblock == cblock), trafo))
-        return false;
-    }
-  }
-  return true;
-}
-
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/

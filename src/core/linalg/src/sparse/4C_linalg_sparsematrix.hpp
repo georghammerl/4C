@@ -411,8 +411,6 @@ namespace Core::LinAlg
      *  rows.
      *
      *  */
-    bool is_dbc_applied(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true,
-        const Core::LinAlg::SparseMatrix* trafo = nullptr) const override;
 
     //@}
 

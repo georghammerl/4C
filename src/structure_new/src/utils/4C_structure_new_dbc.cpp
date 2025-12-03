@@ -273,8 +273,9 @@ void Solid::Dbc::apply_dirichlet_to_local_jacobian(Core::LinAlg::SparseOperator&
    * behavior during the usage of locsys. Furthermore, the consideration of
    * DBCs in an explicit way is a pretty expensive operation.
    *                                                          hiermeier 01/18 */
-  if (A.is_dbc_applied(*dbcmap_ptr_->cond_map(), true, get_loc_sys_trafo().get())) return;
-
+  if (Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
+          A, *dbcmap_ptr_->cond_map(), true, get_loc_sys_trafo()))
+    return;
   if (rotate_global_to_local(A))
   {
     std::shared_ptr<std::vector<Core::LinAlg::SparseMatrix*>> mats =
