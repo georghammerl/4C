@@ -258,8 +258,7 @@ const Core::LinAlg::Vector<double>& Core::LinAlg::MultiVector<T>::get_vector(int
   FOUR_C_ASSERT_ALWAYS(
       i < vector_->NumVectors(), "Index {} out of bounds [0,{}).", i, vector_->NumVectors());
 
-  const_cast<Core::LinAlg::MultiVector<T>*>(this)->column_vector_view_.resize(
-      vector_->NumVectors());
+  column_vector_view_.resize(vector_->NumVectors());
 
   // We may safely const_cast here; constness is restored by the returned const reference.
   return column_vector_view_[i].sync(const_cast<Epetra_Vector&>(*(*vector_)(i)));

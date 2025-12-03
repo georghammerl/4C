@@ -844,7 +844,7 @@ void StructMonWriter::write_str_result(std::ofstream& outfile, PostField*& field
     outfile << std::right << std::setw(16) << std::scientific << result.time();
     for (int i = 0; i < 6; i++)
       outfile << std::right << std::setw(16) << std::scientific
-              << nodal_stress(i).local_values_as_span()[node];
+              << nodal_stress.get_vector(i).local_values_as_span()[node];
     outfile << std::endl;
   }
 

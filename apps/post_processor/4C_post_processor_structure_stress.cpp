@@ -203,7 +203,7 @@ struct WriteElementCenterRotation : public SpecialFieldInterface
           if (lid != -1)
             for (int i = 0; i < elecenterrot.numRows(); ++i)
               for (int j = 0; j < elecenterrot.numCols(); ++j)
-                ((elerotation(i * elecenterrot.numRows() + j))).get_values()[lid] =
+                elerotation.get_vector(i * elecenterrot.numRows() + j).get_values()[lid] =
                     elecenterrot(i, j);
         });
 
@@ -355,23 +355,23 @@ struct WriteNodalEigenStressStep : public SpecialFieldInterface
         Core::LinAlg::SerialDenseMatrix eigenvec(3, 3);
         Core::LinAlg::SerialDenseVector eigenval(3);
 
-        eigenvec(0, 0) = nodal_stress(0).local_values_as_span()[i];
-        eigenvec(0, 1) = nodal_stress(3).local_values_as_span()[i];
-        eigenvec(0, 2) = nodal_stress(5).local_values_as_span()[i];
+        eigenvec(0, 0) = nodal_stress.get_vector(0).local_values_as_span()[i];
+        eigenvec(0, 1) = nodal_stress.get_vector(3).local_values_as_span()[i];
+        eigenvec(0, 2) = nodal_stress.get_vector(5).local_values_as_span()[i];
         eigenvec(1, 0) = eigenvec(0, 1);
-        eigenvec(1, 1) = nodal_stress(1).local_values_as_span()[i];
-        eigenvec(1, 2) = nodal_stress(4).local_values_as_span()[i];
+        eigenvec(1, 1) = nodal_stress.get_vector(1).local_values_as_span()[i];
+        eigenvec(1, 2) = nodal_stress.get_vector(4).local_values_as_span()[i];
         eigenvec(2, 0) = eigenvec(0, 2);
         eigenvec(2, 1) = eigenvec(1, 2);
-        eigenvec(2, 2) = nodal_stress(2).local_values_as_span()[i];
+        eigenvec(2, 2) = nodal_stress.get_vector(2).local_values_as_span()[i];
 
         Core::LinAlg::symmetric_eigen_problem(eigenvec, eigenval, true);
 
         for (int d = 0; d < 3; ++d)
         {
-          (((*nodal_eigen_val_vec[d])(0))).get_values()[i] = eigenval(d);
+          nodal_eigen_val_vec[d]->get_vector(0).get_values()[i] = eigenval(d);
           for (int e = 0; e < 3; ++e)
-            (((*nodal_eigen_val_vec[d + 3])(e))).get_values()[i] = eigenvec(e, d);
+            nodal_eigen_val_vec[d + 3]->get_vector(e).get_values()[i] = eigenvec(e, d);
         }
       }
     }
@@ -383,25 +383,25 @@ struct WriteNodalEigenStressStep : public SpecialFieldInterface
         Core::LinAlg::SerialDenseMatrix eigenvec(2, 2);
         Core::LinAlg::SerialDenseVector eigenval(2);
 
-        eigenvec(0, 0) = nodal_stress(0).local_values_as_span()[i];
-        eigenvec(0, 1) = nodal_stress(3).local_values_as_span()[i];
+        eigenvec(0, 0) = nodal_stress.get_vector(0).local_values_as_span()[i];
+        eigenvec(0, 1) = nodal_stress.get_vector(3).local_values_as_span()[i];
         eigenvec(1, 0) = eigenvec(0, 1);
-        eigenvec(1, 1) = nodal_stress(1).local_values_as_span()[i];
+        eigenvec(1, 1) = nodal_stress.get_vector(1).local_values_as_span()[i];
 
         Core::LinAlg::symmetric_eigen_problem(eigenvec, eigenval, true);
 
-        (((*nodal_eigen_val_vec[0])(0))).get_values()[i] = eigenval(0);
-        (((*nodal_eigen_val_vec[1])(0))).get_values()[i] = eigenval(1);
-        (((*nodal_eigen_val_vec[2])(0))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[3])(0))).get_values()[i] = eigenvec(0, 0);
-        (((*nodal_eigen_val_vec[3])(1))).get_values()[i] = eigenvec(1, 0);
-        (((*nodal_eigen_val_vec[3])(2))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[4])(0))).get_values()[i] = eigenvec(0, 1);
-        (((*nodal_eigen_val_vec[4])(1))).get_values()[i] = eigenvec(1, 1);
-        (((*nodal_eigen_val_vec[4])(2))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(0))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(1))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(2))).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[0]->get_vector(0).get_values()[i] = eigenval(0);
+        nodal_eigen_val_vec[1]->get_vector(0).get_values()[i] = eigenval(1);
+        nodal_eigen_val_vec[2]->get_vector(0).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[3]->get_vector(0).get_values()[i] = eigenvec(0, 0);
+        nodal_eigen_val_vec[3]->get_vector(1).get_values()[i] = eigenvec(1, 0);
+        nodal_eigen_val_vec[3]->get_vector(2).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[4]->get_vector(0).get_values()[i] = eigenvec(0, 1);
+        nodal_eigen_val_vec[4]->get_vector(1).get_values()[i] = eigenvec(1, 1);
+        nodal_eigen_val_vec[4]->get_vector(2).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(0).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(1).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(2).get_values()[i] = 0.0;
       }
     }
 
@@ -473,23 +473,23 @@ struct WriteElementCenterEigenStressStep : public SpecialFieldInterface
         Core::LinAlg::SerialDenseMatrix eigenvec(3, 3);
         Core::LinAlg::SerialDenseVector eigenval(3);
 
-        eigenvec(0, 0) = ((element_stress(0))).get_values()[i];
-        eigenvec(0, 1) = ((element_stress(3))).get_values()[i];
-        eigenvec(0, 2) = ((element_stress(5))).get_values()[i];
+        eigenvec(0, 0) = element_stress.get_vector(0).get_values()[i];
+        eigenvec(0, 1) = element_stress.get_vector(3).get_values()[i];
+        eigenvec(0, 2) = element_stress.get_vector(5).get_values()[i];
         eigenvec(1, 0) = eigenvec(0, 1);
-        eigenvec(1, 1) = ((element_stress(1))).get_values()[i];
-        eigenvec(1, 2) = ((element_stress(4))).get_values()[i];
+        eigenvec(1, 1) = element_stress.get_vector(1).get_values()[i];
+        eigenvec(1, 2) = element_stress.get_vector(4).get_values()[i];
         eigenvec(2, 0) = eigenvec(0, 2);
         eigenvec(2, 1) = eigenvec(1, 2);
-        eigenvec(2, 2) = ((element_stress(2))).get_values()[i];
+        eigenvec(2, 2) = element_stress.get_vector(2).get_values()[i];
 
         Core::LinAlg::symmetric_eigen_problem(eigenvec, eigenval, true);
 
         for (int d = 0; d < 3; ++d)
         {
-          (((*nodal_eigen_val_vec[d])(0))).get_values()[i] = eigenval(d);
+          nodal_eigen_val_vec[d]->get_vector(0).get_values()[i] = eigenval(d);
           for (int e = 0; e < 3; ++e)
-            (((*nodal_eigen_val_vec[d + 3])(e))).get_values()[i] = eigenvec(e, d);
+            nodal_eigen_val_vec[d + 3]->get_vector(e).get_values()[i] = eigenvec(e, d);
         }
       }
     }
@@ -501,25 +501,25 @@ struct WriteElementCenterEigenStressStep : public SpecialFieldInterface
         Core::LinAlg::SerialDenseMatrix eigenvec(2, 2);
         Core::LinAlg::SerialDenseVector eigenval(2);
 
-        eigenvec(0, 0) = element_stress(0).local_values_as_span()[i];
-        eigenvec(0, 1) = element_stress(3).local_values_as_span()[i];
+        eigenvec(0, 0) = element_stress.get_vector(0).local_values_as_span()[i];
+        eigenvec(0, 1) = element_stress.get_vector(3).local_values_as_span()[i];
         eigenvec(1, 0) = eigenvec(0, 1);
-        eigenvec(1, 1) = element_stress(1).local_values_as_span()[i];
+        eigenvec(1, 1) = element_stress.get_vector(1).local_values_as_span()[i];
 
         Core::LinAlg::symmetric_eigen_problem(eigenvec, eigenval, true);
 
-        (((*nodal_eigen_val_vec[0])(0))).get_values()[i] = eigenval(0);
-        (((*nodal_eigen_val_vec[1])(0))).get_values()[i] = eigenval(1);
-        (((*nodal_eigen_val_vec[2])(0))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[3])(0))).get_values()[i] = eigenvec(0, 0);
-        (((*nodal_eigen_val_vec[3])(1))).get_values()[i] = eigenvec(1, 0);
-        (((*nodal_eigen_val_vec[3])(2))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[4])(0))).get_values()[i] = eigenvec(0, 1);
-        (((*nodal_eigen_val_vec[4])(1))).get_values()[i] = eigenvec(1, 1);
-        (((*nodal_eigen_val_vec[4])(2))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(0))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(1))).get_values()[i] = 0.0;
-        (((*nodal_eigen_val_vec[5])(2))).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[0]->get_vector(0).get_values()[i] = eigenval(0);
+        nodal_eigen_val_vec[1]->get_vector(0).get_values()[i] = eigenval(1);
+        nodal_eigen_val_vec[2]->get_vector(0).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[3]->get_vector(0).get_values()[i] = eigenvec(0, 0);
+        nodal_eigen_val_vec[3]->get_vector(1).get_values()[i] = eigenvec(1, 0);
+        nodal_eigen_val_vec[3]->get_vector(2).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[4]->get_vector(0).get_values()[i] = eigenvec(0, 1);
+        nodal_eigen_val_vec[4]->get_vector(1).get_values()[i] = eigenvec(1, 1);
+        nodal_eigen_val_vec[4]->get_vector(2).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(0).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(1).get_values()[i] = 0.0;
+        nodal_eigen_val_vec[5]->get_vector(2).get_values()[i] = 0.0;
       }
     }
 
