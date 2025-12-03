@@ -48,7 +48,7 @@
         "MPIEXEC_EXECUTABLE": "/opt/openmpi/4.1.8/gcc/bin/orterun",
         "FOUR_C_QHULL_ROOT": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/qhull-2012.1-52nebni444m47tb7wxonn23bbbvlcapb",
         "FOUR_C_BOOST_ROOT": "/opt/spack/v0.23.1/opt/spack/linux-ubuntu24.04-sapphirerapids/gcc-13.3.0/boost-1.86.0-ozobi6er2oftu56mkjsqsuvuqtdv6hf7",
-        "FOUR_C_TRILINOS_ROOT": "/opt/trilinos/2025-04/"
+        "FOUR_C_TRILINOS_ROOT": "/opt/trilinos/2025-06/"
       }
     }
   ]
