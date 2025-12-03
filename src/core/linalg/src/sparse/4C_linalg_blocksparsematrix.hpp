@@ -92,9 +92,6 @@ namespace Core::LinAlg
 
     void apply_dirichlet(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true) override;
 
-    /// derived
-    bool is_dbc_applied(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true,
-        const Core::LinAlg::SparseMatrix* trafo = nullptr) const override;
 
     //@}
 

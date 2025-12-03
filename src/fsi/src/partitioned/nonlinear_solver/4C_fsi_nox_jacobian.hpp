@@ -74,9 +74,6 @@ namespace NOX
 
       void apply_dirichlet(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true) override;
 
-      bool is_dbc_applied(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true,
-          const Core::LinAlg::SparseMatrix* trafo = nullptr) const override;
-
       const Core::LinAlg::Map& domain_map() const override;
 
       void add(const Core::LinAlg::SparseOperator& A, const bool transposeA, const double scalarA,

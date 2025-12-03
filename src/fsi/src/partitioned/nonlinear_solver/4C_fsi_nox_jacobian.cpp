@@ -96,11 +96,6 @@ void NOX::FSI::FSIMatrixFree::apply_dirichlet(const Core::LinAlg::Map& dbcmap, b
   FOUR_C_THROW("Not implemented");
 }
 
-bool NOX::FSI::FSIMatrixFree::is_dbc_applied(const Core::LinAlg::Map& dbcmap, bool diagonalblock,
-    const Core::LinAlg::SparseMatrix* trafo) const
-{
-  FOUR_C_THROW("Not implemented");
-}
 
 const Core::LinAlg::Map& NOX::FSI::FSIMatrixFree::domain_map() const
 {

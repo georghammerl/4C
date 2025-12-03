@@ -67,12 +67,6 @@ void NOX::Nln::MatrixFree::SparseOperatorWrapper::apply_dirichlet(
   FOUR_C_THROW("Not implemented");
 }
 
-bool NOX::Nln::MatrixFree::SparseOperatorWrapper::is_dbc_applied(const Core::LinAlg::Map& dbcmap,
-    bool diagonalblock, const Core::LinAlg::SparseMatrix* trafor) const
-{
-  FOUR_C_THROW("Not implemented");
-}
-
 const Core::LinAlg::Map& NOX::Nln::MatrixFree::SparseOperatorWrapper::domain_map() const
 {
   FOUR_C_THROW("Not implemented");
