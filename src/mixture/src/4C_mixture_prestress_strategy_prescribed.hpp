@@ -5,11 +5,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_MIXTURE_PRESTRESS_STRATEGY_CONSTANT_HPP
-#define FOUR_C_MIXTURE_PRESTRESS_STRATEGY_CONSTANT_HPP
+#ifndef FOUR_C_MIXTURE_PRESTRESS_STRATEGY_PRESCRIBED_HPP
+#define FOUR_C_MIXTURE_PRESTRESS_STRATEGY_PRESCRIBED_HPP
 
 #include "4C_config.hpp"
 
+#include "4C_io_input_field.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_mixture_elastin_membrane_prestress_strategy.hpp"
@@ -24,24 +25,24 @@ FOUR_C_NAMESPACE_OPEN
 namespace Mixture
 {
   // forward declaration
-  class ConstantPrestressStrategy;
+  class PrescribedPrestressStrategy;
 
   namespace PAR
   {
-    class ConstantPrestressStrategy : public Mixture::PAR::PrestressStrategy
+    class PrescribedPrestressStrategy : public Mixture::PAR::PrestressStrategy
     {
-      friend class Mixture::ConstantPrestressStrategy;
+      friend class Mixture::PrescribedPrestressStrategy;
 
      public:
       /// constructor
-      explicit ConstantPrestressStrategy(const Core::Mat::PAR::Parameter::Data& matdata);
+      explicit PrescribedPrestressStrategy(const Core::Mat::PAR::Parameter::Data& matdata);
 
       /// create prestress strategy instance of matching type with my parameters
       std::unique_ptr<Mixture::PrestressStrategy> create_prestress_strategy() override;
 
       /// @name parameters of the prestress strategy
       /// @{
-      Core::LinAlg::SymmetricTensor<double, 3, 3> prestretch_;
+      Core::IO::InterpolatedInputField<Core::LinAlg::SymmetricTensor<double, 3, 3>> prestretch_;
       /// @}
     };
   }  // namespace PAR
@@ -50,11 +51,11 @@ namespace Mixture
   /*!
    * \brief Prestressing strategy for a constant predefined prestretch tensor.
    */
-  class ConstantPrestressStrategy : public PrestressStrategy
+  class PrescribedPrestressStrategy : public PrestressStrategy
   {
    public:
     /// Constructor for the material given the material parameters
-    explicit ConstantPrestressStrategy(Mixture::PAR::ConstantPrestressStrategy* params);
+    explicit PrescribedPrestressStrategy(Mixture::PAR::PrescribedPrestressStrategy* params);
 
     void setup(Mixture::MixtureConstituent& constituent, const Teuchos::ParameterList& params,
         int gp, int eleGID) override;
@@ -72,7 +73,7 @@ namespace Mixture
 
    private:
     /// Holder for internal parameters
-    const PAR::ConstantPrestressStrategy* params_;
+    const PAR::PrescribedPrestressStrategy* params_;
   };
 }  // namespace Mixture
 

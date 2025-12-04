@@ -367,8 +367,8 @@ std::string_view Core::Materials::to_string(Core::Materials::MaterialType materi
       return "MIX_GrowthStrategy_Anisotropic";
     case mix_growth_strategy_stiffness:
       return "MIX_GrowthStrategy_Stiffness";
-    case mix_prestress_strategy_constant:
-      return "MIX_Prestress_Strategy_Constant";
+    case mix_prestress_strategy_prescribed:
+      return "MIX_Prestress_Strategy_Prescribed";
     case mix_prestress_strategy_cylinder:
       return "MIX_Prestress_Strategy_Cylinder";
     case mix_prestress_strategy_iterative:
