@@ -118,7 +118,7 @@ namespace Core::IO
     {
       for (unsigned int idf = 0; idf < result_num_components_per_node; ++idf)
       {
-        auto& column = (result_data_nodebased)(idf);
+        auto& column = result_data_nodebased.get_vector(idf);
         point_result_data.push_back(column.local_values_as_span()[lid]);
       }
     }

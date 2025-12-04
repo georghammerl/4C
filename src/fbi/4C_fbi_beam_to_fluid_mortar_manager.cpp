@@ -311,7 +311,7 @@ void BeamInteraction::BeamToFluidMortarManager::set_local_maps(
     {
       for (unsigned int i_temp = 0; i_temp < n_lambda_node_; i_temp++)
         temp_node[i_temp] =
-            (int)((*node_gid_to_lambda_gid_copy)(i_temp).local_values_as_span()[i_node]);
+            (int)(node_gid_to_lambda_gid_copy->get_vector(i_temp).local_values_as_span()[i_node]);
       node_gid_to_lambda_gid_map_[node_gid_needed_rowmap.gid(i_node)] = temp_node;
       lambda_gid_for_col_map.insert(
           std::end(lambda_gid_for_col_map), std::begin(temp_node), std::end(temp_node));
@@ -323,8 +323,8 @@ void BeamInteraction::BeamToFluidMortarManager::set_local_maps(
     for (int i_element = 0; i_element < element_gid_needed_rowmap.num_my_elements(); i_element++)
     {
       for (unsigned int i_temp = 0; i_temp < n_lambda_element_; i_temp++)
-        temp_elements[i_temp] =
-            (int)((*element_gid_to_lambda_gid_copy)(i_temp).local_values_as_span()[i_element]);
+        temp_elements[i_temp] = (int)(element_gid_to_lambda_gid_copy->get_vector(i_temp)
+                .local_values_as_span()[i_element]);
       element_gid_to_lambda_gid_map_[element_gid_needed_rowmap.gid(i_element)] = temp_elements;
       lambda_gid_for_col_map.insert(
           std::end(lambda_gid_for_col_map), std::begin(temp_elements), std::end(temp_elements));

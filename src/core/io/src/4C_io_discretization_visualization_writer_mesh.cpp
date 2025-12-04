@@ -47,7 +47,7 @@ namespace Core::IO
       Core::Nodes::Node* node = dis.l_row_node(inode);
       // copy each dof value of node
       for (int idof = 0; idof < number_of_dofs_per_node; ++idof)
-        (*multi)(idof).local_values_as_span()[inode] =
+        multi->get_vector(idof).local_values_as_span()[inode] =
             input_vector
                 .local_values_as_span()[vectormap.lid(dis.dof(number_of_dofset, node, idof))];
     }
@@ -191,7 +191,7 @@ namespace Core::IO
 
           // finally append the data
           append_dof_based_result_data_vector(
-              result_data(0), context_map.count(name), min_index_of_name, name);
+              result_data.get_vector(0), context_map.count(name), min_index_of_name, name);
           break;
         }
         case OutputEntity::element:
@@ -392,7 +392,7 @@ namespace Core::IO
 
       for (unsigned int icpe = 0; icpe < result_num_components_per_element; ++icpe)
       {
-        const auto& column = result_data_elementbased(icpe);
+        const auto& column = result_data_elementbased.get_vector(icpe);
 
         cell_result_data.push_back(column.local_values_as_span()[iele]);
       }

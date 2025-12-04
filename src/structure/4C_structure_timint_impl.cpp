@@ -794,8 +794,8 @@ void Solid::TimIntImpl::update_krylov_space_projection()
   // sort vector of nullspace data into kernel vector c_
   for (size_t i = 0; i < Teuchos::as<size_t>(modeids.size()); i++)
   {
-    auto& ci = (*c)(i);
-    auto& ni = (*nullspace)(modeids[i]);
+    auto& ci = c->get_vector(i);
+    auto& ni = nullspace->get_vector(modeids[i]);
     const size_t myLength = ci.local_length();
     for (size_t j = 0; j < myLength; j++)
     {

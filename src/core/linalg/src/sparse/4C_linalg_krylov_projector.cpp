@@ -148,7 +148,7 @@ void Core::LinAlg::KrylovProjector::fill_complete()
               w * c
        */
       double wTc;
-      (*w_)(mm).dot((*c_)(rr), &wTc);
+      w_->get_vector(mm).dot(c_->get_vector(rr), &wTc);
 
       // make sure c_i and w_i must not be krylov.
       if ((rr == mm) and (abs(wTc) < 1e-14))
@@ -307,7 +307,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::to_reduced(
   // compute serial dense matrix c^T A c
   Core::LinAlg::SerialDenseMatrix cTAc(nsdim_, nsdim_, false);
   for (int i = 0; i < nsdim_; ++i)
-    for (int j = 0; j < nsdim_; ++j) (*c_)(i).dot(matvec(j), &(cTAc(i, j)));
+    for (int j = 0; j < nsdim_; ++j) c_->get_vector(i).dot(matvec.get_vector(j), &(cTAc(i, j)));
 
   // compute and add matrices
   Core::LinAlg::SparseMatrix mat1 = multiply_multi_vector_multi_vector(matvec, w_invwTc, 1, false);
@@ -404,7 +404,7 @@ Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::apply_projector(
   Core::LinAlg::SerialDenseVector temp1(nsdim_);
   for (int rr = 0; rr < nsdim_; ++rr)
   {
-    Y.dot((v1)(rr), &(temp1(rr)));
+    Y.dot(v1.get_vector(rr), &temp1(rr));
   }
 
   // compute temp2 from matrix-vector-product:
@@ -416,7 +416,7 @@ Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::apply_projector(
   Core::LinAlg::Vector<double> result = Y;
   for (int rr = 0; rr < nsdim_; ++rr)
   {
-    result.update(-temp2(rr), v2(rr), 1.0);
+    result.update(-temp2(rr), v2.get_vector(rr), 1.0);
   }
 
   return result;

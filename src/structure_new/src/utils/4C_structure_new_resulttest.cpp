@@ -71,7 +71,7 @@ namespace
           name_and_component.name, node_id);
     }
 
-    return data(name_and_component.component).local_values_as_span()[local_id];
+    return data.get_vector(name_and_component.component).local_values_as_span()[local_id];
   }
 
   /*!
@@ -127,7 +127,7 @@ namespace
       FOUR_C_THROW("You tried to test {} on a proc that does not own node {}.", label, node_id);
     }
 
-    return nodal_data(voigt_index).local_values_as_span()[local_id];
+    return nodal_data.get_vector(voigt_index).local_values_as_span()[local_id];
   }
 }  // namespace
 

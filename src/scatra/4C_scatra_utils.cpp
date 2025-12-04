@@ -326,7 +326,7 @@ ScaTra::ScaTraUtils::compute_gradient_at_nodes_mean_average(Core::FE::Discretiza
     for (int col = 0; col < numcol; col++)
     {
       // set smoothed gradient entry of phi into column of global multivector
-      (*gradphirow)(col).get_values()[lid] = node_gradphi_smoothed(col, 0);
+      gradphirow->get_vector(col).get_values()[lid] = node_gradphi_smoothed(col, 0);
     }
   }  // end loop over nodes
 

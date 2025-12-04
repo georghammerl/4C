@@ -109,7 +109,7 @@ void Core::LinAlg::assemble(Core::LinAlg::MultiVector<double>& V, const int n,
     const Core::LinAlg::SerialDenseVector& Vele, const std::vector<int>& lm,
     const std::vector<int>& lmowner)
 {
-  Core::LinAlg::assemble(V(n), Vele, lm, lmowner);
+  Core::LinAlg::assemble(V.get_vector(n), Vele, lm, lmowner);
 }
 
 /*----------------------------------------------------------------------*

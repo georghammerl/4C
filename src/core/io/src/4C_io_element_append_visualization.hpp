@@ -251,7 +251,7 @@ namespace Core::IO
 
       for (int component_i = 0; component_i < result_num_components_per_node; ++component_i)
       {
-        const auto& column = (result_data_nodebased)(component_i);
+        const auto& column = result_data_nodebased.get_vector(component_i);
 
         if (lid > -1)
           point_result_data.push_back(column.local_values_as_span()[lid]);

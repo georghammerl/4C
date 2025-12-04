@@ -991,7 +991,7 @@ void Lubrication::TimIntImpl::output_state()
     {
       Core::Nodes::Node* node = discret_->l_row_node(inode);
       for (int idim = 0; idim < nsd_; ++idim)
-        (dispnp_multi)(idim).get_values()[discret_->node_row_map()->lid(node->id())] =
+        dispnp_multi.get_vector(idim).get_values()[discret_->node_row_map()->lid(node->id())] =
             dispnp->local_values_as_span()[dispnp->get_map().lid(
                 discret_->dof(nds_disp_, node, idim))];
     }

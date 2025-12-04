@@ -521,8 +521,8 @@ void Discret::Elements::ScaTraEleCalcHDGCardiacMonodomain<distype,
         int nqpoints = material->get_number_of_gp();
         for (int q = 0; q < nqpoints; ++q)
         {
-          auto material_internal_state_component =
-              Core::Utils::shared_ptr_from_ref((*material_internal_state)(k * nqpoints + q));
+          auto material_internal_state_component = Core::Utils::shared_ptr_from_ref(
+              material_internal_state->get_vector(k * nqpoints + q));
           material->set_internal_state(
               k, material_internal_state_component->local_values_as_span()[ele->id()], q);
         }

@@ -1246,9 +1246,9 @@ void FLD::XWall::l2_project_vector(Core::LinAlg::Vector<double>& veln,
   solver_->solve_with_multi_vector(massmatrix_, resultvec, rhsassemble, solver_params);
 
   // now copy result in original vector: the result is an increment of the velocity/ acceleration
-  Core::LinAlg::export_to(((*resultvec)(0)), *incveln_);
-  if (numberofrhs > 1) Core::LinAlg::export_to(((*resultvec)(1)), *incaccn_);
-  if (numberofrhs > 2) Core::LinAlg::export_to(((*resultvec)(2)), *incvelnp_);
+  Core::LinAlg::export_to(resultvec->get_vector(0), *incveln_);
+  if (numberofrhs > 1) Core::LinAlg::export_to(resultvec->get_vector(1), *incaccn_);
+  if (numberofrhs > 2) Core::LinAlg::export_to(resultvec->get_vector(2), *incvelnp_);
 
   veln.update(1.0, *incveln_, 1.0);
   if (accn != nullptr) accn->update(1.0, *incaccn_, 1.0);
@@ -1319,7 +1319,7 @@ void FLD::XWall::calc_mk()
   Core::LinAlg::Vector<double> mkv(*(discret_->element_row_map()), true);
 
   // export
-  Core::LinAlg::export_to(mkxw(0), mkxwv);
+  Core::LinAlg::export_to(mkxw.get_vector(0), mkxwv);
   Core::LinAlg::export_to(mkxwv, *mkxwstate_);
   Core::LinAlg::export_to(mkxwv, mkv);
   Core::LinAlg::export_to(mkv, *mkstate_);

@@ -111,9 +111,9 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
     auto f1 = std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap);
     auto f2 = std::make_shared<Core::LinAlg::Vector<double>>(dofrowmap);
     discret_->evaluate(params, nullptr, nullptr, f0, f1, f2);
-    (*flux)(0).update(1., *f0, 0.);
-    (*flux)(1).update(1., *f1, 0.);
-    (*flux)(2).update(1., *f2, 0.);
+    flux->get_vector(0).update(1., *f0, 0.);
+    flux->get_vector(1).update(1., *f1, 0.);
+    flux->get_vector(2).update(1., *f2, 0.);
   }
 
   if (calcflux_domain_lumped_)
@@ -161,8 +161,8 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
     for (int j = 0; j < flux->num_vectors(); ++j)
     {
       // copy column 0 into j-th column
-      inverse_of_integrated_shape_functions_bcast(j).update(
-          1.0, inverse_of_integrated_shape_functions(0), 0.0);
+      inverse_of_integrated_shape_functions_bcast.get_vector(j).update(
+          1.0, inverse_of_integrated_shape_functions.get_vector(0), 0.0);
     }
 
     // now apply the elementwise-multiplication
@@ -456,7 +456,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::cal
             // outward pointing normal vector
             for (int idim = 0; idim < 3; idim++)
             {
-              auto& normalcomp = (*normals_)(idim);
+              auto& normalcomp = normals_->get_vector(idim);
               double normalveccomp = normalcomp.local_values_as_span()[lnodid];
               flux->replace_global_value(
                   dofgid, idim, normalfluxes->local_values_as_span()[doflid] * normalveccomp);
@@ -880,11 +880,11 @@ void ScaTra::ScaTraTimIntImpl::add_flux_approx_to_parameter_list(Teuchos::Parame
       Core::Nodes::Node* actnode = discret_->l_row_node(i);
       int dofgid = discret_->dof(0, actnode, k);
       fluxk.replace_local_value(
-          i, 0, ((*flux)(0)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
+          i, 0, (flux->get_vector(0)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
       fluxk.replace_local_value(
-          i, 1, ((*flux)(1)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
+          i, 1, (flux->get_vector(1)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
       fluxk.replace_local_value(
-          i, 2, ((*flux)(2)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
+          i, 2, (flux->get_vector(2)).local_values_as_span()[(flux->get_map()).lid(dofgid)]);
     }
 
     auto tmp = std::make_shared<Core::LinAlg::MultiVector<double>>(
@@ -919,9 +919,9 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> ScaTra::ScaTraTimIntImpl::com
 
   // the normal vector field is not properly scaled up to now. We do this here
   int numrownodes = discret_->num_my_row_nodes();
-  auto& xcomp = (*normal)(0);
-  auto& ycomp = (*normal)(1);
-  auto& zcomp = (*normal)(2);
+  auto& xcomp = normal->get_vector(0);
+  auto& ycomp = normal->get_vector(1);
+  auto& zcomp = normal->get_vector(2);
   for (int i = 0; i < numrownodes; ++i)
   {
     double x = xcomp.local_values_as_span()[i];
@@ -1172,7 +1172,7 @@ void ScaTra::ScaTraTimIntImpl::collect_output_flux_data(
   auto* nurbsdis = dynamic_cast<Core::FE::Nurbs::NurbsDiscretization*>(&(*discret_));
   if (nurbsdis != nullptr)
   {
-    auto normalflux = (*flux)(0);
+    auto normalflux = flux->get_vector(0);
     std::vector<std::optional<std::string>> context(nsd_, "normalflux");
     visualization_writer_->append_result_data_vector_with_context(
         normalflux, Core::IO::OutputEntity::dof, context);
@@ -1190,9 +1190,9 @@ void ScaTra::ScaTraTimIntImpl::collect_output_flux_data(
       Core::Nodes::Node* actnode = discret_->l_row_node(i);
       int dofgid = discret_->dof(0, actnode, writefluxid - 1);
       // get value for each component of flux vector
-      double xvalue = (*flux)(0).local_values_as_span()[(flux->get_map()).lid(dofgid)];
-      double yvalue = (*flux)(1).local_values_as_span()[(flux->get_map()).lid(dofgid)];
-      double zvalue = (*flux)(2).local_values_as_span()[(flux->get_map()).lid(dofgid)];
+      double xvalue = flux->get_vector(0).local_values_as_span()[(flux->get_map()).lid(dofgid)];
+      double yvalue = flux->get_vector(1).local_values_as_span()[(flux->get_map()).lid(dofgid)];
+      double zvalue = flux->get_vector(2).local_values_as_span()[(flux->get_map()).lid(dofgid)];
       // care for the slave nodes of rotationally symm. periodic boundary conditions
       double rotangle(0.0);  // already converted to radians
       bool havetorotate = FLD::is_slave_node_of_rot_sym_pbc(*discret_, actnode, rotangle);

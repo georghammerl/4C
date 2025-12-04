@@ -645,7 +645,7 @@ void Core::FE::Discretization::evaluate_scalars(
 
     for (int j = 0; j < numscalars; ++j)
     {
-      sca(j).get_values()[i] = elescalars(j);
+      sca.get_vector(j).get_values()[i] = elescalars(j);
     }
 
   }  // for (int i=0; i<numrowele; ++i)

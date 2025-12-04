@@ -284,7 +284,8 @@ double PoroPressureBased::ResultTest::result_element(
       idx_dim = 2;
 
     result =
-        (*porofluid_algorithm_.phase_velocity())(idx_poro_dof * num_dim + idx_dim)
+        porofluid_algorithm_.phase_velocity()
+            ->get_vector(idx_poro_dof * num_dim + idx_dim)
             .local_values_as_span()[porofluid_algorithm_.discretization()->element_row_map()->lid(
                 element->id())];
   }

@@ -228,7 +228,7 @@ void FLD::TimIntOneStepTheta::apply_external_forces(
   // initialize external force for t_n
   if (step_ <= numstasteps_)
   {
-    external_loadsn_ = std::make_shared<Core::LinAlg::Vector<double>>((*fext)(0));
+    external_loadsn_ = std::make_shared<Core::LinAlg::Vector<double>>(fext->get_vector(0));
     external_loadsnp_ =
         std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
     external_loads_ =

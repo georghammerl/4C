@@ -1093,9 +1093,8 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
               // linearize gap
               for (auto& i : dgap)
               {
-                const double dval = -nodalarea *
-                                    (springstiff * (i.second) + viscosity_ * (i.second) / dt) *
-                                    normal[k];
+                const double dval =
+                    -nodalarea * (springstiff * i.second + viscosity_ * i.second / dt) * normal[k];
                 stiff.assemble(dval, dofs[k], i.first);
               }
 
@@ -1105,7 +1104,7 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
                 const double dval =
                     -nodalarea *
                     (springstiff * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) *
-                    (i.second);
+                    i.second;
                 stiff.assemble(dval, dofs[k], i.first);
               }
             }
@@ -1213,9 +1212,9 @@ void Constraints::SpringDashpot::set_restart_old(Core::LinAlg::MultiVector<doubl
           if (lid >= 0)
           {
             // copy all components of spring offset length vector
-            (i.second)[0] = ((vec)(0)).local_values_as_span()[lid];
-            (i.second)[1] = ((vec)(1)).local_values_as_span()[lid];
-            (i.second)[2] = ((vec)(2)).local_values_as_span()[lid];
+            i.second[0] = vec.get_vector(0).local_values_as_span()[lid];
+            i.second[1] = vec.get_vector(1).local_values_as_span()[lid];
+            i.second[2] = vec.get_vector(2).local_values_as_span()[lid];
           }
         }
       }
@@ -1248,9 +1247,9 @@ void Constraints::SpringDashpot::output_gap_normal(Core::LinAlg::Vector<double>&
     if (lid >= 0)
     {
       // copy all components of normal vector
-      ((normals)(0)).get_values()[lid] += (normal.second).at(0);
-      ((normals)(1)).get_values()[lid] += (normal.second).at(1);
-      ((normals)(2)).get_values()[lid] += (normal.second).at(2);
+      normals.get_vector(0).get_values()[lid] += (normal.second).at(0);
+      normals.get_vector(1).get_values()[lid] += (normal.second).at(1);
+      normals.get_vector(2).get_values()[lid] += (normal.second).at(2);
     }
   }
 
@@ -1263,9 +1262,9 @@ void Constraints::SpringDashpot::output_gap_normal(Core::LinAlg::Vector<double>&
     if (lid >= 0)
     {
       // copy all components of normal vector
-      ((stress)(0)).get_values()[lid] += (i.second).at(0);
-      ((stress)(1)).get_values()[lid] += (i.second).at(1);
-      ((stress)(2)).get_values()[lid] += (i.second).at(2);
+      stress.get_vector(0).get_values()[lid] += i.second.at(0);
+      stress.get_vector(1).get_values()[lid] += i.second.at(1);
+      stress.get_vector(2).get_values()[lid] += i.second.at(2);
     }
   }
 }
@@ -1294,9 +1293,9 @@ void Constraints::SpringDashpot::output_prestr_offset_old(
     if (lid >= 0)
     {
       // copy all components of spring offset length vector
-      ((springprestroffset)(0)).get_values()[lid] = (i.second)[0];
-      ((springprestroffset)(1)).get_values()[lid] = (i.second)[1];
-      ((springprestroffset)(2)).get_values()[lid] = (i.second)[2];
+      springprestroffset.get_vector(0).get_values()[lid] = i.second[0];
+      springprestroffset.get_vector(1).get_values()[lid] = i.second[1];
+      springprestroffset.get_vector(2).get_values()[lid] = i.second[2];
     }
   }
 }

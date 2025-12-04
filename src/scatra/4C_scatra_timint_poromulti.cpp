@@ -84,7 +84,8 @@ void ScaTra::ScaTraTimIntPoroMulti::set_l2_flux_of_multi_fluid(
         const int lid = phaseflux->get_map().lid(gid);
         if (lid < 0) FOUR_C_THROW("Local ID not found in map for given global ID!");
 
-        const double value = ((*multiflux)(curphase * nsd_ + index)).local_values_as_span()[count];
+        const double value =
+            multiflux->get_vector(curphase * nsd_ + index).local_values_as_span()[count];
 
         phaseflux->replace_local_value(lid, value);
       }

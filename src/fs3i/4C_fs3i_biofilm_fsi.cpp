@@ -484,7 +484,7 @@ void FS3I::BiofilmFSI::inner_timeloop()
 
         double lambdai = lambdafull->local_values_as_span()[lid];
         int lnodeid = noderowmap->lid(lnode->id());
-        (lambdanode)(index).replace_local_value(lnodeid, lambdai);
+        lambdanode.get_vector(index).replace_local_value(lnodeid, lambdai);
       }
     }
     // loop over all local interface nodes of structure discretization
@@ -577,13 +577,13 @@ void FS3I::BiofilmFSI::inner_timeloop()
       double temptangtractwo = 0.0;
       for (int index = 0; index < numdim; ++index)
       {
-        double fluxcomp = (*strufluxn)(index).local_values_as_span()[lnodeid];
+        double fluxcomp = strufluxn->get_vector(index).local_values_as_span()[lnodeid];
         tempflux += fluxcomp * unitnormal[index];
         // for the calculation of the growth and erosion both the tangential and the normal
         // components of the forces acting on the interface are important.
         // Since probably they will have a different effect on the biofilm growth,
         // they are calculated separately and different coefficients can be used.
-        double traccomp = lambdanode(index).local_values_as_span()[lnodeid];
+        double traccomp = lambdanode.get_vector(index).local_values_as_span()[lnodeid];
         tempnormtrac += traccomp * unitnormal[index];
         temptangtracone += traccomp * unittangentone[index];
         temptangtractwo += traccomp * unittangenttwo[index];

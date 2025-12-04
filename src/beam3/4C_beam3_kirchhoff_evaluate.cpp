@@ -2933,7 +2933,9 @@ void Discret::Elements::Beam3k::evaluate_stochastic_forces(
 
     // extract random numbers from global vector
     for (unsigned int idim = 0; idim < ndim; idim++)
-      randnumvec(idim) = (*randomforces)(gp * randompergauss + idim).local_values_as_span()[lid()];
+      for (unsigned int idim = 0; idim < ndim; idim++)
+        randnumvec(idim) =
+            randomforces->get_vector(gp * randompergauss + idim).local_values_as_span()[lid()];
 
     // compute stochastic force vector per unit length at current GP
     f_stoch.clear();

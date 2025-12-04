@@ -187,13 +187,14 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_nodal_l2_pr
       const int mastergid = slavemasterpair->second;
       const int masterlid = noderowmap.lid(mastergid);
       for (int j = 0; j < numvec; ++j)
-        fullnodevec->replace_local_value(i, j, (*nodevec)(j).local_values_as_span()[masterlid]);
+        fullnodevec->replace_local_value(
+            i, j, nodevec->get_vector(j).local_values_as_span()[masterlid]);
     }
     else
     {
       const int lid = noderowmap.lid(nodeid);
       for (int j = 0; j < numvec; ++j)
-        fullnodevec->replace_local_value(i, j, (*nodevec)(j).local_values_as_span()[lid]);
+        fullnodevec->replace_local_value(i, j, nodevec->get_vector(j).local_values_as_span()[lid]);
     }
   }
 
@@ -275,8 +276,8 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::solve_nodal_l2_proj
         solver_params.refactor = true;
         solver_params.reset = true;
         solver.solve_with_multi_vector(Core::Utils::shared_ptr_from_ref(massmatrix),
-            Utils::shared_ptr_from_ref((*nodevec)(i).as_multi_vector()),
-            Utils::shared_ptr_from_ref(rhs(i).as_multi_vector()), solver_params);
+            Utils::shared_ptr_from_ref(nodevec->get_vector(i).as_multi_vector()),
+            Utils::shared_ptr_from_ref(rhs.get_vector(i).as_multi_vector()), solver_params);
       }
       break;
     }

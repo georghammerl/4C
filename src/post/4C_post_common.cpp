@@ -892,7 +892,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> PostResult::read_result(const std:
     if (columns != 1) FOUR_C_THROW("got multivector with name '{}', vector expected", name);
   }
   auto test = read_multi_result(name);
-  return std::make_shared<Core::LinAlg::Vector<double>>((*test)(0));
+  return std::make_shared<Core::LinAlg::Vector<double>>(test->get_vector(0));
 }
 
 /*----------------------------------------------------------------------*

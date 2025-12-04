@@ -150,9 +150,10 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
 
   // There is a const_cast introduced - should be removed
   NOX::Nln::Vector nevX(
-      Core::Utils::shared_ptr_from_ref(const_cast<Core::LinAlg::Vector<double>&>(X(0))),
+      Core::Utils::shared_ptr_from_ref(const_cast<Core::LinAlg::Vector<double>&>(X.get_vector(0))),
       NOX::Nln::Vector::MemoryType::View);
-  NOX::Nln::Vector nevY(Core::Utils::shared_ptr_from_ref(Y(0)), NOX::Nln::Vector::MemoryType::View);
+  NOX::Nln::Vector nevY(
+      Core::Utils::shared_ptr_from_ref(Y.get_vector(0)), NOX::Nln::Vector::MemoryType::View);
 
   // The trial vector x is not guaranteed to be a suitable interface
   // displacement. It might be much too large to fit the ALE

@@ -696,7 +696,7 @@ namespace
         if (localIndex < 0) continue;
         touchCount[localIndex]++;
         for (int m = 0; m < msd; ++m)
-          (*mixedvar)(m).get_values()[localIndex] += interpolVec(i + m * ele->num_node());
+          mixedvar->get_vector(m).get_values()[localIndex] += interpolVec(i + m * ele->num_node());
         (*density).get_values()[localIndex] += interpolVec(i + msd * ele->num_node());
         (*traceden).get_values()[localIndex] += interpolVec(i + (msd + 1 + ndim) * ele->num_node());
       }
@@ -704,7 +704,7 @@ namespace
 
     for (int i = 0; i < density->local_length(); ++i)
     {
-      for (int m = 0; m < msd; ++m) (*mixedvar)(m).get_values()[i] /= touchCount[i];
+      for (int m = 0; m < msd; ++m) mixedvar->get_vector(m).get_values()[i] /= touchCount[i];
       (*density).get_values()[i] /= touchCount[i];
       (*traceden).get_values()[i] /= touchCount[i];
     }
@@ -771,7 +771,8 @@ void FLD::TimIntHDGWeakComp::output()
       Core::LinAlg::MultiVector<double> AleDisplacement(*discret_->node_row_map(), nsd);
       for (int i = 0; i < interpolatedDensity_->local_length(); ++i)
         for (unsigned int d = 0; d < nsd; ++d)
-          AleDisplacement(d).get_values()[i] = dispnp_->local_values_as_span()[(i * nsd) + d];
+          AleDisplacement.get_vector(d).get_values()[i] =
+              dispnp_->local_values_as_span()[(i * nsd) + d];
 
       output_->write_multi_vector("Ale_displacement", AleDisplacement, Core::IO::nodevector);
     }

@@ -2725,7 +2725,8 @@ void Discret::Elements::Beam3r::evaluate_stochastic_forces(Teuchos::ParameterLis
     for (unsigned int idim = 0; idim < ndim; idim++)
     {
 #ifndef BEAM3RCONSTSTOCHFORCE
-      randnumvec(idim) = (*randomforces)(gp * randompergauss + idim).local_values_as_span()[lid()];
+      randnumvec(idim) =
+          randomforces->get_vector(gp * randompergauss + idim).local_values_as_span()[lid()];
 #else
       randnumvec(idim) = (*randomforces)[idim][LID()];
 #endif

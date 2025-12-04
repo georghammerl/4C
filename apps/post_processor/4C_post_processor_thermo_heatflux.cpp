@@ -143,11 +143,11 @@ struct WriteNodalHeatfluxStep : SpecialFieldInterface
         if (lnodedofs.size() < numdofpernode) FOUR_C_THROW("Too few DOFs at node of interest");
         const int adjele = lnode->num_element();
         // build three scalar valued vectors for the heatflux output
-        (((*nodal_heatfluxes)(0))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(0).get_values()[i] =
             heatfluxx->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
-        (((*nodal_heatfluxes)(1))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(1).get_values()[i] =
             heatfluxy->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
-        (((*nodal_heatfluxes)(2))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(2).get_values()[i] =
             heatfluxz->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
       }
     }
@@ -161,9 +161,9 @@ struct WriteNodalHeatfluxStep : SpecialFieldInterface
         if (lnodedofs.size() < numdofpernode) FOUR_C_THROW("Too few DOFs at node of interest");
         const int adjele = lnode->num_element();
         // build two scalar valued vectors for the heatflux output
-        (((*nodal_heatfluxes)(0))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(0).get_values()[i] =
             heatfluxx->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
-        (((*nodal_heatfluxes)(1))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(1).get_values()[i] =
             heatfluxy->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
       }
     }
@@ -177,7 +177,7 @@ struct WriteNodalHeatfluxStep : SpecialFieldInterface
         if (lnodedofs.size() < numdofpernode) FOUR_C_THROW("Too few DOFs at node of interest");
         const int adjele = lnode->num_element();
         // build one scalar valued vectors for the heatflux output
-        (((*nodal_heatfluxes)(0))).get_values()[i] =
+        (*nodal_heatfluxes).get_vector(0).get_values()[i] =
             heatfluxx->local_values_as_span()[dis->dof_row_map()->lid(lnodedofs[0])] / adjele;
       }
     }

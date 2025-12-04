@@ -704,7 +704,7 @@ void PoroPressureBased::PorofluidAlgorithm::collect_runtime_output_data()
         // get value for each component of flux vector
         for (int idim = 0; idim < dim; idim++)
         {
-          double value = (*flux_)(k * dim + idim).local_values_as_span()[i];
+          double value = flux_->get_vector(k * dim + idim).local_values_as_span()[i];
           flux_k.replace_local_value(i, idim, value);
         }
       }
@@ -729,7 +729,8 @@ void PoroPressureBased::PorofluidAlgorithm::collect_runtime_output_data()
       {
         for (int idim = 0; idim < num_dim; idim++)
         {
-          double value = (*phase_velocities_)(k * num_dim + idim).local_values_as_span()[i];
+          double value =
+              phase_velocities_->get_vector(k * num_dim + idim).local_values_as_span()[i];
           velocity_k.replace_local_value(i, idim, value);
         }
       }

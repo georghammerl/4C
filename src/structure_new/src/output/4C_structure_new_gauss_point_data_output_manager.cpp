@@ -161,7 +161,7 @@ void Solid::ModelEvaluator::GaussPointDataOutputManager::post_evaluate()
 
       for (int col = 0; col < nodal_data.num_vectors(); ++col)
       {
-        auto& data_item = nodal_data(col);
+        auto& data_item = nodal_data.get_vector(col);
 
         for (int i = 0; i < data_item.local_length(); ++i)
         {

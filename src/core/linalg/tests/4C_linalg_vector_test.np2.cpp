@@ -253,7 +253,7 @@ namespace
 
     const int index = 1;
 
-    Core::LinAlg::Vector<double>& a = mv(index);
+    Core::LinAlg::Vector<double>& a = mv.get_vector(index);
     EXPECT_EQ(means_multi_vector(a)[0], 1.0);
 
     a.put_scalar(2.0);
@@ -283,7 +283,7 @@ namespace
 
     const Core::LinAlg::MultiVector<double>& b = a;
     ASSERT_EQ(b.num_vectors(), 1);
-    const Core::LinAlg::Vector<double>& c = b(0);
+    const Core::LinAlg::Vector<double>& c = b.get_vector(0);
 
     // New map where elements are distributed differently
     std::array<int, 5> my_elements;
@@ -305,7 +305,7 @@ namespace
       // This highlights a bug in Trilinos: the Epetra_Vector views into a MultiVector are only
       // set once and never updated, although a map replacement would require an update.
       const Core::LinAlg::MultiVector<double>& b_new = a;
-      const Core::LinAlg::Vector<double>& c_new = b_new(0);
+      const Core::LinAlg::Vector<double>& c_new = b_new.get_vector(0);
       // This is correct.
       EXPECT_TRUE(b_new.get_map().same_as(new_map));
       // This is the bug: c_new still has the old map although we just took a new view into b_new.

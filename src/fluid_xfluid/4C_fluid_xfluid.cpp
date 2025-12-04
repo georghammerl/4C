@@ -2801,7 +2801,7 @@ void FLD::XFluid::update_krylov_space_projection()
   std::shared_ptr<Core::LinAlg::MultiVector<double>> c = projector_->get_non_const_kernel();
   // Modify c within this scope
   {
-    auto& c0 = (*c)(0);
+    auto& c0 = c->get_vector(0);
     c0.put_scalar(0.0);
 
     // extract vector of pressure-dofs
@@ -2836,7 +2836,7 @@ void FLD::XFluid::update_krylov_space_projection()
       // get std::shared_ptr to weight vector of projector
       std::shared_ptr<Core::LinAlg::MultiVector<double>> w = projector_->get_non_const_weights();
 
-      auto& w0 = (*w)(0);
+      auto& w0 = w->get_vector(0);
       w0.put_scalar(0.0);
 
       // create parameter list for condition evaluate and ...

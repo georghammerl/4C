@@ -2000,11 +2000,11 @@ namespace FLD
     // take into account negative mass flux at the inflow
     for (int i = 0; i < discret_->element_row_map()->num_my_elements(); ++i)
     {
-      double locflow = (massflvec)(0).local_values_as_span()[i];
+      double locflow = massflvec.get_vector(0).local_values_as_span()[i];
       if (locflow < -1.0e-9)
       {
-        ((massflvec)(0)).get_values()[i] = 0.0;
-        ((massflvecneg)(0)).get_values()[i] = locflow;
+        massflvec.get_vector(0).get_values()[i] = 0.0;
+        massflvecneg.get_vector(0).get_values()[i] = locflow;
       }
     }
 

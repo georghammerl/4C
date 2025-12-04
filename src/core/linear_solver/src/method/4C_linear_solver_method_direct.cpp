@@ -53,7 +53,7 @@ void Core::LinearSolver::DirectSolver::setup(std::shared_ptr<Core::LinAlg::Spars
     FOUR_C_ASSERT_ALWAYS(b->num_vectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
         b->num_vectors());
-    (*b)(0) = projector_->to_reduced((*b)(0));
+    b->get_vector(0) = projector_->to_reduced(b->get_vector(0));
   }
 
   b_ = b;
@@ -118,7 +118,7 @@ int Core::LinearSolver::DirectSolver::solve(Core::LinAlg::MultiVector<double>& x
     FOUR_C_ASSERT_ALWAYS(x.num_vectors() == 1,
         "Expecting only one solution vector during projector call! Got {} vectors.",
         x.num_vectors());
-    x(0) = projector_->to_full(x(0));
+    x.get_vector(0) = projector_->to_full(x.get_vector(0));
   }
 
   return 0;

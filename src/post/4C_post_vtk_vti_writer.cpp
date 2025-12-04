@@ -273,7 +273,7 @@ void PostVtiWriter::write_nodal_result_step(std::ofstream& file,
 
       for (int idf = 0; idf < numdf; ++idf)
       {
-        Core::LinAlg::Vector<double> column((*ghostedData)(idf));
+        Core::LinAlg::Vector<double> column(ghostedData->get_vector(idf));
 
         const int lid = ghostedData->get_map().lid(gid);
 
@@ -352,7 +352,7 @@ void PostVtiWriter::write_element_result_step(std::ofstream& file,
     const int inpos = ncomponents * (eidmapping_.find(egid)->second);
     for (int d = 0; d < numdf; ++d)
     {
-      Core::LinAlg::Vector<double> column((*importedData)(d + from));
+      Core::LinAlg::Vector<double> column(importedData->get_vector(d + from));
       solution[inpos + d] = column.local_values_as_span()[e];
     }
   }

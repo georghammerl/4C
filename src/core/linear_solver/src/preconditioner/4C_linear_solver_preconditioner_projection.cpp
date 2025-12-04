@@ -29,7 +29,7 @@ void Core::LinearSolver::ProjectionPreconditioner::setup(
 {
   FOUR_C_ASSERT_ALWAYS(b.num_vectors() == 1,
       "Expecting only one solution vector during projector call! Got {} vectors.", b.num_vectors());
-  b(0) = projector_->to_reduced(b(0));
+  b.get_vector(0) = projector_->to_reduced(b.get_vector(0));
 
   // setup wrapped preconditioner
   preconditioner_->setup(matrix, b);

@@ -403,11 +403,11 @@ Core::LinAlg::MultiVector<double> Core::LinAlg::multiply_multi_vector_dense_matr
 
   for (int rr = 0; rr < mv.num_vectors(); ++rr)
   {
-    auto& mvouti = mvout(rr);
+    auto& mvouti = mvout.get_vector(rr);
 
     for (int mm = 0; mm < mv.num_vectors(); ++mm)
     {
-      mvouti.update(dm(mm, rr), mv(mm), 1.0);
+      mvouti.update(dm(mm, rr), mv.get_vector(mm), 1.0);
     }
   }
 
@@ -431,8 +431,9 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
       FOUR_C_THROW("id must be 1 or 2");
   }();
 
-  Core::LinAlg::Vector<double> prod(get_multi_vector(0));
-  for (int i = 1; i < mv1.num_vectors(); ++i) prod.multiply(1.0, get_multi_vector(i), prod, 1.0);
+  Core::LinAlg::Vector<double> prod(get_multi_vector.get_vector(0));
+  for (int i = 1; i < mv1.num_vectors(); ++i)
+    prod.multiply(1.0, get_multi_vector.get_vector(i), prod, 1.0);
   int numnonzero = 0;
   for (int i = 0; i < prod.local_length(); ++i)
     if (prod.local_values_as_span()[i] != 0.0) numnonzero++;
@@ -483,7 +484,8 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
 
       for (int vv = 0; vv < mv1.num_vectors(); ++vv)
       {
-        sum += mv1(vv).local_values_as_span()[rr] * mv2glob(vv).local_values_as_span()[mm];
+        sum += mv1.get_vector(vv).local_values_as_span()[rr] *
+               mv2glob.get_vector(vv).local_values_as_span()[mm];
       }
 
       if (sum != 0.0)

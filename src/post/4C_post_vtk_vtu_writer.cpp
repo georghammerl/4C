@@ -412,7 +412,7 @@ void PostVtuWriter::write_nodal_result_step(std::ofstream& file,
         for (int idf = 0; idf < numdf; ++idf)
         {
           // Core::LinAlg::Vector<double>* column = (*ghostedData)(idf);
-          Core::LinAlg::Vector<double> column((*ghostedData)(idf));
+          Core::LinAlg::Vector<double> column(ghostedData->get_vector(idf));
           int lid = ghostedData->get_map().lid(ele->nodes()[numbering[n]]->id());
 
           if (lid > -1)
@@ -486,7 +486,7 @@ void PostVtuWriter::write_element_result_step(std::ofstream& file,
   {
     for (int d = 0; d < numdf; ++d)
     {
-      Core::LinAlg::Vector<double> column((*importedData)(d + from));
+      Core::LinAlg::Vector<double> column(importedData->get_vector(d + from));
       solution.push_back(column.local_values_as_span()[e]);
     }
     for (int d = numdf; d < ncomponents; ++d) solution.push_back(0.0);
@@ -986,7 +986,7 @@ void PostVtuWriter::write_nodal_result_step_nurbs_ele(const Core::Elements::Elem
     for (int idf = 0; idf < numdf; ++idf)
     {
       // Core::LinAlg::Vector<double>* column = (*ghostedData)(idf);
-      Core::LinAlg::Vector<double> column((ghostedData)(idf));
+      Core::LinAlg::Vector<double> column((ghostedData).get_vector(idf));
       for (unsigned m = 0; m < NUMNODES; ++m)
       {
         int lid = ghostedData.get_map().lid(ele->nodes()[m]->id());

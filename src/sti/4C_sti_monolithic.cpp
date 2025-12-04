@@ -699,7 +699,7 @@ void STI::Monolithic::output_vector_to_file(
 
       // check output omission tolerance
       for (j = 0; j < fullvector.num_vectors(); ++j)
-        if (std::abs(fullvector(j).local_values_as_span()[lid]) > tolerance) break;
+        if (std::abs(fullvector.get_vector(j).local_values_as_span()[lid]) > tolerance) break;
 
       // perform output if applicable
       if (j < fullvector.num_vectors())
@@ -710,7 +710,7 @@ void STI::Monolithic::output_vector_to_file(
         // loop over all subvectors
         for (j = 0; j < fullvector.num_vectors(); ++j)
           // write current vector component to file
-          file << "," << fullvector(j).local_values_as_span()[lid];
+          file << "," << fullvector.get_vector(j).local_values_as_span()[lid];
 
         // output line break
         file << std::endl;

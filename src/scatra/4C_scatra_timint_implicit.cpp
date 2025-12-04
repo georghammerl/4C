@@ -1809,7 +1809,8 @@ void ScaTra::ScaTraTimIntImpl::collect_runtime_output_data()
     auto micro_conc_multi = Core::LinAlg::MultiVector<double>(*discret_->node_row_map(), 1, true);
 
     for (int inode = 0; inode < discret_->num_my_row_nodes(); ++inode)
-      (micro_conc_multi)(0).get_values()[inode] = phinp_micro_->local_values_as_span()[inode];
+      (micro_conc_multi).get_vector(0).get_values()[inode] =
+          phinp_micro_->local_values_as_span()[inode];
 
     visualization_writer_->append_result_data_vector_with_context(
         micro_conc_multi, Core::IO::OutputEntity::node, {"micro_conc"});
@@ -2406,11 +2407,11 @@ void ScaTra::ScaTraTimIntImpl::update_krylov_space_projection()
 
       // get an std::shared_ptr of the current column Core::LinAlg::Vector<double> of the
       // MultiVector
-      auto wi = std::make_shared<Core::LinAlg::Vector<double>>((*w)(imode));
+      auto wi = std::make_shared<Core::LinAlg::Vector<double>>(w->get_vector(imode));
       // compute integral of shape functions
       discret_->evaluate_condition(
           mode_params, nullptr, nullptr, wi, nullptr, nullptr, "KrylovSpaceProjection");
-      (*w)(imode) = *wi;
+      w->get_vector(imode) = *wi;
 
       // deactivate dof of current mode
       (*dofids)[modeids[imode]] = -1;
