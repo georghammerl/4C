@@ -27,6 +27,10 @@ inputs:
     description: Additional flags to pass to CMake
     required: false
     default: ""
+  cleanup-object-files:
+    description: Clean up object files after the build to reduce the size of the build directory
+    required: false
+    default: "true"
 outputs:
   cache-key:
     description: Key to restore the cache for ccache
@@ -63,3 +67,10 @@ runs:
       env:
         BUILD_DIRECTORY: ${{ inputs.build-directory }}
         BUILD_TARGETS: ${{ inputs.build-targets }}
+    - name: Clean up object files
+      if: ${{ inputs.cleanup-object-files == 'true' }}
+      run: |
+        find $BUILD_DIRECTORY -type f -name '*.o' -delete
+      shell: bash
+      env:
+        BUILD_DIRECTORY: ${{ inputs.build-directory }}
