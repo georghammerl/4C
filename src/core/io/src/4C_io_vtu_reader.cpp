@@ -19,6 +19,7 @@
 
 #ifdef FOUR_C_WITH_VTK
 #include <vtkArrayDispatch.h>
+#include <vtkBitArray.h>
 #include <vtkCell.h>
 #include <vtkCellData.h>
 #include <vtkDataArray.h>
@@ -70,8 +71,18 @@ namespace
               result = static_cast<T>(value);
             }))
     {
-      FOUR_C_THROW("Array {} is of type {}, but expecting an integer-type array!", array.GetName(),
-          array.GetDataTypeAsString());
+      // Handle vtkBitArray separately as it is not covered by vtkArrayDispatch::Integrals
+      if (vtkBitArray* bitArray = vtkBitArray::SafeDownCast(&array))
+      {
+        FOUR_C_ASSERT_ALWAYS(compIdx == 0,
+            "vtkBitArray only has one component, but component {} was requested.", compIdx);
+        result = static_cast<T>(bitArray->GetValue(tupleIdx));
+      }
+      else
+      {
+        FOUR_C_THROW("Array {} is of type {}, but expecting an integer- or bit-type array!",
+            array.GetName(), array.GetDataTypeAsString());
+      }
     }
 
     return result;
@@ -120,14 +131,24 @@ namespace
               else
               {
                 FOUR_C_THROW(
-                    "Array {} is of type {}. 4C currently only supports the input of integral- or "
-                    "floating point types.",
+                    "Array {} is of type {}. 4C currently only supports the input of bit-, "
+                    "integral- or floating point types.",
                     array.GetName(), array.GetDataTypeAsString());
               }
             }))
     {
-      FOUR_C_THROW("Array {} is of type {}, which is not supported!", array.GetName(),
-          array.GetDataTypeAsString());
+      // Handle vtkBitArray separately as it is not covered by vtkArrayDispatch::AllTypes
+      if (vtkBitArray::SafeDownCast(&array))
+      {
+        Container<bool> container{};
+        if (reserve) container.reserve(array.GetSize());
+        type = std::move(container);
+      }
+      else
+      {
+        FOUR_C_THROW("Array {} is of type {}, which is not supported!", array.GetName(),
+            array.GetDataTypeAsString());
+      }
     }
 
     return type;
@@ -287,6 +308,11 @@ namespace
             &array, [&](auto* typed_array) { result = extract_entry(*typed_array); }))
     {
       return result;
+    }
+    // Handle vtkBitArray separately as it is not covered by vtkArrayDispatch::AllTypes
+    if (vtkBitArray* bit_array = vtkBitArray::SafeDownCast(&array))
+    {
+      return extract_entry(*bit_array);
     }
     FOUR_C_THROW("Failed to extract data from array {} of type {}!", array.GetName(),
         array.GetDataTypeAsString());

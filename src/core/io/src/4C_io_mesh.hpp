@@ -62,13 +62,14 @@ namespace Core::IO::MeshInput
 
   /*!
    * @brief These are the supported field data (scalars, vectors, symmetric tensors and tensors)
-   * with scalar types int and double.
+   * with scalar types bool, int and double.
    */
   template <unsigned dim>
-  using EligibleFieldTypes = std::variant<int, double, Core::LinAlg::Tensor<int, dim>,
-      Core::LinAlg::Tensor<double, dim>, Core::LinAlg::SymmetricTensor<int, dim, dim>,
-      Core::LinAlg::SymmetricTensor<double, dim, dim>, Core::LinAlg::Tensor<int, dim, dim>,
-      Core::LinAlg::Tensor<double, dim, dim>>;
+  using EligibleFieldTypes = std::variant<bool, int, double, Core::LinAlg::Tensor<bool, dim>,
+      Core::LinAlg::Tensor<int, dim>, Core::LinAlg::Tensor<double, dim>,
+      Core::LinAlg::SymmetricTensor<bool, dim, dim>, Core::LinAlg::SymmetricTensor<int, dim, dim>,
+      Core::LinAlg::SymmetricTensor<double, dim, dim>, Core::LinAlg::Tensor<bool, dim, dim>,
+      Core::LinAlg::Tensor<int, dim, dim>, Core::LinAlg::Tensor<double, dim, dim>>;
 
   namespace Internal
   {
