@@ -39,7 +39,7 @@ if(FOUR_C_ENABLE_DOCUMENTATION)
       ${PROJECT_SOURCE_DIR}/tests/input_files/solid_runtime_hex8.4C.yaml
       ${PROJECT_SOURCE_DIR}/tests/input_files/xfluid_beltrami_stat_16x16x16_hk_vol_equivalent.4C.yaml
       ${PROJECT_SOURCE_DIR}/tests/input_files/sohex8_disp_altgeogeneration.4C.yaml
-      ${PROJECT_SOURCE_DIR}/tests/input_files/f3_forced_hit_geogen_hdg.4C.yaml
+      ${PROJECT_SOURCE_DIR}/tests/input_files/f3_kimmoin_stat_24x24x1_wedge15_pseudo2D.4C.yaml
       ${PROJECT_SOURCE_DIR}/tests/input_files/fbi_fluid_obstacle.4C.yaml
       ${PROJECT_SOURCE_DIR}/tests/input_files/tsi_lincompression_iterstaggtemp.4C.yaml
       ${PROJECT_SOURCE_DIR}/tests/input_files/porofluid_pressure_based_2D_quad4.4C.yaml
