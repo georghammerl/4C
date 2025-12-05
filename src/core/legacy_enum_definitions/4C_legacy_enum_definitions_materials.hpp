@@ -270,7 +270,7 @@ namespace Core::Materials
     mix_rule_growthremodel,           ///< Homogenized constrained mixture
     mix_prestress_strategy_cylinder,  ///< Prestress strategy for a cylinder
     mix_prestress_strategy_iterative,    ///< Iterative prestress strategy for any geometry
-    mix_prestress_strategy_constant,     ///< Constant, predefined prestretch
+    mix_prestress_strategy_prescribed,   ///< Predefined prestretch field for any geometry
     mix_elasthyper,                      ///< Elast Hyper toolbox for constituents
     mix_elasthyper_damage,               ///< Elast hyper toolbox with temporal damage
     mix_elasthyper_elastin_membrane,     ///< Elast Hyper toolbox with temporal damage and 2D

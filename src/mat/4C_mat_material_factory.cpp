@@ -159,9 +159,9 @@
 #include "4C_mixture_growth_strategy_anisotropic.hpp"
 #include "4C_mixture_growth_strategy_isotropic.hpp"
 #include "4C_mixture_growth_strategy_stiffness.hpp"
-#include "4C_mixture_prestress_strategy_constant.hpp"
 #include "4C_mixture_prestress_strategy_isocyl.hpp"
 #include "4C_mixture_prestress_strategy_iterative.hpp"
+#include "4C_mixture_prestress_strategy_prescribed.hpp"
 #include "4C_mixture_rule_function.hpp"
 #include "4C_mixture_rule_growthremodel.hpp"
 #include "4C_mixture_rule_simple.hpp"
@@ -671,9 +671,9 @@ std::unique_ptr<Core::Mat::PAR::Parameter> Mat::make_parameter(
       return make_parameter_impl<FourC::Mixture::PAR::IterativePrestressStrategy>(
           id, type, input_data);
     }
-    case Core::Materials::mix_prestress_strategy_constant:
+    case Core::Materials::mix_prestress_strategy_prescribed:
     {
-      return make_parameter_impl<FourC::Mixture::PAR::ConstantPrestressStrategy>(
+      return make_parameter_impl<FourC::Mixture::PAR::PrescribedPrestressStrategy>(
           id, type, input_data);
     }
     case Core::Materials::m_iterative_prestress:

@@ -11,9 +11,9 @@
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_service.hpp"
 #include "4C_material_parameter_base.hpp"
-#include "4C_mixture_prestress_strategy_constant.hpp"
 #include "4C_mixture_prestress_strategy_isocyl.hpp"
 #include "4C_mixture_prestress_strategy_iterative.hpp"
+#include "4C_mixture_prestress_strategy_prescribed.hpp"
 #include "4C_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -51,9 +51,9 @@ Mixture::PAR::PrestressStrategy* Mixture::PAR::PrestressStrategy::factory(int ma
       return Mat::create_material_parameter_instance<Mixture::PAR::IterativePrestressStrategy>(
           curmat);
     }
-    case Core::Materials::mix_prestress_strategy_constant:
+    case Core::Materials::mix_prestress_strategy_prescribed:
     {
-      return Mat::create_material_parameter_instance<Mixture::PAR::ConstantPrestressStrategy>(
+      return Mat::create_material_parameter_instance<Mixture::PAR::PrescribedPrestressStrategy>(
           curmat);
     }
     default:

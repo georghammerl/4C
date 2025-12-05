@@ -5,8 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_mixture_prestress_strategy_constant.hpp"
+#include "4C_mixture_prestress_strategy_prescribed.hpp"
 
+#include "4C_io_input_field.hpp"
 #include "4C_mat_anisotropy_coordinate_system_provider.hpp"
 #include "4C_mat_service.hpp"
 #include "4C_mixture_rule.hpp"
@@ -15,42 +16,44 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-Mixture::PAR::ConstantPrestressStrategy::ConstantPrestressStrategy(
+Mixture::PAR::PrescribedPrestressStrategy::PrescribedPrestressStrategy(
     const Core::Mat::PAR::Parameter::Data& matdata)
     : PrestressStrategy(matdata),
-      prestretch_(matdata.parameters.get<Core::LinAlg::SymmetricTensor<double, 3, 3>>("PRESTRETCH"))
+      prestretch_(matdata.parameters
+              .get<Core::IO::InterpolatedInputField<Core::LinAlg::SymmetricTensor<double, 3, 3>>>(
+                  "PRESTRETCH"))
 {
 }
 
 std::unique_ptr<Mixture::PrestressStrategy>
-Mixture::PAR::ConstantPrestressStrategy::create_prestress_strategy()
+Mixture::PAR::PrescribedPrestressStrategy::create_prestress_strategy()
 {
   std::unique_ptr<Mixture::PrestressStrategy> prestressStrategy(
-      new Mixture::ConstantPrestressStrategy(this));
+      new Mixture::PrescribedPrestressStrategy(this));
   return prestressStrategy;
 }
 
-Mixture::ConstantPrestressStrategy::ConstantPrestressStrategy(
-    Mixture::PAR::ConstantPrestressStrategy* params)
+Mixture::PrescribedPrestressStrategy::PrescribedPrestressStrategy(
+    Mixture::PAR::PrescribedPrestressStrategy* params)
     : PrestressStrategy(params), params_(params)
 {
 }
 
-void Mixture::ConstantPrestressStrategy::setup(Mixture::MixtureConstituent& constituent,
+void Mixture::PrescribedPrestressStrategy::setup(Mixture::MixtureConstituent& constituent,
     const Teuchos::ParameterList& params, int numgp, int eleGID)
 {
   // nothing to do
 }
 
-void Mixture::ConstantPrestressStrategy::evaluate_prestress(const MixtureRule& mixtureRule,
+void Mixture::PrescribedPrestressStrategy::evaluate_prestress(const MixtureRule& mixtureRule,
     const std::shared_ptr<const Mat::CoordinateSystemProvider> cosy,
     Mixture::MixtureConstituent& constituent, Core::LinAlg::SymmetricTensor<double, 3, 3>& G,
     const Teuchos::ParameterList& params, const Mat::EvaluationContext& context, int gp, int eleGID)
 {
-  G = params_->prestretch_;
+  G = params_->prestretch_.interpolate(eleGID, context.xi->as_span());
 }
 
-void Mixture::ConstantPrestressStrategy::update(
+void Mixture::PrescribedPrestressStrategy::update(
     const std::shared_ptr<const Mat::CoordinateSystemProvider> anisotropy,
     Mixture::MixtureConstituent& constituent, const Core::LinAlg::Tensor<double, 3, 3>& F,
     Core::LinAlg::SymmetricTensor<double, 3, 3>& G, const Teuchos::ParameterList& params,

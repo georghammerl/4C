@@ -7,24 +7,10 @@
 
 #include "4C_mat_service.hpp"
 
-#include "4C_comm_pack_helpers.hpp"
 #include "4C_linalg_fixedsizematrix_tensor_products.hpp"
 #include "4C_linalg_fixedsizematrix_voigt_notation.hpp"
 #include "4C_linalg_four_tensor.hpp"
 #include "4C_linalg_utils_densematrix_eigen.hpp"
-#include "4C_mat_par_bundle.hpp"
-#include "4C_mixture_constituent_remodelfiber_material_exponential.hpp"
-#include "4C_mixture_constituent_remodelfiber_material_exponential_active.hpp"
-#include "4C_mixture_growth_strategy_anisotropic.hpp"
-#include "4C_mixture_growth_strategy_isotropic.hpp"
-#include "4C_mixture_growth_strategy_stiffness.hpp"
-#include "4C_mixture_prestress_strategy_constant.hpp"
-#include "4C_mixture_prestress_strategy_isocyl.hpp"
-#include "4C_mixture_prestress_strategy_iterative.hpp"
-#include "4C_mixture_rule_function.hpp"
-#include "4C_mixture_rule_growthremodel.hpp"
-#include "4C_mixture_rule_simple.hpp"
-#include "4C_utils_enum.hpp"
 
 #include <Sacado.hpp>
 
