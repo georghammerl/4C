@@ -504,7 +504,7 @@ namespace Core::LinAlg
     requires(!is_compressed_tensor<decltype(A)>)
   {
     using Tensor = std::remove_cvref_t<decltype(A)>;
-    using value_type = Tensor::value_type;
+    using value_type = std::remove_cv_t<typename Tensor::value_type>;
     constexpr std::size_t n = Tensor::template extent<0>();
 
     return DenseFunctions::determinant<value_type, n, n>(A.data());
@@ -514,7 +514,7 @@ namespace Core::LinAlg
     requires(!is_compressed_tensor<decltype(A)>)
   {
     using Tensor = std::remove_cvref_t<decltype(A)>;
-    using value_type = Tensor::value_type;
+    using value_type = std::remove_cv_t<typename Tensor::value_type>;
     constexpr std::size_t n = Tensor::template extent<0>();
 
     return DenseFunctions::trace<value_type, n, n>(A.data());
@@ -525,7 +525,7 @@ namespace Core::LinAlg
              std::remove_cvref_t<decltype(A)>::rank() == 1)
   {
     using Tensor = std::remove_cvref_t<decltype(A)>;
-    using value_type = Tensor::value_type;
+    using value_type = std::remove_cv_t<typename Tensor::value_type>;
     constexpr std::size_t n = Tensor::template extent<0>();
 
     return DenseFunctions::norm2<value_type, n, 1>(A.data());
@@ -535,7 +535,7 @@ namespace Core::LinAlg
     requires(!is_compressed_tensor<decltype(A)>)
   {
     using Tensor = std::remove_cvref_t<decltype(A)>;
-    using value_type = Tensor::value_type;
+    using value_type = std::remove_cv_t<typename Tensor::value_type>;
     constexpr std::size_t n = Tensor::template extent<0>();
 
     Core::LinAlg::Tensor<value_type, n, n> dest;
