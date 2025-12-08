@@ -699,20 +699,6 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
   {
     Shell::EAS::add_eas_internal_force(LinvDTilde, eas_iteration_data_.RTilde_, *force_vector);
   }
-
-  if (stiffness_matrix != nullptr)
-  {
-    // make stiffness matrix absolute symmetric
-    for (int i = 0; i < Shell::Internal::numdofperelement<distype>; ++i)
-    {
-      for (int j = i + 1; j < Shell::Internal::numdofperelement<distype>; ++j)
-      {
-        const double average = 0.5 * ((*stiffness_matrix)(i, j) + (*stiffness_matrix)(j, i));
-        (*stiffness_matrix)(i, j) = average;
-        (*stiffness_matrix)(j, i) = average;
-      }
-    }
-  }
 }
 
 

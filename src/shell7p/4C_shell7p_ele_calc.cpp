@@ -457,16 +457,6 @@ void Discret::Elements::Shell7pEleCalc<distype>::evaluate_nonlinear_force_stiffn
           Shell::add_geometric_stiffness_matrix<distype>(shapefunctions_collocation,
               shape_functions_ans, shape_functions, stress_enh.stress_, shell_data_.num_ans,
               integration_factor, *stiffness_matrix);
-          // make stiffness matrix absolute symmetric
-          for (int i = 0; i < Shell::Internal::numdofperelement<distype>; ++i)
-          {
-            for (int j = i + 1; j < Shell::Internal::numdofperelement<distype>; ++j)
-            {
-              const double average = 0.5 * ((*stiffness_matrix)(i, j) + (*stiffness_matrix)(j, i));
-              (*stiffness_matrix)(i, j) = average;
-              (*stiffness_matrix)(j, i) = average;
-            }
-          }
         }
         // add internal force vector
         if (force_vector != nullptr)
