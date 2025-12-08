@@ -10,10 +10,10 @@
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_solver_nonlin_nox_linearproblem.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
 
-#include <Epetra_LinearProblem.h>
 #include <Teuchos_ParameterList.hpp>
 
 #include <vector>
@@ -26,19 +26,14 @@ NOX::FSI::LinearSystemGCR::LinearSystemGCR(Teuchos::ParameterList& printParams,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian,
-    const NOX::Nln::Vector& cloneVector, const Teuchos::RCP<::NOX::Epetra::Scaling> s)
+    const NOX::Nln::Vector& cloneVector, const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : utils(printParams),
       jacInterfacePtr(iJac),
-      jacType(EpetraOperator),
       jacPtr(jacobian),
-      scaling(s),
-      conditionNumberEstimate(0.0),
+      scaling(scalingObject),
       timer("fsi_nox_LinearSystemGCR", true),
       timeApplyJacbianInverse(0.0)
 {
-  // Allocate solver
-  tmpVectorPtr = std::make_shared<NOX::Nln::Vector>(cloneVector);
-
   reset(linearSolverParams);
 }
 
@@ -81,7 +76,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
   double startTime = timer.wallTime();
 
   // Need non-const version of the input vector
-  // Epetra_LinearProblem requires non-const versions so we can perform
+  // NOX::Nln::LinearProblem requires non-const versions so we can perform
   // scaling of the linear problem.
   NOX::Nln::Vector& nonConstInput = const_cast<NOX::Nln::Vector&>(input);
 
@@ -89,21 +84,16 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
   if (zeroInitialGuess) result.init(0.0);
 
   // Create Epetra linear problem object for the linear solve
-  Epetra_LinearProblem Problem(jacPtr.get(),
-      &(result.get_linalg_vector().get_ref_of_epetra_vector()),
-      &(nonConstInput.get_linalg_vector().get_ref_of_epetra_vector()));
+  NOX::Nln::LinearProblem problem{jacPtr,
+      Core::Utils::shared_ptr_from_ref(result.get_linalg_vector()),
+      Core::Utils::shared_ptr_from_ref(nonConstInput.get_linalg_vector())};
 
   // ************* Begin linear system scaling *******************
   if (scaling)
   {
-    if (!manualScaling) scaling->computeScaling(Problem);
+    if (!manualScaling) scaling->compute_scaling(problem);
 
-    scaling->scaleLinearSystem(Problem);
-
-    if (utils.isPrintType(::NOX::Utils::Details))
-    {
-      utils.out() << *scaling << std::endl;
-    }
+    scaling->scale_linear_system(problem);
   }
   // ************* End linear system scaling *******************
 
@@ -127,7 +117,7 @@ bool NOX::FSI::LinearSystemGCR::apply_jacobian_inverse(
   }
 
   // Unscale the linear system
-  if (scaling) scaling->unscaleLinearSystem(Problem);
+  if (scaling) scaling->unscale_linear_system(problem);
 
   // Set the output parameters in the "Output" sublist
   if (outputSolveDetails)
