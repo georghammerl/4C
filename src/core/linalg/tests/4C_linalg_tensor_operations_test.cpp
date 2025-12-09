@@ -22,7 +22,8 @@ namespace
   enum class StorageType
   {
     owning,
-    view
+    view,
+    const_view
   };
 
   template <StorageType storage_type, typename T, std::size_t... n>
@@ -60,8 +61,32 @@ namespace
     math::TensorView<T, n...> tens_view_;
   };
 
+  template <typename T, std::size_t... n>
+  class TensorHolder<StorageType::const_view, T, n...>
+  {
+   public:
+    template <typename... U>
+    TensorHolder(U&&... u) : tens_(std::forward<U>(u)...), tens_view_(tens_)
+    {
+    }
+
+    math::TensorView<const T, n...>& get_tensor() { return tens_view_; };
+
+
+   private:
+    math::Tensor<T, n...> tens_;
+    math::TensorView<const T, n...> tens_view_;
+  };
+
   template <typename T>
   class TensorOperationsTest : public testing::Test
+  {
+   public:
+    static constexpr StorageType STORAGE_TYPE = T();
+  };
+
+  template <typename T>
+  class ConstTensorOperationsTest : public testing::Test
   {
    public:
     static constexpr StorageType STORAGE_TYPE = T();
@@ -71,8 +96,13 @@ namespace
       std::integral_constant<StorageType, StorageType::view>>;
   TYPED_TEST_SUITE(TensorOperationsTest, MyTypes);
 
+  using MyConstTypes = ::testing::Types<std::integral_constant<StorageType, StorageType::owning>,
+      std::integral_constant<StorageType, StorageType::view>,
+      std::integral_constant<StorageType, StorageType::const_view>>;
+  TYPED_TEST_SUITE(ConstTensorOperationsTest, MyConstTypes);
 
-  TYPED_TEST(TensorOperationsTest, Determinant)
+
+  TYPED_TEST(ConstTensorOperationsTest, Determinant)
   {
     TensorHolder<TestFixture::STORAGE_TYPE, double, 3, 3> t{};
     EXPECT_EQ(math::det(t.get_tensor()), 0.0);
@@ -83,7 +113,7 @@ namespace
   }
 
 
-  TYPED_TEST(TensorOperationsTest, Trace)
+  TYPED_TEST(ConstTensorOperationsTest, Trace)
   {
     TensorHolder<TestFixture::STORAGE_TYPE, double, 3, 3> t{};
     EXPECT_EQ(math::trace(t.get_tensor()), 0.0);
@@ -93,7 +123,7 @@ namespace
     EXPECT_EQ(math::trace(t2.get_tensor()), 5.0);
   }
 
-  TYPED_TEST(TensorOperationsTest, Inverse)
+  TYPED_TEST(ConstTensorOperationsTest, Inverse)
   {
     TensorHolder<TestFixture::STORAGE_TYPE, double, 2, 2> t{
         math::Tensor<double, 2, 2>{{{1.0, 2.0}, {3.0, 4.0}}}};
@@ -106,7 +136,7 @@ namespace
     EXPECT_EQ(t_inv(1, 0), 1.5);
   }
 
-  TYPED_TEST(TensorOperationsTest, Transpose)
+  TYPED_TEST(ConstTensorOperationsTest, Transpose)
   {
     TensorHolder<TestFixture::STORAGE_TYPE, double, 3, 2> t{math::Tensor<double, 3, 2>{{
         {1.0, 2.0},
@@ -124,7 +154,7 @@ namespace
     EXPECT_EQ(t_t.at(1, 2), 6.0);
   }
 
-  TYPED_TEST(TensorOperationsTest, VectorDotVector)
+  TYPED_TEST(ConstTensorOperationsTest, VectorDotVector)
   {
     TensorHolder<TestFixture::STORAGE_TYPE, double, 2> a = math::Tensor<double, 2>{{2.0, 3.0}};
     TensorHolder<TestFixture::STORAGE_TYPE, double, 2> b = math::Tensor<double, 2>{{1.0, 2.0}};

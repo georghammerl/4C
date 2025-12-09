@@ -76,6 +76,9 @@ namespace
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> t3_sym = create_symmetric_tensor<3>();
     EXPECT_NEAR(Core::LinAlg::det(t3_sym), -0.3999999999999977, 1e-10);
+
+    Core::LinAlg::SymmetricTensorView<const double, 3, 3> t3_sym_view = t3_sym;
+    EXPECT_NEAR(Core::LinAlg::det(t3_sym_view), -0.3999999999999977, 1e-10);
   }
 
   TEST(SymmetricTensorOperationsTest, trace)
@@ -85,6 +88,9 @@ namespace
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> t_sym = create_symmetric_tensor<3>();
     EXPECT_NEAR(Core::LinAlg::trace(t_sym), 14.4, 1e-10);
+
+    Core::LinAlg::SymmetricTensorView<const double, 3, 3> t_sym_view = t_sym;
+    EXPECT_NEAR(Core::LinAlg::trace(t_sym_view), 14.4, 1e-10);
   }
 
   TEST(SymmetricTensorOperationsTest, inv)
@@ -113,6 +119,21 @@ namespace
     EXPECT_NEAR(t_sym_inv(2, 0), 8.75, 1e-10);
     EXPECT_NEAR(t_sym_inv(2, 1), -11., 1e-10);
     EXPECT_NEAR(t_sym_inv(2, 2), 2.75, 1e-10);
+
+    Core::LinAlg::SymmetricTensorView<const double, 3, 3> t_sym_view = t_sym;
+    Core::LinAlg::SymmetricTensor<double, 3, 3> t_sym_view_inv = Core::LinAlg::inv(t_sym_view);
+
+    EXPECT_NEAR(t_sym_view_inv(0, 0), 24.75, 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(0, 1), -33., 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(0, 2), 8.75, 1e-10);
+
+    EXPECT_NEAR(t_sym_view_inv(1, 0), -33., 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(1, 1), 43., 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(1, 2), -11., 1e-10);
+
+    EXPECT_NEAR(t_sym_view_inv(2, 0), 8.75, 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(2, 1), -11., 1e-10);
+    EXPECT_NEAR(t_sym_view_inv(2, 2), 2.75, 1e-10);
   }
 
   TEST(SymmetricTensorOperationsTest, transpose)
