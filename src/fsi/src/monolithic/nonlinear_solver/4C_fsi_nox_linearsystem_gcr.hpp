@@ -38,20 +38,6 @@ namespace NOX
      */
     class LinearSystemGCR : public NOX::Nln::LinearSystemBase
     {
-     protected:
-      //! List of types of epetra objects that can be used for the Jacobian and/or Preconditioner.
-      enum OperatorType
-      {
-        //! An Epetra_Operator derived object.
-        EpetraOperator,
-        //! An Epetra_RowMatrix derived object.
-        EpetraRowMatrix,
-        //! An Epetra_VbrMatrix object.
-        EpetraVbrMatrix,
-        //! An Epetra_CrsMatrix object.
-        EpetraCrsMatrix
-      };
-
      public:
       //! Constructor with a user supplied Jacobian Operator.
       LinearSystemGCR(Teuchos::ParameterList& printParams,
@@ -60,7 +46,7 @@ namespace NOX
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
           const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
           const NOX::Nln::Vector& cloneVector,
-          const Teuchos::RCP<::NOX::Epetra::Scaling> scalingObject = Teuchos::null);
+          const std::shared_ptr<NOX::Nln::Scaling> scalingObject = nullptr);
 
       //! Reset the linear solver parameters.
       virtual void reset(Teuchos::ParameterList& linearSolverParams);
@@ -150,19 +136,11 @@ namespace NOX
       //! Reference to the user supplied Jacobian interface functions
       std::shared_ptr<NOX::Nln::Interface::JacobianBase> jacInterfacePtr;
 
-      //! Type of operator for the Jacobian.
-      OperatorType jacType;
-
       //! Pointer to the Jacobian operator.
       std::shared_ptr<Core::LinAlg::SparseOperator> jacPtr;
 
       //! Scaling object supplied by the user
-      Teuchos::RCP<::NOX::Epetra::Scaling> scaling;
-
-      //! An extra temporary vector, only allocated if needed.
-      mutable std::shared_ptr<NOX::Nln::Vector> tmpVectorPtr;
-
-      mutable double conditionNumberEstimate;
+      std::shared_ptr<NOX::Nln::Scaling> scaling;
 
       //! If set to true, solver information is printed to the "Output" sublist of the "Linear
       //! Solver" list.
