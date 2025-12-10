@@ -177,35 +177,35 @@ void Core::LinAlg::MultiVector<T>::reciprocal(const Epetra_MultiVector& A)
 }
 
 template <typename T>
-void Core::LinAlg::MultiVector<T>::import(
-    const MultiVector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+void Core::LinAlg::MultiVector<T>::import(const MultiVector& A,
+    const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      vector_->Import(A.get_epetra_multi_vector(), Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(A.get_epetra_multi_vector(), Importer.get_epetra_import(),
+      to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
-void Core::LinAlg::MultiVector<T>::import(
-    const MultiVector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+void Core::LinAlg::MultiVector<T>::import(const MultiVector& A,
+    const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      vector_->Import(A.get_epetra_multi_vector(), Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Import(A.get_epetra_multi_vector(), Exporter.get_epetra_export(),
+      to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
-void Core::LinAlg::MultiVector<T>::export_to(
-    const MultiVector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode)
+void Core::LinAlg::MultiVector<T>::export_to(const MultiVector& A,
+    const Core::LinAlg::Import& Importer, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      vector_->Export(A.get_epetra_multi_vector(), Importer.get_epetra_import(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(A.get_epetra_multi_vector(), Importer.get_epetra_import(),
+      to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>
-void Core::LinAlg::MultiVector<T>::export_to(
-    const MultiVector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode)
+void Core::LinAlg::MultiVector<T>::export_to(const MultiVector& A,
+    const Core::LinAlg::Export& Exporter, Core::LinAlg::CombineMode CombineMode)
 {
-  ASSERT_EPETRA_CALL(
-      vector_->Export(A.get_epetra_multi_vector(), Exporter.get_epetra_export(), CombineMode));
+  ASSERT_EPETRA_CALL(vector_->Export(A.get_epetra_multi_vector(), Exporter.get_epetra_export(),
+      to_epetra_combine_mode(CombineMode)));
 }
 
 template <typename T>

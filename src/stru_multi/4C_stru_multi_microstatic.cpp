@@ -1170,7 +1170,7 @@ void MultiScale::MicroStatic::static_homogenization(Core::LinAlg::Matrix<6, 1>* 
     stiff_dirich_->multiply(false, *iterinc, temp);
 
     Core::LinAlg::MultiVector<double> fexp(*pdof_, 9);
-    fexp.import(temp, *importp_, Insert);
+    fexp.import(temp, *importp_, Core::LinAlg::CombineMode::insert);
 
     // multiply manually d_matrix_ and fexp because d_matrix_ is not distributed as usual
     // Core::LinAlg::MultiVector<double>s and, hence, standard Multiply functions do not apply.

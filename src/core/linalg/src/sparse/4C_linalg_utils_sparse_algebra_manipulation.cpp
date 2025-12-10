@@ -50,14 +50,14 @@ void Core::LinAlg::export_to(
     else if (sourceunique && targetunique)
     {
       Core::LinAlg::Export exporter(source.get_map(), target.get_map());
-      target.export_to(source, exporter, Insert);
+      target.export_to(source, exporter, Core::LinAlg::CombineMode::insert);
 
       return;
     }
     else if (sourceunique && !targetunique)
     {
       Core::LinAlg::Import importer(target.get_map(), source.get_map());
-      target.import(source, importer, Insert);
+      target.import(source, importer, Core::LinAlg::CombineMode::insert);
 
       return;
     }

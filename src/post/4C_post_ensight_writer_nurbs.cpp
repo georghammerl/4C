@@ -1362,7 +1362,7 @@ void EnsightWriter::write_coordinates_for_nurbs_shapefunctions(std::ofstream& ge
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map, *vispointmap_);
   Core::LinAlg::MultiVector<double> allnodecoords(*proc0map, 3);
-  allnodecoords.import(*nodecoords, proc0importer, Insert);
+  allnodecoords.import(*nodecoords, proc0importer, Core::LinAlg::CombineMode::insert);
 
   // write the node coordinates (only proc 0)
   // ensight format requires x_1 .. x_n, y_1 .. y_n, z_1 ... z_n
@@ -2117,7 +2117,7 @@ void EnsightWriter::write_dof_result_step_for_nurbs(std::ofstream& file, const i
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map_, *vispointmap_);
   Core::LinAlg::MultiVector<double> allsols(*proc0map_, numdf);
-  allsols.import(*idata, proc0importer, Insert);
+  allsols.import(*idata, proc0importer, Core::LinAlg::CombineMode::insert);
 
   // write the node results (only proc 0)
   // ensight format requires u_1 .. u_n, v_1 .. v_n, w_1 ... w_n, as for nodes
@@ -3433,7 +3433,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
 
   // create an importer and import the data
   Core::LinAlg::Import importer((coldata).get_map(), (data).get_map());
-  coldata.import((data), importer, Insert);
+  coldata.import((data), importer, Core::LinAlg::CombineMode::insert);
 
   // loop all available elements
   for (int iele = 0; iele < elementmap->num_my_elements(); ++iele)
@@ -3513,7 +3513,7 @@ void EnsightWriter::write_nodal_result_step_for_nurbs(std::ofstream& file, const
   // import my new values (proc0 gets everything, other procs empty)
   Core::LinAlg::Import proc0importer(*proc0map_, *vispointmap_);
   Core::LinAlg::MultiVector<double> allsols(*proc0map_, numdf);
-  allsols.import(*idata, proc0importer, Insert);
+  allsols.import(*idata, proc0importer, Core::LinAlg::CombineMode::insert);
 
   //---------------
   // write results

@@ -11,6 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_comm_mpi_utils.hpp"
+#include "4C_linalg.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_transfer.hpp"
 #include "4C_linalg_view.hpp"
@@ -140,18 +141,18 @@ namespace Core::LinAlg
     void reciprocal(const Epetra_MultiVector& A);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Import object.
-    void import(
-        const MultiVector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode);
+    void import(const MultiVector& A, const Core::LinAlg::Import& Importer,
+        Core::LinAlg::CombineMode CombineMode);
 
     //! Imports an Epetra_DistObject using the Core::LinAlg::Export object.
-    void import(
-        const MultiVector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode);
+    void import(const MultiVector& A, const Core::LinAlg::Export& Exporter,
+        Core::LinAlg::CombineMode CombineMode);
 
-    void export_to(
-        const MultiVector& A, const Core::LinAlg::Import& Importer, Epetra_CombineMode CombineMode);
+    void export_to(const MultiVector& A, const Core::LinAlg::Import& Importer,
+        Core::LinAlg::CombineMode CombineMode);
 
-    void export_to(
-        const MultiVector& A, const Core::LinAlg::Export& Exporter, Epetra_CombineMode CombineMode);
+    void export_to(const MultiVector& A, const Core::LinAlg::Export& Exporter,
+        Core::LinAlg::CombineMode CombineMode);
 
     void sum_into_global_value(int GlobalRow, int VectorIndex, double ScalarValue);
 
