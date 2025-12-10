@@ -463,7 +463,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::multiply_multi_vector_multi_vector(
   // create importer with redundant target map and distributed source map
   Core::LinAlg::Import importer(*redundant_map, mv2.get_map());
   // import values to global mv2
-  mv2glob.import(mv2, importer, Insert);
+  mv2glob.import(mv2, importer, Core::LinAlg::CombineMode::insert);
 
   //--------------------------------------------------------
   // compute mat by multiplying upright mv1 with lying mv2^T:
@@ -520,7 +520,7 @@ void Core::LinAlg::multiply_multi_vectors(Core::LinAlg::MultiVector<double>& mul
 
   // import the result to a Core::LinAlg::MultiVector<double> whose elements/rows are distributed
   // over all procs
-  result.import(multivect_temp, impo, Insert);
+  result.import(multivect_temp, impo, Core::LinAlg::CombineMode::insert);
 }
 
 FOUR_C_NAMESPACE_CLOSE

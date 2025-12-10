@@ -62,7 +62,7 @@ Cardiovascular0D::ProperOrthogonalDecomposition::ProperOrthogonalDecomposition(
   Core::LinAlg::Import dofrowimporter(*full_model_dof_row_map_, reduced_basis->get_map());
   projmatrix_ = std::make_shared<Core::LinAlg::MultiVector<double>>(
       *full_model_dof_row_map_, reduced_basis->num_vectors(), true);
-  projmatrix_->import(*reduced_basis, dofrowimporter, Insert);
+  projmatrix_->import(*reduced_basis, dofrowimporter, Core::LinAlg::CombineMode::insert);
 
   // check row dimension
   if (projmatrix_->global_length() != full_model_dof_row_map_->num_global_elements())

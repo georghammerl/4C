@@ -139,7 +139,7 @@ void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVecto
       std::copy(mv.get_values(), mv.get_values() + (mv.local_length() * mv.num_vectors()),
           perm.get_values());
 
-      sv.export_to(perm, *nodal_slaveexport_, Insert);
+      sv.export_to(perm, *nodal_slaveexport_, Core::LinAlg::CombineMode::insert);
     }  // end: case XFEM::MultiFieldMapExtractor::map_nodes
   }  // end: switch (map_type)
 }
@@ -171,7 +171,7 @@ void XFEM::XFieldField::Coupling::slave_to_master(const Core::LinAlg::MultiVecto
       std::copy(sv.get_values(), sv.get_values() + (sv.local_length() * sv.num_vectors()),
           perm.get_values());
 
-      mv.export_to(perm, *nodal_masterexport_, Insert);
+      mv.export_to(perm, *nodal_masterexport_, Core::LinAlg::CombineMode::insert);
     }
   }
 }

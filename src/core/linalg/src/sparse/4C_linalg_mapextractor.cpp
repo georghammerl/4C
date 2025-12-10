@@ -188,7 +188,7 @@ void Core::LinAlg::MultiMapExtractor::extract_vector(const Core::LinAlg::MultiVe
 {
   if (maps_[block] == nullptr) FOUR_C_THROW("null map at block {}", block);
 
-  partial.import(full, *importer_[block], Insert);
+  partial.import(full, *importer_[block], Core::LinAlg::CombineMode::insert);
 }
 
 
@@ -212,7 +212,7 @@ void Core::LinAlg::MultiMapExtractor::insert_vector(
 {
   if (maps_[block] == nullptr) FOUR_C_THROW("null map at block {}", block);
 
-  full.export_to(partial, *importer_[block], Insert);
+  full.export_to(partial, *importer_[block], Core::LinAlg::CombineMode::insert);
 }
 
 
