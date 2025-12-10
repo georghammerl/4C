@@ -65,9 +65,8 @@ namespace Core::Rebalance
   The partitioning will be done based on the method given in the parameter list. This method
   only makes sense with graph or hypergraph partitioning.
 
-  @note Use Isorropia package to access Zoltan. By default, Isorropia will use Zoltan hypergraph
-  partitioning, treating the graph columns as hyper-edges and the graph rows as vertices. The
-  rebalanced graph will be fill_complete().
+  @note The default is hypergraph partitioning, treating the graph columns as hyper-edges and
+  the graph rows as vertices. The rebalanced graph will be fill_complete().
 
   \pre The initialGraph has to be filled()==true.
 
