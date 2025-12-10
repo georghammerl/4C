@@ -261,7 +261,7 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
   Shell::BasisVectorsAndMetrics<distype> g_reference;
   Shell::BasisVectorsAndMetrics<distype> g_current;
 
-  Discret::Elements::Shell::Strains strains;
+  Shell::Strains strains{};
   // init enhanced strain for shell
   Core::LinAlg::SerialDenseVector strain_enh(Shell::Internal::num_internal_variables);
 
@@ -308,18 +308,12 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
           strains = Shell::evaluate_strains(g_reference, g_current);
 
           // call material for evaluation of strain energy function
-          Core::LinAlg::Matrix<6, 1> gl_stress;
-          Core::LinAlg::Voigt::Strains::to_stress_like(strains.gl_strain_, gl_stress);
-
-          Core::LinAlg::SymmetricTensor<double, 3, 3> gl_strain =
-              Core::LinAlg::make_symmetric_tensor_from_stress_like_voigt_matrix(gl_stress);
-
           Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
           Mat::EvaluationContext context{.total_time = total_time,
               .time_step_size = time_step_size,
               .xi = &xi,
               .ref_coords = nullptr};
-          double psi = solid_material.strain_energy(gl_strain, context, gp, ele.id());
+          double psi = solid_material.strain_energy(strains.gl_strain_, context, gp, ele.id());
 
           double thickness = 0.0;
           for (int i = 0; i < Shell::Internal::num_node<distype>; ++i)
@@ -455,12 +449,8 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::calculate_stresses_strains(
           // evaluate Green-Lagrange strains and deformationgradient in cartesian coordinate system
           auto strains = Shell::evaluate_strains(g_reference, g_current);
 
-          // update the deformation gradient
-          Core::LinAlg::Matrix<Shell::Internal::num_dim, Shell::Internal::num_dim> defgrd_enh(
-              Core::LinAlg::Initialization::uninitialized);
-          Shell::calc_consistent_defgrd<Shell::Internal::num_dim>(
-              strains.defgrd_, strains.gl_strain_, defgrd_enh);
-          strains.defgrd_ = defgrd_enh;
+          // compute the consistent deformation gradient based on enhanced gl strains
+          strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
 
           Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
           Mat::EvaluationContext context{.total_time = total_time,
@@ -470,9 +460,8 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::calculate_stresses_strains(
           // evaluate stress in local cartesian system
           auto stress = Shell::evaluate_material_stress_cartesian_system<Shell::Internal::num_dim>(
               solid_material, strains, params, context, gp, ele.id());
-          Shell::assemble_strain_type_to_matrix_row<distype>(
-              strains, strainIO.type, strain_data, gp, 0.5);
-          Shell::assemble_stress_type_to_matrix_row<distype>(
+          Shell::assemble_strain_type_to_matrix_row(strains, strainIO.type, strain_data, gp, 0.5);
+          Shell::assemble_stress_type_to_matrix_row(
               strains, stress, stressIO.type, stress_data, gp, 0.5);
         }
       });
@@ -634,12 +623,8 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
           // evaluate Green-Lagrange strains and deformation gradient in cartesian coordinate system
           auto strains = Shell::evaluate_strains(g_reference, g_current);
 
-          // update the deformation gradient (if needed?)
-          Core::LinAlg::Matrix<Shell::Internal::num_dim, Shell::Internal::num_dim> defgrd_enh(
-              Core::LinAlg::Initialization::uninitialized);
-          Shell::calc_consistent_defgrd<Shell::Internal::num_dim>(
-              strains.defgrd_, strains.gl_strain_, defgrd_enh);
-          strains.defgrd_ = defgrd_enh;
+          // compute the consistent deformation gradient based on enhanced gl strains
+          strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
 
           Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
           Mat::EvaluationContext context{.total_time = total_time,
@@ -713,20 +698,6 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
   if (force_vector != nullptr)
   {
     Shell::EAS::add_eas_internal_force(LinvDTilde, eas_iteration_data_.RTilde_, *force_vector);
-  }
-
-  if (stiffness_matrix != nullptr)
-  {
-    // make stiffness matrix absolute symmetric
-    for (int i = 0; i < Shell::Internal::numdofperelement<distype>; ++i)
-    {
-      for (int j = i + 1; j < Shell::Internal::numdofperelement<distype>; ++j)
-      {
-        const double average = 0.5 * ((*stiffness_matrix)(i, j) + (*stiffness_matrix)(j, i));
-        (*stiffness_matrix)(i, j) = average;
-        (*stiffness_matrix)(j, i) = average;
-      }
-    }
   }
 }
 
@@ -891,20 +862,15 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::update(Core::Elements::Eleme
 
             auto strains = evaluate_strains(g_reference, g_current);
 
-            // calculate deformation gradient consistent with modified GL strain tensor
-            Core::LinAlg::Matrix<Discret::Elements::Shell::Internal::num_dim,
-                Discret::Elements::Shell::Internal::num_dim>
-                defgrd_enh(Core::LinAlg::Initialization::uninitialized);
-            Shell::calc_consistent_defgrd<Shell::Internal::num_dim>(
-                strains.defgrd_, strains.gl_strain_, defgrd_enh);
-            strains.defgrd_ = defgrd_enh;
-            Core::LinAlg::Tensor<double, 3, 3> defgrd = Core::LinAlg::make_tensor(strains.defgrd_);
+            // compute the consistent deformation gradient based on enhanced gl strains
+            strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
+
             Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
             Mat::EvaluationContext context{.total_time = total_time,
                 .time_step_size = time_step_size,
                 .xi = &xi,
                 .ref_coords = nullptr};
-            solid_material.update(defgrd, gp, params, context, ele.id());
+            solid_material.update(strains.defgrd_, gp, params, context, ele.id());
           }
         });
   }
