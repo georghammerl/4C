@@ -8,7 +8,6 @@ FLUID DYNAMIC:
   NONLINITER: Newton
   INITIALFIELD: "field_by_function"
   CALCERROR: kimmoin_stat_navier_stokes
-  ADAPTCONV: true
   RESTARTEVERY: 0
   STARTFUNCNO: 2
   TIMESTEP: 1
@@ -42,12 +41,8 @@ XFLUID DYNAMIC/STABILIZATION:
   GHOST_PENALTY_FAC: 0.003
   IS_PSEUDO_2D: true
 SOLVER 1:
-  SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
-  AZOUTPUT: 50
-  AZREUSE: 1
-  AZSUB: 1000
   NAME: "Fluid_Solver"
+  SOLVER: "Superlu"
 MATERIALS:
   - MAT: 1
     MAT_fluid:
