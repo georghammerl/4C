@@ -18,7 +18,7 @@ STRUCT NOX/Printing:
 SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "Teko"
-  AZTOL: 1e-06
+  AZTOL: 1e-08
   AZOUTPUT: 5
   AZREUSE: 0
   TEKO_XML_FILE: "xml/block_preconditioner/beam_solid_iterative.xml"
