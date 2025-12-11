@@ -109,7 +109,8 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
     Teuchos::ParameterList& muelu_list =
         stratimikos_params.sublist("Preconditioner Types").sublist("MueLu");
     muelu_list.setParameters(muelu_params);
-    builder.setParameterList(Teuchos::rcpFromRef(stratimikos_params));
+    builder.setParameterList(
+        Teuchos::make_rcp<Teuchos::ParameterList>(std::move(stratimikos_params)));
 
     // construct preconditioning operator
     Teuchos::RCP<Thyra::PreconditionerFactoryBase<double>> precFactory =
