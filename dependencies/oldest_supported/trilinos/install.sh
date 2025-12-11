@@ -64,8 +64,6 @@ $CMAKE_COMMAND \
   -D Trilinos_ENABLE_Ifpack:BOOL=ON \
     -D Ifpack_SHOW_DEPRECATED_WARNINGS:BOOL=OFF \
   -D Trilinos_ENABLE_Ifpack2:BOOL=ON \
-  -D Trilinos_ENABLE_Isorropia:BOOL=ON \
-    -D Isorropia_SHOW_DEPRECATED_WARNINGS:BOOL=OFF \
   -D Trilinos_ENABLE_Kokkos:BOOL=ON \
   -D Trilinos_ENABLE_ML:BOOL=ON \
     -D ML_SHOW_DEPRECATED_WARNINGS:BOOL=OFF \
