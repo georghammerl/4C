@@ -52,9 +52,9 @@ namespace Discret::Elements::Shell
    *
    * @tparam distype :  The discretization type known at compile time
    * @param x       (out)  : Nodal coords in spatial frame
-   * @param x_refe  (out)  : Nodal coords in reference frame
-   * @param disp    (int)  : Displacements
-   * @param index   (int)  : Integer to consider either displacements or director displacmenets
+   * @param x_refe  (in)  : Nodal coords in reference frame
+   * @param disp    (in)  : Displacements
+   * @param index   (in)  : Integer to consider either displacements or director displacmenets
    */
   template <Core::FE::CellType distype>
   void spatial_configuration(
@@ -77,9 +77,9 @@ namespace Discret::Elements::Shell
    * @tparam distype :  The discretization type known at compile time
    * @param nodes (in)  : Nodal coords in reference frame
    * @param disp (in)  : Displacements
-   * @param thicknesss (int)  : Nodal thickness values in reference frame
-   * @param a3_reference (int)  : Nodal directors in reference frame
-   * @param factor (int)  : Scaling factor due to SDC
+   * @param thickness (in)  : Nodal thickness values in reference frame
+   * @param a3_reference (in)  : Nodal directors in reference frame
+   * @param factor (in)  : Scaling factor due to SDC
    */
   template <Core::FE::CellType distype>
   Discret::Elements::Shell::NodalCoordinates<distype> evaluate_nodal_coordinates(
@@ -118,8 +118,8 @@ namespace Discret::Elements::Shell
    */
   struct Strains
   {
-    Core::LinAlg::Tensor<double, Internal::num_dim, Internal::num_dim> defgrd_;
-    Core::LinAlg::SymmetricTensor<double, Internal::num_dim, Internal::num_dim> gl_strain_;
+    Core::LinAlg::Tensor<double, Internal::num_dim, Internal::num_dim> defgrd_{};
+    Core::LinAlg::SymmetricTensor<double, Internal::num_dim, Internal::num_dim> gl_strain_{};
   };
 
   /*!
@@ -136,10 +136,10 @@ namespace Discret::Elements::Shell
   };
 
   /*!
-   * @brief A struct holding the enhanced stress measures (2-Piola-Kirchhoff stresses and
-   * enhanced material matrix)
+   * @brief A struct holding the thickness-integrated stress resultants (membrane forces and
+   * bending moments) and the thickness-integrated material tangent
    */
-  struct StressEnhanced
+  struct StressResultants
   {
     Core::LinAlg::SerialDenseVector stress_;
     Core::LinAlg::SerialDenseMatrix dmat_;
@@ -155,20 +155,21 @@ namespace Discret::Elements::Shell
    * @param strains (in) : Strain measures of the element
    * @param params (in) : List of additional parameter to pass quantities from the time integrator
    * to the material
+   * @param context (in) : Material evaluation context
    * @param gp (in) : Gauss point
    * @param eleGID (in) : Global element id
-   * @return Stress<Mat::NUM_STRESS_3D> : Object holding the 2. Piola Kirchhoff stress tensor and
+   * @return Stress : Object holding the 2. Piola Kirchhoff stress tensor and
    * the linearization w.r.t. Green Lagrange strain tensor
    */
   template <int dim>
   Stress evaluate_material_stress_cartesian_system(Mat::So3Material& material,
-      const Strains& strains, Teuchos::ParameterList& params, const Mat::EvaluationContext& context,
-      int gp, int eleGID)
+      const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& gl_strain, Teuchos::ParameterList& params,
+      const Mat::EvaluationContext& context, int gp, int eleGID)
   {
     Stress stress{};
 
-    material.evaluate(&strains.defgrd_, strains.gl_strain_, params, context, stress.pk2_,
-        stress.cmat_, gp, eleGID);
+    material.evaluate(&defgrd, gl_strain, params, context, stress.pk2_, stress.cmat_, gp, eleGID);
 
     return stress;
   }
@@ -186,7 +187,8 @@ namespace Discret::Elements::Shell
    * @brief Returns the gauss integration based on the optimal gauss integration rule
    *
    * @tparam distype : The discretization type known at compile time
-   * @tparam GaussRuleType (in) : Optimal gauss rule integration type
+   * @tparam GaussRuleType : Optimal gauss rule integration type
+   * @param gaussrule (in) : Gauss rule
    * @return Core::FE::IntegrationPoints2D : Integration points
    */
   template <Core::FE::CellType distype, typename GaussRuleType>
@@ -883,58 +885,71 @@ namespace Discret::Elements::Shell
    * 0]^T, E_2=[0, 1, 0]^T, E_3=[0, 0, 1]^T$\f, no transformation is necessary
    *
    * @tparam distype : The discretization type known at compile time
-   * @param strains (in/out) :  Strain measures of the element (deformation gradient,
-   * Green-Lagrange strain tensor)
    * @param g_reference (in) : An object holding the reference basis vectors and metric
    * tensors of the shell body
    * @param g_current (in) : An object holding the current basis vectors and metric
    * tensors of the shell body
+   * @return Core::LinAlg::Tensor<double,3,3> : Deformation gradient tensor
    */
   template <Core::FE::CellType distype>
-  void evaluate_deformation_gradient(Discret::Elements::Shell::Strains& strains,
+  Core::LinAlg::Tensor<double, 3, 3> evaluate_deformation_gradient(
       const Discret::Elements::Shell::BasisVectorsAndMetrics<distype>& g_reference,
       const Discret::Elements::Shell::BasisVectorsAndMetrics<distype>& g_current)
   {
     Core::LinAlg::Matrix<3, 3> deformation_gradient(Core::LinAlg::Initialization::zero);
     deformation_gradient.multiply_nt(1.0, g_current.kovariant_, g_reference.kontravariant_);
-    strains.defgrd_ = Core::LinAlg::make_tensor(deformation_gradient);
+    return Core::LinAlg::make_tensor(deformation_gradient);
   }
 
   /*!
-   * @brief Evaluates Green-Lagrange strains from metrics
+   * @brief Evaluates Green-Lagrange strains in curvilinear coordinate system
    *
-   *  The reen-Lagrange strains are defined as :
+   *  The Green-Lagrange strains in curvilinear coordinates are defined as:
    * \f[
-   *    \mathbf{E} = E_{ij} \mathbf{G}^i \otimes \mathbf{G}^j
+   *    E_{ij} = \frac{1}{2} (g_{ij} - G_{ij})
    * \f]
-   * GL strain vector glstrain = [E_{11},E_{22}, E_{33}, 2*E_{12}, 2*E_{23}, 2*E_{31}]^T
+   * where g_ij is the current metric and G_ij is the reference metric.
+   *
    * @tparam distype : The discretization type known at compile time
-   * @param strains (in/out) : Strain measures (deformation gradient tensor, Green-Lagrange strain
-   * tensor)
-   * @param g_reference (in) : An object holding the reference basis vectors and metric
-   * tensors of the shell body
-   * @param g_current (in) : An object holding the current basis vectors and metric
-   * tensors of the shell body
+   * @param g_reference (in) : Reference basis vectors and metric tensors
+   * @param g_current (in) : Current basis vectors and metric tensors
+   * @return Core::LinAlg::SymmetricTensor<double, 3, 3> : Green-Lagrange strain tensor in
+   * curvilinear coordinates
    */
   template <Core::FE::CellType distype>
-  void evaluate_green_lagrange_strain(Strains& strains,
+  Core::LinAlg::SymmetricTensor<double, 3, 3> evaluate_green_lagrange_strain(
       const BasisVectorsAndMetrics<distype>& g_reference,
       const BasisVectorsAndMetrics<distype>& g_current)
   {
-    //  evaluate strain tensor in curvilinear coordinate system E_ij = 0.5 (g_ij-G_ij)
-    Core::LinAlg::SymmetricTensor<double, 3, 3> gl_strain_curvilinear =
-        Core::LinAlg::assume_symmetry(
-            0.5 * (Core::LinAlg::make_tensor_view(g_current.metric_kovariant_) -
-                      Core::LinAlg::make_tensor_view(g_reference.metric_kovariant_)));
+    return Core::LinAlg::assume_symmetry(
+        0.5 * (Core::LinAlg::make_tensor_view(g_current.metric_kovariant_) -
+                  Core::LinAlg::make_tensor_view(g_reference.metric_kovariant_)));
+  }
 
-    // map gl strains from curvilinear system to global cartesian system
+  /*!
+   * @brief Transform Green-Lagrange strain from curvilinear to Cartesian coordinates
+   *
+   * Applies the transformation: E_cart = G^T * E_curv * G
+   * where G is the contravariant basis tensor from reference configuration.
+   *
+   * @tparam distype : The discretization type known at compile time
+   * @param gl_strain_curvilinear (in) : GL strain in curvilinear coordinates
+   * @param g_reference (in) : Reference metric tensors (provides contravariant basis)
+   * @return Green-Lagrange strain tensor in Cartesian coordinates
+   */
+  template <Core::FE::CellType distype>
+  inline Core::LinAlg::SymmetricTensor<double, 3, 3> transform_green_lagrange_strain_to_cartesian(
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& gl_strain_curvilinear,
+      const BasisVectorsAndMetrics<distype>& g_reference)
+  {
     Core::LinAlg::TensorView<const double, 3, 3> kontravariant_tensor =
         Core::LinAlg::make_tensor_view(g_reference.kontravariant_);
     Core::LinAlg::Tensor<double, 3, 3> gl_strain_tensor_cartesian =
         Core::LinAlg::transpose(kontravariant_tensor) * gl_strain_curvilinear *
         kontravariant_tensor;
-    strains.gl_strain_ = Core::LinAlg::assume_symmetry(gl_strain_tensor_cartesian);
+    return Core::LinAlg::assume_symmetry(gl_strain_tensor_cartesian);
   }
+
 
   /*!
    * @brief Maps the stress quantities (2. Piola-Kirchoff stress tensor and the linearization
@@ -1115,27 +1130,29 @@ namespace Discret::Elements::Shell
    * @brief Assembles Green-Lagrange strains to the desired strain type and assemble to a given
    * matrix row
    *
-   * @param strains (in) : Strain data
-   * @param strains_type (in) : Strain type
+   * @param gl_strain (in) : Green-Lagrange strain tensor
+   * @param defgrd (in) : Deformation gradient tensor
+   * @param strain_type (in) : Strain type
    * @param data (in) : Data to which the vector will be assembled
    * @param row (in) : Row number
    * @param thickness_weight (in) : Weighting factor to consider thickness integration
    */
-  inline void assemble_strain_type_to_matrix_row(const Strains& strains,
-      Inpar::Solid::StrainType strain_type, Core::LinAlg::SerialDenseMatrix& data, int row,
-      const double thickness_weight)
+  inline void assemble_strain_type_to_matrix_row(
+      const Core::LinAlg::SymmetricTensor<double, 3, 3>& gl_strain,
+      const Core::LinAlg::Tensor<double, 3, 3>& defgrd, Inpar::Solid::StrainType strain_type,
+      Core::LinAlg::SerialDenseMatrix& data, int row, const double thickness_weight)
   {
     switch (strain_type)
     {
       case Inpar::Solid::strain_gl:
       {
-        assemble_symmetric_tensor_to_matrix_row(strains.gl_strain_, data, row, thickness_weight);
+        assemble_symmetric_tensor_to_matrix_row(gl_strain, data, row, thickness_weight);
         return;
       }
       case Inpar::Solid::strain_ea:
       {
         const Core::LinAlg::SymmetricTensor<double, Internal::num_dim, Internal::num_dim> ea =
-            green_lagrange_to_euler_almansi(strains.gl_strain_, strains.defgrd_);
+            green_lagrange_to_euler_almansi(gl_strain, defgrd);
         assemble_symmetric_tensor_to_matrix_row(ea, data, row, thickness_weight);
         return;
       }
@@ -1148,15 +1165,16 @@ namespace Discret::Elements::Shell
   /*!
    * @brief Assembles 2nd Piola-Kirchhoff stresses to the desired stress type in matrix row
    *
+   * @param defgrd (in) : Deformation gradient tensor
    * @param stress (in) : Stress data
    * @param stress_type (in) : Stress type
    * @param data (in) : Data to which the vector will be assembled
    * @param row (in) : Row number
    * @param thickness_weight (in) : Weighting factor to consider thickness integration
    */
-  inline void assemble_stress_type_to_matrix_row(const Strains& strains, const Stress stress,
-      Inpar::Solid::StressType stress_type, Core::LinAlg::SerialDenseMatrix& data, int row,
-      const double thickness_weight)
+  inline void assemble_stress_type_to_matrix_row(const Core::LinAlg::Tensor<double, 3, 3>& defgrd,
+      const Stress stress, Inpar::Solid::StressType stress_type,
+      Core::LinAlg::SerialDenseMatrix& data, int row, const double thickness_weight)
   {
     switch (stress_type)
     {
@@ -1168,7 +1186,7 @@ namespace Discret::Elements::Shell
       case Inpar::Solid::stress_cauchy:
       {
         Core::LinAlg::SymmetricTensor<double, Internal::num_dim, Internal::num_dim> cauchy =
-            pk2_to_cauchy(stress.pk2_, strains.defgrd_);
+            pk2_to_cauchy(stress.pk2_, defgrd);
         assemble_symmetric_tensor_to_matrix_row(cauchy, data, row, thickness_weight);
         return;
       }
@@ -1272,7 +1290,7 @@ namespace Discret::Elements::Shell
    * the material tensor through the shell thickness.
    *
    * @tparam distype : The discretization type known at compile time
-   * @param stress_enh (in/out) : An object holding the enhanced stress resultants
+   * @param stress_resultants (in/out) : An object holding the stress resultants
    * @param stress (in) :  An object holding the stress measures
    * @param integration_fac (in) : Integration factor (Gauss point weight times the determinant
    * of the jacobian)
@@ -1280,7 +1298,7 @@ namespace Discret::Elements::Shell
    * to
    */
   template <Core::FE::CellType distype>
-  void thickness_integration(Discret::Elements::Shell::StressEnhanced& stress_enh,
+  void thickness_integration(Discret::Elements::Shell::StressResultants& stress_resultants,
       const Discret::Elements::Shell::Stress& stress, const double& integration_factor,
       const double& zeta)
   {
@@ -1294,26 +1312,27 @@ namespace Discret::Elements::Shell
     {
       const double shell_index_i = voigt_inconsistent[i];
       const double stress_fact = pk2_view(shell_index_i) * integration_factor;
-      stress_enh.stress_(i) += stress_fact;
-      stress_enh.stress_(i + Internal::node_dof) += stress_fact * zeta;
+      stress_resultants.stress_(i) += stress_fact;
+      stress_resultants.stress_(i + Internal::node_dof) += stress_fact * zeta;
 
       for (int j = 0; j < Internal::node_dof; ++j)
       {
         const double shell_index_j = voigt_inconsistent[j];
         const double C_fact = cmat_view(shell_index_i, shell_index_j) * integration_factor;
-        stress_enh.dmat_(i, j) += C_fact;
-        stress_enh.dmat_(i + Internal::node_dof, j) += C_fact * zeta;
-        stress_enh.dmat_(i + Internal::node_dof, j + Internal::node_dof) += C_fact * zeta * zeta;
+        stress_resultants.dmat_(i, j) += C_fact;
+        stress_resultants.dmat_(i + Internal::node_dof, j) += C_fact * zeta;
+        stress_resultants.dmat_(i + Internal::node_dof, j + Internal::node_dof) +=
+            C_fact * zeta * zeta;
       }
     }
     // symmetrize enhanced material tensor
     for (int i = 0; i < Internal::num_internal_variables; i++)
       for (int j = i + 1; j < Internal::num_internal_variables; j++)
-        stress_enh.dmat_(i, j) = stress_enh.dmat_(j, i);
+        stress_resultants.dmat_(i, j) = stress_resultants.dmat_(j, i);
   }
 
   /*!
-   * @brief Evaluates strain measures
+   * @brief Evaluates strain measures in curvilinear coordinate system
    *
    * @tparam distype : The discretization type known at compile time
    * @param g_reference (in) : An object holding the reference basis vectors and metric
@@ -1329,8 +1348,8 @@ namespace Discret::Elements::Shell
       const Discret::Elements::Shell::BasisVectorsAndMetrics<distype>& g_metric_current)
   {
     Strains strains{};
-    evaluate_deformation_gradient(strains, g_metric_reference, g_metric_current);
-    evaluate_green_lagrange_strain(strains, g_metric_reference, g_metric_current);
+    strains.defgrd_ = evaluate_deformation_gradient(g_metric_reference, g_metric_current);
+    strains.gl_strain_ = evaluate_green_lagrange_strain(g_metric_reference, g_metric_current);
     return strains;
   }
 
@@ -1367,7 +1386,7 @@ namespace Discret::Elements::Shell
    * @param shapefunctions_ans (in) : Shapefunctions for transverse shear strain ANS
    * @param shapefunctions (in) : Shapefunctions and the first derivatives w.r.t spatial coordinates
    * (midsurface)
-   * @param stress_enh (in) :  An object holding the enhanced stress resultants
+   * @param stress_resultant_vector (in) : Stress resultant vector (membrane forces and moments)
    * @param numansq (in) : Number of ANS collocation points
    * @param integration_fac (in) : Integration factor (Gauss point weight times the determinant
    * of the jacobian)
@@ -1380,7 +1399,7 @@ namespace Discret::Elements::Shell
           shapefunctions_q,
       const std::vector<double>& shapefunctions_ans,
       const Discret::Elements::Shell::ShapefunctionsAndDerivatives<distype>& shapefunctions,
-      const Core::LinAlg::SerialDenseVector& stress_enh, const int& numans,
+      const Core::LinAlg::SerialDenseVector& stress_resultant_vector, const int& numans,
       const double& integration_fac, Core::LinAlg::SerialDenseMatrix& stiffness_matrix)
   {
     const int nodedof = Internal::node_dof;
@@ -1401,10 +1420,12 @@ namespace Discret::Elements::Shell
             shapefunctions.derivatives_(1, inod) * shapefunctions.derivatives_(1, jnod);
 
         const double tmp1 =
-            (dN11 * stress_enh(0) + (dN12 + dN21) * stress_enh(1) + dN22 * stress_enh(3)) *
+            (dN11 * stress_resultant_vector(0) + (dN12 + dN21) * stress_resultant_vector(1) +
+                dN22 * stress_resultant_vector(3)) *
             integration_fac;
         const double tmp2 =
-            (dN11 * stress_enh(6) + (dN12 + dN21) * stress_enh(7) + dN22 * stress_enh(9)) *
+            (dN11 * stress_resultant_vector(6) + (dN12 + dN21) * stress_resultant_vector(7) +
+                dN22 * stress_resultant_vector(9)) *
             integration_fac;
 
         double tmp3 = 0.0;
@@ -1416,8 +1437,10 @@ namespace Discret::Elements::Shell
 
         if (!numans)
         {
-          tmp3 = (dN1dji * stress_enh(2) + dN2dji * stress_enh(4)) * integration_fac;
-          tmp4 = (dN1dij * stress_enh(2) + dN2dij * stress_enh(4)) * integration_fac;
+          tmp3 = (dN1dji * stress_resultant_vector(2) + dN2dji * stress_resultant_vector(4)) *
+                 integration_fac;
+          tmp4 = (dN1dij * stress_resultant_vector(2) + dN2dij * stress_resultant_vector(4)) *
+                 integration_fac;
         }
         // modification due to transverse shear strain ANS
         else
@@ -1435,15 +1458,17 @@ namespace Discret::Elements::Shell
             double dNq2dji = shapefunctions_q[index_q23].derivatives_(1, jnod) *
                              shapefunctions_q[index_q23].shapefunctions_(inod) *
                              shapefunctions_ans[index_q23];
-            tmp3 += (dNq1dji * stress_enh(2) + dNq2dji * stress_enh(4)) * integration_fac;
-            tmp4 += (dNq1dij * stress_enh(2) + dNq2dij * stress_enh(4)) * integration_fac;
+            tmp3 += (dNq1dji * stress_resultant_vector(2) + dNq2dji * stress_resultant_vector(4)) *
+                    integration_fac;
+            tmp4 += (dNq1dij * stress_resultant_vector(2) + dNq2dij * stress_resultant_vector(4)) *
+                    integration_fac;
           }
         }
 
-        const double tmp5 =
-            ((dN1dij + dN1dji) * stress_enh(8) + (dN2dij + dN2dji) * stress_enh(10)) *
-            integration_fac;
-        const double tmp6 = (Ni * Nj * stress_enh(5)) * integration_fac;
+        const double tmp5 = ((dN1dij + dN1dji) * stress_resultant_vector(8) +
+                                (dN2dij + dN2dji) * stress_resultant_vector(10)) *
+                            integration_fac;
+        const double tmp6 = (Ni * Nj * stress_resultant_vector(5)) * integration_fac;
 
         for (int d = 0; d < num_dim; ++d)
         {
@@ -1473,17 +1498,17 @@ namespace Discret::Elements::Shell
    *
    * @tparam distype : The discretization type known at compile time
    * @param Bop (in) : Strain gradient (B-Operator)
-   * @param stress_enh (in) :  An object holding the enhanced stress resultants
+   * @param stress_resultant_vector (in) : Stress resultant vector (membrane forces and moments)
    * @param integration_fac (in) : Integration factor (Gauss point weight times the determinant
    * of the jacobian)
    * @param force_vector (in/out) : Force vector where the local contribution is added to
    */
   template <Core::FE::CellType distype>
   void add_internal_force_vector(const Core::LinAlg::SerialDenseMatrix& Bop,
-      const Core::LinAlg::SerialDenseVector& stress_enh, const double integration_fac,
+      const Core::LinAlg::SerialDenseVector& stress_resultant_vector, const double integration_fac,
       Core::LinAlg::SerialDenseVector& force_vector)
   {
-    Core::LinAlg::multiply_tn(1.0, force_vector, integration_fac, Bop, stress_enh);
+    Core::LinAlg::multiply_tn(1.0, force_vector, integration_fac, Bop, stress_resultant_vector);
   }
   /*!
    * @brief Adds mass matrix contribution of one Gauss point
