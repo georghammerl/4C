@@ -24,8 +24,8 @@ NOX::Nln::Cardiovascular0D::LinearSystem::LinearSystem(Teuchos::ParameterList& p
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector,
     const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector, scalingObject)
@@ -40,8 +40,8 @@ NOX::Nln::Cardiovascular0D::LinearSystem::LinearSystem(Teuchos::ParameterList& p
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector)
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector)
 {
@@ -55,7 +55,7 @@ NOX::Nln::Cardiovascular0D::LinearSystem::LinearSystem(Teuchos::ParameterList& p
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
     const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, cloneVector, scalingObject)
@@ -70,7 +70,7 @@ NOX::Nln::Cardiovascular0D::LinearSystem::LinearSystem(Teuchos::ParameterList& p
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector)
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector)
     : NOX::Nln::LinearSystem(printParams, linearSolverParams, solvers, iReq, iJac, J, cloneVector)
 {
   // empty constructor

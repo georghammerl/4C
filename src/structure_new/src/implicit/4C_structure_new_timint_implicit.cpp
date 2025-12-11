@@ -495,22 +495,20 @@ void Solid::TimeInt::Implicit::print_jacobian_in_matlab_format(
 
   const NOX::Nln::LinSystem::OperatorType jac_type = nln_lin_system->get_jacobian_operator_type();
 
-  Teuchos::RCP<const Epetra_Operator> jac_ptr = nln_lin_system->get_jacobian_operator();
+  auto jac_ptr = nln_lin_system->get_jacobian_operator();
 
   switch (jac_type)
   {
     case NOX::Nln::LinSystem::LinalgSparseMatrix:
     {
-      Teuchos::RCP<const Core::LinAlg::SparseMatrix> sparse_matrix =
-          Teuchos::rcp_dynamic_cast<const Core::LinAlg::SparseMatrix>(jac_ptr, true);
+      auto sparse_matrix = std::dynamic_pointer_cast<const Core::LinAlg::SparseMatrix>(jac_ptr);
       Core::LinAlg::print_matrix_in_matlab_format(filename.str().c_str(), *sparse_matrix);
 
       break;
     }
     case NOX::Nln::LinSystem::LinalgBlockSparseMatrix:
     {
-      Teuchos::RCP<const LinalgBlockSparseMatrix> block_matrix =
-          Teuchos::rcp_dynamic_cast<const LinalgBlockSparseMatrix>(jac_ptr, true);
+      auto block_matrix = std::dynamic_pointer_cast<const LinalgBlockSparseMatrix>(jac_ptr);
       Core::LinAlg::print_block_matrix_in_matlab_format(filename.str(), *block_matrix);
 
       break;

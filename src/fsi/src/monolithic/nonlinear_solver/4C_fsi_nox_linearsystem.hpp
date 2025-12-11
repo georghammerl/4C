@@ -71,10 +71,10 @@ namespace NOX::FSI
     bool compute_jacobian(const NOX::Nln::Vector& x) override;
 
     /// Return Jacobian operator.
-    Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const override;
+    std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const override;
 
     /// Return Jacobian operator.
-    Teuchos::RCP<Epetra_Operator> get_jacobian_operator() override;
+    std::shared_ptr<Core::LinAlg::SparseOperator> get_jacobian_operator() override;
 
    private:
     /// throw an error
@@ -83,7 +83,7 @@ namespace NOX::FSI
     ::NOX::Utils utils_;
 
     std::shared_ptr<NOX::Nln::Interface::JacobianBase> jac_interface_ptr_;
-    mutable std::shared_ptr<Epetra_Operator> jac_ptr_;
+    mutable std::shared_ptr<Core::LinAlg::SparseOperator> jac_ptr_;
     mutable std::shared_ptr<Core::LinAlg::SparseOperator> operator_;
     std::shared_ptr<NOX::Nln::Scaling> scaling_;
     mutable std::shared_ptr<NOX::Nln::Vector> tmp_vector_ptr_;

@@ -37,8 +37,8 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian_op,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& preconditioner,
     const NOX::Nln::Vector& cloneVector, const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : utils_(printParams),
       solvers_(solvers),
@@ -63,8 +63,8 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian_op,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& preconditioner,
     const NOX::Nln::Vector& cloneVector)
     : utils_(printParams),
       solvers_(solvers),
@@ -89,7 +89,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian_op,
     const NOX::Nln::Vector& cloneVector, const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : utils_(printParams),
       solvers_(solvers),
@@ -114,7 +114,7 @@ NOX::Nln::LinearSystem::LinearSystem(Teuchos::ParameterList& printParams,
     const std::map<NOX::Nln::SolutionType, Teuchos::RCP<Core::LinAlg::Solver>>& solvers,
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_op,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian_op,
     const NOX::Nln::Vector& cloneVector)
     : utils_(printParams),
       solvers_(solvers),
@@ -390,10 +390,9 @@ void NOX::Nln::LinearSystem::adjust_pseudo_time_step(double& delta, const double
   // ---------------------------------------------------------------------
   Core::LinAlg::Vector<double> v(scalingDiagOp);
   v.scale(ptcsolver.get_inverse_pseudo_time_step());
-  Teuchos::RCP<Core::LinAlg::SparseMatrix> jac =
-      Teuchos::rcp_dynamic_cast<Core::LinAlg::SparseMatrix>(jacobian_ptr());
-  if (jac.is_null())
-    throw_error("adjust_pseudo_time_step()", "Cast to Core::LinAlg::SparseMatrix failed!");
+  auto jac = std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(jacobian_ptr());
+  FOUR_C_ASSERT(jac, "adjust_pseudo_time_step(): Cast to Core::LinAlg::SparseMatrix failed!");
+
   // get the diagonal terms of the jacobian
   auto diag = std::make_shared<Core::LinAlg::Vector<double>>(jac->row_map(), false);
   jac->extract_diagonal_copy(*diag);
@@ -475,14 +474,15 @@ NOX::Nln::LinearSystem::get_jacobian_interface() const
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-Teuchos::RCP<const Epetra_Operator> NOX::Nln::LinearSystem::get_jacobian_operator() const
+std::shared_ptr<const Core::LinAlg::SparseOperator> NOX::Nln::LinearSystem::get_jacobian_operator()
+    const
 {
   return jacobian_ptr();
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-Teuchos::RCP<Epetra_Operator> NOX::Nln::LinearSystem::get_jacobian_operator()
+std::shared_ptr<Core::LinAlg::SparseOperator> NOX::Nln::LinearSystem::get_jacobian_operator()
 {
   return jacobian_ptr();
 }
@@ -498,7 +498,7 @@ const NOX::Nln::LinSystem::OperatorType& NOX::Nln::LinearSystem::get_jacobian_op
  *----------------------------------------------------------------------*/
 bool NOX::Nln::LinearSystem::destroy_jacobian()
 {
-  jac_ptr_ = Teuchos::null;
+  jac_ptr_ = nullptr;
   return true;
 }
 

@@ -373,15 +373,16 @@ bool NOX::FSI::LinearSystemGCR::compute_jacobian(const NOX::Nln::Vector& x)
 }
 
 
-Teuchos::RCP<const Epetra_Operator> NOX::FSI::LinearSystemGCR::get_jacobian_operator() const
+std::shared_ptr<const Core::LinAlg::SparseOperator>
+NOX::FSI::LinearSystemGCR::get_jacobian_operator() const
 {
-  return Teuchos::rcpFromRef(*jacPtr);
+  return jacPtr;
 }
 
 
-Teuchos::RCP<Epetra_Operator> NOX::FSI::LinearSystemGCR::get_jacobian_operator()
+std::shared_ptr<Core::LinAlg::SparseOperator> NOX::FSI::LinearSystemGCR::get_jacobian_operator()
 {
-  return Teuchos::rcpFromRef(*jacPtr);
+  return jacPtr;
 }
 
 
