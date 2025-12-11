@@ -285,9 +285,6 @@ void Discret::Elements::Shell7pEleCalc<distype>::calculate_stresses_strains(
           // system
           auto strains = Shell::evaluate_strains(g_reference, g_current);
 
-          // compute the consistent deformation gradient based on enhanced gl strains
-          strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
-
           Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
           Mat::EvaluationContext context{.total_time = total_time,
               .time_step_size = time_step_size,
@@ -421,9 +418,6 @@ void Discret::Elements::Shell7pEleCalc<distype>::evaluate_nonlinear_force_stiffn
 
           // evaluate Green-Lagrange strains and deformation gradient in cartesian coordinate system
           auto strains = evaluate_strains(g_reference, g_current);
-
-          // compute the consistent deformation gradient based on enhanced gl strains
-          strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
 
           Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
           Mat::EvaluationContext context{.total_time = total_time,
@@ -560,9 +554,6 @@ void Discret::Elements::Shell7pEleCalc<distype>::update(Core::Elements::Element&
                 shell_data_.num_ans);
 
             auto strains = evaluate_strains(g_reference, g_current);
-
-            // compute the consistent deformation gradient based on enhanced gl strains
-            strains.defgrd_ = Shell::calc_consistent_defgrd(strains.defgrd_, strains.gl_strain_);
 
             Core::LinAlg::Tensor<double, 3> xi = {{xi_gp[0], xi_gp[1], 0.0}};
             Mat::EvaluationContext context{.total_time = total_time,
