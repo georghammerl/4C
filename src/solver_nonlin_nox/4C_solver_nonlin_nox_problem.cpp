@@ -37,36 +37,34 @@ NOX::Nln::Problem::Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGloba
       nox_global_data_(noxNlnGlobalData),
       x_vector_(nullptr),
       jac_(nullptr),
-      preconditionner_(Teuchos::null)
+      preconditionner_(nullptr)
 { /* intentionally left blank */
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 NOX::Nln::Problem::Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGlobalData,
-    const Teuchos::RCP<NOX::Nln::Vector>& x, const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
+    const std::shared_ptr<NOX::Nln::Vector> x,
+    const std::shared_ptr<Core::LinAlg::SparseOperator> A)
     : isinit_(false),
       nox_global_data_(noxNlnGlobalData),
       x_vector_(nullptr),
       jac_(nullptr),
-      preconditionner_(Teuchos::null)
+      preconditionner_(nullptr)
 {
   initialize(x, A);
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void NOX::Nln::Problem::initialize(
-    const Teuchos::RCP<NOX::Nln::Vector>& x, const Teuchos::RCP<Core::LinAlg::SparseOperator>& A)
+void NOX::Nln::Problem::initialize(const std::shared_ptr<NOX::Nln::Vector>& x,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& A)
 {
-  // in the standard case, we use the input rhs and matrix
-  // ToDo Check if CreateView is sufficient
-  if (x.is_null())
-    FOUR_C_THROW("You have to provide a state vector pointer unequal Teuchos::null!");
+  FOUR_C_ASSERT(x, "You have to provide a valid state vector pointer!");
 
-  x_vector_ = &x;
-  isjac_ = (not A.is_null());
-  jac_ = &A;
+  x_vector_ = x;
+  isjac_ = A != nullptr;
+  jac_ = A;
 
   isinit_ = true;
 }
@@ -87,7 +85,7 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::Problem::create_linear_system
 
   // build the linear system --> factory call
   return NOX::Nln::LinSystem::build_linear_system(
-      linsystype, *nox_global_data_, *jac_, **x_vector_, preconditionner_, scalingObject);
+      linsystype, *nox_global_data_, jac_, *x_vector_, preconditionner_, scalingObject);
 }
 
 /*----------------------------------------------------------------------------*
@@ -106,18 +104,18 @@ Teuchos::RCP<::NOX::Abstract::Group> NOX::Nln::Problem::create_group(
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iconstr =
         nox_global_data_->get_constraint_interfaces();
     noxgrp = Teuchos::make_rcp<NOX::Nln::CONSTRAINT::Group>(params.sublist("Printing"),
-        params.sublist("Group Options"), iReq, **x_vector_, linSys, iconstr);
+        params.sublist("Group Options"), iReq, *x_vector_, linSys, iconstr);
   }
   else if (nlnSolver.compare("Single Step") == 0)
   {
     std::cout << "Single Step Group is selected" << std::endl;
     noxgrp = Teuchos::make_rcp<NOX::Nln::SINGLESTEP::Group>(
-        params.sublist("Printing"), params.sublist("Group Options"), iReq, **x_vector_, linSys);
+        params.sublist("Printing"), params.sublist("Group Options"), iReq, *x_vector_, linSys);
   }
   else
   {
     noxgrp = Teuchos::make_rcp<NOX::Nln::Group>(
-        params.sublist("Printing"), params.sublist("Group Options"), iReq, **x_vector_, linSys);
+        params.sublist("Printing"), params.sublist("Group Options"), iReq, *x_vector_, linSys);
   }
 
   return noxgrp;

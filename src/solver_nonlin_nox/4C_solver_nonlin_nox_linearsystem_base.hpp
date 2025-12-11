@@ -10,6 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_linalg_sparseoperator.hpp"
+
 #include <Epetra_Operator.h>
 #include <NOX_Utils.H>
 #include <Teuchos_ParameterList.hpp>
@@ -65,12 +67,12 @@ namespace NOX
       /**
        * \brief Return Jacobian operator
        */
-      virtual Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const = 0;
+      virtual std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const = 0;
 
       /**
        * \brief Return Jacobian operator
        */
-      virtual Teuchos::RCP<Epetra_Operator> get_jacobian_operator() = 0;
+      virtual std::shared_ptr<Core::LinAlg::SparseOperator> get_jacobian_operator() = 0;
     };
   }  // namespace Nln
 }  // namespace NOX

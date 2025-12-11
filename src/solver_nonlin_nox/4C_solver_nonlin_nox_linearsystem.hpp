@@ -60,8 +60,8 @@ namespace NOX
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& preconditioner,
           const NOX::Nln::Vector& cloneVector,
           const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
@@ -69,22 +69,24 @@ namespace NOX
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& preconditioner,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& preconditioner,
           const NOX::Nln::Vector& cloneVector);
 
       //! Constructor without preconditioner
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+          const NOX::Nln::Vector& cloneVector,
           const std::shared_ptr<NOX::Nln::Scaling> scalingObject);
 
       //! Constructor without preconditioner and scaling object
       LinearSystem(Teuchos::ParameterList& printParams, Teuchos::ParameterList& linearSolverParams,
           const SolverMap& solvers, const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
           const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& J, const NOX::Nln::Vector& cloneVector);
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
+          const NOX::Nln::Vector& cloneVector);
 
       //! reset the linear solver parameters
       void reset(Teuchos::ParameterList& p);
@@ -147,10 +149,10 @@ namespace NOX
           const Core::LinAlg::Vector<double>& new_diag, unsigned diag_bid);
 
       //! Returns Jacobian Epetra_Operator pointer
-      Teuchos::RCP<const Epetra_Operator> get_jacobian_operator() const override;
+      std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const override;
 
       /// return jacobian operator
-      Teuchos::RCP<Epetra_Operator> get_jacobian_operator() override;
+      std::shared_ptr<Core::LinAlg::SparseOperator> get_jacobian_operator() override;
 
       //! Returns the operator type of the jacobian
       const NOX::Nln::LinSystem::OperatorType& get_jacobian_operator_type() const;
@@ -166,15 +168,15 @@ namespace NOX
       /// access the jacobian
       inline Core::LinAlg::SparseOperator& jacobian() const
       {
-        if (jac_ptr_.is_null()) throw_error("JacPtr", "JacPtr is nullptr!");
+        FOUR_C_ASSERT(jac_ptr_, "JacPtr is nullptr!");
 
         return *jac_ptr_;
       }
 
       /// access the jacobian (read-only)
-      inline const Teuchos::RCP<Core::LinAlg::SparseOperator>& jacobian_ptr() const
+      inline const std::shared_ptr<Core::LinAlg::SparseOperator>& jacobian_ptr() const
       {
-        if (jac_ptr_.is_null()) throw_error("JacPtr", "JacPtr is nullptr!");
+        FOUR_C_ASSERT(jac_ptr_, "JacPtr is nullptr!");
 
         return jac_ptr_;
       }
@@ -273,7 +275,7 @@ namespace NOX
        *
        *  Use the provided accessors to access this member. Direct access is prohibited
        *  due to the pointer management by changing states (e.g. XFEM). */
-      Teuchos::RCP<Core::LinAlg::SparseOperator> jac_ptr_;
+      std::shared_ptr<Core::LinAlg::SparseOperator> jac_ptr_;
     };
   }  // namespace Nln
 }  // namespace NOX

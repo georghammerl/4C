@@ -50,12 +50,12 @@ namespace NOX
 
       //! standard constructor
       Problem(const Teuchos::RCP<NOX::Nln::GlobalData>& noxNlnGlobalData,
-          const Teuchos::RCP<NOX::Nln::Vector>& x,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& A);
+          const std::shared_ptr<NOX::Nln::Vector> x,
+          const std::shared_ptr<Core::LinAlg::SparseOperator> A);
 
       //! initialize stuff
-      void initialize(const Teuchos::RCP<NOX::Nln::Vector>& x,
-          const Teuchos::RCP<Core::LinAlg::SparseOperator>& A);
+      void initialize(const std::shared_ptr<NOX::Nln::Vector>& x,
+          const std::shared_ptr<Core::LinAlg::SparseOperator>& A);
 
       //! create the linear system for the NOX framework
       Teuchos::RCP<NOX::Nln::LinearSystemBase> create_linear_system() const;
@@ -95,15 +95,11 @@ namespace NOX
 
       Teuchos::RCP<NOX::Nln::GlobalData> nox_global_data_;
 
-      /** ptr to the state vector RCP. In this way the strong_count is neither lost
-       *  nor increased. */
-      const Teuchos::RCP<NOX::Nln::Vector>* x_vector_;
+      std::shared_ptr<NOX::Nln::Vector> x_vector_;
 
-      /** ptr to the state matrix RCP. In this way the strong_count is neither lost
-       *  nor increased. */
-      const Teuchos::RCP<Core::LinAlg::SparseOperator>* jac_;
+      std::shared_ptr<Core::LinAlg::SparseOperator> jac_;
 
-      Teuchos::RCP<Core::LinAlg::SparseOperator> preconditionner_;
+      std::shared_ptr<Core::LinAlg::SparseOperator> preconditionner_;
     };
   }  // namespace Nln
 }  // namespace NOX

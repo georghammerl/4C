@@ -36,8 +36,8 @@ NOX::Nln::LinSystem::Factory::Factory()
  *----------------------------------------------------------------------------*/
 Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::LinSystem::Factory::build_linear_system(
     const NOX::Nln::LinSystem::LinearSystemType& linsystype, NOX::Nln::GlobalData& noxNlnGlobalData,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& precMat,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& precMat,
     const std::shared_ptr<NOX::Nln::Scaling>& scalingObject) const
 {
   Teuchos::RCP<NOX::Nln::LinearSystemBase> linSys = Teuchos::null;
@@ -127,8 +127,8 @@ Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::LinSystem::Factory::build_lin
  *----------------------------------------------------------------------------*/
 Teuchos::RCP<NOX::Nln::LinearSystemBase> NOX::Nln::LinSystem::build_linear_system(
     const NOX::Nln::LinSystem::LinearSystemType& linsystype, NOX::Nln::GlobalData& noxNlnGlobalData,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& precMat,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& jac, NOX::Nln::Vector& cloneVector,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& precMat,
     const std::shared_ptr<NOX::Nln::Scaling>& scalingObject)
 {
   Factory factory;

@@ -28,9 +28,9 @@ NOX::Nln::CONTACT::LinearSystem::LinearSystem(Teuchos::ParameterList& printParam
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
     const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector,
     const std::shared_ptr<NOX::Nln::Scaling> scalingObject)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector, scalingObject),
@@ -48,9 +48,9 @@ NOX::Nln::CONTACT::LinearSystem::LinearSystem(Teuchos::ParameterList& printParam
     const std::shared_ptr<NOX::Nln::Interface::RequiredBase> iReq,
     const std::shared_ptr<NOX::Nln::Interface::JacobianBase> iJac,
     const NOX::Nln::CONSTRAINT::ReqInterfaceMap& iConstr,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& J,
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& J,
     const NOX::Nln::CONSTRAINT::PrecInterfaceMap& iConstrPrec,
-    const Teuchos::RCP<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector)
+    const std::shared_ptr<Core::LinAlg::SparseOperator>& M, const NOX::Nln::Vector& cloneVector)
     : NOX::Nln::LinearSystem(
           printParams, linearSolverParams, solvers, iReq, iJac, J, M, cloneVector),
       i_constr_(iConstr),

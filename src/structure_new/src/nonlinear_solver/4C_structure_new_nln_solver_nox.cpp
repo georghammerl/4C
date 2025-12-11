@@ -89,9 +89,8 @@ Solid::Nln::SOLVER::Nox::Nox(const Teuchos::ParameterList& default_params,
   // -------------------------------------------------------------------------
   // Create NOX control class: NoxProblem()
   // -------------------------------------------------------------------------
-  Teuchos::RCP<NOX::Nln::Vector> soln = Teuchos::rcp(data_global_state().create_global_vector());
-  Teuchos::RCP<Core::LinAlg::SparseOperator> jac =
-      Teuchos::rcp(data_global_state().create_jacobian());
+  auto soln = data_global_state().create_global_vector();
+  auto jac = data_global_state().create_jacobian();
   problem_ = Teuchos::make_rcp<NOX::Nln::Problem>(nlnglobaldata_, soln, jac);
 
   // -------------------------------------------------------------------------
