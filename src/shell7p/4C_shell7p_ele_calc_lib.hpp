@@ -329,23 +329,23 @@ namespace Discret::Elements::Shell
       Bop(0, nodedof * i + 4) = 0.0;
       Bop(0, nodedof * i + 5) = 0.0;
 
-      Bop(1, nodedof * i + 0) = derivs(1, i) * akov(0, 0) + derivs(0, i) * akov(1, 0);
-      Bop(1, nodedof * i + 1) = derivs(1, i) * akov(0, 1) + derivs(0, i) * akov(1, 1);
-      Bop(1, nodedof * i + 2) = derivs(1, i) * akov(0, 2) + derivs(0, i) * akov(1, 2);
+      Bop(1, nodedof * i + 0) = derivs(1, i) * akov(1, 0);
+      Bop(1, nodedof * i + 1) = derivs(1, i) * akov(1, 1);
+      Bop(1, nodedof * i + 2) = derivs(1, i) * akov(1, 2);
       Bop(1, nodedof * i + 3) = 0.0;
       Bop(1, nodedof * i + 4) = 0.0;
       Bop(1, nodedof * i + 5) = 0.0;
 
-      Bop(2, nodedof * i + 0) = derivs(0, i) * akov(2, 0);
-      Bop(2, nodedof * i + 1) = derivs(0, i) * akov(2, 1);
-      Bop(2, nodedof * i + 2) = derivs(0, i) * akov(2, 2);
-      Bop(2, nodedof * i + 3) = shapefunctions(i) * akov(0, 0);
-      Bop(2, nodedof * i + 4) = shapefunctions(i) * akov(0, 1);
-      Bop(2, nodedof * i + 5) = shapefunctions(i) * akov(0, 2);
+      Bop(2, nodedof * i + 0) = 0.0;
+      Bop(2, nodedof * i + 1) = 0.0;
+      Bop(2, nodedof * i + 2) = 0.0;
+      Bop(2, nodedof * i + 3) = shapefunctions(i) * akov(2, 0);
+      Bop(2, nodedof * i + 4) = shapefunctions(i) * akov(2, 1);
+      Bop(2, nodedof * i + 5) = shapefunctions(i) * akov(2, 2);
 
-      Bop(3, nodedof * i + 0) = derivs(1, i) * akov(1, 0);
-      Bop(3, nodedof * i + 1) = derivs(1, i) * akov(1, 1);
-      Bop(3, nodedof * i + 2) = derivs(1, i) * akov(1, 2);
+      Bop(3, nodedof * i + 0) = derivs(1, i) * akov(0, 0) + derivs(0, i) * akov(1, 0);
+      Bop(3, nodedof * i + 1) = derivs(1, i) * akov(0, 1) + derivs(0, i) * akov(1, 1);
+      Bop(3, nodedof * i + 2) = derivs(1, i) * akov(0, 2) + derivs(0, i) * akov(1, 2);
       Bop(3, nodedof * i + 3) = 0.0;
       Bop(3, nodedof * i + 4) = 0.0;
       Bop(3, nodedof * i + 5) = 0.0;
@@ -357,12 +357,12 @@ namespace Discret::Elements::Shell
       Bop(4, nodedof * i + 4) = shapefunctions(i) * akov(1, 1);
       Bop(4, nodedof * i + 5) = shapefunctions(i) * akov(1, 2);
 
-      Bop(5, nodedof * i + 0) = 0.0;
-      Bop(5, nodedof * i + 1) = 0.0;
-      Bop(5, nodedof * i + 2) = 0.0;
-      Bop(5, nodedof * i + 3) = shapefunctions(i) * akov(2, 0);
-      Bop(5, nodedof * i + 4) = shapefunctions(i) * akov(2, 1);
-      Bop(5, nodedof * i + 5) = shapefunctions(i) * akov(2, 2);
+      Bop(5, nodedof * i + 0) = derivs(0, i) * akov(2, 0);
+      Bop(5, nodedof * i + 1) = derivs(0, i) * akov(2, 1);
+      Bop(5, nodedof * i + 2) = derivs(0, i) * akov(2, 2);
+      Bop(5, nodedof * i + 3) = shapefunctions(i) * akov(0, 0);
+      Bop(5, nodedof * i + 4) = shapefunctions(i) * akov(0, 1);
+      Bop(5, nodedof * i + 5) = shapefunctions(i) * akov(0, 2);
 
       Bop(6, nodedof * i + 0) = derivs(0, i) * da3kov(0, 0);
       Bop(6, nodedof * i + 1) = derivs(0, i) * da3kov(0, 1);
@@ -371,26 +371,26 @@ namespace Discret::Elements::Shell
       Bop(6, nodedof * i + 4) = derivs(0, i) * akov(0, 1);
       Bop(6, nodedof * i + 5) = derivs(0, i) * akov(0, 2);
 
-      Bop(7, nodedof * i + 0) = derivs(0, i) * da3kov(1, 0) + derivs(1, i) * da3kov(0, 0);
-      Bop(7, nodedof * i + 1) = derivs(0, i) * da3kov(1, 1) + derivs(1, i) * da3kov(0, 1);
-      Bop(7, nodedof * i + 2) = derivs(0, i) * da3kov(1, 2) + derivs(1, i) * da3kov(0, 2);
-      Bop(7, nodedof * i + 3) = derivs(0, i) * akov(1, 0) + derivs(1, i) * akov(0, 0);
-      Bop(7, nodedof * i + 4) = derivs(0, i) * akov(1, 1) + derivs(1, i) * akov(0, 1);
-      Bop(7, nodedof * i + 5) = derivs(0, i) * akov(1, 2) + derivs(1, i) * akov(0, 2);
+      Bop(7, nodedof * i + 0) = derivs(1, i) * da3kov(1, 0);
+      Bop(7, nodedof * i + 1) = derivs(1, i) * da3kov(1, 1);
+      Bop(7, nodedof * i + 2) = derivs(1, i) * da3kov(1, 2);
+      Bop(7, nodedof * i + 3) = derivs(1, i) * akov(1, 0);
+      Bop(7, nodedof * i + 4) = derivs(1, i) * akov(1, 1);
+      Bop(7, nodedof * i + 5) = derivs(1, i) * akov(1, 2);
 
       Bop(8, nodedof * i + 0) = 0.0;
       Bop(8, nodedof * i + 1) = 0.0;
       Bop(8, nodedof * i + 2) = 0.0;
-      Bop(8, nodedof * i + 3) = shapefunctions(i) * da3kov(0, 0) + derivs(0, i) * akov(2, 0);
-      Bop(8, nodedof * i + 4) = shapefunctions(i) * da3kov(0, 1) + derivs(0, i) * akov(2, 1);
-      Bop(8, nodedof * i + 5) = shapefunctions(i) * da3kov(0, 2) + derivs(0, i) * akov(2, 2);
+      Bop(8, nodedof * i + 3) = 0.0;
+      Bop(8, nodedof * i + 4) = 0.0;
+      Bop(8, nodedof * i + 5) = 0.0;
 
-      Bop(9, nodedof * i + 0) = derivs(1, i) * da3kov(1, 0);
-      Bop(9, nodedof * i + 1) = derivs(1, i) * da3kov(1, 1);
-      Bop(9, nodedof * i + 2) = derivs(1, i) * da3kov(1, 2);
-      Bop(9, nodedof * i + 3) = derivs(1, i) * akov(1, 0);
-      Bop(9, nodedof * i + 4) = derivs(1, i) * akov(1, 1);
-      Bop(9, nodedof * i + 5) = derivs(1, i) * akov(1, 2);
+      Bop(9, nodedof * i + 0) = derivs(0, i) * da3kov(1, 0) + derivs(1, i) * da3kov(0, 0);
+      Bop(9, nodedof * i + 1) = derivs(0, i) * da3kov(1, 1) + derivs(1, i) * da3kov(0, 1);
+      Bop(9, nodedof * i + 2) = derivs(0, i) * da3kov(1, 2) + derivs(1, i) * da3kov(0, 2);
+      Bop(9, nodedof * i + 3) = derivs(0, i) * akov(1, 0) + derivs(1, i) * akov(0, 0);
+      Bop(9, nodedof * i + 4) = derivs(0, i) * akov(1, 1) + derivs(1, i) * akov(0, 1);
+      Bop(9, nodedof * i + 5) = derivs(0, i) * akov(1, 2) + derivs(1, i) * akov(0, 2);
 
       Bop(10, nodedof * i + 0) = 0.0;
       Bop(10, nodedof * i + 1) = 0.0;
@@ -402,9 +402,9 @@ namespace Discret::Elements::Shell
       Bop(11, nodedof * i + 0) = 0.0;
       Bop(11, nodedof * i + 1) = 0.0;
       Bop(11, nodedof * i + 2) = 0.0;
-      Bop(11, nodedof * i + 3) = 0.0;
-      Bop(11, nodedof * i + 4) = 0.0;
-      Bop(11, nodedof * i + 5) = 0.0;
+      Bop(11, nodedof * i + 3) = shapefunctions(i) * da3kov(0, 0) + derivs(0, i) * akov(2, 0);
+      Bop(11, nodedof * i + 4) = shapefunctions(i) * da3kov(0, 1) + derivs(0, i) * akov(2, 1);
+      Bop(11, nodedof * i + 5) = shapefunctions(i) * da3kov(0, 2) + derivs(0, i) * akov(2, 2);
     }
     return Bop;
   }
@@ -432,13 +432,13 @@ namespace Discret::Elements::Shell
     const int nodedof = Internal::node_dof;
     for (int i = 0; i < Internal::num_node<distype>; ++i)
     {
-      Bop(2, nodedof * i + 0) = 0.0;
-      Bop(2, nodedof * i + 1) = 0.0;
-      Bop(2, nodedof * i + 2) = 0.0;
-      Bop(2, nodedof * i + 3) = 0.0;
-      Bop(2, nodedof * i + 4) = 0.0;
-      Bop(2, nodedof * i + 5) = 0.0;
-      //
+      Bop(5, nodedof * i + 0) = 0.0;
+      Bop(5, nodedof * i + 1) = 0.0;
+      Bop(5, nodedof * i + 2) = 0.0;
+      Bop(5, nodedof * i + 3) = 0.0;
+      Bop(5, nodedof * i + 4) = 0.0;
+      Bop(5, nodedof * i + 5) = 0.0;
+
       Bop(4, nodedof * i + 0) = 0.0;
       Bop(4, nodedof * i + 1) = 0.0;
       Bop(4, nodedof * i + 2) = 0.0;
@@ -473,15 +473,13 @@ namespace Discret::Elements::Shell
         const double Nans1 = shapefunctions_ans[j];
         const double Nans2 = shapefunctions_ans[j + numans];
 
-        // E_13 const remedy of transverse shear locking
-        Bop(2, nodedof * i + 0) += dN1d1 * a3x1 * Nans1;
-        Bop(2, nodedof * i + 1) += dN1d1 * a3y1 * Nans1;
-        Bop(2, nodedof * i + 2) += dN1d1 * a3z1 * Nans1;
-        Bop(2, nodedof * i + 3) += N1 * a1x1 * Nans1;
-        Bop(2, nodedof * i + 4) += N1 * a1y1 * Nans1;
-        Bop(2, nodedof * i + 5) += N1 * a1z1 * Nans1;
+        Bop(5, nodedof * i + 0) += dN1d1 * a3x1 * Nans1;
+        Bop(5, nodedof * i + 1) += dN1d1 * a3y1 * Nans1;
+        Bop(5, nodedof * i + 2) += dN1d1 * a3z1 * Nans1;
+        Bop(5, nodedof * i + 3) += N1 * a1x1 * Nans1;
+        Bop(5, nodedof * i + 4) += N1 * a1y1 * Nans1;
+        Bop(5, nodedof * i + 5) += N1 * a1z1 * Nans1;
 
-        // E_23 const remedy of transverse shear locking
         Bop(4, nodedof * i + 0) += dN2d2 * a3x2 * Nans2;
         Bop(4, nodedof * i + 1) += dN2d2 * a3y2 * Nans2;
         Bop(4, nodedof * i + 2) += dN2d2 * a3z2 * Nans2;
@@ -1302,23 +1300,18 @@ namespace Discret::Elements::Shell
       const Discret::Elements::Shell::Stress& stress, const double& integration_factor,
       const double& zeta)
   {
-    // shell-specific voigt ordering: {S11, S12, S13, S22, S23, S33}
-    static constexpr std::array<int, 6> voigt_inconsistent = {0, 3, 5, 1, 4, 2};
-
     const auto pk2_view = Core::LinAlg::make_stress_like_voigt_view(stress.pk2_);
     const auto cmat_view = Core::LinAlg::make_stress_like_voigt_view(stress.cmat_);
 
     for (int i = 0; i < Internal::node_dof; ++i)
     {
-      const double shell_index_i = voigt_inconsistent[i];
-      const double stress_fact = pk2_view(shell_index_i) * integration_factor;
+      const double stress_fact = pk2_view(i) * integration_factor;
       stress_resultants.stress_(i) += stress_fact;
       stress_resultants.stress_(i + Internal::node_dof) += stress_fact * zeta;
 
       for (int j = 0; j < Internal::node_dof; ++j)
       {
-        const double shell_index_j = voigt_inconsistent[j];
-        const double C_fact = cmat_view(shell_index_i, shell_index_j) * integration_factor;
+        const double C_fact = cmat_view(i, j) * integration_factor;
         stress_resultants.dmat_(i, j) += C_fact;
         stress_resultants.dmat_(i + Internal::node_dof, j) += C_fact * zeta;
         stress_resultants.dmat_(i + Internal::node_dof, j + Internal::node_dof) +=
@@ -1420,12 +1413,12 @@ namespace Discret::Elements::Shell
             shapefunctions.derivatives_(1, inod) * shapefunctions.derivatives_(1, jnod);
 
         const double tmp1 =
-            (dN11 * stress_resultant_vector(0) + (dN12 + dN21) * stress_resultant_vector(1) +
-                dN22 * stress_resultant_vector(3)) *
+            (dN11 * stress_resultant_vector(0) + (dN12 + dN21) * stress_resultant_vector(3) +
+                dN22 * stress_resultant_vector(1)) *
             integration_fac;
         const double tmp2 =
-            (dN11 * stress_resultant_vector(6) + (dN12 + dN21) * stress_resultant_vector(7) +
-                dN22 * stress_resultant_vector(9)) *
+            (dN11 * stress_resultant_vector(6) + (dN12 + dN21) * stress_resultant_vector(9) +
+                dN22 * stress_resultant_vector(7)) *
             integration_fac;
 
         double tmp3 = 0.0;
@@ -1437,9 +1430,9 @@ namespace Discret::Elements::Shell
 
         if (!numans)
         {
-          tmp3 = (dN1dji * stress_resultant_vector(2) + dN2dji * stress_resultant_vector(4)) *
+          tmp3 = (dN1dji * stress_resultant_vector(5) + dN2dji * stress_resultant_vector(4)) *
                  integration_fac;
-          tmp4 = (dN1dij * stress_resultant_vector(2) + dN2dij * stress_resultant_vector(4)) *
+          tmp4 = (dN1dij * stress_resultant_vector(5) + dN2dij * stress_resultant_vector(4)) *
                  integration_fac;
         }
         // modification due to transverse shear strain ANS
@@ -1458,17 +1451,17 @@ namespace Discret::Elements::Shell
             double dNq2dji = shapefunctions_q[index_q23].derivatives_(1, jnod) *
                              shapefunctions_q[index_q23].shapefunctions_(inod) *
                              shapefunctions_ans[index_q23];
-            tmp3 += (dNq1dji * stress_resultant_vector(2) + dNq2dji * stress_resultant_vector(4)) *
+            tmp3 += (dNq1dji * stress_resultant_vector(5) + dNq2dji * stress_resultant_vector(4)) *
                     integration_fac;
-            tmp4 += (dNq1dij * stress_resultant_vector(2) + dNq2dij * stress_resultant_vector(4)) *
+            tmp4 += (dNq1dij * stress_resultant_vector(5) + dNq2dij * stress_resultant_vector(4)) *
                     integration_fac;
           }
         }
 
-        const double tmp5 = ((dN1dij + dN1dji) * stress_resultant_vector(8) +
+        const double tmp5 = ((dN1dij + dN1dji) * stress_resultant_vector(11) +
                                 (dN2dij + dN2dji) * stress_resultant_vector(10)) *
                             integration_fac;
-        const double tmp6 = (Ni * Nj * stress_resultant_vector(5)) * integration_fac;
+        const double tmp6 = (Ni * Nj * stress_resultant_vector(2)) * integration_fac;
 
         for (int d = 0; d < num_dim; ++d)
         {

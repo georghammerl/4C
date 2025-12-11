@@ -59,7 +59,7 @@ namespace Discret::Elements::Shell
    * (parameter space) to the gaussian point (material configuration)
    * @tparam distype
    * @param akov (in) : Jacobian mapping evaluated at the gaussina point
-   * @param akon0 (in) : Jacobian mapping evaluated at the element centroid
+   * @param akov0 (in) : Jacobian mapping evaluated at the element centroid
    *
    * @return Core::LinAlg::SerialDenseMatrix : Transformation matrix T0inv
    */
@@ -93,88 +93,88 @@ namespace Discret::Elements::Shell
     }
 
     T0inv(0, 0) = t11 * t11;
-    T0inv(1, 0) = 2 * t11 * t21;
-    T0inv(2, 0) = 2 * t11 * t31;
-    T0inv(3, 0) = t21 * t21;
-    T0inv(4, 0) = 2 * t21 * t31;
-    T0inv(5, 0) = t31 * t31;
-
-    T0inv(0, 1) = t11 * t12;
-    T0inv(1, 1) = (t11 * t22 + t21 * t12);
-    T0inv(2, 1) = (t11 * t32 + t31 * t12);
-    T0inv(3, 1) = t21 * t22;
-    T0inv(4, 1) = (t21 * t32 + t31 * t22);
-    T0inv(5, 1) = t31 * t32;
-
-    T0inv(0, 2) = t11 * t13;
-    T0inv(1, 2) = (t11 * t23 + t21 * t13);
-    T0inv(2, 2) = (t11 * t33 + t31 * t13);
-    T0inv(3, 2) = t21 * t23;
-    T0inv(4, 2) = (t21 * t33 + t31 * t23);
-    T0inv(5, 2) = t31 * t33;
-
-    T0inv(0, 3) = t12 * t12;
-    T0inv(1, 3) = 2 * t12 * t22;
-    T0inv(2, 3) = 2 * t12 * t32;
-    T0inv(3, 3) = t22 * t22;
-    T0inv(4, 3) = 2 * t22 * t32;
-    T0inv(5, 3) = t32 * t32;
-
+    T0inv(0, 1) = t12 * t12;
+    T0inv(0, 2) = t13 * t13;
+    T0inv(0, 3) = t11 * t12;
     T0inv(0, 4) = t12 * t13;
-    T0inv(1, 4) = (t12 * t23 + t22 * t13);
-    T0inv(2, 4) = (t12 * t33 + t32 * t13);
-    T0inv(3, 4) = t22 * t23;
-    T0inv(4, 4) = (t22 * t33 + t32 * t23);
-    T0inv(5, 4) = t32 * t33;
+    T0inv(0, 5) = t11 * t13;
 
-    T0inv(0, 5) = t13 * t13;
-    T0inv(1, 5) = 2 * t13 * t23;
-    T0inv(2, 5) = 2 * t13 * t33;
-    T0inv(3, 5) = t23 * t23;
-    T0inv(4, 5) = 2 * t23 * t33;
-    T0inv(5, 5) = t33 * t33;
+    T0inv(1, 0) = t21 * t21;
+    T0inv(1, 1) = t22 * t22;
+    T0inv(1, 2) = t23 * t23;
+    T0inv(1, 3) = t21 * t22;
+    T0inv(1, 4) = t22 * t23;
+    T0inv(1, 5) = t21 * t23;
+
+    T0inv(2, 0) = t31 * t31;
+    T0inv(2, 1) = t32 * t32;
+    T0inv(2, 2) = t33 * t33;
+    T0inv(2, 3) = t31 * t32;
+    T0inv(2, 4) = t32 * t33;
+    T0inv(2, 5) = t31 * t33;
+
+    T0inv(3, 0) = 2 * t11 * t21;
+    T0inv(3, 1) = 2 * t12 * t22;
+    T0inv(3, 2) = 2 * t13 * t23;
+    T0inv(3, 3) = (t11 * t22 + t21 * t12);
+    T0inv(3, 4) = (t12 * t23 + t22 * t13);
+    T0inv(3, 5) = (t11 * t23 + t21 * t13);
+
+    T0inv(4, 0) = 2 * t21 * t31;
+    T0inv(4, 1) = 2 * t22 * t32;
+    T0inv(4, 2) = 2 * t23 * t33;
+    T0inv(4, 3) = (t21 * t32 + t31 * t22);
+    T0inv(4, 4) = (t22 * t33 + t32 * t23);
+    T0inv(4, 5) = (t21 * t33 + t31 * t23);
+
+    T0inv(5, 0) = 2 * t11 * t31;
+    T0inv(5, 1) = 2 * t12 * t32;
+    T0inv(5, 2) = 2 * t13 * t33;
+    T0inv(5, 3) = (t11 * t32 + t31 * t12);
+    T0inv(5, 4) = (t12 * t33 + t32 * t13);
+    T0inv(5, 5) = (t11 * t33 + t31 * t13);
 
     T0inv(6, 6) = t11 * t11;
-    T0inv(7, 6) = 2 * t11 * t21;
-    T0inv(8, 6) = 2 * t11 * t31;
-    T0inv(9, 6) = t21 * t21;
-    T0inv(10, 6) = 2 * t21 * t31;
-    T0inv(11, 6) = t31 * t31;
-
-    T0inv(6, 7) = t11 * t12;
-    T0inv(7, 7) = (t11 * t22 + t21 * t12);
-    T0inv(8, 7) = (t11 * t32 + t31 * t12);
-    T0inv(9, 7) = t21 * t22;
-    T0inv(10, 7) = (t21 * t32 + t31 * t22);
-    T0inv(11, 7) = t31 * t32;
-
-    T0inv(6, 8) = t11 * t13;
-    T0inv(7, 8) = (t11 * t23 + t21 * t13);
-    T0inv(8, 8) = (t11 * t33 + t31 * t13);
-    T0inv(9, 8) = t21 * t23;
-    T0inv(10, 8) = (t21 * t33 + t31 * t23);
-    T0inv(11, 8) = t31 * t33;
-
-    T0inv(6, 9) = t12 * t12;
-    T0inv(7, 9) = 2 * t12 * t22;
-    T0inv(8, 9) = 2 * t12 * t32;
-    T0inv(9, 9) = t22 * t22;
-    T0inv(10, 9) = 2 * t22 * t32;
-    T0inv(11, 9) = t32 * t32;
-
+    T0inv(6, 7) = t12 * t12;
+    T0inv(6, 8) = t13 * t13;
+    T0inv(6, 9) = t11 * t12;
     T0inv(6, 10) = t12 * t13;
-    T0inv(7, 10) = (t12 * t23 + t22 * t13);
-    T0inv(8, 10) = (t12 * t33 + t32 * t13);
-    T0inv(9, 10) = t22 * t23;
-    T0inv(10, 10) = (t22 * t33 + t32 * t23);
-    T0inv(11, 10) = t32 * t33;
+    T0inv(6, 11) = t11 * t13;
 
-    T0inv(6, 11) = t13 * t13;
-    T0inv(7, 11) = 2 * t13 * t23;
-    T0inv(8, 11) = 2 * t13 * t33;
-    T0inv(9, 11) = t23 * t23;
-    T0inv(10, 11) = 2 * t23 * t33;
-    T0inv(11, 11) = t33 * t33;
+    T0inv(7, 6) = t21 * t21;
+    T0inv(7, 7) = t22 * t22;
+    T0inv(7, 8) = t23 * t23;
+    T0inv(7, 9) = t21 * t22;
+    T0inv(7, 10) = t22 * t23;
+    T0inv(7, 11) = t21 * t23;
+
+    T0inv(8, 6) = t31 * t31;
+    T0inv(8, 7) = t32 * t32;
+    T0inv(8, 8) = t33 * t33;
+    T0inv(8, 9) = t31 * t32;
+    T0inv(8, 10) = t32 * t33;
+    T0inv(8, 11) = t31 * t33;
+
+    T0inv(9, 6) = 2 * t11 * t21;
+    T0inv(9, 7) = 2 * t12 * t22;
+    T0inv(9, 8) = 2 * t13 * t23;
+    T0inv(9, 9) = (t11 * t22 + t21 * t12);
+    T0inv(9, 10) = (t12 * t23 + t22 * t13);
+    T0inv(9, 11) = (t11 * t23 + t21 * t13);
+
+    T0inv(10, 6) = 2 * t21 * t31;
+    T0inv(10, 7) = 2 * t22 * t32;
+    T0inv(10, 8) = 2 * t23 * t33;
+    T0inv(10, 9) = (t21 * t32 + t31 * t22);
+    T0inv(10, 10) = (t22 * t33 + t32 * t23);
+    T0inv(10, 11) = (t21 * t33 + t31 * t23);
+
+    T0inv(11, 6) = 2 * t11 * t31;
+    T0inv(11, 7) = 2 * t12 * t32;
+    T0inv(11, 8) = 2 * t13 * t33;
+    T0inv(11, 9) = (t11 * t32 + t31 * t12);
+    T0inv(11, 10) = (t12 * t33 + t32 * t13);
+    T0inv(11, 11) = (t11 * t33 + t31 * t13);
 
     for (int i = 0; i < Discret::Elements::Shell::Internal::node_dof; ++i)
     {
@@ -193,10 +193,10 @@ namespace Discret::Elements::Shell
    *
    * @tparam distype
    * @param xi_gp (in) : Coordinate in the parameter space
-   * @param locking_types (in) : Locking types containing number of EAS parameters for each locking
-   * part and total number
-   * @return Core::LinAlg::SerialDenseMatrix : Enhanced strains shape function matrix in parameter
-   * space M
+   * @param eas (in) : Number of eas parameters for each locking part
+   * @param neas (in) : Total number of eas parameters
+   * @return Core::LinAlg::SerialDenseMatrix : Enhanced strains shape function matrix M in parameter
+   * space
    */
   template <Core::FE::CellType distype>
   Core::LinAlg::SerialDenseMatrix evaluate_eas_shape_functions_parameter_space(
@@ -228,37 +228,37 @@ namespace Discret::Elements::Shell
         case 7:
           M(0, M_index) = eta - 3.0 * xixieta;
           M(0, M_index + 1) = etaeta - 3.0 * xixietaeta;
-          M(3, M_index + 2) = xi - 3.0 * xietaeta;
-          M(3, M_index + 3) = xixi - 3.0 * xixietaeta;
-          M(1, M_index + 4) = eta - 3.0 * xixieta;
-          M(1, M_index + 5) = xi - 3.0 * xietaeta;
-          M(1, M_index + 6) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
+          M(1, M_index + 2) = xi - 3.0 * xietaeta;
+          M(1, M_index + 3) = xixi - 3.0 * xixietaeta;
+          M(3, M_index + 4) = eta - 3.0 * xixieta;
+          M(3, M_index + 5) = xi - 3.0 * xietaeta;
+          M(3, M_index + 6) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
           M_index += 7;
           break;
         case 9:
           M(0, M_index) = 1.0 - 3.0 * xixi;
           M(0, M_index + 1) = eta - 3.0 * xixieta;
-          M(3, M_index + 2) = 1.0 - 3.0 * etaeta;
-          M(3, M_index + 3) = xi - 3.0 * xietaeta;
-          M(1, M_index + 4) = 1.0 - 3.0 * xixieta;
-          M(1, M_index + 5) = 1.0 - 3.0 * xietaeta;
-          M(1, M_index + 6) = eta - 3.0 * xixieta;
-          M(1, M_index + 7) = xi - 3.0 * xietaeta;
-          M(1, M_index + 8) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
+          M(1, M_index + 2) = 1.0 - 3.0 * etaeta;
+          M(1, M_index + 3) = xi - 3.0 * xietaeta;
+          M(3, M_index + 4) = 1.0 - 3.0 * xixieta;
+          M(3, M_index + 5) = 1.0 - 3.0 * xietaeta;
+          M(3, M_index + 6) = eta - 3.0 * xixieta;
+          M(3, M_index + 7) = xi - 3.0 * xietaeta;
+          M(3, M_index + 8) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
           M_index += 9;
           break;
         case 11:
           M(0, M_index) = 1.0 - 3.0 * xixi;
           M(0, M_index + 1) = eta - 3.0 * xixieta;
           M(0, M_index + 2) = etaeta - 3.0 * xixietaeta;
-          M(3, M_index + 3) = 1.0 - 3.0 * etaeta;
-          M(3, M_index + 4) = xi - 3.0 * xietaeta;
-          M(3, M_index + 5) = xixi - 3.0 * xixietaeta;
-          M(1, M_index + 6) = 1.0 - 3.0 * xixi;
-          M(1, M_index + 7) = 1.0 - 3.0 * etaeta;
-          M(1, M_index + 8) = eta - 3.0 * xixieta;
-          M(1, M_index + 9) = xi - 3.0 * xietaeta;
-          M(1, M_index + 10) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
+          M(1, M_index + 3) = 1.0 - 3.0 * etaeta;
+          M(1, M_index + 4) = xi - 3.0 * xietaeta;
+          M(1, M_index + 5) = xixi - 3.0 * xixietaeta;
+          M(3, M_index + 6) = 1.0 - 3.0 * xixi;
+          M(3, M_index + 7) = 1.0 - 3.0 * etaeta;
+          M(3, M_index + 8) = eta - 3.0 * xixieta;
+          M(3, M_index + 9) = xi - 3.0 * xietaeta;
+          M(3, M_index + 10) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
           M_index += 11;
           break;
         default:
@@ -275,27 +275,27 @@ namespace Discret::Elements::Shell
         case 9:
           M(6, M_index) = 1.0 - 3.0 * xixi;
           M(6, M_index + 1) = eta - 3.0 * xixieta;
-          M(9, M_index + 2) = 1.0 - 3.0 * etaeta;
-          M(9, M_index + 3) = xi - 3.0 * xietaeta;
-          M(7, M_index + 4) = 1.0 - 3.0 * xixi;
-          M(7, M_index + 5) = 1.0 - 3.0 * etaeta;
-          M(7, M_index + 6) = eta - 3.0 * xixieta;
-          M(7, M_index + 7) = xi - 3.0 * xietaeta;
-          M(7, M_index + 8) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
+          M(7, M_index + 2) = 1.0 - 3.0 * etaeta;
+          M(7, M_index + 3) = xi - 3.0 * xietaeta;
+          M(9, M_index + 4) = 1.0 - 3.0 * xixi;
+          M(9, M_index + 5) = 1.0 - 3.0 * etaeta;
+          M(9, M_index + 6) = eta - 3.0 * xixieta;
+          M(9, M_index + 7) = xi - 3.0 * xietaeta;
+          M(9, M_index + 8) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
           M_index += 9;
           break;
         case 11:
           M(6, M_index) = 1.0 - 3.0 * xixi;
           M(6, M_index + 1) = eta - 3.0 * xixieta;
           M(6, M_index + 2) = etaeta - 3.0 * xixietaeta;
-          M(9, M_index + 3) = 1.0 - 3.0 * etaeta;
-          M(9, M_index + 4) = xi - 3.0 * xietaeta;
-          M(9, M_index + 5) = xixi - 3.0 * xixietaeta;
-          M(7, M_index + 6) = 1.0 - 3.0 * xixi;
-          M(7, M_index + 7) = 1.0 - 3.0 * etaeta;
-          M(7, M_index + 8) = eta - 3.0 * xixieta;
-          M(7, M_index + 9) = xi - 3.0 * xietaeta;
-          M(7, M_index + 10) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
+          M(7, M_index + 3) = 1.0 - 3.0 * etaeta;
+          M(7, M_index + 4) = xi - 3.0 * xietaeta;
+          M(7, M_index + 5) = xixi - 3.0 * xixietaeta;
+          M(9, M_index + 6) = 1.0 - 3.0 * xixi;
+          M(9, M_index + 7) = 1.0 - 3.0 * etaeta;
+          M(9, M_index + 8) = eta - 3.0 * xixieta;
+          M(9, M_index + 9) = xi - 3.0 * xietaeta;
+          M(9, M_index + 10) = 1.0 - 3.0 * (xixi + etaeta) + 9.0 * xixietaeta;
           M_index += 11;
           break;
         default:
@@ -308,52 +308,52 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 1:
-          M(11, M_index) = 1.0;
+          M(8, M_index) = 1.0;
           M_index += 1;
           break;
         case 3:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
           M_index += 3;
           break;
         case 4:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
           M_index += 4;
           break;
         case 6:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = xixi;
-          M(11, M_index + 5) = etaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = xixi;
+          M(8, M_index + 5) = etaeta;
           M_index += 6;
           break;
         case 8:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = xixi;
-          M(11, M_index + 5) = etaeta;
-          M(11, M_index + 6) = xixieta;
-          M(11, M_index + 7) = xietaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = xixi;
+          M(8, M_index + 5) = etaeta;
+          M(8, M_index + 6) = xixieta;
+          M(8, M_index + 7) = xietaeta;
           M_index += 8;
           break;
         case 9:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = 1.0 - 3.0 * xixi;
-          M(11, M_index + 5) = 1.0 - 3.0 * etaeta;
-          M(11, M_index + 6) = xixieta;
-          M(11, M_index + 7) = xietaeta;
-          M(11, M_index + 8) = 1.0 - 9.0 * xixietaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = 1.0 - 3.0 * xixi;
+          M(8, M_index + 5) = 1.0 - 3.0 * etaeta;
+          M(8, M_index + 6) = xixieta;
+          M(8, M_index + 7) = xietaeta;
+          M(8, M_index + 8) = 1.0 - 9.0 * xixietaeta;
           M_index += 9;
           break;
         default:
@@ -368,24 +368,24 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 2:
-          M(2, M_index) = eta - 3.0 * xixieta;
           M(4, M_index + 1) = xi - 3.0 * xietaeta;
+          M(5, M_index) = eta - 3.0 * xixieta;
           M_index += 2;
           break;
         case 4:
-          M(2, M_index) = 1.0 - 3.0 * xixi;
-          M(2, M_index + 1) = eta - 3.0 * xixieta;
           M(4, M_index + 2) = 1.0 - 3.0 * etaeta;
           M(4, M_index + 3) = xi - 3.0 * xietaeta;
+          M(5, M_index) = 1.0 - 3.0 * xixi;
+          M(5, M_index + 1) = eta - 3.0 * xixieta;
           M_index += 4;
           break;
         case 6:
-          M(2, M_index) = 1.0 - 3.0 * xixi;
-          M(2, M_index + 1) = eta - 3.0 * xixieta;
-          M(2, M_index + 2) = etaeta - 3.0 * xixietaeta;
           M(4, M_index + 3) = 1.0 - 3.0 * etaeta;
           M(4, M_index + 4) = xi - 3.0 * xietaeta;
           M(4, M_index + 5) = xixi - 3.0 * xixietaeta;
+          M(5, M_index) = 1.0 - 3.0 * xixi;
+          M(5, M_index + 1) = eta - 3.0 * xixieta;
+          M(5, M_index + 2) = etaeta - 3.0 * xixietaeta;
           M_index += 6;
           break;
         default:
@@ -400,24 +400,24 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 2:
-          M(8, M_index) = xixi;
           M(10, M_index + 1) = etaeta;
+          M(11, M_index) = xixi;
           M_index += 2;
           break;
         case 4:
-          M(8, M_index) = xixi;
-          M(8, M_index + 1) = xixietaeta;
           M(10, M_index + 2) = etaeta;
           M(10, M_index + 3) = xixietaeta;
+          M(11, M_index) = xixi;
+          M(11, M_index + 1) = xixietaeta;
           M_index += 4;
           break;
         case 6:
-          M(8, M_index) = xixi;
-          M(8, M_index + 1) = xixieta;
-          M(8, M_index + 2) = xixietaeta;
           M(10, M_index + 3) = etaeta;
           M(10, M_index + 4) = xietaeta;
           M(10, M_index + 5) = xixietaeta;
+          M(11, M_index) = xixi;
+          M(11, M_index + 1) = xixieta;
+          M(11, M_index + 2) = xixietaeta;
           M_index += 6;
           break;
         default:
@@ -436,43 +436,43 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 1:
-          M(3, M_index) = eta;
+          M(1, M_index) = eta;
           M_index += 1;
           break;
         case 2:
-          M(1, M_index) = xi;
-          M(1, M_index + 1) = eta;
+          M(3, M_index) = xi;
+          M(3, M_index + 1) = eta;
           M_index += 2;
           break;
         case 3:
-          M(1, M_index) = xi;
-          M(1, M_index + 1) = eta;
-          M(1, M_index + 2) = xieta;
+          M(3, M_index) = xi;
+          M(3, M_index + 1) = eta;
+          M(3, M_index + 2) = xieta;
           M_index += 3;
           break;
         case 4:
           M(0, M_index) = xi;
-          M(3, M_index + 1) = eta;
-          M(1, M_index + 2) = xi;
-          M(1, M_index + 3) = eta;
+          M(1, M_index + 1) = eta;
+          M(3, M_index + 2) = xi;
+          M(3, M_index + 3) = eta;
           M_index += 4;
           break;
         case 5:
           M(0, M_index) = xi;
-          M(3, M_index + 1) = eta;
-          M(1, M_index + 2) = xi;
-          M(1, M_index + 3) = eta;
-          M(1, M_index + 4) = xieta;
+          M(1, M_index + 1) = eta;
+          M(3, M_index + 2) = xi;
+          M(3, M_index + 3) = eta;
+          M(3, M_index + 4) = xieta;
           M_index += 5;
           break;
         case 7:
           M(0, M_index) = xi;
-          M(3, M_index + 1) = eta;
-          M(1, M_index + 2) = xi;
-          M(1, M_index + 3) = eta;
           M(0, M_index + 4) = xieta;
-          M(3, M_index + 5) = xieta;
-          M(1, M_index + 6) = xieta;
+          M(1, M_index + 1) = eta;
+          M(1, M_index + 5) = xieta;
+          M(3, M_index + 2) = xi;
+          M(3, M_index + 3) = eta;
+          M(3, M_index + 6) = xieta;
           M_index += 7;
           break;
         default:
@@ -487,36 +487,36 @@ namespace Discret::Elements::Shell
           break;
         case 4:
           M(6, M_index) = xi;
-          M(9, M_index + 1) = eta;
-          M(7, M_index + 2) = xi;
-          M(7, M_index + 3) = eta;
+          M(7, M_index + 1) = eta;
+          M(9, M_index + 2) = xi;
+          M(9, M_index + 3) = eta;
           M_index += 4;
           break;
         case 5:
           M(6, M_index) = xi;
-          M(9, M_index + 1) = eta;
-          M(7, M_index + 2) = xi;
-          M(7, M_index + 3) = eta;
-          M(7, M_index + 4) = xieta;
+          M(7, M_index + 1) = eta;
+          M(9, M_index + 2) = xi;
+          M(9, M_index + 3) = eta;
+          M(9, M_index + 4) = xieta;
           M_index += 5;
           break;
         case 6:
           M(6, M_index) = xixi;
           M(6, M_index + 1) = xixietaeta;
-          M(9, M_index + 2) = etaeta;
-          M(9, M_index + 3) = xixietaeta;
-          M(7, M_index + 4) = xixi;
-          M(7, M_index + 5) = etaeta;
+          M(7, M_index + 2) = etaeta;
+          M(7, M_index + 3) = xixietaeta;
+          M(9, M_index + 4) = xixi;
+          M(9, M_index + 5) = etaeta;
           M_index += 6;
           break;
         case 7:
           M(6, M_index) = xi;
-          M(9, M_index + 1) = eta;
-          M(7, M_index + 2) = xi;
-          M(7, M_index + 3) = eta;
           M(6, M_index + 4) = xieta;
-          M(9, M_index + 5) = xieta;
-          M(7, M_index + 6) = xieta;
+          M(7, M_index + 1) = eta;
+          M(7, M_index + 5) = xieta;
+          M(9, M_index + 2) = xi;
+          M(9, M_index + 3) = eta;
+          M(9, M_index + 6) = xieta;
           M_index += 7;
           break;
         default:
@@ -529,52 +529,52 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 1:
-          M(11, M_index) = 1.0;
+          M(8, M_index) = 1.0;
           M_index += 1;
           break;
         case 3:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
           M_index += 3;
           break;
         case 4:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
           M_index += 4;
           break;
         case 6:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = xixi;
-          M(11, M_index + 5) = etaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = xixi;
+          M(8, M_index + 5) = etaeta;
           M_index += 6;
           break;
         case 8:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = xixi;
-          M(11, M_index + 5) = etaeta;
-          M(11, M_index + 6) = xixieta;
-          M(11, M_index + 7) = xietaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = xixi;
+          M(8, M_index + 5) = etaeta;
+          M(8, M_index + 6) = xixieta;
+          M(8, M_index + 7) = xietaeta;
           M_index += 8;
           break;
         case 9:
-          M(11, M_index) = 1.0;
-          M(11, M_index + 1) = xi;
-          M(11, M_index + 2) = eta;
-          M(11, M_index + 3) = xieta;
-          M(11, M_index + 4) = 1.0 - 3.0 * xixi;
-          M(11, M_index + 5) = 1.0 - 3.0 * etaeta;
-          M(11, M_index + 6) = xixieta;
-          M(11, M_index + 7) = xietaeta;
-          M(11, M_index + 8) = 1.0 - 9.0 * xixietaeta;
+          M(8, M_index) = 1.0;
+          M(8, M_index + 1) = xi;
+          M(8, M_index + 2) = eta;
+          M(8, M_index + 3) = xieta;
+          M(8, M_index + 4) = 1.0 - 3.0 * xixi;
+          M(8, M_index + 5) = 1.0 - 3.0 * etaeta;
+          M(8, M_index + 6) = xixieta;
+          M(8, M_index + 7) = xietaeta;
+          M(8, M_index + 8) = 1.0 - 9.0 * xixietaeta;
           M_index += 9;
           break;
         default:
@@ -588,15 +588,15 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 2:
-          M(2, M_index) = xi;
           M(4, M_index + 1) = eta;
+          M(5, M_index) = xi;
           M_index += 2;
           break;
         case 4:
-          M(2, M_index) = xi;
-          M(2, M_index + 1) = xieta;
           M(4, M_index + 2) = eta;
           M(4, M_index + 3) = xieta;
+          M(5, M_index) = xi;
+          M(5, M_index + 1) = xieta;
           M_index += 4;
           break;
         default:
@@ -611,15 +611,15 @@ namespace Discret::Elements::Shell
         case 0:
           break;
         case 2:
-          M(8, M_index) = xi;
           M(10, M_index + 1) = eta;
+          M(11, M_index) = xi;
           M_index += 2;
           break;
         case 4:
-          M(8, M_index) = xi;
-          M(8, M_index + 1) = xieta;
           M(10, M_index + 2) = eta;
           M(10, M_index + 3) = xieta;
+          M(11, M_index) = xi;
+          M(11, M_index + 1) = xieta;
           M_index += 4;
           break;
         default:
@@ -709,10 +709,10 @@ namespace Discret::Elements::Shell
    *
    * Constructs a symmetric GL tensor \f$ E_{ij}(\zeta) = \alpha_{ij} + \zeta \beta_{ij}\f$ from the
    * EAS strain enhancement vector scaled by the thickness coordinate zeta. The strain_enh vector
-   * from M*alpha represents GL strain components in shell specific Voigt notation with
+   * from M*alpha represents GL strain components in standard Voigt notation with
    * \f$\gamma_{ij} = 2*E_{ij}\f$.
    *
-   * @param strain_enh (in) : Enhanced strain vector in shell specific Voigt notation
+   * @param strain_enh (in) : Enhanced strain vector in standard Voigt notation
    * @param zeta (in) : Thickness coordinate (scaled by SDC)
    * @return SymmetricTensor<double, 3, 3> : Enhanced Green-Lagrange strain tensor
    */
@@ -722,11 +722,11 @@ namespace Discret::Elements::Shell
     Core::LinAlg::SymmetricTensor<double, Internal::num_dim, Internal::num_dim> gl{};
 
     gl(0, 0) = strain_enh(0) + zeta * strain_enh(6);
-    gl(1, 1) = strain_enh(3) + zeta * strain_enh(9);
-    gl(2, 2) = strain_enh(5) + zeta * strain_enh(11);
-    gl(0, 1) = (strain_enh(1) + zeta * strain_enh(7)) * 0.5;
+    gl(1, 1) = strain_enh(1) + zeta * strain_enh(7);
+    gl(2, 2) = strain_enh(2) + zeta * strain_enh(8);
+    gl(0, 1) = (strain_enh(3) + zeta * strain_enh(9)) * 0.5;
     gl(1, 2) = (strain_enh(4) + zeta * strain_enh(10)) * 0.5;
-    gl(0, 2) = (strain_enh(2) + zeta * strain_enh(8)) * 0.5;
+    gl(0, 2) = (strain_enh(5) + zeta * strain_enh(11)) * 0.5;
 
     return gl;
   }
