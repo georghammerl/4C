@@ -558,33 +558,39 @@ BeamInteraction::BeamToBeamPointCouplingPair<Beam1, n_dof_beam_1, Beam2,
     // We add a half of the reference offset vector in each frame of the two beams. By doing it this
     // way, we obtain a coupling formulation invariant to the ordering of the cross-sections in this
     // pair.
-    std::array<Core::LinAlg::Matrix<3, 1, double>, 2> director_21_spatial_half;
+    std::array<Core::LinAlg::Matrix<3, 1, double>, 2> director_21_desired_spatial_half;
     for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
     {
       Core::LinAlg::Matrix<3, 3, double> rotation_matrix;
       Core::LargeRotations::quaterniontotriad(
           Core::FADUtils::cast_to_double(pair_kinematic.cross_section_quaternion[i_beam]),
           rotation_matrix);
-      director_21_spatial_half[i_beam].multiply_nn(
+      director_21_desired_spatial_half[i_beam].multiply_nn(
           rotation_matrix, director_21_ref_material[i_beam]);
-      director_21_spatial_half[i_beam].scale(0.5);
-      coupling_terms.constraint -= director_21_spatial_half[i_beam];
+      director_21_desired_spatial_half[i_beam].scale(0.5);
+      coupling_terms.constraint -= director_21_desired_spatial_half[i_beam];
     }
+
+    // Current director from point 1 to 2.
+    Core::LinAlg::Matrix<3, 1, double> director_21_spatial_half = pair_kinematic.r[1];
+    director_21_spatial_half -= pair_kinematic.r[0];
+    director_21_spatial_half.scale(0.5);
+    Core::LinAlg::Matrix<3, 3, double> skew_director_21_spatial_half;
+    Core::LargeRotations::computespin(skew_director_21_spatial_half, director_21_spatial_half);
 
     // Add the linearizations of the previous constraint terms.
     for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
     {
-      Core::LinAlg::Matrix<3, 3, double> skew_director_21_spatial_half;
+      Core::LinAlg::Matrix<3, 3, double> skew_director_21_desired_spatial_half;
       Core::LargeRotations::computespin(
-          skew_director_21_spatial_half, director_21_spatial_half[i_beam]);
-      coupling_terms.evaluation_data_position[i_beam] = skew_director_21_spatial_half;
+          skew_director_21_desired_spatial_half, director_21_desired_spatial_half[i_beam]);
 
       for (unsigned int i_dir = 0; i_dir < 3; i_dir++)
       {
         for (unsigned int j_dir = 0; j_dir < 3; j_dir++)
         {
           coupling_terms.constraint_lin_kinematic(i_dir, j_dir + 3 + 6 * i_beam) +=
-              skew_director_21_spatial_half(i_dir, j_dir);
+              skew_director_21_desired_spatial_half(i_dir, j_dir);
 
           coupling_terms.residuum_lin_lambda(j_dir + 3 + 6 * i_beam, i_dir) -=
               skew_director_21_spatial_half(j_dir, i_dir);
@@ -692,17 +698,20 @@ void BeamInteraction::BeamToBeamPointCouplingPair<Beam1, n_dof_beam_1, Beam2,
     const BeamToBeamCouplingTerms<n_dof_beam_1, n_dof_beam_2>& coupling_terms_rotation,
     const Core::LinAlg::Matrix<3, 1>& lambda_rotation)
 {
-  for (unsigned int i_beam = 0; i_beam < 2; i_beam++)
+  Core::LinAlg::Matrix<3, 3, double> skew_lambda;
+  Core::LargeRotations::computespin(skew_lambda, lambda_position);
+  for (unsigned int i_beam_rot = 0; i_beam_rot < 2; i_beam_rot++)
   {
-    Core::LinAlg::Matrix<3, 3, double> skew_lambda;
-    Core::LargeRotations::computespin(skew_lambda, lambda_position);
-    Core::LinAlg::Matrix<3, 3> temp_matrix;
-    temp_matrix.multiply_nn(skew_lambda, coupling_terms_position.evaluation_data_position[i_beam]);
-    for (unsigned int i_dir = 0; i_dir < 3; i_dir++)
+    for (unsigned int i_beam_pos = 0; i_beam_pos < 2; i_beam_pos++)
     {
-      for (unsigned int j_dir = 0; j_dir < 3; j_dir++)
+      for (unsigned int i_dir = 0; i_dir < 3; i_dir++)
       {
-        stiffness(i_dir + 3 + 6 * i_beam, j_dir + 3 + 6 * i_beam) -= temp_matrix(i_dir, j_dir);
+        for (unsigned int j_dir = 0; j_dir < 3; j_dir++)
+        {
+          const double factor = (i_beam_pos == 0) ? -0.5 : 0.5;
+          stiffness(i_dir + 3 + 6 * i_beam_rot, j_dir + 6 * i_beam_pos) +=
+              factor * skew_lambda(i_dir, j_dir);
+        }
       }
     }
   }

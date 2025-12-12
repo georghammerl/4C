@@ -108,7 +108,6 @@ namespace BeamInteraction
     Core::LinAlg::Matrix<12, 3> residuum_lin_lambda{Core::LinAlg::Initialization::zero};
 
     //! Evaluation data for direct stiffness contributions.
-    std::array<Core::LinAlg::Matrix<3, 3, double>, 2> evaluation_data_position;
     std::array<std::array<std::array<std::array<double, 3>, 3>, 3>, 2> evaluation_data_rotation{};
   };
 
