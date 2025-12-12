@@ -81,7 +81,7 @@ STRUCT NOX/Printing:
   Linear Solver Details: true
   Test Details: true
 STRUCT NOX/Status Test:
-  XML File: "beam3r_herm2line3_beam_to_beam_penalty_point_coupling_elbow.xml"
+  XML File: "beam3r_herm2line3_beam_to_beam_point_coupling_elbow.xml"
 STRUCTURAL DYNAMIC:
   LINEAR_SOLVER: 1
   INT_STRATEGY: "Standard"
