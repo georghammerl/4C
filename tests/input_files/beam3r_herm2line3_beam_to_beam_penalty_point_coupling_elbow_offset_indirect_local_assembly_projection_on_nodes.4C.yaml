@@ -64,20 +64,20 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispx"
-      VALUE: 0.34337241986608824
-      TOLERANCE: 1e-10
+      VALUE: 3.43372419651031546e-01
+      TOLERANCE: 1e-12
   - STRUCTURE:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispy"
-      VALUE: 0.5672893379848832
-      TOLERANCE: 1e-10
+      VALUE: 5.67289337893254864e-01
+      TOLERANCE: 1e-12
   - STRUCTURE:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispz"
-      VALUE: -1.014959269376877
-      TOLERANCE: 1e-10
+      VALUE: -1.01495926931849434e+00
+      TOLERANCE: 1e-12
 SOLVER 1:
   NAME: "Structure_Solver"
   SOLVER: "Superlu"
