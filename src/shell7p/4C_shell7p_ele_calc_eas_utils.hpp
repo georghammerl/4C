@@ -58,17 +58,17 @@ namespace Discret::Elements::Shell
    * @brief Evaluates the transformation matrix T0^{-1} which maps the M-matrix from centroid point
    * (parameter space) to the gaussian point (material configuration)
    * @tparam distype
-   * @param akov (in) : Jacobian mapping evaluated at the gaussina point
-   * @param akov0 (in) : Jacobian mapping evaluated at the element centroid
+   * @param a_cov (in) : Jacobian mapping evaluated at the gaussina point
+   * @param a_con_centroid (in) : Jacobian mapping evaluated at the element centroid
    *
    * @return Core::LinAlg::SerialDenseMatrix : Transformation matrix T0inv
    */
   template <Core::FE::CellType distype>
   Core::LinAlg::SerialDenseMatrix evaluate_t0inv(
       const Core::LinAlg::Matrix<Discret::Elements::Shell::Internal::num_dim,
-          Discret::Elements::Shell::Internal::num_dim>& akov,
+          Discret::Elements::Shell::Internal::num_dim>& a_cov,
       const Core::LinAlg::Matrix<Discret::Elements::Shell::Internal::num_dim,
-          Discret::Elements::Shell::Internal::num_dim>& akon0)
+          Discret::Elements::Shell::Internal::num_dim>& a_con_centroid)
   {
     Core::LinAlg::SerialDenseMatrix T0inv(
         Discret::Elements::Shell::Internal::num_internal_variables,
@@ -86,10 +86,10 @@ namespace Discret::Elements::Shell
     t33 = 1.0;
     for (int i = 0; i < Discret::Elements::Shell::Internal::num_dim; ++i)
     {
-      t11 += akov(0, i) * akon0(0, i);
-      t12 += akov(0, i) * akon0(1, i);
-      t21 += akov(1, i) * akon0(0, i);
-      t22 += akov(1, i) * akon0(1, i);
+      t11 += a_cov(0, i) * a_con_centroid(0, i);
+      t12 += a_cov(0, i) * a_con_centroid(1, i);
+      t21 += a_cov(1, i) * a_con_centroid(0, i);
+      t22 += a_cov(1, i) * a_con_centroid(1, i);
     }
 
     T0inv(0, 0) = t11 * t11;
@@ -660,7 +660,7 @@ namespace Discret::Elements::Shell
   {
     // get transformation matrix T0^-1 to map M from midpoint to gaussian point
     Core::LinAlg::SerialDenseMatrix T0inv =
-        evaluate_t0inv<distype>(a_reference.kovariant_, metrics_centroid_reference.kontravariant_);
+        evaluate_t0inv<distype>(a_reference.covariant_, metrics_centroid_reference.contravariant_);
     // transform basis of M-matrix to gaussian point: M_gp = detJ0/ detJ * T0^-T * M
     Core::LinAlg::SerialDenseMatrix M_gp(
         Discret::Elements::Shell::Internal::num_internal_variables, neas);
@@ -777,8 +777,8 @@ namespace Discret::Elements::Shell
       const BasisVectorsAndMetrics<distype>& g_current)
   {
     return Core::LinAlg::assume_symmetry(
-        0.5 * (Core::LinAlg::make_tensor_view(g_current.metric_kovariant_) -
-                  Core::LinAlg::make_tensor_view(g_reference.metric_kovariant_)));
+        0.5 * (Core::LinAlg::make_tensor_view(g_current.metric_covariant_) -
+                  Core::LinAlg::make_tensor_view(g_reference.metric_covariant_)));
   }
 
 

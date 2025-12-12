@@ -222,9 +222,9 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
 
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          // modify the current kovariant metric tensor to neglect the quadratic terms in
+          // modify the current covariant metric tensor to neglect the quadratic terms in
           // thickness directions
-          Shell::modify_kovariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
+          Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
 
@@ -371,9 +371,9 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::calculate_stresses_strains(
           zeta = intpoints_thickness_.qxg[gpt][0] / condfac;
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          // modify the current kovariant metric tensor to neglect the quadratic terms in thickness
+          // modify the current covariant metric tensor to neglect the quadratic terms in thickness
           // directions
-          Shell::modify_kovariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
+          Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
 
@@ -520,7 +520,7 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
 
         // calculate B-operator for compatible strains (displacement)
         Core::LinAlg::SerialDenseMatrix Bop = Shell::calc_b_operator<distype>(
-            a_current.kovariant_, a_current.partial_derivative_, shape_functions);
+            a_current.covariant_, a_current.partial_derivative_, shape_functions);
 
         const std::vector<double> shape_functions_ans =
             Shell::get_shapefunctions_for_ans<distype>(xi_gp, shell_data_.num_ans);
@@ -549,7 +549,7 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
           // evaluate metric tensor at gp in shell body
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          Shell::modify_kovariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
+          Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
 
@@ -797,9 +797,9 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::update(Core::Elements::Eleme
             Shell::evaluate_metrics(
                 shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-            // modify the current kovariant metric tensor to neglect the quadratic terms in
+            // modify the current covariant metric tensor to neglect the quadratic terms in
             // thickness directions
-            Shell::modify_kovariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
+            Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
                 shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
                 shell_data_.num_ans);
 
