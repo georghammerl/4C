@@ -228,7 +228,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: clang18_build-schema
           path: ${{ github.workspace }}
