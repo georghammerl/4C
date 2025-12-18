@@ -836,11 +836,14 @@ void Adapter::StructureBaseAlgorithmNew::create_wrapper(
       }
       else
       {
-        // INFO: These two types have already been migrated
+        // case of monolithic fsi
         if (coupling == fsi_iter_mortar_monolithicfluidsplit or
             coupling == fsi_iter_mortar_monolithicstructuresplit or
             coupling == fsi_iter_monolithicfluidsplit or
-            coupling == fsi_iter_monolithicstructuresplit)
+            coupling == fsi_iter_monolithicstructuresplit or
+            coupling == fsi_iter_sliding_monolithicfluidsplit or
+            coupling == fsi_iter_sliding_monolithicstructuresplit or
+            coupling == fsi_iter_mortar_monolithicfluidsplit_saddlepoint)
         {
           str_wrapper_ = std::make_shared<FSIStructureWrapper>(
               std::make_shared<StructureNOXCorrectionWrapper>(ti_strategy));
