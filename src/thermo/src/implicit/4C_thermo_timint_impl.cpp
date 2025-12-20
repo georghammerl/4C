@@ -445,9 +445,9 @@ Thermo::ConvergenceStatus Thermo::TimIntImpl::newton_full()
     fres_->scale(-1.0);
 
     // apply Dirichlet BCs to system of equations
-    tempi_->put_scalar(0.0);  // Useful? depends on solver and more
+    tempi_->put_scalar(0.0);
     Core::LinAlg::apply_dirichlet_to_system(
-        *tang_, *tempi_, *fres_, *zeros_, *(dbcmaps_->cond_map()));
+        *tang_, *tempi_, *fres_, *zeros_, *dbcmaps_->cond_map());
 
     // Solve for tempi_
     // Solve K_Teffdyn . IncT = -R  ===>  IncT_{n+1}
