@@ -97,8 +97,7 @@ Thermo::TimIntImpl::TimIntImpl(const Teuchos::ParameterList& ioparams,
   {
     for (size_t col = 0; col < columns; col++)
     {
-      Core::LinAlg::Vector<double> element_material(
-          *overlapping_element_material_vector.get_ref_of_epetra_fevector()(col));
+      Core::LinAlg::Vector<double> element_material(*overlapping_element_material_vector(col));
       double nodal_material = 0.0;
 
       for (auto ele : node.adjacent_elements())
