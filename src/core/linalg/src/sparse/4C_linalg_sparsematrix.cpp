@@ -683,6 +683,8 @@ void Core::LinAlg::SparseMatrix::fe_assemble(double val, int rgid, int cgid)
   // SumIntoGlobalValues works for filled matrices as well!
   int errone = (std::dynamic_pointer_cast<Epetra_FECrsMatrix>(sysmat_))
                    ->SumIntoGlobalValues(1, &rgid, 1, &cgid, &val);
+  FOUR_C_ASSERT(errone >= 0, "SumIntoGlobalValues returned error code {}", errone);
+
   // if value not already present , error > 0 then use insert method
   if (errone > 0 and not filled())
   {
@@ -690,8 +692,6 @@ void Core::LinAlg::SparseMatrix::fe_assemble(double val, int rgid, int cgid)
                                       ->InsertGlobalValues(1, &rgid, 1, &cgid, &val);
     FOUR_C_ASSERT(errtwo >= 0, "InsertGlobalValues returned error code {}", errtwo);
   }
-  else if (errone < 0)
-    FOUR_C_THROW("SumIntoGlobalValues returned error code {}", errone);
 }
 
 
@@ -1512,15 +1512,13 @@ void Core::LinAlg::SparseMatrix::sum_or_insert_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
   const int errone = sysmat_->SumIntoGlobalValues(global_row, num_entries, values, indices);
+  FOUR_C_ASSERT(errone >= 0, "Epetra error (code {}).", errone);
+
   if (errone > 0)
   {
     [[maybe_unused]] int errtwo =
         sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
     FOUR_C_ASSERT(errtwo >= 0, "Epetra error (code {}).", errtwo);
-  }
-  else if (errone < 0)
-  {
-    FOUR_C_THROW("Epetra error (code {}).", errone);
   }
 }
 
@@ -1530,15 +1528,13 @@ void Core::LinAlg::SparseMatrix::replace_or_insert_global_values(
     int global_row, int num_entries, const double* values, const int* indices)
 {
   const int errone = sysmat_->ReplaceGlobalValues(global_row, num_entries, values, indices);
+  FOUR_C_ASSERT(errone >= 0, "Epetra error (code {}).", errone);
+
   if (errone > 0)
   {
     [[maybe_unused]] int errtwo =
         sysmat_->InsertGlobalValues(global_row, num_entries, values, indices);
     FOUR_C_ASSERT(errtwo >= 0, "Epetra error (code {}).", errtwo);
-  }
-  else if (errone < 0)
-  {
-    FOUR_C_THROW("Epetra error (code {}).", errone);
   }
 }
 
