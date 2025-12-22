@@ -78,9 +78,9 @@ void NOX::Nln::MatrixFree::ThyraModelWrapper::evalModelImpl(
   const Teuchos::RCP<::Thyra::VectorBase<double>> f_out = outArgs.get_f();
 
   const Teuchos::RCP<const Epetra_Vector> x_in_epetra =
-      ::Thyra::get_Epetra_Vector(map_->get_epetra_map(), x_in);
+      Core::LinearSolver::Utils::get_epetra_vector_from_thyra(*map_, x_in);
   const Teuchos::RCP<Epetra_Vector> f_out_epetra =
-      ::Thyra::get_Epetra_Vector(map_->get_epetra_map(), f_out);
+      Core::LinearSolver::Utils::get_epetra_vector_from_thyra(*map_, f_out);
 
   model_->computeF(*x_in_epetra, *f_out_epetra, ::NOX::Epetra::Interface::Required::Residual);
 }
