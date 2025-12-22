@@ -12,7 +12,7 @@
 #include "4C_io_control.hpp"
 #include "4C_io_pstream.hpp"
 #include "4C_linalg_blocksparsematrix.hpp"
-#include "4C_linalg_utils_sparse_algebra_print.hpp"
+#include "4C_linalg_utils_sparse_algebra_io.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_linearsystem.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"

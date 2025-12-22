@@ -16,7 +16,7 @@
 #include "4C_io_gmsh.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
-#include "4C_linalg_utils_sparse_algebra_print.hpp"
+#include "4C_linalg_utils_sparse_algebra_io.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_lubrication_ele_action.hpp"
 #include "4C_lubrication_ele_parameter.hpp"

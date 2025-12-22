@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_LINALG_UTILS_SPARSE_ALGEBRA_PRINT_HPP
-#define FOUR_C_LINALG_UTILS_SPARSE_ALGEBRA_PRINT_HPP
+#ifndef FOUR_C_LINALG_UTILS_SPARSE_ALGEBRA_IO_HPP
+#define FOUR_C_LINALG_UTILS_SPARSE_ALGEBRA_IO_HPP
 
 #include "4C_config.hpp"
 
@@ -14,6 +14,8 @@
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_vector.hpp"
+
+#include <filesystem>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -64,6 +66,22 @@ namespace Core::LinAlg
       const std::string& filename, MPI_Comm comm);
 
 
+  /*! \brief Read a multi vector from a Matrix Market format (ASCII)
+   *
+   * ### Matrix Market format (ASCII)
+   * The file can also be created from Python using `scipy.io.mmwrite`, for example:
+   * @code{.py}
+   * from scipy.io import mmwrite
+   * mmwrite("matrix.mtx", projmatrix, precision=10)
+   * @endcode
+   *
+   * @param filename  Path to the input file containing the matrix.
+   * @param map Map describing the distribution of the multi vector.
+   * @return MultiVector containing the data read from the Matrix Market file, distributed according
+   * to \p map.
+   */
+  Core::LinAlg::MultiVector<double> read_matrix_market_file_as_multi_vector(
+      const std::filesystem::path& filename, const Core::LinAlg::Map& map);
 }  // namespace Core::LinAlg
 
 FOUR_C_NAMESPACE_CLOSE
