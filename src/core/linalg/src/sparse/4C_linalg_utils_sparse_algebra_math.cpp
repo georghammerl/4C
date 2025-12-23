@@ -9,6 +9,7 @@
 
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
+#include "4C_linalg_sparseoperator.hpp"
 #include "4C_linalg_transfer.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"
 #include "4C_utils_enum.hpp"
@@ -220,25 +221,23 @@ std::unique_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_multiply(
   const int nnz = std::max(A.max_num_entries(), B.max_num_entries());
 
   // now create resultmatrix C with correct rowmap
-  auto map = transA ? A.domain_map() : A.range_map();
-  auto C = std::make_unique<SparseMatrix>(map, nnz, A.explicit_dirichlet(), A.save_graph());
-  auto A_trans = std::make_shared<Core::LinAlg::SparseMatrix>(A);
-  auto B_trans = std::make_shared<Core::LinAlg::SparseMatrix>(B);
+  auto rangemap = transA ? A.domain_map() : A.range_map();
+  auto domainmap = transB ? B.range_map() : B.domain_map();
+  auto C = std::make_unique<SparseMatrix>(rangemap, nnz, A.explicit_dirichlet(), A.save_graph());
 
-  if (transA)
+  FOUR_C_ASSERT(
+      (transA ? A.range_map() : A.domain_map()).same_as(transB ? B.domain_map() : B.range_map()),
+      "Matrix inner dimensions or distribution do not match for multiplication.");
+
+  ASSERT_EPETRA_CALL(EpetraExt::MatrixMatrix::Multiply(
+      A.epetra_matrix(), transA, B.epetra_matrix(), transB, C->epetra_matrix(), false));
+
+  // manually calling complete to make sure the maps are set correctly (The epetra internal method
+  // does not set the maps correctly for non-square sparse matrices)
+  if (complete)
   {
-    A_trans = matrix_transpose(A);
-    transA = false;
+    C->complete(domainmap, rangemap);
   }
-
-  if (transB)
-  {
-    B_trans = matrix_transpose(B);
-    transB = false;
-  }
-
-  ASSERT_EPETRA_CALL(EpetraExt::MatrixMatrix::Multiply(A_trans->epetra_matrix(), transA,
-      B_trans->epetra_matrix(), transB, C->epetra_matrix(), complete));
 
   return C;
 }
