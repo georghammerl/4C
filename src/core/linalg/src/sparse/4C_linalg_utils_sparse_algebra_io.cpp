@@ -5,11 +5,15 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_linalg_utils_sparse_algebra_print.hpp"
+#include "4C_linalg_utils_sparse_algebra_io.hpp"
 
 #include "4C_linalg_blocksparsematrix.hpp"
+#include "4C_linalg_multi_vector.hpp"
+#include "4C_linalg_utils_exceptions.hpp"
+#include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 
 #include <EpetraExt_CrsMatrixIn.h>
+#include <EpetraExt_MultiVectorIn.h>
 
 #include <fstream>
 
@@ -242,6 +246,39 @@ Core::LinAlg::SparseMatrix Core::LinAlg::read_matrix_market_file_as_sparse_matri
       filename.c_str(), Core::Communication::as_epetra_comm(comm), crs_marix));
 
   return SparseMatrix(std::shared_ptr<Epetra_CrsMatrix>(crs_marix), DataAccess::Share);
+}
+
+Core::LinAlg::MultiVector<double> Core::LinAlg::read_matrix_market_file_as_multi_vector(
+    const std::filesystem::path& filename, const Core::LinAlg::Map& map)
+{
+  // Epetra Matrix market file reader does not support complex maps.
+  // Hence, read on rank 0 and distribute to the target ranks
+  int rank = Core::Communication::my_mpi_rank(map.get_comm());
+  Map rank0_map{
+      map.num_global_elements(), rank == 0 ? map.num_global_elements() : 0, 0, map.get_comm()};
+
+
+  Epetra_MultiVector* multi_vector_raw = nullptr;
+
+  ASSERT_EPETRA_CALL(EpetraExt::MatrixMarketFileToMultiVector(
+      filename.c_str(), rank0_map.get_epetra_block_map(), multi_vector_raw));
+  FOUR_C_ASSERT_ALWAYS(multi_vector_raw != nullptr, "Failed to read matrix market file {}.",
+      filename.relative_path().string());
+
+  // make sure to delete the raw pointers from above
+  std::unique_ptr<Epetra_MultiVector> auto_deleter(multi_vector_raw);
+
+  MultiVector<double> mv_serial(*multi_vector_raw);
+
+  FOUR_C_ASSERT_ALWAYS(mv_serial.global_length() == map.num_global_elements(),
+      "The matrix in the matrix market file has {} rows, but the provided map has {} elements.",
+      multi_vector_raw->GlobalLength(), map.num_global_elements());
+
+  MultiVector<double> mv_distributed(map, mv_serial.num_vectors());
+
+  export_to(mv_serial, mv_distributed);
+
+  return mv_distributed;
 }
 
 FOUR_C_NAMESPACE_CLOSE
