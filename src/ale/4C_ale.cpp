@@ -889,7 +889,7 @@ void ALE::AleLinear::evaluate_elements()
   else if (system_matrix())
     system_matrix()->multiply(false, *dispnp(), *write_access_residual());
   else if (block_system_matrix())
-    block_system_matrix()->Apply(*dispnp(), *write_access_residual());
+    block_system_matrix()->multiply(false, *dispnp(), *write_access_residual());
   else
     FOUR_C_THROW("Can't compute residual for linear ALE.");
 
