@@ -231,12 +231,12 @@ void PoroElast::MonolithicSplitNoPenetration::recover_lagrange_multiplier_after_
   if (k_dn_ != nullptr)  // for first timestep lambda = 0 !
   {
     Core::LinAlg::Vector<double> Dlam(*fluid_field()->interface()->fsi_cond_map(), true);
-    k_dn_->Apply(*lambda_, Dlam);  // D(n)*lambda(n)
-    Dlam.scale(stiparam);          //*(1-b)
+    k_dn_->multiply(false, *lambda_, Dlam);  // D(n)*lambda(n)
+    Dlam.scale(stiparam);                    //*(1-b)
     tmplambda.update(1.0, Dlam, 1.0);
   }
 
-  k_inv_d_->Apply(tmplambda, *lambdanp_);
+  k_inv_d_->multiply(false, tmplambda, *lambdanp_);
   lambdanp_->scale(-1 / (1.0 - stiparam));  //*-1/b
 }
 

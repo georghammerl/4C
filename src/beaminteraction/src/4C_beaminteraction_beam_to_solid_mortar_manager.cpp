@@ -735,8 +735,8 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_force(
       force_beam_lin_lambda_->range_map());
 
   // Compute contribution of Lagrange multiplier from previous iteration to right-hand side
-  force_solid_lin_lambda_->Apply(*lambda, force_solid_lin_lambda_times_lambda);
-  force_beam_lin_lambda_->Apply(*lambda, force_beam_lin_lambda_times_lambda);
+  force_solid_lin_lambda_->multiply(false, *lambda, force_solid_lin_lambda_times_lambda);
+  force_beam_lin_lambda_->multiply(false, *lambda, force_beam_lin_lambda_times_lambda);
 
   // Export to full map of the residual / rhs vector
   Core::LinAlg::Vector<double> force_solid_lin_lambda_times_lambda_on_f(f.get_map());

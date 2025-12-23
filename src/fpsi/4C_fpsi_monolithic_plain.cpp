@@ -715,7 +715,7 @@ void FPSI::MonolithicPlain::setup_rhs_first_iter(Core::LinAlg::Vector<double>& f
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fgg.range_map(), true);
 
-  fgg.Apply(*fveln, *rhs);
+  fgg.multiply(false, *fveln, *rhs);
 
   rhs->scale(scale * (1. - stiparam) / (1. - ftiparam) * dt() * timescale);
   rhs = fluid_to_struct_fsi(rhs);
@@ -780,7 +780,7 @@ void FPSI::MonolithicPlain::setup_rhs_first_iter(Core::LinAlg::Vector<double>& f
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fig.range_map(), true);
 
-  fig.Apply(*fveln, *rhs);
+  fig.multiply(false, *fveln, *rhs);
 
   rhs->scale(dt() * timescale);
 
@@ -1052,7 +1052,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
     // ---------Addressing term (4)
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
 
-    fggprev_->Apply(*struct_to_fluid_fsi(ddginc_), *auxvec);
+    fggprev_->multiply(false, *struct_to_fluid_fsi(ddginc_), *auxvec);
     tmpvec->update(timescale, *auxvec, 1.0);
     // ---------End of term (4)
 
@@ -1060,7 +1060,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
     if (fmggprev_ != nullptr)
     {
       auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmggprev_->range_map(), true);
-      fmggprev_->Apply(*struct_to_fluid_fsi(ddginc_), *auxvec);
+      fmggprev_->multiply(false, *struct_to_fluid_fsi(ddginc_), *auxvec);
       tmpvec->update(1.0, *auxvec, 1.0);
     }
     // ---------End of term (5)
@@ -1069,7 +1069,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fgiprev_->range_map(), true);
     Core::LinAlg::Vector<double> tmp(fgiprev_->domain_map(), true);
     Core::LinAlg::export_to(*duiinc_, tmp);
-    fgiprev_->Apply(tmp, *auxvec);
+    fgiprev_->multiply(false, tmp, *auxvec);
     tmpvec->update(1.0, *auxvec, 1.0);
     // ---------End of term (6)
 
@@ -1110,7 +1110,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
       auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmgiprev_->range_map(), true);
 
       // Now, do the actual matrix-vector-product
-      fmgiprev_->Apply(*auxauxvec, *auxvec);
+      fmgiprev_->multiply(false, *auxauxvec, *auxvec);
       tmpvec->update(1.0, *auxvec, 1.0);
     }
     // ---------End of term (7)
@@ -1119,7 +1119,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
     if (firstcall_)
     {
       auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-      fggprev_->Apply(*fluid_field()->extract_interface_veln(), *auxvec);
+      fggprev_->multiply(false, *fluid_field()->extract_interface_veln(), *auxvec);
       tmpvec->update(dt() * timescale, *auxvec, 1.0);
     }
     // ---------End of term (8)

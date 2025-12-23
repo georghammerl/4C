@@ -978,7 +978,7 @@ void CONTACT::LagrangeStrategyTsi::update(std::shared_ptr<const Core::LinAlg::Ve
   dThermo.complete();
   tmp =
       std::make_shared<Core::LinAlg::Vector<double>>(*coupST_->master_to_slave_map(*gsdofrowmap_));
-  if (dThermo.Apply(*z_thermo_, *tmp) != 0) FOUR_C_THROW("apply went wrong");
+  dThermo.multiply(false, *z_thermo_, *tmp);
   CONTACT::Utils::add_vector(*tmp, *ftcnp_);
 
   Core::LinAlg::SparseMatrix mThermo(*coupST_->master_to_slave_map(*gsdofrowmap_), 100, true, false,

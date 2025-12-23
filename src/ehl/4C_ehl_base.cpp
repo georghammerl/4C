@@ -298,8 +298,7 @@ void EHL::Base::add_pressure_force(
   std::shared_ptr<Core::LinAlg::Vector<double>> p_full =
       std::make_shared<Core::LinAlg::Vector<double>>(
           *lubrication_->lubrication_field()->dof_row_map(1));
-  if (lubrimaptransform_->Apply(*lubrication_->lubrication_field()->prenp(), *p_full))
-    FOUR_C_THROW("apply failed");
+  lubrimaptransform_->multiply(false, *lubrication_->lubrication_field()->prenp(), *p_full);
   std::shared_ptr<Core::LinAlg::Vector<double>> p_exp =
       std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->slave_dof_map());
   p_exp = ada_strDisp_to_lubDisp_->slave_to_master(*p_full);
@@ -338,7 +337,7 @@ void EHL::Base::add_poiseuille_force(
   m.scale(-.5);
 
   Core::LinAlg::Vector<double> poiseuille_force(*mortaradapter_->slave_dof_map());
-  m.Apply(p_int_full, poiseuille_force);
+  m.multiply(false, p_int_full, poiseuille_force);
 
   Core::LinAlg::Vector<double> slave_psl(mortaradapter_->get_mortar_matrix_d()->domain_map());
   Core::LinAlg::Vector<double> master_psl(mortaradapter_->get_mortar_matrix_m()->domain_map());

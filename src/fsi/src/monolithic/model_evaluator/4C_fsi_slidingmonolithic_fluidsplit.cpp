@@ -512,7 +512,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->domain_map(), true);
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fgg.row_map(), true);
 
-  fgg.Apply(*fveln, *auxvec);
+  fgg.multiply(false, *fveln, *auxvec);
   mortarp->multiply(true, *auxvec, *rhs);
 
   if (structure_field()->get_stc_algo() == Inpar::Solid::stc_currsym)
@@ -532,8 +532,8 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fgg.range_map(), true);
   tmpvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-  mortarp->Apply(*ddgpred_, *tmpvec);
-  fgg.Apply(*tmpvec, *auxvec);
+  mortarp->multiply(false, *ddgpred_, *tmpvec);
+  fgg.multiply(false, *tmpvec, *auxvec);
   mortarp->multiply(true, *auxvec, *rhs);
 
   rhs->scale(-scale * (1. - stiparam) / (1. - ftiparam) * timescale);
@@ -552,8 +552,8 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmgg.range_map(), true);
     tmpvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-    mortarp->Apply(*ddgpred_, *tmpvec);
-    fmgg.Apply(*tmpvec, *auxvec);
+    mortarp->multiply(false, *ddgpred_, *tmpvec);
+    fmgg.multiply(false, *tmpvec, *auxvec);
     mortarp->multiply(true, *auxvec, *rhs);
 
     rhs->scale(-(1. - stiparam) / (1. - ftiparam));
@@ -583,7 +583,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fig.row_map(), true);
 
-  fig.Apply(*fveln, *rhs);
+  fig.multiply(false, *fveln, *rhs);
 
   rhs->scale(dt() * timescale);
 
@@ -596,8 +596,8 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fig.range_map(), true);
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-  mortarp->Apply(*ddgpred_, *auxvec);
-  fig.Apply(*auxvec, *rhs);
+  mortarp->multiply(false, *ddgpred_, *auxvec);
+  fig.multiply(false, *auxvec, *rhs);
 
   rhs->scale(-timescale);
 
@@ -615,8 +615,8 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmig.range_map(), true);
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-    mortarp->Apply(*ddgpred_, *auxvec);
-    fmig.Apply(*auxvec, *rhs);
+    mortarp->multiply(false, *ddgpred_, *auxvec);
+    fmig.multiply(false, *auxvec, *rhs);
 
     rhs->scale(-1.);
 
@@ -639,8 +639,8 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(aig.range_map(), true);
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-  mortarp->Apply(*ddgpred_, *auxvec);
-  aig.Apply(*fluid_to_ale_interface(auxvec), *rhs);
+  mortarp->multiply(false, *ddgpred_, *auxvec);
+  aig.multiply(false, *fluid_to_ale_interface(auxvec), *rhs);
 
   rhs->scale(-1.0);
 
@@ -660,7 +660,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(a->matrix(0, 1).row_map());
 
-    a->matrix(0, 1).Apply(*fluid_to_ale_interface(iprojdispinc_), *rhs);
+    a->matrix(0, 1).multiply(false, *fluid_to_ale_interface(iprojdispinc_), *rhs);
 
     extractor().add_vector(*rhs, 2, f);
 
@@ -674,7 +674,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
 
       rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmgg.row_map());
 
-      fmgg.Apply(*iprojdispinc_, *rhs);
+      fmgg.multiply(false, *iprojdispinc_, *rhs);
 
       Core::LinAlg::Vector<double> tmprhs(mortarp->domain_map());
       mortarp->multiply(true, *rhs, tmprhs);
@@ -696,7 +696,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<
 
       rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmig.row_map());
 
-      fmig.Apply(*iprojdispinc_, *rhs);
+      fmig.multiply(false, *iprojdispinc_, *rhs);
 
       rhs = fsi_fluid_field()->fsi_interface()->insert_other_vector(*rhs);
 
@@ -1095,7 +1095,7 @@ void FSI::SlidingMonolithicFluidSplit::unscale_solution(Core::LinAlg::BlockSpars
   // very simple hack just to see the linear solution
 
   Core::LinAlg::Vector<double> r(b.get_map());
-  mat.Apply(x, r);
+  mat.multiply(false, x, r);
   r.update(1., b, 1.);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> sr = extractor().extract_vector(r, 0);
@@ -1365,7 +1365,7 @@ void FSI::SlidingMonolithicFluidSplit::extract_field_vectors(
   scx->update(1.0, *ddgpred_, 1.0);
   std::shared_ptr<Core::LinAlg::Vector<double>> acx =
       std::make_shared<Core::LinAlg::Vector<double>>(*fluid_field()->interface()->fsi_cond_map());
-  mortarp->Apply(*scx, *acx);
+  mortarp->multiply(false, *scx, *acx);
   acx = fluid_to_ale_interface(acx);
 
   // put inner and interface ALE solution increments together
@@ -1662,9 +1662,9 @@ void FSI::SlidingMonolithicFluidSplit::recover_lagrange_multiplier()
 
   // ---------Addressing term (4)
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
-  mortarp->Apply(*ddginc_, *auxvec);
+  mortarp->multiply(false, *ddginc_, *auxvec);
   auxauxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-  fggprev_->Apply(*auxvec, *auxauxvec);
+  fggprev_->multiply(false, *auxvec, *auxauxvec);
   tmpvec->update(timescale, *auxauxvec, 1.0);
   // ---------End of term (4)
 
@@ -1672,15 +1672,15 @@ void FSI::SlidingMonolithicFluidSplit::recover_lagrange_multiplier()
   if (fmggprev_ != nullptr)
   {
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
-    mortarp->Apply(*ddginc_, *auxvec);
-    fmggprev_->Apply(*auxvec, *auxauxvec);
+    mortarp->multiply(false, *ddginc_, *auxvec);
+    fmggprev_->multiply(false, *auxvec, *auxauxvec);
     tmpvec->update(1.0, *auxauxvec, 1.0);
   }
   // ---------End of term (5)
 
   // ---------Addressing term (6)
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fgiprev_->range_map(), true);
-  fgiprev_->Apply(*duiinc_, *auxvec);
+  fgiprev_->multiply(false, *duiinc_, *auxvec);
   tmpvec->update(1.0, *auxvec, 1.0);
   // ---------End of term (6)
 
@@ -1723,7 +1723,7 @@ void FSI::SlidingMonolithicFluidSplit::recover_lagrange_multiplier()
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmgiprev_->range_map(), true);
 
     // Now, do the actual matrix-vector-product
-    fmgiprev_->Apply(*auxauxvec, *auxvec);
+    fmgiprev_->multiply(false, *auxauxvec, *auxvec);
     tmpvec->update(1.0, *auxvec, 1.0);
   }
   // ---------End of term (7)
@@ -1732,7 +1732,7 @@ void FSI::SlidingMonolithicFluidSplit::recover_lagrange_multiplier()
   if (firstcall_)
   {
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-    fggprev_->Apply(*fluid_field()->extract_interface_veln(), *auxvec);
+    fggprev_->multiply(false, *fluid_field()->extract_interface_veln(), *auxvec);
     tmpvec->update(dt() * timescale, *auxvec, 1.0);
   }
   // ---------End of term (8)
@@ -1826,12 +1826,12 @@ void FSI::SlidingMonolithicFluidSplit::check_kinematic_constraint()
   Core::LinAlg::Vector<double> velnproj(mortard->range_map(), true);
 
   // projection of interface displacements
-  mortarm->Apply(*disnp, disnpproj);
-  mortarm->Apply(*disn, disnproj);
+  mortarm->multiply(false, *disnp, disnpproj);
+  mortarm->multiply(false, *disn, disnproj);
 
   // projection of interface velocities
-  mortard->Apply(*velnp, velnpproj);
-  mortard->Apply(*veln, velnproj);
+  mortard->multiply(false, *velnp, velnpproj);
+  mortard->multiply(false, *veln, velnproj);
 
   // calculate violation of kinematic interface constraint
   Core::LinAlg::Vector<double> violation(disnpproj);

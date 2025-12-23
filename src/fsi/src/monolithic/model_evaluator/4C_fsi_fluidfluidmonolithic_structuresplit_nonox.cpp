@@ -211,14 +211,14 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
 
     // ----------addressing term 1
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(sig.row_map(), true);
-    sig.Apply(*ddgpred_, *rhs);
+    sig.multiply(false, *ddgpred_, *rhs);
 
     extractor().add_vector(*rhs, 0, f);
 
     // ----------addressing term 2
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(sig.row_map(), true);
     std::shared_ptr<Core::LinAlg::Vector<double>> fveln = fluid_field()->extract_interface_veln();
-    sig.Apply(*fluid_to_struct(fveln), *rhs);
+    sig.multiply(false, *fluid_to_struct(fveln), *rhs);
     rhs->scale(-dt);
 
     extractor().add_vector(*rhs, 0, f);
@@ -244,7 +244,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
     {
       Core::LinAlg::SparseMatrix& fmig = mmm->matrix(0, 1);
       rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmig.row_map(), true);
-      fmig.Apply(*fveln, *rhs);
+      fmig.multiply(false, *fveln, *rhs);
       rhs->scale(-dt);
 
       rhs = fluid_field()->interface()->insert_other_vector(*rhs);
@@ -275,7 +275,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
     {
       Core::LinAlg::SparseMatrix& fmgg = mmm->matrix(1, 1);
       rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmgg.row_map(), true);
-      fmgg.Apply(*fveln, *rhs);
+      fmgg.multiply(false, *fveln, *rhs);
       rhs->scale(-dt);
       rhs = fluid_field()->interface()->insert_fsi_cond_vector(*rhs);
       extractor().add_vector(*rhs, 1, f);
@@ -283,7 +283,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
 
     // ----------addressing term 2
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(sgg.row_map(), true);
-    sgg.Apply(*fluid_to_struct(fveln), *rhs);
+    sgg.multiply(false, *fluid_to_struct(fveln), *rhs);
     rhs->scale(-dt * (1. - ftiparam) / ((1 - stiparam) * scale));
 
     rhs = struct_to_fluid(rhs);
@@ -292,7 +292,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
 
     // ----------addressing term 3
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(sgg.row_map(), true);
-    sgg.Apply(*ddgpred_, *rhs);
+    sgg.multiply(false, *ddgpred_, *rhs);
     rhs->scale((1. - ftiparam) / ((1 - stiparam) * scale));
 
     rhs = struct_to_fluid(rhs);
@@ -302,7 +302,7 @@ void FSI::FluidFluidMonolithicStructureSplitNoNOX::setup_rhs(
     // ----------addressing term 1
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(aig.row_map(), true);
 
-    aig.Apply(*fluid_to_ale_interface(fveln), *rhs);
+    aig.multiply(false, *fluid_to_ale_interface(fveln), *rhs);
     rhs->scale(-dt);
     extractor().add_vector(*rhs, 2, f);
     // ---------- end of inner ale DOFs

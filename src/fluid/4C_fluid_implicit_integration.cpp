@@ -5307,7 +5307,7 @@ void FLD::FluidImplicitTimeInt::linear_relaxation_solve(
   {
     // Calculate rhs due to mesh movement induced by the interface
     // displacement.
-    meshmatrix_->Apply(*gridv_, *residual_);
+    meshmatrix_->multiply(false, *gridv_, *residual_);
     residual_->scale(-dta_);
   }
 
@@ -5326,15 +5326,13 @@ void FLD::FluidImplicitTimeInt::linear_relaxation_solve(
   solver_->solve(sysmat_, incvel_, residual_, solver_params);
 
   // and now we need the reaction forces
-
-  if (dirichletlines_->Apply(*incvel_, *trueresidual_) != 0)
-    FOUR_C_THROW("dirichletlines_->Apply() failed");
+  dirichletlines_->multiply(false, *incvel_, *trueresidual_);
 
   if (meshmatrix_ != nullptr)
   {
     // Calculate rhs due to mesh movement induced by the interface
     // displacement.
-    meshmatrix_->Apply(*gridv_, *residual_);
+    meshmatrix_->multiply(false, *gridv_, *residual_);
     trueresidual_->update(dta_, *residual_, 1.0);
   }
 
