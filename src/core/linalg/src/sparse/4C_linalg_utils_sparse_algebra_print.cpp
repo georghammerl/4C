@@ -9,6 +9,8 @@
 
 #include "4C_linalg_blocksparsematrix.hpp"
 
+#include <EpetraExt_CrsMatrixIn.h>
+
 #include <fstream>
 
 FOUR_C_NAMESPACE_OPEN
@@ -226,6 +228,20 @@ void Core::LinAlg::print_map_in_matlab_format(
     // wait, until proc 0 has written
     Core::Communication::barrier(comm);
   }
+}
+
+
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+Core::LinAlg::SparseMatrix Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+    const std::string& filename, MPI_Comm comm)
+{
+  Epetra_CrsMatrix* crs_marix;
+
+  ASSERT_EPETRA_CALL(EpetraExt::MatrixMarketFileToCrsMatrix(
+      filename.c_str(), Core::Communication::as_epetra_comm(comm), crs_marix));
+
+  return SparseMatrix(std::shared_ptr<Epetra_CrsMatrix>(crs_marix), DataAccess::Share);
 }
 
 FOUR_C_NAMESPACE_CLOSE

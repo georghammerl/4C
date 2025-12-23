@@ -11,9 +11,8 @@
 
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
+#include "4C_linalg_utils_sparse_algebra_print.hpp"
 #include "4C_unittest_utils_support_files_test.hpp"
-
-#include <EpetraExt_CrsMatrixIn.h>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -37,18 +36,11 @@ namespace
    */
   TEST_F(SparseAlgebraManipulationTest, ThresholdMatrix1)
   {
-    Epetra_CrsMatrix* A;
-
-    int err = EpetraExt::MatrixMarketFileToCrsMatrix(
-        TESTING::get_support_file_path("test_matrices/poisson1d.mm").c_str(),
-        Core::Communication::as_epetra_comm(comm_), A);
-    if (err != 0) FOUR_C_THROW("Matrix read failed.");
-    std::shared_ptr<Epetra_CrsMatrix> A_crs = Core::Utils::shared_ptr_from_ref(*A);
-    Core::LinAlg::SparseMatrix A_sparse(A_crs, Core::LinAlg::DataAccess::Copy);
+    Core::LinAlg::SparseMatrix A = Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+        TESTING::get_support_file_path("test_matrices/poisson1d.mm").c_str(), comm_);
 
     const double tol = 1.1;
-    std::shared_ptr<Core::LinAlg::SparseMatrix> A_thresh =
-        Core::LinAlg::threshold_matrix(A_sparse, tol);
+    auto A_thresh = Core::LinAlg::threshold_matrix(A, tol);
 
     // Check for global entries
     const int A_thresh_nnz = A_thresh->num_global_nonzeros();
@@ -64,18 +56,11 @@ namespace
    */
   TEST_F(SparseAlgebraManipulationTest, ThresholdMatrix2)
   {
-    Epetra_CrsMatrix* A;
-
-    int err = EpetraExt::MatrixMarketFileToCrsMatrix(
-        TESTING::get_support_file_path("test_matrices/filter.mm").c_str(),
-        Core::Communication::as_epetra_comm(comm_), A);
-    if (err != 0) FOUR_C_THROW("Matrix read failed.");
-    std::shared_ptr<Epetra_CrsMatrix> A_crs = Core::Utils::shared_ptr_from_ref(*A);
-    Core::LinAlg::SparseMatrix A_sparse(A_crs, Core::LinAlg::DataAccess::Copy);
+    Core::LinAlg::SparseMatrix A = Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+        TESTING::get_support_file_path("test_matrices/filter.mm").c_str(), comm_);
 
     const double tol = 1e-5;
-    std::shared_ptr<Core::LinAlg::SparseMatrix> A_thresh =
-        Core::LinAlg::threshold_matrix(A_sparse, tol);
+    auto A_thresh = Core::LinAlg::threshold_matrix(A, tol);
 
     // Check for global entries
     const int A_thresh_nnz = A_thresh->num_global_nonzeros();
@@ -91,17 +76,11 @@ namespace
    */
   TEST_F(SparseAlgebraManipulationTest, ThresholdMatrixGraph)
   {
-    Epetra_CrsMatrix* A;
-
-    int err = EpetraExt::MatrixMarketFileToCrsMatrix(
-        TESTING::get_support_file_path("test_matrices/filter.mm").c_str(),
-        Core::Communication::as_epetra_comm(comm_), A);
-    if (err != 0) FOUR_C_THROW("Matrix read failed.");
-    std::shared_ptr<Epetra_CrsMatrix> A_crs = Core::Utils::shared_ptr_from_ref(*A);
-    Core::LinAlg::SparseMatrix A_sparse(A_crs, Core::LinAlg::DataAccess::Copy);
+    Core::LinAlg::SparseMatrix A = Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+        TESTING::get_support_file_path("test_matrices/filter.mm").c_str(), comm_);
 
     const double tol = 1e-5;
-    std::shared_ptr<Core::LinAlg::Graph> G = Core::LinAlg::threshold_matrix_graph(A_sparse, tol);
+    std::shared_ptr<Core::LinAlg::Graph> G = Core::LinAlg::threshold_matrix_graph(A, tol);
 
     // Check for global entries
     const int A_thresh_nnz = G->num_global_nonzeros();
@@ -116,19 +95,13 @@ namespace
    */
   TEST_F(SparseAlgebraManipulationTest, EnrichMatrixGraph1)
   {
-    Epetra_CrsMatrix* A;
-
-    int err = EpetraExt::MatrixMarketFileToCrsMatrix(
-        TESTING::get_support_file_path("test_matrices/poisson1d.mm").c_str(),
-        Core::Communication::as_epetra_comm(comm_), A);
-    if (err != 0) FOUR_C_THROW("Matrix read failed.");
-    std::shared_ptr<Epetra_CrsMatrix> A_crs = Core::Utils::shared_ptr_from_ref(*A);
-    Core::LinAlg::SparseMatrix A_sparse(A_crs, Core::LinAlg::DataAccess::Copy);
+    Core::LinAlg::SparseMatrix A = Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+        TESTING::get_support_file_path("test_matrices/poisson1d.mm").c_str(), comm_);
 
     {
       const int power = 0;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 58);
@@ -137,7 +110,7 @@ namespace
     {
       const int power = -3;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 58);
@@ -146,7 +119,7 @@ namespace
     {
       const int power = 1;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 58);
@@ -155,7 +128,7 @@ namespace
     {
       const int power = 2;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 94);
@@ -164,7 +137,7 @@ namespace
     {
       const int power = 3;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 128);
@@ -173,7 +146,7 @@ namespace
     {
       const int power = 4;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 160);
@@ -182,19 +155,13 @@ namespace
 
   TEST_F(SparseAlgebraManipulationTest, EnrichMatrixGraph2)
   {
-    Epetra_CrsMatrix* A;
-
-    int err = EpetraExt::MatrixMarketFileToCrsMatrix(
-        TESTING::get_support_file_path("test_matrices/beamI.mm").c_str(),
-        Core::Communication::as_epetra_comm(comm_), A);
-    if (err != 0) FOUR_C_THROW("Matrix read failed.");
-    std::shared_ptr<Epetra_CrsMatrix> A_crs = Core::Utils::shared_ptr_from_ref(*A);
-    Core::LinAlg::SparseMatrix A_sparse(A_crs, Core::LinAlg::DataAccess::Copy);
+    Core::LinAlg::SparseMatrix A = Core::LinAlg::read_matrix_market_file_as_sparse_matrix(
+        TESTING::get_support_file_path("test_matrices/beamI.mm").c_str(), comm_);
 
     {
       const int power = 3;
       std::shared_ptr<Core::LinAlg::Graph> graph_enriched =
-          Core::LinAlg::enrich_matrix_graph(A_sparse, power);
+          Core::LinAlg::enrich_matrix_graph(A, power);
 
       // Check for global entries
       EXPECT_EQ(graph_enriched->num_global_nonzeros(), 228400);

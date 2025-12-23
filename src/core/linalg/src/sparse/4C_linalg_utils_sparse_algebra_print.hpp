@@ -44,6 +44,26 @@ namespace Core::LinAlg
   void print_map_in_matlab_format(
       const std::string& filename, const Core::LinAlg::Map& map, const bool newfile = true);
 
+  /**
+   * @brief Read a Matrix Market file and construct a distributed sparse matrix.
+   *
+   * This function reads a matrix stored in the standard **Matrix Market (.mtx)**
+   * format from disk and converts it into a Core::LinAlg::SparseMatrix.
+   * The matrix is distributed across MPI processes according to the communicator provided.
+   *
+   * The function assumes the Matrix Market file represents a sparse matrix and that all MPI ranks
+   * in the communicator collectively participate in the read and construction process.
+   *
+   * @param filename Path to the Matrix Market (.mtx) file to be read.
+   * @param comm MPI communicator over which the sparse matrix will be distributed.
+   *
+   * @return A Core::LinAlg::SparseMatrix containing the data read from the file, distributed
+   *         across the given MPI communicator.
+   */
+  Core::LinAlg::SparseMatrix read_matrix_market_file_as_sparse_matrix(
+      const std::string& filename, MPI_Comm comm);
+
+
 }  // namespace Core::LinAlg
 
 FOUR_C_NAMESPACE_CLOSE
