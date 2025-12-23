@@ -488,8 +488,6 @@ namespace Core::IO
       [[nodiscard]] virtual bool emit(YamlNodeRef node, const InputParameterContainer&,
           const InputSpecEmitOptions& options) const = 0;
 
-      [[nodiscard]] virtual std::string pretty_type_name() const = 0;
-
       [[nodiscard]] virtual std::unique_ptr<InputSpecImpl> clone() const = 0;
 
       [[nodiscard]] const std::string& name() const { return data.name; }
@@ -547,21 +545,6 @@ namespace Core::IO
           const InputSpecEmitOptions& options) const override
       {
         return wrapped.emit(node, container, options);
-      }
-
-      [[nodiscard]] std::string pretty_type_name() const override
-      {
-        if constexpr (StoresType<T>)
-        {
-          return Internal::get_pretty_type_name<typename T::StoredType>();
-        }
-        else
-        {
-          FOUR_C_ASSERT(false,
-              "Implementation error: this function should only be called for "
-              "types that store a type.");
-          return "unknown";
-        }
       }
 
       [[nodiscard]] std::unique_ptr<InputSpecImpl> clone() const override
