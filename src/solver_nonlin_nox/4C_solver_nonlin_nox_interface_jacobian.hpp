@@ -10,6 +10,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_linalg_vector.hpp"
 #include "4C_solver_nonlin_nox_enum_lists.hpp"
 #include "4C_solver_nonlin_nox_forward_decl.hpp"
 #include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
@@ -22,7 +23,8 @@ FOUR_C_NAMESPACE_OPEN
 namespace Core::LinAlg
 {
   class SparseMatrix;
-}
+  class SparseOperator;
+}  // namespace Core::LinAlg
 
 namespace NOX
 {
@@ -39,15 +41,15 @@ namespace NOX
         /*! \brief Compute RHS and Jacobian at once.
          *
          *  \return TRUE if computation was successful. */
-        virtual bool compute_f_and_jacobian(
-            const Epetra_Vector& x, Epetra_Vector& rhs, Epetra_Operator& jac) = 0;
+        virtual bool compute_f_and_jacobian(const Core::LinAlg::Vector<double>& x,
+            Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) = 0;
 
         /*! \brief Compute the correction system of given type.
          *
          *  \return TRUE if computation was successful. */
         virtual bool compute_correction_system(const CorrectionType type,
-            const ::NOX::Abstract::Group& grp, const Epetra_Vector& x, Epetra_Vector& rhs,
-            Epetra_Operator& jac)
+            const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
+            Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac)
         {
           return false;
         };
