@@ -111,7 +111,7 @@ void PoroElast::MonolithicFluidSplit::setup_rhs(bool firstcall)
     std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
         std::make_shared<Core::LinAlg::Vector<double>>(fig.row_map());
 
-    fig.Apply(*fveln, *rhs);
+    fig.multiply(false, *fveln, *rhs);
     rhs->scale(timescale * dt());
 
 #ifdef FLUIDSPLITAMG
@@ -122,7 +122,7 @@ void PoroElast::MonolithicFluidSplit::setup_rhs(bool firstcall)
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fgg.row_map());
 
-    fgg.Apply(*fveln, *rhs);
+    fgg.multiply(false, *fveln, *rhs);
     rhs->scale(scale * timescale * dt());
     rhs->scale(
         (1.0 - stiparam) / (1.0 - ftiparam));  // scale 'rhs' due to consistent time integration
@@ -134,7 +134,7 @@ void PoroElast::MonolithicFluidSplit::setup_rhs(bool firstcall)
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(kig.row_map());
 
-    kig.Apply(*fveln, *rhs);
+    kig.multiply(false, *fveln, *rhs);
     rhs->scale(timescale * dt());
 
     rhs = structure_field()->interface()->insert_other_vector(*rhs);
@@ -143,7 +143,7 @@ void PoroElast::MonolithicFluidSplit::setup_rhs(bool firstcall)
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(kgg.row_map());
 
-    kgg.Apply(*fveln, *rhs);
+    kgg.multiply(false, *fveln, *rhs);
     rhs->scale(timescale * dt());
 
     rhs = structure_field()->interface()->insert_fsi_cond_vector(*rhs);

@@ -439,7 +439,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fgg.range_map(), true);
 
-  fgg.Apply(*fveln, *rhs);
+  fgg.multiply(false, *fveln, *rhs);
 
   rhs->scale(scale * (1. - stiparam) / (1. - ftiparam) * dt() * timescale);
 
@@ -458,7 +458,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
   // ----------addressing term 2:
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fgg.range_map(), true);
 
-  fgg.Apply(*struct_to_fluid(ddgpred_), *rhs);
+  fgg.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
   rhs->scale(-scale * (1. - stiparam) / (1. - ftiparam) * timescale);
   rhs = structure_field()->interface()->insert_fsi_cond_vector(*fluid_to_struct(rhs));
@@ -474,7 +474,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmgg.range_map(), true);
 
-    fmgg.Apply(*struct_to_fluid(ddgpred_), *rhs);
+    fmgg.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
     rhs->scale(-(1. - stiparam) / (1. - ftiparam));
     rhs = structure_field()->interface()->insert_fsi_cond_vector(*fluid_to_struct(rhs));
@@ -503,7 +503,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fig.range_map(), true);
 
-  fig.Apply(*fveln, *rhs);
+  fig.multiply(false, *fveln, *rhs);
 
   rhs->scale(dt() * timescale);
 
@@ -515,7 +515,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
   // ----------addressing term 2
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(fig.range_map(), true);
 
-  fig.Apply(*struct_to_fluid(ddgpred_), *rhs);
+  fig.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
   rhs->scale(-timescale);
 
@@ -532,7 +532,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmig.range_map(), true);
 
-    fmig.Apply(*struct_to_fluid(ddgpred_), *rhs);
+    fmig.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
     rhs->scale(-1.);
 
@@ -554,7 +554,7 @@ void FSI::MonolithicFluidSplit::setup_rhs_firstiter(Core::LinAlg::Vector<double>
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(aig.range_map(), true);
 
-  aig.Apply(*struct_to_ale(ddgpred_), *rhs);
+  aig.multiply(false, *struct_to_ale(ddgpred_), *rhs);
   rhs->scale(-1.0);
 
   extractor().add_vector(*rhs, 2, f);
@@ -929,7 +929,7 @@ void FSI::MonolithicFluidSplit::unscale_solution(Core::LinAlg::BlockSparseMatrix
   // very simple hack just to see the linear solution
 
   Core::LinAlg::Vector<double> r(b.get_map());
-  mat.Apply(x, r);
+  mat.multiply(false, x, r);
   r.update(1., b, 1.);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> sr = extractor().extract_vector(r, 0);
@@ -1424,7 +1424,7 @@ void FSI::MonolithicFluidSplit::recover_lagrange_multiplier()
 
   // ---------Addressing term (4)
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-  fggprev_->Apply(*struct_to_fluid(ddginc_), *auxvec);
+  fggprev_->multiply(false, *struct_to_fluid(ddginc_), *auxvec);
   tmpvec->update(timescale, *auxvec, 1.0);
   // ---------End of term (4)
 
@@ -1432,14 +1432,14 @@ void FSI::MonolithicFluidSplit::recover_lagrange_multiplier()
   if (fmggprev_ != nullptr)
   {
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmggprev_->range_map(), true);
-    fmggprev_->Apply(*struct_to_fluid(ddginc_), *auxvec);
+    fmggprev_->multiply(false, *struct_to_fluid(ddginc_), *auxvec);
     tmpvec->update(1.0, *auxvec, 1.0);
   }
   // ---------End of term (5)
 
   // ---------Addressing term (6)
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fgiprev_->range_map(), true);
-  fgiprev_->Apply(*duiinc_, *auxvec);
+  fgiprev_->multiply(false, *duiinc_, *auxvec);
   tmpvec->update(1.0, *auxvec, 1.0);
   // ---------End of term (6)
 
@@ -1480,7 +1480,7 @@ void FSI::MonolithicFluidSplit::recover_lagrange_multiplier()
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fmgiprev_->range_map(), true);
 
     // Now, do the actual matrix-vector-product
-    fmgiprev_->Apply(*auxauxvec, *auxvec);
+    fmgiprev_->multiply(false, *auxauxvec, *auxvec);
     tmpvec->update(1.0, *auxvec, 1.0);
   }
   // ---------End of term (7)
@@ -1489,7 +1489,7 @@ void FSI::MonolithicFluidSplit::recover_lagrange_multiplier()
   if (firstcall_)
   {
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-    fggprev_->Apply(*fluid_field()->extract_interface_veln(), *auxvec);
+    fggprev_->multiply(false, *fluid_field()->extract_interface_veln(), *auxvec);
     tmpvec->update(dt() * timescale, *auxvec, 1.0);
   }
   // ---------End of term (8)

@@ -55,8 +55,7 @@ void NOX::FSI::LinearSystem::reset(Teuchos::ParameterList& linearSolverParams)
 bool NOX::FSI::LinearSystem::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  jac_ptr_->SetUseTranspose(false);
-  int status = jac_ptr_->Apply(input.get_linalg_vector(), result.get_linalg_vector());
+  int status = jac_ptr_->multiply(false, input.get_linalg_vector(), result.get_linalg_vector());
 
   return status == 0;
 }
@@ -67,9 +66,7 @@ bool NOX::FSI::LinearSystem::apply_jacobian(
 bool NOX::FSI::LinearSystem::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  jac_ptr_->SetUseTranspose(true);
-  int status = jac_ptr_->Apply(input.get_linalg_vector(), result.get_linalg_vector());
-  jac_ptr_->SetUseTranspose(false);
+  int status = jac_ptr_->multiply(true, input.get_linalg_vector(), result.get_linalg_vector());
 
   return status == 0;
 }

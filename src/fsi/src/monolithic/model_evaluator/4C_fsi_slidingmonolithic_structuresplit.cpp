@@ -515,8 +515,8 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(sig.range_map(), true);
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-  mortarp->Apply(*fveln, *auxvec);
-  sig.Apply(*auxvec, *rhs);
+  mortarp->multiply(false, *fveln, *auxvec);
+  sig.multiply(false, *auxvec, *rhs);
 
   rhs->scale(-dt());
 
@@ -526,7 +526,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   // ----------addressing term 2
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(sig.range_map(), true);
 
-  sig.Apply(*ddgpred_, *rhs);
+  sig.multiply(false, *ddgpred_, *rhs);
 
   extractor().add_vector(*rhs, 0, f);
   // ----------end of term 2
@@ -548,7 +548,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmig.range_map(), true);
 
-    fmig.Apply(*fveln, *rhs);
+    fmig.multiply(false, *fveln, *rhs);
 
     rhs->scale(-dt());
     rhs = fsi_fluid_field()->fsi_interface()->insert_other_vector(*rhs);
@@ -582,7 +582,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fmgg.range_map(), true);
 
-    fmgg.Apply(*fveln, *rhs);
+    fmgg.multiply(false, *fveln, *rhs);
 
     rhs->scale(-dt());
     rhs = fluid_field()->interface()->insert_fsi_cond_vector(*rhs);
@@ -596,8 +596,8 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(sgg.range_map(), true);
   tmpvec = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->range_map(), true);
 
-  mortarp->Apply(*fveln, *tmpvec);
-  sgg.Apply(*tmpvec, *auxvec);
+  mortarp->multiply(false, *fveln, *tmpvec);
+  sgg.multiply(false, *tmpvec, *auxvec);
   mortarp->multiply(true, *auxvec, *rhs);
 
   rhs->scale(-(1. - ftiparam) / (1. - stiparam) * dt() / scale);
@@ -610,7 +610,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(mortarp->domain_map(), true);
   auxvec = std::make_shared<Core::LinAlg::Vector<double>>(sgg.range_map(), true);
 
-  sgg.Apply(*ddgpred_, *auxvec);
+  sgg.multiply(false, *ddgpred_, *auxvec);
   mortarp->multiply(true, *auxvec, *rhs);
 
   rhs->scale((1. - ftiparam) / (1. - stiparam) / scale);
@@ -631,7 +631,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(aig.range_map(), true);
 
-  aig.Apply(*fluid_to_ale_interface(fveln), *rhs);
+  aig.multiply(false, *fluid_to_ale_interface(fveln), *rhs);
 
   rhs->scale(-dt());
 
@@ -644,7 +644,7 @@ void FSI::SlidingMonolithicStructureSplit::setup_rhs_firstiter(Core::LinAlg::Vec
   {
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(aig.row_map(), true);
 
-    aig.Apply(*fluid_to_ale_interface(iprojdispinc_), *rhs);
+    aig.multiply(false, *fluid_to_ale_interface(iprojdispinc_), *rhs);
 
     extractor().add_vector(*rhs, 2, f);
   }
@@ -951,7 +951,7 @@ void FSI::SlidingMonolithicStructureSplit::unscale_solution(
   // very simple hack just to see the linear solution
 
   Core::LinAlg::Vector<double> r(b.get_map());
-  mat.Apply(x, r);
+  mat.multiply(false, x, r);
   r.update(1., b, 1.);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> sr = extractor().extract_vector(r, 0);
@@ -1240,7 +1240,7 @@ void FSI::SlidingMonolithicStructureSplit::extract_field_vectors(
       std::make_shared<Core::LinAlg::Vector<double>>(
           *structure_field()->interface()->fsi_cond_map());
   acx = ale_to_fluid_interface(acx);
-  mortarp->Apply(*acx, *scx);
+  mortarp->multiply(false, *acx, *scx);
   scx->update(-1.0, *ddgpred_, 1.0);
 
   // put inner and interface structure solution increments together
@@ -1540,12 +1540,12 @@ void FSI::SlidingMonolithicStructureSplit::check_kinematic_constraint()
   Core::LinAlg::Vector<double> velnproj(mortarm->range_map(), true);
 
   // projection of interface displacements
-  mortard->Apply(*disnp, disnpproj);
-  mortard->Apply(*disn, disnproj);
+  mortard->multiply(false, *disnp, disnpproj);
+  mortard->multiply(false, *disn, disnproj);
 
   // projection of interface velocities
-  mortarm->Apply(*velnp, velnpproj);
-  mortarm->Apply(*veln, velnproj);
+  mortarm->multiply(false, *velnp, velnpproj);
+  mortarm->multiply(false, *veln, velnproj);
 
   // calculate violation of kinematic interface constraint
   Core::LinAlg::Vector<double> violation(disnpproj);

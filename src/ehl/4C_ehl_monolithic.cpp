@@ -1605,8 +1605,7 @@ void EHL::Monolithic::lin_pressure_force_disp(
   std::shared_ptr<Core::LinAlg::Vector<double>> p_full =
       std::make_shared<Core::LinAlg::Vector<double>>(
           *lubrication_->lubrication_field()->dof_row_map(1));
-  if (lubrimaptransform_->Apply(*lubrication_->lubrication_field()->prenp(), *p_full))
-    FOUR_C_THROW("apply failed");
+  lubrimaptransform_->multiply(false, *lubrication_->lubrication_field()->prenp(), *p_full);
   std::shared_ptr<Core::LinAlg::Vector<double>> p_exp =
       std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->slave_dof_map());
   p_exp = ada_strDisp_to_lubDisp_->slave_to_master(*p_full);
@@ -1639,7 +1638,7 @@ void EHL::Monolithic::lin_poiseuille_force_disp(
   slavemaptransform_->multiply(false, *mortaradapter_->nodal_gap(), nodal_gap);
 
   Core::LinAlg::Vector<double> grad_p(*mortaradapter_->slave_dof_map());
-  if (mortaradapter_->surf_grad_matrix()->Apply(p_int_full, grad_p)) FOUR_C_THROW("apply failed");
+  mortaradapter_->surf_grad_matrix()->multiply(false, p_int_full, grad_p);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> deriv_Poiseuille =
       std::make_shared<Core::LinAlg::SparseMatrix>(

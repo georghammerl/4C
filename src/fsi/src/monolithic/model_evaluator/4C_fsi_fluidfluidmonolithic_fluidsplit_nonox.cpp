@@ -259,7 +259,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
     // Compute F_{\Gamma\Gamma}*u^n_\Gamma
     // Write into rhs
-    fgg.Apply(*fveln, *rhs);
+    fgg.multiply(false, *fveln, *rhs);
 
     // Apply scaling
     rhs->scale(
@@ -287,7 +287,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
       // Compute F^{G}_{\Gamma\Gamma} * \Delta d_{\Gamma,p}
       // Write into rhs
-      fmgg.Apply(*struct_to_fluid(ddgpred_), *rhs);
+      fmgg.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
       // Apply scaling
       rhs->scale(-1.0 * (1.0 - stimintparam) / (1.0 - ftimintparam));
@@ -308,7 +308,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
     // Compute F_{\Gamma\Gamma} * \Delta d_{\Gamma,p}
     // Write into rhs
-    fgg.Apply(*struct_to_fluid(ddgpred_), *rhs);
+    fgg.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
     // Apply scaling
     rhs->scale(
@@ -340,7 +340,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
     // Compute term F_{I\Gamma} *u^{n}_{\Gamma}
     // Write into rhs
-    fig.Apply(*fveln, *rhs);
+    fig.multiply(false, *fveln, *rhs);
 
     // Apply scaling
     rhs->scale(fluidtimescale * dt());
@@ -358,7 +358,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
     // Compute term F_{I\Gamma} * \Delta d_{\Gamma,p}
     // Write into rhs
-    fig.Apply(*struct_to_fluid(ddgpred_), *rhs);
+    fig.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
     // Apply scaling
     rhs->scale(-fluidtimescale);
@@ -379,7 +379,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
       // Compute F^{G}_{I\Gamma} * \Delta d_{\Gamma,p}
       // Write into rhs
-      fmig.Apply(*struct_to_fluid(ddgpred_), *rhs);
+      fmig.multiply(false, *struct_to_fluid(ddgpred_), *rhs);
 
       // Apply scaling
       rhs->scale(-1.0);
@@ -397,7 +397,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_rhs(
 
     // Compute term A_{I\Gamma} * \Delta d_{\Gamma,p}
     // Write into rhs
-    aig.Apply(*struct_to_ale(ddgpred_), *rhs);
+    aig.multiply(false, *struct_to_ale(ddgpred_), *rhs);
 
     // Apply scaling
     rhs->scale(-1.0);
@@ -1058,7 +1058,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::recover_lagrange_multiplier()
   if (fggprev_ != nullptr)
   {
     fggddg = std::make_shared<Core::LinAlg::Vector<double>>(fggprev_->range_map(), true);
-    fggprev_->Apply(*struct_to_fluid(ddginc_), *fggddg);
+    fggprev_->multiply(false, *struct_to_fluid(ddginc_), *fggddg);
     tmpvec->update(fluidtimescale, *fggddg, 1.0);
   }
 
@@ -1066,7 +1066,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::recover_lagrange_multiplier()
   if (fmggprev_ != nullptr)
   {
     Core::LinAlg::Vector<double> fmggddg(fmggprev_->range_map(), true);
-    fmggprev_->Apply(*struct_to_fluid(ddginc_), fmggddg);
+    fmggprev_->multiply(false, *struct_to_fluid(ddginc_), fmggddg);
     tmpvec->update(1.0, fmggddg, 1.0);
   }
 
@@ -1074,7 +1074,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::recover_lagrange_multiplier()
   if (fgiprev_ != nullptr)
   {
     Core::LinAlg::Vector<double> fgidui(fgiprev_->range_map(), true);
-    fgiprev_->Apply(*duiinc_, fgidui);
+    fgiprev_->multiply(false, *duiinc_, fgidui);
     tmpvec->update(1.0, fgidui, 1.0);
   }
 
@@ -1110,7 +1110,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::recover_lagrange_multiplier()
     // Remove FSI DOF
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
         fluid_field()->interface()->extract_other_vector(*aux);
-    fmgiprev_->Apply(*tmp, fmgiddia);
+    fmgiprev_->multiply(false, *tmp, fmgiddia);
     tmpvec->update(1.0, fmgiddia, 1.0);
   }
 
@@ -1121,7 +1121,7 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::recover_lagrange_multiplier()
     {
       Core::LinAlg::Vector<double> tmp(fggprev_->range_map(), true);
       std::shared_ptr<Core::LinAlg::Vector<double>> fveln = fluid_field()->extract_interface_veln();
-      fggprev_->Apply(*fveln, tmp);
+      fggprev_->multiply(false, *fveln, tmp);
       tmpvec->update(dt() * fluidtimescale, tmp, 1.0);
     }
   }

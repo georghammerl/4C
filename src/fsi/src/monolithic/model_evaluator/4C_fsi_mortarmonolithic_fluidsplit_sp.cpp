@@ -721,7 +721,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_rhs_firstiter(
 
     rhs = std::make_shared<Core::LinAlg::Vector<double>>(fluid_mesh_inner_interf.range_map(), true);
 
-    fluid_mesh_inner_interf.Apply(*fluid_veln, *rhs);
+    fluid_mesh_inner_interf.multiply(false, *fluid_veln, *rhs);
 
     rhs->scale(dt());
 
@@ -747,7 +747,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_rhs_firstiter(
     rhs =
         std::make_shared<Core::LinAlg::Vector<double>>(fluid_mesh_interf_interf.range_map(), true);
 
-    fluid_mesh_interf_interf.Apply(*fluid_veln, *rhs);
+    fluid_mesh_interf_interf.multiply(false, *fluid_veln, *rhs);
     rhs->scale(dt());
     rhs = fluid_field()->interface()->insert_fsi_cond_vector(*rhs);
 
@@ -766,7 +766,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_rhs_firstiter(
    */
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(ale_inner_interf.range_map(), true);
-  ale_inner_interf.Apply(*fluid_veln, *rhs);
+  ale_inner_interf.multiply(false, *fluid_veln, *rhs);
   rhs->scale(-1. * dt());
 
   extractor().add_vector(*rhs, 2, f);
@@ -786,7 +786,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_rhs_firstiter(
   // ----------addressing term 1
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(*lag_mult_dof_map_, true);
 
-  mortar_d_transf->Apply(*fluid_veln, *rhs);
+  mortar_d_transf->multiply(false, *fluid_veln, *rhs);
   rhs->scale(dt());
 
   extractor().add_vector(*rhs, 3, f);
@@ -795,7 +795,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_rhs_firstiter(
   // ----------addressing term 2
   rhs = std::make_shared<Core::LinAlg::Vector<double>>(*lag_mult_dof_map_, true);
 
-  mortar_m_transf->Apply(*ddgpred_, *rhs);
+  mortar_m_transf->multiply(false, *ddgpred_, *rhs);
   rhs->scale(-1.);
 
   extractor().add_vector(*rhs, 3, f);
@@ -1080,7 +1080,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::unscale_solution(
   }
 
   Core::LinAlg::Vector<double> r(b.get_map());
-  mat.Apply(x, r);
+  mat.multiply(false, x, r);
   r.update(1., b, 1.);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> sr = extractor().extract_vector(r, 0);
