@@ -70,37 +70,38 @@ namespace Solid
 
       /*! compute right hand side and jacobian
        *  (derived from NOX::Nln::Interface::Jacobian) */
-      bool compute_f_and_jacobian(
-          const Epetra_Vector& x, Epetra_Vector& rhs, Epetra_Operator& jac) override;
+      bool compute_f_and_jacobian(const Core::LinAlg::Vector<double>& x,
+          Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
 
       bool compute_correction_system(const NOX::Nln::CorrectionType type,
-          const ::NOX::Abstract::Group& grp, const Epetra_Vector& x, Epetra_Vector& rhs,
-          Epetra_Operator& jac) override;
+          const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
+          Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
 
       /*! Get the norm of right hand side rows/entries related to
        *  primary DoFs (derived from NOX::Nln::Interface::Required) */
-      double get_primary_rhs_norms(const Epetra_Vector& F,
+      double get_primary_rhs_norms(const Core::LinAlg::Vector<double>& F,
           const NOX::Nln::StatusTest::QuantityType& checkquantity,
           const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
           const bool& isscaled = false) const override;
 
       /*! Get the root mean square of the solution update (vector) entries
        *  (derived from NOX::Nln::Interface::Required) */
-      double get_primary_solution_update_rms(const Epetra_Vector& xnew, const Epetra_Vector& xold,
-          const double& aTol, const double& rTol,
+      double get_primary_solution_update_rms(const Core::LinAlg::Vector<double>& xnew,
+          const Core::LinAlg::Vector<double>& xold, const double& aTol, const double& rTol,
           const NOX::Nln::StatusTest::QuantityType& checkQuantity,
           const bool& disable_implicit_weighting = false) const override;
 
       /*! Returns the desired norm of the solution update (vector) entries
        *  (derived from NOX::Nln::Interface::Required) */
-      double get_primary_solution_update_norms(const Epetra_Vector& xnew, const Epetra_Vector& xold,
+      double get_primary_solution_update_norms(const Core::LinAlg::Vector<double>& xnew,
+          const Core::LinAlg::Vector<double>& xold,
           const NOX::Nln::StatusTest::QuantityType& checkquantity,
           const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
           const bool& isscaled = false) const override;
 
       /*! Returns the previous solution norm of primary DoF fields
        *  (derived from NOX::Nln::Interface::Required) */
-      double get_previous_primary_solution_norms(const Epetra_Vector& xold,
+      double get_previous_primary_solution_norms(const Core::LinAlg::Vector<double>& xold,
           const NOX::Nln::StatusTest::QuantityType& checkquantity,
           const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
           const bool& isscaled = false) const override;
@@ -108,11 +109,13 @@ namespace Solid
       /*! Compute and return some energy representative or any other scalar value
        *  which is capable to describe the solution path progress
        *  (derived from NOX::Nln::Interface::Required) */
-      double get_model_value(const Epetra_Vector& x, const Epetra_Vector& F,
+      double get_model_value(const Core::LinAlg::Vector<double>& x,
+          const Core::LinAlg::Vector<double>& F,
           const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const override;
 
       double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-          const Epetra_Vector& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
+          const Core::LinAlg::Vector<double>& dir,
+          const NOX::Nln::MeritFunction::MeritFctName mf_type,
           const NOX::Nln::MeritFunction::LinOrder linorder,
           const NOX::Nln::MeritFunction::LinType lintype) const override;
 
@@ -123,7 +126,7 @@ namespace Solid
       double calc_ref_norm_force() override;
 
       /// create back-up state of condensed solution variables (e.g. EAS)
-      void create_backup_state(const Epetra_Vector& dir) override;
+      void create_backup_state(const Core::LinAlg::Vector<double>& dir) override;
 
       /// recover from back-up
       void recover_from_backup_state() override;
