@@ -101,6 +101,11 @@ void NOX::Nln::MatrixFree::SparseOperatorWrapper::zero() { FOUR_C_THROW("Not imp
 
 void NOX::Nln::MatrixFree::SparseOperatorWrapper::reset() { FOUR_C_THROW("Not implemented"); }
 
+MPI_Comm NOX::Nln::MatrixFree::SparseOperatorWrapper::get_comm() const
+{
+  FOUR_C_THROW("Not implemented");
+}
+
 void NOX::Nln::MatrixFree::SparseOperatorWrapper::assemble(int eid,
     const std::vector<int>& lmstride, const Core::LinAlg::SerialDenseMatrix& Aele,
     const std::vector<int>& lmrow, const std::vector<int>& lmrowowner,
@@ -168,12 +173,12 @@ void NOX::Nln::MatrixFree::SparseOperatorWrapper::add_other(Core::LinAlg::BlockS
   FOUR_C_THROW("Not implemented");
 }
 
-int NOX::Nln::MatrixFree::SparseOperatorWrapper::scale(double ScalarConstant)
+void NOX::Nln::MatrixFree::SparseOperatorWrapper::scale(double ScalarConstant)
 {
   FOUR_C_THROW("Not implemented");
 }
 
-int NOX::Nln::MatrixFree::SparseOperatorWrapper::multiply(bool TransA,
+void NOX::Nln::MatrixFree::SparseOperatorWrapper::multiply(bool TransA,
     const Core::LinAlg::MultiVector<double>& X, Core::LinAlg::MultiVector<double>& Y) const
 {
   FOUR_C_ASSERT(!TransA, "Transposed multiplication is not supported");
@@ -182,8 +187,6 @@ int NOX::Nln::MatrixFree::SparseOperatorWrapper::multiply(bool TransA,
   auto rcp_y = Core::LinearSolver::Utils::create_thyra_multi_vector(Y, *map_);
 
   operator_.apply(::Thyra::NOTRANS, *rcp_x, rcp_y.ptr(), 1.0, 0.0);
-
-  return 0;
 }
 
 

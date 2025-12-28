@@ -6668,10 +6668,7 @@ void FLD::FluidImplicitTimeInt::assemble_coupling_contributions()
     // Add the matrix multiplied with the solution of the last time step to the rhs
     std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
         std::make_shared<Core::LinAlg::Vector<double>>(*discret_->dof_row_map(), true);
-    int err = couplingcontributions_->multiply(false, *velnp_, *tmp);
-
-    if (err != 0) FOUR_C_THROW(" Linalg Sparse Matrix Multiply threw error code {} ", err);
-
+    couplingcontributions_->multiply(false, *velnp_, *tmp);
     residual_->update(-1.0 / residual_scaling(), *tmp, 1.0);
   }
 }

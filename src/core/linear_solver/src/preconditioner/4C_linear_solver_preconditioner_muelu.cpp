@@ -56,8 +56,7 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
   auto xmlFileName = muelulist_.sublist("MueLu Parameters").get<std::string>("MUELU_XML_FILE");
 
   Teuchos::ParameterList muelu_params;
-  auto comm = Core::Communication::to_teuchos_comm<int>(
-      Core::Communication::unpack_epetra_comm(matrix.Comm()));
+  auto comm = Core::Communication::to_teuchos_comm<int>(matrix.get_comm());
   Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, Teuchos::Ptr(&muelu_params), *comm);
 
   Teuchos::RCP<Core::LinAlg::BlockSparseMatrixBase> A =

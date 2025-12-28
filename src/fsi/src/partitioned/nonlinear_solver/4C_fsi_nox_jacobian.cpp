@@ -58,6 +58,8 @@ void NOX::FSI::FSIMatrixFree::zero() { FOUR_C_THROW("Not implemented"); }
 
 void NOX::FSI::FSIMatrixFree::reset() { FOUR_C_THROW("Not implemented"); }
 
+MPI_Comm NOX::FSI::FSIMatrixFree::get_comm() const { FOUR_C_THROW("Not implemented"); }
+
 void NOX::FSI::FSIMatrixFree::assemble(int eid, const std::vector<int>& lmstride,
     const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
     const std::vector<int>& lmrowowner, const std::vector<int>& lmcol)
@@ -120,9 +122,9 @@ void NOX::FSI::FSIMatrixFree::add_other(Core::LinAlg::BlockSparseMatrixBase& A,
   FOUR_C_THROW("Not implemented");
 }
 
-int NOX::FSI::FSIMatrixFree::scale(double ScalarConstant) { FOUR_C_THROW("Not implemented"); }
+void NOX::FSI::FSIMatrixFree::scale(double ScalarConstant) { FOUR_C_THROW("Not implemented"); }
 
-int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+void NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
     Core::LinAlg::MultiVector<double>& Y) const
 {
   if (TransA == true)
@@ -131,7 +133,7 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
         << "ERROR: FSIMatrixFree::multiply() - Transpose is unavailable in Matrix-Free mode!"
         << std::endl;
     throw "NOX Error";
-    return -1;
+    return;
   }
 
   // Calculate the matrix-vector product:
@@ -167,7 +169,7 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
     // In the first call is x=0. No need to calculate the
     // residuum. y=0 in that case.
     nevY.init(0.);
-    return 0;
+    return;
   }
 
   // For some strange reason currentX.Map()!=X.Map() and we are bound
@@ -192,7 +194,7 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
   // nevY.update(xscale, perturbY, 0.0);
   nevY.update(1., perturbY, 0.0);
 
-  return 0;
+  return;
 }
 
 int NOX::FSI::FSIMatrixFree::SetUseTranspose(bool UseTranspose)

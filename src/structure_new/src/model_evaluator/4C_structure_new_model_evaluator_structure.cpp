@@ -268,13 +268,13 @@ bool Solid::ModelEvaluator::Structure::assemble_force(
 bool Solid::ModelEvaluator::Structure::assemble_jacobian(
     Core::LinAlg::SparseOperator& jac, const double& timefac_np) const
 {
-  int err = stiff().scale(timefac_np);
+  stiff().scale(timefac_np);
   global_state().assign_model_block(jac, stiff(), type(), Solid::MatBlockType::displ_displ);
 
   // add the visco and mass contributions
   integrator().add_visco_mass_contributions(jac);
 
-  return (err == 0);
+  return true;
 }
 
 /*----------------------------------------------------------------------------*
@@ -1664,6 +1664,8 @@ void Solid::ModelEvaluator::Structure::determine_energy(const Core::LinAlg::Vect
   // global calculation of kinetic energy
   if (masslin_type_ == Inpar::Solid::MassLin::ml_none and velnp != nullptr)
   {
+    if (not mass().filled()) mass().complete();
+
     double kinetic_energy_times2 = 0.0;
 
     std::shared_ptr<Core::LinAlg::Vector<double>> linear_momentum =

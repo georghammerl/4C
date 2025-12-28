@@ -332,14 +332,6 @@ namespace Core::LinAlg
 
     //@}
 
-    /** \name Attribute access functions */
-    //@{
-
-    /// Returns a character string describing the operator.
-    const char* Label() const;
-
-    //@}
-
     /** \name Utility functions */
     //@{
 
@@ -384,14 +376,6 @@ namespace Core::LinAlg
     /// (down-cast from Epetra_CrsMatrix !) (you should not need this!)
     const Epetra_CrsMatrix& epetra_matrix() const { return *sysmat_; }
 
-    /** \name Attribute set methods */
-    //@{
-
-    /// If set true, transpose of this operator will be applied.
-    int SetUseTranspose(bool UseTranspose) override;
-
-    //@}
-
     /** \name Matrix Properties Query Methods */
     //@{
 
@@ -417,14 +401,8 @@ namespace Core::LinAlg
     /** \name Mathematical functions */
     //@{
 
-    /// Returns the result of a Epetra_Operator applied to a Epetra_MultiVector X in Y.
-    int Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-    /// Returns the result of a Epetra_Operator inverse applied to an Epetra_MultiVector X in Y.
-    int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const;
-
     /// Returns the infinity norm of the global matrix.
-    double NormInf() const;
+    double norm_inf() const;
 
     /// Returns the one norm of the global matrix.
     double norm_one() const;
@@ -486,26 +464,16 @@ namespace Core::LinAlg
     const Core::LinAlg::Map& col_map() const { return column_map_.sync(sysmat_->ColMap()); }
 
     /// Returns the Core::LinAlg::Map object associated with the domain of this matrix operator.
-    const Map& domain_map() const override { return domain_map_.sync(sysmat_->DomainMap()); }
+    const Core::LinAlg::Map& domain_map() const override
+    {
+      return domain_map_.sync(sysmat_->DomainMap());
+    }
 
     /// Returns the Core::LinAlg::Map object associated with the range of this matrix operator.
     const Core::LinAlg::Map& range_map() const { return range_map_.sync(sysmat_->RangeMap()); }
 
-
-    /// Returns the current UseTranspose setting.
-    bool UseTranspose() const;
-
-    /// Returns true if the this object can provide an approximate Inf-norm, false otherwise.
-    bool HasNormInf() const;
-
     /// Returns a pointer to the Epetra_Comm communicator associated with this operator.
-    const Epetra_Comm& Comm() const override;
-
-    /// Returns the Epetra_Map object associated with the domain of this operator.
-    const Epetra_Map& OperatorDomainMap() const;
-
-    /// Returns the Epetra_Map object associated with the range of this operator.
-    const Epetra_Map& OperatorRangeMap() const;
+    MPI_Comm get_comm() const override;
 
     //@}
 
@@ -517,7 +485,7 @@ namespace Core::LinAlg
         bool TransA, const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& y) const;
 
     /// Returns the result of a Epetra_CrsMatrix multiplied by a Epetra_MultiVector X in Y.
-    int multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+    void multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
         Core::LinAlg::MultiVector<double>& Y) const override;
 
     /// Scales the Core::LinAlg::SparseMatrix on the left with a Core::LinAlg::Vector<double> x.
@@ -541,7 +509,7 @@ namespace Core::LinAlg
     void put_scalar(double ScalarConstant);
 
     /// Multiply all values in the matrix by a constant value (in place: A <- ScalarConstant * A).
-    int scale(double ScalarConstant) override;
+    void scale(double ScalarConstant) override;
 
     /// Replaces diagonal values of the matrix with those in the user-provided vector.
     int replace_diagonal_values(const Core::LinAlg::Vector<double>& Diagonal);

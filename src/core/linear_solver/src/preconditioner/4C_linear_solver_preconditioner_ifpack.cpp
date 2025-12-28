@@ -36,7 +36,7 @@ void Core::LinearSolver::IFPACKPreconditioner::setup(
   if (!A_crs)
     FOUR_C_THROW("The Ifpack based preconditioners are only available for plain sparse matrices!");
 
-  auto comm = Core::Communication::unpack_epetra_comm(A_crs->Comm());
+  auto comm = Core::Communication::to_teuchos_comm<int>(A_crs->get_comm());
 
   pmatrix_ = Utils::create_thyra_linear_op(*A_crs, LinAlg::DataAccess::Copy);
 
@@ -47,8 +47,8 @@ void Core::LinearSolver::IFPACKPreconditioner::setup(
     const std::string xmlFileName =
         ifpacklist_.sublist("IFPACK Parameters").get<std::string>("IFPACK_XML_FILE");
 
-    Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, Teuchos::Ptr(&ifpack_params),
-        *Core::Communication::to_teuchos_comm<int>(comm));
+    Teuchos::updateParametersFromXmlFileAndBroadcast(
+        xmlFileName, Teuchos::Ptr(&ifpack_params), *comm);
   }
   else
   {

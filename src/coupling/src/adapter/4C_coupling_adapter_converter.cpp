@@ -150,8 +150,7 @@ bool Coupling::Adapter::MatrixLogicalSplitAndTransform::operator()(
   }
 
   setup_gid_map(col_converter ? *col_converter->src_map() : Core::LinAlg::Map(esrc->row_map()),
-      Core::LinAlg::Map(esrc->col_map()), col_converter,
-      Core::Communication::unpack_epetra_comm(src.Comm()));
+      Core::LinAlg::Map(esrc->col_map()), col_converter, src.get_comm());
 
   if (!addmatrix) dst.zero();
 

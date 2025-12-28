@@ -36,7 +36,7 @@ void CONTACT::PoroMtLagrangeStrategy::initialize_poro_mt(
   std::shared_ptr<Core::LinAlg::SparseMatrix> kteffmatrix =
       std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(kteffoffdiag);
 
-  fvelrow_ = std::make_shared<Core::LinAlg::Map>(kteffmatrix->OperatorDomainMap());
+  fvelrow_ = std::make_shared<Core::LinAlg::Map>(kteffmatrix->domain_map());
 }
 
 

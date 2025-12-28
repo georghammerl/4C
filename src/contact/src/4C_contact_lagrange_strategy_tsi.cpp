@@ -988,7 +988,6 @@ void CONTACT::LagrangeStrategyTsi::update(std::shared_ptr<const Core::LinAlg::Ve
       Coupling::Adapter::CouplingMasterConverter(*coupST_), mThermo, false, false);
   mThermo.complete(
       *coupST_->master_to_slave_map(*gmdofrowmap_), *coupST_->master_to_slave_map(*gsdofrowmap_));
-  mThermo.UseTranspose();
   tmp =
       std::make_shared<Core::LinAlg::Vector<double>>(*coupST_->master_to_slave_map(*gmdofrowmap_));
   mThermo.multiply(true, *z_thermo_, *tmp);

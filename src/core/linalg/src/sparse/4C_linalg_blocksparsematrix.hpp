@@ -149,7 +149,7 @@ namespace Core::LinAlg
     //@{
 
     /// If set true, transpose of this operator will be applied.
-    int SetUseTranspose(bool UseTranspose) override;
+    int SetUseTranspose(bool UseTranspose) override { FOUR_C_THROW("Not implemented."); }
 
     //@}
 
@@ -163,7 +163,7 @@ namespace Core::LinAlg
     int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
 
     /// Resolve virtual function of parent class
-    int multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+    void multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
         Core::LinAlg::MultiVector<double>& Y) const override;
 
     /// Add a (transposed) BlockSparseMatrix: (*this) = (*this)*scalarB + A(^T)*scalarA
@@ -183,7 +183,7 @@ namespace Core::LinAlg
         const double scalarB) const override;
 
     /// Multiply all values in the matrix by a constant value (in place: A <- ScalarConstant * A).
-    int scale(double ScalarConstant) override;
+    void scale(double ScalarConstant) override;
 
     /// Returns the infinity norm of the global matrix.
     double NormInf() const override;
@@ -203,7 +203,10 @@ namespace Core::LinAlg
     bool HasNormInf() const override;
 
     /// Returns a pointer to the Epetra_Comm communicator associated with this operator.
-    const Epetra_Comm& Comm() const override;
+    const Epetra_Comm& Comm() const override { return full_domain_map().get_epetra_map().Comm(); }
+
+    MPI_Comm get_comm() const override;
+
 
     /// Returns the Core::LinAlg::Map object associated with the domain of this operator.
     const Epetra_Map& OperatorDomainMap() const override;

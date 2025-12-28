@@ -2160,6 +2160,8 @@ void Solid::TimInt::determine_energy()
 {
   if (writeenergyevery_ and (stepn_ % writeenergyevery_ == 0))
   {
+    if (not mass_->filled()) mass_->complete();
+
     // internal/strain energy
     intergy_ = 0.0;  // total internal energy
     {

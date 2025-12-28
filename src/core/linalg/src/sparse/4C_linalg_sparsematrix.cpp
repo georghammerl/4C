@@ -1258,62 +1258,9 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::SparseMatrix::extract_
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-const char* Core::LinAlg::SparseMatrix::Label() const { return "Core::LinAlg::SparseMatrix"; }
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::SetUseTranspose(bool UseTranspose)
+MPI_Comm Core::LinAlg::SparseMatrix::get_comm() const
 {
-  return sysmat_->SetUseTranspose(UseTranspose);
-}
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  return sysmat_->Apply(X, Y);
-}
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::ApplyInverse(
-    const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  return sysmat_->ApplyInverse(X, Y);
-}
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-bool Core::LinAlg::SparseMatrix::UseTranspose() const { return sysmat_->UseTranspose(); }
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-bool Core::LinAlg::SparseMatrix::HasNormInf() const { return sysmat_->HasNormInf(); }
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-const Epetra_Comm& Core::LinAlg::SparseMatrix::Comm() const { return sysmat_->Comm(); }
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-const Epetra_Map& Core::LinAlg::SparseMatrix::OperatorDomainMap() const
-{
-  return sysmat_->OperatorDomainMap();
-}
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-const Epetra_Map& Core::LinAlg::SparseMatrix::OperatorRangeMap() const
-{
-  return sysmat_->OperatorRangeMap();
+  return Core::Communication::unpack_epetra_comm(sysmat_->Comm());
 }
 
 
@@ -1330,7 +1277,7 @@ int Core::LinAlg::SparseMatrix::global_max_num_entries() const
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double Core::LinAlg::SparseMatrix::NormInf() const { return sysmat_->NormInf(); }
+double Core::LinAlg::SparseMatrix::norm_inf() const { return sysmat_->NormInf(); }
 
 
 /*----------------------------------------------------------------------*
@@ -1354,10 +1301,11 @@ void Core::LinAlg::SparseMatrix::multiply(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+void Core::LinAlg::SparseMatrix::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
     Core::LinAlg::MultiVector<double>& Y) const
 {
-  return sysmat_->Multiply(TransA, X.get_epetra_multi_vector(), Y.get_epetra_multi_vector());
+  ASSERT_EPETRA_CALL(
+      sysmat_->Multiply(TransA, X.get_epetra_multi_vector(), Y.get_epetra_multi_vector()));
 }
 
 
@@ -1400,9 +1348,9 @@ void Core::LinAlg::SparseMatrix::put_scalar(double ScalarConstant)
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::SparseMatrix::scale(double ScalarConstant)
+void Core::LinAlg::SparseMatrix::scale(double ScalarConstant)
 {
-  return sysmat_->Scale(ScalarConstant);
+  ASSERT_EPETRA_CALL(sysmat_->Scale(ScalarConstant));
 }
 
 

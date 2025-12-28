@@ -24,8 +24,7 @@ void Core::LinAlg::assemble(Core::LinAlg::SparseMatrix& A,
   if (lrowdim != (int)lmrowowner.size() || lrowdim > Aele.numRows() || lcoldim > Aele.numCols())
     FOUR_C_THROW("Mismatch in dimensions");
 
-  const int myrank =
-      Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(A.Comm()));
+  const int myrank = Core::Communication::my_mpi_rank(A.get_comm());
   const Core::LinAlg::Map& rowmap = Map(A.row_map());
 
   // this 'Assemble' is not implemented for a Filled() matrix A
@@ -385,7 +384,7 @@ bool Core::LinAlg::is_dirichlet_boundary_condition_already_applied(
 
   int lisdbc = static_cast<int>(isdbc);
   int gisdbc = 0;
-  gisdbc = Core::Communication::min_all(lisdbc, Core::Communication::unpack_epetra_comm(A.Comm()));
+  gisdbc = Core::Communication::min_all(lisdbc, A.get_comm());
 
   return (gisdbc == 1);
 }

@@ -154,8 +154,7 @@ void Core::LinAlg::matrix_add(const Core::LinAlg::SparseMatrix& A, const bool tr
   int rowsAdded = do_add(*Aprime, scalarA, B, scalarB);
   int localSuccess = rowsAdded == Aprime->row_map().num_my_elements();
   int globalSuccess = 0;
-  globalSuccess =
-      Core::Communication::min_all(localSuccess, Core::Communication::unpack_epetra_comm(B.Comm()));
+  globalSuccess = Core::Communication::min_all(localSuccess, B.get_comm());
   if (!globalSuccess)
   {
     if (!B.filled()) FOUR_C_THROW("Unexpected state of B (expected: B not filled, got: B filled)");

@@ -266,7 +266,7 @@ void Solid::Integrator::compute_mass_matrix_and_init_acc()
   mass_matrix.add(*global_state().get_mass_matrix(), false, 1.0, 0.0);
   mass_matrix.complete();
 
-  if (mass_matrix.NormInf() == 0.0) FOUR_C_THROW("You are about to invert a singular matrix!");
+  if (mass_matrix.norm_inf() == 0.0) FOUR_C_THROW("You are about to invert a singular matrix!");
 
   // create the linear system
   // printing parameters

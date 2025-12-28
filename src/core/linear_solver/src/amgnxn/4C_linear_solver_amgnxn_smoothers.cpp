@@ -184,7 +184,7 @@ void Core::LinearSolver::AMGNxN::MueluAMGWrapper::setup()
 
   double elaptime = timer.totalElapsedTime(true);
   if (muelu_list_.sublist("Hierarchy").get<std::string>("verbosity", "None") != "None" and
-      Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(A_->Comm())) == 0)
+      Core::Communication::my_mpi_rank(A_->get_comm()) == 0)
     std::cout << "       Calling Core::LinAlg::SOLVER::AMGNxN::MueluAMGWrapper::Setup takes "
               << std::setw(16) << std::setprecision(6) << elaptime << " s" << std::endl;
 }
