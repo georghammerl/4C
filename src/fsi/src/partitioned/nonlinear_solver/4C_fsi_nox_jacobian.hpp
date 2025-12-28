@@ -151,7 +151,8 @@ namespace NOX
 
       //! Compute Jacobian given the specified input vector, x.  Returns true if computation was
       //! successful.
-      bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
+      bool compute_jacobian(
+          const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) override;
 
       //! Clone a ::NOX::Abstract::Group derived object and use the computeF() method of that group
       //! for the perturbation instead of the NOX::Nln::Interface::RequiredBase::computeF() method.

@@ -66,7 +66,8 @@ namespace Solid
 
       /*! compute jacobian
        *  ( derived from NOX::Nln::Interface::JacobianBase) */
-      bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
+      bool compute_jacobian(
+          const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) override;
 
       /*! compute right hand side and jacobian
        *  (derived from NOX::Nln::Interface::Jacobian) */

@@ -265,10 +265,11 @@ const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const
 }
 
 
-bool NOX::FSI::FSIMatrixFree::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac)
+bool NOX::FSI::FSIMatrixFree::compute_jacobian(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac)
 {
   // Remember the current interface displacements.
-  currentX = Core::LinAlg::View(x);
+  currentX = x;
 
   // Nothing to do here. The work is done when we apply a vector to
   // the Jacobian.
