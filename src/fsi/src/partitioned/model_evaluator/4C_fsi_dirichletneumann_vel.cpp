@@ -99,9 +99,9 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::fluid_op
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::struct_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag)
 {
-  FSI::Partitioned::struct_op(iforce, fillFlag);
+  FSI::Partitioned::struct_op(iforce, fill_flag);
 
   const Teuchos::ParameterList& fbi = Global::Problem::instance()->fbi_params();
   if (!(Teuchos::getIntegralValue<FBI::BeamToFluidCoupling>(fbi, "COUPLING") ==

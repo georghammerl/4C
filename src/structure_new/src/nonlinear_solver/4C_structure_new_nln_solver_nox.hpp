@@ -17,22 +17,14 @@
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_RCPDecl.hpp>
 
+FOUR_C_NAMESPACE_OPEN
+
 namespace NOX
 {
   namespace Abstract
   {
     class Group;
   }  // namespace Abstract
-  namespace Epetra
-  {
-    class LinearSystem;
-  }  // namespace Epetra
-}  // namespace NOX
-
-FOUR_C_NAMESPACE_OPEN
-
-namespace NOX
-{
   namespace Nln
   {
     class GlobalData;

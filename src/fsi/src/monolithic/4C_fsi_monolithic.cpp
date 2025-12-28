@@ -974,14 +974,15 @@ Teuchos::RCP<::NOX::Direction::Generic> FSI::Monolithic::buildDirection(
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-bool FSI::Monolithic::computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag)
+bool FSI::Monolithic::compute_f(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f, FillType fill_flag)
 {
   TEUCHOS_FUNC_TIME_MONITOR("FSI::Monolithic::computeF");
   Core::LinAlg::Vector<double> x_new = Core::LinAlg::Vector<double>(x);
   evaluate(Core::Utils::shared_ptr_from_ref(x_new));
-  Core::LinAlg::Vector<double> F_new = Core::LinAlg::Vector<double>(F);
+  Core::LinAlg::Vector<double> F_new = Core::LinAlg::Vector<double>(f);
   setup_rhs(F_new);
-  F = F_new;
+  f = F_new;
   return true;
 }
 

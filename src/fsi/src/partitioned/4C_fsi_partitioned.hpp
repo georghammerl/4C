@@ -99,7 +99,8 @@ namespace FSI
     virtual void timeloop(const std::shared_ptr<NOX::Nln::Interface::RequiredBase> interface);
 
     /// compute FSI interface residual S^{-1}(F(d)) - d
-    bool computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag) override;
+    bool compute_f(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
+        FillType fill_flag) override;
 
     /// return true if nodes at interface are matching
     bool matchingnodes() { return matchingnodes_; }
@@ -127,16 +128,16 @@ namespace FSI
     //! @name Operators implemented by subclasses
 
     /// composed FSI operator
-    virtual void fsi_op(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F,
-        const FillType fillFlag);
+    virtual void fsi_op(
+        const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, FillType fill_flag);
 
     /// interface fluid operator
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag);
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag);
 
     /// interface structural operator
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag);
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag);
 
     //@}
 

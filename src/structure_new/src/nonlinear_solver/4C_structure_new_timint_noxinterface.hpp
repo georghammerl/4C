@@ -62,7 +62,8 @@ namespace Solid
       //!@{
       /*! compute the right hand side entries
        *  (derived from NOX::Nln::Interface::RequiredBase) */
-      bool computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag) override;
+      bool compute_f(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
+          FillType fill_flag) override;
 
       /*! compute jacobian
        *  ( derived from NOX::Nln::Interface::JacobianBase) */

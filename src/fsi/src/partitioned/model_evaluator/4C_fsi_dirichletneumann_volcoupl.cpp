@@ -102,14 +102,14 @@ void FSI::DirichletNeumannVolCoupl::setup_interface_corrector(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVolCoupl::fluid_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag)
 {
-  FSI::Partitioned::fluid_op(idisp, fillFlag);
+  FSI::Partitioned::fluid_op(idisp, fill_flag);
 
   // TODO cant this be done better?
   Core::LinAlg::Vector<double> vdisp(*structure_field()->dispnp());
 
-  if (fillFlag == User)
+  if (fill_flag == User)
   {
     // SD relaxation calculation
     return fluid_to_struct(mb_fluid_field()->relaxation_solve(struct_to_fluid(idisp), dt()));
@@ -122,7 +122,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVolCoupl::flu
 
     // A rather simple hack. We need something better!
     const int itemax = mb_fluid_field()->itemax();
-    if (fillFlag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
+    if (fill_flag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
 
     std::shared_ptr<Adapter::FluidAle> fluidale =
         std::dynamic_pointer_cast<Adapter::FluidAle>(mb_fluid_field());

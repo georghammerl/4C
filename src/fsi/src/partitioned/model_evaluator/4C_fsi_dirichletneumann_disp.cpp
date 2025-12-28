@@ -37,11 +37,11 @@ void FSI::DirichletNeumannDisp::setup()
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannDisp::fluid_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag)
 {
-  FSI::Partitioned::fluid_op(idisp, fillFlag);
+  FSI::Partitioned::fluid_op(idisp, fill_flag);
 
-  if (fillFlag == User)
+  if (fill_flag == User)
   {
     // SD relaxation calculation
     return fluid_to_struct(mb_fluid_field()->relaxation_solve(struct_to_fluid(idisp), dt()));
@@ -55,7 +55,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannDisp::fluid_o
 
     // A rather simple hack. We need something better!
     const int itemax = mb_fluid_field()->itemax();
-    if (fillFlag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
+    if (fill_flag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
 
     mb_fluid_field()->nonlinear_solve(struct_to_fluid(idisp), struct_to_fluid(ivel));
 
@@ -67,11 +67,11 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannDisp::fluid_o
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannDisp::struct_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag)
 {
-  FSI::Partitioned::struct_op(iforce, fillFlag);
+  FSI::Partitioned::struct_op(iforce, fill_flag);
 
-  if (fillFlag == User)
+  if (fill_flag == User)
   {
     // SD relaxation calculation
     return structure_field()->relaxation_solve(iforce);

@@ -130,8 +130,8 @@ void NOX::Nln::Group::set_skip_update_x(bool skipUpdateX) { skipUpdateX_ = skipU
 
   if (isF()) return ::NOX::Abstract::Group::Ok;
 
-  const bool success = userInterfacePtr->computeF(xVector.get_linalg_vector(),
-      RHSVector.get_linalg_vector(), ::NOX::Epetra::Interface::Required::Residual);
+  const bool success = userInterfacePtr->compute_f(xVector.get_linalg_vector(),
+      RHSVector.get_linalg_vector(), NOX::Nln::Interface::RequiredBase::Residual);
 
   if (not success)
   {

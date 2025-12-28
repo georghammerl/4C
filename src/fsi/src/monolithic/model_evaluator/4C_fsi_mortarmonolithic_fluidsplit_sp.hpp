@@ -16,11 +16,6 @@
 
 namespace NOX
 {
-  namespace Epetra
-  {
-    class Group;
-  }
-
   namespace StatusTest
   {
     class Combo;

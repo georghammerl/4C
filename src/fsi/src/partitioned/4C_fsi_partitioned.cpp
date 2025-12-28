@@ -668,7 +668,8 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::interface_force(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-bool FSI::Partitioned::computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag)
+bool FSI::Partitioned::compute_f(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f, FillType fill_flag)
 {
   const char* flags[] = {"Residual", "Jac", "Prec", "FD_Res", "MF_Res", "MF_Jac", "User", nullptr};
 
@@ -678,20 +679,20 @@ bool FSI::Partitioned::computeF(const Epetra_Vector& x, Epetra_Vector& F, const 
   if (Core::Communication::my_mpi_rank(get_comm()) == 0)
   {
     utils_->out() << "\n " << "FSI residual calculation" << ".\n";
-    if (fillFlag != Residual) utils_->out() << " fillFlag = " << flags[fillFlag] << "\n";
+    if (fill_flag != Residual) utils_->out() << " fillFlag = " << flags[fill_flag] << "\n";
   }
 
   // we count the number of times the residuum is build
-  counter_[fillFlag] += 1;
+  counter_[fill_flag] += 1;
 
-  if (!x.Map().UniqueGIDs()) FOUR_C_THROW("source map not unique");
+  if (!x.get_map().unique_gids()) FOUR_C_THROW("source map not unique");
 
   const Core::LinAlg::Vector<double> x_new = Core::LinAlg::Vector<double>(x);
-  Core::LinAlg::Vector<double> F_new = Core::LinAlg::Vector<double>(F);
+  Core::LinAlg::Vector<double> F_new = Core::LinAlg::Vector<double>(f);
   // Do the FSI step. The real work is in here.
-  fsi_op(x_new, F_new, fillFlag);
+  fsi_op(x_new, F_new, fill_flag);
 
-  F = F_new;
+  f = F_new;
 
   const double endTime = timer.wallTime();
   if (Core::Communication::my_mpi_rank(get_comm()) == 0)
@@ -707,7 +708,7 @@ void FSI::Partitioned::remeshing() {}
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 void FSI::Partitioned::fsi_op(
-    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, const FillType fillFlag)
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, FillType fill_flag)
 {
 }
 
@@ -715,7 +716,7 @@ void FSI::Partitioned::fsi_op(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::fluid_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag)
 {
   if (Core::Communication::my_mpi_rank(get_comm()) == 0 and
       utils_->isPrintType(::NOX::Utils::OuterIteration))
@@ -727,7 +728,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::fluid_op(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::struct_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag)
 {
   if (Core::Communication::my_mpi_rank(get_comm()) == 0 and
       utils_->isPrintType(::NOX::Utils::OuterIteration))

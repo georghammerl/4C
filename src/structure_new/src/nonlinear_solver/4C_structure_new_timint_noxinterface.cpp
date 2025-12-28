@@ -82,17 +82,16 @@ Solid::Integrator& Solid::TimeInt::NoxInterface::impl_int()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::computeF(
-    const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag)
+bool Solid::TimeInt::NoxInterface::compute_f(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f, FillType fill_flag)
 {
   check_init_setup();
 
-  Core::LinAlg::View F_view(F);
-  if (not int_ptr_->apply_force(Core::LinAlg::Vector<double>(x), F_view)) return false;
+  if (not int_ptr_->apply_force(x, f)) return false;
 
   /* Apply the DBC on the right hand side, since we need the Dirichlet free
    * right hand side inside NOX for the convergence check, etc.               */
-  dbc_ptr_->apply_dirichlet_to_rhs(F_view);
+  dbc_ptr_->apply_dirichlet_to_rhs(f);
 
   return true;
 }
