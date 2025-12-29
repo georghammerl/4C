@@ -63,7 +63,7 @@ namespace NOX
         Teuchos::RCP<const ::Thyra::VectorSpaceBase<double>> vector_space_;
       };
 
-      class SparseOperatorWrapper : public Core::LinAlg::SparseOperator, public Epetra_Operator
+      class SparseOperatorWrapper : public Core::LinAlg::SparseOperator
       {
        public:
         SparseOperatorWrapper(const ::Thyra::LinearOpBase<double>& op,
@@ -114,27 +114,6 @@ namespace NOX
 
         void multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
             Core::LinAlg::MultiVector<double>& Y) const override;
-
-        // Methods of Epetra_Operator interface
-        int SetUseTranspose(bool UseTranspose) override;
-
-        int Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-        int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-        double NormInf() const override;
-
-        const char* Label() const override;
-
-        bool UseTranspose() const override;
-
-        bool HasNormInf() const override;
-
-        const Epetra_Comm& Comm() const override;
-
-        const Epetra_Map& OperatorDomainMap() const override;
-
-        const Epetra_Map& OperatorRangeMap() const override;
 
        private:
         const ::Thyra::LinearOpBase<double>& operator_;
