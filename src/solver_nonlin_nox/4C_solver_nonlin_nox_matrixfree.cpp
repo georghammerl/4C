@@ -302,9 +302,10 @@ Core::LinAlg::SparseOperator& NOX::Nln::MatrixFree::get_operator()
   return sparse_operator_wrapper_;
 }
 
-bool NOX::Nln::MatrixFree::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac)
+bool NOX::Nln::MatrixFree::compute_jacobian(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac)
 {
-  (void)Jac;
+  (void)jac;
 
   // This is another way of initializing the Thyra matrix-free operator, but
   // setBaseEvaluationToRawThyra() is broken in Trilinos and needs fixes. This can not be done at
@@ -330,12 +331,8 @@ bool NOX::Nln::MatrixFree::computeJacobian(const Epetra_Vector& x, Epetra_Operat
         rcp_thyra_x_base, rcp_thyra_f_base, Teuchos::rcpFromRef(thyra_model_wrapper_));
   */
 
-  // Create view from Epetra_Vector x
-  Core::LinAlg::View x_epetra_view(x);
-  const auto& x_base = x_epetra_view.underlying().as_multi_vector();
-
   // Create NOX::Thyra::Vector from x_base
-  auto rcp_thyra_x_base = Core::LinearSolver::Utils::create_thyra_multi_vector(x_base, *map_);
+  auto rcp_thyra_x_base = Core::LinearSolver::Utils::create_thyra_multi_vector(x, *map_);
 
   // Wrap into NOX::Thyra::Vector
   ::NOX::Thyra::Vector initial_guess(rcp_thyra_x_base->col(0));

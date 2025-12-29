@@ -988,7 +988,11 @@ bool FSI::Monolithic::computeF(const Epetra_Vector& x, Epetra_Vector& F, const F
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-bool FSI::Monolithic::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) { return true; }
+bool FSI::Monolithic::compute_jacobian(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac)
+{
+  return true;
+}
 
 
 /*----------------------------------------------------------------------------*/
@@ -1078,14 +1082,13 @@ FSI::BlockMonolithic::BlockMonolithic(MPI_Comm comm, const Teuchos::ParameterLis
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-bool FSI::BlockMonolithic::computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac)
+bool FSI::BlockMonolithic::compute_jacobian(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac)
 {
   TEUCHOS_FUNC_TIME_MONITOR("FSI::BlockMonolithic::computeJacobian");
 
-  Core::LinAlg::Vector<double> x_new = Core::LinAlg::Vector<double>(x);
-  evaluate(Core::Utils::shared_ptr_from_ref(x_new));
-  Core::LinAlg::BlockSparseMatrixBase& mat =
-      Teuchos::dyn_cast<Core::LinAlg::BlockSparseMatrixBase>(Jac);
+  evaluate(Core::Utils::shared_ptr_from_ref(x));
+  auto& mat = dynamic_cast<Core::LinAlg::BlockSparseMatrixBase&>(jac);
   setup_system_matrix(mat);
   return true;
 }

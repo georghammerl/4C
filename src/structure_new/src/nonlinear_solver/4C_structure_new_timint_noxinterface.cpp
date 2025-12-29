@@ -99,14 +99,12 @@ bool Solid::TimeInt::NoxInterface::computeF(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::computeJacobian(const Epetra_Vector& x, Epetra_Operator& jac)
+bool Solid::TimeInt::NoxInterface::compute_jacobian(
+    const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac)
 {
   check_init_setup();
 
-  Core::LinAlg::SparseOperator* jac_ptr = dynamic_cast<Core::LinAlg::SparseOperator*>(&jac);
-  FOUR_C_ASSERT(jac_ptr != nullptr, "Dynamic cast failed.");
-
-  if (not int_ptr_->apply_stiff(Core::LinAlg::Vector<double>(x), *jac_ptr)) return false;
+  if (not int_ptr_->apply_stiff(x, jac)) return false;
 
   /* We do not consider the jacobian DBC at this point. The Dirichlet conditions
    * are applied inside the NOX::Nln::LinearSystem::apply_jacobian_inverse()

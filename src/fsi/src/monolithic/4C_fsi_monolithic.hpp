@@ -338,7 +338,8 @@ namespace FSI
     bool computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag) override;
 
     /// compute FSI block matrix
-    bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
+    bool compute_jacobian(
+        const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) override;
 
     /// request NOX convergence from outside (needed for coupled problems)
     ::NOX::StatusTest::StatusType nox_status() const { return noxstatus_; };
@@ -979,7 +980,8 @@ namespace FSI
     //@{
 
     /// compute FSI block matrix (not for standard FSI)
-    bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
+    bool compute_jacobian(
+        const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) override;
 
     //@}
 

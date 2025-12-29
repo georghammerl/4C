@@ -146,7 +146,8 @@ namespace NOX
 
       Core::LinAlg::SparseOperator& get_operator();
 
-      bool computeJacobian(const Epetra_Vector& x, Epetra_Operator& Jac) override;
+      bool compute_jacobian(
+          const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) override;
 
      private:
       std::shared_ptr<const Core::LinAlg::Map> build_map(const NOX::Nln::Vector& cloneVector);

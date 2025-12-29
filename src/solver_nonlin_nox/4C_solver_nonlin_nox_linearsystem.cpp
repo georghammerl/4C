@@ -335,7 +335,7 @@ bool NOX::Nln::LinearSystem::apply_jacobian_inverse(Teuchos::ParameterList& line
 bool NOX::Nln::LinearSystem::compute_jacobian(const NOX::Nln::Vector& x)
 {
   prePostOperatorPtr_->run_pre_compute_jacobian(jacobian(), x.get_linalg_vector(), *this);
-  const bool success = jacInterfacePtr_->computeJacobian(x.get_linalg_vector(), jacobian());
+  const bool success = jacInterfacePtr_->compute_jacobian(x.get_linalg_vector(), jacobian());
   prePostOperatorPtr_->run_post_compute_jacobian(jacobian(), x.get_linalg_vector(), *this);
 
   return success;

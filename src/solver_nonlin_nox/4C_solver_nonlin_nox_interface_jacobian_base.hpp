@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include <NOX_Epetra_Interface_Jacobian.H>  // base class
+#include "4C_linalg_sparseoperator.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -20,8 +20,18 @@ namespace NOX
   {
     namespace Interface
     {
-      class JacobianBase : public ::NOX::Epetra::Interface::Jacobian
+      class JacobianBase
       {
+       public:
+        JacobianBase() = default;
+
+        virtual ~JacobianBase() = default;
+
+        /*! Compute Jacobian given the specified input vector x.
+         * Returns true if computation was successful.
+         */
+        virtual bool compute_jacobian(
+            const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) = 0;
       };
     }  // namespace Interface
   }  // namespace Nln
