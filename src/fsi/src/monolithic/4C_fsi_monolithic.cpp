@@ -1088,8 +1088,7 @@ bool FSI::BlockMonolithic::compute_jacobian(
   TEUCHOS_FUNC_TIME_MONITOR("FSI::BlockMonolithic::computeJacobian");
 
   evaluate(Core::Utils::shared_ptr_from_ref(x));
-  Core::LinAlg::BlockSparseMatrixBase& mat =
-      Teuchos::dyn_cast<Core::LinAlg::BlockSparseMatrixBase>(jac);
+  auto& mat = dynamic_cast<Core::LinAlg::BlockSparseMatrixBase&>(jac);
   setup_system_matrix(mat);
   return true;
 }

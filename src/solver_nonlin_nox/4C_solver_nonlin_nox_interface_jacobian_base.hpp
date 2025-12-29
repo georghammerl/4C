@@ -23,14 +23,12 @@ namespace NOX
       class JacobianBase
       {
        public:
-        //! Constructor.
-        JacobianBase() {};
+        JacobianBase() = default;
 
-        //! Destructor.
-        virtual ~JacobianBase() {};
+        virtual ~JacobianBase() = default;
 
-        /*! Compute Jacobian given the specified input vector x.  Returns
-          true if computation was successful.
+        /*! Compute Jacobian given the specified input vector x.
+         * Returns true if computation was successful.
          */
         virtual bool compute_jacobian(
             const Core::LinAlg::Vector<double>& x, Core::LinAlg::SparseOperator& jac) = 0;
