@@ -101,8 +101,8 @@ namespace DealiiWrappers
 
    private:
     /**
-     * The Epetra_Map which describes the mapping and communication pattern between deal.II and
-     * 4C.
+     * The Core::LinAlg::Map which describes the mapping and communication pattern between deal.II
+     * and 4C.
      */
     Core::LinAlg::Map dealii_to_four_c_map_;
 

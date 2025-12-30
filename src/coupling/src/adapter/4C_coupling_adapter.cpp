@@ -560,9 +560,7 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::mas
   std::shared_ptr<Core::LinAlg::FEVector<double>> sv =
       std::make_shared<Core::LinAlg::FEVector<double>>(*slavedofmap_, mv.num_vectors());
 
-  Core::LinAlg::View sv_view(sv->get_ref_of_epetra_fevector());
-  Core::LinAlg::View mv_view(mv.get_ref_of_epetra_fevector());
-  master_to_slave(mv_view.underlying().as_multi_vector(), sv_view.underlying().as_multi_vector());
+  master_to_slave(mv.as_multi_vector(), sv->as_multi_vector());
 
   return sv;
 }
@@ -576,9 +574,7 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::sla
   std::shared_ptr<Core::LinAlg::FEVector<double>> mv =
       std::make_shared<Core::LinAlg::FEVector<double>>(*masterdofmap_, sv.num_vectors());
 
-  Core::LinAlg::View sv_view(sv.get_ref_of_epetra_fevector());
-  Core::LinAlg::View mv_view(mv->get_ref_of_epetra_fevector());
-  slave_to_master(sv_view.underlying().as_multi_vector(), mv_view.underlying().as_multi_vector());
+  slave_to_master(sv.as_multi_vector(), mv->as_multi_vector());
 
   return mv;
 }

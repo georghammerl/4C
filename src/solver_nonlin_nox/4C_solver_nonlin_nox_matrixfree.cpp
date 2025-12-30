@@ -254,8 +254,7 @@ bool NOX::Nln::MatrixFree::compute_jacobian(
     Core::LinAlg::View x_epetra_view(x);
     x_base_ = x_epetra_view.underlying().as_multi_vector();
 
-    required_->computeF(x, f_base_.get_vector(0).get_ref_of_epetra_vector(),
-        ::NOX::Epetra::Interface::Required::Residual);
+    required_->computeF(x, f_base_.get_vector(0), ::NOX::Nln::FillType::Residual);
 
     auto rcp_thyra_x_base =
         Core::LinearSolver::Utils::create_thyra_multi_vector(x_base_, x_base_.get_map());

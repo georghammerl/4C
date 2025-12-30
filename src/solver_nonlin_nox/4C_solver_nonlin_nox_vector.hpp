@@ -13,7 +13,6 @@
 #include "4C_linalg_vector.hpp"
 
 #include <NOX_Abstract_Vector.H>
-#include <NOX_Epetra_Vector.H>
 #include <Teuchos_RCP.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -55,10 +54,10 @@ namespace NOX
       Teuchos::RCP<::NOX::Abstract::Vector> clone(
           ::NOX::CopyType type = ::NOX::DeepCopy) const override;
 
-      //! Get reference to underlying Epetra vector.
+      //! Get reference to underlying Core::LinAlg::Vector.
       Core::LinAlg::Vector<double>& get_linalg_vector();
 
-      //! Get const reference to underlying Epetra vector.
+      //! Get const reference to underlying Core::LinAlg::Vector.
       const Core::LinAlg::Vector<double>& get_linalg_vector() const;
 
       //! Initialize every element of this vector with @p gamma .
@@ -99,12 +98,6 @@ namespace NOX
 
       //! Return the length of vector.
       ::NOX::size_type length() const override;
-
-      // Create a view-like NOX::Epetra::Vector wrapper - temporary and is to be removed
-      operator ::NOX::Epetra::Vector();
-
-      // Create a view-like NOX::Epetra::Vector wrapper - temporary and is to be removed
-      operator ::NOX::Epetra::Vector() const;
 
      private:
       //! Pointer to a storage vector owned by this object

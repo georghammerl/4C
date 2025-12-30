@@ -12,8 +12,6 @@
 #include "4C_unittest_utils_create_discretization_helper_test.hpp"
 
 #include <deal.II/numerics/data_out.h>
-#include <Epetra_MpiComm.h>
-#include <Epetra_SerialComm.h>
 
 namespace
 {

@@ -84,7 +84,7 @@ Core::LinAlg::Map DealiiWrappers::create_dealii_to_four_c_map(
         local_dealii_four_c_mapping.size() == locally_owned_dofs.n_elements(), "Internal error.");
   }
 
-  // Now create an Epetra_map that can convert a deal.II vector to 4C layout
+  // Now create a Core::LinAlg::Map that can convert a deal.II vector to 4C layout
 
   std::vector<std::pair<dealii::types::global_dof_index, int>> local_mapping(
       local_dealii_four_c_mapping.begin(), local_dealii_four_c_mapping.end());
@@ -111,8 +111,7 @@ DealiiWrappers::VectorConverter<VectorType, dim, spacedim>::VectorConverter(
     const dealii::DoFHandler<dim, spacedim>& dof_handler,
     const Core::FE::Discretization& discretization, const Context<dim, spacedim>& context)
     : dealii_to_four_c_map_(create_dealii_to_four_c_map(dof_handler, discretization, context)),
-      dealii_to_four_c_importer_(
-          Core::LinAlg::Map{discretization.dof_row_map()->get_epetra_map()}, dealii_to_four_c_map_),
+      dealii_to_four_c_importer_(*discretization.dof_row_map(), dealii_to_four_c_map_),
       vector_in_dealii_layout_(dealii_to_four_c_map_, false)
 {
 }

@@ -16,10 +16,8 @@
 #include "4C_solver_nonlin_nox_vector.hpp"
 
 #include <Epetra_Operator.h>
-#include <Epetra_Vector.h>
 #include <NOX_Thyra_Group.H>
 #include <NOX_Thyra_MatrixFreeJacobianOperator.hpp>
-#include <Thyra_EpetraThyraWrappers.hpp>
 #include <Thyra_StateFuncModelEvaluatorBase.hpp>
 
 FOUR_C_NAMESPACE_OPEN

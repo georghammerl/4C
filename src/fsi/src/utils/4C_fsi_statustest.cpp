@@ -167,8 +167,6 @@ double NOX::FSI::PartialNormF::compute_norm(const ::NOX::Abstract::Group& grp)
 {
   if (!grp.isF()) return -1.0;
 
-  // extract the block epetra vector
-
   const auto& f = dynamic_cast<const NOX::Nln::Vector&>(grp.getF());
 
   std::shared_ptr<Core::LinAlg::Vector<double>> v =
@@ -207,8 +205,6 @@ NOX::FSI::PartialSumNormF::PartialSumNormF(std::string name,
 double NOX::FSI::PartialSumNormF::compute_norm(const ::NOX::Abstract::Group& grp)
 {
   if (!grp.isF()) return -1.0;
-
-  // extract the block epetra vector
 
   const ::NOX::Abstract::Vector& abstract_f = grp.getF();
   const Core::LinAlg::Vector<double>& f =
