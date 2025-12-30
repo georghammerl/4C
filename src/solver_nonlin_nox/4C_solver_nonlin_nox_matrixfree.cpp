@@ -83,7 +83,7 @@ void NOX::Nln::MatrixFree::ThyraModelWrapper::evalModelImpl(
       Core::LinearSolver::Utils::get_epetra_vector_from_thyra(*map_, f_out);
 
   model_->compute_f(Core::LinAlg::Vector<double>(*x_in_epetra), Core::LinAlg::View(*f_out_epetra),
-      NOX::Nln::Interface::RequiredBase::Residual);
+      NOX::Nln::FillType::Residual);
 }
 
 // Implementation of NOX::Nln::MatrixFree::SparseOperatorWrapper

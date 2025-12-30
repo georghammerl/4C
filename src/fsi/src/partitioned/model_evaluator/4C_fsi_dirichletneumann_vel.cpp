@@ -64,13 +64,13 @@ void FSI::DirichletNeumannVel::setup()
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::fluid_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> ivel, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> ivel, const NOX::Nln::FillType fillFlag)
 {
   const Teuchos::ParameterList& fbi = Global::Problem::instance()->fbi_params();
 
   FSI::Partitioned::fluid_op(ivel, fillFlag);
 
-  if (fillFlag == User)
+  if (fillFlag == NOX::Nln::FillType::User)
   {
     FOUR_C_THROW("Not implemented!\n");
     return fluid_to_struct(mb_fluid_field()->relaxation_solve(nullptr, dt()));
@@ -80,7 +80,8 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::fluid_op
     // A rather simple hack. We need something better!
     const int itemax = mb_fluid_field()->itemax();
 
-    if (fillFlag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
+    if (fillFlag == NOX::Nln::FillType::MF_Res and mfresitemax_ > 0)
+      mb_fluid_field()->set_itemax(mfresitemax_ + 1);
 
     mb_fluid_field()->nonlinear_solve(nullptr, nullptr);
 
@@ -99,7 +100,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::fluid_op
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVel::struct_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, NOX::Nln::FillType fill_flag)
 {
   FSI::Partitioned::struct_op(iforce, fill_flag);
 

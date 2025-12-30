@@ -336,7 +336,7 @@ namespace FSI
 
     /// compute FSI residual
     bool compute_f(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
-        FillType fill_flag) override;
+        NOX::Nln::FillType fill_flag) override;
 
     /// compute FSI block matrix
     bool compute_jacobian(

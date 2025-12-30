@@ -82,7 +82,7 @@ namespace FSI
      * \param[in] fill_flag Type of evaluation in computeF() (cf. NOX documentation for details)
      */
     void fsi_op(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F,
-        FillType fill_flag) override;
+        NOX::Nln::FillType fill_flag) override;
 
     /** \brief interface fluid operator
      * \param[in] icoup kinematic interface variable
@@ -91,7 +91,8 @@ namespace FSI
      * \returns interface force
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag) override = 0;
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp,
+        NOX::Nln::FillType fill_flag) override = 0;
 
     /** \brief interface structural operator
      * \param[in] iforce interface force
@@ -100,7 +101,8 @@ namespace FSI
      * \returns kinematic interface variable
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag) override = 0;
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce,
+        NOX::Nln::FillType fill_flag) override = 0;
 
     std::shared_ptr<Core::LinAlg::Vector<double>> initial_guess() override = 0;
 

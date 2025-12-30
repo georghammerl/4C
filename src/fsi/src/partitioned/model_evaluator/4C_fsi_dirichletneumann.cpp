@@ -30,8 +30,8 @@ void FSI::DirichletNeumann::setup()
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void FSI::DirichletNeumann::fsi_op(
-    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, FillType fill_flag)
+void FSI::DirichletNeumann::fsi_op(const Core::LinAlg::Vector<double>& x,
+    Core::LinAlg::Vector<double>& F, NOX::Nln::FillType fill_flag)
 {
   if (kinematiccoupling_)  // coupling variable: interface displacements/velocity
   {

@@ -117,8 +117,7 @@ bool NOX::FSI::SDRelaxation::compute(::NOX::Abstract::Group& newgrp, double& ste
   // we do not want the group to remember this solution
   // and we want to set our own flag
   // this tells computeF to do a SD relaxation calculation
-  interface.compute_f(
-      edir.get_linalg_vector(), evec.get_linalg_vector(), NOX::Nln::Interface::RequiredBase::User);
+  interface.compute_f(edir.get_linalg_vector(), evec.get_linalg_vector(), NOX::Nln::FillType::User);
 
   return *vec_ptr_;
 }

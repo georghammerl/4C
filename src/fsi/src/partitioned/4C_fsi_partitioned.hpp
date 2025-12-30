@@ -100,7 +100,7 @@ namespace FSI
 
     /// compute FSI interface residual S^{-1}(F(d)) - d
     bool compute_f(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
-        FillType fill_flag) override;
+        NOX::Nln::FillType fill_flag) override;
 
     /// return true if nodes at interface are matching
     bool matchingnodes() { return matchingnodes_; }
@@ -128,16 +128,16 @@ namespace FSI
     //! @name Operators implemented by subclasses
 
     /// composed FSI operator
-    virtual void fsi_op(
-        const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, FillType fill_flag);
+    virtual void fsi_op(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F,
+        NOX::Nln::FillType fill_flag);
 
     /// interface fluid operator
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, FillType fill_flag);
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, NOX::Nln::FillType fill_flag);
 
     /// interface structural operator
     virtual std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, FillType fill_flag);
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, NOX::Nln::FillType fill_flag);
 
     //@}
 
@@ -195,7 +195,7 @@ namespace FSI
     const Coupling::Adapter::CouplingMortar& structure_fluid_coupling_mortar() const;
 
     /// access to iteration counter
-    virtual std::vector<int> iteration_counter() { return counter_; };
+    std::map<NOX::Nln::FillType, int> iteration_counter() { return counter_; }
 
     /// extract idispn_ iveln_
     virtual void extract_previous_interface_solution();
@@ -233,7 +233,7 @@ namespace FSI
       jacobi). It is possible to do approximations depending on the
       type.
      */
-    std::vector<int> counter_;
+    std::map<NOX::Nln::FillType, int> counter_;
 
     //! number of residuum calculations per nonlinear solve in one time step
     std::vector<int> linsolvcount_;

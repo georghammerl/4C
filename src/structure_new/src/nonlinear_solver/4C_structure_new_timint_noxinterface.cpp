@@ -82,8 +82,8 @@ Solid::Integrator& Solid::TimeInt::NoxInterface::impl_int()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::compute_f(
-    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f, FillType fill_flag)
+bool Solid::TimeInt::NoxInterface::compute_f(const Core::LinAlg::Vector<double>& x,
+    Core::LinAlg::Vector<double>& f, NOX::Nln::FillType fill_flag)
 {
   check_init_setup();
 

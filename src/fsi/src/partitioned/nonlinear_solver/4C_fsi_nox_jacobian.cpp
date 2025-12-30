@@ -179,8 +179,8 @@ void NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVec
 
   if (!useGroupForComputeF)
   {
-    interface->compute_f(perturbX.get_linalg_vector(), perturbY.get_linalg_vector(),
-        NOX::Nln::Interface::RequiredBase::User);
+    interface->compute_f(
+        perturbX.get_linalg_vector(), perturbY.get_linalg_vector(), NOX::Nln::FillType::User);
   }
   else
   {

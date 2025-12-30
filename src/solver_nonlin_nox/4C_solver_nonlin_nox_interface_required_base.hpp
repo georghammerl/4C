@@ -18,29 +18,21 @@ namespace NOX
 {
   namespace Nln
   {
+    enum class FillType
+    {
+      //! The exact residual (F) is being calculated.
+      Residual,
+      //! The fill context is from a matrix free approximation
+      MF_Res,
+      //! A user defined estimation is being performed.
+      User
+    };
+
     namespace Interface
     {
       class RequiredBase
       {
        public:
-        enum FillType
-        {
-          //! The exact residual (F) is being calculated.
-          Residual,
-          //! The Jacobian matrix is being estimated.
-          Jac,
-          //! The preconditioner matrix is being estimated.
-          Prec,
-          //! The fill context is from a finite difference approximation
-          FD_Res,
-          //! The fill context is from a matrix free approximation
-          MF_Res,
-          //! The fill context is from a matrix free computeJacobian() approximation
-          MF_Jac,
-          //! A user defined estimation is being performed.
-          User
-        };
-
         RequiredBase() = default;
 
         //! Destructor
