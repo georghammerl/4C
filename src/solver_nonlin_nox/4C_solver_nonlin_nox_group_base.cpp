@@ -145,8 +145,8 @@ void NOX::Nln::GroupBase::computeX(
 {
   if (isF()) return ::NOX::Abstract::Group::Ok;
 
-  isValidRHS = userInterfacePtr->computeF(xVector.get_linalg_vector(),
-      RHSVector.get_linalg_vector(), ::NOX::Epetra::Interface::Required::Residual);
+  isValidRHS = userInterfacePtr->compute_f(
+      xVector.get_linalg_vector(), RHSVector.get_linalg_vector(), NOX::Nln::FillType::Residual);
 
   FOUR_C_ASSERT(isValidRHS, "NOX::Nln::GroupBase::computeF() - failed");
 

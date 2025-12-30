@@ -82,7 +82,8 @@ void NOX::Nln::MatrixFree::ThyraModelWrapper::evalModelImpl(
   const Teuchos::RCP<Epetra_Vector> f_out_epetra =
       Core::LinearSolver::Utils::get_epetra_vector_from_thyra(*map_, f_out);
 
-  model_->computeF(*x_in_epetra, *f_out_epetra, ::NOX::Epetra::Interface::Required::Residual);
+  model_->compute_f(Core::LinAlg::Vector<double>(*x_in_epetra), Core::LinAlg::View(*f_out_epetra),
+      NOX::Nln::FillType::Residual);
 }
 
 // Implementation of NOX::Nln::MatrixFree::SparseOperatorWrapper

@@ -61,7 +61,7 @@ namespace FSI
      * \returns interface force
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag) override;
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, NOX::Nln::FillType fill_flag) override;
 
     /** \brief interface structural operator
      *
@@ -74,7 +74,7 @@ namespace FSI
      * \returns interface displacement
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag) final;
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, NOX::Nln::FillType fill_flag) final;
 
     //! Predictor
     std::shared_ptr<Core::LinAlg::Vector<double>> initial_guess() override;

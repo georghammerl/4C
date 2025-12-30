@@ -335,7 +335,8 @@ namespace FSI
     //! @name NOX methods
 
     /// compute FSI residual
-    bool computeF(const Epetra_Vector& x, Epetra_Vector& F, const FillType fillFlag) override;
+    bool compute_f(const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& f,
+        NOX::Nln::FillType fill_flag) override;
 
     /// compute FSI block matrix
     bool compute_jacobian(

@@ -75,12 +75,12 @@ namespace FSI
      * interface displacement is prescribed as a Dirichlet boundary condition.
      *
      * \param[in] idisp interface displacement
-     * \param[in] fillFlag Type of evaluation in computeF() (cf. NOX documentation for details)
+     * \param[in] fill_flag Type of evaluation in computeF() (cf. NOX documentation for details)
      *
      * \returns interface force
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag) final;
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, NOX::Nln::FillType fill_flag) final;
 
     /** \brief interface structural operator
      *
@@ -88,12 +88,12 @@ namespace FSI
      * interface forces are prescribed as a Neumann boundary condition.
      *
      * \param[in] iforce interface force
-     * \param[in] fillFlag Type of evaluation in computeF() (cf. NOX documentation for details)
+     * \param[in] fill_flag Type of evaluation in computeF() (cf. NOX documentation for details)
      *
      * \returns interface displacement
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag) final;
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, NOX::Nln::FillType fill_flag) final;
 
     /// predictor
     std::shared_ptr<Core::LinAlg::Vector<double>> initial_guess() override;

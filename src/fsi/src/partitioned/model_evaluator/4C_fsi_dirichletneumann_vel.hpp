@@ -86,7 +86,8 @@ namespace FSI
      * \param[in] fillFlag Type of evaluation in computeF() (cf. NOX documentation for details)
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> ivel, const FillType fillFlag) override;
+        std::shared_ptr<Core::LinAlg::Vector<double>> ivel,
+        const NOX::Nln::FillType fillFlag) override;
 
     /** \brief interface structural operator
      *
@@ -94,10 +95,11 @@ namespace FSI
      * interface velocity is returned
      *
      * \param[in] iforce The interface force
-     * \param[in] fillFlag Type of evaluation in computeF() (cf. NOX documentation for details)
+     * \param[in] fill_flag Type of evaluation in computeF() (cf. NOX documentation for details)
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> struct_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag) override;
+        std::shared_ptr<Core::LinAlg::Vector<double>> iforce,
+        NOX::Nln::FillType fill_flag) override;
 
     /// Computes initial guess for the next iteration
     std::shared_ptr<Core::LinAlg::Vector<double>> initial_guess() override;

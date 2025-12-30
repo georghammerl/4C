@@ -60,7 +60,7 @@ namespace FSI
      * \returns interface force
      */
     std::shared_ptr<Core::LinAlg::Vector<double>> fluid_op(
-        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, const FillType fillFlag) final;
+        std::shared_ptr<Core::LinAlg::Vector<double>> idisp, NOX::Nln::FillType fill_flag) final;
 
 
     void extract_previous_interface_solution() override;

@@ -79,26 +79,27 @@ void FSI::DirichletNeumannSlideale::remeshing()
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannSlideale::fluid_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> idispcurr, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> idisp, NOX::Nln::FillType fill_flag)
 {
-  FSI::Partitioned::fluid_op(idispcurr, fillFlag);
+  FSI::Partitioned::fluid_op(idisp, fill_flag);
 
-  if (fillFlag == User)
+  if (fill_flag == NOX::Nln::FillType::User)
   {
     FOUR_C_THROW("not implemented");
     // SD relaxation calculation
-    return fluid_to_struct(mb_fluid_field()->relaxation_solve(struct_to_fluid(idispcurr), dt()));
+    return fluid_to_struct(mb_fluid_field()->relaxation_solve(struct_to_fluid(idisp), dt()));
   }
   else
   {
     // normal fluid solve
 
     // the displacement -> velocity conversion at the interface
-    const std::shared_ptr<Core::LinAlg::Vector<double>> ivel = interface_velocity(*idispcurr);
+    const std::shared_ptr<Core::LinAlg::Vector<double>> ivel = interface_velocity(*idisp);
 
     // A rather simple hack. We need something better!
     const int itemax = mb_fluid_field()->itemax();
-    if (fillFlag == MF_Res and mfresitemax_ > 0) mb_fluid_field()->set_itemax(mfresitemax_ + 1);
+    if (fill_flag == NOX::Nln::FillType::MF_Res and mfresitemax_ > 0)
+      mb_fluid_field()->set_itemax(mfresitemax_ + 1);
 
     // new Core::LinAlg::Vector<double> for aledisp in interface
     std::shared_ptr<Core::LinAlg::Vector<double>> iale =
@@ -108,7 +109,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannSlideale::flu
     std::shared_ptr<Core::LinAlg::Vector<double>> idispn =
         structure_field()->extract_interface_dispn();
 
-    iale->update(1.0, *idispcurr, 0.0);
+    iale->update(1.0, *idisp, 0.0);
 
     // iale reduced by old displacement dispn and instead added the real last displacements
     iale->update(1.0, *ft_stemp_, -1.0, *idispn, 1.0);
@@ -123,11 +124,11 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannSlideale::flu
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannSlideale::struct_op(
-    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, const FillType fillFlag)
+    std::shared_ptr<Core::LinAlg::Vector<double>> iforce, NOX::Nln::FillType fill_flag)
 {
-  FSI::Partitioned::struct_op(iforce, fillFlag);
+  FSI::Partitioned::struct_op(iforce, fill_flag);
 
-  if (fillFlag == User)
+  if (fill_flag == NOX::Nln::FillType::User)
   {
     // SD relaxation calculation
     return structure_field()->relaxation_solve(iforce);

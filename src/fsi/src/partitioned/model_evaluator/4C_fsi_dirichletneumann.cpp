@@ -30,17 +30,17 @@ void FSI::DirichletNeumann::setup()
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void FSI::DirichletNeumann::fsi_op(
-    const Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& F, const FillType fillFlag)
+void FSI::DirichletNeumann::fsi_op(const Core::LinAlg::Vector<double>& x,
+    Core::LinAlg::Vector<double>& F, NOX::Nln::FillType fill_flag)
 {
   if (kinematiccoupling_)  // coupling variable: interface displacements/velocity
   {
     const std::shared_ptr<Core::LinAlg::Vector<double>> icoupn =
         std::make_shared<Core::LinAlg::Vector<double>>(x);
 
-    const std::shared_ptr<Core::LinAlg::Vector<double>> iforce = fluid_op(icoupn, fillFlag);
+    const std::shared_ptr<Core::LinAlg::Vector<double>> iforce = fluid_op(icoupn, fill_flag);
 
-    const std::shared_ptr<Core::LinAlg::Vector<double>> icoupnp = struct_op(iforce, fillFlag);
+    const std::shared_ptr<Core::LinAlg::Vector<double>> icoupnp = struct_op(iforce, fill_flag);
 
     F.update(1.0, *icoupnp, -1.0, *icoupn, 0.0);
   }
@@ -49,9 +49,9 @@ void FSI::DirichletNeumann::fsi_op(
     const std::shared_ptr<Core::LinAlg::Vector<double>> iforcen =
         std::make_shared<Core::LinAlg::Vector<double>>(x);
 
-    const std::shared_ptr<Core::LinAlg::Vector<double>> icoupn = struct_op(iforcen, fillFlag);
+    const std::shared_ptr<Core::LinAlg::Vector<double>> icoupn = struct_op(iforcen, fill_flag);
 
-    const std::shared_ptr<Core::LinAlg::Vector<double>> iforcenp = fluid_op(icoupn, fillFlag);
+    const std::shared_ptr<Core::LinAlg::Vector<double>> iforcenp = fluid_op(icoupn, fill_flag);
 
     F.update(1.0, *iforcenp, -1.0, *iforcen, 0.0);
   }
