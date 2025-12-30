@@ -185,14 +185,4 @@ double NOX::Nln::Vector::innerProduct(const ::NOX::Abstract::Vector& y) const
 
 ::NOX::size_type NOX::Nln::Vector::length() const { return linalg_vec_->global_length(); }
 
-NOX::Nln::Vector::operator ::NOX::Epetra::Vector()
-{
-  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec_->get_ref_of_epetra_vector(), false));
-}
-
-NOX::Nln::Vector::operator ::NOX::Epetra::Vector() const
-{
-  return ::NOX::Epetra::Vector(Teuchos::rcp(&linalg_vec_->get_ref_of_epetra_vector(), false));
-}
-
 FOUR_C_NAMESPACE_CLOSE

@@ -14,8 +14,6 @@
 #include "4C_solver_nonlin_nox_interface_jacobian_base.hpp"
 #include "4C_solver_nonlin_nox_vector.hpp"
 
-#include <Epetra_Operator.h>
-
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*

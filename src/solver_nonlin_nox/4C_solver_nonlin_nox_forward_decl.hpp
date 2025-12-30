@@ -14,10 +14,6 @@
 // and not using all identifiers will lead to clang-tidy thinking these are our own names.
 // NOLINTBEGIN(readability-identifier-naming)
 
-
-class Epetra_Operator;
-class Epetra_RowMatrix;
-
 namespace NOX
 {
   class GlobalData;
@@ -33,17 +29,6 @@ namespace NOX
     class Generic;
     class UserDefinedFactory;
   }  // namespace Direction
-  namespace Epetra
-  {
-    class Vector;
-    class LinearSystem;
-    namespace Interface
-    {
-      class Jacobian;
-      class Preconditioner;
-      class Required;
-    }  // namespace Interface
-  }  // namespace Epetra
   namespace LineSearch
   {
     class Generic;

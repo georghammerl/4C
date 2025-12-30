@@ -148,7 +148,7 @@ namespace NOX
       void replace_diagonal_of_jacobian(
           const Core::LinAlg::Vector<double>& new_diag, unsigned diag_bid);
 
-      //! Returns Jacobian Epetra_Operator pointer
+      //! Returns Jacobian operator pointer
       std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const override;
 
       /// return jacobian operator

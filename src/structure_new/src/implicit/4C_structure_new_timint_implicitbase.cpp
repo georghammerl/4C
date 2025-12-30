@@ -81,7 +81,7 @@ Inpar::Solid::StcScale Solid::TimeInt::ImplicitBase::get_stc_algo()
 std::shared_ptr<Core::LinAlg::SparseMatrix> Solid::TimeInt::ImplicitBase::get_stc_mat()
 {
   FOUR_C_THROW("Not yet implemented!");
-  /* See the scaling object in the NOX::Nln::Epetra::LinearSystem class.
+  /* See the scaling object in the NOX::Nln::LinearSystem class.
    * The STC matrix has to be implemented as a scaling object or as a
    * preconditioner. Both are part of the linear system. */
   // group->linearsystem->scalingobject

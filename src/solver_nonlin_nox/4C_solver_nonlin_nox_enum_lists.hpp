@@ -146,7 +146,7 @@ namespace NOX
         linear_system_undefined
       };
 
-      //! List of types of epetra objects that can be used for the Jacobian and/or Preconditioner.
+      //! List of types that can be used for the Jacobian and/or Preconditioner.
       enum OperatorType : int
       {
         LinalgSparseOperator,     ///< A LINALG_SparseOperator object.

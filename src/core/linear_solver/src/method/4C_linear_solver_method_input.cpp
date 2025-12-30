@@ -53,7 +53,7 @@ namespace Core::LinearSolver
             },
             {.description =
                     "Type of internal preconditioner to use.\nNote! this preconditioner will "
-                    "only be used if the input operator\nsupports the Epetra "
+                    "only be used if the input operator\nsupports the Trilinos "
                     "interface and the client does not pass\nin an external preconditioner!",
                 .default_value = Core::LinearSolver::PreconditionerType::ilu}),
 

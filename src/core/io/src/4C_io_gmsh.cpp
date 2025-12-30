@@ -259,8 +259,6 @@ void Core::IO::Gmsh::vector_field_multi_vector_dof_based_to_gmsh(
     const Core::FE::Discretization& discret,
     const Core::LinAlg::MultiVector<double>& vectorfield_row, std::ostream& s, const int nds)
 {
-  // TODO: Remove dependence on size of Epetra_Multivector!!!
-
   // transform solution vector from dof_row_map to DofColMap
   Core::LinAlg::MultiVector<double> vectorfield(*discret.dof_col_map(nds), 3, true);
   Core::LinAlg::export_to(vectorfield_row, vectorfield);
@@ -517,10 +515,6 @@ void Core::IO::Gmsh::scalar_field_node_based_to_gmsh(const Core::FE::Discretizat
     const Core::LinAlg::Vector<double>& scalarfield_row, std::ostream& s)
 {
   // transform solution vector from NodeRowMap to NodeColMap
-  // remark: Core::Rebalance::get_col_version_of_row_vector() does only work for
-  // Core::LinAlg::Vectors on dof_row_map
-  //         something similar is done in COMBUST::FlameFront::ProcessFlameFront, although not for
-  //         Epetra_MultiVectors
   Core::LinAlg::Vector<double> scalarfield(*discret.node_col_map(), true);
   Core::LinAlg::export_to(scalarfield_row, scalarfield);
 

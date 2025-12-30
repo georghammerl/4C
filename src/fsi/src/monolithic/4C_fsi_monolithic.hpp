@@ -22,7 +22,8 @@
 #include "4C_timestepping_mstep.hpp"
 
 #include <NOX.H>
-#include <NOX_Epetra.H>
+
+#include <list>
 
 FOUR_C_NAMESPACE_OPEN
 
