@@ -52,7 +52,7 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
   }
 }
 
-Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { return *this; }
+Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { FOUR_C_THROW("Not implemented"); }
 
 void NOX::FSI::FSIMatrixFree::zero() { FOUR_C_THROW("Not implemented"); }
 
@@ -133,7 +133,6 @@ void NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVec
         << "ERROR: FSIMatrixFree::multiply() - Transpose is unavailable in Matrix-Free mode!"
         << std::endl;
     throw "NOX Error";
-    return;
   }
 
   // Calculate the matrix-vector product:
@@ -193,77 +192,6 @@ void NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVec
   // scale back
   // nevY.update(xscale, perturbY, 0.0);
   nevY.update(1., perturbY, 0.0);
-
-  return;
-}
-
-int NOX::FSI::FSIMatrixFree::SetUseTranspose(bool UseTranspose)
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-int NOX::FSI::FSIMatrixFree::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-double NOX::FSI::FSIMatrixFree::NormInf() const
-{
-  FOUR_C_THROW("Not implemented");
-  return 1.0;
-}
-
-
-const char* NOX::FSI::FSIMatrixFree::Label() const
-{
-  FOUR_C_THROW("Not implemented");
-  return label.c_str();
-}
-
-
-bool NOX::FSI::FSIMatrixFree::UseTranspose() const
-{
-  FOUR_C_THROW("Not implemented");
-  return false;
-}
-
-
-bool NOX::FSI::FSIMatrixFree::HasNormInf() const
-{
-  FOUR_C_THROW("Not implemented");
-  return false;
-}
-
-
-const Epetra_Comm& NOX::FSI::FSIMatrixFree::Comm() const
-{
-  FOUR_C_THROW("Not implemented");
-  return Core::Communication::as_epetra_comm(currentX.get_linalg_vector().get_map().get_comm());
-}
-
-
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorDomainMap() const
-{
-  FOUR_C_THROW("Not implemented");
-  return *epetraMap;
-}
-
-
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const
-{
-  FOUR_C_THROW("Not implemented");
-  return *epetraMap;
 }
 
 
