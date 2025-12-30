@@ -24,7 +24,7 @@ FOUR_C_NAMESPACE_OPEN
 void Core::LinAlg::print_matrix_in_matlab_format(
     const std::string& filename, const Core::LinAlg::SparseMatrix& sparsematrix, const bool newfile)
 {
-  const auto& comm = Core::Communication::unpack_epetra_comm(sparsematrix.Comm());
+  const auto& comm = sparsematrix.get_comm();
 
   const int my_PID = Core::Communication::my_mpi_rank(comm);
   const int num_proc = Core::Communication::num_mpi_ranks(comm);

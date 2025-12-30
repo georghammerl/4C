@@ -182,12 +182,11 @@ bool NOX::Nln::LinearSystem::apply_jacobian_block(const NOX::Nln::Vector& input,
 
   Core::LinAlg::Vector<double> result_apply(rangemap, true);
 
-  block.SetUseTranspose(false);
-  int status = block.Apply(*input_apply, result_apply);
+  block.multiply(false, *input_apply, result_apply);
 
   result = Teuchos::make_rcp<NOX::Nln::Vector>(std::move(result_apply));
 
-  return (status == 0);
+  return true;
 }
 
 /*----------------------------------------------------------------------*
@@ -195,9 +194,9 @@ bool NOX::Nln::LinearSystem::apply_jacobian_block(const NOX::Nln::Vector& input,
 bool NOX::Nln::LinearSystem::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  jacobian().SetUseTranspose(false);
-  int status = jacobian().Apply(input.get_linalg_vector(), result.get_linalg_vector());
-  return (status == 0);
+  jacobian().multiply(false, input.get_linalg_vector(), result.get_linalg_vector());
+
+  return true;
 }
 
 /*----------------------------------------------------------------------*
@@ -205,12 +204,9 @@ bool NOX::Nln::LinearSystem::apply_jacobian(
 bool NOX::Nln::LinearSystem::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  // Apply the Jacobian
-  jacobian().SetUseTranspose(true);
-  int status = jacobian().Apply(input.get_linalg_vector(), result.get_linalg_vector());
-  jacobian().SetUseTranspose(false);
+  jacobian().multiply(true, input.get_linalg_vector(), result.get_linalg_vector());
 
-  return (status == 0);
+  return true;
 }
 
 /*----------------------------------------------------------------------*
@@ -580,8 +576,7 @@ void NOX::Nln::LinearSystem::replace_diagonal_of_jacobian(
 double NOX::Nln::LinearSystem::compute_serial_condition_number_of_jacobian(
     const LinSystem::ConditionNumber condnum_type) const
 {
-  if (Core::Communication::num_mpi_ranks(
-          Core::Communication::unpack_epetra_comm(jacobian().Comm())) > 1)
+  if (Core::Communication::num_mpi_ranks(jacobian().get_comm()) > 1)
     FOUR_C_THROW("Currently only one processor is supported!");
 
   Core::LinAlg::SerialDenseMatrix dense_jac;

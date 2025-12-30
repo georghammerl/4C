@@ -186,17 +186,6 @@ void Core::LinAlg::BlockSparseMatrixBase::apply_dirichlet(
   }
 }
 
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-int Core::LinAlg::BlockSparseMatrixBase::SetUseTranspose(bool UseTranspose)
-{
-  for (auto& block : blocks_) block.SetUseTranspose(UseTranspose);
-  usetranspose_ = UseTranspose;
-  return 0;
-}
-
-
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 int Core::LinAlg::BlockSparseMatrixBase::Apply(
@@ -217,10 +206,7 @@ int Core::LinAlg::BlockSparseMatrixBase::Apply(
         std::shared_ptr<Core::LinAlg::MultiVector<double>> colx =
             domainmaps_.extract_vector(Core::LinAlg::MultiVector<double>(X), cblock);
         const Core::LinAlg::SparseMatrix& bmat = matrix(rblock, cblock);
-        int err = bmat.Apply(colx->get_epetra_multi_vector(), rowy->get_epetra_multi_vector());
-        if (err != 0)
-          FOUR_C_THROW(
-              "failed to apply vector to matrix block ({},{}): err={}", rblock, cblock, err);
+        bmat.multiply(false, *colx, *rowy);
         rowresult->update(1.0, *rowy, 1.0);
       }
       View Y_view(Y);
@@ -240,8 +226,7 @@ int Core::LinAlg::BlockSparseMatrixBase::Apply(
         std::shared_ptr<Core::LinAlg::MultiVector<double>> colx =
             domainmaps_.extract_vector(Core::LinAlg::MultiVector<double>(X), cblock);
         const Core::LinAlg::SparseMatrix& bmat = matrix(cblock, rblock);
-        int err = bmat.Apply(colx->get_epetra_multi_vector(), rowy->get_epetra_multi_vector());
-        if (err != 0) FOUR_C_THROW("failed to apply vector to matrix: err={}", err);
+        bmat.multiply(false, *colx, *rowy);
         rowresult->update(1.0, *rowy, 1.0);
       }
       View Y_view(Y);
@@ -310,27 +295,25 @@ void Core::LinAlg::BlockSparseMatrixBase::add(const Core::LinAlg::BlockSparseMat
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::BlockSparseMatrixBase::scale(double ScalarConstant)
+void Core::LinAlg::BlockSparseMatrixBase::scale(double ScalarConstant)
 {
   for (int i = 0; i < rows(); i++)
   {
     for (int j = 0; j < cols(); j++)
     {
-      int err = matrix(i, j).scale(ScalarConstant);
-      if (err != 0) FOUR_C_THROW("Scaling of matrix block ({},{}) failed", i, j);
+      matrix(i, j).scale(ScalarConstant);
     }
   }
-  return 0;
 }
 
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-int Core::LinAlg::BlockSparseMatrixBase::multiply(bool TransA,
+void Core::LinAlg::BlockSparseMatrixBase::multiply(bool TransA,
     const Core::LinAlg::MultiVector<double>& X, Core::LinAlg::MultiVector<double>& Y) const
 {
   if (TransA) FOUR_C_THROW("transpose multiply not implemented for BlockSparseMatrix");
-  return Apply(X.get_epetra_multi_vector(), Y.get_epetra_multi_vector());
+  Apply(X.get_epetra_multi_vector(), Y.get_epetra_multi_vector());
 }
 
 
@@ -359,9 +342,9 @@ bool Core::LinAlg::BlockSparseMatrixBase::HasNormInf() const { return false; }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-const Epetra_Comm& Core::LinAlg::BlockSparseMatrixBase::Comm() const
+MPI_Comm Core::LinAlg::BlockSparseMatrixBase::get_comm() const
 {
-  return full_domain_map().get_epetra_map().Comm();
+  return full_domain_map().get_comm();
 }
 
 

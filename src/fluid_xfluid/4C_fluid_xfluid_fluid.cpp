@@ -506,7 +506,7 @@ void FLD::XFluidFluid::add_eos_pres_stab_to_emb_layer()
       std::make_shared<Core::LinAlg::Vector<double>>(*xdiscret->dof_col_map(), true);
 
   //------------------------------------------------------------
-  auto rmap = Core::LinAlg::Map(embedded_fluid_->system_matrix()->OperatorRangeMap());
+  auto rmap = embedded_fluid_->system_matrix()->range_map();
 
   auto sysmat_linalg = std::make_shared<Core::LinAlg::SparseMatrix>(
       rmap, 256, true, true, Core::LinAlg::SparseMatrix::FE_MATRIX);

@@ -572,7 +572,7 @@ void BeamInteraction::BeamToSolidMortarManager::add_global_force_stiffness_penal
             *constraint_lin_solid_, false, false, false, true);
 
     // Penalty regularization linearized w.r.t. the scaling vector
-    if (kappa_lin_beam_->NormInf() > 1e-12 && kappa_lin_solid_->NormInf() > 1e-12)
+    if (kappa_lin_beam_->norm_inf() > 1e-12 && kappa_lin_solid_->norm_inf() > 1e-12)
     {
       Core::LinAlg::SparseMatrix penalty_regularization_lin_kappa(
           *std::get<2>(penalty_regularization));

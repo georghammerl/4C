@@ -317,8 +317,7 @@ void Coupling::Adapter::MortarVolCoupl::master_to_slave(
   Core::LinAlg::MultiVector<double> sv_aux(p21_->row_map(), sv.num_vectors());
 
   // project
-  int err = p21_->multiply(false, mv, sv_aux);
-  if (err != 0) FOUR_C_THROW("ERROR: Matrix multiply returned error code {}", err);
+  p21_->multiply(false, mv, sv_aux);
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
   std::copy(sv_aux.get_values(),
@@ -408,8 +407,7 @@ void Coupling::Adapter::MortarVolCoupl::slave_to_master(
   Core::LinAlg::MultiVector<double> mv_aux(p12_->row_map(), mv.num_vectors());
 
   // project
-  int err = p12_->multiply(false, sv, mv_aux);
-  if (err != 0) FOUR_C_THROW("ERROR: Matrix multiply returned error code {}", err);
+  p12_->multiply(false, sv, mv_aux);
 
   // copy from auxiliary to physical map (needed for coupling in fluid ale algorithm)
   std::copy(mv_aux.get_values(),

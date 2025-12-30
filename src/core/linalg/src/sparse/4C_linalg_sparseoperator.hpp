@@ -70,17 +70,13 @@ namespace Core::LinAlg
     is BlockSparseMatrix, a block matrix build from a list of SparseMatrix.
 
    */
-  class SparseOperator : public Epetra_Operator
+  class SparseOperator
   {
    public:
-    /// return the internal Epetra_Operator
-    /*!
-      By default the SparseOperator is its own Epetra_Operator. However
-      subclasses might have a better connection to Epetra.
+    virtual ~SparseOperator() = default;
 
-      \warning Only low level solver routines are interested in the internal
-      Epetra_Operator.
-     */
+    /// return the internal Epetra_Operator
+    //! \warning Only low level solver routines are interested in the internal Epetra_Operator.
     virtual Epetra_Operator& epetra_operator() = 0;
 
     /// set matrix to zero
@@ -88,6 +84,8 @@ namespace Core::LinAlg
 
     /// throw away the matrix and its graph and start anew
     virtual void reset() = 0;
+
+    virtual MPI_Comm get_comm() const = 0;
 
     /// Assemble a Core::LinAlg::SerialDenseMatrix into a matrix with striding
     /*!
@@ -196,8 +194,6 @@ namespace Core::LinAlg
     ///  manner.
     virtual void apply_dirichlet(const Core::LinAlg::Map& dbcmap, bool diagonalblock = true) = 0;
 
-
-
     /// Returns the Epetra_Map object associated with the (full) domain of this operator.
     virtual const Map& domain_map() const = 0;
 
@@ -214,10 +210,10 @@ namespace Core::LinAlg
         const double scalarA, const double scalarB) const = 0;
 
     /// Multiply all values by a constant value (in place: A <- ScalarConstant * A).
-    virtual int scale(double ScalarConstant) = 0;
+    virtual void scale(double ScalarConstant) = 0;
 
     /// Matrix-vector product
-    virtual int multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+    virtual void multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
         Core::LinAlg::MultiVector<double>& Y) const = 0;
   };
 
@@ -227,4 +223,3 @@ namespace Core::LinAlg
 FOUR_C_NAMESPACE_CLOSE
 
 #endif
-/*LINALG_SPARSEOPERATOR_H_*/

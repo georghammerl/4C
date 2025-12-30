@@ -76,6 +76,8 @@ namespace NOX
 
         void reset() override;
 
+        MPI_Comm get_comm() const override;
+
         void assemble(int eid, const std::vector<int>& lmstride,
             const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
             const std::vector<int>& lmrowowner, const std::vector<int>& lmcol) override;
@@ -108,31 +110,10 @@ namespace NOX
         void add_other(Core::LinAlg::BlockSparseMatrixBase& A, const bool transposeA,
             const double scalarA, const double scalarB) const override;
 
-        int scale(double ScalarConstant) override;
+        void scale(double ScalarConstant) override;
 
-        int multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+        void multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
             Core::LinAlg::MultiVector<double>& Y) const override;
-
-        // Methods of Epetra_Operator interface
-        int SetUseTranspose(bool UseTranspose) override;
-
-        int Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-        int ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const override;
-
-        double NormInf() const override;
-
-        const char* Label() const override;
-
-        bool UseTranspose() const override;
-
-        bool HasNormInf() const override;
-
-        const Epetra_Comm& Comm() const override;
-
-        const Epetra_Map& OperatorDomainMap() const override;
-
-        const Epetra_Map& OperatorRangeMap() const override;
 
        private:
         const ::Thyra::LinearOpBase<double>& operator_;

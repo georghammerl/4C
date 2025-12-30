@@ -555,8 +555,7 @@ int Core::LinAlg::insert_my_row_diagonal_into_unfilled_matrix(
       FOUR_C_THROW(
           "Could not find the row GID {} in the destination matrix RowMap"
           " on proc {}.",
-          rgid,
-          Core::Communication::my_mpi_rank(Core::Communication::unpack_epetra_comm(mat.Comm())));
+          rgid, Core::Communication::my_mpi_rank(mat.get_comm()));
 
     if (mat.num_allocated_global_entries(rgid))
     {
@@ -892,8 +891,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_col_transform_g
 
   // mapping of column gids
   std::map<int, int> gidmap;
-  Core::Communication::Exporter ex(
-      inmat.domain_map(), inmat.col_map(), Core::Communication::unpack_epetra_comm(inmat.Comm()));
+  Core::Communication::Exporter ex(inmat.domain_map(), inmat.col_map(), inmat.get_comm());
   for (int i = 0; i < inmat.domain_map().num_my_elements(); ++i)
     gidmap[inmat.domain_map().gid(i)] = newdomainmap.gid(i);
   ex.do_export(gidmap);
@@ -948,8 +946,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> Core::LinAlg::matrix_row_col_transfo
 
   // mapping of column gids
   std::map<int, int> gidmap;
-  Core::Communication::Exporter ex(
-      inmat.domain_map(), inmat.col_map(), Core::Communication::unpack_epetra_comm(inmat.Comm()));
+  Core::Communication::Exporter ex(inmat.domain_map(), inmat.col_map(), inmat.get_comm());
   for (int i = 0; i < inmat.domain_map().num_my_elements(); ++i)
     gidmap[inmat.domain_map().gid(i)] = newdomainmap.gid(i);
   ex.do_export(gidmap);

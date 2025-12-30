@@ -1312,7 +1312,7 @@ void FLD::Meshtying::analyze_matrix(Core::LinAlg::SparseMatrix& sparsematrix)
     parmatrixentries = Core::Communication::sum_all(localmatrixentries, discret_->get_comm());
   }
   double normfrob = sparsematrix.norm_frobenius();
-  double norminf = sparsematrix.NormInf();
+  double norminf = sparsematrix.norm_inf();
   double normone = sparsematrix.norm_one();
   double matrixsize = sparsematrix.num_global_rows() * sparsematrix.num_global_cols();
   double nonzero = sparsematrix.num_global_nonzeros();

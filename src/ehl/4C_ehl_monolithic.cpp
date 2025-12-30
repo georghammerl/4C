@@ -1610,7 +1610,7 @@ void EHL::Monolithic::lin_pressure_force_disp(
       std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->slave_dof_map());
   p_exp = ada_strDisp_to_lubDisp_->slave_to_master(*p_full);
   p_deriv_normal->left_scale(*p_exp);
-  if (p_deriv_normal->scale(-1.)) FOUR_C_THROW("scale failed");
+  p_deriv_normal->scale(-1.);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> tmp = Core::LinAlg::matrix_multiply(
       *mortaradapter_->get_mortar_matrix_d(), true, *p_deriv_normal, false, false, false, true);
@@ -1747,7 +1747,7 @@ void EHL::Monolithic::lin_pressure_force_pres(
       *lubrication_->lubrication_field()->dof_row_map(0), *mortaradapter_->slave_dof_map());
 
   tmp->left_scale(*mortaradapter_->normals());
-  if (tmp->scale(-1.)) FOUR_C_THROW("scale failed");
+  tmp->scale(-1.);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> a = Core::LinAlg::matrix_multiply(
       *mortaradapter_->get_mortar_matrix_d(), true, *tmp, false, false, false, true);

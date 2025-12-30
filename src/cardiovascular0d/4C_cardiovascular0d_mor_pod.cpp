@@ -94,8 +94,7 @@ Cardiovascular0D::ProperOrthogonalDecomposition::reduce_diagonal(Core::LinAlg::S
 {
   // right multiply M * V
   Core::LinAlg::MultiVector<double> M_tmp(M.row_map(), projmatrix_->num_vectors(), true);
-  int err = M.multiply(false, *projmatrix_, M_tmp);
-  if (err) FOUR_C_THROW("Multiplication M * V failed.");
+  M.multiply(false, *projmatrix_, M_tmp);
 
   // left multiply V^T * (M * V)
   Core::LinAlg::MultiVector<double> M_red_mvec(*structmapr_, M_tmp.num_vectors(), true);
@@ -117,8 +116,7 @@ Cardiovascular0D::ProperOrthogonalDecomposition::reduce_off_diagonal(Core::LinAl
 {
   // right multiply M * V
   Core::LinAlg::MultiVector<double> M_tmp(M.domain_map(), projmatrix_->num_vectors(), true);
-  int err = M.multiply(true, *projmatrix_, M_tmp);
-  if (err) FOUR_C_THROW("Multiplication V^T * M failed.");
+  M.multiply(true, *projmatrix_, M_tmp);
 
   // convert Core::LinAlg::MultiVector<double> to Core::LinAlg::SparseMatrix
   Core::LinAlg::Map rangemap(M.domain_map());

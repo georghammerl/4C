@@ -52,11 +52,13 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
   }
 }
 
-Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { return *this; }
+Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { FOUR_C_THROW("Not implemented"); }
 
 void NOX::FSI::FSIMatrixFree::zero() { FOUR_C_THROW("Not implemented"); }
 
 void NOX::FSI::FSIMatrixFree::reset() { FOUR_C_THROW("Not implemented"); }
+
+MPI_Comm NOX::FSI::FSIMatrixFree::get_comm() const { FOUR_C_THROW("Not implemented"); }
 
 void NOX::FSI::FSIMatrixFree::assemble(int eid, const std::vector<int>& lmstride,
     const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
@@ -120,9 +122,9 @@ void NOX::FSI::FSIMatrixFree::add_other(Core::LinAlg::BlockSparseMatrixBase& A,
   FOUR_C_THROW("Not implemented");
 }
 
-int NOX::FSI::FSIMatrixFree::scale(double ScalarConstant) { FOUR_C_THROW("Not implemented"); }
+void NOX::FSI::FSIMatrixFree::scale(double ScalarConstant) { FOUR_C_THROW("Not implemented"); }
 
-int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
+void NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVector<double>& X,
     Core::LinAlg::MultiVector<double>& Y) const
 {
   if (TransA == true)
@@ -131,7 +133,6 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
         << "ERROR: FSIMatrixFree::multiply() - Transpose is unavailable in Matrix-Free mode!"
         << std::endl;
     throw "NOX Error";
-    return -1;
   }
 
   // Calculate the matrix-vector product:
@@ -167,7 +168,7 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
     // In the first call is x=0. No need to calculate the
     // residuum. y=0 in that case.
     nevY.init(0.);
-    return 0;
+    return;
   }
 
   // For some strange reason currentX.Map()!=X.Map() and we are bound
@@ -191,77 +192,6 @@ int NOX::FSI::FSIMatrixFree::multiply(bool TransA, const Core::LinAlg::MultiVect
   // scale back
   // nevY.update(xscale, perturbY, 0.0);
   nevY.update(1., perturbY, 0.0);
-
-  return 0;
-}
-
-int NOX::FSI::FSIMatrixFree::SetUseTranspose(bool UseTranspose)
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-int NOX::FSI::FSIMatrixFree::Apply(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-int NOX::FSI::FSIMatrixFree::ApplyInverse(const Epetra_MultiVector& X, Epetra_MultiVector& Y) const
-{
-  FOUR_C_THROW("Not implemented");
-  return -1;
-}
-
-
-double NOX::FSI::FSIMatrixFree::NormInf() const
-{
-  FOUR_C_THROW("Not implemented");
-  return 1.0;
-}
-
-
-const char* NOX::FSI::FSIMatrixFree::Label() const
-{
-  FOUR_C_THROW("Not implemented");
-  return label.c_str();
-}
-
-
-bool NOX::FSI::FSIMatrixFree::UseTranspose() const
-{
-  FOUR_C_THROW("Not implemented");
-  return false;
-}
-
-
-bool NOX::FSI::FSIMatrixFree::HasNormInf() const
-{
-  FOUR_C_THROW("Not implemented");
-  return false;
-}
-
-
-const Epetra_Comm& NOX::FSI::FSIMatrixFree::Comm() const
-{
-  FOUR_C_THROW("Not implemented");
-  return Core::Communication::as_epetra_comm(currentX.get_linalg_vector().get_map().get_comm());
-}
-
-
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorDomainMap() const
-{
-  FOUR_C_THROW("Not implemented");
-  return *epetraMap;
-}
-
-
-const Epetra_Map& NOX::FSI::FSIMatrixFree::OperatorRangeMap() const
-{
-  FOUR_C_THROW("Not implemented");
-  return *epetraMap;
 }
 
 

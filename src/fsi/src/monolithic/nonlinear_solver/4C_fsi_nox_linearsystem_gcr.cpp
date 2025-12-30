@@ -57,16 +57,16 @@ void NOX::FSI::LinearSystemGCR::reset(Teuchos::ParameterList& linearSolverParams
 bool NOX::FSI::LinearSystemGCR::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  int status = jacPtr->multiply(false, input.get_linalg_vector(), result.get_linalg_vector());
-  return status == 0;
+  jacPtr->multiply(false, input.get_linalg_vector(), result.get_linalg_vector());
+  return true;
 }
 
 
 bool NOX::FSI::LinearSystemGCR::apply_jacobian_transpose(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
-  int status = jacPtr->multiply(true, input.get_linalg_vector(), result.get_linalg_vector());
-  return status == 0;
+  jacPtr->multiply(true, input.get_linalg_vector(), result.get_linalg_vector());
+  return true;
 }
 
 

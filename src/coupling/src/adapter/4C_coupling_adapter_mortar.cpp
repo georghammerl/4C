@@ -1245,12 +1245,12 @@ Coupling::Adapter::CouplingMortar::master_to_slave(
   Core::LinAlg::MultiVector<double> tmp =
       Core::LinAlg::MultiVector<double>(M_->row_map(), mv.num_vectors());
 
-  if (M_->multiply(false, mv, tmp)) FOUR_C_THROW("M*mv multiplication failed");
+  M_->multiply(false, mv, tmp);
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*pslavedofrowmap_, mv.num_vectors());
 
-  if (Dinv_->multiply(false, tmp, *sv)) FOUR_C_THROW("D^{{-1}}*v multiplication failed");
+  Dinv_->multiply(false, tmp, *sv);
 
   return sv;
 }
@@ -1370,7 +1370,7 @@ Coupling::Adapter::CouplingMortar::slave_to_master(
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*pmasterdofrowmap_, sv.num_vectors());
-  if (M_->multiply(true, tmp, *mv)) FOUR_C_THROW("M^{{T}}*sv multiplication failed");
+  M_->multiply(true, tmp, *mv);
 
   return mv;
 }
