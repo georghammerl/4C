@@ -28,7 +28,7 @@ The following list shows the most important ones:
 
 External solver and linear algebra:
 
-- :ref:`Trilinos <trilinos>` (supported versions are listed in ``dependencies/supported_version/Trilinos.txt``)
+- :ref:`Trilinos <trilinos>` (supported versions are listed in ``dependencies/supported_version/Trilinos.txt``, currently only supported version: 16.2.0)
 - :ref:`SuiteSparse <suitesparse>`
 - :ref:`SuperLUDist <superludist>` (recommended version: 7.2.0)
 - BLAS
