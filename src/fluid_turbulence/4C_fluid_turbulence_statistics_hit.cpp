@@ -459,7 +459,9 @@ namespace FLD
     fftw_destroy_plan(fft_3);
     fftw_cleanup();
 #else
-    FOUR_C_THROW("FFTW required for HIT!");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
 
     // scale solution (not done in the fftw routine)
@@ -685,7 +687,9 @@ namespace FLD
 
     return;
 #else
-    FOUR_C_THROW("FFTW required");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
   }
 
@@ -863,7 +867,9 @@ namespace FLD
     fftw_destroy_plan(fft_4);
     fftw_cleanup();
 #else
-    FOUR_C_THROW("FFTW required for HIT!");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
 
     // scale solution (not done in the fftw routine)
@@ -1092,7 +1098,9 @@ namespace FLD
 
     return;
 #else
-    FOUR_C_THROW("FFTW required");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
   }
 
@@ -1924,7 +1932,9 @@ namespace FLD
     fftw_destroy_plan(fft_3);
     fftw_cleanup();
 #else
-    FOUR_C_THROW("FFTW required for HIT!");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
 
     // scale solution (not done in the fftw routine)
@@ -2091,7 +2101,9 @@ namespace FLD
     discret_->clear_state(true);
     return;
 #else
-    FOUR_C_THROW("FFTW required");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
   }
 
