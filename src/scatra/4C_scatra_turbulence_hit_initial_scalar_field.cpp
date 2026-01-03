@@ -438,7 +438,9 @@ namespace ScaTra
 
     return;
 #else
-    FOUR_C_THROW("FFTW required");
+    FOUR_C_THROW(
+        "Function can only be used with FFTW. To use it, enable FFTW during the configure "
+        "process.");
 #endif
   }
 

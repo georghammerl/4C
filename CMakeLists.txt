@@ -134,21 +134,24 @@ include(cmake/setup_global_options.cmake)
 # Collect all external dependencies in a helper target
 add_library(four_c_all_enabled_external_dependencies INTERFACE)
 
+# Required dependencies
 four_c_configure_dependency(HDF5 REQUIRED)
 four_c_configure_dependency(MPI REQUIRED)
 four_c_configure_dependency(Qhull REQUIRED)
 four_c_configure_dependency(Trilinos REQUIRED)
-four_c_configure_dependency(VTK DEFAULT OFF)
-four_c_configure_dependency(deal.II DEFAULT OFF)
 four_c_configure_dependency(Boost REQUIRED)
-four_c_configure_dependency(ArborX DEFAULT OFF)
-four_c_configure_dependency(FFTW REQUIRED)
 four_c_configure_dependency(CLN REQUIRED)
-four_c_configure_dependency(MIRCO DEFAULT OFF)
-four_c_configure_dependency(Backtrace DEFAULT OFF)
 four_c_configure_dependency(ryml REQUIRED)
 four_c_configure_dependency(magic_enum REQUIRED)
 four_c_configure_dependency(ZLIB REQUIRED)
+
+# Optional dependencies
+four_c_configure_dependency(VTK DEFAULT OFF)
+four_c_configure_dependency(deal.II DEFAULT OFF)
+four_c_configure_dependency(ArborX DEFAULT OFF)
+four_c_configure_dependency(FFTW DEFAULT OFF)
+four_c_configure_dependency(MIRCO DEFAULT OFF)
+four_c_configure_dependency(Backtrace DEFAULT OFF)
 four_c_configure_dependency(Python DEFAULT ON) # not required but useful for most developers
 four_c_configure_dependency(pybind11 DEFAULT OFF)
 
