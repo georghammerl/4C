@@ -90,6 +90,9 @@ RUN /dependencies/current/dealii/install.sh ${INSTALL_DIR}
 # Install (optional) backtrace library
 RUN /dependencies/current/backtrace/install.sh ${INSTALL_DIR}
 
+# install (optional) gmsh library
+RUN /dependencies/current/gmsh/install.sh ${INSTALL_DIR}
+
 # Packages for testing
 # Installation directory for dependencies concerning testing
 ENV FOUR_C_TESTING_DEPENDENCIES_DIR="/opt/4C-dependencies-testing/"

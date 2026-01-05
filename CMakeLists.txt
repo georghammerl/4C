@@ -147,6 +147,7 @@ four_c_configure_dependency(ZLIB REQUIRED)
 
 # Optional dependencies
 four_c_configure_dependency(VTK DEFAULT OFF)
+four_c_configure_dependency(gmsh DEFAULT OFF)
 four_c_configure_dependency(deal.II DEFAULT OFF)
 four_c_configure_dependency(ArborX DEFAULT OFF)
 four_c_configure_dependency(FFTW DEFAULT OFF)
