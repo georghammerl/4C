@@ -17,6 +17,7 @@
 
 #include <mirco_topology.h>
 #include <mirco_topologyutilities.h>
+#include <mirco_kokkostypes.h>
 
 #endif
 
@@ -61,19 +62,25 @@ CONTACT::RoughNode::RoughNode(int id, std::span<const double> coords, const int 
             ->function_by_id<Core::Utils::FunctionOfSpaceTime>(initialtopologystddeviationfunction_)
             .evaluate(this->x(), 1, this->n_dim());
 
-    const int N = pow(2, resolution_);
-    topology_.shape(N + 1, N + 1);
+    // const int N = pow(2, resolution_);
+    // topology_.shape(N + 1, N + 1);
 
-    std::string topologyFilePath = "";
-    Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
-    // creating the correct surface object
-    MIRCO::CreateSurfaceObject(resolution_, initialTopologyStdDeviation_, hurstExponent_,
-        randomseedflag_, topologyFilePath, randomtopologyflag_, randomgeneratorseed_,
-        surfacegenerator);
-    surfacegenerator->GetSurface(topology_.base());
+    // std::string topologyFilePath = "";
+    // Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
+    // // creating the correct surface object
+    // MIRCO::CreateSurfaceObject(resolution_, initialTopologyStdDeviation_, hurstExponent_,
+    //     randomseedflag_, topologyFilePath, randomtopologyflag_, randomgeneratorseed_,
+    //     surfacegenerator);
+    // surfacegenerator->GetSurface(topology_.base());
 
-    auto max_and_mean = MIRCO::ComputeMaxAndMean(topology_.base());
-    maxTopologyHeight_ = max_and_mean.max_;
+    auto topology_h = MIRCO::CreateRmgSurface(
+        resolution_, initialTopologyStdDeviation_, hurstExponent_, randomseedflag_, randomgeneratorseed_);
+    topology_ = Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), topology_h);
+
+    // auto max_and_mean = MIRCO::ComputeMaxAndMean(topology_.base());
+    // maxTopologyHeight_ = max_and_mean.max_;
+
+    maxTopologyHeight_ = MIRCO::GetMax(topology_);
   }
 #else
   FOUR_C_THROW(
