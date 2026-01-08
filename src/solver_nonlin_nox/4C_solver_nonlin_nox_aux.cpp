@@ -139,6 +139,12 @@ NOX::Nln::LinSystem::LinearSystemType NOX::Nln::Aux::get_linear_system_type(
       {
         return NOX::Nln::LinSystem::linear_system_structure_contact;
       }
+      else if (linsolvers.find(NOX::Nln::sol_structure) != ci_end and
+               linsolvers.find(NOX::Nln::sol_contact) != ci_end and
+               linsolvers.find(NOX::Nln::sol_cardiovascular0d) != ci_end)
+      {
+        return NOX::Nln::LinSystem::linear_system_structure_contact;
+      }
       FOUR_C_THROW(
           "There is no capable linear system type for the given linear "
           "solver combination ( 3 linear solvers )!");

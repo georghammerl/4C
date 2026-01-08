@@ -47,18 +47,17 @@ CARDIOVASCULAR 0D-STRUCTURE COUPLING/SYS-PUL CIRCULATION PARAMETERS:
   V_ar_pul_u: 84900
   V_ven_pul_u: 93000
 STRUCTURAL DYNAMIC:
+  INT_STRATEGY: "Standard"
   RESULTSEVERY: 10
   RESTARTEVERY: 110
   TIMESTEP: 0.009
   NUMSTEP: 9999999
   MAXTIME: 1.9
-  DAMPING: "Rayleigh"
-  M_DAMP: 0
-  K_DAMP: 0.0001
+  DAMPING: "None"
   TOLDISP: 1e-08
   TOLRES: 1e-05
   MAXITER: 200
-  NLNSOL: "newtonlinuzawa"
+  NLNSOL: "fullnewton"
   LOADLIN: true
   LINEAR_SOLVER: 1
 STRUCTURAL DYNAMIC/GENALPHA:
@@ -146,103 +145,103 @@ RESULT DESCRIPTION:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_at_l"
-      VALUE: 0.55984112
+      VALUE: 0.5601511
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_vin_l"
-      VALUE: 3579.218
+      VALUE: 3222.94
       TOLERANCE: 1e-02
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_vout_l"
-      VALUE: -0.8730205
+      VALUE: -0.872862
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_v_l"
-      VALUE: 0.5562618947
+      VALUE: 0.5569282
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_ar_sys"
-      VALUE: 9.28646698
+      VALUE: 9.28555516
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_ar_sys"
-      VALUE: 60021.21905
+      VALUE: 60013.56
       TOLERANCE: 1e-01
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_ven_sys"
-      VALUE: 2.1226106204707857
+      VALUE: 2.1226122
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_ven_sys"
-      VALUE: 76552.67
+      VALUE: 76551.82
       TOLERANCE: 1e-01
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_at_r"
-      VALUE: 0.28534563
+      VALUE: 0.2853689
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_vin_r"
-      VALUE: 29402.63
+      VALUE: 28182.72
       TOLERANCE: 1e-01
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_vout_r"
-      VALUE: -0.189146138
+      VALUE: -0.18900157
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_v_r"
-      VALUE: 0.255943006
+      VALUE: 0.2571859
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_ar_pul"
-      VALUE: 2.1474043877
+      VALUE: 2.1472016
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_ar_pul"
-      VALUE: 30911.1402
+      VALUE: 30911.65
       TOLERANCE: 1e-01
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "p_ven_pul"
-      VALUE: 1.6837373
+      VALUE: 1.6835268
       TOLERANCE: 1e-06
   - CARDIOVASCULAR0D:
       DIS: "cardiovascular0d"
       SPECIAL: true
       QUANTITY: "q_ven_pul"
-      VALUE: 74926.411
+      VALUE: 74891.71
       TOLERANCE: 1e-01
   - STRUCTURE:
       DIS: "structure"
       NODE: 226
       QUANTITY: "dispz"
-      VALUE: -0.448923267
+      VALUE: -0.4607370
       TOLERANCE: 1e-06
 DESIGN SURF NEUMANN CONDITIONS:
   - E: 8
