@@ -192,8 +192,6 @@ namespace Inpar
       divcont_repeat_simulation,        ///< repeat the whole simulation
       divcont_adapt_penaltycontact,  ///< slightly adapt the penalty contact parameter if timestep
                                      ///< doesn't converge
-      divcont_adapt_3D0Dptc_ele_err  ///< adaptive pseudo-transient continuation of structural part
-                                     ///< of 3D0D-coupled problem
     };
 
     /// Handling of non-converged nonlinear solver

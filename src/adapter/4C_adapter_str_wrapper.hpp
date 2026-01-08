@@ -335,13 +335,6 @@ namespace Adapter
       structure_->update_iter_incr_constr(lagrincr);
     }
 
-    /// update iteration; add residual increment to pressures stored in 0D cardiovascular manager
-    void update_iter_incr_cardiovascular0_d(
-        std::shared_ptr<Core::LinAlg::Vector<double>> presincr) override
-    {
-      structure_->update_iter_incr_cardiovascular0_d(presincr);
-    }
-
     /// access to output object
     std::shared_ptr<Core::IO::DiscretizationWriter> disc_writer() override
     {

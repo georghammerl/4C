@@ -293,16 +293,6 @@ namespace Solid
         Teuchos::ParameterList pcon  //!< parameter list containing scale factors for matrix entries
     );
 
-    //! Evaluate forces due to Cardiovascular0D BCs
-    void apply_force_stiff_cardiovascular0_d(const double time,    //!< evaluation time
-        const std::shared_ptr<Core::LinAlg::Vector<double>> disn,  //!< evaluation displacements
-        std::shared_ptr<Core::LinAlg::Vector<double>>& fint,       //!< forces are added onto
-        std::shared_ptr<Core::LinAlg::SparseOperator>& stiff,      //!< stiffness is added onto
-        Teuchos::ParameterList
-            pwindk  //!< parameter list containing scale factors for matrix entries
-    );
-
-
     //! Evaluate forces and stiffness due to contact / meshtying
     void apply_force_stiff_contact_meshtying(
         std::shared_ptr<Core::LinAlg::SparseOperator>& stiff,  //!< stiffness is modified
@@ -528,9 +518,6 @@ namespace Solid
     //! Update step for constraints
     void update_step_constraint();
 
-    //! Update step for Cardiovascular0D
-    void update_step_cardiovascular0_d();
-
     //! Update step for SpringDashpot
     void update_step_spring_dashpot();
 
@@ -568,9 +555,6 @@ namespace Solid
     //! Return bool indicating if constraints are defined
     bool have_constraint() override;
 
-    //! Return bool indicating if Cardiovascular0D bcs are defined
-    bool have_cardiovascular0_d();
-
     //! Return bool indicating if spring dashpot BCs are defined
     bool have_spring_dashpot() override;
 
@@ -578,12 +562,6 @@ namespace Solid
     std::shared_ptr<Constraints::ConstrManager> get_constraint_manager() override
     {
       return conman_;
-    }
-
-    //! Return Teuchos::rcp to Cardiovascular0DManager cardvasc0dman_
-    std::shared_ptr<FourC::Utils::Cardiovascular0DManager> get_cardiovascular0_d_manager()
-    {
-      return cardvasc0dman_;
     }
 
     //! Return Teuchos::rcp to SpringDashpotManager springman_
@@ -599,12 +577,6 @@ namespace Solid
     //! Add residual increment to Lagrange multipliers stored in Constraint manager
     void update_iter_incr_constr(
         std::shared_ptr<Core::LinAlg::Vector<double>> lagrincr  ///< Lagrange multiplier increment
-        ) override;
-
-    //! Update iteration
-    //! Add residual increment to pressures stored in Cardiovascular0D manager
-    void update_iter_incr_cardiovascular0_d(
-        std::shared_ptr<Core::LinAlg::Vector<double>> cv0ddofincr  ///< pressure increment
         ) override;
 
     //@}
@@ -626,8 +598,6 @@ namespace Solid
     //! check, if according to divercont flag time step size can be increased
     void check_for_time_step_increase(Inpar::Solid::ConvergenceStatus& status);
 
-    //! check, if according to divercont flag 3D0D PTC can be reset to normal Newton
-    void check_for_3d0_dptc_reset(Inpar::Solid::ConvergenceStatus& status);
 
     /*! \brief Prepare system for solving with Newton's method
      *
@@ -829,24 +799,20 @@ namespace Solid
     double tolcontconstr_;  //!< norm of rhs for contact constraints (saddlepoint formulation only)
     double tollagr_;  //!< tolerance of LM multiplier increments (saddlepoint formulation only)
 
-    double uzawaparam_;             //!< Parameter for Uzawa algorithm dealing
-                                    //!< with Lagrange multipliers
-    int uzawaitermax_;              //!< maximally permitted Uzawa iterations
-    double tolcon_;                 //!< tolerance constraint
-    double tolcardvasc0d_;          //!< tolerance for 0D cardiovascular residual
-    double tolcardvasc0ddofincr_;   //!< tolerance for 0D cardiovascular dof increment
-    int iter_;                      //!< iteration step
-    double normcharforce_;          //!< characteristic norm for residual force
-    double normchardis_;            //!< characteristic norm for residual displacements
-    double normfres_;               //!< norm of residual forces
-    double normfresr_;              //!< norm of reduced residual forces
-    double normdisi_;               //!< norm of residual displacements
-    double normdisir_;              //!< norm of reduced residual displacements
-    double normcon_;                //!< norm of constraint
-    double normcardvasc0d_;         //!< norm of 0D cardiovascular residual
-    double normcardvasc0ddofincr_;  //!< norm of 0D cardiovascular dof increment
-    double normpfres_;              //!< norm of residual pressure forces
-    double normpres_;               //!< norm of residual pressures
+    double uzawaparam_;      //!< Parameter for Uzawa algorithm dealing
+                             //!< with Lagrange multipliers
+    int uzawaitermax_;       //!< maximally permitted Uzawa iterations
+    double tolcon_;          //!< tolerance constraint
+    int iter_;               //!< iteration step
+    double normcharforce_;   //!< characteristic norm for residual force
+    double normchardis_;     //!< characteristic norm for residual displacements
+    double normfres_;        //!< norm of residual forces
+    double normfresr_;       //!< norm of reduced residual forces
+    double normdisi_;        //!< norm of residual displacements
+    double normdisir_;       //!< norm of reduced residual displacements
+    double normcon_;         //!< norm of constraint
+    double normpfres_;       //!< norm of residual pressure forces
+    double normpres_;        //!< norm of residual pressures
     double normcontconstr_;  //!< norm of contact/meshtying constraint rhs (contact/meshtying in
                              //!< saddlepoint formulation only)
     double normlagr_;        //!< norm of lagrange multipliers

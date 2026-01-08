@@ -7,8 +7,6 @@
 
 #include "4C_structure_timint.hpp"
 
-#include "4C_cardiovascular0d_manager.hpp"
-#include "4C_cardiovascular0d_mor_pod.hpp"
 #include "4C_comm_utils.hpp"
 #include "4C_constraint_manager.hpp"
 #include "4C_constraint_solver.hpp"
@@ -106,7 +104,6 @@ Solid::TimInt::TimInt(const Teuchos::ParameterList& timeparams,
       dampm_(sdynparams.get<double>("M_DAMP")),
       conman_(nullptr),
       consolv_(nullptr),
-      cardvasc0dman_(nullptr),
       springman_(nullptr),
       cmtbridge_(nullptr),
       beamcman_(nullptr),
@@ -141,7 +138,6 @@ Solid::TimInt::TimInt(const Teuchos::ParameterList& timeparams,
       dtele_(0.0),
       dtcmt_(0.0),
       strgrdisp_(nullptr),
-      mor_(nullptr),
       issetup_(false),
       isinit_(false)
 {
@@ -224,17 +220,6 @@ void Solid::TimInt::setup()
 
   // setup constraint manager
   conman_->setup((*dis_)(0), sdynparams_);
-
-  // model order reduction
-  mor_ = std::make_shared<Cardiovascular0D::ProperOrthogonalDecomposition>(dof_row_map(),
-      Global::Problem::instance()->mor_params().get<std::optional<std::filesystem::path>>(
-          "POD_MATRIX"),
-      Global::Problem::instance()->output_control_file()->input_file_name());
-
-  // initialize 0D cardiovascular manager
-  cardvasc0dman_ =
-      std::make_shared<FourC::Utils::Cardiovascular0DManager>(discret_, (*dis_)(0), sdynparams_,
-          Global::Problem::instance()->cardiovascular0_d_structural_params(), *solver_, mor_);
 
   // initialize spring dashpot manager
   springman_ = std::make_shared<Constraints::SpringDashpotManager>(discret_);
@@ -1008,16 +993,6 @@ void Solid::TimInt::determine_mass_damp_consist_accel()
       damp_->multiply(false, (*vel_)[0], *rhs);
     }
 
-    // add initial forces due to 0D cardiovascular for consistent initial acceleration calculation!
-    // needed in case of initial ventricular pressures != 0
-    Teuchos::ParameterList pwindk;
-    if (cardvasc0dman_->have_cardiovascular0_d())
-    {
-      pwindk.set("scale_timint", 1.0);
-      pwindk.set("time_step_size", (*dt_)[0]);
-      cardvasc0dman_->evaluate_force_stiff((*time_)[0], (*dis_)(0), fint, stiff_, pwindk);
-    }
-
     // Contribution to rhs due to internal and external forces
     rhs->update(-1.0, *fint, 1.0, *fext, -1.0);
 
@@ -1653,10 +1628,6 @@ void Solid::TimInt::reset_step()
     discret_->evaluate(p, nullptr, nullptr, nullptr, nullptr, nullptr);
     discret_->clear_state();
   }
-
-  // reset 0D cardiovascular model if we have monolithic 0D cardiovascular-structure coupling (mhv
-  // 02/2015)
-  if (cardvasc0dman_->have_cardiovascular0_d()) cardvasc0dman_->reset_step();
 }
 
 /*----------------------------------------------------------------------*/
@@ -1675,7 +1646,6 @@ void Solid::TimInt::read_restart(const int step)
   read_restart_state();
 
   read_restart_constraint();
-  read_restart_cardiovascular0_d();
   read_restart_contact_meshtying();
   read_restart_spring_dashpot();
 
@@ -1703,10 +1673,6 @@ void Solid::TimInt::set_restart(int step, double time,
 
   // constraints
   if (conman_->have_constraint()) FOUR_C_THROW("Set restart not implemented for constraints");
-
-  // Cardiovascular0D
-  if (cardvasc0dman_->have_cardiovascular0_d())
-    FOUR_C_THROW("Set restart not implemented for Cardiovascular0D");
 
   // contact / meshtying
   if (have_contact_meshtying()) FOUR_C_THROW("Set restart not implemented for contact / meshtying");
@@ -1768,18 +1734,6 @@ void Solid::TimInt::read_restart_constraint()
     consolv_->set_uzawa_parameter(uzawatemp);
 
     conman_->read_restart(reader, (*time_)[0]);
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/* Read and set restart values for 0D cardiovascular models */
-void Solid::TimInt::read_restart_cardiovascular0_d()
-{
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    Core::IO::DiscretizationReader reader(
-        *discret_, Global::Problem::instance()->input_control_file(), step_);
-    cardvasc0dman_->read_restart(reader, (*time_)[0]);
   }
 }
 
@@ -1963,16 +1917,6 @@ void Solid::TimInt::output_restart(bool& datawritten)
     output_->write_vector("refconval", conman_->get_ref_base_values());
   }
 
-  // 0D cardiovascular models
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    output_->write_vector("cv0d_df_np", cardvasc0dman_->get0_d_df_np());
-    output_->write_vector("cv0d_f_np", cardvasc0dman_->get0_d_f_np());
-
-    output_->write_vector("cv0d_dof_np", cardvasc0dman_->get0_d_dof_np());
-    output_->write_vector("vol_np", cardvasc0dman_->get0_d_vol_np());
-  }
-
   // contact and meshtying
   if (have_contact_meshtying())
   {
@@ -2075,16 +2019,6 @@ void Solid::TimInt::add_restart_to_output_state()
     output_->write_double("uzawaparameter", consolv_->get_uzawa_parameter());
     output_->write_vector("lagrmultiplier", conman_->get_lagr_mult_vector());
     output_->write_vector("refconval", conman_->get_ref_base_values());
-  }
-
-  // 0D cardiovascular models
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    output_->write_vector("cv0d_df_np", cardvasc0dman_->get0_d_df_np());
-    output_->write_vector("cv0d_f_np", cardvasc0dman_->get0_d_f_np());
-
-    output_->write_vector("cv0d_dof_np", cardvasc0dman_->get0_d_dof_np());
-    output_->write_vector("vol_np", cardvasc0dman_->get0_d_vol_np());
   }
 
   // springdashpot output
@@ -2591,72 +2525,6 @@ Inpar::Solid::ConvergenceStatus Solid::TimInt::perform_error_action(
       }
       return nonlinsoldiv;  // so that time loop will be aborted
     }
-    break;
-    case Inpar::Solid::divcont_adapt_3D0Dptc_ele_err:
-    {
-      // maximal possible refinementlevel
-      const int maxdivconrefinementlevel_ptc = 15;
-      const int adapt_penaltycontact_after = 7;
-      const double sum = 10.0;
-      const double fac = 2.0;
-
-      if (divconrefinementlevel_ < (maxdivconrefinementlevel_ptc))
-      {
-        if (myrank_ == 0)
-        {
-          if (cardvasc0dman_->get_k_ptc() == 0.0)
-          {
-            Core::IO::cout << "Nonlinear solver failed to converge at time t= " << timen_
-                           << ". Increase PTC parameter. "
-                           << "Old PTC parameter: " << cardvasc0dman_->get_k_ptc() << Core::IO::endl
-                           << "New PTC parameter: " << sum + cardvasc0dman_->get_k_ptc()
-                           << Core::IO::endl
-                           << Core::IO::endl;
-          }
-          else
-          {
-            Core::IO::cout << "Nonlinear solver failed to converge at time t= " << timen_
-                           << ". Increase PTC parameter. "
-                           << "Old PTC parameter: " << cardvasc0dman_->get_k_ptc() << Core::IO::endl
-                           << "New PTC parameter: " << fac * cardvasc0dman_->get_k_ptc()
-                           << Core::IO::endl
-                           << Core::IO::endl;
-          }
-        }
-        // increase PTC factor
-        cardvasc0dman_->modify_k_ptc(sum, fac);
-
-        // adapt penalty parameter
-        if (have_contact_meshtying() and divconrefinementlevel_ > adapt_penaltycontact_after)
-        {
-          if (myrank_ == 0)
-          {
-            Core::IO::cout
-                << "Nonlinear solver still did not converge. Slightly adapt penalty parameter "
-                   "for contact."
-                << Core::IO::endl;
-          }
-
-          cmtbridge_->get_strategy().modify_penalty();
-        }
-
-        divconrefinementlevel_++;
-        divconnumfinestep_ = 0;
-      }
-
-      else
-      {
-        FOUR_C_THROW(
-            "Maximal divercont refinement level reached. Finally nonlinear solver did not "
-            "converge. :-(");
-      }
-
-      // reset step (e.g. quantities on element level)
-      reset_step();
-
-      return Inpar::Solid::conv_success;
-    }
-
     default:
       FOUR_C_THROW("Unknown DIVER_CONT case");
       return Inpar::Solid::conv_nonlin_fail;

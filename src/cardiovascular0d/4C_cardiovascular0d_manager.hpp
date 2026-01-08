@@ -81,41 +81,6 @@ namespace Utils
         Teuchos::ParameterList scalelist);
 
     /*!
-     \brief Return cardiovascular0d rhs norm at generalized midpoint \f$t_{n+\theta}\f$
-    */
-    double get_cardiovascular0_drhs_norm() const
-    {
-      double foo;
-      cardvasc0d_res_m_->norm_2(&foo);
-      return foo;
-    };
-
-    /*!
-     \brief Return cardiovascular0d rhs norm at generalized midpoint \f$t_{n+\theta}\f$
-    */
-    double get_cardiovascular0_drhs_inf_norm() const
-    {
-      double foo;
-      cardvasc0d_res_m_->norm_inf(&foo);
-      return foo;
-    };
-
-    /*!
-     \brief Return cardiovascular0d dof inbcr norm
-    */
-    double get_cardiovascular0_d_dof_incr_norm() const
-    {
-      double foo;
-      cv0ddofincrement_->norm_2(&foo);
-      return foo;
-    };
-
-    /*!
-     \brief Return cardiovascular0d rhs norm at generalized midpoint \f$t_{n+\theta}\f$
-    */
-    int get_cardiovascular0_d_lin_solve_error() const { return linsolveerror_; };
-
-    /*!
          \brief Update cardiovascular0d dofs
     */
     void update_time_step();
@@ -230,16 +195,9 @@ namespace Utils
     void read_restart(Core::IO::DiscretizationReader& reader, const double& time);
 
     /*!
-     \brief Return structural input parameter list
-    */
-    Teuchos::ParameterList& str_params() { return strparams_; }
-
-    /*!
      \brief Return cardiovascular0d input parameter list
     */
     Teuchos::ParameterList& cardvasc0_d_params() { return cv0dparams_; }
-
-    std::shared_ptr<Core::LinAlg::Solver>& get_solver() { return solver_; }
 
     /// Reset reference base values for restart computations
     void set0_d_v_n(Core::LinAlg::Vector<double>& newval  ///< new reference base values
@@ -274,21 +232,6 @@ namespace Utils
     void print_pres_flux(bool init) const;
 
 
-
-    //! switch Cardiovascular0D matrix to block matrix
-    void use_block_matrix(std::shared_ptr<const Core::LinAlg::MultiMapExtractor> domainmaps,
-        std::shared_ptr<const Core::LinAlg::MultiMapExtractor> rangemaps);
-
-
-    void solver_setup(Core::LinAlg::Solver& solver, Teuchos::ParameterList params);
-
-
-    int solve(Core::LinAlg::SparseMatrix& stiff,  ///< stiffness matrix
-        Core::LinAlg::Vector<double>& dispinc,    ///< displacement increment to compute
-        Core::LinAlg::Vector<double>& rhsstruct,  ///< standard right hand side
-        const double k_ptc                        ///< for 3D-0D PTC
-    );
-
     std::shared_ptr<Cardiovascular0D> get_cardvasc0_d4_element_windkessel()
     {
       return cardvasc0d_4elementwindkessel_;
@@ -308,25 +251,6 @@ namespace Utils
     {
       return cardvascrespir0d_syspulperiphcirculation_;
     }
-
-    bool get_is_periodic() const { return is_periodic_; };
-
-    double get_k_ptc() const { return k_ptc_; };
-
-    void modify_k_ptc(const double sum, const double fac)
-    {
-      // increase PTC factor
-      if (k_ptc_ == 0.0)
-        k_ptc_ += sum;
-      else
-        k_ptc_ *= fac;
-    };
-
-    void reset_k_ptc()
-    {
-      // reset PTC factor - for adaptivity, if divcont flag is set to "adapt_3D0Dptc_ele_err"
-      k_ptc_ = 0.0;
-    };
 
 
    private:
@@ -423,9 +347,6 @@ namespace Utils
     Teuchos::ParameterList cv0dparams_;  ///< 0D cardiovascular input parameters
     Inpar::Solid::IntegrationStrategy
         intstrat_;  ///< structural time-integration strategy (old vs. standard)
-    std::shared_ptr<FourC::Cardiovascular0D::ProperOrthogonalDecomposition>
-        mor_;        ///< model order reduction
-    bool have_mor_;  ///< model order reduction is used
 
   };  // class
 }  // namespace Utils

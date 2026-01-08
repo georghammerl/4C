@@ -216,13 +216,6 @@ void Solid::TimIntGenAlpha::setup()
     params.set("MyPID", myrank_);
   }
 
-  // add initial forces due to 0D cardiovascular coupling conditions - needed in case of initial
-  // ventricular pressure!
-  Teuchos::ParameterList pwindk;
-  pwindk.set("scale_timint", 1.0);
-  pwindk.set("time_step_size", (*dt_)[0]);
-  apply_force_stiff_cardiovascular0_d((*time_)[0], (*dis_)(0), fint_, stiff_, pwindk);
-
   if (have_nonlinear_mass() == Inpar::Solid::MassLin::ml_none)
   {
     // set initial internal force vector
@@ -400,12 +393,6 @@ void Solid::TimIntGenAlpha::evaluate_force_stiff_residual(Teuchos::ParameterList
   Teuchos::ParameterList pcon;
   pcon.set("scaleConstrMat", (1.0 - alphaf_));
   apply_force_stiff_constraint(timen_, (*dis_)(0), disn_, fintn_, stiff_, pcon);
-
-  // add forces and stiffness due to 0D cardiovascular coupling conditions
-  Teuchos::ParameterList pwindk;
-  pwindk.set("scale_timint", (1. - alphaf_));
-  pwindk.set("time_step_size", (*dt_)[0]);
-  apply_force_stiff_cardiovascular0_d(timen_, disn_, fintn_, stiff_, pwindk);
 
   // add forces and stiffness due to spring dashpot condition
   Teuchos::ParameterList psprdash;
@@ -752,9 +739,6 @@ void Solid::TimIntGenAlpha::update_step_state()
 
   // update constraints
   update_step_constraint();
-
-  // update Cardiovascular0D
-  update_step_cardiovascular0_d();
 
   // update constraints
   update_step_spring_dashpot();

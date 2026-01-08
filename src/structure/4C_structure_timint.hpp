@@ -36,11 +36,6 @@ namespace Core::FE
   class DiscretizationFaces;
 }  // namespace Core::FE
 
-namespace Utils
-{
-  class Cardiovascular0DManager;
-}  // namespace Utils
-
 namespace Constraints
 {
   class ConstrManager;
@@ -71,11 +66,6 @@ namespace Core::Conditions
 namespace Core::IO
 {
   class DiscretizationWriter;
-}
-
-namespace Cardiovascular0D
-{
-  class ProperOrthogonalDecomposition;
 }
 
 /*----------------------------------------------------------------------*/
@@ -653,9 +643,6 @@ namespace Solid
     //! Read and set restart values for constraints
     void read_restart_constraint();
 
-    //! Read and set restart values for Cardiovascular0D
-    void read_restart_cardiovascular0_d();
-
     //! Read and set restart values for Spring Dashpot
     void read_restart_spring_dashpot();
 
@@ -1049,9 +1036,6 @@ namespace Solid
     std::shared_ptr<Constraints::ConstrManager> conman_;      //!< constraint manager
     std::shared_ptr<Constraints::ConstraintSolver> consolv_;  //!< constraint solver
 
-    // for 0D cardiovascular models
-    std::shared_ptr<Utils::Cardiovascular0DManager> cardvasc0dman_;  //!< Cardiovascular0D manager
-
     // spring dashpot
     std::shared_ptr<Constraints::SpringDashpotManager> springman_;
 
@@ -1160,9 +1144,6 @@ namespace Solid
     //@{
     std::shared_ptr<Core::LinAlg::MapExtractor> porositysplitter_;
     //@}
-
-    std::shared_ptr<Cardiovascular0D::ProperOrthogonalDecomposition>
-        mor_;  //!< model order reduction
 
    private:
     //! flag indicating if class is setup

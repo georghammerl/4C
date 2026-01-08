@@ -598,11 +598,6 @@ Inpar::Solid::ConvergenceStatus Adapter::StructureTimeAda::perform_error_action(
       FOUR_C_THROW("No use to repeat a simulation when it failed. Get a coffee instead.");
       break;
     case Inpar::Solid::divcont_adapt_penaltycontact:
-    case Inpar::Solid::divcont_adapt_3D0Dptc_ele_err:
-      FOUR_C_THROW(
-          "DIVERCONT = adapt_penaltycontact/adapt_3D0Dptc_ele_err is yet to be implemented. "
-          "Stay tune.");
-      break;
     default:
       FOUR_C_THROW("I don't know what to do.");
       break;

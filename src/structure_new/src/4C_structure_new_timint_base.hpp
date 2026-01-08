@@ -295,15 +295,6 @@ namespace Solid
         FOUR_C_THROW("Not yet implemented!");
       }
 
-      /// Add residual increment to pressures stored in Cardiovascular0D manager (derived)
-      /// FixMe Different behavior for the implicit and explicit case!!!
-      void update_iter_incr_cardiovascular0_d(
-          std::shared_ptr<Core::LinAlg::Vector<double>> presincr) override
-      {
-        FOUR_C_THROW("Not yet implemented!");
-      }
-      /// @}
-
       /// @name Time step helpers
       ///@{
       /// Return current time \f$t_{n}\f$ (derived)

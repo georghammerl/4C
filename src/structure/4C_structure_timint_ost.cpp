@@ -135,13 +135,6 @@ void Solid::TimIntOneStepTheta::setup()
   // create parameter list
   Teuchos::ParameterList params;
 
-  // add initial forces due to 0D cardiovascular coupling conditions - needed in case of initial
-  // ventricular pressure!
-  Teuchos::ParameterList pwindk;
-  pwindk.set("scale_timint", 1.0);
-  pwindk.set("time_step_size", (*dt_)[0]);
-  apply_force_stiff_cardiovascular0_d((*time_)[0], (*dis_)(0), fint_, stiff_, pwindk);
-
   if (have_nonlinear_mass() == Inpar::Solid::MassLin::ml_none)
   {
     // set initial internal force vector
@@ -331,11 +324,6 @@ void Solid::TimIntOneStepTheta::evaluate_force_stiff_residual(Teuchos::Parameter
   pcon.set("scaleConstrMat", theta_);
   apply_force_stiff_constraint(timen_, (*dis_)(0), disn_, fintn_, stiff_, pcon);
 
-  // add forces and stiffness due to 0D cardiovascular coupling conditions
-  Teuchos::ParameterList pwindk;
-  pwindk.set("scale_timint", theta_);
-  pwindk.set("time_step_size", (*dt_)[0]);
-  apply_force_stiff_cardiovascular0_d(timen_, disn_, fintn_, stiff_, pwindk);
 
   // ************************** (3) INERTIAL FORCES ***************************
 
@@ -615,9 +603,6 @@ void Solid::TimIntOneStepTheta::update_step_state()
 
   // update constraints
   update_step_constraint();
-
-  // update constraints
-  update_step_cardiovascular0_d();
 
   // update constraints
   update_step_spring_dashpot();
