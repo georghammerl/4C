@@ -111,7 +111,26 @@ void CONTACT::RoughNode::pack(Core::Communication::PackBuffer& data) const
 
   add_to_pack(data, hurstExponent_);
   add_to_pack(data, initialTopologyStdDeviation_);
-  add_to_pack(data, topology_);
+
+  // ---- topology_ (2D) ----
+  const std::size_t n0 = topology_.extent(0);
+  const std::size_t n1 = topology_.extent(1);
+
+  add_to_pack(data, n0);
+  add_to_pack(data, n1);
+
+  // Create host mirror and copy
+  auto topology_h = Kokkos::create_mirror_view_and_copy(
+      MIRCO::MemorySpace_Host_t(), topology_);
+
+  for (std::size_t i = 0; i < n0; ++i)
+  {
+    for (std::size_t j = 0; j < n1; ++j)
+    {
+      add_to_pack(data, topology_h(i, j));
+    }
+  }
+  
   add_to_pack(data, maxTopologyHeight_);
 
   return;
@@ -136,7 +155,29 @@ void CONTACT::RoughNode::unpack(Core::Communication::UnpackBuffer& buffer)
 
   extract_from_pack(buffer, hurstExponent_);
   extract_from_pack(buffer, initialTopologyStdDeviation_);
-  extract_from_pack(buffer, topology_);
+  
+  // ---- topology_ (2D) ----
+  std::size_t n0, n1;
+  extract_from_pack(buffer, n0);
+  extract_from_pack(buffer, n1);
+
+  topology_ = MIRCO::ViewMatrix_d("topology", n0, n1);
+
+  // Host mirror
+  auto topology_h = Kokkos::create_mirror_view(
+      MIRCO::MemorySpace_Host_t(), topology_);
+
+  for (std::size_t i = 0; i < n0; ++i)
+  {
+    for (std::size_t j = 0; j < n1; ++j)
+    {
+      extract_from_pack(buffer, topology_h(i, j));
+    }
+  }
+
+  // Copy to device
+  Kokkos::deep_copy(topology_, topology_h);
+
   extract_from_pack(buffer, maxTopologyHeight_);
 
   // Check
