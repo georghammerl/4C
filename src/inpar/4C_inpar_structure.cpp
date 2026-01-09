@@ -289,7 +289,6 @@ namespace Inpar
                       {"rand_adapt_step_ele_err", divcont_rand_adapt_step_ele_err},
                       {"repeat_simulation", divcont_repeat_simulation},
                       {"adapt_penaltycontact", divcont_adapt_penaltycontact},
-                      {"adapt_3D0Dptc_ele_err", divcont_adapt_3D0Dptc_ele_err},
                   },
                   {.description =
                           "What to do with time integration when Newton-Raphson iteration failed",

@@ -7,7 +7,6 @@
 
 #include "4C_structure_timint_expl.hpp"
 
-#include "4C_cardiovascular0d_manager.hpp"
 #include "4C_constraint_manager.hpp"
 #include "4C_constraint_springdashpot_manager.hpp"
 #include "4C_contact_input.hpp"

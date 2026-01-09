@@ -12,7 +12,6 @@
 #include "4C_cardiovascular0d_4elementwindkessel.hpp"
 #include "4C_cardiovascular0d_arterialproxdist.hpp"
 #include "4C_cardiovascular0d_dofset.hpp"
-#include "4C_cardiovascular0d_mor_pod.hpp"
 #include "4C_cardiovascular0d_respiratory_syspulperiphcirculation.hpp"
 #include "4C_cardiovascular0d_resulttest.hpp"
 #include "4C_cardiovascular0d_syspulcirculation.hpp"
@@ -112,9 +111,7 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
       strparams_(strparams),
       cv0dparams_(cv0dparams),
       intstrat_(
-          Teuchos::getIntegralValue<Inpar::Solid::IntegrationStrategy>(strparams, "INT_STRATEGY")),
-      mor_(mor),
-      have_mor_(false)
+          Teuchos::getIntegralValue<Inpar::Solid::IntegrationStrategy>(strparams, "INT_STRATEGY"))
 {
   // Check what kind of Cardiovascular0D boundary conditions there are
   havecardiovascular0d_ = (cardvasc0d_4elementwindkessel_->have_cardiovascular0_d() or
@@ -123,20 +120,6 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
                            cardvascrespir0d_syspulperiphcirculation_->have_cardiovascular0_d());
 
   if (!havecardiovascular0d_) return;
-
-
-  switch (intstrat_)
-  {
-    case Inpar::Solid::int_standard:
-      break;
-    case Inpar::Solid::int_old:
-      // setup solver
-      solver_setup(solver, strparams);
-      break;
-    default:
-      FOUR_C_THROW("Unknown integration strategy!");
-      break;
-  }
 
   // Map containing Dirichlet DOFs
   {
@@ -190,20 +173,15 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
     }
   }
 
-  // are we using model order reduction?
-  if (mor_ != nullptr)
-    if (mor_->have_mor()) have_mor_ = true;
-
   if (cardvasc0d_4elementwindkessel_->have_cardiovascular0_d() or
       cardvasc0d_arterialproxdist_->have_cardiovascular0_d() or
       cardvasc0d_syspulcirculation_->have_cardiovascular0_d() or
       cardvascrespir0d_syspulperiphcirculation_->have_cardiovascular0_d())
   {
     cardiovascular0ddofset_ = std::make_shared<Cardiovascular0DDofSet>();
-    cardiovascular0ddofset_->assign_degrees_of_freedom(actdisc_, num_cardiovascular0_did_, 0, mor_);
+    cardiovascular0ddofset_->assign_degrees_of_freedom(actdisc_, num_cardiovascular0_did_, 0);
     cardiovascular0ddofset_full_ = std::make_shared<Cardiovascular0DDofSet>();
-    cardiovascular0ddofset_full_->assign_degrees_of_freedom(
-        actdisc_, num_cardiovascular0_did_, 0, nullptr);
+    cardiovascular0ddofset_full_->assign_degrees_of_freedom(actdisc_, num_cardiovascular0_did_, 0);
     offset_id_ = cardiovascular0ddofset_->first_gid();
 
     cardiovascular0dmap_full_ =
@@ -909,275 +887,4 @@ void Utils::Cardiovascular0DManager::print_pres_flux(bool init) const
 
   return;
 }
-
-
-/*----------------------------------------------------------------------*
- |  set-up (public)                                            mhv 11/13|
- *----------------------------------------------------------------------*/
-void Utils::Cardiovascular0DManager::solver_setup(
-    Core::LinAlg::Solver& solver, Teuchos::ParameterList params)
-{
-  solver_ = Core::Utils::shared_ptr_from_ref(solver);
-
-  // different setup for #adapttol_
-  isadapttol_ = true;
-  isadapttol_ = (params.get<bool>("ADAPTCONV"));
-
-  // simple parameters
-  adaptolbetter_ = params.get<double>("ADAPTCONV_BETTER", 0.01);
-
-  counter_ = 0;
-
-  return;
-}
-
-
-
-int Utils::Cardiovascular0DManager::solve(Core::LinAlg::SparseMatrix& mat_structstiff,
-    Core::LinAlg::Vector<double>& dispinc, Core::LinAlg::Vector<double>& rhsstruct,
-    const double k_ptc)
-{
-  // create old style dirichtoggle vector (supposed to go away)
-  dirichtoggle_ = std::make_shared<Core::LinAlg::Vector<double>>(*(dbcmaps_->full_map()));
-  Core::LinAlg::Vector<double> temp(*(dbcmaps_->cond_map()));
-  temp.put_scalar(1.0);
-  Core::LinAlg::export_to(temp, *dirichtoggle_);
-
-  // allocate additional vectors and matrices
-  Core::LinAlg::Vector<double> rhscardvasc0d(*(get_cardiovascular0_drhs()));
-  Core::LinAlg::Vector<double> cv0ddofincr(*(get_cardiovascular0_d_map()));
-  std::shared_ptr<Core::LinAlg::SparseMatrix> mat_cardvasc0dstiff =
-      (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(get_cardiovascular0_d_stiffness()));
-  std::shared_ptr<Core::LinAlg::SparseMatrix> mat_dcardvasc0d_dd =
-      (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(get_mat_dcardvasc0d_dd()));
-  std::shared_ptr<Core::LinAlg::SparseMatrix> mat_dstruct_dcv0ddof =
-      (std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(get_mat_dstruct_dcv0ddof()));
-
-  // prepare residual cv0ddof
-  cv0ddofincr.put_scalar(0.0);
-
-
-  // apply DBC to additional offdiagonal coupling matrices
-  mat_dcardvasc0d_dd->apply_dirichlet(*(dbcmaps_->cond_map()), false);
-  mat_dstruct_dcv0ddof->apply_dirichlet(*(dbcmaps_->cond_map()), false);
-
-  // define maps of standard dofs and additional pressures
-  std::shared_ptr<Core::LinAlg::Map> standrowmap =
-      std::make_shared<Core::LinAlg::Map>(mat_structstiff.row_map());
-  std::shared_ptr<Core::LinAlg::Map> cardvasc0drowmap =
-      std::make_shared<Core::LinAlg::Map>(*cardiovascular0dmap_full_);
-
-
-  if (ptc_3d0d_)
-  {
-    // PTC on structural matrix
-    std::shared_ptr<Core::LinAlg::Vector<double>> tmp3D =
-        std::make_shared<Core::LinAlg::Vector<double>>(mat_structstiff.row_map(), false);
-    tmp3D->put_scalar(k_ptc);
-    std::shared_ptr<Core::LinAlg::Vector<double>> diag3D =
-        std::make_shared<Core::LinAlg::Vector<double>>(mat_structstiff.row_map(), false);
-    mat_structstiff.extract_diagonal_copy(*diag3D);
-    diag3D->update(1.0, *tmp3D, 1.0);
-    mat_structstiff.replace_diagonal_values(*diag3D);
-  }
-
-  // merge maps to one large map
-  std::shared_ptr<Core::LinAlg::Map> mergedmap =
-      Core::LinAlg::merge_map(standrowmap, cardvasc0drowmap, false);
-  // define MapExtractor
-  // Core::LinAlg::MapExtractor mapext(*mergedmap,standrowmap,cardvasc0drowmap);
-
-  std::vector<std::shared_ptr<const Core::LinAlg::Map>> myMaps;
-  myMaps.push_back(standrowmap);
-  myMaps.push_back(cardvasc0drowmap);
-  Core::LinAlg::MultiMapExtractor mapext(*mergedmap, myMaps);
-
-  // initialize blockmat, mergedrhs, mergedsol and mapext to keep them in scope after the following
-  // if-condition
-  std::shared_ptr<Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>
-      blockmat;
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedrhs;
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol;
-  Core::LinAlg::MultiMapExtractor mapext_R;
-
-  if (have_mor_)
-  {
-    // reduce linear system
-    std::shared_ptr<Core::LinAlg::SparseMatrix> mat_structstiff_R =
-        mor_->reduce_diagonal(mat_structstiff);
-    std::shared_ptr<Core::LinAlg::SparseMatrix> mat_dcardvasc0d_dd_R =
-        mor_->reduce_off_diagonal(*mat_dcardvasc0d_dd);
-    std::shared_ptr<Core::LinAlg::SparseMatrix> mat_dstruct_dcv0ddof_R =
-        mor_->reduce_off_diagonal(*mat_dstruct_dcv0ddof);
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> rhsstruct_R = mor_->reduce_rhs(rhsstruct);
-
-    // define maps of reduced standard dofs and additional pressures
-    Core::LinAlg::Map structmap_R(mor_->get_red_dim(), 0, actdisc_->get_comm());
-    std::shared_ptr<Core::LinAlg::Map> standrowmap_R =
-        std::make_shared<Core::LinAlg::Map>(structmap_R);
-    std::shared_ptr<Core::LinAlg::Map> cardvasc0drowmap_R =
-        std::make_shared<Core::LinAlg::Map>(mat_cardvasc0dstiff->row_map());
-
-    // merge maps of reduced standard dofs and additional pressures to one large map
-    std::shared_ptr<Core::LinAlg::Map> mergedmap_R =
-        Core::LinAlg::merge_map(standrowmap_R, cardvasc0drowmap_R, false);
-
-    std::vector<std::shared_ptr<const Core::LinAlg::Map>> myMaps_R;
-    myMaps_R.push_back(standrowmap_R);
-    myMaps_R.push_back(cardvasc0drowmap_R);
-    mapext_R.setup(*mergedmap_R, myMaps_R);
-
-    // initialize BlockMatrix and Core::LinAlg::Vectors
-    blockmat =
-        std::make_shared<Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>(
-            mapext_R, mapext_R, 81, false, false);
-    mergedrhs = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_R);
-    mergedsol = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap_R);
-
-    // use BlockMatrix
-    blockmat->assign(0, 0, Core::LinAlg::DataAccess::Share, *mat_structstiff_R);
-    blockmat->assign(1, 0, Core::LinAlg::DataAccess::Share, *mat_dcardvasc0d_dd_R);
-    blockmat->assign(0, 1, Core::LinAlg::DataAccess::Share,
-        *Core::LinAlg::matrix_transpose(*mat_dstruct_dcv0ddof_R));
-    blockmat->assign(1, 1, Core::LinAlg::DataAccess::Share, *mat_cardvasc0dstiff);
-    blockmat->complete();
-
-    // export 0D part of rhs
-    Core::LinAlg::export_to(rhscardvasc0d, *mergedrhs);
-    // make the 0D part of the rhs negative
-    mergedrhs->scale(-1.0);
-    // export reduced structure part of rhs -> no need to make it negative since this has been done
-    // by the structural time integrator already!
-    Core::LinAlg::export_to(*rhsstruct_R, *mergedrhs);
-  }
-  else
-  {
-    // initialize BlockMatrix and Core::LinAlg::Vectors
-    blockmat =
-        std::make_shared<Core::LinAlg::BlockSparseMatrix<Core::LinAlg::DefaultBlockMatrixStrategy>>(
-            mapext, mapext, 81, false, false);
-    mergedrhs = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
-    mergedsol = std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
-
-    // use BlockMatrix
-    blockmat->assign(0, 0, Core::LinAlg::DataAccess::Share, mat_structstiff);
-    blockmat->assign(1, 0, Core::LinAlg::DataAccess::Share,
-        *Core::LinAlg::matrix_transpose(*mat_dcardvasc0d_dd));
-    blockmat->assign(0, 1, Core::LinAlg::DataAccess::Share, *mat_dstruct_dcv0ddof);
-    blockmat->assign(1, 1, Core::LinAlg::DataAccess::Share, *mat_cardvasc0dstiff);
-    blockmat->complete();
-
-    // export 0D part of rhs
-    Core::LinAlg::export_to(rhscardvasc0d, *mergedrhs);
-    // make the 0D part of the rhs negative
-    mergedrhs->scale(-1.0);
-    // export structure part of rhs -> no need to make it negative since this has been done by the
-    // structural time integrator already!
-    Core::LinAlg::export_to(rhsstruct, *mergedrhs);
-  }
-
-  // ONLY compatibility
-  // dirichtoggle_ changed and we need to rebuild associated DBC maps
-  if (dirichtoggle_ != nullptr)
-    dbcmaps_ = Core::LinAlg::convert_dirichlet_toggle_vector_to_maps(*dirichtoggle_);
-
-
-  Teuchos::ParameterList sfparams =
-      solver_->params();  // save copy of original solver parameter list
-  const Teuchos::ParameterList& cardvasc0dstructparams =
-      Global::Problem::instance()->cardiovascular0_d_structural_params();
-  const int linsolvernumber = cardvasc0dstructparams.get<int>("LINEAR_COUPLED_SOLVER");
-  solver_->params() = Core::LinAlg::Solver::translate_solver_parameters(
-      Global::Problem::instance()->solver_params(linsolvernumber),
-      Global::Problem::instance()->solver_params_callback(),
-      Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
-          Global::Problem::instance()->io_params(), "VERBOSITY"),
-      actdisc_->get_comm());
-  switch (algochoice_)
-  {
-    case Inpar::Cardiovascular0D::cardvasc0dsolve_direct:
-      break;
-    case Inpar::Cardiovascular0D::cardvasc0dsolve_block:
-    {
-      solver_->put_solver_params_to_sub_params("Inverse1",
-          Global::Problem::instance()->solver_params(linsolvernumber),
-          Global::Problem::instance()->solver_params_callback(),
-          Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
-              Global::Problem::instance()->io_params(), "VERBOSITY"),
-          actdisc_->get_comm());
-      compute_null_space_if_necessary(*actdisc_, solver_->params().sublist("Inverse1"), true);
-
-      solver_->put_solver_params_to_sub_params("Inverse2",
-          Global::Problem::instance()->solver_params(linsolvernumber),
-          Global::Problem::instance()->solver_params_callback(),
-          Teuchos::getIntegralValue<Core::IO::Verbositylevel>(
-              Global::Problem::instance()->io_params(), "VERBOSITY"),
-          actdisc_->get_comm());
-      compute_null_space_if_necessary(*actdisc_, solver_->params().sublist("Inverse2"), true);
-      break;
-    }
-    default:
-      FOUR_C_THROW("Unknown 0D cardiovascular-structural solution technique!");
-  }
-
-  linsolveerror_ = 0;
-
-  double norm_res_full;
-  mergedrhs->norm_2(&norm_res_full);
-
-  // solve for disi
-  // Solve K . IncD = -R  ===>  IncD_{n+1}
-  Core::LinAlg::SolverParams solver_params;
-  if (isadapttol_ && counter_)
-  {
-    solver_params.nonlin_tolerance = tolres_struct_;
-    solver_params.nonlin_residual = norm_res_full;
-    solver_params.lin_tol_better = adaptolbetter_;
-  }
-
-  // solve with BlockMatrix
-  solver_params.refactor = true;
-  solver_params.reset = counter_ == 0;
-  linsolveerror_ = solver_->solve(blockmat, mergedsol, mergedrhs, solver_params);
-  solver_->reset_tolerance();
-
-  // initialize mergedsol_full to keep it in scope after the following if-condition
-  std::shared_ptr<Core::LinAlg::Vector<double>> mergedsol_full =
-      std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
-
-  if (have_mor_)
-  {
-    // initialize and write vector with reduced displacement dofs
-    Core::LinAlg::Vector<double> disp_R(*mapext_R.map(0));
-    mapext_R.extract_vector(*mergedsol, 0, disp_R);
-
-    // initialize and write vector with pressure dofs, replace row map
-    Core::LinAlg::Vector<double> cv0ddof(*mapext_R.map(1));
-    mapext_R.extract_vector(*mergedsol, 1, cv0ddof);
-    cv0ddof.replace_map(*cardvasc0drowmap);
-
-    // extend reduced displacement dofs to high dimension
-    std::shared_ptr<Core::LinAlg::Vector<double>> disp_full = mor_->extend_solution(disp_R);
-
-    // assemble displacement and pressure dofs
-    mergedsol_full = mapext.insert_vector(*disp_full, 0);
-    mapext.add_vector(cv0ddof, 1, *mergedsol_full, 1);
-  }
-  else
-    mergedsol_full = mergedsol;
-
-  // store results in smaller vectors
-  mapext.extract_vector(*mergedsol_full, 0, dispinc);
-  mapext.extract_vector(*mergedsol_full, 1, cv0ddofincr);
-
-  cv0ddofincrement_->update(1., cv0ddofincr, 0.);
-
-  counter_++;
-
-  // update 0D cardiovascular dofs
-  update_cv0_d_dof(cv0ddofincr);
-
-  return linsolveerror_;
-}
-
 FOUR_C_NAMESPACE_CLOSE

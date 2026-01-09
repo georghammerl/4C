@@ -10,7 +10,6 @@
 
 #include "4C_config.hpp"
 
-#include "4C_cardiovascular0d_mor_pod.hpp"
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_dofset.hpp"
@@ -75,9 +74,8 @@ namespace Utils
     //! @name Construction
 
     /// Assign dof numbers using all elements and nodes of the discretization.
-    virtual int assign_degrees_of_freedom(const std::shared_ptr<Core::FE::Discretization> dis,
-        const int ndofs, const int start,
-        const std::shared_ptr<FourC::Cardiovascular0D::ProperOrthogonalDecomposition> mor);
+    virtual int assign_degrees_of_freedom(
+        const std::shared_ptr<Core::FE::Discretization> dis, const int ndofs, const int start);
 
     /// reset all internal variables
     void reset() override;

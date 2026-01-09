@@ -302,13 +302,6 @@ namespace Solid
       return false;
     };
 
-    /// are there any Cardiovascular0D bcs?
-    virtual bool have_cardiovascular0_d()
-    {
-      FOUR_C_THROW("have_cardiovascular0_d() has not been tested for explicit time integrators");
-      return false;
-    };
-
     /// are there any spring dashpot BCs?
     bool have_spring_dashpot() override
     {
@@ -320,14 +313,6 @@ namespace Solid
     std::shared_ptr<Constraints::ConstrManager> get_constraint_manager() override
     {
       FOUR_C_THROW("get_constraint_manager() has not been tested for explicit time integrators");
-      return nullptr;
-    };
-
-    //! Return Teuchos::rcp to Cardiovascular0DManager windkman_
-    virtual std::shared_ptr<Utils::Cardiovascular0DManager> get_cardiovascular0_d_manager()
-    {
-      FOUR_C_THROW(
-          "get_cardiovascular0_d_manager() has not been tested for explicit time integrators");
       return nullptr;
     };
 
@@ -350,15 +335,6 @@ namespace Solid
         ) override
     {
       FOUR_C_THROW("update_iter_incr_constr() has not been tested for explicit time integrators");
-      return;
-    }
-
-    void update_iter_incr_cardiovascular0_d(
-        std::shared_ptr<Core::LinAlg::Vector<double>> presincr  ///< pressure increment
-        ) override
-    {
-      FOUR_C_THROW(
-          "update_iter_incr_cardiovascular0_d() has not been tested for explicit time integrators");
       return;
     }
 

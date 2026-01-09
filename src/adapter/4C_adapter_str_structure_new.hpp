@@ -283,11 +283,6 @@ namespace Adapter
     void update_iter_incr_constr(
         std::shared_ptr<Core::LinAlg::Vector<double>> lagrincr) override = 0;
 
-    /// Update iteration
-    /// Add residual increment to pressures stored in Cardiovascular0D manager
-    void update_iter_incr_cardiovascular0_d(
-        std::shared_ptr<Core::LinAlg::Vector<double>> presincr) override = 0;
-
     /// Access to output object
     std::shared_ptr<Core::IO::DiscretizationWriter> disc_writer() override = 0;
 

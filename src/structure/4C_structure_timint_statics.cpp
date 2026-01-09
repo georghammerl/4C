@@ -214,11 +214,6 @@ void Solid::TimIntStatics::evaluate_force_stiff_residual(Teuchos::ParameterList&
   Teuchos::ParameterList pcon;  // apply empty parameterlist, no scaling necessary
   apply_force_stiff_constraint(timen_, (*dis_)(0), disn_, fintn_, stiff_, pcon);
 
-  // add forces and stiffness due to Cardiovascular0D bcs
-  Teuchos::ParameterList pwindk;
-  pwindk.set("time_step_size", (*dt_)[0]);
-  apply_force_stiff_cardiovascular0_d(timen_, disn_, fintn_, stiff_, pwindk);
-
   // add forces and stiffness due to spring dashpot condition
   Teuchos::ParameterList psprdash;
   apply_force_stiff_spring_dashpot(stiff_, fintn_, disn_, *veln_, predict, psprdash);
@@ -387,9 +382,6 @@ void Solid::TimIntStatics::update_step_state()
 
   // update constraints
   update_step_constraint();
-
-  // update Cardiovascular0D
-  update_step_cardiovascular0_d();
 
   // update constraints
   update_step_spring_dashpot();

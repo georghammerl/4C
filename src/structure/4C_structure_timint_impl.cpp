@@ -7,8 +7,6 @@
 
 #include "4C_structure_timint_impl.hpp"
 
-#include "4C_cardiovascular0d_manager.hpp"
-#include "4C_cardiovascular0d_mor_pod.hpp"
 #include "4C_constraint_manager.hpp"
 #include "4C_constraint_solver.hpp"
 #include "4C_constraint_springdashpot_manager.hpp"
@@ -78,11 +76,6 @@ Solid::TimIntImpl::TimIntImpl(const Teuchos::ParameterList& timeparams,
       uzawaparam_(sdynparams.get<double>("UZAWAPARAM")),
       uzawaitermax_(sdynparams.get<int>("UZAWAMAXITER")),
       tolcon_(sdynparams.get<double>("TOLCONSTR")),
-      tolcardvasc0d_(Global::Problem::instance()->cardiovascular0_d_structural_params().get<double>(
-          "TOL_CARDVASC0D_RES")),
-      tolcardvasc0ddofincr_(
-          Global::Problem::instance()->cardiovascular0_d_structural_params().get<double>(
-              "TOL_CARDVASC0D_DOFINCR")),
       iter_(-1),
       normcharforce_(0.0),
       normchardis_(0.0),
@@ -91,8 +84,6 @@ Solid::TimIntImpl::TimIntImpl(const Teuchos::ParameterList& timeparams,
       normdisi_(0.0),
       normdisir_(0.0),
       normcon_(0.0),
-      normcardvasc0d_(0.0),
-      normcardvasc0ddofincr_(0.0),
       normpfres_(0.0),
       normpres_(0.0),
       normcontconstr_(0.0),  // < norm of contact constraints (saddlepoint formulation)
@@ -158,12 +149,6 @@ void Solid::TimIntImpl::init(const Teuchos::ParameterList& timeparams,
 
   if (tolcon_ <= 0) FOUR_C_THROW("TOLCONSTR has to be greater than zero. Fix your input file.");
 
-  if (tolcardvasc0d_ <= 0)
-    FOUR_C_THROW("TOL_0D_RES has to be greater than zero. Fix your input file.");
-
-  if (tolcardvasc0ddofincr_ <= 0)
-    FOUR_C_THROW("TOL_0D_DOFINCR has to be greater than zero. Fix your input file.");
-
   if ((alpha_ls_ <= 0) or (alpha_ls_ >= 1))
     FOUR_C_THROW("Valid interval for ALPHA_LS is (0,1). Fix your input file.");
 
@@ -195,19 +180,11 @@ void Solid::TimIntImpl::setup()
         (itertype_ != Inpar::Solid::soltech_newtonuzawanonlin))
       FOUR_C_THROW("Chosen solution technique {} does not work constrained.", itertype_);
   }
-  else if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    if (itertype_ != Inpar::Solid::soltech_newtonuzawalin)
-      if (myrank_ == 0)
-        FOUR_C_THROW(
-            "Chosen solution technique {} does not work with Cardiovascular0D bc.", itertype_);
-  }
   else if ((itertype_ == Inpar::Solid::soltech_newtonuzawalin) or
            (itertype_ == Inpar::Solid::soltech_newtonuzawanonlin))
   {
     FOUR_C_THROW(
-        "Chosen solution technique {} does only work constrained or with Cardiovascular0D bc.",
-        itertype_);
+        "Chosen solution technique {} does only work with Lagrange constraints.", itertype_);
   }
 
   // setup tolerances and binary operators for convergence check of contact/meshtying problems
@@ -959,21 +936,6 @@ void Solid::TimIntImpl::apply_force_stiff_constraint(const double time,
 }
 
 /*----------------------------------------------------------------------*/
-/* evaluate forces due to Cardiovascular0D bcs */
-void Solid::TimIntImpl::apply_force_stiff_cardiovascular0_d(const double time,
-    const std::shared_ptr<Core::LinAlg::Vector<double>> disn,
-    std::shared_ptr<Core::LinAlg::Vector<double>>& fint,
-    std::shared_ptr<Core::LinAlg::SparseOperator>& stiff, Teuchos::ParameterList pwindk)
-{
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    cardvasc0dman_->evaluate_force_stiff(time, disn, fint, stiff, pwindk);
-  }
-
-  return;
-}
-
-/*----------------------------------------------------------------------*/
 /* evaluate forces and stiffness due to spring dashpot BCs */
 void Solid::TimIntImpl::apply_force_stiff_spring_dashpot(
     std::shared_ptr<Core::LinAlg::SparseOperator> stiff,
@@ -1091,10 +1053,7 @@ bool Solid::TimIntImpl::converged()
   switch (normtypedisi_)
   {
     case Inpar::Solid::convnorm_abs:
-      if (mor_->have_mor())
-        convdis = normdisir_ < toldisi_;
-      else
-        convdis = normdisi_ < toldisi_;
+      convdis = normdisi_ < toldisi_;
       break;
     case Inpar::Solid::convnorm_rel:
       convdis = normdisi_ < std::max(normchardis_ * toldisi_, 1e-15);
@@ -1111,10 +1070,7 @@ bool Solid::TimIntImpl::converged()
   switch (normtypefres_)
   {
     case Inpar::Solid::convnorm_abs:
-      if (mor_->have_mor())
-        convfres = normfresr_ < tolfres_;
-      else
-        convfres = normfres_ < tolfres_;
+      convfres = normfres_ < tolfres_;
       break;
     case Inpar::Solid::convnorm_rel:
       convfres = normfres_ < std::max(tolfres_ * normcharforce_, 1e-15);
@@ -1133,15 +1089,6 @@ bool Solid::TimIntImpl::converged()
   if (conman_->have_constraint_lagr())
   {
     cc = normcon_ < tolcon_;
-  }
-
-  // check 0D cardiovascular model
-  bool cv0d = true;
-  bool cv0dincr = true;
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    cv0d = normcardvasc0d_ < tolcardvasc0d_;
-    cv0dincr = normcardvasc0ddofincr_ < tolcardvasc0ddofincr_;
   }
 
   // check contact (active set)
@@ -1274,7 +1221,7 @@ bool Solid::TimIntImpl::converged()
 
 
   // return things
-  return (conv and cc and cv0d and cv0dincr and ccontact);
+  return (conv and cc and ccontact);
 }
 
 /*----------------------------------------------------------------------*/
@@ -1292,11 +1239,8 @@ Inpar::Solid::ConvergenceStatus Solid::TimIntImpl::solve()
   // special nonlinear iterations for contact / meshtying
   if (have_contact_meshtying())
   {
-    // check additionally if we have contact AND a Cardiovascular0D or constraint bc
-    if (have_cardiovascular0_d())
-      nonlin_error = cmt_windk_constr_nonlinear_solve();
-    else
-      nonlin_error = cmt_nonlinear_solve();
+    // check additionally if we have constraint bc
+    nonlin_error = cmt_nonlinear_solve();
   }
 
   // all other cases
@@ -1340,7 +1284,6 @@ Inpar::Solid::ConvergenceStatus Solid::TimIntImpl::solve()
   // After a prescribed number of converged time steps, the time step is doubled again. The
   // following methods checks, if the time step size can be increased again.
   check_for_time_step_increase(status);
-  check_for_3d0_dptc_reset(status);
 
   return status;
 }
@@ -1683,8 +1626,7 @@ int Solid::TimIntImpl::lin_solve_error_check(int linerror)
                        divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
                        divcontype_ == Inpar::Solid::divcont_repeat_step or
                        divcontype_ == Inpar::Solid::divcont_repeat_simulation or
-                       divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact or
-                       divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err))
+                       divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact))
   {
     if (myrank_ == 0) Core::IO::cout << "Linear solver is having trouble " << Core::IO::endl;
     return 2;
@@ -1701,8 +1643,7 @@ int Solid::TimIntImpl::element_error_check(bool evalerr)
 {
   // merely care about element problems if there is a fancy divcont action
   // and element errors are considered
-  if (evalerr and (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
-                      divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err))
+  if (evalerr and (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err))
   {
     if (myrank_ == 0)
       Core::IO::cout << "Element error in form of a negative Jacobian determinant "
@@ -2265,20 +2206,6 @@ void Solid::TimIntImpl::update_step_constraint()
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Solid::TimIntImpl::update_step_cardiovascular0_d()
-{
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    cardvasc0dman_->update_time_step();
-    if (cardvasc0dman_->get_is_periodic())
-    {
-      set_time_end(timen_);
-    }
-  }
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
 void Solid::TimIntImpl::update_step_spring_dashpot()
 {
   if (springman_->have_spring_dashpot()) springman_->update();
@@ -2287,13 +2214,6 @@ void Solid::TimIntImpl::update_step_spring_dashpot()
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 bool Solid::TimIntImpl::have_constraint() { return conman_->have_constraint_lagr(); }
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-bool Solid::TimIntImpl::have_cardiovascular0_d()
-{
-  return cardvasc0dman_->have_cardiovascular0_d();
-}
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
@@ -2306,15 +2226,6 @@ void Solid::TimIntImpl::update_iter_incr_constr(
 )
 {
   conman_->update_lagr_mult(*lagrincr);
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-void Solid::TimIntImpl::update_iter_incr_cardiovascular0_d(
-    std::shared_ptr<Core::LinAlg::Vector<double>> cv0ddofincr  ///< wk dof increment
-)
-{
-  cardvasc0dman_->update_cv0_d_dof(*cv0ddofincr);
 }
 
 /*----------------------------------------------------------------------*/
@@ -2483,204 +2394,6 @@ int Solid::TimIntImpl::uzawa_linear_newton_full()
     // correct iteration counter
     iter_ -= 1;
   }
-  else if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    // check whether we have a sanely filled stiffness matrix
-    if (not stiff_->filled())
-    {
-      FOUR_C_THROW("Effective stiffness matrix must be filled here");
-    }
-
-    // initialise equilibrium loop
-    iter_ = 1;
-    normfres_ = calc_ref_norm_force();
-    // normdisi_ was already set in predictor; this is strictly >0
-    normcardvasc0d_ = cardvasc0dman_->get_cardiovascular0_drhs_norm();
-    normcardvasc0ddofincr_ = cardvasc0dman_->get_cardiovascular0_d_dof_incr_norm();
-    timer_->reset();
-
-    double nc;
-    double ncstr;
-    fres_->norm_inf(&ncstr);
-    double nc0d = 0.0;  // cardvasc0dman_->get_cardiovascular0_drhs_inf_norm();
-    if (ncstr >= nc0d)
-      nc = ncstr;
-    else
-      nc = nc0d;
-
-    double dti = cardvasc0dman_->get_k_ptc();
-
-    const bool ptc_3D0D =
-        Global::Problem::instance()->cardiovascular0_d_structural_params().get<bool>("PTC_3D0D");
-
-    // equilibrium iteration loop
-    while (((not converged() and (not linsolve_error) and (not element_error)) and
-               (iter_ <= itermax_)) or
-           (iter_ <= itermin_))
-    {
-      // make negative residual
-      fres_->scale(-1.0);
-
-      // modify stiffness matrix with dti
-      if (ptc_3D0D)
-      {
-        if (myrank_ == 0 and dti > 0.0) Core::IO::cout << "k_ptc = " << dti << Core::IO::endl;
-      }
-
-      // uncomplete stiffness matrix, so stuff can be inserted again
-      // stiff_->UnComplete();
-
-      // transform to local co-ordinate systems
-      if (locsysman_ != nullptr) locsysman_->rotate_global_to_local(system_matrix(), *fres_);
-
-      // apply Dirichlet BCs to system of equations
-      disi_->put_scalar(0.0);  // Useful? depends on solver and more
-      if (get_loc_sys_trafo() != nullptr)
-      {
-        Core::LinAlg::apply_dirichlet_to_system(
-            *Core::LinAlg::cast_to_sparse_matrix_and_check_success(stiff_), *disi_, *fres_,
-            *get_loc_sys_trafo(), *zeros_, *(dbcmaps_->cond_map()));
-      }
-      else
-      {
-        Core::LinAlg::apply_dirichlet_to_system(
-            *stiff_, *disi_, *fres_, *zeros_, *(dbcmaps_->cond_map()));
-      }
-
-      // *********** time measurement ***********
-      double dtcpu = timer_->wallTime();
-      // *********** time measurement ***********
-
-      // linear solver call (contact / meshtying case or default)
-      if (have_contact_meshtying())
-        linsolve_error = cmt_windk_constr_linear_solve(dti);
-      else
-      {
-        // Call Cardiovascular0D solver to solve system
-        linsolve_error = cardvasc0dman_->solve(*system_matrix(), *disi_, *fres_, dti);
-      }
-
-      // check for problems in linear solver
-      // however we only care about this if we have a fancy divcont action  (meaning function will
-      // return 0)
-      linsolve_error = lin_solve_error_check(linsolve_error);
-
-      // recover contact / meshtying Lagrange multipliers
-      if (have_contact_meshtying()) cmtbridge_->recover(disi_);
-
-      // *********** time measurement ***********
-      dtsolve_ = timer_->wallTime() - dtcpu;
-      // *********** time measurement ***********
-
-      // transform back to global co-ordinate system
-      if (locsysman_ != nullptr) locsysman_->rotate_local_to_global(*disi_);
-
-      // update end-point displacements, velocities, accelerations
-      update_iter(iter_);
-
-      // create parameter list
-      Teuchos::ParameterList params;
-
-      // set flag for element error in form of a negative Jacobian determinant
-      // in parameter list in case of potential continuation
-      if (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
-          divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err)
-      {
-        params.set<bool>("tolerate_errors", true);
-        params.set<bool>("eval_error", false);
-      }
-
-      // compute residual forces #fres_ and stiffness #stiff_
-      // which contain forces and stiffness of Cardiovascular0Ds
-      evaluate_force_stiff_residual(params);
-
-      // check for element error in form of a negative Jacobian determinant
-      // in case of potential continuation
-      if (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
-          divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err)
-        element_error = element_error_check(params.get<bool>("eval_error"));
-
-      // blank residual at (locally oriented) Dirichlet DOFs
-      // rotate to local co-ordinate systems
-      if (locsysman_ != nullptr) locsysman_->rotate_global_to_local(*fres_);
-
-      // extract reaction forces
-      // reactions are negative to balance residual on DBC
-      freact_->update(-1.0, *fres_, 0.0);
-      dbcmaps_->insert_other_vector(*dbcmaps_->extract_other_vector(*zeros_), *freact_);
-      // rotate reaction forces back to global co-ordinate system
-      if (locsysman_ != nullptr) locsysman_->rotate_local_to_global(*freact_);
-
-      // blank residual at DOFs on Dirichlet BC
-      dbcmaps_->insert_cond_vector(*dbcmaps_->extract_cond_vector(*zeros_), *fres_);
-      // rotate back to global co-ordinate system
-      if (locsysman_ != nullptr) locsysman_->rotate_local_to_global(*fres_);
-
-      if (pressure_ != nullptr)
-      {
-        std::shared_ptr<const Core::LinAlg::Vector<double>> pres =
-            pressure_->extract_cond_vector(*fres_);
-        std::shared_ptr<const Core::LinAlg::Vector<double>> disp =
-            pressure_->extract_other_vector(*fres_);
-        normpfres_ = Solid::calculate_vector_norm(iternorm_, *pres);
-        normfres_ = Solid::calculate_vector_norm(iternorm_, *disp);
-
-        pres = pressure_->extract_cond_vector(*disi_);
-        disp = pressure_->extract_other_vector(*disi_);
-        normpres_ = Solid::calculate_vector_norm(iternorm_, *pres);
-        normdisi_ = Solid::calculate_vector_norm(iternorm_, *disp);
-      }
-      else
-      {
-        if (mor_->have_mor())
-        {
-          // build residual force norm with reduced force residual
-          std::shared_ptr<Core::LinAlg::Vector<double>> fres_r = mor_->reduce_residual(*fres_);
-          normfresr_ = Solid::calculate_vector_norm(iternorm_, *fres_r);
-
-          // build residual displacement norm with reduced residual displacements
-          std::shared_ptr<Core::LinAlg::Vector<double>> disi_r = mor_->reduce_residual(*disi_);
-          normdisir_ = Solid::calculate_vector_norm(iternorm_, *disi_r);
-        }
-
-        // build residual force norm
-        normfres_ = Solid::calculate_vector_norm(iternorm_, *fres_);
-        // build residual displacement norm
-        normdisi_ = Solid::calculate_vector_norm(iternorm_, *disi_);
-        // build residual 0D cardiovascular residual norm
-        normcardvasc0d_ = cardvasc0dman_->get_cardiovascular0_drhs_norm();
-        // build residual 0D cardiovascular residual dof increment norm
-        normcardvasc0ddofincr_ = cardvasc0dman_->get_cardiovascular0_d_dof_incr_norm();
-      }
-
-      // print stuff
-      print_newton_iter();
-
-      // update ptc
-      if (ptc_3D0D)
-      {
-        double np;
-        double npstr;
-        fres_->norm_inf(&npstr);
-        double np0d = 0.0;  // cardvasc0dman_->get_cardiovascular0_drhs_inf_norm();
-        if (npstr >= np0d)
-          np = npstr;
-        else
-          np = np0d;
-
-        dti *= (np / nc);
-        dti = std::max(dti, 0.0);
-
-        nc = np;
-      }
-
-      // increment equilibrium loop index
-      iter_ += 1;
-    }  // end equilibrium loop
-
-    // correct iteration counter
-    iter_ -= 1;
-  }
 
   // do nonlinear solver error check
   return uzawa_linear_newton_full_error_check(linsolve_error, element_error);
@@ -2701,16 +2414,12 @@ int Solid::TimIntImpl::uzawa_linear_newton_full_error_check(int linerror, int el
     // print newton message on proc 0
     if (myrank_ == 0) conman_->print_monitor_values();
 
-    // print Cardiovascular0D output
-    if (cardvasc0dman_->have_cardiovascular0_d()) cardvasc0dman_->print_pres_flux(false);
-
     return 0;
   }
 
   // now some error checks: do we have an element problem
   // only check if we continue in this case; other wise, we ignore the error
-  if (eleerror and (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
-                       divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err))
+  if (eleerror and (divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err))
   {
     return eleerror;
   }
@@ -2724,8 +2433,7 @@ int Solid::TimIntImpl::uzawa_linear_newton_full_error_check(int linerror, int el
                        divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
                        divcontype_ == Inpar::Solid::divcont_repeat_step or
                        divcontype_ == Inpar::Solid::divcont_repeat_simulation or
-                       divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact or
-                       divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err))
+                       divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact))
   {
     return linerror;
   }
@@ -2754,8 +2462,7 @@ int Solid::TimIntImpl::uzawa_linear_newton_full_error_check(int linerror, int el
                  divcontype_ == Inpar::Solid::divcont_rand_adapt_step_ele_err or
                  divcontype_ == Inpar::Solid::divcont_repeat_step or
                  divcontype_ == Inpar::Solid::divcont_repeat_simulation or
-                 divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact or
-                 divcontype_ == Inpar::Solid::divcont_adapt_3D0Dptc_ele_err))
+                 divcontype_ == Inpar::Solid::divcont_adapt_penaltycontact))
     {
       if (myrank_ == 0)
         Core::IO::cout << "Newton unconverged in " << iter_ << " iterations " << Core::IO::endl;
@@ -3452,7 +3159,6 @@ void Solid::TimIntImpl::print_newton_iter_header(FILE* ofile)
       break;
     case Inpar::Solid::convnorm_abs:
       oss << std::setw(16) << "abs-res-norm";
-      if (mor_->have_mor()) oss << std::setw(16) << "abs-res-norm-r";
       break;
     case Inpar::Solid::convnorm_mix:
       oss << std::setw(16) << "mix-res-norm";
@@ -3482,7 +3188,6 @@ void Solid::TimIntImpl::print_newton_iter_header(FILE* ofile)
       break;
     case Inpar::Solid::convnorm_abs:
       oss << std::setw(16) << "abs-dis-norm";
-      if (mor_->have_mor()) oss << std::setw(16) << "abs-dis-norm-r";
       break;
     case Inpar::Solid::convnorm_mix:
       oss << std::setw(16) << "mix-dis-norm";
@@ -3568,13 +3273,6 @@ void Solid::TimIntImpl::print_newton_iter_header(FILE* ofile)
     oss << std::setw(16) << "abs-constr-norm";
   }
 
-  // add Cardiovascular0D norm
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    oss << std::setw(16) << "abs-0Dres-norm";
-    oss << std::setw(16) << "abs-0Dinc-norm";
-  }
-
   if (itertype_ == Inpar::Solid::soltech_ptc)
   {
     oss << std::setw(16) << "        PTC-dti";
@@ -3629,8 +3327,6 @@ void Solid::TimIntImpl::print_newton_iter_text(FILE* ofile)
       break;
     case Inpar::Solid::convnorm_abs:
       oss << std::setw(16) << std::setprecision(5) << std::scientific << normfres_;
-      if (mor_->have_mor())
-        oss << std::setw(16) << std::setprecision(5) << std::scientific << normfresr_;
       break;
     case Inpar::Solid::convnorm_mix:
       oss << std::setw(16) << std::setprecision(5) << std::scientific
@@ -3661,8 +3357,6 @@ void Solid::TimIntImpl::print_newton_iter_text(FILE* ofile)
       break;
     case Inpar::Solid::convnorm_abs:
       oss << std::setw(16) << std::setprecision(5) << std::scientific << normdisi_;
-      if (mor_->have_mor())
-        oss << std::setw(16) << std::setprecision(5) << std::scientific << normdisir_;
       break;
     case Inpar::Solid::convnorm_mix:
       oss << std::setw(16) << std::setprecision(5) << std::scientific
@@ -3728,13 +3422,6 @@ void Solid::TimIntImpl::print_newton_iter_text(FILE* ofile)
   if (conman_->have_constraint_lagr())
   {
     oss << std::setw(16) << std::setprecision(5) << std::scientific << normcon_;
-  }
-
-  // add Cardiovascular0D norm
-  if (cardvasc0dman_->have_cardiovascular0_d())
-  {
-    oss << std::setw(16) << std::setprecision(5) << std::scientific << normcardvasc0d_;
-    oss << std::setw(16) << std::setprecision(5) << std::scientific << normcardvasc0ddofincr_;
   }
 
   if (itertype_ == Inpar::Solid::soltech_ptc)
@@ -4043,7 +3730,7 @@ void Solid::TimIntImpl::use_block_matrix(
 }
 
 /*----------------------------------------------------------------------*/
-/* solution with nonlinear iteration for contact / meshtying AND Cardiovascular0D bcs*/
+/* solution with nonlinear iteration for contact / meshtying bcs*/
 int Solid::TimIntImpl::cmt_windk_constr_nonlinear_solve()
 {
   //********************************************************************
@@ -4183,90 +3870,6 @@ int Solid::TimIntImpl::cmt_windk_constr_nonlinear_solve()
   return 0;
 }
 
-
-
-/*----------------------------------------------------------------------*/
-/* linear solver call for contact / meshtying AND Cardiovascular0D bcs*/
-int Solid::TimIntImpl::cmt_windk_constr_linear_solve(const double k_ptc)
-{
-  // strategy and system setup types
-  auto soltype = Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(
-      cmtbridge_->get_strategy().params(), "STRATEGY");
-  auto systype =
-      Teuchos::getIntegralValue<CONTACT::SystemType>(cmtbridge_->get_strategy().params(), "SYSTEM");
-
-  int linsolve_error = 0;
-
-  // update information about active slave dofs
-  //**********************************************************************
-  // feed solver/preconditioner with additional information about the contact/meshtying problem
-  //**********************************************************************
-  {
-    std::shared_ptr<Core::LinAlg::Map> masterDofMap;
-    std::shared_ptr<Core::LinAlg::Map> slaveDofMap;
-    std::shared_ptr<Core::LinAlg::Map> innerDofMap;
-    std::shared_ptr<Core::LinAlg::Map> activeDofMap;
-    std::shared_ptr<Mortar::StrategyBase> strategy =
-        Core::Utils::shared_ptr_from_ref(cmtbridge_->get_strategy());
-    strategy->collect_maps_for_preconditioner(masterDofMap, slaveDofMap, innerDofMap, activeDofMap);
-
-    // feed Belos based solvers with contact information
-    // if (contactsolver_->Params().isSublist("Belos Parameters"))
-    if (cardvasc0dman_->get_solver()->params().isSublist("Belos Parameters"))
-    {
-      // Teuchos::ParameterList& mueluParams = contactsolver_->Params().sublist("Belos Parameters");
-      Teuchos::ParameterList& mueluParams =
-          cardvasc0dman_->get_solver()->params().sublist("Belos Parameters");
-      mueluParams.set<Teuchos::RCP<Epetra_Map>>(
-          "contact masterDofMap", Teuchos::rcpFromRef(masterDofMap->get_epetra_map()));
-      mueluParams.set<Teuchos::RCP<Epetra_Map>>(
-          "contact slaveDofMap", Teuchos::rcpFromRef(slaveDofMap->get_epetra_map()));
-      mueluParams.set<Teuchos::RCP<Epetra_Map>>(
-          "contact innerDofMap", Teuchos::rcpFromRef(innerDofMap->get_epetra_map()));
-      mueluParams.set<Teuchos::RCP<Epetra_Map>>(
-          "contact activeDofMap", Teuchos::rcpFromRef(activeDofMap->get_epetra_map()));
-      std::shared_ptr<CONTACT::AbstractStrategy> costrat =
-          std::dynamic_pointer_cast<CONTACT::AbstractStrategy>(strategy);
-      if (costrat != nullptr)
-        mueluParams.set<std::string>("Core::ProblemType", "contact");
-      else
-        mueluParams.set<std::string>("Core::ProblemType", "meshtying");
-      mueluParams.set<int>("time step", step_);
-      mueluParams.set<int>("iter", iter_);
-      mueluParams.set<bool>("reuse preconditioner", strategy->active_set_converged());
-    }
-
-  }  // end: feed solver with contact/meshtying information
-
-  //**********************************************************************
-  // Solving a saddle point system
-  // -> does not work together with constraints / Cardiovascular0D bcs
-  // (1) Standard / Dual Lagrange multipliers -> SaddlePointCoupled
-  // (2) Standard / Dual Lagrange multipliers -> SaddlePointSimpler
-  //**********************************************************************
-  if (soltype == CONTACT::SolvingStrategy::lagmult &&
-      (systype != CONTACT::SystemType::condensed &&
-          systype != CONTACT::SystemType::condensed_lagmult))
-  {
-    FOUR_C_THROW(
-        "Constraints / Cardiovascular0D bcs together with saddle point contact system does not "
-        "work (yet)!");
-  }
-
-  //**********************************************************************
-  // Solving a purely displacement based system
-  // (1) Dual (not Standard) Lagrange multipliers -> Condensed
-  // (2) Penalty and Augmented Lagrange strategies
-  //**********************************************************************
-  else
-  {
-    // solve with Cardiovascular0D solver
-    linsolve_error = cardvasc0dman_->solve(*system_matrix(), *disi_, *fres_, k_ptc);
-  }
-
-  return linsolve_error;
-}
-
 /*-----------------------------------------------------------------------------*
  * check, if according to divercont flag                             meier 01/15
  * time step size can be increased
@@ -4300,34 +3903,6 @@ void Solid::TimIntImpl::check_for_time_step_increase(Inpar::Solid::ConvergenceSt
       {
         divconnumfinestep_--;
       }
-    }
-    return;
-  }
-}
-
-void Solid::TimIntImpl::check_for_3d0_dptc_reset(Inpar::Solid::ConvergenceStatus& status)
-{
-  const int maxnumfinestep = 1;
-
-  if (divcontype_ != Inpar::Solid::divcont_adapt_3D0Dptc_ele_err)
-    return;
-  else if (status == Inpar::Solid::conv_success and divconrefinementlevel_ != 0 and
-           cardvasc0dman_->get_k_ptc() != 0.0)
-  {
-    divconnumfinestep_++;
-
-    if (divconnumfinestep_ == maxnumfinestep)
-    {
-      if (myrank_ == 0)
-      {
-        Core::IO::cout << "Nonlinear solver successful. Reset 3D-0D PTC to normal Newton!"
-                       << Core::IO::endl;
-      }
-      divconrefinementlevel_ = 0;
-      divconnumfinestep_ = 0;
-
-      // reset k_ptc
-      cardvasc0dman_->reset_k_ptc();
     }
     return;
   }
