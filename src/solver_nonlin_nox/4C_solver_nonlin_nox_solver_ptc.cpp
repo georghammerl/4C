@@ -140,9 +140,9 @@ void NOX::Nln::Solver::PseudoTransient::create_scaling_operator()
     case NOX::Nln::Solver::PseudoTransient::scale_op_identity:
     {
       // identity matrix
-      const auto& epetraXPtr = dynamic_cast<const NOX::Nln::Vector&>(solnPtr->getX());
+      const auto& nln_XPtr = dynamic_cast<const NOX::Nln::Vector&>(solnPtr->getX());
       scalingDiagOpPtr_ = Teuchos::make_rcp<Core::LinAlg::Vector<double>>(
-          epetraXPtr.get_linalg_vector().get_map(), false);
+          nln_XPtr.get_linalg_vector().get_map(), false);
 
       scalingDiagOpPtr_->put_scalar(1.0);
 
@@ -498,10 +498,10 @@ void NOX::Nln::Solver::PseudoTransient::update_pseudo_time_step()
         else
         {
           Teuchos::RCP<::NOX::Abstract::Vector> scaledRHS = solnPtr->getF().clone(::NOX::DeepCopy);
-          auto& epetraScaledRHS = dynamic_cast<NOX::Nln::Vector&>(*scaledRHS);
-          epetraScaledRHS.get_linalg_vector().reciprocal_multiply(
-              1.0, *scalingDiagOpPtr_, epetraScaledRHS.get_linalg_vector(), 0.0);
-          normF = epetraScaledRHS.norm(normType_);
+          auto& nln_scaledRHS = dynamic_cast<NOX::Nln::Vector&>(*scaledRHS);
+          nln_scaledRHS.get_linalg_vector().reciprocal_multiply(
+              1.0, *scalingDiagOpPtr_, nln_scaledRHS.get_linalg_vector(), 0.0);
+          normF = nln_scaledRHS.norm(normType_);
         }
         if (normF > Core::Geo::TOL12)
           deltaInit_ = 1.0 / (normF * normF);

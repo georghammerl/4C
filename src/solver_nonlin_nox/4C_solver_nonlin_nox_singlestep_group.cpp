@@ -46,10 +46,9 @@ void NOX::Nln::SINGLESTEP::Group::computeX(
   const NOX::Nln::SINGLESTEP::Group* nlngrp =
       dynamic_cast<const NOX::Nln::SINGLESTEP::Group*>(&grp);
   if (nlngrp == nullptr) throw_error("computeX", "dyn_cast to nox_nln_group failed!");
-  const auto& epetrad = dynamic_cast<const NOX::Nln::Vector&>(d);
+  const auto& nln_d = dynamic_cast<const NOX::Nln::Vector&>(d);
 
-  computeX(*nlngrp, epetrad, step);
-  return;
+  computeX(*nlngrp, nln_d, step);
 }
 
 /*----------------------------------------------------------------------------*

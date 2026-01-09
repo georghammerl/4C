@@ -135,10 +135,10 @@ void NOX::Nln::GroupBase::computeX(
     const ::NOX::Abstract::Group& grp, const ::NOX::Abstract::Vector& d, double step)
 {
   const auto& grp_base = dynamic_cast<const GroupBase&>(grp);
-  const auto& epetra_d = dynamic_cast<const NOX::Nln::Vector&>(d);
+  const auto& nln_d = dynamic_cast<const NOX::Nln::Vector&>(d);
 
   reset_is_valid();
-  xVector.update(1.0, grp_base.xVector, step, epetra_d);
+  xVector.update(1.0, grp_base.xVector, step, nln_d);
 }
 
 ::NOX::Abstract::Group::ReturnType NOX::Nln::GroupBase::computeF()
@@ -203,12 +203,12 @@ void NOX::Nln::GroupBase::computeX(
 ::NOX::Abstract::Group::ReturnType NOX::Nln::GroupBase::applyJacobian(
     const ::NOX::Abstract::Vector& input, ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
-  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
+  const auto& nln_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& nln_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
-  const bool status = linearSystemPtr->apply_jacobian(epetra_input, epetra_result);
+  const bool status = linearSystemPtr->apply_jacobian(nln_input, nln_result);
 
   return status ? ::NOX::Abstract::Group::Ok : ::NOX::Abstract::Group::Failed;
 }
@@ -217,14 +217,13 @@ void NOX::Nln::GroupBase::computeX(
     Teuchos::ParameterList& p, const ::NOX::Abstract::Vector& input,
     ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
-  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
+  const auto& nln_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& nln_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
   // Save linear solve stats
-  lastLinearSolveConverged =
-      linearSystemPtr->apply_jacobian_inverse(p, epetra_input, epetra_result);
+  lastLinearSolveConverged = linearSystemPtr->apply_jacobian_inverse(p, nln_input, nln_result);
   lastNumIterations = p.sublist("Output").get("Number of Linear Iterations", 0);
   lastAchievedTol = p.sublist("Output").get("Achieved Tolerance", 0.0);
 
@@ -235,12 +234,12 @@ void NOX::Nln::GroupBase::computeX(
 ::NOX::Abstract::Group::ReturnType NOX::Nln::GroupBase::applyJacobianTranspose(
     const ::NOX::Abstract::Vector& input, ::NOX::Abstract::Vector& result) const
 {
-  const auto& epetra_input = dynamic_cast<const NOX::Nln::Vector&>(input);
-  auto& epetra_result = dynamic_cast<NOX::Nln::Vector&>(result);
+  const auto& nln_input = dynamic_cast<const NOX::Nln::Vector&>(input);
+  auto& nln_result = dynamic_cast<NOX::Nln::Vector&>(result);
 
   if (!isJacobian()) return ::NOX::Abstract::Group::BadDependency;
 
-  const bool status = linearSystemPtr->apply_jacobian_transpose(epetra_input, epetra_result);
+  const bool status = linearSystemPtr->apply_jacobian_transpose(nln_input, nln_result);
 
   return status ? ::NOX::Abstract::Group::Ok : ::NOX::Abstract::Group::Failed;
 }
