@@ -36,10 +36,13 @@
     {
       "name": "docker",
       "displayName": "Release build for Docker image",
-      "description": "Build release version on a Docker image",
+      "description": "Build release version on a Docker image. All optional dependencies compatible with 4C's license are enabled.",
       "inherits": [
         ".docker_base"
-      ]
+      ],
+      "cacheVariables": {
+        "FOUR_C_WITH_GMSH": "OFF"
+      }
     },
     {
       "name": "docker_assertions",
@@ -110,7 +113,7 @@
     {
       "name": "docker_minimal",
       "displayName": "Minimal build for Docker image",
-      "description": "Build minimal Docker image without source, build folder, and tests",
+      "description": "Build minimal Docker image without source, build folder, and tests. All optional dependencies compatible with 4C's license are enabled.",
       "inherits": [
         ".docker_base"
       ],
@@ -119,7 +122,8 @@
         "FOUR_C_WITH_GOOGLE_BENCHMARK": "OFF",
         "FOUR_C_ENABLE_DOXYGEN": "OFF",
         "FOUR_C_ENABLE_DOCUMENTATION": "OFF",
-        "FOUR_C_DOXYGEN_USE_LOCAL_MATHJAX": "OFF"
+        "FOUR_C_DOXYGEN_USE_LOCAL_MATHJAX": "OFF",
+        "FOUR_C_WITH_GMSH": "OFF"
       }
     },
     {
