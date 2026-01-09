@@ -1,6 +1,7 @@
 >**Disclaimer:** this docker image is new. So, the usability might still be suboptimal.
 
-This `Dockerfile` creates an docker image with a ready to use 4C executable.
+This `Dockerfile` creates an docker image with a ready to use 4C executable containing all optional
+dependencies that are compatible with 4C's license.
 
 You can just start the docker image with
 ```

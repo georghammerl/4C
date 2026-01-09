@@ -2,7 +2,8 @@
 
 This `Dockerfile` creates an docker image with a ready to use 4C executable. Compared to
 `prebuilt_4C`, this image only contains the bare minimum to run 4C, so, no source, build folder,
-tests, or other testing infrastructure.
+tests, or other testing infrastructure. All optional dependencies that are compatible with 4C's
+license are enabled.
 
 This image is for you if you just want a 4C executable or want to use it as image in GitHub Actions.
 
