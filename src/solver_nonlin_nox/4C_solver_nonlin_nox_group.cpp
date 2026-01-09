@@ -75,10 +75,9 @@ void NOX::Nln::Group::computeX(
   // Cast to appropriate type, then call the "native" computeX
   const NOX::Nln::Group* nlngrp = dynamic_cast<const NOX::Nln::Group*>(&grp);
   if (nlngrp == nullptr) throw_error("computeX", "dyn_cast to nox_nln_group failed!");
-  const auto& epetrad = dynamic_cast<const NOX::Nln::Vector&>(d);
+  const auto& nln_d = dynamic_cast<const NOX::Nln::Vector&>(d);
 
-  computeX(*nlngrp, epetrad, step);
-  return;
+  computeX(*nlngrp, nln_d, step);
 }
 
 /*----------------------------------------------------------------------------*
@@ -429,8 +428,8 @@ void NOX::Nln::Group::reset_lin_sys_pre_post_operator(
 void NOX::Nln::Group::adjust_pseudo_time_step(double& delta, const double& stepSize,
     const ::NOX::Abstract::Vector& dir, const NOX::Nln::Solver::PseudoTransient& ptcsolver)
 {
-  const auto& dirEpetra = dynamic_cast<const NOX::Nln::Vector&>(dir);
-  adjust_pseudo_time_step(delta, stepSize, dirEpetra, ptcsolver);
+  const auto& nlndir = dynamic_cast<const NOX::Nln::Vector&>(dir);
+  adjust_pseudo_time_step(delta, stepSize, nlndir, ptcsolver);
 }
 
 /*----------------------------------------------------------------------------*
