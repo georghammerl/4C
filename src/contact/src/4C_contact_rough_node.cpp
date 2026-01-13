@@ -98,6 +98,7 @@ void CONTACT::RoughNode::pack(Core::Communication::PackBuffer& data) const
   add_to_pack(data, hurstExponent_);
   add_to_pack(data, initialTopologyStdDeviation_);
 
+#ifdef FOUR_C_WITH_MIRCO
   // ---- topology_ (2D) ----
   const std::size_t n0 = topology_.extent(0);
   const std::size_t n1 = topology_.extent(1);
@@ -115,6 +116,7 @@ void CONTACT::RoughNode::pack(Core::Communication::PackBuffer& data) const
       add_to_pack(data, topology_h(i, j));
     }
   }
+#endif
 
   add_to_pack(data, maxTopologyHeight_);
 
@@ -141,6 +143,7 @@ void CONTACT::RoughNode::unpack(Core::Communication::UnpackBuffer& buffer)
   extract_from_pack(buffer, hurstExponent_);
   extract_from_pack(buffer, initialTopologyStdDeviation_);
 
+#ifdef FOUR_C_WITH_MIRCO
   // ---- topology_ (2D) ----
   std::size_t n0, n1;
   extract_from_pack(buffer, n0);
@@ -161,6 +164,7 @@ void CONTACT::RoughNode::unpack(Core::Communication::UnpackBuffer& buffer)
 
   // Copy to device
   Kokkos::deep_copy(topology_, topology_h);
+#endif
 
   extract_from_pack(buffer, maxTopologyHeight_);
 

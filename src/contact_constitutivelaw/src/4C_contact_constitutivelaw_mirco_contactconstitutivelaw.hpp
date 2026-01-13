@@ -14,8 +14,9 @@
 #include "4C_contact_constitutivelaw_contactconstitutivelaw_parameter.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 
+#ifdef FOUR_C_WITH_MIRCO
 #include <mirco_kokkostypes.h>
-#include <Teuchos_Ptr.hpp>
+#endif
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -50,7 +51,9 @@ namespace CONTACT
       double get_compliance_correction() const { return elastic_compliance_correction_; };
       double get_finite_difference_fraction() const { return finite_difference_fraction_; };
       double get_active_gap_tolerance() const { return active_gap_tolerance_; };
+#ifdef FOUR_C_WITH_MIRCO
       const MIRCO::ViewVector_d* get_mesh_grid() const { return &meshgrid_; }
+#endif
 
       void set_parameters();
 
@@ -72,7 +75,9 @@ namespace CONTACT
       double composite_youngs_;
       double grid_size_;
       double elastic_compliance_correction_;
+#ifdef FOUR_C_WITH_MIRCO
       MIRCO::ViewVector_d meshgrid_;
+#endif
       double finite_difference_fraction_;
       double active_gap_tolerance_;
       std::string topology_file_path_;
