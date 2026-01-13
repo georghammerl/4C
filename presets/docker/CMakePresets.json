@@ -28,7 +28,9 @@
         "FOUR_C_WITH_PYBIND11": "ON",
         "FOUR_C_WITH_GOOGLE_BENCHMARK": "ON",
         "FOUR_C_WITH_VTK": "ON",
-        "FOUR_C_WITH_FFTW": "ON"
+        "FOUR_C_WITH_FFTW": "ON",
+        "KOKKOS_PATH": "/opt/4C-dependencies",
+        "KOKKOS_KERNELS_PATH": "/opt/4C-dependencies"
       }
     },
     {
