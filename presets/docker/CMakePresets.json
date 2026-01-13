@@ -24,13 +24,13 @@
         "FOUR_C_WITH_BACKTRACE": "ON",
         "FOUR_C_BACKTRACE_ROOT": "/opt/4C-dependencies",
         "FOUR_C_WITH_MIRCO": "ON",
+        "KOKKOS_PATH": "/opt/4C-dependencies",
+        "KOKKOS_KERNELS_PATH": "/opt/4C-dependencies",
         "FOUR_C_WITH_DEAL_II": "ON",
         "FOUR_C_WITH_PYBIND11": "ON",
         "FOUR_C_WITH_GOOGLE_BENCHMARK": "ON",
         "FOUR_C_WITH_VTK": "ON",
-        "FOUR_C_WITH_FFTW": "ON",
-        "KOKKOS_PATH": "/opt/4C-dependencies",
-        "KOKKOS_KERNELS_PATH": "/opt/4C-dependencies"
+        "FOUR_C_WITH_FFTW": "ON"
       }
     },
     {
