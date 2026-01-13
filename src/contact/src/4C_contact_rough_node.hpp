@@ -113,7 +113,6 @@ namespace CONTACT
 
     double hurstExponent_ = 0;
     double initialTopologyStdDeviation_ = 0;
-    // Core::LinAlg::SerialDenseMatrix topology_;
     MIRCO::ViewMatrix_d topology_;
     double maxTopologyHeight_;
   };

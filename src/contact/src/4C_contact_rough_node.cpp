@@ -62,23 +62,9 @@ CONTACT::RoughNode::RoughNode(int id, std::span<const double> coords, const int 
             ->function_by_id<Core::Utils::FunctionOfSpaceTime>(initialtopologystddeviationfunction_)
             .evaluate(this->x(), 1, this->n_dim());
 
-    // const int N = pow(2, resolution_);
-    // topology_.shape(N + 1, N + 1);
-
-    // std::string topologyFilePath = "";
-    // Teuchos::RCP<MIRCO::TopologyGeneration> surfacegenerator;
-    // // creating the correct surface object
-    // MIRCO::CreateSurfaceObject(resolution_, initialTopologyStdDeviation_, hurstExponent_,
-    //     randomseedflag_, topologyFilePath, randomtopologyflag_, randomgeneratorseed_,
-    //     surfacegenerator);
-    // surfacegenerator->GetSurface(topology_.base());
-
     auto topology_h = MIRCO::CreateRmgSurface(
         resolution_, initialTopologyStdDeviation_, hurstExponent_, randomseedflag_, randomgeneratorseed_);
     topology_ = Kokkos::create_mirror_view_and_copy(MIRCO::ExecSpace_Default_t(), topology_h);
-
-    // auto max_and_mean = MIRCO::ComputeMaxAndMean(topology_.base());
-    // maxTopologyHeight_ = max_and_mean.max_;
 
     maxTopologyHeight_ = MIRCO::GetMax(topology_);
   }
@@ -155,7 +141,7 @@ void CONTACT::RoughNode::unpack(Core::Communication::UnpackBuffer& buffer)
 
   extract_from_pack(buffer, hurstExponent_);
   extract_from_pack(buffer, initialTopologyStdDeviation_);
-  
+
   // ---- topology_ (2D) ----
   std::size_t n0, n1;
   extract_from_pack(buffer, n0);
@@ -179,8 +165,6 @@ void CONTACT::RoughNode::unpack(Core::Communication::UnpackBuffer& buffer)
   Kokkos::deep_copy(topology_, topology_h);
 
   extract_from_pack(buffer, maxTopologyHeight_);
-
-  // Check
 
   return;
 }
