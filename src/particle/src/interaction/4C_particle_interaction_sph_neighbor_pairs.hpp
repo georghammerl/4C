@@ -26,12 +26,8 @@ namespace Particle
 {
   class ParticleEngineInterface;
   class ParticleContainerBundle;
-}  // namespace Particle
-
-namespace Particle
-{
   class WallHandlerInterface;
-}
+}  // namespace Particle
 
 namespace Particle
 {
