@@ -13,8 +13,8 @@
 #include "4C_contact_constitutivelaw_contactconstitutivelaw.hpp"
 #include "4C_contact_constitutivelaw_contactconstitutivelaw_parameter.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
-#include <mirco_kokkostypes.h>
 
+#include <mirco_kokkostypes.h>
 #include <Teuchos_Ptr.hpp>
 
 FOUR_C_NAMESPACE_OPEN

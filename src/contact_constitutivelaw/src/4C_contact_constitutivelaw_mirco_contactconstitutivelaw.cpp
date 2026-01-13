@@ -16,9 +16,9 @@
 #ifdef FOUR_C_WITH_MIRCO
 
 #include <mirco_evaluate.h>
+#include <mirco_kokkostypes.h>
 #include <mirco_topology.h>
 #include <mirco_topologyutilities.h>
-#include <mirco_kokkostypes.h>
 
 #include <vector>
 
@@ -136,9 +136,9 @@ double CONTACT::CONSTITUTIVELAW::MircoConstitutiveLaw::evaluate(
 
   double pressure = 0.0;
   double contact_area_fraction = 0.0;
-  MIRCO::Evaluate(pressure, contact_area_fraction, -(gap + params_.get_offset()), params_.get_lateral_length(),
-      params_.get_grid_size(), params_.get_tolerance(), params_.get_max_iteration(),
-      params_.get_composite_youngs(), params_.get_warm_starting_flag(),
+  MIRCO::Evaluate(pressure, contact_area_fraction, -(gap + params_.get_offset()),
+      params_.get_lateral_length(), params_.get_grid_size(), params_.get_tolerance(),
+      params_.get_max_iteration(), params_.get_composite_youngs(), params_.get_warm_starting_flag(),
       params_.get_compliance_correction(), topology, roughNode->get_max_topology_height(),
       *params_.get_mesh_grid(), params_.get_pressure_green_fun_flag());
 
@@ -166,12 +166,13 @@ double CONTACT::CONSTITUTIVELAW::MircoConstitutiveLaw::evaluate_derivative(
   double pressure2 = 0.0;
   double contact_area_fraction = 0.0;
   // using backward difference approach
-  MIRCO::Evaluate(pressure1, contact_area_fraction, -1.0 * (gap + params_.get_offset()), params_.get_lateral_length(),
-      params_.get_grid_size(), params_.get_tolerance(), params_.get_max_iteration(),
-      params_.get_composite_youngs(), params_.get_warm_starting_flag(),
+  MIRCO::Evaluate(pressure1, contact_area_fraction, -1.0 * (gap + params_.get_offset()),
+      params_.get_lateral_length(), params_.get_grid_size(), params_.get_tolerance(),
+      params_.get_max_iteration(), params_.get_composite_youngs(), params_.get_warm_starting_flag(),
       params_.get_compliance_correction(), topology, roughNode->get_max_topology_height(),
       *params_.get_mesh_grid(), params_.get_pressure_green_fun_flag());
-  MIRCO::Evaluate(pressure2, contact_area_fraction, -(1 - params_.get_finite_difference_fraction()) * (gap + params_.get_offset()),
+  MIRCO::Evaluate(pressure2, contact_area_fraction,
+      -(1 - params_.get_finite_difference_fraction()) * (gap + params_.get_offset()),
       params_.get_lateral_length(), params_.get_grid_size(), params_.get_tolerance(),
       params_.get_max_iteration(), params_.get_composite_youngs(), params_.get_warm_starting_flag(),
       params_.get_compliance_correction(), topology, roughNode->get_max_topology_height(),
