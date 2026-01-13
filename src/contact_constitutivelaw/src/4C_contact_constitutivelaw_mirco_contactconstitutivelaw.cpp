@@ -114,9 +114,6 @@ void CONTACT::CONSTITUTIVELAW::MircoConstitutiveLawParams::set_parameters()
 
   elastic_compliance_correction_ = lateral_length_ * composite_youngs_ / ShapeFactor;
 
-  // const int iter = int(ceil((lateral_length_ - (grid_size_ / 2)) / grid_size_));
-  // meshgrid_ = Teuchos::Ptr(new std::vector<double>(iter));
-  // MIRCO::CreateMeshgrid(*meshgrid_, iter, grid_size_);
   meshgrid_ = MIRCO::CreateMeshgrid(ngrid, grid_size_);
 }
 

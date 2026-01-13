@@ -99,7 +99,6 @@ namespace CONTACT
 
     // //! @name Access methods
 
-    // const Core::LinAlg::SerialDenseMatrix* get_topology() const { return &topology_; };
     const MIRCO::ViewMatrix_d* get_topology() const { return &topology_; };
     double get_max_topology_height() const { return maxTopologyHeight_; };
 
