@@ -21,8 +21,8 @@
         "FOUR_C_WITH_MIRCO": "ON",
         "FOUR_C_WITH_VTK": "ON",
         "FOUR_C_BUILD_SHARED_LIBS": "OFF",
-        "KOKKOS_PATH": "/imcs/public/compsim/packages/trilinos/2025.4/install",
-        "KOKKOS_KERNELS_PATH": "/imcs/public/compsim/packages/trilinos/2025.4/install"
+        "KOKKOS_PATH": "/imcs/public/compsim/packages/trilinos/2025.6/install",
+        "KOKKOS_KERNELS_PATH": "/imcs/public/compsim/packages/trilinos/2025.6/install"
       }
     },
     {
