@@ -72,6 +72,7 @@ CONTACT CONSTITUTIVE LAWS:
       SecondMatID: 2
       LateralLength: 1000
       Resolution: 6
+      PressureGreenFunFlag: true
       InitialTopologyStdDeviationFunct: 3
       HurstExponentFunct: 2
       RandomGeneratorSeed: 71
