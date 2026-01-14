@@ -18,11 +18,9 @@
         "FOUR_C_ENABLE_DOXYGEN": "ON",
         "FOUR_C_WITH_GOOGLETEST": "ON",
         "FOUR_C_WITH_ARBORX": "ON",
-        "FOUR_C_WITH_MIRCO": "OFF",
+        "FOUR_C_WITH_MIRCO": "ON",
         "FOUR_C_WITH_VTK": "ON",
-        "FOUR_C_BUILD_SHARED_LIBS": "OFF",
-        "KOKKOS_PATH": "/imcs/public/compsim/packages/trilinos/2025.6/install",
-        "KOKKOS_KERNELS_PATH": "/imcs/public/compsim/packages/trilinos/2025.6/install"
+        "FOUR_C_BUILD_SHARED_LIBS": "OFF"
       }
     },
     {
