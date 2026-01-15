@@ -742,8 +742,8 @@ namespace Core::LinAlg
                         (is_symmetric_tensor<TensorRight> && TensorRight::rank() == 4 &&
                             TensorLeft::rank() == 2)))
       {
-        // result is symmetric if one tensor is a symmetric 4th order tensor and the other one is a
-        // second order tensor
+        // reetric if one tensor is a symmetric 4th order tensor and the other one is a
+        // second order tsult is symmensor
         return assume_symmetry(tensor);
       }
       else

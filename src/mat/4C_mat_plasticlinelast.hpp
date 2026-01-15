@@ -156,45 +156,25 @@ namespace Mat
         Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,
         Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID) override;
 
-    //! computes stress
-    void stress(const double p,                                   //!< volumetric stress tensor
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& devstress,  //!< deviatoric stress tensor
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& stress            //!< 2nd PK-stress
-    );
-
-    //! calculate relative/over stress
-    void rel_stress(
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& devstress,  //!< deviatoric stress tensor
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& beta,       //!< back stress tensor
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& eta               //!< relative stress
-    );
-
     //! computes isotropic elasticity tensor in matrix notion for 3d
     void setup_cmat(
-        Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>& cmat  //!< elastic material tangent
+        Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat,  //!< elastic material tangent
+        double mu,                                                //!< lame constant mu (=G)
+        double lambda                                             //!< lame constant lambda
     ) const;
 
-    //! computes isotropic elastoplastic tensor in matrix notion for 3d
-    void setup_cmat_elasto_plastic(Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
-                                       cmat,                //!< elasto-plastic material tangent
-        double Dgamma,                                      //!< plastic multiplier
-        double G,                                           //!< shear modulus
-        double q,                                           //!< effective stress
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1> Nbar,  // unit flow vector
-        double heaviside,  //!< heaviside function: decide if loading/unloading
-        double Hiso,       //!< isotropic hardening modulus
-        double Hkin        //!< kinematic hardening modulus
+    //! computes isotropic elastoplastic tensor for 3d
+    void setup_cmat_elasto_plastic(Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>&
+                                       cmat,            //!< elasto-plastic material tangent
+        double Dgamma,                                  //!< plastic multiplier
+        double G,                                       //!< shear modulus
+        double q,                                       //!< effective stress
+        Core::LinAlg::SymmetricTensor<double, 3, 3> N,  // unit flow vector
+        double Hiso,                                    //!< isotropic hardening modulus
+        double Hkin                                     //!< kinematic hardening modulus
     ) const;
 
-    //! computes isotropic elastoplastic tensor in matrix notion for 3d
-    void setup_cmat_elasto_plastic2(Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
-                                        cmat,            //!< elasto-plastic material tangent
-        double Dgamma,                                   //!< plastic multiplier
-        double q,                                        //!< effective stress
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1> unitflow  //!< unit flow vector
-    ) const;
-
-    void setup_continuum_cmat_elasto_plastic(Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
+    void setup_continuum_cmat_elasto_plastic(Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>&
                                                  cmat,   //!< elasto-plastic material tangent
         double Dgamma,                                   //!< plastic multiplier
         double q,                                        //!< effective stress
@@ -212,11 +192,11 @@ namespace Mat
     double accumulated_strain(int gp  //!< current Gauss point
     ) const
     {
-      return strainbarpllast_->at(gp);
+      return strainbarpllast_.at(gp);
     }
 
     //! check if history variables are already initialised
-    bool initialized() const { return (isinit_ and (strainplcurr_ != nullptr)); }
+    bool initialized() const { return (isinit_ and !strainplcurr_.empty()); }
 
     //! return quick accessible material parameter data
     Core::Mat::PAR::Parameter* parameter() const override { return params_; }
@@ -229,18 +209,17 @@ namespace Mat
         const std::string& name, std::vector<double>& data, int numgp, int eleID) const override;
 
     //! finite difference check for debugging purposes
-    void fd_check(Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& stress,  //!< updated stress sigma_n+1
-        Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
-            cmatFD,  //!< material tangent calculated with FD of stresses
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& beta,          //!< updated back stresses
-        double p,                                              //!< volumetric stress
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& strain,  //!< elastic strain vector
-        double Dgamma,                                         //!< plastic multiplier
-        double G,                                              //!< shear modulus
-        double qbar,                                //!< elastic trial von Mises effective stress
-        double kappa,                               //!< bulk modulus
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& N,  // flow vector
-        double heaviside                            //!< Heaviside function
+    void fd_check(Core::LinAlg::SymmetricTensor<double, 3, 3>& stress,  // updated stress sigma_n+1
+        Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>&
+            cmatFD,  // material tangent calculated with FD of stresses
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& beta,          // updated back stresses
+        double p,                                                   // volumetric stress
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& strain,  // elastic trial strain vector
+        double Dgamma,                                              // plastic multiplier
+        double G,                                                   // shear modulus
+        double qbar,                                    // elastic trial von Mises effective stress
+        double kappa,                                   // bulk modulus
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& N  // flow vector
     );
 
    private:
@@ -249,20 +228,20 @@ namespace Mat
 
     //! plastic history vector
     //! old plastic strain at t_n
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         strainpllast_;  //!< \f${\varepsilon}^p_{n}\f$
     //! current plastic strain at t_n+1
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         strainplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
     //! old accumulated plastic strain at t_n
-    std::shared_ptr<std::vector<double>> strainbarpllast_;  //!< \f${\varepsilon}^p_{n}\f$
+    std::vector<double> strainbarpllast_;  //!< \f${\varepsilon}^p_{n}\f$
     //! current accumulated plastic strain at t_n+1
-    std::shared_ptr<std::vector<double>> strainbarplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
+    std::vector<double> strainbarplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
     //! old back stress at t_n
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         backstresslast_;  //!< \f${\beta}_{n}\f$
     //! current back stress at t_n+1
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         backstresscurr_;  //!< \f${\beta}_{n+1}\f$
 
     //! indicator if #Initialize routine has been called
