@@ -385,13 +385,13 @@ void Thermo::TimInt::write_runtime_output()
     if (runtime_vtk_params_.output_temperature_state)
     {
       runtime_vtk_writer_->append_result_data_vector_with_context(
-          *tempn_, Core::IO::OutputEntity::node, {"temperature"});
+          *tempn_, Core::IO::OutputEntity::dof, {"temperature"});
     }
 
     if (runtime_vtk_params_.output_temperature_rate_state)
     {
       runtime_vtk_writer_->append_result_data_vector_with_context(
-          *raten_, Core::IO::OutputEntity::node, {"temperature_rate"});
+          *raten_, Core::IO::OutputEntity::dof, {"temperature_rate"});
     }
 
     if (runtime_vtk_params_.output_conductivity_state)
