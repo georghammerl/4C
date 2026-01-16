@@ -225,14 +225,6 @@ std::vector<Core::IO::InputSpec> Thermo::valid_parameters()
             parameter<bool>("CONDUCTIVITY",
                 {.description = "write conductivity output", .default_value = false}),
 
-            // whether to write heatflux state
-            parameter<bool>(
-                "HEATFLUX", {.description = "write heatflux output", .default_value = false}),
-
-            // whether to write temperature gradient state
-            parameter<bool>("TEMPGRAD",
-                {.description = "write temperature gradient output", .default_value = false}),
-
             // whether to write element owner
             parameter<bool>(
                 "ELEMENT_OWNER", {.description = "write element owner", .default_value = false}),

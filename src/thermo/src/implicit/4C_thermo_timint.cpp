@@ -130,8 +130,6 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       bool output_temperature_rate_state =
           thermo_vtk_runtime_output_list.get<bool>("TEMPERATURE_RATE");
       bool output_conductivity_state = thermo_vtk_runtime_output_list.get<bool>("CONDUCTIVITY");
-      bool output_heatflux_state = thermo_vtk_runtime_output_list.get<bool>("HEATFLUX");
-      bool output_tempgrad_state = thermo_vtk_runtime_output_list.get<bool>("TEMPGRAD");
       bool output_element_owner = thermo_vtk_runtime_output_list.get<bool>("ELEMENT_OWNER");
       bool output_element_gid = thermo_vtk_runtime_output_list.get<bool>("ELEMENT_GID");
       bool output_node_gid = thermo_vtk_runtime_output_list.get<bool>("NODE_GID");
@@ -139,8 +137,6 @@ Thermo::TimInt::TimInt(const Teuchos::ParameterList& ioparams,
       runtime_vtk_params_ = {.output_temperature_state = output_temperature_state,
           .output_temperature_rate_state = output_temperature_rate_state,
           .output_conductivity_state = output_conductivity_state,
-          .output_heatflux_state = output_heatflux_state,
-          .output_tempgrad_state = output_tempgrad_state,
           .output_element_owner = output_element_owner,
           .output_element_gid = output_element_gid,
           .output_node_gid = output_node_gid};
@@ -397,16 +393,6 @@ void Thermo::TimInt::write_runtime_output()
       std::vector<std::optional<std::string>> context(conductivity_->num_vectors(), "conductivity");
       runtime_vtk_writer_->append_result_data_vector_with_context(
           *conductivity_, Core::IO::OutputEntity::node, context);
-    }
-
-    if (runtime_vtk_params_.output_heatflux_state)
-    {
-      FOUR_C_THROW("VTK runtime output is not yet implemented for the heatflux state.");
-    }
-
-    if (runtime_vtk_params_.output_tempgrad_state)
-    {
-      FOUR_C_THROW("VTK runtime output is not yet implemented for the temperature gradient state.");
     }
 
     if (runtime_vtk_params_.output_element_owner)
