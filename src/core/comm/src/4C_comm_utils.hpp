@@ -31,27 +31,45 @@ namespace Core::Communication
   {
     every_group_read_input_file,
     separate_input_files,
+    nested_multiscale,
     no_nested_parallelism
   };
 
+  /**
+   * @brief A structure representing the configuration of the communicators.
+   *
+   * Components:
+   * - `group_layout` (std::vector<int>): A vector defining the layout of groups. If the user does
+   * not provide a layout, the groups are assumed to be of equal size.
+   * - `np_type` (NestedParallelismType): The type of nested parallelism.
+   * - `diffgroup` (int): A variable indicating the group for comparing vectors/matrices across
+   * runs. Default is -1 (not used).
+   */
+  struct CommConfig
+  {
+    std::vector<int> group_layout;
+    NestedParallelismType np_type;
+    int diffgroup = -1;
+  };
+
   //! create a local and a global communicator for the problem
-  Communicators create_comm(std::vector<std::string> argv);
+  Communicators create_comm(const CommConfig& config);
 
   /*! \brief debug routine to compare vectors from different parallel 4C runs
    *
-   * You can add Core::Communication::AreDistributedVectorsIdentical in your code which will lead to
-   * a comparison of the given vector for different executables and/or configurations. Command for
-   * using this feature:
+   * You can add Core::Communication::are_distributed_vectors_identical in your code which will lead
+   * to a comparison of the given vector for different executables and/or configurations. Command
+   * for using this feature:
    * @code
-   * mpirun -np 1 ./4C -nptype=diffgroup0 <input_1> xxx_set \
-   * : -np 3 ./other-4C -nptype=diffgroup1 <input_2> xxx_par
+   * mpirun -np 1 ./4C --nptype=diffgroup0 <input_1> xxx_set \
+   * : -np 3 ./other-4C --nptype=diffgroup1 <input_2> xxx_par
    * @endcode
    *
    * A further nice option is to compare results from different executables used for
    * running the same simulation.
    *
-   * \note You need to add the AreDistributedVectorsIdentical method in both executables at the same
-   * position in the code
+   * \note You need to add the are_distributed_vectors_identical method in both executables at the
+   * same position in the code
    *
    * \param communicators (in): communicators containing local and global comm
    * \param vec           (in): vector to compare
@@ -64,19 +82,19 @@ namespace Core::Communication
 
   /*! \brief debug routine to compare sparse matrices from different parallel 4C runs
    *
-   * You can add Core::Communication::AreDistributedSparseMatricesIdentical in your code which will
-   * lead to a comparison of the given sparse matrices for different executables and/or
+   * You can add Core::Communication::are_distributed_sparse_matrices_identical in your code which
+   * will lead to a comparison of the given sparse matrices for different executables and/or
    * configurations. Command for using this feature:
    * @code
-   * mpirun -np 1 ./4C -nptype=diffgroup0 <input_1> xxx_set \
-   * : -np 3 ./other-4C -nptype=diffgroup1 <input_2> xxx_par
+   * mpirun -np 1 ./4C --nptype=diffgroup0 <input_1> xxx_set \
+   * : -np 3 ./other-4C --nptype=diffgroup1 <input_2> xxx_par
    * @endcode
    *
    * A further nice option is to compare results from different executables used for
    * running the same simulation.
    *
-   * \note You need to add the AreDistributedSparseMatricesIdentical method in both executables at
-   * the same position in the code.
+   * \note You need to add the are_distributed_sparse_matrices_identical method in both executables
+   * at the same position in the code.
    *
    * \param communicators (in): communicators containing local and global comm
    * \param matrix        (in): matrix to compare

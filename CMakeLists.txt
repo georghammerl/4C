@@ -144,6 +144,7 @@ four_c_configure_dependency(CLN REQUIRED)
 four_c_configure_dependency(ryml REQUIRED)
 four_c_configure_dependency(magic_enum REQUIRED)
 four_c_configure_dependency(ZLIB REQUIRED)
+four_c_configure_dependency(CLI11 REQUIRED)
 
 # Optional dependencies
 four_c_configure_dependency(VTK DEFAULT OFF)

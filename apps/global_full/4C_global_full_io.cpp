@@ -9,15 +9,16 @@
 
 #include "4C_global_full_io.hpp"
 
+#include "4C_comm_utils.hpp"
 #include "4C_global_data_read.hpp"
 #include "4C_global_legacy_module.hpp"
 #include "4C_io_pstream.hpp"
+#include "4C_utils_exceptions.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 #include <Teuchos_TimeMonitor.hpp>
 
 FOUR_C_NAMESPACE_OPEN
-
 
 Core::IO::InputFile setup_input_file(const MPI_Comm comm)
 {
@@ -33,7 +34,8 @@ void emit_general_metadata(const Core::IO::YamlNodeRef& root_ref)
 /**
  * \brief Sets up the parallel output environment.
  */
-void setup_parallel_output(const CommandlineArguments& arguments)
+void setup_parallel_output(
+    const CommandlineArguments& arguments, const Core::Communication::Communicators& communicators)
 {
   using namespace FourC;
 
@@ -45,21 +47,22 @@ void setup_parallel_output(const CommandlineArguments& arguments)
   int oproc = io.get<int>("LIMIT_OUTP_TO_PROC");
   auto level = Teuchos::getIntegralValue<Core::IO::Verbositylevel>(io, "VERBOSITY");
 
-  Core::IO::cout.setup(screen, file, preGrpID, level, std::move(arguments.comms.local_comm()),
-      oproc, arguments.comms.group_id(), arguments.output_file_identifier);
+  Core::IO::cout.setup(screen, file, preGrpID, level, communicators.local_comm(), oproc,
+      communicators.group_id(), arguments.output_file_identifier);
 }
 
-void setup_global_problem(Core::IO::InputFile& input_file, const CommandlineArguments& arguments)
+void setup_global_problem(Core::IO::InputFile& input_file, const CommandlineArguments& arguments,
+    const Core::Communication::Communicators& communicators)
 {
   Global::Problem* problem = Global::Problem::instance();
-  problem->set_restart_step(arguments.restart_step);
-  problem->set_communicators(arguments.comms);
+  problem->set_restart_step(arguments.restart);
+  problem->set_communicators(communicators);
   Global::read_parameter(*problem, input_file);
 
-  setup_parallel_output(arguments);
+  setup_parallel_output(arguments, communicators);
 
   // create control file for output and read restart data if required
-  problem->open_control_file(arguments.comms.local_comm(), arguments.input_file_name,
+  problem->open_control_file(communicators.local_comm(), arguments.input_file_name,
       arguments.output_file_identifier, arguments.restart_file_identifier);
 
   // input of materials
@@ -108,197 +111,6 @@ double walltime_in_seconds()
          1.0e-3;
 }
 
-void parse_commandline_arguments(CommandlineArguments& arguments)
-{
-  int group = arguments.comms.group_id();
-
-  int restart_group = 0;
-  int my_rank = Core::Communication::my_mpi_rank(arguments.comms.local_comm());
-
-  std::vector<std::string> inout =
-      parse_input_output_files(arguments.argc, arguments.argv, my_rank);
-
-  // number of input/output arguments specified by the user
-  auto inout_args = int(inout.size());
-
-  std::string input_filename;
-  std::string output_file_identifier;
-  std::string restart_file_identifier;
-  // set input file name in each group
-  switch (arguments.comms.np_type())
-  {
-    case Core::Communication::NestedParallelismType::no_nested_parallelism:
-      input_filename = inout[0];
-      output_file_identifier = inout[1];
-      restart_group = 0;
-      break;
-    case Core::Communication::NestedParallelismType::every_group_read_input_file:
-    {
-      if (inout_args > 4)
-        FOUR_C_THROW(
-            "You specified too many arguments ({}). A maximum of four args is allowed", inout_args);
-
-      input_filename = inout[0];
-      // check whether output_file_identifier includes a dash and in case separate the number at the
-      // end
-      size_t pos = inout[1].rfind('-');
-      if (pos != std::string::npos)
-      {
-        int number = atoi(inout[1].substr(pos + 1).c_str());
-        inout[1] = inout[1].substr(0, pos);
-        output_file_identifier = std::format("{}_group_{}_{}", inout[1], group, number);
-      }
-      else
-      {
-        output_file_identifier = std::format("{}_group_{}", inout[1], group);
-      }
-      restart_group = 0;
-    }
-    break;
-    case Core::Communication::NestedParallelismType::separate_input_files:
-      if (inout_args % arguments.comms.num_groups() != 0)
-        FOUR_C_THROW("Each group needs the same number of arguments for input/output.");
-      inout_args /= arguments.comms.num_groups();
-      input_filename = inout[group * inout_args];
-      output_file_identifier = inout[group * inout_args + 1];
-      restart_group = group;
-      break;
-    default:
-      FOUR_C_THROW(
-          "-nptype is not correct. Only everyGroupReadInputFile and separateInputFiles "
-          "are available");
-      break;
-  }
-
-  if (my_rank == 0)
-  {
-    std::cout << "Read input from file '" << input_filename << "'\n";
-  }
-  parse_restart_definition(
-      inout, inout_args, restart_file_identifier, output_file_identifier, restart_group, arguments);
-
-  /// set IO file names and identifiers
-  arguments.input_file_name = input_filename;
-  arguments.output_file_identifier = output_file_identifier;
-  arguments.restart_file_identifier = restart_file_identifier;
-}
-
-
-std::vector<std::string> parse_input_output_files(const int argc, char** argv, const int my_rank)
-{
-  if (argc <= 1)
-  {
-    if (my_rank == 0)
-    {
-      printf("You forgot to give the input and output file names!\n");
-      printf("Try again!\n");
-    }
-    MPI_Finalize();
-    exit(EXIT_FAILURE);
-  }
-  else if (argc <= 2)
-  {
-    if (my_rank == 0)
-    {
-      printf("You forgot to give the output file name!\n");
-      printf("Try again!\n");
-    }
-    MPI_Finalize();
-    exit(EXIT_FAILURE);
-  }
-
-
-  // parse command line and separate input/output arguments
-  std::vector<std::string> inout;
-  for (int i = 1; i < argc; i++)
-  {
-    std::string temp = argv[i];
-    if (temp.substr(0, 1) != "-") inout.push_back(temp);
-  }
-  return inout;
-}
-
-void parse_restart_definition(const std::vector<std::string>& inout, const int in_out_args,
-    std::string& restart_file_identifier, const std::string& outfile_identifier,
-    const int restart_group, CommandlineArguments& arguments)
-{
-  // Global::Problem* problem = Global::Problem::instance();
-  //  bool parameter defining if input argument is given
-  bool restartIsGiven = false;
-  bool restartfromIsGiven = false;
-
-  // default case is an identical restartfile_identifier and outputfile_identifier
-  restart_file_identifier = outfile_identifier;
-  for (int i = 2; i < in_out_args; i++)
-  {
-    std::string restart = inout[restart_group * in_out_args + i];
-
-    if (restart.substr(0, 8) == "restart=")
-    {
-      const std::string option = restart.substr(8, std::string::npos);
-      int r;
-      if (option.compare("last_possible") == 0)
-      {
-        r = -1;  // here we use a negative value to trigger the search in the control file in
-                 // the later step. It does not mean a restart from a negative number is allowed
-                 // from the user point of view.
-      }
-      else
-      {
-        r = atoi(option.c_str());
-        if (r < 0) FOUR_C_THROW("Restart number must be a positive value");
-      }
-      // tell the global problem about the restart step given in the command line
-      arguments.restart_step = r;
-      restartIsGiven = true;
-    }
-    else if (restart.substr(0, 12) == "restartfrom=")
-    {
-      restart_file_identifier = (restart.substr(12, std::string::npos).c_str());
-
-      switch (arguments.comms.np_type())
-      {
-        case Core::Communication::NestedParallelismType::no_nested_parallelism:
-        case Core::Communication::NestedParallelismType::separate_input_files:
-          // nothing to add to restartfileidentifier
-          break;
-        case Core::Communication::NestedParallelismType::every_group_read_input_file:
-        {
-          // check whether restartfileidentifier includes a dash and in case separate the number
-          // at the end
-          size_t pos = restart_file_identifier.rfind('-');
-          if (pos != std::string::npos)
-          {
-            int number = atoi(restart_file_identifier.substr(pos + 1).c_str());
-            std::string identifier = restart_file_identifier.substr(0, pos);
-            restart_file_identifier =
-                std::format("{}_group_{}_-{}", identifier, arguments.comms.group_id(), number);
-          }
-          else
-          {
-            restart_file_identifier =
-                std::format("{}_group_{}", restart_file_identifier, arguments.comms.group_id());
-          }
-        }
-        break;
-        default:
-          FOUR_C_THROW(
-              "-nptype is not correct. Only everyGroupReadInputFile and "
-              "separateInputFiles are available");
-          break;
-      }
-
-      restartfromIsGiven = true;
-    }
-  }
-
-  // throw error in case restartfrom is given but no restart step is specified
-  if (restartfromIsGiven && !restartIsGiven)
-  {
-    FOUR_C_THROW("You need to specify a restart step when using restartfrom.");
-  }
-}
-
 void write_timemonitor(MPI_Comm comm)
 {
   std::shared_ptr<const Teuchos::Comm<int>> TeuchosComm =
@@ -306,5 +118,217 @@ void write_timemonitor(MPI_Comm comm)
   Teuchos::TimeMonitor::summarize(Teuchos::Ptr(TeuchosComm.get()), std::cout, false, true, false);
 }
 
+std::vector<std::pair<std::filesystem::path, std::string>> build_io_pairs(
+    const std::vector<std::string>& io_pairs, const std::filesystem::path& primary_input,
+    const std::string& primary_output)
+{
+  std::vector<std::pair<std::filesystem::path, std::string>> io_pairs_new;
 
+  io_pairs_new.emplace_back(primary_input, primary_output);
+
+  if (!io_pairs.empty())
+  {
+    if (io_pairs.size() % 2 != 0)
+    {
+      FOUR_C_THROW("Positional arguments must be provided as pairs: <input> <output>.\n");
+    }
+    for (size_t i = 0; i < io_pairs.size(); i += 2)
+      io_pairs_new.emplace_back(std::filesystem::path(io_pairs[i]), io_pairs[i + 1]);
+  }
+  return io_pairs_new;
+}
+
+using NPT = Core::Communication::NestedParallelismType;
+void validate_argument_cross_compatibility(const CommandlineArguments& arguments)
+{
+  if (!arguments.group_layout.empty())
+  {
+    const int layout_len = static_cast<int>(arguments.group_layout.size());
+    if (arguments.n_groups != layout_len)
+    {
+      FOUR_C_THROW(
+          "When --glayout is provided its number of entries must equal --ngroup.\n "
+          "Example mpirun -np 4 ./4C --ngroup=2 --glayout=1,3 \n");
+    }
+  }
+
+  if (arguments.n_groups > 1 && arguments.nptype == NPT::no_nested_parallelism)
+  {
+    FOUR_C_THROW("when --ngroup > 1, a nested parallelism type must be specified via --nptype.\n");
+  }
+
+  if (!arguments.parameters)
+  {
+    const size_t num_pairs = arguments.io_pairs.size();
+    if (arguments.nptype == NPT::no_nested_parallelism ||
+        arguments.nptype == NPT::every_group_read_input_file)
+    {
+      if (num_pairs != 1)
+      {
+        FOUR_C_THROW(
+            "when using 'no_nested_parallelism' or 'everyGroupReadInputFile' the "
+            "number of <input> <output> pairs must be exactly 1.\n");
+      }
+    }
+    else if (arguments.nptype == NPT::separate_input_files ||
+             arguments.nptype == NPT::nested_multiscale)
+    {
+      if (static_cast<int>(num_pairs) != arguments.n_groups)
+      {
+        FOUR_C_THROW(
+            "when using 'separateInputFiles' or 'nestedMultiscale' the number of "
+            "<input> <output> pairs must equal --ngroup {}.\n",
+            arguments.n_groups);
+      }
+    }
+  }
+
+  if (arguments.nptype != NPT::separate_input_files &&
+      (arguments.restart_per_group.size() > 1 || arguments.restart_identifier_per_group.size() > 1))
+  {
+    FOUR_C_THROW(
+        "When using --nptype other than 'separateInputFiles', only one restart step and one "
+        "restartfrom identifier must be given.");
+  }
+
+  for (size_t i = 0; i < arguments.restart_identifier_per_group.size(); ++i)
+  {
+    if (i >= arguments.restart_per_group.size())
+    {
+      FOUR_C_THROW("You need to specify a restart step when using restartfrom.");
+    }
+  }
+}
+
+void update_io_identifiers(CommandlineArguments& arguments, int group)
+{
+  std::filesystem::path input_filename;
+  std::string output_file_identifier;
+
+  int restart_input_index = (arguments.nptype == NPT::separate_input_files) ? group : 0;
+
+  arguments.restart =
+      arguments.restart_per_group.empty() ? 0 : arguments.restart_per_group[restart_input_index];
+  std::string restart_file_identifier =
+      arguments.restart_identifier_per_group.empty()
+          ? ""
+          : arguments.restart_identifier_per_group[restart_input_index];
+
+  switch (arguments.nptype)
+  {
+    case NPT::no_nested_parallelism:
+      input_filename = arguments.io_pairs[0].first;
+      output_file_identifier = arguments.io_pairs[0].second;
+      if (restart_file_identifier == "")
+      {
+        restart_file_identifier = output_file_identifier;
+      }
+      break;
+    case NPT::every_group_read_input_file:
+    {
+      input_filename = arguments.io_pairs[0].first;
+      std::string output_file_identifier_temp = arguments.io_pairs[0].second;
+      // check whether output_file_identifier includes a dash and in case separate the number at the
+      // end
+      size_t pos = output_file_identifier_temp.rfind('-');
+      auto extract_number_and_identifier = [](const std::string& str, size_t pos)
+      {
+        std::string number_str = str.substr(pos + 1);
+        std::string identifier = str.substr(0, pos);
+        int number = 0;
+        try
+        {
+          size_t idx = 0;
+          number = std::stoi(number_str, &idx);
+          if (idx != number_str.size())
+          {
+            FOUR_C_THROW("Invalid numeric value in output identifier: '{}'", number_str);
+          }
+        }
+        catch (const std::exception& e)
+        {
+          FOUR_C_THROW(
+              "Failed to parse number in output identifier '{}': {}", number_str, e.what());
+        }
+        return std::make_pair(identifier, number);
+      };
+      if (pos != std::string::npos)
+      {
+        auto [identifier, number] = extract_number_and_identifier(output_file_identifier_temp, pos);
+        output_file_identifier = std::format("{}_group_{}_{}", identifier, group, number);
+      }
+      else
+      {
+        output_file_identifier = std::format("{}_group_{}", output_file_identifier_temp, group);
+      }
+      size_t pos_r = restart_file_identifier.rfind('-');
+      if (restart_file_identifier == "")
+      {
+        restart_file_identifier = output_file_identifier;
+      }
+      else if (pos_r != std::string::npos)
+      {
+        auto [identifier, number] = extract_number_and_identifier(restart_file_identifier, pos_r);
+        restart_file_identifier = std::format("{}_group_{}-{}", identifier, group, number);
+      }
+      else
+      {
+        restart_file_identifier = std::format("{}_group_{}", restart_file_identifier, group);
+      }
+      break;
+    }
+    case NPT::separate_input_files:
+    case NPT::nested_multiscale:
+      input_filename = arguments.io_pairs[group].first;
+      output_file_identifier = arguments.io_pairs[group].second;
+      if (restart_file_identifier == "")
+      {
+        restart_file_identifier = output_file_identifier;
+      }
+      break;
+    default:
+      FOUR_C_THROW("-nptype value {} is not valid.", static_cast<int>(arguments.nptype));
+      break;
+  }
+  arguments.input_file_name = input_filename;
+  arguments.output_file_identifier = output_file_identifier;
+  arguments.restart_file_identifier = restart_file_identifier;
+}
+void assign_group_layout(const int& n_groups, std::vector<int>& group_layout)
+{
+  int myrank = -1;
+  int num_procs = -1;
+  MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  if (n_groups > 1)
+  {
+    if (group_layout.size() == 0)
+    {
+      if (myrank == (num_procs - 1))  // myrank == 0 is eventually not within 4C (i.e. coupling to
+                                      // external codes)
+      {
+        printf(
+            "\n\n\nINFO: Group layout is not specified. Default is equal size of the "
+            "groups.\n");
+      }
+      if ((num_procs % n_groups) != 0)
+      {
+        if (myrank == (num_procs - 1))
+        {
+          printf("\n\nNumber of processors (%d) cannot be divided by the number of groups (%d)!\n",
+              num_procs, n_groups);
+          printf("Try again!\n");
+        }
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+      }
+
+      // equal size of the groups
+      for (int k = 0; k < n_groups; k++)
+      {
+        group_layout.push_back(num_procs / n_groups);
+      }
+    }
+  }
+}
 FOUR_C_NAMESPACE_CLOSE

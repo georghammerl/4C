@@ -55,17 +55,17 @@ given on the command line:
 
 ::
 
-   ./4C <restart_input_file> <output_basename> [restartfrom=<restart_file_basename>] restart=<step>
+   ./4C <restart_input_file> <output_basename> [--restartfrom=<restart_file_basename>] --restart=<step>
 
 Here, one has to provide the step at which the restart is started from the previous simulation.
 Note that for a successful restart from step ``n``, there must be a field entry at step ``n``, followed by a result entry at step ``n``, for all relevant fields.
-If ``restart=last_possible``, the last possible restart step is detected automatically.
-If the parameter ``restartfrom`` is given, the initial configuration is read from this simulation,
+If ``--restart=last_possible``, the last possible restart step is detected automatically.
+If the parameter ``--restartfrom`` is given, the initial configuration is read from this simulation,
 otherwise it is read from ``<output_basename>``. In the latter case the filename of the new output is the same with an appended number, e.g., ``outfile-1``.
 
 .. note::
 
-   - If you set ``restart=0``, a regular run is performed and the ``<restartfrom>`` argument is ignored.
+   - If you set ``--restart=0``, a regular run is performed and the ``<--restartfrom>`` argument is ignored.
    - The parameters RESTART and RESTARTTIME in the PROBLEM TYPE section
      are not needed anymore, and will probably vanish soon.
    - The parameter MAXTIME indicates the maximum time of all simulations,
