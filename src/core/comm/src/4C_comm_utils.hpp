@@ -47,8 +47,8 @@ namespace Core::Communication
    */
   struct CommConfig
   {
-    std::vector<int> group_layout;
-    NestedParallelismType np_type;
+    std::vector<int> group_layout = {};
+    NestedParallelismType np_type = NestedParallelismType::no_nested_parallelism;
     int diffgroup = -1;
   };
 
