@@ -32,24 +32,6 @@ NOX::FSI::FSIMatrixFree::FSIMatrixFree(Teuchos::ParameterList& printParams,
 {
   perturbX.init(0.0);
   perturbY.init(0.0);
-
-  // Epetra_Operators require Epetra_Maps, so anyone using block maps
-  // (Core::LinAlg::Map) won't be able to directly use the iterative solver.
-  // We get around this by creating an Epetra_Map from the Core::LinAlg::Map.
-  try
-  {
-    epetraMap =
-        std::make_shared<Epetra_Map>(currentX.get_linalg_vector().get_map().get_epetra_map());
-  }
-  catch (const Core::Exception&)
-  {
-    int size = currentX.get_linalg_vector().get_map().num_global_points();
-    int mySize = currentX.get_linalg_vector().get_map().num_my_points();
-    int indexBase = currentX.get_linalg_vector().get_map().index_base();
-    const auto& comm = currentX.get_linalg_vector().get_map().get_comm();
-    epetraMap = std::make_shared<Epetra_Map>(
-        size, mySize, indexBase, Core::Communication::as_epetra_comm(comm));
-  }
 }
 
 Epetra_Operator& NOX::FSI::FSIMatrixFree::epetra_operator() { FOUR_C_THROW("Not implemented"); }

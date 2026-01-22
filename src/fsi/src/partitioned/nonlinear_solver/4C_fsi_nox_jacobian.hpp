@@ -109,13 +109,6 @@ namespace NOX
       //! Perturbed solution vector
       mutable NOX::Nln::Vector perturbY;
 
-      //! Core::LinAlg::Map object used in the returns of the Epetra_Operator derived methods.
-      /*! If the user is using Core::LinAlg::Maps, then ::NOX::Epetra::MatrixFree must create an
-       * equivalent Core::LinAlg::Map from the Core::LinAlg::Map that can be used as the return
-       * object of the OperatorDomainMap() and OperatorRangeMap() methods.
-       */
-      std::shared_ptr<const Epetra_Map> epetraMap;
-
       //! Flag to enables the use of a group instead of the interface for the computeF() calls in
       //! the directional difference calculation.
       bool useGroupForComputeF;
