@@ -47,9 +47,19 @@ We do not yet have an automated way to collect the changelog. So, this requires 
 ### Miscellaneous
 <!-- Any other noteworthy changes -->
 
-## New Contributors
+## Contributors
+
+<!-- Let us also thank all contributors to this release. You may use [this script](https://gist.github.com/georghammerl/7e59b3d33e367ead189ff5785bb6afcd#file-collect_authors_reviewers_commenters-py) to collect authors, reviewers and commenters of merged pull requests. -->
+
+_List of all contributors who authored, committed, reviewed, or commented on accepted pull requests for this release._
+
+* **Authors / Committers:**
+* **Reviewers:**
+
+### New Contributors
 <!-- GitHub's generated release notes contain a list of new contributors since the last release -->
 
+_Thanks to first-time contributors to 4C!_
 
 <!-- link to full changelog provided by GitHub's generated release notes -->
 **Full Changelog**: https://github.com/4C-multiphysics/4C/compare/v2025.1.0...v2025.2.0
