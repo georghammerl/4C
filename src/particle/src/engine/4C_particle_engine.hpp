@@ -15,6 +15,7 @@
 
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_particle_engine_binning.hpp"
 #include "4C_particle_engine_interface.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
@@ -284,7 +285,7 @@ namespace Particle
      */
     std::shared_ptr<Core::Binstrategy::BinningStrategy> get_binning_strategy() const
     {
-      return binstrategy_;
+      return binning_->binstrategy_;
     };
 
     /*!
@@ -293,7 +294,7 @@ namespace Particle
      *
      * \return bin row map
      */
-    std::shared_ptr<Core::LinAlg::Map> get_bin_row_map() const { return binrowmap_; };
+    std::shared_ptr<Core::LinAlg::Map> get_bin_row_map() const { return binning_->binrowmap_; };
 
     /*!
      * \brief get bin column map
@@ -301,7 +302,7 @@ namespace Particle
      *
      * \return bin column map
      */
-    std::shared_ptr<Core::LinAlg::Map> get_bin_col_map() const { return bincolmap_; };
+    std::shared_ptr<Core::LinAlg::Map> get_bin_col_map() const { return binning_->bincolmap_; };
 
     ParticleContainerBundleShrdPtr get_particle_container_bundle() const override
     {
@@ -359,7 +360,7 @@ namespace Particle
 
     std::array<double, 3> bin_size() const override;
 
-    double min_bin_size() const override { return minbinsize_; };
+    double min_bin_size() const override { return binning_->minbinsize_; };
 
     bool have_periodic_boundary_conditions() const override;
 
@@ -692,25 +693,10 @@ namespace Particle
     const Teuchos::ParameterList& params_;
 
     //! binning strategy
-    std::shared_ptr<Core::Binstrategy::BinningStrategy> binstrategy_;
-
-    //! distribution of row bins
-    std::shared_ptr<Core::LinAlg::Map> binrowmap_;
-
-    //! distribution of column bins
-    std::shared_ptr<Core::LinAlg::Map> bincolmap_;
-
-    //! minimum relevant bin size
-    double minbinsize_;
+    std::shared_ptr<Binning> binning_;
 
     //! size of vectors indexed by particle types
     int typevectorsize_;
-
-    //! vector of bin center coordinates
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> bincenters_;
-
-    //! vector of bin weights
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> binweights_;
 
     //! vector of particle type weights for dynamic load balancing
     std::vector<double> typeweights_;
@@ -739,9 +725,6 @@ namespace Particle
     //! relate local index of owned particles to other processors local index of ghosted particles
     std::vector<std::map<int, std::vector<std::pair<int, int>>>> directghostingtargets_;
 
-    //! relate half surrounding neighboring bins (including owned bin itself) to owned bins
-    std::vector<std::set<int>> halfneighboringbinstobins_;
-
     //! flag denoting valid relation of owned particles to bins
     bool validownedparticles_;
 
@@ -756,24 +739,6 @@ namespace Particle
 
     //! flag denoting validity of direct ghosting
     bool validdirectghosting_;
-
-    //! flag denoting valid relation of half surrounding neighboring bins to owned bins
-    bool validhalfneighboringbins_;
-
-    //! owned bins at an open boundary or a periodic boundary
-    std::set<int> boundarybins_;
-
-    //! owned bins touched by other processors
-    std::set<int> touchedbins_;
-
-    //! maps bins of surrounding first layer to owning processors
-    std::map<int, int> firstlayerbinsownedby_;
-
-    //! bins being ghosted on this processor
-    std::set<int> ghostedbins_;
-
-    //! maps bins on this processor to processors ghosting that bins
-    std::map<int, std::set<int>> thisbinsghostedby_;
   };
 
 }  // namespace Particle
