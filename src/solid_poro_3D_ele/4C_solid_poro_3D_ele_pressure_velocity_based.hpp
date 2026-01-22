@@ -245,7 +245,7 @@ namespace Discret::Elements
     std::shared_ptr<FourC::Solid::Elements::ParamsInterface> solid_interface_ptr_;
 
     //! element calculation holding one of the implemented variants
-    SolidAndSolidScatraCalcVariant solid_calc_variant_;
+    std::optional<SolidAndSolidScatraCalcVariant> solid_calc_variant_;
 
     //! poro element calculation holding one of the implemented variants
     SolidPoroPressureVelocityBasedCalcVariant solidporo_press_vel_based_calc_variant_;

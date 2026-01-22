@@ -66,10 +66,12 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
     Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseVector& elevec2,
     Core::LinAlg::SerialDenseVector& elevec3)
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface) { interface->material_post_setup(*this, *solid_material()); },
-        solid_calc_variant_);
+        *solid_calc_variant_);
     material_post_setup_ = true;
   }
 
@@ -95,7 +97,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_nonlinear_force_stiffness_mass(
                 *this, *solid_material(), discretization, lm, params, &elevec1, &elemat1, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_internalforce:
@@ -106,7 +108,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_nonlinear_force_stiffness_mass(
                 *this, *solid_material(), discretization, lm, params, &elevec1, nullptr, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
@@ -118,7 +120,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_nonlinear_force_stiffness_mass(
                 *this, *solid_material(), discretization, lm, params, &elevec1, &elemat1, &elemat2);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       evaluate_inertia_force(discretization, lm, elemat2, elevec2);
       return 0;
@@ -131,7 +133,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_nonlinear_force_stiffness_mass(
                 *this, *solid_material(), discretization, lm, params, &elevec1, &elemat1, &elemat2);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       lump_matrix(elemat2);
 
@@ -149,7 +151,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_nonlinear_force_stiffness_mass(*this, *solid_material(),
                 discretization, lm, params, &elevec1, nullptr, &mass_matrix);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       evaluate_inertia_force(discretization, lm, mass_matrix, elevec2);
       return 0;
@@ -158,19 +160,19 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
     {
       std::visit([&](auto& interface)
           { interface->update(*this, *solid_material(), discretization, lm, params); },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
     case Core::Elements::struct_update_prestress:
     {
-      update_prestress(solid_calc_variant_, *this, *solid_material(), discretization, lm, params);
+      update_prestress(*solid_calc_variant_, *this, *solid_material(), discretization, lm, params);
       return 0;
     }
     case Core::Elements::struct_calc_recover:
     {
       std::visit([&](auto& interface) { interface->recover(*this, discretization, lm, params); },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
@@ -184,7 +186,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
                 StrainIO{get_io_strain_type(*this, params), get_strain_data(*this, params)},
                 discretization, lm, params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
@@ -196,7 +198,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             return interface->calculate_internal_energy(
                 *this, *solid_material(), discretization, lm, params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
 
       if (is_params_interface())
@@ -223,7 +225,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->initialize_gauss_point_data_output(*this, *solid_material(),
                 *params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
@@ -235,14 +237,14 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
             interface->evaluate_gauss_point_data_output(*this, *solid_material(),
                 *params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
     case Core::Elements::struct_calc_reset_istep:
     {
       std::visit([&](auto& interface)
-          { interface->reset_to_last_converged(*this, *solid_material()); }, solid_calc_variant_);
+          { interface->reset_to_last_converged(*this, *solid_material()); }, *solid_calc_variant_);
 
       return 0;
     }
@@ -259,7 +261,7 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
           Global::Problem::instance()->function_by_id<Core::Utils::FunctionOfSpaceTime>(
               analytical_function_id);
 
-      Core::FE::cell_type_switch<Internal::ImplementedSolidCellTypes>(celltype_,
+      Core::FE::cell_type_switch<ImplementedSolidCellTypes>(celltype_,
           [&](auto celltype_t)
           {
             const auto error_result = compute_analytical_displacement_error_integration<celltype_t>(
@@ -285,8 +287,10 @@ int Discret::Elements::Solid::evaluate(Teuchos::ParameterList& params,
 void Discret::Elements::Solid::set_integration_rule(
     const Core::FE::GaussIntegration& integration_rule)
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   std::visit([&](auto& interface) { interface->set_integration_rule(integration_rule); },
-      solid_calc_variant_);
+      *solid_calc_variant_);
 }
 
 int Discret::Elements::Solid::evaluate_neumann(Teuchos::ParameterList& params,
@@ -314,8 +318,10 @@ double Discret::Elements::Solid::get_normal_cauchy_stress_at_xi(const std::vecto
     const Core::LinAlg::Tensor<double, 3>& xi, const Core::LinAlg::Tensor<double, 3>& n,
     const Core::LinAlg::Tensor<double, 3>& dir, CauchyNDirLinearizations<3>& linearizations)
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   return Discret::Elements::get_normal_cauchy_stress_at_xi(
-      solid_calc_variant_, *this, *solid_material(), disp, xi, n, dir, linearizations);
+      *solid_calc_variant_, *this, *solid_material(), disp, xi, n, dir, linearizations);
 }
 
 FOUR_C_NAMESPACE_CLOSE

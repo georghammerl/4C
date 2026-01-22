@@ -8,6 +8,7 @@
 #include "4C_solid_poro_3D_ele_pressure_based.hpp"
 
 #include "4C_comm_utils_factory.hpp"
+#include "4C_fem_general_cell_type_traits.hpp"
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"
 #include "4C_inpar_scatra.hpp"
 #include "4C_inpar_structure.hpp"
@@ -15,6 +16,7 @@
 #include "4C_mat_fluidporo.hpp"
 #include "4C_mat_fluidporo_multiphase.hpp"
 #include "4C_mat_structporo.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_factory.hpp"
 #include "4C_solid_3D_ele_interface_serializable.hpp"
 #include "4C_solid_3D_ele_line.hpp"
@@ -192,13 +194,17 @@ bool Discret::Elements::SolidPoroPressureBased::read_element(const std::string& 
   poro_ele_property_.impltype = container.get<Inpar::ScaTra::ImplType>("TYPE");
 
 
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
+  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_based_calc_variant_ =
       create_solid_poro_pressure_based_calculation_interface(celltype_);
 
   // setup solid material
   std::visit(
-      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, solid_calc_variant_);
+      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, *solid_calc_variant_);
 
   // setup poro material
   std::visit([&](auto& solidporopressurebased)
@@ -229,7 +235,11 @@ void Discret::Elements::SolidPoroPressureBased::pack(Core::Communication::PackBu
   data.add_to_pack(material_post_setup_);
 
   // optional data, e.g., EAS data
-  Discret::Elements::pack(solid_calc_variant_, data);
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}. The element needs to "
+      "be fully setup before packing.",
+      id());
+  Discret::Elements::pack(*solid_calc_variant_, data);
   Discret::Elements::pack(solidporo_press_based_calc_variant_, data);
 }
 
@@ -249,11 +259,15 @@ void Discret::Elements::SolidPoroPressureBased::unpack(Core::Communication::Unpa
   extract_from_pack(buffer, material_post_setup_);
 
   // reset solid and poro interfaces
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
+  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_based_calc_variant_ =
       create_solid_poro_pressure_based_calculation_interface(celltype_);
 
-  Discret::Elements::unpack(solid_calc_variant_, buffer);
+  Discret::Elements::unpack(*solid_calc_variant_, buffer);
   Discret::Elements::unpack(solidporo_press_based_calc_variant_, buffer);
 }
 

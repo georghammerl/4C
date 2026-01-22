@@ -31,10 +31,12 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
     Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseVector& elevec2,
     Core::LinAlg::SerialDenseVector& elevec3)
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface)
-        { interface->material_post_setup(*this, struct_poro_material()); }, solid_calc_variant_);
+        { interface->material_post_setup(*this, struct_poro_material()); }, *solid_calc_variant_);
     material_post_setup_ = true;
   }
 
@@ -76,7 +78,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
                 discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
                 params, &force_displ, &K_dd, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       if (la.size() > 1)
       {
@@ -143,7 +145,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
                 discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
                 params, &force_displ, nullptr, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       if (la.size() > 1)
       {
@@ -190,7 +192,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
                 discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
                 params, &force_displ, &K_dd, &M_dd);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
 
       if (la.size() > 1 and this->num_material() > 1)
@@ -291,7 +293,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
             interface->update(*this, solid_poro_material(), discretization,
                 get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim), params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_recover:
@@ -302,7 +304,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
             interface->recover(*this, discretization,
                 get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim), params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_stress:
@@ -318,7 +320,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
                 discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
                 params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       const SolidPoroPrimaryVariables primary_variables =
           extract_solid_poro_primary_variables(discretization, la, shape(), *initial_porosity_);
@@ -333,7 +335,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
             interface->initialize_gauss_point_data_output(*this, solid_poro_material(),
                 *get_solid_params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_gauss_point_data_output:
@@ -344,7 +346,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1::evaluate(Teuchos::Param
             interface->evaluate_gauss_point_data_output(*this, solid_poro_material(),
                 *get_solid_params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_predict:

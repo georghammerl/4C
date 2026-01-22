@@ -64,7 +64,7 @@ namespace Discret::Elements
   class SolidEleCalc
   {
    public:
-    SolidEleCalc();
+    SolidEleCalc(SolidIntegrationRules integration_rules);
 
     void pack(Core::Communication::PackBuffer& data) const;
 

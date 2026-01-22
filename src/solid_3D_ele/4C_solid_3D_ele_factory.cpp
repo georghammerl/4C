@@ -197,11 +197,12 @@ namespace
 
 Discret::Elements::SolidCalcVariant Discret::Elements::create_solid_calculation_interface(
     Core::FE::CellType celltype,
-    const Discret::Elements::SolidElementProperties& element_properties)
+    const Discret::Elements::SolidElementProperties& element_properties,
+    SolidIntegrationRules integration_rules)
 {
   // We have 4 different element properties and each combination results in a different element
   // formulation.
-  return Core::FE::cell_type_switch<Internal::ImplementedSolidCellTypes>(celltype,
+  auto interface = Core::FE::cell_type_switch<ImplementedSolidCellTypes>(celltype,
       [&](auto celltype_t)
       {
         return EnumTools::enum_switch(
@@ -211,7 +212,8 @@ Discret::Elements::SolidCalcVariant Discret::Elements::create_solid_calculation_
                   [&](auto eletech_t)
                   {
                     return EnumTools::enum_switch(
-                        [&](auto prestress_tech_t) -> SolidCalcVariant
+                        // Note: enum_switch return type needs to be default constructible
+                        [&](auto prestress_tech_t) -> std::optional<SolidCalcVariant>
                         {
                           constexpr Core::FE::CellType celltype_c = celltype_t();
                           constexpr Inpar::Solid::KinemType kinemtype_c = kinemtype_t();
@@ -221,7 +223,7 @@ Discret::Elements::SolidCalcVariant Discret::Elements::create_solid_calculation_
                                             kinemtype_c, eletech_c, prestress_tech_c>>)
                           {
                             return typename SolidCalculationFormulation<celltype_c, kinemtype_c,
-                                eletech_c, prestress_tech_c>::type();
+                                eletech_c, prestress_tech_c>::type(integration_rules);
                           }
 
                           FOUR_C_THROW(
@@ -239,6 +241,9 @@ Discret::Elements::SolidCalcVariant Discret::Elements::create_solid_calculation_
             },
             element_properties.kintype);
       });
+
+  FOUR_C_ASSERT(interface.has_value(), "Could not create the solid calculation interface.");
+  return *interface;
 }
 
 FOUR_C_NAMESPACE_CLOSE

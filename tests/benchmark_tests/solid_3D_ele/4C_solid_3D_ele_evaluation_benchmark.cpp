@@ -22,6 +22,7 @@
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_mat_material_factory.hpp"
 #include "4C_mat_par_bundle.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_properties.hpp"
 #include "4C_utils_singleton_owner.hpp"
 
@@ -91,6 +92,8 @@ namespace
     container.add("MAT", 1);
     container.add("KINEM", kinem_type);
     container.add("TECH", element_technology);
+    container.add(
+        "INTEGRATION", Discret::Elements::make_default_solid_integration_rules<celltype>());
 
     ele->read_element(ele_type, Core::FE::cell_type_to_string(celltype), container);
 

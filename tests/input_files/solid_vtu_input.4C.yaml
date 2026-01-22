@@ -130,4 +130,4 @@ STRUCTURE GEOMETRY:
         TET10:
           MAT: 1
           KINEM: nonlinear
-  FILE: solid_vtu_input.vtu
+  FILE: vtu/solid_vtu_input.vtu
