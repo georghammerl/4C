@@ -137,14 +137,6 @@ namespace Core::LinAlg
       return wrapped().RemoteIDList(NumIDs, GIDList, PIDList, LIDList);
     }
 
-    //! Returns the processor IDs and corresponding local index value for a given list of global
-    //! indices
-    int remote_id_list(
-        int NumIDs, const int* GIDList, int* PIDList, int* LIDList, int* SizeList) const
-    {
-      return wrapped().RemoteIDList(NumIDs, GIDList, PIDList, LIDList, SizeList);
-    }
-
     //! Returns the minimum global ID owned by this processor.
     int min_my_gid(void) const { return wrapped().MinMyGID(); }
 
@@ -161,7 +153,7 @@ namespace Core::LinAlg
     int max_element_size(void) const { return wrapped().MaxElementSize(); }
 
     //! Puts list of global elements on this processor into the user-provided array.
-    void my_global_elements(int* MyGlobalElementList) const;
+    void my_global_elements(std::span<int> myGlobalElementList) const;
 
     //! Number of points across all processors.
     int num_global_points() const { return wrapped().NumGlobalPoints(); }

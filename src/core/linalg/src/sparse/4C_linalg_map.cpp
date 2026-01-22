@@ -128,9 +128,9 @@ Core::LinAlg::Map::Map(const Epetra_BlockMap& Source)
 {
 }
 
-void Core::LinAlg::Map::my_global_elements(int* MyGlobalElementList) const
+void Core::LinAlg::Map::my_global_elements(std::span<int> myGlobalElementList) const
 {
-  ASSERT_EPETRA_CALL(wrapped().MyGlobalElements(MyGlobalElementList));
+  ASSERT_EPETRA_CALL(wrapped().MyGlobalElements(myGlobalElementList.data()));
 }
 
 FOUR_C_NAMESPACE_CLOSE
