@@ -89,11 +89,12 @@ namespace
 }  // namespace
 
 template <Core::FE::CellType celltype, typename ElementFormulation>
-Discret::Elements::SolidEleCalc<celltype, ElementFormulation>::SolidEleCalc()
-    : stiffness_matrix_integration_(Core::FE::create_gauss_integration<celltype>(
-          get_gauss_rule_stiffness_matrix<celltype>())),
+Discret::Elements::SolidEleCalc<celltype, ElementFormulation>::SolidEleCalc(
+    SolidIntegrationRules integration_rules)
+    : stiffness_matrix_integration_(
+          Core::FE::create_gauss_integration<celltype>(integration_rules.rule_residuum)),
       mass_matrix_integration_(
-          Core::FE::create_gauss_integration<celltype>(get_gauss_rule_mass_matrix<celltype>()))
+          Core::FE::create_gauss_integration<celltype>(integration_rules.rule_mass))
 {
   Discret::Elements::resize_gp_history(history_data_, stiffness_matrix_integration_.num_points());
 }

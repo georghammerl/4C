@@ -10,11 +10,13 @@
 #include "4C_comm_parobject.hpp"
 #include "4C_comm_utils_factory.hpp"
 #include "4C_fem_general_cell_type.hpp"
+#include "4C_fem_general_utils_integration.hpp"
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_io_input_spec.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_mat_so3_material.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_factory.hpp"
 #include "4C_solid_3D_ele_interface_serializable.hpp"
 #include "4C_solid_3D_ele_line.hpp"
@@ -23,6 +25,7 @@
 #include "4C_solid_3D_ele_surface.hpp"
 #include "4C_solid_3D_ele_utils.hpp"
 #include "4C_structure_new_elements_paramsinterface.hpp"
+#include "4C_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -44,11 +47,34 @@ namespace
   }
 
   template <Core::FE::CellType celltype>
+  auto get_integration_rule_input_spec()
+  {
+    return group<Discret::Elements::SolidIntegrationRules>("INTEGRATION",
+        {
+            parameter<Core::FE::GaussRule3D>("RESIDUUM",
+                {.description = "Gauss integration rule used to integrate the residuum and "
+                                "its linearization",
+                    .default_value = Discret::Elements::get_gauss_rule_stiffness_matrix<celltype>(),
+                    .validator = Validators::in_set(std::set<Core::FE::GaussRule3D>{
+                        begin(Discret::Elements::applicable_integration_rules<celltype>),
+                        end(Discret::Elements::applicable_integration_rules<celltype>)}),
+                    .store = in_struct(&Discret::Elements::SolidIntegrationRules::rule_residuum)}),
+            parameter<Core::FE::GaussRule3D>("MASS",
+                {.description = "Gauss integration rule used to integrate the mass matrix",
+                    .default_value = Discret::Elements::get_gauss_rule_mass_matrix<celltype>(),
+
+                    .validator = Validators::in_set(std::set<Core::FE::GaussRule3D>{
+                        begin(Discret::Elements::applicable_integration_rules<celltype>),
+                        end(Discret::Elements::applicable_integration_rules<celltype>)}),
+                    .store = in_struct(&Discret::Elements::SolidIntegrationRules::rule_mass)}),
+        },
+        {.description = "Defines the integration rules for the solid element.", .required = false});
+  }
+
+  template <Core::FE::CellType celltype>
   auto get_default_input_spec()
   {
-    return all_of({
-        parameter<int>("MAT"),
-        get_kinem_type_input_spec(),
+    return all_of({parameter<int>("MAT"), get_kinem_type_input_spec(),
         parameter<Discret::Elements::PrestressTechnology>(
             "PRESTRESS_TECH", {.description = "The technology used for prestressing",
                                   .default_value = Discret::Elements::PrestressTechnology::none}),
@@ -58,7 +84,7 @@ namespace
         parameter<std::optional<std::vector<double>>>("FIBER1", {.size = 3}),
         parameter<std::optional<std::vector<double>>>("FIBER2", {.size = 3}),
         parameter<std::optional<std::vector<double>>>("FIBER3", {.size = 3}),
-    });
+        get_integration_rule_input_spec<celltype>()});
   }
 }  // namespace
 
@@ -112,6 +138,7 @@ void Discret::Elements::SolidType::setup_element_definition(
   defsgeneral[Core::FE::CellType::nurbs27] = all_of({
       parameter<int>("MAT"),
       get_kinem_type_input_spec(),
+      get_integration_rule_input_spec<Core::FE::CellType::nurbs27>(),
   });
 }
 
@@ -190,8 +217,10 @@ std::vector<std::shared_ptr<Core::Elements::Element>> Discret::Elements::Solid::
 
 const Core::FE::GaussIntegration& Discret::Elements::Solid::get_gauss_rule() const
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   return std::visit([](auto& interface) -> const Core::FE::GaussIntegration&
-      { return interface->get_gauss_rule_stiffness_integration(); }, solid_calc_variant_);
+      { return interface->get_gauss_rule_stiffness_integration(); }, *solid_calc_variant_);
 }
 
 void Discret::Elements::Solid::pack(Core::Communication::PackBuffer& data) const
@@ -202,12 +231,17 @@ void Discret::Elements::Solid::pack(Core::Communication::PackBuffer& data) const
   Core::Elements::Element::pack(data);
 
   add_to_pack(data, celltype_);
+  add_to_pack(data, integration_rules_);
 
   Discret::Elements::add_to_pack(data, solid_ele_property_);
 
   data.add_to_pack(material_post_setup_);
 
-  Discret::Elements::pack(solid_calc_variant_, data);
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}. The element needs to "
+      "be fully setup before packing.",
+      id());
+  Discret::Elements::pack(*solid_calc_variant_, data);
 }
 
 void Discret::Elements::Solid::unpack(Core::Communication::UnpackBuffer& buffer)
@@ -218,15 +252,17 @@ void Discret::Elements::Solid::unpack(Core::Communication::UnpackBuffer& buffer)
   Core::Elements::Element::unpack(buffer);
 
   extract_from_pack(buffer, celltype_);
+  extract_from_pack(buffer, integration_rules_);
 
   Discret::Elements::extract_from_pack(buffer, solid_ele_property_);
 
   extract_from_pack(buffer, material_post_setup_);
 
   // reset solid interface
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  solid_calc_variant_ =
+      create_solid_calculation_interface(celltype_, solid_ele_property_, integration_rules_);
 
-  Discret::Elements::unpack(solid_calc_variant_, buffer);
+  Discret::Elements::unpack(*solid_calc_variant_, buffer);
 }
 
 void Discret::Elements::Solid::set_params_interface_ptr(const Teuchos::ParameterList& p)
@@ -251,10 +287,12 @@ bool Discret::Elements::Solid::read_element(const std::string& eletype, const st
 
   solid_ele_property_ = FourC::Solid::Utils::ReadElement::read_solid_element_properties(container);
 
+  integration_rules_ = container.get<SolidIntegrationRules>("INTEGRATION");
 
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  solid_calc_variant_ =
+      create_solid_calculation_interface(celltype_, solid_ele_property_, integration_rules_);
   std::visit([&](auto& interface) { interface->setup(*solid_material(), container); },
-      solid_calc_variant_);
+      *solid_calc_variant_);
   return true;
 }
 
@@ -281,12 +319,14 @@ void Discret::Elements::Solid::for_each_gauss_point(Core::FE::Discretization& di
     std::vector<int>& lm,
     const std::function<void(Mat::So3Material&, double, int)>& integrator) const
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   std::visit(
       [&](auto& interface)
       {
         interface->for_each_gauss_point(*this, *solid_material(), discretization, lm, integrator);
       },
-      solid_calc_variant_);
+      *solid_calc_variant_);
 }
 
 FOUR_C_NAMESPACE_CLOSE

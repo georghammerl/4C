@@ -18,6 +18,7 @@
 #include "4C_mat_material_factory.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_material_parameter_base.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_utils_singleton_owner.hpp"
 
 
@@ -72,6 +73,8 @@ namespace
     inputData_.cell_type = Core::FE::CellType::hex8;
     inputData_.element_arguments.add("MAT", 1);
     inputData_.element_arguments.add("KINEM", Inpar::Solid::KinemType::nonlinearTotLag);
+    inputData_.element_arguments.add("INTEGRATION",
+        Discret::Elements::make_default_solid_integration_rules<Core::FE::CellType::hex8>());
 
     Core::IO::GridGenerator::create_rectangular_cuboid_discretization(*testdis_, inputData_, true);
 
@@ -94,6 +97,8 @@ namespace
     inputData_.cell_type = Core::FE::CellType::hex8;
     inputData_.element_arguments.add("MAT", 1);
     inputData_.element_arguments.add("KINEM", Inpar::Solid::KinemType::nonlinearTotLag);
+    inputData_.element_arguments.add("INTEGRATION",
+        Discret::Elements::make_default_solid_integration_rules<Core::FE::CellType::hex8>());
     inputData_.rotation_angle_ = std::array<double, 3>{30.0, 10.0, 7.0};
 
     Core::IO::GridGenerator::create_rectangular_cuboid_discretization(*testdis_, inputData_, true);
@@ -117,6 +122,8 @@ namespace
     inputData_.cell_type = Core::FE::CellType::hex27;
     inputData_.element_arguments.add("MAT", 1);
     inputData_.element_arguments.add("KINEM", Inpar::Solid::KinemType::nonlinearTotLag);
+    inputData_.element_arguments.add("INTEGRATION",
+        Discret::Elements::make_default_solid_integration_rules<Core::FE::CellType::hex27>());
 
     Core::IO::GridGenerator::create_rectangular_cuboid_discretization(*testdis_, inputData_, true);
 
@@ -139,6 +146,8 @@ namespace
     inputData_.cell_type = Core::FE::CellType::wedge6;
     inputData_.element_arguments.add("MAT", 1);
     inputData_.element_arguments.add("KINEM", Inpar::Solid::KinemType::nonlinearTotLag);
+    inputData_.element_arguments.add("INTEGRATION",
+        Discret::Elements::make_default_solid_integration_rules<Core::FE::CellType::wedge6>());
     inputData_.autopartition_ = true;
 
     Core::IO::GridGenerator::create_rectangular_cuboid_discretization(*testdis_, inputData_, true);

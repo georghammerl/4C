@@ -63,10 +63,12 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
     Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseVector& elevec2,
     Core::LinAlg::SerialDenseVector& elevec3)
 {
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}.", id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface)
-        { interface->material_post_setup(*this, struct_poro_material()); }, solid_calc_variant_);
+        { interface->material_post_setup(*this, struct_poro_material()); }, *solid_calc_variant_);
     material_post_setup_ = true;
   }
 
@@ -93,7 +95,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
                 discretization, get_location_array<decltype(interface)>(la), params, &elevec1,
                 &elemat1, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       if (la.size() > 1)
       {
@@ -127,7 +129,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
                 discretization, get_location_array<decltype(interface)>(la), params, &elevec1,
                 nullptr, nullptr);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       if (la.size() > 1)
       {
@@ -160,7 +162,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
                 discretization, get_location_array<decltype(interface)>(la), params, &elevec1,
                 &elemat1, &elemat2);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       if (la.size() > 1 and this->num_material() > 1)
       {
@@ -194,7 +196,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
                 discretization, get_location_array<decltype(interface)>(la), params, &elevec1,
                 &elemat1, &elemat2);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       Discret::Elements::lump_matrix(elemat2);
       return 0;
     }
@@ -232,7 +234,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
             interface->update(*this, solid_poro_material(), discretization,
                 get_location_array<decltype(interface)>(la), params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_recover:
@@ -243,7 +245,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
             interface->recover(
                 *this, discretization, get_location_array<decltype(interface)>(la), params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_stress:
@@ -258,7 +260,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
                     .mutable_data = get_strain_data(*this, params)},
                 discretization, get_location_array<decltype(interface)>(la), params);
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
 
       return 0;
     }
@@ -270,7 +272,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
             interface->initialize_gauss_point_data_output(*this, solid_poro_material(),
                 *get_solid_params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_gauss_point_data_output:
@@ -281,7 +283,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased::evaluate(Teuchos::Paramet
             interface->evaluate_gauss_point_data_output(*this, solid_poro_material(),
                 *get_solid_params_interface().gauss_point_data_output_manager_ptr());
           },
-          solid_calc_variant_);
+          *solid_calc_variant_);
       return 0;
     }
     case Core::Elements::struct_calc_predict:
@@ -316,7 +318,7 @@ double Discret::Elements::SolidPoroPressureVelocityBased::get_normal_cauchy_stre
         }
         FOUR_C_THROW("Not yet implemented");
       },
-      solid_calc_variant_);
+      *solid_calc_variant_);
 
   if (!pressures) return cauchy_stress_n_dir;
 

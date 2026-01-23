@@ -227,14 +227,18 @@ bool Discret::Elements::SolidPoroPressureVelocityBased::read_element(const std::
 
   const bool with_scatra =
       poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
   solid_calc_variant_ = create_solid_or_solid_scatra_calculation_interface(
-      celltype_, solid_ele_property_, with_scatra);
+      celltype_, solid_ele_property_, with_scatra, rules);
   solidporo_press_vel_based_calc_variant_ =
       create_solid_poro_pressure_velocity_based_calculation_interface(celltype_);
 
   // setup solid material
   std::visit(
-      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, solid_calc_variant_);
+      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, *solid_calc_variant_);
 
   // setup poro material
   std::visit([&](auto& solidporopressurevelocitybased)
@@ -307,7 +311,11 @@ void Discret::Elements::SolidPoroPressureVelocityBased::pack(
     add_to_pack(data, anisotropic_permeability_property_.nodal_coeffs_[i]);
 
   // optional data, e.g., EAS data
-  Discret::Elements::pack(solid_calc_variant_, data);
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}. The element needs to "
+      "be fully setup before packing.",
+      id());
+  Discret::Elements::pack(*solid_calc_variant_, data);
   Discret::Elements::pack(solidporo_press_vel_based_calc_variant_, data);
 }
 
@@ -344,12 +352,16 @@ void Discret::Elements::SolidPoroPressureVelocityBased::unpack(
   // reset solid and poro interfaces
   const bool with_scatra =
       poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
   solid_calc_variant_ = create_solid_or_solid_scatra_calculation_interface(
-      celltype_, solid_ele_property_, with_scatra);
+      celltype_, solid_ele_property_, with_scatra, rules);
   solidporo_press_vel_based_calc_variant_ =
       create_solid_poro_pressure_velocity_based_calculation_interface(celltype_);
 
-  Discret::Elements::unpack(solid_calc_variant_, buffer);
+  Discret::Elements::unpack(*solid_calc_variant_, buffer);
   Discret::Elements::unpack(solidporo_press_vel_based_calc_variant_, buffer);
 }
 

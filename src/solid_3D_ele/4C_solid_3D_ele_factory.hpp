@@ -16,6 +16,7 @@
 #include "4C_solid_3D_ele_calc_displacement_based_linear_kinematics.hpp"
 #include "4C_solid_3D_ele_calc_eas.hpp"
 #include "4C_solid_3D_ele_calc_fbar.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_calc_mulf.hpp"
 #include "4C_solid_3D_ele_calc_mulf_fbar.hpp"
 #include "4C_solid_3D_ele_calc_shell_ans.hpp"
@@ -31,12 +32,12 @@ namespace Solid::Elements
 }
 namespace Discret::Elements
 {
+  using ImplementedSolidCellTypes = Core::FE::CelltypeSequence<Core::FE::CellType::hex8,
+      Core::FE::CellType::hex18, Core::FE::CellType::hex20, Core::FE::CellType::hex27,
+      Core::FE::CellType::nurbs27, Core::FE::CellType::tet4, Core::FE::CellType::tet10,
+      Core::FE::CellType::wedge6, Core::FE::CellType::pyramid5>;
   namespace Internal
   {
-    using ImplementedSolidCellTypes = Core::FE::CelltypeSequence<Core::FE::CellType::hex8,
-        Core::FE::CellType::hex18, Core::FE::CellType::hex20, Core::FE::CellType::hex27,
-        Core::FE::CellType::nurbs27, Core::FE::CellType::tet4, Core::FE::CellType::tet10,
-        Core::FE::CellType::wedge6, Core::FE::CellType::pyramid5>;
 
     using DisplacementBasedEvaluators =
         Core::FE::apply_celltype_sequence<DisplacementBasedSolidIntegrator,
@@ -82,7 +83,8 @@ namespace Discret::Elements
   using SolidCalcVariant = CreateVariantType<Internal::SolidEvaluators>;
 
   SolidCalcVariant create_solid_calculation_interface(Core::FE::CellType celltype,
-      const Discret::Elements::SolidElementProperties& element_properties);
+      const Discret::Elements::SolidElementProperties& element_properties,
+      SolidIntegrationRules integration_rules);
 
 }  // namespace Discret::Elements
 

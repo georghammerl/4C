@@ -15,9 +15,11 @@
 #include "4C_inpar_structure.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_solid_3D_ele_calc_eas.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_calc_lib_nitsche.hpp"
 #include "4C_solid_3D_ele_factory.hpp"
 #include "4C_structure_new_elements_paramsinterface.hpp"
+#include "4C_utils_exceptions.hpp"
 
 #include <memory>
 
@@ -112,10 +114,17 @@ namespace Discret::Elements
 
     [[nodiscard]] const SolidCalcVariant& get_solid_element_evaluator() const
     {
-      return solid_calc_variant_;
+      FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+          "The solid calculation interface is not initialized for element id {}.", id());
+      return *solid_calc_variant_;
     }
 
-    [[nodiscard]] SolidCalcVariant& get_solid_element_evaluator() { return solid_calc_variant_; }
+    [[nodiscard]] SolidCalcVariant& get_solid_element_evaluator()
+    {
+      FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+          "The solid calculation interface is not initialized for element id {}.", id());
+      return *solid_calc_variant_;
+    }
 
     [[nodiscard]] int num_dof_per_node(const Core::Nodes::Node& node) const override { return 3; }
 
@@ -207,11 +216,15 @@ namespace Discret::Elements
     //! solid element properties
     SolidElementProperties solid_ele_property_{};
 
+    //! integration rules for residuum, stiffness and mass matrix
+    SolidIntegrationRules integration_rules_{};
+
     //! interface pointer for data exchange between the element and the time integrator.
     std::shared_ptr<FourC::Solid::Elements::ParamsInterface> interface_ptr_;
 
-    //! element calculation holding one of the implemented variants
-    SolidCalcVariant solid_calc_variant_;
+    //! element calculation holding one of the implemented variants (note: variant might not be
+    //! initialized before the element is read)
+    std::optional<SolidCalcVariant> solid_calc_variant_;
 
     //! flag, whether the post setup of materials is already called
     bool material_post_setup_ = false;

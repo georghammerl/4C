@@ -12,6 +12,7 @@
 
 #include "4C_fem_general_cell_type.hpp"
 #include "4C_fem_general_cell_type_traits.hpp"
+#include "4C_solid_3D_ele_calc_lib_integration.hpp"
 #include "4C_solid_3D_ele_factory.hpp"
 #include "4C_solid_3D_ele_factory_lib.hpp"
 #include "4C_solid_poro_3D_ele_calc_pressure_based.hpp"
@@ -83,7 +84,8 @@ namespace Discret::Elements
 
   inline SolidAndSolidScatraCalcVariant create_solid_or_solid_scatra_calculation_interface(
       Core::FE::CellType celltype,
-      const Discret::Elements::SolidElementProperties& element_properties, bool with_scatra)
+      const Discret::Elements::SolidElementProperties& element_properties, bool with_scatra,
+      SolidIntegrationRules integration_rules)
   {
     if (with_scatra)
     {
@@ -93,7 +95,9 @@ namespace Discret::Elements
           solid_scatra_item);
     }
 
-    SolidCalcVariant solid_item = create_solid_calculation_interface(celltype, element_properties);
+
+    SolidCalcVariant solid_item =
+        create_solid_calculation_interface(celltype, element_properties, integration_rules);
     return std::visit(
         [](auto& interface) -> SolidAndSolidScatraCalcVariant { return interface; }, solid_item);
   };

@@ -227,14 +227,17 @@ bool Discret::Elements::SolidPoroPressureVelocityBasedP1::read_element(const std
 
   read_anisotropic_permeability_directions_from_element_line_definition(container);
   read_anisotropic_permeability_nodal_coeffs_from_element_line_definition(container);
-
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
+  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_vel_based_calc_variant_ =
       create_solid_poro_pressure_velocity_based_p1_calculation_interface(celltype_);
 
   // setup solid material
   std::visit(
-      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, solid_calc_variant_);
+      [&](auto& solid) { solid->setup(struct_poro_material(), container); }, *solid_calc_variant_);
 
   // setup poro material
   std::visit([&](auto& solidporopressurevelocitybased)
@@ -307,7 +310,11 @@ void Discret::Elements::SolidPoroPressureVelocityBasedP1::pack(
     add_to_pack(data, anisotropic_permeability_property_.nodal_coeffs_[i]);
 
   // optional data, e.g., EAS data
-  Discret::Elements::pack(solid_calc_variant_, data);
+  FOUR_C_ASSERT(solid_calc_variant_.has_value(),
+      "The solid calculation interface is not initialized for element id {}. The element needs to "
+      "be fully setup before packing.",
+      id());
+  Discret::Elements::pack(*solid_calc_variant_, data);
   Discret::Elements::pack(solidporo_press_vel_based_calc_variant_, data);
 
   add_to_pack(data, initial_porosity_);
@@ -344,11 +351,15 @@ void Discret::Elements::SolidPoroPressureVelocityBasedP1::unpack(
     extract_from_pack(buffer, anisotropic_permeability_property_.nodal_coeffs_[i]);
 
   // reset solid and poro interfaces
-  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_);
+  SolidIntegrationRules rules =
+      Core::FE::cell_type_switch<Discret::Elements::ImplementedSolidCellTypes>(celltype_,
+          [](auto celltype_t) -> SolidIntegrationRules
+          { return make_default_solid_integration_rules<celltype_t()>(); });
+  solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_vel_based_calc_variant_ =
       create_solid_poro_pressure_velocity_based_p1_calculation_interface(celltype_);
 
-  Discret::Elements::unpack(solid_calc_variant_, buffer);
+  Discret::Elements::unpack(*solid_calc_variant_, buffer);
   Discret::Elements::unpack(solidporo_press_vel_based_calc_variant_, buffer);
 
 
