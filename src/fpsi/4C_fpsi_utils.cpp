@@ -537,7 +537,7 @@ void FPSI::InterfaceUtils::redistribute_interface(Core::FE::Discretization& mast
       const Core::LinAlg::Map colcopy = *(masterdis.element_col_map());
       int myglobalelementsize = colcopy.num_my_elements();
       std::vector<int> myglobalelements(myglobalelementsize);
-      colcopy.my_global_elements(myglobalelements.data());
+      colcopy.my_global_elements(std::span<int>(myglobalelements));
 
       if (Core::Communication::my_mpi_rank(comm) == proc and
           mastereleowner != proc)  // ghost master ele on owner of slave ele, but only if this proc

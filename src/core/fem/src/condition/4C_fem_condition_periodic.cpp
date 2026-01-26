@@ -825,7 +825,7 @@ void Core::Conditions::PeriodicBoundaryConditions::redistribute_and_create_dof_c
     std::vector<int> nodesonthisproc(discret_->node_row_map()->num_my_elements());
 
     // get all node gids of nodes on this proc
-    discret_->node_row_map()->my_global_elements(nodesonthisproc.data());
+    discret_->node_row_map()->my_global_elements(std::span<int>(nodesonthisproc));
 
     std::set<int> nodeset;
 
@@ -1058,7 +1058,7 @@ void Core::Conditions::PeriodicBoundaryConditions::redistribute_and_create_dof_c
       // mycolnodes contains all nodes which will be stored on this proc
       // according to the colmap constructed
       std::vector<int> mycolnodes(newcolnodemap->num_my_elements());
-      newcolnodemap->my_global_elements(mycolnodes.data());
+      newcolnodemap->my_global_elements(std::span<int>(mycolnodes));
 
       // determine all ghosted slave nodes in this vector which do not have
       // a ghosted master on this proc --- we have to fetch it to be able

@@ -155,7 +155,7 @@ void redistribute(const std::vector<int>& rank_to_hold_condition,
       [&]()
       {
         std::vector<int> row_node_ids_on_this_proc(discret.node_row_map()->num_my_elements());
-        discret.node_row_map()->my_global_elements(row_node_ids_on_this_proc.data());
+        discret.node_row_map()->my_global_elements(std::span<int>(row_node_ids_on_this_proc));
         std::set<int> row_node_set(
             row_node_ids_on_this_proc.begin(), row_node_ids_on_this_proc.end());
         row_node_ids_on_this_proc.clear();

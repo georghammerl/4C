@@ -564,7 +564,7 @@ std::shared_ptr<Core::LinAlg::Map> Core::Rebalance::compute_node_col_map(
   const Core::LinAlg::Map* oldcolnodemap = sourcedis.node_col_map();
 
   std::vector<int> mycolnodes(oldcolnodemap->num_my_elements());
-  oldcolnodemap->my_global_elements(mycolnodes.data());
+  oldcolnodemap->my_global_elements(std::span<int>(mycolnodes));
   for (int inode = 0; inode != subdis.num_my_col_nodes(); ++inode)
   {
     const Core::Nodes::Node* newnode = subdis.l_col_node(inode);
