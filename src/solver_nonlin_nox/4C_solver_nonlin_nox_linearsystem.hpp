@@ -125,17 +125,6 @@ namespace NOX
        *  \param cbid  column block id */
       const Core::LinAlg::Map& get_jacobian_range_map(unsigned rbid, unsigned cbid) const;
 
-      /** \brief access the Jacobian block
-       *
-       *  \param rbid  row block id
-       *  \param cbid  column block id */
-      const Core::LinAlg::SparseMatrix& get_jacobian_block(unsigned rbid, unsigned cbid) const;
-
-      /** \brief get a copy of the block diagonal
-       *
-       *  \param diag_bid  diagonal block id */
-      Teuchos::RCP<Core::LinAlg::Vector<double>> get_diagonal_of_jacobian(unsigned diag_bid) const;
-
       /** \brief replace the diagonal of the diagonal block in the Jacobian
        *
        *  \param diag_bid  diagonal block id */

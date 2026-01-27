@@ -1026,17 +1026,6 @@ Solid::TimeInt::BaseDataGlobalState::jacobian_displ_block()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<const Core::LinAlg::SparseMatrix>
-Solid::TimeInt::BaseDataGlobalState::get_jacobian_block(
-    const Inpar::Solid::ModelType mt, const MatBlockType bt) const
-{
-  FOUR_C_ASSERT(jac_, "The jacobian is not initialized!");
-
-  return extract_model_block(*jac_, mt, bt);
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 int Solid::TimeInt::BaseDataGlobalState::get_last_lin_iteration_number(const unsigned step) const
 {
   check_init_setup();
