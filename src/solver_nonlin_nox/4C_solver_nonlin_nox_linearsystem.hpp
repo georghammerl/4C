@@ -119,18 +119,6 @@ namespace NOX
       //! NOX::Nln::Interface::JacobianBase accessor
       std::shared_ptr<const NOX::Nln::Interface::JacobianBase> get_jacobian_interface() const;
 
-      /** \brief return the Jacobian range map
-       *
-       *  \param rbid  row block id
-       *  \param cbid  column block id */
-      const Core::LinAlg::Map& get_jacobian_range_map(unsigned rbid, unsigned cbid) const;
-
-      /** \brief replace the diagonal of the diagonal block in the Jacobian
-       *
-       *  \param diag_bid  diagonal block id */
-      void replace_diagonal_of_jacobian(
-          const Core::LinAlg::Vector<double>& new_diag, unsigned diag_bid);
-
       //! Returns Jacobian operator pointer
       std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const override;
 
