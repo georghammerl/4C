@@ -128,9 +128,6 @@ namespace NOX
       //! Returns the operator type of the jacobian
       const NOX::Nln::LinSystem::OperatorType& get_jacobian_operator_type() const;
 
-      //! destroy the jacobian ptr
-      bool destroy_jacobian();
-
      protected:
       /// access the jacobian
       inline Core::LinAlg::SparseOperator& jacobian() const

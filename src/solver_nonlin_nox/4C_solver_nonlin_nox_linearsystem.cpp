@@ -442,14 +442,6 @@ const NOX::Nln::LinSystem::OperatorType& NOX::Nln::LinearSystem::get_jacobian_op
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-bool NOX::Nln::LinearSystem::destroy_jacobian()
-{
-  jac_ptr_ = nullptr;
-  return true;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void NOX::Nln::LinearSystem::prepare_block_dense_matrix(
     const Core::LinAlg::BlockSparseMatrixBase& block_sparse,
     Core::LinAlg::SerialDenseMatrix& block_dense) const
