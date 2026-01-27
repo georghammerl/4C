@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import sys
 import os
+from datetime import date
 # sys.path.append(os.path.abspath('.../site-packages/sphinx/ext'))
 # Include our own python helper modules
 sys.path.append('@PROJECT_SOURCE_DIR@/utilities/four_c_python/src')
@@ -20,8 +21,11 @@ from four_c_documentation.make_documentation import create_markdown_documentatio
 
 # -- Project information -----------------------------------------------------
 
+# get current year
+current_year = date.today().year
+
 project = "4C"
-copyright = "2024, The 4C developers"
+copyright = f"{current_year}, The 4C developers"
 author = "The 4C developers"
 
 # -- General configuration ---------------------------------------------------
