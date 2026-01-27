@@ -100,9 +100,6 @@ namespace NOX
       //! Evaluate the Jacobian and the right hand side based on the solution vector x at once.
       virtual bool compute_f_and_jacobian(const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
-      bool apply_jacobian_block(const NOX::Nln::Vector& input,
-          Teuchos::RCP<NOX::Nln::Vector>& result, unsigned rbid, unsigned cbid) const;
-
       bool apply_jacobian(const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       bool apply_jacobian_transpose(

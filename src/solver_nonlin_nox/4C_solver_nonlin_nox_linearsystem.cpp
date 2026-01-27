@@ -160,37 +160,6 @@ void NOX::Nln::LinearSystem::reset_pre_post_operator(Teuchos::ParameterList& p)
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-bool NOX::Nln::LinearSystem::apply_jacobian_block(const NOX::Nln::Vector& input,
-    Teuchos::RCP<NOX::Nln::Vector>& result, unsigned rbid, unsigned cbid) const
-{
-  const Core::LinAlg::SparseMatrix& blockc = get_jacobian_block(rbid, cbid);
-  Core::LinAlg::SparseMatrix& block = const_cast<Core::LinAlg::SparseMatrix&>(blockc);
-  const Core::LinAlg::Map& domainmap = block.domain_map();
-  const Core::LinAlg::Map& rangemap = block.range_map();
-
-  const auto& input_v = input.get_linalg_vector();
-  std::shared_ptr<const Core::LinAlg::Vector<double>> input_apply = nullptr;
-
-  if (not input_v.get_map().same_as(domainmap))
-  {
-    input_apply = Core::LinAlg::extract_my_vector(input_v, domainmap);
-  }
-  else
-  {
-    input_apply = Core::Utils::shared_ptr_from_ref(input_v);
-  }
-
-  Core::LinAlg::Vector<double> result_apply(rangemap, true);
-
-  block.multiply(false, *input_apply, result_apply);
-
-  result = Teuchos::make_rcp<NOX::Nln::Vector>(std::move(result_apply));
-
-  return true;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 bool NOX::Nln::LinearSystem::apply_jacobian(
     const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const
 {
