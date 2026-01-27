@@ -143,10 +143,6 @@ namespace NOX
       //! destroy the jacobian ptr
       bool destroy_jacobian();
 
-      /// compute the respective condition number (only possible in serial mode)
-      double compute_serial_condition_number_of_jacobian(
-          const LinSystem::ConditionNumber condnum_type) const;
-
      protected:
       /// access the jacobian
       inline Core::LinAlg::SparseOperator& jacobian() const
@@ -192,14 +188,6 @@ namespace NOX
        *  */
       virtual void complete_solution_after_solve(
           const NOX::Nln::LinearProblem& linProblem, Core::LinAlg::Vector<double>& lhs) const;
-
-      /// convert jacobian matrix to dense matrix
-      void convert_jacobian_to_dense_matrix(Core::LinAlg::SerialDenseMatrix& dense) const;
-
-      /// convert sparse matrix to dense matrix
-      void convert_sparse_to_dense_matrix(const Core::LinAlg::SparseMatrix& sparse,
-          Core::LinAlg::SerialDenseMatrix& dense, const Core::LinAlg::Map& full_rangemap,
-          const Core::LinAlg::Map& full_domainmap) const;
 
       /// prepare the dense matrix in case of a block sparse matrix
       void prepare_block_dense_matrix(const Core::LinAlg::BlockSparseMatrixBase& block_sparse,
