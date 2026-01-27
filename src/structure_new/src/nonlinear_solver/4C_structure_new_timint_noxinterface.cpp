@@ -136,26 +136,6 @@ bool Solid::TimeInt::NoxInterface::compute_f_and_jacobian(const Core::LinAlg::Ve
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::compute_correction_system(const NOX::Nln::CorrectionType type,
-    const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
-    Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac)
-{
-  check_init_setup();
-
-  std::vector<Inpar::Solid::ModelType> constraint_models;
-  find_constraint_models(&grp, constraint_models);
-
-  if (not int_ptr_->apply_correction_system(type, constraint_models, x, rhs, jac)) return false;
-
-  /* Apply the DBC on the right hand side, since we need the Dirichlet free
-   * right hand side inside NOX for the convergence check, etc.               */
-  dbc_ptr_->apply_dirichlet_to_rhs(rhs);
-
-  return true;
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 double Solid::TimeInt::NoxInterface::get_primary_rhs_norms(const Core::LinAlg::Vector<double>& F,
     const NOX::Nln::StatusTest::QuantityType& checkquantity,
     const ::NOX::Abstract::Vector::NormType& type, const bool& isscaled) const

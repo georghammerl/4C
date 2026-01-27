@@ -357,25 +357,6 @@ bool NOX::Nln::LinearSystem::compute_f_and_jacobian(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-bool NOX::Nln::LinearSystem::compute_correction_system(const CorrectionType type,
-    const ::NOX::Abstract::Group& grp, const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs)
-{
-  prePostOperatorPtr_->run_pre_compute_f_and_jacobian(
-      rhs.get_linalg_vector(), jacobian(), x.get_linalg_vector(), *this);
-
-  const bool success = std::dynamic_pointer_cast<NOX::Nln::Interface::Jacobian>(jacInterfacePtr_)
-                           ->compute_correction_system(type, grp, x.get_linalg_vector(),
-                               rhs.get_linalg_vector(), jacobian());
-
-  prePostOperatorPtr_->run_post_compute_f_and_jacobian(
-      rhs.get_linalg_vector(), jacobian(), x.get_linalg_vector(), *this);
-
-  return success;
-}
-
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
 void NOX::Nln::LinearSystem::adjust_pseudo_time_step(double& delta, const double& stepSize,
     const NOX::Nln::Vector& dir, const NOX::Nln::Vector& rhs,
     const NOX::Nln::Solver::PseudoTransient& ptcsolver)

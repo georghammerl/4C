@@ -75,10 +75,6 @@ namespace Solid
       bool compute_f_and_jacobian(const Core::LinAlg::Vector<double>& x,
           Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
 
-      bool compute_correction_system(const NOX::Nln::CorrectionType type,
-          const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
-          Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
-
       /*! Get the norm of right hand side rows/entries related to
        *  primary DoFs (derived from NOX::Nln::Interface::Required) */
       double get_primary_rhs_norms(const Core::LinAlg::Vector<double>& F,
