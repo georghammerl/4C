@@ -67,11 +67,6 @@ namespace NOX
             const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
             const bool& isScaled = false) const = 0;
 
-        //! compute and return some energy representative
-        virtual double get_model_value(const Core::LinAlg::Vector<double>& x,
-            const Core::LinAlg::Vector<double>& F,
-            const MeritFunction::MeritFctName merit_func_type) const = 0;
-
         //! calculate characteristic/reference norms for forces
         virtual double calc_ref_norm_force() = 0;
 

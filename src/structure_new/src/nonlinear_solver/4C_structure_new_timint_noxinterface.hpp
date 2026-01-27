@@ -108,13 +108,6 @@ namespace Solid
           const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
           const bool& isscaled = false) const override;
 
-      /*! Compute and return some energy representative or any other scalar value
-       *  which is capable to describe the solution path progress
-       *  (derived from NOX::Nln::Interface::Required) */
-      double get_model_value(const Core::LinAlg::Vector<double>& x,
-          const Core::LinAlg::Vector<double>& F,
-          const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const override;
-
       /*! \brief calculate characteristic/reference norms for forces
        *
        *  Necessary for the LinearSystem objects.

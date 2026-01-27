@@ -247,9 +247,6 @@ namespace Solid
     //! calculate the energy in the different model evaluators
     void determine_energy();
 
-    //! get the model value in accordance with the currently active time integration
-    virtual double get_model_value(const Core::LinAlg::Vector<double>& x);
-
     /*! return the total structural energy evaluated at the actual mid-time
      *  in accordance to the used time integration scheme */
     double get_total_mid_time_str_energy(const Core::LinAlg::Vector<double>& x);

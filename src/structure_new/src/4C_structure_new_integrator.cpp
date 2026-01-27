@@ -354,15 +354,6 @@ void Solid::Integrator::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-double Solid::Integrator::get_model_value(const Core::LinAlg::Vector<double>& x)
-{
-  FOUR_C_THROW(
-      "This routine is not supported in the currently active time "
-      "integration scheme.");
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 double Solid::Integrator::get_total_mid_time_str_energy(const Core::LinAlg::Vector<double>& x)
 {
   check_init_setup();

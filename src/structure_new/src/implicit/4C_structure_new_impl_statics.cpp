@@ -309,36 +309,4 @@ void Solid::IMPLICIT::Statics::reset_eval_params()
   Solid::IMPLICIT::Generic::reset_eval_params();
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-double Solid::IMPLICIT::Statics::get_model_value(const Core::LinAlg::Vector<double>& x)
-{
-  std::shared_ptr<const Core::LinAlg::Vector<double>> disnp_ptr =
-      global_state().extract_displ_entries(x);
-  const Core::LinAlg::Vector<double>& disnp = *disnp_ptr;
-
-  set_state(disnp);
-
-  eval_data().clear_values_for_all_energy_types();
-  Solid::ModelEvaluator::Structure& str_model =
-      dynamic_cast<Solid::ModelEvaluator::Structure&>(evaluator(Inpar::Solid::model_structure));
-
-  str_model.determine_strain_energy(disnp, true);
-  const double int_energy_np = eval_data().get_energy_data(Solid::internal_energy);
-  double ext_energy_np = 0.0;
-  global_state().get_fext_np()->dot(disnp, &ext_energy_np);
-  const double total = int_energy_np - ext_energy_np;
-
-  std::ostream& os = Core::IO::cout.os(Core::IO::debug);
-  os << __LINE__ << __PRETTY_FUNCTION__ << "\n";
-  os << "internal/strain energy       = " << int_energy_np << "\n"
-     << "external energy              = " << ext_energy_np << "\n";
-  os << std::string(80, '-') << "\n";
-  os << "Total                     = " << total << "\n";
-  os << std::string(80, '-') << "\n";
-
-
-  return total;
-}
-
 FOUR_C_NAMESPACE_CLOSE

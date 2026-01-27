@@ -347,43 +347,6 @@ double Solid::TimeInt::NoxInterface::get_previous_primary_solution_norms(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-double Solid::TimeInt::NoxInterface::get_model_value(const Core::LinAlg::Vector<double>& x,
-    const Core::LinAlg::Vector<double>& F,
-    const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const
-{
-  check_init_setup();
-
-  double omval = 0.0;
-
-  switch (merit_func_type)
-  {
-    case NOX::Nln::MeritFunction::mrtfct_energy:
-    {
-      Core::IO::cout(Core::IO::debug) << __LINE__ << " - " << __FUNCTION__ << "\n";
-      int_ptr_->get_total_mid_time_str_energy(x);
-      omval = int_ptr_->get_model_value(x);
-
-      break;
-    }
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm:
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm_active:
-    {
-      // do nothing in the primary field
-      break;
-    }
-    default:
-    {
-      FOUR_C_THROW("There is no objective model value for {}.",
-          NOX::Nln::MeritFunction::merit_func_name_to_string(merit_func_type));
-    }
-  }
-
-  return omval;
-}
-
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 void Solid::TimeInt::NoxInterface::find_constraint_models(const ::NOX::Abstract::Group* grp,
     std::vector<Inpar::Solid::ModelType>& constraint_models) const
 {

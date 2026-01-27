@@ -302,12 +302,6 @@ namespace Solid
       /// set the time integration coefficients
       void set_time_integration_coefficients(Coefficients& coeffs) const;
 
-
-      /// Return a reliable model value which can be used for line search
-      double get_model_value(const Core::LinAlg::Vector<double>& x) override;
-
-
-
      private:
       Coefficients coeffs_;
 
