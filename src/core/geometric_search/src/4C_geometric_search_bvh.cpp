@@ -22,45 +22,6 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace Core::GeometricSearch
 {
-#ifdef FOUR_C_WITH_ARBORX
-  template <class Predicates>
-  auto BoundingVolumeHierarchy::query(Predicates const& predicates) const
-  {
-    using MemorySpace = typename ArborXBoundingVolumeHierarchy::memory_space;
-
-    Kokkos::View<int*, MemorySpace> indices_full("indices_full", 0);
-    Kokkos::View<int*, MemorySpace> offset_full("offset_full", 0);
-
-    auto get_indices_callback =
-        KOKKOS_LAMBDA(const auto predicate, const auto& value, const auto& out)->void
-    {
-      out(value.index);
-    };
-
-    // Perform the collision check.
-    arborx_bounding_volume_hierarchy_.query(execution_,
-        BoundingVolumeVectorPlaceholder<PredicatesTag>{predicates}, get_indices_callback,
-        indices_full, offset_full);
-
-    // Create the vector with the pairs.
-    std::vector<CollisionSearchResult> pairs;
-    pairs.reserve(indices_full.size());
-    for (size_t i_offset = 0; i_offset < offset_full.size() - 1; i_offset++)
-    {
-      const int gid_predicate = predicates[i_offset].first;
-      for (int j = offset_full[i_offset]; j < offset_full[i_offset + 1]; j++)
-      {
-        pairs.emplace_back(CollisionSearchResult{
-            .gid_predicate = gid_predicate,
-            .gid_primitive = indices_full[j],
-        });
-      }
-    }
-
-    return pairs;
-  }
-#endif
-
   std::vector<CollisionSearchResult> collision_search(
       const std::vector<std::pair<int, BoundingVolume>>& primitives,
       const std::vector<std::pair<int, BoundingVolume>>& predicates)
@@ -90,7 +51,21 @@ namespace Core::GeometricSearch
           BoundingVolumeVectorPlaceholder<PrimitivesTag>{primitives});
 
       // Search for collisions between predicates and primitives.
-      pairs = bounding_volume_hierarchy.query(predicates);
+      const auto [indices_full, offset_full] = bounding_volume_hierarchy.query(predicates);
+
+      // Create the vector with the pairs.
+      pairs.reserve(indices_full.size());
+      for (size_t i_offset = 0; i_offset < offset_full.size() - 1; i_offset++)
+      {
+        const int gid_predicate = predicates[i_offset].first;
+        for (int j = offset_full[i_offset]; j < offset_full[i_offset + 1]; j++)
+        {
+          pairs.emplace_back(CollisionSearchResult{
+              .gid_predicate = gid_predicate,
+              .gid_primitive = indices_full[j],
+          });
+        }
+      }
     }
 
     return pairs;
