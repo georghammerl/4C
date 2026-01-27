@@ -69,7 +69,7 @@ namespace BeamInteraction
     /**
      * \brief Return the averaged nodal normals flag.
      */
-    bool get_averaged_normals_output_flag() const { return nodal_forces_; }
+    bool get_averaged_normals_output_flag() const { return averaged_normals_; }
 
     /**
      * \brief Return the mortar lambda discrete flag.
