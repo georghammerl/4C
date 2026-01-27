@@ -61,15 +61,6 @@ namespace NOX
             FOUR_C_THROW("get_model_value() is not implemented!");
           };
 
-          //! Get the desired linearization terms of the objective model
-          virtual double get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-              const NOX::Nln::MeritFunction::MeritFctName name,
-              const NOX::Nln::MeritFunction::LinOrder order,
-              const NOX::Nln::MeritFunction::LinType type) const
-          {
-            FOUR_C_THROW("get_linearized_model_terms() is not implemented!");
-          };
-
           //! @}
 
           //! @name Status test support functions

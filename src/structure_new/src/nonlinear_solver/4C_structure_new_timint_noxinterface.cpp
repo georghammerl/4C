@@ -381,26 +381,6 @@ double Solid::TimeInt::NoxInterface::get_model_value(const Core::LinAlg::Vector<
   return omval;
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-double Solid::TimeInt::NoxInterface::get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-    const Core::LinAlg::Vector<double>& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
-    const NOX::Nln::MeritFunction::LinOrder linorder,
-    const NOX::Nln::MeritFunction::LinType lintype) const
-{
-  switch (mf_type)
-  {
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm:
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm_active:
-      return 0.0;
-    default:
-    {
-      FOUR_C_THROW("There is no linearization for the objective model {}.",
-          NOX::Nln::MeritFunction::merit_func_name_to_string(mf_type));
-    }
-  }
-}
-
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/

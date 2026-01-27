@@ -373,30 +373,4 @@ double CONTACT::NoxInterface::get_model_value(NOX::Nln::MeritFunction::MeritFctN
   FOUR_C_THROW("Impossible to reach this point.");
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-double CONTACT::NoxInterface::get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-    const NOX::Nln::MeritFunction::MeritFctName name,
-    const NOX::Nln::MeritFunction::LinOrder linorder,
-    const NOX::Nln::MeritFunction::LinType lintype) const
-{
-  switch (name)
-  {
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm:
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm_active:
-    {
-      double lin_val =
-          strategy().get_linearized_potential_value_terms(dir, name, linorder, lintype);
-      const double modelvalue = get_model_value(name);
-      if (modelvalue != 0.0) lin_val /= modelvalue;
-
-      return lin_val;
-    }
-    default:
-      FOUR_C_THROW("Unsupported Merit function name! (enum = {})", name);
-  }
-
-  FOUR_C_THROW("Impossible to reach this point.");
-}
-
 FOUR_C_NAMESPACE_CLOSE

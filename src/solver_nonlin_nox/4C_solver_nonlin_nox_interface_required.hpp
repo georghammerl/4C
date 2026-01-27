@@ -72,16 +72,6 @@ namespace NOX
             const Core::LinAlg::Vector<double>& F,
             const MeritFunction::MeritFctName merit_func_type) const = 0;
 
-        //! return model terms of a linear model (optional)
-        virtual double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-            const Core::LinAlg::Vector<double>& dir,
-            const NOX::Nln::MeritFunction::MeritFctName mf_type,
-            const NOX::Nln::MeritFunction::LinOrder linorder,
-            const NOX::Nln::MeritFunction::LinType lintype) const
-        {
-          FOUR_C_THROW("Not implemented!");
-        }
-
         //! calculate characteristic/reference norms for forces
         virtual double calc_ref_norm_force() = 0;
 

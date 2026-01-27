@@ -115,12 +115,6 @@ namespace Solid
           const Core::LinAlg::Vector<double>& F,
           const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const override;
 
-      double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-          const Core::LinAlg::Vector<double>& dir,
-          const NOX::Nln::MeritFunction::MeritFctName mf_type,
-          const NOX::Nln::MeritFunction::LinOrder linorder,
-          const NOX::Nln::MeritFunction::LinType lintype) const override;
-
       /*! \brief calculate characteristic/reference norms for forces
        *
        *  Necessary for the LinearSystem objects.
