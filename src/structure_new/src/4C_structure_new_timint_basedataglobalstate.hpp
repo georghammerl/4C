@@ -169,16 +169,6 @@ namespace Solid
       std::shared_ptr<Core::LinAlg::Vector<double>> extract_rot_vec_entries(
           const Core::LinAlg::Vector<double>& source) const;
 
-      /** \brief Read-only access of the desired block of the global jacobian
-       *  matrix in the global state data container.
-       *
-       *  \param mt (in)  : Model type of the desired block.
-       *  \param bt (in)  : Desired matrix block type.
-       *
-       *  */
-      std::shared_ptr<const Core::LinAlg::SparseMatrix> get_jacobian_block(
-          const Inpar::Solid::ModelType mt, const MatBlockType bt) const;
-
       /// Get the block of the stiffness matrix which belongs to the displacement dofs.
       std::shared_ptr<Core::LinAlg::SparseMatrix> extract_displ_block(
           Core::LinAlg::SparseOperator& jac) const;

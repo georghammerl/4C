@@ -70,18 +70,6 @@ namespace CONTACT
         NOX::Nln::StatusTest::QuantityType checkQuantity) const override;
     /// @}
 
-    /// @name Merit function support functions
-    /// @{
-
-    double get_model_value(NOX::Nln::MeritFunction::MeritFctName name) const override;
-
-    double get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-        const NOX::Nln::MeritFunction::MeritFctName name,
-        const NOX::Nln::MeritFunction::LinOrder linorder,
-        const NOX::Nln::MeritFunction::LinType lintype) const override;
-
-    /// @}
-
    protected:
     /// get the init indicator state
     inline const bool& is_init() const { return isinit_; };

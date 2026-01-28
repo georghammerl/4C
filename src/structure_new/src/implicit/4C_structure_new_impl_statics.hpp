@@ -65,9 +65,6 @@ namespace Solid
       //! return time integration factor (derived)
       [[nodiscard]] double get_int_param() const override;
 
-      //! derived
-      double get_model_value(const Core::LinAlg::Vector<double>& x) override;
-
       //! @name Monolithic update routines
       //! @{
       //! things that should be done before updating (derived)

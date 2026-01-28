@@ -44,34 +44,6 @@ namespace NOX
           //! Destructor
           virtual ~Required() = default;
 
-          /*! @name Merit function support functions
-           *  These functions are optional. They become only necessary, if you want to use the full
-           * functionality of the non-linear constraint solver framework (e.g. filter methods,
-           * etc.). */
-          //! @{
-
-          /*! \brief Get the objective model
-           *
-           *  This value can be calculated as a combination of the objective function,
-           *  which we try to minimize and the subjected constraint equations.
-           *  Typical examples are the Lagrangian function value and the augmented Lagrangian
-           *  function value. */
-          virtual double get_model_value(NOX::Nln::MeritFunction::MeritFctName name) const
-          {
-            FOUR_C_THROW("get_model_value() is not implemented!");
-          };
-
-          //! Get the desired linearization terms of the objective model
-          virtual double get_linearized_model_terms(const Core::LinAlg::Vector<double>& dir,
-              const NOX::Nln::MeritFunction::MeritFctName name,
-              const NOX::Nln::MeritFunction::LinOrder order,
-              const NOX::Nln::MeritFunction::LinType type) const
-          {
-            FOUR_C_THROW("get_linearized_model_terms() is not implemented!");
-          };
-
-          //! @}
-
           //! @name Status test support functions
           //! @{
 

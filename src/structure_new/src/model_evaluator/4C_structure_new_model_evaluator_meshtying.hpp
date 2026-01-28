@@ -160,9 +160,6 @@ namespace Solid
       //! @name Call-back routines
       //!@{
 
-      std::shared_ptr<const Core::LinAlg::SparseMatrix> get_jacobian_block(
-          const Solid::MatBlockType bt) const;
-
       /** \brief Assemble the structural right-hand side vector
        *
        *  \param[in] without_these_models  Exclude all models defined in this vector

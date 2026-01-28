@@ -136,26 +136,6 @@ bool Solid::TimeInt::NoxInterface::compute_f_and_jacobian(const Core::LinAlg::Ve
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::TimeInt::NoxInterface::compute_correction_system(const NOX::Nln::CorrectionType type,
-    const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
-    Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac)
-{
-  check_init_setup();
-
-  std::vector<Inpar::Solid::ModelType> constraint_models;
-  find_constraint_models(&grp, constraint_models);
-
-  if (not int_ptr_->apply_correction_system(type, constraint_models, x, rhs, jac)) return false;
-
-  /* Apply the DBC on the right hand side, since we need the Dirichlet free
-   * right hand side inside NOX for the convergence check, etc.               */
-  dbc_ptr_->apply_dirichlet_to_rhs(rhs);
-
-  return true;
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 double Solid::TimeInt::NoxInterface::get_primary_rhs_norms(const Core::LinAlg::Vector<double>& F,
     const NOX::Nln::StatusTest::QuantityType& checkquantity,
     const ::NOX::Abstract::Vector::NormType& type, const bool& isscaled) const
@@ -342,63 +322,6 @@ double Solid::TimeInt::NoxInterface::get_previous_primary_solution_norms(
   }
 
   return xoldnorm;
-}
-
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-double Solid::TimeInt::NoxInterface::get_model_value(const Core::LinAlg::Vector<double>& x,
-    const Core::LinAlg::Vector<double>& F,
-    const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const
-{
-  check_init_setup();
-
-  double omval = 0.0;
-
-  switch (merit_func_type)
-  {
-    case NOX::Nln::MeritFunction::mrtfct_energy:
-    {
-      Core::IO::cout(Core::IO::debug) << __LINE__ << " - " << __FUNCTION__ << "\n";
-      int_ptr_->get_total_mid_time_str_energy(x);
-      omval = int_ptr_->get_model_value(x);
-
-      break;
-    }
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm:
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm_active:
-    {
-      // do nothing in the primary field
-      break;
-    }
-    default:
-    {
-      FOUR_C_THROW("There is no objective model value for {}.",
-          NOX::Nln::MeritFunction::merit_func_name_to_string(merit_func_type));
-    }
-  }
-
-  return omval;
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-double Solid::TimeInt::NoxInterface::get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-    const Core::LinAlg::Vector<double>& dir, const NOX::Nln::MeritFunction::MeritFctName mf_type,
-    const NOX::Nln::MeritFunction::LinOrder linorder,
-    const NOX::Nln::MeritFunction::LinType lintype) const
-{
-  switch (mf_type)
-  {
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm:
-    case NOX::Nln::MeritFunction::mrtfct_infeasibility_two_norm_active:
-      return 0.0;
-    default:
-    {
-      FOUR_C_THROW("There is no linearization for the objective model {}.",
-          NOX::Nln::MeritFunction::merit_func_name_to_string(mf_type));
-    }
-  }
 }
 
 

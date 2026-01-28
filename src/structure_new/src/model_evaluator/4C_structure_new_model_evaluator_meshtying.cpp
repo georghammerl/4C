@@ -367,14 +367,6 @@ void Solid::ModelEvaluator::Meshtying::run_post_apply_jacobian_inverse(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<const Core::LinAlg::SparseMatrix>
-Solid::ModelEvaluator::Meshtying::get_jacobian_block(const Solid::MatBlockType bt) const
-{
-  return global_state().get_jacobian_block(type(), bt);
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 bool Solid::ModelEvaluator::Meshtying::evaluate_force()
 {
   return strategy().evaluate_force(global_state().get_dis_np());

@@ -75,10 +75,6 @@ namespace Solid
       bool compute_f_and_jacobian(const Core::LinAlg::Vector<double>& x,
           Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
 
-      bool compute_correction_system(const NOX::Nln::CorrectionType type,
-          const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
-          Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) override;
-
       /*! Get the norm of right hand side rows/entries related to
        *  primary DoFs (derived from NOX::Nln::Interface::Required) */
       double get_primary_rhs_norms(const Core::LinAlg::Vector<double>& F,
@@ -107,19 +103,6 @@ namespace Solid
           const NOX::Nln::StatusTest::QuantityType& checkquantity,
           const ::NOX::Abstract::Vector::NormType& type = ::NOX::Abstract::Vector::TwoNorm,
           const bool& isscaled = false) const override;
-
-      /*! Compute and return some energy representative or any other scalar value
-       *  which is capable to describe the solution path progress
-       *  (derived from NOX::Nln::Interface::Required) */
-      double get_model_value(const Core::LinAlg::Vector<double>& x,
-          const Core::LinAlg::Vector<double>& F,
-          const NOX::Nln::MeritFunction::MeritFctName merit_func_type) const override;
-
-      double get_linearized_model_terms(const ::NOX::Abstract::Group* group,
-          const Core::LinAlg::Vector<double>& dir,
-          const NOX::Nln::MeritFunction::MeritFctName mf_type,
-          const NOX::Nln::MeritFunction::LinOrder linorder,
-          const NOX::Nln::MeritFunction::LinType lintype) const override;
 
       /*! \brief calculate characteristic/reference norms for forces
        *

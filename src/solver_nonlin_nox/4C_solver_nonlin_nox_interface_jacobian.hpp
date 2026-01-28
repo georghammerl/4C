@@ -44,16 +44,6 @@ namespace NOX
         virtual bool compute_f_and_jacobian(const Core::LinAlg::Vector<double>& x,
             Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac) = 0;
 
-        /*! \brief Compute the correction system of given type.
-         *
-         *  \return TRUE if computation was successful. */
-        virtual bool compute_correction_system(const CorrectionType type,
-            const ::NOX::Abstract::Group& grp, const Core::LinAlg::Vector<double>& x,
-            Core::LinAlg::Vector<double>& rhs, Core::LinAlg::SparseOperator& jac)
-        {
-          return false;
-        };
-
         virtual Teuchos::RCP<Core::LinAlg::SparseMatrix>
         calc_jacobian_contributions_from_element_level_for_ptc() = 0;
       };

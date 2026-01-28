@@ -828,14 +828,6 @@ void Solid::ModelEvaluator::Contact::run_post_apply_jacobian_inverse(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<const Core::LinAlg::SparseMatrix>
-Solid::ModelEvaluator::Contact::get_jacobian_block(const MatBlockType bt) const
-{
-  return global_state().get_jacobian_block(type(), bt);
-}
-
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::Vector<double>>
 Solid::ModelEvaluator::Contact::assemble_force_of_models(
     const std::vector<Inpar::Solid::ModelType>* without_these_models, const bool apply_dbc) const

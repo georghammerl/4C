@@ -100,12 +100,6 @@ namespace NOX
       //! Evaluate the Jacobian and the right hand side based on the solution vector x at once.
       virtual bool compute_f_and_jacobian(const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
 
-      bool compute_correction_system(const NOX::Nln::CorrectionType type,
-          const ::NOX::Abstract::Group& grp, const NOX::Nln::Vector& x, NOX::Nln::Vector& rhs);
-
-      bool apply_jacobian_block(const NOX::Nln::Vector& input,
-          Teuchos::RCP<NOX::Nln::Vector>& result, unsigned rbid, unsigned cbid) const;
-
       bool apply_jacobian(const NOX::Nln::Vector& input, NOX::Nln::Vector& result) const override;
 
       bool apply_jacobian_transpose(
@@ -125,29 +119,6 @@ namespace NOX
       //! NOX::Nln::Interface::JacobianBase accessor
       std::shared_ptr<const NOX::Nln::Interface::JacobianBase> get_jacobian_interface() const;
 
-      /** \brief return the Jacobian range map
-       *
-       *  \param rbid  row block id
-       *  \param cbid  column block id */
-      const Core::LinAlg::Map& get_jacobian_range_map(unsigned rbid, unsigned cbid) const;
-
-      /** \brief access the Jacobian block
-       *
-       *  \param rbid  row block id
-       *  \param cbid  column block id */
-      const Core::LinAlg::SparseMatrix& get_jacobian_block(unsigned rbid, unsigned cbid) const;
-
-      /** \brief get a copy of the block diagonal
-       *
-       *  \param diag_bid  diagonal block id */
-      Teuchos::RCP<Core::LinAlg::Vector<double>> get_diagonal_of_jacobian(unsigned diag_bid) const;
-
-      /** \brief replace the diagonal of the diagonal block in the Jacobian
-       *
-       *  \param diag_bid  diagonal block id */
-      void replace_diagonal_of_jacobian(
-          const Core::LinAlg::Vector<double>& new_diag, unsigned diag_bid);
-
       //! Returns Jacobian operator pointer
       std::shared_ptr<const Core::LinAlg::SparseOperator> get_jacobian_operator() const override;
 
@@ -156,13 +127,6 @@ namespace NOX
 
       //! Returns the operator type of the jacobian
       const NOX::Nln::LinSystem::OperatorType& get_jacobian_operator_type() const;
-
-      //! destroy the jacobian ptr
-      bool destroy_jacobian();
-
-      /// compute the respective condition number (only possible in serial mode)
-      double compute_serial_condition_number_of_jacobian(
-          const LinSystem::ConditionNumber condnum_type) const;
 
      protected:
       /// access the jacobian
@@ -209,14 +173,6 @@ namespace NOX
        *  */
       virtual void complete_solution_after_solve(
           const NOX::Nln::LinearProblem& linProblem, Core::LinAlg::Vector<double>& lhs) const;
-
-      /// convert jacobian matrix to dense matrix
-      void convert_jacobian_to_dense_matrix(Core::LinAlg::SerialDenseMatrix& dense) const;
-
-      /// convert sparse matrix to dense matrix
-      void convert_sparse_to_dense_matrix(const Core::LinAlg::SparseMatrix& sparse,
-          Core::LinAlg::SerialDenseMatrix& dense, const Core::LinAlg::Map& full_rangemap,
-          const Core::LinAlg::Map& full_domainmap) const;
 
       /// prepare the dense matrix in case of a block sparse matrix
       void prepare_block_dense_matrix(const Core::LinAlg::BlockSparseMatrixBase& block_sparse,
