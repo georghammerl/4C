@@ -18,6 +18,9 @@
 
 #include "4C_geometric_search_access_traits.hpp"
 
+#include <Kokkos_Core.hpp>
+
+#include <tuple>
 #include <vector>
 
 FOUR_C_NAMESPACE_OPEN
@@ -54,8 +57,11 @@ namespace Core::GeometricSearch
           "The class 'Core::GeometricSearch::BoundingVolumeHierarchy' can only be used with ArborX."
           "To use it, enable ArborX during the configure process.");
     }
+
+    using MemorySpace = typename Kokkos::DefaultExecutionSpace::memory_space;
     template <class Predicates>
-    std::vector<CollisionSearchResult> query(Predicates const& predicates) const
+    std::tuple<Kokkos::View<int*, MemorySpace>, Kokkos::View<int*, MemorySpace>> query(
+        Predicates const& predicates) const
     {
       FOUR_C_THROW(
           "The class 'Core::GeometricSearch::BoundingVolumeHierarchy' can only be used with ArborX."
@@ -67,6 +73,7 @@ namespace Core::GeometricSearch
     using ArborXBoundingVolumeHierarchy =
         ArborX::BoundingVolumeHierarchy<typename ExecutionSpace::memory_space,
             ArborX::Details::AccessValues<Primitives>::value_type>;
+    using MemorySpace = typename ArborXBoundingVolumeHierarchy::memory_space;
 
     /*
      * @brief Generate the bounding volume hierarchy from a vector of primitives.
@@ -76,11 +83,44 @@ namespace Core::GeometricSearch
     {
     }
 
-    /*
-     * @brief Query the bounding volume hierarchy with a given vector of predicates.
+    /*! \brief Query the bounding volume hierarchy with a given vector of predicates and record
+     * results in {indices, offsets}.
+     *
+     * (From ArborX documentation)
+     * Finds all primitives meeting the predicates and record results in {indices, offsets}. indices
+     * stores the indices of the objects that satisfy the predicates. offsets stores the locations
+     * in indices that start a predicate, that is, predicates(i) is satisfied by
+     * primitives(indices(j)) for offsets(i) <= j < offsets(i+1). Following the usual convention,
+     * offsets(n) == indices.size(), where n is the number of queries that were performed and
+     * indices.size() is the total number of collisions. Be aware, that this function will return
+     * all in primitives vs. all in predicates!
+     *
+     * @param predicates Bounding volumes to intersect with
+     * @return {indices, offsets} See description above
+     *
+     * D. Lebrun-Grandie, A. Prokopenko, B. Turcksin, and S. R. Slattery. 2020.
+     * ArborX: A Performance Portable Geometric Search Library. ACM Trans. Math. Softw. 47, 1,
+     * Article 2 (2021), https://doi.org/10.1145/3412558
      */
     template <class Predicates>
-    auto query(Predicates const& predicates) const;
+    auto query(Predicates const& predicates) const
+    {
+      Kokkos::View<int*, MemorySpace> indices("indices_full", 0);
+      Kokkos::View<int*, MemorySpace> offsets("offset_full", 0);
+
+      auto get_indices_callback =
+          KOKKOS_LAMBDA(const auto predicate, const auto& value, const auto& out)->void
+      {
+        out(value.index);
+      };
+
+      // Perform the collision check.
+      arborx_bounding_volume_hierarchy_.query(execution_,
+          BoundingVolumeVectorPlaceholder<PredicatesTag>{predicates}, get_indices_callback, indices,
+          offsets);
+
+      return std::make_tuple(indices, offsets);
+    }
 
    private:
     ExecutionSpace execution_;
@@ -88,32 +128,19 @@ namespace Core::GeometricSearch
 #endif
   };
 
-  /*! \brief Finds all primitives meeting the predicates and record results in {indices, offsets}.
-   *
-   * (From ArborX documentation)
-   * Finds all primitives meeting the predicates and record results in {indices, offsets}. indices
-   * stores the indices of the objects that satisfy the predicates. offsets stores the locations in
-   * indices that start a predicate, that is, predicates(i) is satisfied by primitives(indices(j))
-   * for offsets(i) <= j < offsets(i+1). Following the usual convention, offsets(n) ==
-   * indices.size(), where n is the number of queries that were performed and indices.size() is the
-   * total number of collisions. Be aware, that this function will return all in primitives vs. all
-   * in predicates!
+  /*!
+   * @brief Find all primitives meeting the predicates and record all matching pairs in a vector.
    *
    * @param primitives Bounding volumes to search for intersections
    * @param predicates Bounding volumes to intersect with
    * @return pairs Vector of the found interaction pairs
-   *
-   * D. Lebrun-Grandie, A. Prokopenko, B. Turcksin, and S. R. Slattery. 2020.
-   * ArborX: A Performance Portable Geometric Search Library. ACM Trans. Math. Softw. 47, 1,
-   * Article 2 (2021), https://doi.org/10.1145/3412558
-   *
    */
   std::vector<CollisionSearchResult> collision_search(
       const std::vector<std::pair<int, BoundingVolume>>& primitives,
       const std::vector<std::pair<int, BoundingVolume>>& predicates);
 
-  /*! \brief Performs a local collision search between two sets of bounding volumes and prints the
-   * results.
+  /*! \brief Find all primitives meeting the predicates and record all matching pairs in a vector,
+   * also, this function prints the results.
    *
    * @param primitives Bounding volumes to search for intersections
    * @param predicates Bounding volumes to intersect with
