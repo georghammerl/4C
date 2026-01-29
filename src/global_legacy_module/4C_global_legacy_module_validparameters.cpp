@@ -25,13 +25,13 @@
 #include "4C_fem_general_element_definition.hpp"
 #include "4C_fem_nurbs_discretization_knotvector.hpp"
 #include "4C_fpsi_input.hpp"
+#include "4C_fs3i_input.hpp"
 #include "4C_geometric_search_input.hpp"
 #include "4C_global_legacy_module_problem_type_string.hpp"
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
 #include "4C_inpar_fluid.hpp"
-#include "4C_inpar_fs3i.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_inpar_io.hpp"
 #include "4C_inpar_IO_runtime_output.hpp"
@@ -336,7 +336,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, STI::valid_parameters());
 
   push_specs(specs, Inpar::S2I::valid_parameters());
-  push_specs(specs, Inpar::FS3I::valid_parameters());
+  push_specs(specs, FS3I::valid_parameters());
   push_specs(specs, PoroElast::valid_parameters());
   push_specs(specs, PoroElastScaTra::valid_parameters());
   push_specs(specs, PoroPressureBased::valid_parameters_porofluid());
