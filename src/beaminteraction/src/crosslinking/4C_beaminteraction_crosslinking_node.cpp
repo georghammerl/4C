@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_crosslinker_node.hpp"
+#include "4C_beaminteraction_crosslinking_node.hpp"
 
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_comm_utils_factory.hpp"

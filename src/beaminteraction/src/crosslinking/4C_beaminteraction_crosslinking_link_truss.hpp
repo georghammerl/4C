@@ -5,12 +5,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_BEAMINTERACTION_LINK_BEAM3_REISSNER_LINE2_PINJOINTED_HPP
-#define FOUR_C_BEAMINTERACTION_LINK_BEAM3_REISSNER_LINE2_PINJOINTED_HPP
+#ifndef FOUR_C_BEAMINTERACTION_CROSSLINKING_LINK_TRUSS_HPP
+#define FOUR_C_BEAMINTERACTION_CROSSLINKING_LINK_TRUSS_HPP
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_link_pinjointed.hpp"
+#include "4C_beaminteraction_crosslinking_link_pinjointed.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 
@@ -26,31 +26,30 @@ namespace Discret
 {
   namespace Elements
   {
-    class Beam3r;
+    class Truss3;
   }
 }  // namespace Discret
 
 namespace BeamInteraction
 {
-  class BeamLinkBeam3rLine2PinJointedType : public Core::Communication::ParObjectType
+  class BeamLinkTrussType : public Core::Communication::ParObjectType
   {
    public:
-    std::string name() const override { return "BeamLinkBeam3rLine2PinJointedType"; };
+    std::string name() const override { return "BeamLinkTrussType"; };
 
-    static BeamLinkBeam3rLine2PinJointedType& instance() { return instance_; };
+    static BeamLinkTrussType& instance() { return instance_; };
 
     Core::Communication::ParObject* create(Core::Communication::UnpackBuffer& buffer) override;
 
    private:
-    static BeamLinkBeam3rLine2PinJointedType instance_;
+    static BeamLinkTrussType instance_;
   };
 
 
   /*!
-   \brief element for link between two 3D beam elements via a linear (2 noded) Simo-Reissner beam
-   element
+   \brief element for link between two 3D beam elements via a truss element
    */
-  class BeamLinkBeam3rLine2PinJointed : public BeamLinkPinJointed
+  class BeamLinkTruss : public BeamLinkPinJointed
   {
    public:
     //! @name Friends
@@ -61,7 +60,7 @@ namespace BeamInteraction
     /*!
     \brief Standard Constructor
     */
-    BeamLinkBeam3rLine2PinJointed();
+    BeamLinkTruss();
 
     /*!
     \brief Copy Constructor
@@ -69,7 +68,7 @@ namespace BeamInteraction
     Makes a deep copy of a Element
 
     */
-    BeamLinkBeam3rLine2PinJointed(const BeamLinkBeam3rLine2PinJointed& old);
+    BeamLinkTruss(const BeamLinkTruss& old);
 
 
 
@@ -90,7 +89,7 @@ namespace BeamInteraction
     */
     int unique_par_object_id() const override
     {
-      return BeamLinkBeam3rLine2PinJointedType::instance().unique_par_object_id();
+      return BeamLinkTrussType::instance().unique_par_object_id();
     };
 
     /*!
@@ -114,6 +113,7 @@ namespace BeamInteraction
 
     //@}
 
+
     //! @name Access methods
 
     //! get internal linker energy
@@ -123,20 +123,13 @@ namespace BeamInteraction
     double get_kinetic_energy() const override;
 
     //! scale linker element reference length
-    void scale_linker_reference_length(double scalefac) override
-    {
-      FOUR_C_THROW(" not yet implemented for beam3r element.");
-    }
+    void scale_linker_reference_length(double scalefac) override;
 
     //! get force in first or second binding spot
     void get_binding_spot_force(
         int bspotid, Core::LinAlg::SerialDenseVector& bspotforce) const override;
 
-    double get_current_linker_length() const override
-    {
-      FOUR_C_THROW("not yet implemented");
-      return 0.0;
-    }
+    double get_current_linker_length() const override;
 
     //@}
 
@@ -169,6 +162,7 @@ namespace BeamInteraction
     void reset_state(std::vector<Core::LinAlg::Matrix<3, 1>>& bspotpos,
         std::vector<Core::LinAlg::Matrix<3, 3>>& bspottriad) override;
 
+
     //@}
 
    private:
@@ -178,18 +172,18 @@ namespace BeamInteraction
     \brief Fill absolute nodal positions and nodal quaternions with current values
     */
     void fill_state_variables_for_element_evaluation(
-        Core::LinAlg::Matrix<6, 1, double>& disp_totlag_centerline,
-        std::vector<Core::LinAlg::Matrix<4, 1, double>>& Qnode) const;
+        Core::LinAlg::Matrix<6, 1, double>& absolute_nodal_positions) const;
+
+    void get_disp_for_element_evaluation(
+        std::map<std::string, std::vector<double>>& ele_state) const;
 
     //@}
 
    private:
     //! @name member variables
 
-    Core::LinAlg::Matrix<4, 1> triad_;
-
     //! new connecting element
-    std::shared_ptr<Discret::Elements::Beam3r> linkele_;
+    std::shared_ptr<Discret::Elements::Truss3> linkele_;
 
     //! the following variables are for output purposes only (no need to pack or unpack)
     std::vector<Core::LinAlg::SerialDenseVector> bspotforces_;

@@ -9,8 +9,8 @@
 
 #include "4C_beam3_base.hpp"
 #include "4C_beam3_reissner.hpp"
+#include "4C_beaminteraction_crosslinking_link.hpp"
 #include "4C_beaminteraction_crosslinking_params.hpp"
-#include "4C_beaminteraction_link.hpp"
 #include "4C_beaminteraction_spherebeamlinking_params.hpp"
 #include "4C_binstrategy.hpp"
 #include "4C_fem_condition_utils.hpp"
