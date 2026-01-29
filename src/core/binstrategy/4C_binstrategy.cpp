@@ -839,7 +839,7 @@ void Core::Binstrategy::BinningStrategy::distribute_bins_recurs_coord_bisection(
 }
 
 void Core::Binstrategy::BinningStrategy::fill_bins_into_bin_discretization(
-    Core::LinAlg::Map& rowbins)
+    const Core::LinAlg::Map& rowbins)
 {
   // fill bins into bindis_
   for (int i = 0; i < rowbins.num_my_elements(); ++i)
@@ -891,7 +891,7 @@ void Core::Binstrategy::BinningStrategy::add_ijk_to_axis_aligned_ijk_range(
 
 
 void Core::Binstrategy::BinningStrategy::distribute_single_element_to_bins_using_ele_aabb(
-    const Core::FE::Discretization& discret, Core::Elements::Element* eleptr,
+    const Core::FE::Discretization& discret, const Core::Elements::Element& eleptr,
     std::vector<int>& binIds,
     std::shared_ptr<const Core::LinAlg::Vector<double>> const& disnp) const
 {
@@ -901,7 +901,7 @@ void Core::Binstrategy::BinningStrategy::distribute_single_element_to_bins_using
   // ((x_min, y_min, z_min), (x_max, y_max, z_max))
   const std::pair<std::array<double, 3>, std::array<double, 3>> aabb =
       BinningStrategyImplementation::compute_aabb(
-          discret, *eleptr, disnp, determine_relevant_points_);
+          discret, eleptr, disnp, determine_relevant_points_);
 
   int ijk[3];
   convert_pos_to_ijk(aabb.first.data(), ijk);
@@ -986,7 +986,7 @@ void Core::Binstrategy::BinningStrategy::remove_all_eles_from_bins()
 
 
 void Core::Binstrategy::BinningStrategy::distribute_row_nodes_to_bins(
-    Core::FE::Discretization& discret, std::map<int, std::vector<int>>& bin_to_rownodes_map,
+    const Core::FE::Discretization& discret, std::map<int, std::vector<int>>& bin_to_rownodes_map,
     std::shared_ptr<const Core::LinAlg::Vector<double>> disnp) const
 {
   // current position of nodes
@@ -1341,7 +1341,7 @@ std::shared_ptr<Core::LinAlg::Map> Core::Binstrategy::BinningStrategy::extend_el
 }
 
 void Core::Binstrategy::BinningStrategy::extend_ghosting_of_binning_discretization(
-    Core::LinAlg::Map& rowbins, std::set<int> const& colbins, bool assigndegreesoffreedom)
+    const Core::LinAlg::Map& rowbins, std::set<int> const& colbins, bool assigndegreesoffreedom)
 {
   // gather set of bins that need to be ghosted by myrank
   std::set<int> bins(colbins.begin(), colbins.end());
@@ -1382,7 +1382,7 @@ void Core::Binstrategy::BinningStrategy::extend_ghosting_of_binning_discretizati
 }
 
 void Core::Binstrategy::BinningStrategy::standard_discretization_ghosting(
-    std::shared_ptr<Core::FE::Discretization>& discret, Core::LinAlg::Map& rowbins,
+    std::shared_ptr<Core::FE::Discretization>& discret, const Core::LinAlg::Map& rowbins,
     std::shared_ptr<Core::LinAlg::Vector<double>>& disnp,
     std::shared_ptr<Core::LinAlg::Map>& stdelecolmap,
     std::shared_ptr<Core::LinAlg::Map>& stdnodecolmap) const
@@ -1478,7 +1478,7 @@ void Core::Binstrategy::BinningStrategy::standard_discretization_ghosting(
 
 void Core::Binstrategy::BinningStrategy::
     collect_information_about_content_of_bins_from_other_procs_via_round_robin(
-        Core::LinAlg::Map& rowbins, std::map<int, std::vector<int>>& mynodesinbins,
+        const Core::LinAlg::Map& rowbins, std::map<int, std::vector<int>>& mynodesinbins,
         std::map<int, std::vector<int>>& allnodesinmybins) const
 {
   // do communication to gather all nodes
@@ -1817,7 +1817,7 @@ void Core::Binstrategy::BinningStrategy::transfer_nodes_and_elements(
       currele->set_owner(newowner);
       toranktosendeles[newowner].push_back(currele);
       std::vector<int> binids;
-      distribute_single_element_to_bins_using_ele_aabb(discret, currele, binids, disnp);
+      distribute_single_element_to_bins_using_ele_aabb(discret, *currele, binids, disnp);
       std::pair<int, std::vector<int>> dummy(currele->id(), binids);
       toranktosendbinids[newowner].push_back(dummy);
     }
@@ -1834,7 +1834,7 @@ void Core::Binstrategy::BinningStrategy::transfer_nodes_and_elements(
 
     // get corresponding bin ids in ijk range
     std::vector<int> binIds;
-    distribute_single_element_to_bins_using_ele_aabb(discret, eleptr, binIds, disnp);
+    distribute_single_element_to_bins_using_ele_aabb(discret, *eleptr, binIds, disnp);
 
     // assign element to bins
     std::vector<int>::const_iterator biniter;
