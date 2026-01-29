@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_submodel_evaluator_spherebeamlinking.hpp"
+#include "4C_beaminteraction_spherebeamlinking_submodel_evaluator.hpp"
 
 #include "4C_beam3_base.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
