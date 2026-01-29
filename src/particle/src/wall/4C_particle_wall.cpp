@@ -250,7 +250,7 @@ void Particle::WallHandlerBase::relate_bins_to_col_wall_eles()
     // get corresponding bin ids for element
     std::vector<int> binids;
     binstrategy_->distribute_single_element_to_bins_using_ele_aabb(
-        *walldiscretization_, ele, binids, walldatastate_->get_disp_col());
+        *walldiscretization_, *ele, binids, walldatastate_->get_disp_col());
 
     // relate ids of owned bins to column wall elements
     for (int gidofbin : binids)

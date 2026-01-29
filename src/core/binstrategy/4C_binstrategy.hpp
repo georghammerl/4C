@@ -454,7 +454,7 @@ namespace Core::Binstrategy
      *
      * \param[in] rowbins row bins distribution
      */
-    void fill_bins_into_bin_discretization(Core::LinAlg::Map& rowbins);
+    void fill_bins_into_bin_discretization(const Core::LinAlg::Map& rowbins);
 
     //! \}
 
@@ -493,7 +493,7 @@ namespace Core::Binstrategy
      * \param[in] disnp current col displacement state
      */
     void distribute_single_element_to_bins_using_ele_aabb(const Core::FE::Discretization& discret,
-        Core::Elements::Element* eleptr, std::vector<int>& binIds,
+        const Core::Elements::Element& eleptr, std::vector<int>& binIds,
         std::shared_ptr<const Core::LinAlg::Vector<double>> const& disnp) const;
 
     /*!
@@ -531,7 +531,7 @@ namespace Core::Binstrategy
      * \param[out] bin_to_rownodes_map bin to row nodes assignment map
      * \param[in] disnp current column displacement state
      */
-    void distribute_row_nodes_to_bins(Core::FE::Discretization& discret,
+    void distribute_row_nodes_to_bins(const Core::FE::Discretization& discret,
         std::map<int, std::vector<int>>& bin_to_rownodes_map,
         std::shared_ptr<const Core::LinAlg::Vector<double>> disnp = nullptr) const;
 
@@ -620,7 +620,7 @@ namespace Core::Binstrategy
      * \param[in] assigndegreesoffreedom flag indicating if degrees of freedom should be assigned
      *
      */
-    void extend_ghosting_of_binning_discretization(Core::LinAlg::Map& rowbins,
+    void extend_ghosting_of_binning_discretization(const Core::LinAlg::Map& rowbins,
         std::set<int> const& colbins, bool assigndegreesoffreedom = true);
 
     /*!
@@ -633,7 +633,7 @@ namespace Core::Binstrategy
      * \param[out] stdnodecolmap standard node column map
      */
     void standard_discretization_ghosting(std::shared_ptr<Core::FE::Discretization>& discret,
-        Core::LinAlg::Map& rowbins, std::shared_ptr<Core::LinAlg::Vector<double>>& disnp,
+        const Core::LinAlg::Map& rowbins, std::shared_ptr<Core::LinAlg::Vector<double>>& disnp,
         std::shared_ptr<Core::LinAlg::Map>& stdelecolmap,
         std::shared_ptr<Core::LinAlg::Map>& stdnodecolmap) const;
 
@@ -645,7 +645,7 @@ namespace Core::Binstrategy
      * \param[out] allnodesinmybins all nodes in my row bins
      */
     void collect_information_about_content_of_bins_from_other_procs_via_round_robin(
-        Core::LinAlg::Map& rowbins, std::map<int, std::vector<int>>& mynodesinbins,
+        const Core::LinAlg::Map& rowbins, std::map<int, std::vector<int>>& mynodesinbins,
         std::map<int, std::vector<int>>& allnodesinmybins) const;
 
     /*!
@@ -852,7 +852,8 @@ namespace Core::Binstrategy
     {
       // get corresponding bin ids in ijk range
       std::vector<int> bin_ids;
-      distribute_single_element_to_bins_using_ele_aabb(discret, ele.user_element(), bin_ids, disnp);
+      distribute_single_element_to_bins_using_ele_aabb(
+          discret, *ele.user_element(), bin_ids, disnp);
 
       for (const int b : bin_ids) bin_to_ele_map[b].insert(ele.global_id());
     }
