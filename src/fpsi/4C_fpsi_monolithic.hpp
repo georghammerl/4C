@@ -17,8 +17,8 @@
 #include "4C_coupling_adapter.hpp"
 #include "4C_fpsi.hpp"
 #include "4C_fpsi_coupling.hpp"
+#include "4C_fpsi_input.hpp"
 #include "4C_fsi_monolithic.hpp"
-#include "4C_inpar_fpsi.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_poroelast_base.hpp"
 
@@ -337,9 +337,9 @@ namespace FPSI
     //! flag for direct solver of linear system
     bool directsolve_;
 
-    Inpar::FPSI::ConvergenceNorm normtypeinc_;
-    Inpar::FPSI::ConvergenceNorm normtypefres_;
-    Inpar::FPSI::BinaryOp combinedconvergence_;
+    FPSI::ConvergenceNorm normtypeinc_;
+    FPSI::ConvergenceNorm normtypefres_;
+    FPSI::BinaryOp combinedconvergence_;
 
     double toleranceiterinc_;
     double toleranceresidualforces_;

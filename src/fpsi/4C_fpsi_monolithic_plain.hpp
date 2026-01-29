@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_fpsi_input.hpp"
 #include "4C_fpsi_monolithic.hpp"
-#include "4C_inpar_fpsi.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

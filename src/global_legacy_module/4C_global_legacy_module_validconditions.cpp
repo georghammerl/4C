@@ -17,11 +17,11 @@
 #include "4C_ehl_input.hpp"
 #include "4C_elch_input.hpp"
 #include "4C_fem_condition_definition.hpp"
+#include "4C_fpsi_input.hpp"
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
 #include "4C_inpar_fluid.hpp"
-#include "4C_inpar_fpsi.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_inpar_levelset.hpp"
 #include "4C_inpar_s2i.hpp"
@@ -830,7 +830,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   Inpar::FLUID::set_valid_conditions(condlist);
   ALE::set_valid_conditions(condlist);
   Inpar::FSI::set_valid_conditions(condlist);
-  Inpar::FPSI::set_valid_conditions(condlist);
+  FPSI::set_valid_conditions(condlist);
   Inpar::XFEM::set_valid_conditions(condlist);
   Inpar::BioFilm::set_valid_conditions(condlist);
   ArteryNetwork::set_valid_conditions(condlist);

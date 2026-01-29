@@ -536,12 +536,10 @@ void FPSI::Monolithic::setup_solver()
   // Get the parameters for the Newton iteration
   maximumiterations_ = fpsidynamicparams.get<int>("ITEMAX");
   minimumiterations_ = fpsidynamicparams.get<int>("ITEMIN");
-  normtypeinc_ =
-      Teuchos::getIntegralValue<Inpar::FPSI::ConvergenceNorm>(fpsidynamicparams, "NORM_INC");
-  normtypefres_ =
-      Teuchos::getIntegralValue<Inpar::FPSI::ConvergenceNorm>(fpsidynamicparams, "NORM_RESF");
+  normtypeinc_ = Teuchos::getIntegralValue<FPSI::ConvergenceNorm>(fpsidynamicparams, "NORM_INC");
+  normtypefres_ = Teuchos::getIntegralValue<FPSI::ConvergenceNorm>(fpsidynamicparams, "NORM_RESF");
   combinedconvergence_ =
-      Teuchos::getIntegralValue<Inpar::FPSI::BinaryOp>(fpsidynamicparams, "NORMCOMBI_RESFINC");
+      Teuchos::getIntegralValue<FPSI::BinaryOp>(fpsidynamicparams, "NORMCOMBI_RESFINC");
 
   {
     std::istringstream tolresstream(
@@ -987,15 +985,15 @@ bool FPSI::Monolithic::converged()
   // residual increments
   switch (normtypeinc_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       convinc = normofiterinc_ < toleranceiterinc_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       FOUR_C_THROW(
           "Check for convergence of primary variables with type <absolute sys split> not "
           "implemented yet!");
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       // increment convergence is checked relative to the average dofs of the different fields
       std::cout << " |ps| " << norm1_ps_ << " |pfv| " << norm1_pfv_ << " |pfp| " << norm1_pfp_
                 << " |fv| " << norm1_fv_ << " |fp| " << norm1_fp_ << " |a| " << norm1_a_
@@ -1020,10 +1018,10 @@ bool FPSI::Monolithic::converged()
   // residual forces
   switch (normtypefres_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       convfres = normofrhs_ < toleranceresidualforces_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       convfres = ((normrhsporostruct_ / sqrtnps_ < toleranceresidualforceslist_[2]) and
                   (normrhsfluidvelocity_ / sqrtnpfv_ < toleranceresidualforceslist_[0]) and
                   (normrhsporofluidpressure_ / sqrtnpfp_ < toleranceresidualforceslist_[1]) and
@@ -1031,7 +1029,7 @@ bool FPSI::Monolithic::converged()
                   (normrhsfluidvelocity_ / sqrtnfv_ < toleranceresidualforceslist_[3]) and
                   (normrhsfluidpressure_ / sqrtnfp_ < toleranceresidualforceslist_[4]));
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       FOUR_C_THROW(
           "Check for convergence of residual forces with type <relative_sys> not implemented yet!");
       break;
@@ -1042,9 +1040,9 @@ bool FPSI::Monolithic::converged()
 
   // combine increments and forces
   bool converged = false;
-  if (combinedconvergence_ == Inpar::FPSI::bop_and)
+  if (combinedconvergence_ == FPSI::bop_and)
     converged = convinc and convfres;
-  else if (combinedconvergence_ == Inpar::FPSI::bop_or)
+  else if (combinedconvergence_ == FPSI::bop_or)
     converged = convinc or convfres;
   else
     FOUR_C_THROW("Something went terribly wrong with binary operator!");
@@ -1241,13 +1239,13 @@ void FPSI::Monolithic::print_newton_iter_header(FILE* ofile)
   // displacement
   switch (normtypefres_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(11) << "abs-res";
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       oss << std::setw(11) << "abs-res_s";
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(11) << "rel-res_s";
       break;
     default:
@@ -1257,13 +1255,13 @@ void FPSI::Monolithic::print_newton_iter_header(FILE* ofile)
 
   switch (normtypeinc_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(11) << "abs-inc";
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       oss << std::setw(11) << "abs-inc_s";
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(11) << "rel-inc_s";
       break;
     default:
@@ -1273,9 +1271,9 @@ void FPSI::Monolithic::print_newton_iter_header(FILE* ofile)
 
   switch (normtypefres_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(16) << "poro-s-res";
       // oss <<std::setw(15)<< "abs-f-res";
       oss << std::setw(15) << "poro-fvel-res";
@@ -1292,8 +1290,8 @@ void FPSI::Monolithic::print_newton_iter_header(FILE* ofile)
 
   switch (normtypeinc_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm_sys_split:
       oss << std::setw(15) << "poro-s-inc";
       // oss <<std::setw(15)<< "abs-f-inc";
       oss << std::setw(16) << "poro-fvel-inc";
@@ -1304,7 +1302,7 @@ void FPSI::Monolithic::print_newton_iter_header(FILE* ofile)
       oss << std::setw(14) << "poro-int-inc";
       oss << std::setw(14) << "fld-int-inc";
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(15) << "poro-s-inc";
       // oss <<std::setw(15)<< "abs-f-inc";
       oss << std::setw(16) << "poro-fvel-inc";
@@ -1352,13 +1350,13 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
   // displacement
   switch (normtypefres_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normofrhs_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normofrhs_ / sqrtnall_;
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
     default:
       FOUR_C_THROW("You should not turn up here.");
       break;
@@ -1366,14 +1364,14 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
 
   switch (normtypeinc_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(12) << std::setprecision(5) << std::scientific << normofiterinc_;
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(12) << std::setprecision(5) << std::scientific
           << normofiterinc_ / norm1_alldof_ * sqrtnall_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
     default:
       FOUR_C_THROW("You should not turn up here.");
       break;
@@ -1381,7 +1379,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
 
   switch (normtypefres_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsporostruct_;
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsporofluidvelocity_;
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsporofluidpressure_;
@@ -1390,7 +1388,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
       // oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsporointerface_;
       // oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsfluidinterface_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
       oss << std::setw(15) << std::setprecision(5) << std::scientific
           << normrhsporostruct_ / sqrtnps_;
       oss << std::setw(15) << std::setprecision(5) << std::scientific
@@ -1404,7 +1402,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
       // oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsporointerface_;
       // oss << std::setw(15) << std::setprecision(5) << std::scientific << normrhsfluidinterface_;
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
     default:
       FOUR_C_THROW("You should not turn up here.");
       break;
@@ -1412,7 +1410,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
 
   switch (normtypeinc_)
   {
-    case Inpar::FPSI::absoluteconvergencenorm:
+    case FPSI::absoluteconvergencenorm:
       oss << std::setw(15) << std::setprecision(5) << std::scientific << normofiterincporostruct_;
       oss << std::setw(15) << std::setprecision(5) << std::scientific
           << normofiterincporofluidvelocity_;
@@ -1428,7 +1426,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
       oss << std::setw(14) << std::setprecision(5) << std::scientific
           << normofiterincporointerface_;
       break;
-    case Inpar::FPSI::relativconvergencenorm_sys:
+    case FPSI::relativconvergencenorm_sys:
       oss << std::setw(15) << std::setprecision(5) << std::scientific
           << normofiterincporostruct_ / norm1_ps_ * sqrtnps_;
       oss << std::setw(15) << std::setprecision(5) << std::scientific
@@ -1442,7 +1440,7 @@ void FPSI::Monolithic::print_newton_iter_text(FILE* ofile)
       oss << std::setw(15) << std::setprecision(5) << std::scientific
           << normofiterincale_ / norm1_a_ * sqrtna_;
       break;
-    case Inpar::FPSI::absoluteconvergencenorm_sys_split:
+    case FPSI::absoluteconvergencenorm_sys_split:
     default:
       FOUR_C_THROW("You should not turn up here.");
       break;

@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_inpar_fpsi.hpp"
+#include "4C_fpsi_input.hpp"
 
 #include "4C_fem_condition_definition.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -13,7 +13,7 @@ FOUR_C_NAMESPACE_OPEN
 
 
 
-Core::IO::InputSpec Inpar::FPSI::valid_parameters()
+Core::IO::InputSpec FPSI::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;
   Core::IO::InputSpec spec = group("FPSI DYNAMIC",
@@ -35,7 +35,7 @@ Core::IO::InputSpec Inpar::FPSI::valid_parameters()
                       "to stiffness matrix.\nSupported in monolithic FPSI for now.",
                   .default_value = false}),
 
-          parameter<Inpar::FPSI::PartitionedCouplingMethod>(
+          parameter<FPSI::PartitionedCouplingMethod>(
               "PARTITIONED", {.description = "Coupling strategies for partitioned FPSI solvers.",
                                  .default_value = RobinNeumann}),
 
@@ -58,7 +58,7 @@ Core::IO::InputSpec Inpar::FPSI::valid_parameters()
                               "porostructure, fluidvelocity, fluidpressure, ale",
                   .default_value = "1e-8 1e-8 1e-8 1e-8 1e-8 1e-8"}),
 
-          deprecated_selection<Inpar::FPSI::ConvergenceNorm>("NORM_INC",
+          deprecated_selection<FPSI::ConvergenceNorm>("NORM_INC",
               {
                   {"Abs", absoluteconvergencenorm},
                   {"Abs_sys_split", absoluteconvergencenorm_sys_split},
@@ -71,7 +71,7 @@ Core::IO::InputSpec Inpar::FPSI::valid_parameters()
                               "separate, Rel_sys: relative values with correction of systemsize.",
                   .default_value = absoluteconvergencenorm}),
 
-          deprecated_selection<Inpar::FPSI::ConvergenceNorm>("NORM_RESF",
+          deprecated_selection<FPSI::ConvergenceNorm>("NORM_RESF",
               {
                   {"Abs", absoluteconvergencenorm},
                   {"Abs_sys_split", absoluteconvergencenorm_sys_split},
@@ -84,7 +84,7 @@ Core::IO::InputSpec Inpar::FPSI::valid_parameters()
                               "separate, Rel_sys: relative values with correction of systemsize.",
                   .default_value = absoluteconvergencenorm}),
 
-          deprecated_selection<Inpar::FPSI::BinaryOp>("NORMCOMBI_RESFINC",
+          deprecated_selection<FPSI::BinaryOp>("NORMCOMBI_RESFINC",
               {
                   {"And", bop_and},
                   {"Or", bop_or},
@@ -138,7 +138,7 @@ Core::IO::InputSpec Inpar::FPSI::valid_parameters()
 
 
 
-void Inpar::FPSI::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist)
+void FPSI::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist)
 {
   using namespace Core::IO::InputSpecBuilders;
 

@@ -18,9 +18,9 @@
 #include "4C_fem_general_assemblestrategy.hpp"
 #include "4C_fluid_ele_action.hpp"
 #include "4C_fluid_utils_mapextractor.hpp"
+#include "4C_fpsi_input.hpp"
 #include "4C_fpsi_utils.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_fpsi.hpp"
 #include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
@@ -237,10 +237,10 @@ void FPSI::FpsiCoupling::evaluate_coupling_matrixes_rhs()
 
   Global::Problem* problem = Global::Problem::instance();
   const Teuchos::ParameterList& fpsidynparams = problem->fpsi_dynamic_params();
-  auto method = Teuchos::getIntegralValue<Inpar::FPSI::PartitionedCouplingMethod>(
-      fpsidynparams, "PARTITIONED");
+  auto method =
+      Teuchos::getIntegralValue<FPSI::PartitionedCouplingMethod>(fpsidynparams, "PARTITIONED");
 
-  if (method != Inpar::FPSI::nocoupling)
+  if (method != FPSI::nocoupling)
   {
     // set general vector values needed by elements
 
@@ -280,7 +280,7 @@ void FPSI::FpsiCoupling::evaluate_coupling_matrixes_rhs()
     fparams.set<Inpar::FLUID::PhysicalType>(
         "Physical Type", poro_field()->fluid_field()->physical_type());
 
-    if (method == Inpar::FPSI::monolithic)
+    if (method == FPSI::monolithic)
     {
       fparams.set<std::string>("fillblock", "Porofluid_Freefluid");
       fparams.set("InterfaceFacingElementMap", fluid_poro_fluid_interface_map_);
@@ -642,7 +642,7 @@ void FPSI::FpsiCoupling::evaluate_coupling_matrixes_rhs()
     //////   NEUMANN INTEGRATION    //////
     //////                          //////
     //////////////////////////////////////
-    if (method == Inpar::FPSI::monolithic or method == Inpar::FPSI::RobinNeumann)
+    if (method == FPSI::monolithic or method == FPSI::RobinNeumann)
     {
       fparams.set<std::string>("fillblock", "NeumannIntegration");
       fparams.set("InterfaceFacingElementMap", fluid_poro_fluid_interface_map_);
