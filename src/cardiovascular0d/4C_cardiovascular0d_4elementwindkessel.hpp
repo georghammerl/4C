@@ -11,9 +11,9 @@
 #include "4C_config.hpp"
 
 #include "4C_cardiovascular0d.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_general_utils_integration.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 

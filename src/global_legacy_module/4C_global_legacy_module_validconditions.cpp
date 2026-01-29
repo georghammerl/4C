@@ -12,6 +12,7 @@
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_ehl_input.hpp"
 #include "4C_elch_input.hpp"
@@ -19,7 +20,6 @@
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_inpar_fluid.hpp"
 #include "4C_inpar_fpsi.hpp"
 #include "4C_inpar_fsi.hpp"
@@ -835,7 +835,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   Inpar::BioFilm::set_valid_conditions(condlist);
   ArteryNetwork::set_valid_conditions(condlist);
   Airway::set_valid_conditions(condlist);
-  Inpar::Cardiovascular0D::set_valid_conditions(condlist);
+  Cardiovascular0DInput::set_valid_conditions(condlist);
   Inpar::Solid::set_valid_conditions(condlist);
   Thermo::set_valid_conditions(condlist);
   SSI::set_valid_conditions(condlist);

@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_inpar_cardiovascular0d.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 
 #include "4C_fem_condition_definition.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -13,7 +13,7 @@ FOUR_C_NAMESPACE_OPEN
 
 
 
-std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
+std::vector<Core::IO::InputSpec> Cardiovascular0DInput::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;
 
@@ -50,11 +50,10 @@ std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
 
           deprecated_selection<Cardvasc0DSolveAlgo>("SOLALGORITHM",
               {
-                  {"block", Inpar::Cardiovascular0D::cardvasc0dsolve_block},
-                  {"direct", Inpar::Cardiovascular0D::cardvasc0dsolve_direct},
+                  {"block", Cardiovascular0DInput::cardvasc0dsolve_block},
+                  {"direct", Cardiovascular0DInput::cardvasc0dsolve_direct},
               },
-              {.description = "",
-                  .default_value = Inpar::Cardiovascular0D::cardvasc0dsolve_direct}),
+              {.description = "", .default_value = Cardiovascular0DInput::cardvasc0dsolve_direct}),
 
 
           parameter<double>("T_PERIOD", {.description = "periodic time", .default_value = -1.0}),
@@ -99,11 +98,11 @@ std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
 
           deprecated_selection<Cardvasc0DAtriumModel>("ATRIUM_MODEL",
               {
-                  {"0D", Inpar::Cardiovascular0D::atr_elastance_0d},
-                  {"3D", Inpar::Cardiovascular0D::atr_structure_3d},
-                  {"prescribed", Inpar::Cardiovascular0D::atr_prescribed},
+                  {"0D", Cardiovascular0DInput::atr_elastance_0d},
+                  {"3D", Cardiovascular0DInput::atr_structure_3d},
+                  {"prescribed", Cardiovascular0DInput::atr_prescribed},
               },
-              {.description = "", .default_value = Inpar::Cardiovascular0D::atr_elastance_0d}),
+              {.description = "", .default_value = Cardiovascular0DInput::atr_elastance_0d}),
           parameter<int>("Atrium_act_curve_l",
               {.description = "left atrial activation curve (ONLY for ATRIUM_MODEL '0D'!)",
                   .default_value = -1}),
@@ -130,11 +129,11 @@ std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
 
           deprecated_selection<Cardvasc0DVentricleModel>("VENTRICLE_MODEL",
               {
-                  {"3D", Inpar::Cardiovascular0D::ventr_structure_3d},
-                  {"0D", Inpar::Cardiovascular0D::ventr_elastance_0d},
-                  {"prescribed", Inpar::Cardiovascular0D::ventr_prescribed},
+                  {"3D", Cardiovascular0DInput::ventr_structure_3d},
+                  {"0D", Cardiovascular0DInput::ventr_elastance_0d},
+                  {"prescribed", Cardiovascular0DInput::ventr_prescribed},
               },
-              {.description = "", .default_value = Inpar::Cardiovascular0D::ventr_structure_3d}),
+              {.description = "", .default_value = Cardiovascular0DInput::ventr_structure_3d}),
           parameter<int>("Ventricle_act_curve_l",
               {.description = "left ventricular activation curve (ONLY for VENTRICLE_MODEL '0D'!)",
                   .default_value = -1}),
@@ -381,10 +380,10 @@ std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
 
           deprecated_selection<Cardvasc0DRespiratoryModel>("RESPIRATORY_MODEL",
               {
-                  {"None", Inpar::Cardiovascular0D::resp_none},
-                  {"Standard", Inpar::Cardiovascular0D::resp_standard},
+                  {"None", Cardiovascular0DInput::resp_none},
+                  {"Standard", Cardiovascular0DInput::resp_standard},
               },
-              {.description = "", .default_value = Inpar::Cardiovascular0D::resp_none}),
+              {.description = "", .default_value = Cardiovascular0DInput::resp_none}),
 
 
 
@@ -634,7 +633,7 @@ std::vector<Core::IO::InputSpec> Inpar::Cardiovascular0D::valid_parameters()
 
 
 
-void Inpar::Cardiovascular0D::set_valid_conditions(
+void Cardiovascular0DInput::set_valid_conditions(
     std::vector<Core::Conditions::ConditionDefinition>& condlist)
 {
   using namespace Core::IO::InputSpecBuilders;

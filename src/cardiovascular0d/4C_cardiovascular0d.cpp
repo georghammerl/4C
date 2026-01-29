@@ -34,16 +34,16 @@ Utils::Cardiovascular0D::Cardiovascular0D(std::shared_ptr<Core::FE::Discretizati
       cardiovascular0dcond_(0),
       cardiovascular0dstructcoupcond_(0),
       cardiovascular0dtype_(none),
-      atrium_model_(Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DAtriumModel>(
+      atrium_model_(Teuchos::getIntegralValue<Cardiovascular0DInput::Cardvasc0DAtriumModel>(
           Global::Problem::instance()->cardiovascular0_d_structural_params().sublist(
               "SYS-PUL CIRCULATION PARAMETERS"),
           "ATRIUM_MODEL")),
-      ventricle_model_(Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DVentricleModel>(
+      ventricle_model_(Teuchos::getIntegralValue<Cardiovascular0DInput::Cardvasc0DVentricleModel>(
           Global::Problem::instance()->cardiovascular0_d_structural_params().sublist(
               "SYS-PUL CIRCULATION PARAMETERS"),
           "VENTRICLE_MODEL")),
       respiratory_model_(
-          Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DRespiratoryModel>(
+          Teuchos::getIntegralValue<Cardiovascular0DInput::Cardvasc0DRespiratoryModel>(
               Global::Problem::instance()->cardiovascular0_d_structural_params().sublist(
                   "RESPIRATORY PARAMETERS"),
               "RESPIRATORY_MODEL")),
@@ -84,8 +84,8 @@ Utils::Cardiovascular0D::Cardiovascular0D(std::shared_ptr<Core::FE::Discretizati
       {
         condtype[i] = &cardiovascular0dcond_[i]->parameters().get<std::string>("TYPE");
 
-        if (atrium_model_ == Inpar::Cardiovascular0D::atr_elastance_0d or
-            atrium_model_ == Inpar::Cardiovascular0D::atr_prescribed)
+        if (atrium_model_ == Cardiovascular0DInput::atr_elastance_0d or
+            atrium_model_ == Cardiovascular0DInput::atr_prescribed)
         {
           if (*condtype[i] == "atrium_left" or *condtype[i] == "atrium_right")
             FOUR_C_THROW(
@@ -96,10 +96,10 @@ Utils::Cardiovascular0D::Cardiovascular0D(std::shared_ptr<Core::FE::Discretizati
 
       switch (atrium_model_)
       {
-        case Inpar::Cardiovascular0D::atr_elastance_0d:
-        case Inpar::Cardiovascular0D::atr_prescribed:
+        case Cardiovascular0DInput::atr_elastance_0d:
+        case Cardiovascular0DInput::atr_prescribed:
         {
-          if (ventricle_model_ == Inpar::Cardiovascular0D::ventr_structure_3d)
+          if (ventricle_model_ == Cardiovascular0DInput::ventr_structure_3d)
           {
             if (cardiovascular0dcond_.size() == 2)
             {
@@ -111,8 +111,8 @@ Utils::Cardiovascular0D::Cardiovascular0D(std::shared_ptr<Core::FE::Discretizati
             else
               FOUR_C_THROW("You need 2 conditions (left + right ventricle)!");
           }
-          if (ventricle_model_ == Inpar::Cardiovascular0D::ventr_elastance_0d or
-              ventricle_model_ == Inpar::Cardiovascular0D::ventr_prescribed)
+          if (ventricle_model_ == Cardiovascular0DInput::ventr_elastance_0d or
+              ventricle_model_ == Cardiovascular0DInput::ventr_prescribed)
           {
             if (cardiovascular0dcond_.size() == 1)
             {
@@ -123,9 +123,9 @@ Utils::Cardiovascular0D::Cardiovascular0D(std::shared_ptr<Core::FE::Discretizati
           }
         }
         break;
-        case Inpar::Cardiovascular0D::atr_structure_3d:
+        case Cardiovascular0DInput::atr_structure_3d:
         {
-          if (ventricle_model_ == Inpar::Cardiovascular0D::ventr_elastance_0d)
+          if (ventricle_model_ == Cardiovascular0DInput::ventr_elastance_0d)
             FOUR_C_THROW("You cannot use 3D atria with 0D ventricles!");
 
           if (cardiovascular0dcond_.size() == 4)

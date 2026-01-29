@@ -15,6 +15,7 @@
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_binstrategy_input.hpp"
 #include "4C_browniandyn_input.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_cut_input.hpp"
@@ -28,7 +29,6 @@
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_inpar_fluid.hpp"
 #include "4C_inpar_fpsi.hpp"
 #include "4C_inpar_fs3i.hpp"
@@ -353,7 +353,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Inpar::BioFilm::valid_parameters());
   push_specs(specs, Airway::valid_parameters());
   push_specs(specs, ReducedLung::valid_parameters());
-  push_specs(specs, Inpar::Cardiovascular0D::valid_parameters());
+  push_specs(specs, Cardiovascular0DInput::valid_parameters());
   push_specs(specs, Inpar::FPSI::valid_parameters());
   push_specs(specs, FBI::valid_parameters());
 
