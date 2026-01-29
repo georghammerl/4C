@@ -28,9 +28,9 @@ Mortar::Coupling3d::Coupling3d(Core::FE::Discretization& idiscret, int dim, bool
     Teuchos::ParameterList& params, Mortar::Element& sele, Mortar::Element& mele)
     : idiscret_(idiscret),
       dim_(dim),
-      shapefcn_(Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
+      shapefcn_(Teuchos::getIntegralValue<Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
       quad_(quad),
-      lmquadtype_(Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params, "LM_QUAD")),
+      lmquadtype_(Teuchos::getIntegralValue<Mortar::LagMultQuad>(params, "LM_QUAD")),
       sele_(sele),
       mele_(mele),
       imortar_(params),
@@ -2701,8 +2701,7 @@ bool Mortar::Coupling3d::triangulation(std::map<int, double>& projpar, double to
       clipsize, std::vector<Core::Gen::Pairedvector<int, double>>(3, 3 * nsrows + 3 * nmrows));
 
   // get integration type
-  auto tri_type =
-      Teuchos::getIntegralValue<Inpar::Mortar::Triangulation>(imortar_, "TRIANGULATION");
+  auto tri_type = Teuchos::getIntegralValue<Mortar::Triangulation>(imortar_, "TRIANGULATION");
 
   //**********************************************************************
   // (1) Linearization of clip vertex coordinates (only for contact)
@@ -2714,7 +2713,7 @@ bool Mortar::Coupling3d::triangulation(std::map<int, double>& projpar, double to
     //**********************************************************************
     // (2) Triangulation of clip polygon (DELAUNAY-based (new))
     //**********************************************************************
-    case Inpar::Mortar::triangulation_delaunay:
+    case Mortar::triangulation_delaunay:
       if (!delaunay_triangulation(linvertex, tol))
         // (3) Backup triangulation of clip polygon (CENTER-based (old))
         center_triangulation(linvertex, tol);
@@ -2723,7 +2722,7 @@ bool Mortar::Coupling3d::triangulation(std::map<int, double>& projpar, double to
     //**********************************************************************
     // (3) Backup triangulation of clip polygon (CENTER-based (old))
     //**********************************************************************
-    case Inpar::Mortar::triangulation_center:
+    case Mortar::triangulation_center:
       center_triangulation(linvertex, tol);
       break;
 
@@ -3388,7 +3387,7 @@ bool Mortar::Coupling3d::integrate_cells(
     // (3) quadratic element(s) involved -> linear LM interpolation
     // (4) quadratic element(s) involved -> piecew. linear LM interpolation
     // *******************************************************************
-    Inpar::Mortar::LagMultQuad lmtype = lag_mult_quad();
+    Mortar::LagMultQuad lmtype = lag_mult_quad();
 
     // *******************************************************************
     // case (1)
@@ -3404,9 +3403,8 @@ bool Mortar::Coupling3d::integrate_cells(
     // *******************************************************************
     // cases (2) and (3)
     // *******************************************************************
-    else if (quad() &&
-             (lmtype == Inpar::Mortar::lagmult_quad || lmtype == Inpar::Mortar::lagmult_lin ||
-                 lmtype == Inpar::Mortar::lagmult_const))
+    else if (quad() && (lmtype == Mortar::lagmult_quad || lmtype == Mortar::lagmult_lin ||
+                           lmtype == Mortar::lagmult_const))
     {
       // dynamic_cast to make sure to pass in IntElement&
       Mortar::IntElement& sintref = dynamic_cast<Mortar::IntElement&>(slave_int_element());
@@ -3420,10 +3418,10 @@ bool Mortar::Coupling3d::integrate_cells(
     // *******************************************************************
     // case (4)
     // *******************************************************************
-    else if (quad() && lmtype == Inpar::Mortar::lagmult_pwlin)
+    else if (quad() && lmtype == Mortar::lagmult_pwlin)
     {
       // check for dual shape functions
-      if (shape_fcn() == Inpar::Mortar::shape_dual)
+      if (shape_fcn() == Mortar::shape_dual)
         FOUR_C_THROW(
             "ERROR: Piecewise linear LM interpolation not yet implemented for DUAL 3D quadratic "
             "mortar");
@@ -3440,7 +3438,7 @@ bool Mortar::Coupling3d::integrate_cells(
     // *******************************************************************
     // undefined case
     // *******************************************************************
-    else if (quad() && lmtype == Inpar::Mortar::lagmult_undefined)
+    else if (quad() && lmtype == Mortar::lagmult_undefined)
     {
       FOUR_C_THROW(
           "Lagrange multiplier interpolation for quadratic elements undefined\n"
@@ -3898,10 +3896,10 @@ Mortar::Coupling3dManager::Coupling3dManager(Core::FE::Discretization& idiscret,
     Teuchos::ParameterList& params, Mortar::Element* sele, std::vector<Mortar::Element*> mele)
     : idiscret_(idiscret),
       dim_(dim),
-      integrationtype_(Teuchos::getIntegralValue<Inpar::Mortar::IntType>(params, "INTTYPE")),
-      shapefcn_(Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
-      lmdualconsistent_(Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(
-          params, "LM_DUAL_CONSISTENT")),
+      integrationtype_(Teuchos::getIntegralValue<Mortar::IntType>(params, "INTTYPE")),
+      shapefcn_(Teuchos::getIntegralValue<Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
+      lmdualconsistent_(
+          Teuchos::getIntegralValue<Mortar::ConsistentDualType>(params, "LM_DUAL_CONSISTENT")),
       quad_(quad),
       imortar_(params),
       sele_(sele),
@@ -3933,12 +3931,12 @@ bool Mortar::Coupling3dManager::evaluate_coupling(
   if (master_elements().size() == 0) return false;
 
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   //*********************************
   // Mortar Contact
   //*********************************
-  if (algo == Inpar::Mortar::algorithm_mortar or algo == Inpar::Mortar::algorithm_gpts)
+  if (algo == Mortar::algorithm_mortar or algo == Mortar::algorithm_gpts)
     integrate_coupling(mparams_ptr);
 
   //*********************************
@@ -3962,7 +3960,7 @@ void Mortar::Coupling3dManager::integrate_coupling(
   //**********************************************************************
   // STANDARD INTEGRATION (SEGMENTS)
   //**********************************************************************
-  if (int_type() == Inpar::Mortar::inttype_segments)
+  if (int_type() == Mortar::inttype_segments)
   {
     // loop over all master elements associated with this slave element
     for (int m = 0; m < (int)master_elements().size(); ++m)
@@ -3985,8 +3983,7 @@ void Mortar::Coupling3dManager::integrate_coupling(
   //**********************************************************************
   // FAST INTEGRATION (ELEMENTS)
   //**********************************************************************
-  else if (int_type() == Inpar::Mortar::inttype_elements ||
-           int_type() == Inpar::Mortar::inttype_elements_BS)
+  else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
     if ((int)master_elements().size() == 0) return;
 
@@ -3999,11 +3996,11 @@ void Mortar::Coupling3dManager::integrate_coupling(
           ->integrate_ele_based_3d(
               slave_element(), master_elements(), &boundary_ele, idiscret_.get_comm());
 
-      if (int_type() == Inpar::Mortar::inttype_elements_BS)
+      if (int_type() == Mortar::inttype_elements_BS)
       {
         if (boundary_ele == true)
         {
-          if (lmdualconsistent_ != Inpar::Mortar::consistent_none)
+          if (lmdualconsistent_ != Mortar::consistent_none)
           {
             // loop over all master elements associated with this slave element
             for (int m = 0; m < (int)master_elements().size(); ++m)
@@ -4084,7 +4081,7 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
   //**********************************************************************
   // STANDARD INTEGRATION (SEGMENTS)
   //**********************************************************************
-  if (int_type() == Inpar::Mortar::inttype_segments)
+  if (int_type() == Mortar::inttype_segments)
   {
     // build linear integration elements from quadratic Mortar::Elements
     std::vector<std::shared_ptr<Mortar::IntElement>> sauxelements;
@@ -4122,8 +4119,7 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
   //**********************************************************************
   // FAST INTEGRATION (ELEMENTS)
   //**********************************************************************
-  else if (int_type() == Inpar::Mortar::inttype_elements ||
-           int_type() == Inpar::Mortar::inttype_elements_BS)
+  else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
     if ((int)master_elements().size() == 0) return;
 
@@ -4134,7 +4130,7 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
         ->integrate_ele_based_3d(
             slave_element(), master_elements(), &boundary_ele, idiscret_.get_comm());
 
-    if (int_type() == Inpar::Mortar::inttype_elements_BS)
+    if (int_type() == Mortar::inttype_elements_BS)
     {
       if (boundary_ele == true)
       {
@@ -4196,20 +4192,17 @@ void Mortar::Coupling3dManager::consist_dual_shape()
 {
   // For standard shape functions no modification is necessary
   // A switch earlier in the process improves computational efficiency
-  if (shape_fcn() == Inpar::Mortar::shape_standard ||
-      lmdualconsistent_ == Inpar::Mortar::consistent_none)
-    return;
+  if (shape_fcn() == Mortar::shape_standard || lmdualconsistent_ == Mortar::consistent_none) return;
 
   // Consistent modification not yet checked for constant LM interpolation
-  if (quad() == true && lag_mult_quad() == Inpar::Mortar::lagmult_const &&
-      lmdualconsistent_ != Inpar::Mortar::consistent_none)
+  if (quad() == true && lag_mult_quad() == Mortar::lagmult_const &&
+      lmdualconsistent_ != Mortar::consistent_none)
     FOUR_C_THROW(
         "ERROR: Consistent dual shape functions not yet checked for constant LM interpolation!");
 
   if (coupling().size() == 0) return;
 
-  if (int_type() == Inpar::Mortar::inttype_segments &&
-      lmdualconsistent_ == Inpar::Mortar::consistent_boundary)
+  if (int_type() == Mortar::inttype_segments && lmdualconsistent_ == Mortar::consistent_boundary)
   {
     // check if fully projecting
     bool boundary_ele = false;
@@ -4327,9 +4320,9 @@ void Mortar::Coupling3dManager::consist_dual_shape()
         Core::LinAlg::SerialDenseMatrix sderiv(nnodes, 2, true);
 
         // evaluate trace space shape functions at Gauss point
-        if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+        if (lag_mult_quad() == Mortar::lagmult_lin)
           slave_element().evaluate_shape_lag_mult_lin(
-              Inpar::Mortar::shape_standard, sxi, sval, sderiv, nnodes);
+              Mortar::shape_standard, sxi, sval, sderiv, nnodes);
         else
           slave_element().evaluate_shape(sxi, sval, sderiv, nnodes);
 
@@ -4364,7 +4357,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
   Core::LinAlg::SerialDenseMatrix ae(nnodes, nnodes, true);
 
   // compute matrix A_e for linear interpolation of quadratic element
-  if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+  if (lag_mult_quad() == Mortar::lagmult_lin)
   {
     // declare and initialize to zero inverse of Matrix M_e
     Core::LinAlg::SerialDenseMatrix meinv(nnodes, nnodes, true);

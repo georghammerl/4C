@@ -210,10 +210,9 @@ void Adapter::CouplingNonLinMortar::read_mortar_condition(
   input.set<int>("DIMENSION", Global::Problem::instance()->n_dim());
 
   // check for invalid parameter values
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(input, "LM_SHAPEFCN") !=
-          Inpar::Mortar::shape_dual and
-      Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(input, "LM_SHAPEFCN") !=
-          Inpar::Mortar::shape_petrovgalerkin)
+  if (Teuchos::getIntegralValue<Mortar::ShapeFcn>(input, "LM_SHAPEFCN") != Mortar::shape_dual and
+      Teuchos::getIntegralValue<Mortar::ShapeFcn>(input, "LM_SHAPEFCN") !=
+          Mortar::shape_petrovgalerkin)
     if (myrank_ == 0) FOUR_C_THROW("Mortar coupling adapter only works for dual shape functions");
 
   // as two half pass approach is not implemented for this approach set false
@@ -506,8 +505,8 @@ void Adapter::CouplingNonLinMortar::complete_interface(
 {
   const Teuchos::ParameterList& input =
       Global::Problem::instance()->mortar_coupling_params().sublist("PARALLEL REDISTRIBUTION");
-  const Inpar::Mortar::ParallelRedist parallelRedist =
-      Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(input, "PARALLEL_REDIST");
+  const Mortar::ParallelRedist parallelRedist =
+      Teuchos::getIntegralValue<Mortar::ParallelRedist>(input, "PARALLEL_REDIST");
 
   /* Finalize the interface construction
    *
@@ -518,7 +517,7 @@ void Adapter::CouplingNonLinMortar::complete_interface(
    */
   {
     bool isFinalDistribution = false;
-    if (parallelRedist == Inpar::Mortar::ParallelRedist::redist_none ||
+    if (parallelRedist == Mortar::ParallelRedist::redist_none ||
         Core::Communication::num_mpi_ranks(comm_) == 1)
       isFinalDistribution = true;
     interface->fill_complete(Global::Problem::instance()->discretization_map(),
@@ -542,7 +541,7 @@ void Adapter::CouplingNonLinMortar::complete_interface(
   //**********************************************************************
   // PARALLEL REDISTRIBUTION OF INTERFACE
   //**********************************************************************
-  if (parallelRedist != Inpar::Mortar::ParallelRedist::redist_none &&
+  if (parallelRedist != Mortar::ParallelRedist::redist_none &&
       Core::Communication::num_mpi_ranks(comm_) > 1)
   {
     // redistribute optimally among all procs
@@ -731,8 +730,8 @@ void Adapter::CouplingNonLinMortar::setup_spring_dashpot(
     bool isFinalDistribution = false;
     const Teuchos::ParameterList& input =
         Global::Problem::instance()->mortar_coupling_params().sublist("PARALLEL REDISTRIBUTION");
-    if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(input, "PARALLEL_REDIST") ==
-            Inpar::Mortar::ParallelRedist::redist_none or
+    if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(input, "PARALLEL_REDIST") ==
+            Mortar::ParallelRedist::redist_none or
         Core::Communication::num_mpi_ranks(comm_) == 1)
       isFinalDistribution = true;
 
@@ -823,8 +822,8 @@ void Adapter::CouplingNonLinMortar::integrate_lin_d(const std::string& statename
   bool parredist = false;
   const Teuchos::ParameterList& input =
       Global::Problem::instance()->mortar_coupling_params().sublist("PARALLEL REDISTRIBUTION");
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
-      Inpar::Mortar::ParallelRedist::redist_none)
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
+      Mortar::ParallelRedist::redist_none)
     parredist = true;
 
   // only for parallel redistribution case
@@ -902,8 +901,8 @@ void Adapter::CouplingNonLinMortar::matrix_row_col_transform()
   bool parredist = false;
   const Teuchos::ParameterList& input =
       Global::Problem::instance()->mortar_coupling_params().sublist("PARALLEL REDISTRIBUTION");
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
-      Inpar::Mortar::ParallelRedist::redist_none)
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
+      Mortar::ParallelRedist::redist_none)
     parredist = true;
 
   // transform everything back to old distribution
@@ -1049,8 +1048,8 @@ void Adapter::CouplingNonLinMortar::create_p()
   check_setup();
 
   // check
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(
-          interface()->interface_params(), "LM_SHAPEFCN") != Inpar::Mortar::shape_dual)
+  if (Teuchos::getIntegralValue<Mortar::ShapeFcn>(interface()->interface_params(), "LM_SHAPEFCN") !=
+      Mortar::shape_dual)
     FOUR_C_THROW("ERROR: Creation of P operator only for dual shape functions!");
 
   /********************************************************************/

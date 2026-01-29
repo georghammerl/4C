@@ -223,8 +223,8 @@ bool Solid::ModelEvaluator::Contact::assemble_force(
 {
   std::shared_ptr<const Core::LinAlg::Vector<double>> block_vec_ptr = nullptr;
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
-          Inpar::Mortar::algorithm_gpts ||
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
+          Mortar::algorithm_gpts ||
       strategy().is_penalty() || strategy().is_condensed_system())
   {
     block_vec_ptr = strategy().get_rhs_block_ptr(CONTACT::VecBlockType::displ);
@@ -263,8 +263,8 @@ bool Solid::ModelEvaluator::Contact::assemble_jacobian(
   // ---------------------------------------------------------------------
   // Penalty / gpts / Nitsche system: no additional/condensed dofs
   // ---------------------------------------------------------------------
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
-          Inpar::Mortar::algorithm_gpts ||
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
+          Mortar::algorithm_gpts ||
       strategy().is_penalty())
   {
     block_ptr =

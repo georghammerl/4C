@@ -14,11 +14,11 @@
 #include "4C_contact_interface.hpp"
 #include "4C_contact_node.hpp"
 #include "4C_fem_discretization.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_mortar_dofset.hpp"
 #include "4C_mortar_element.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_node.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -324,8 +324,8 @@ void CONTACT::TSIInterface::assemble_dual_mass_lumped(
     double thermo_lm = conode->tsi_data().thermo_lm();
     std::map<int, std::map<int, double>>& derivDualMass = conode->data().get_deriv_d();
 
-    if (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(interface_params(), "LM_QUAD") !=
-        Inpar::Mortar::lagmult_const)
+    if (Teuchos::getIntegralValue<Mortar::LagMultQuad>(interface_params(), "LM_QUAD") !=
+        Mortar::lagmult_const)
     {
       /**********************************************dual mass matrix ******/
       if (conode->mo_data().get_d().size() > 0)
@@ -359,7 +359,7 @@ void CONTACT::TSIInterface::assemble_dual_mass_lumped(
       }
     }
 
-    else  // Inpar::Mortar::lagmult_const
+    else  // Mortar::lagmult_const
     {
       if (conode->num_element() != 1)
         FOUR_C_THROW(

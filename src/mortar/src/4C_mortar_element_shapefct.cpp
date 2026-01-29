@@ -2072,19 +2072,18 @@ bool Mortar::Element::evaluate_shape(const double* xi, Core::LinAlg::SerialDense
 /*----------------------------------------------------------------------*
  |  Evaluate Lagrange multiplier shape functions              popp 12/07|
  *----------------------------------------------------------------------*/
-bool Mortar::Element::evaluate_shape_lag_mult(const Inpar::Mortar::ShapeFcn& lmtype,
-    const double* xi, Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
-    const int valdim, bool boundtrafo) const
+bool Mortar::Element::evaluate_shape_lag_mult(const Mortar::ShapeFcn& lmtype, const double* xi,
+    Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv, const int valdim,
+    bool boundtrafo) const
 {
   // some methods don't need a Lagrange multiplier interpolation
-  if (lmtype == Inpar::Mortar::shape_none) return true;
+  if (lmtype == Mortar::shape_none) return true;
 
   if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult called with xi=nullptr");
 
   // dual LM shape functions or not
   bool dual = false;
-  if (lmtype == Inpar::Mortar::shape_dual or lmtype == Inpar::Mortar::shape_petrovgalerkin)
-    dual = true;
+  if (lmtype == Mortar::shape_dual or lmtype == Mortar::shape_petrovgalerkin) dual = true;
 
   // get node number and node pointers
   const Core::Nodes::Node* const* mynodes = nodes();
@@ -2504,7 +2503,7 @@ bool Mortar::Element::evaluate_shape_lag_mult(const Inpar::Mortar::ShapeFcn& lmt
  |  Evaluate Lagrange multiplier shape functions             seitz 09/17|
  |  THIS IS A SPECIAL VERSION FOR 3D QUADRATIC MORTAR WITH CONST LM!    |
  *----------------------------------------------------------------------*/
-bool Mortar::Element::evaluate_shape_lag_mult_const(const Inpar::Mortar::ShapeFcn& lmtype,
+bool Mortar::Element::evaluate_shape_lag_mult_const(const Mortar::ShapeFcn& lmtype,
     const double* xi, Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
     const int valdim) const
 {
@@ -2518,12 +2517,12 @@ bool Mortar::Element::evaluate_shape_lag_mult_const(const Inpar::Mortar::ShapeFc
  |  Evaluate Lagrange multiplier shape functions              popp 12/07|
  |  THIS IS A SPECIAL VERSION FOR 3D QUADRATIC MORTAR WITH LIN LM!      |
  *----------------------------------------------------------------------*/
-bool Mortar::Element::evaluate_shape_lag_mult_lin(const Inpar::Mortar::ShapeFcn& lmtype,
-    const double* xi, Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
+bool Mortar::Element::evaluate_shape_lag_mult_lin(const Mortar::ShapeFcn& lmtype, const double* xi,
+    Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
     const int valdim) const
 {
   // some methods don't need a Lagrange multiplier interpolation
-  if (lmtype == Inpar::Mortar::shape_none) return true;
+  if (lmtype == Mortar::shape_none) return true;
 
   if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult_lin called with xi=nullptr");
   if (!is_slave()) FOUR_C_THROW("evaluate_shape_lag_mult_lin called for master element");
@@ -2535,8 +2534,7 @@ bool Mortar::Element::evaluate_shape_lag_mult_lin(const Inpar::Mortar::ShapeFcn&
 
   // dual shape functions or not
   bool dual = false;
-  if (lmtype == Inpar::Mortar::shape_dual || lmtype == Inpar::Mortar::shape_petrovgalerkin)
-    dual = true;
+  if (lmtype == Mortar::shape_dual || lmtype == Mortar::shape_petrovgalerkin) dual = true;
 
   // get node number and node pointers
   const Core::Nodes::Node* const* mynodes = nodes();

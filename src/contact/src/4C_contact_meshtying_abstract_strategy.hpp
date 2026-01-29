@@ -11,7 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_contact_utils.hpp"
-#include "4C_inpar_mortar.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_strategy_base.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -164,10 +164,9 @@ namespace CONTACT
     */
     bool par_redist() const
     {
-      Inpar::Mortar::ParallelRedist partype =
-          Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
-              params().sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
-      if (partype != Inpar::Mortar::ParallelRedist::redist_none)
+      Mortar::ParallelRedist partype = Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          params().sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
+      if (partype != Mortar::ParallelRedist::redist_none)
         return true;
       else
         return false;

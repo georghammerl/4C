@@ -10,7 +10,6 @@
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
@@ -18,6 +17,7 @@
 #include "4C_linear_solver_method.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_mortar_defines.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_interface.hpp"
 #include "4C_mortar_utils.hpp"
 #include "4C_utils_parameter_list.hpp"
@@ -100,9 +100,9 @@ void CONTACT::MtLagrangeStrategy::mortar_coupling(
   if (dualquadslavetrafo())
   {
     // type of LM interpolation for quadratic elements
-    auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+    auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
-    if (lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (lagmultquad == Mortar::lagmult_lin)
     {
       // do nothing
     }
@@ -179,8 +179,8 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   TEUCHOS_FUNC_TIME_MONITOR("CONTACT::MtLagrangeStrategy::mesh_initialization");
 
   // get out of here if NTS algorithm is activated
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(params(), "ALGORITHM") ==
-      Inpar::Mortar::algorithm_nts)
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(params(), "ALGORITHM") ==
+      Mortar::algorithm_nts)
     return nullptr;
 
   // print message
@@ -210,13 +210,13 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
       std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
 
   // shape function type and type of LM interpolation for quadratic elements
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
   // quadratic FE with dual LM
   if (dualquadslavetrafo())
   {
-    if (lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (lagmultquad == Mortar::lagmult_lin)
     {
       // split T^-1
       std::shared_ptr<Core::LinAlg::SparseMatrix> it_ss, it_sm, it_ms, it_mm;
@@ -264,14 +264,14 @@ CONTACT::MtLagrangeStrategy::mesh_initialization()
   else
   {
     // CASE A: DUAL LM SHAPE FUNCTIONS
-    if (shapefcn == Inpar::Mortar::shape_dual)
+    if (shapefcn == Mortar::shape_dual)
     {
       // this is trivial for dual Lagrange multipliers
       mhatmatrix_->multiply(false, *Xmaster, *Xslavemod);
     }
 
     // CASE B: STANDARD LM SHAPE FUNCTIONS
-    else if (shapefcn == Inpar::Mortar::shape_standard)
+    else if (shapefcn == Mortar::shape_standard)
     {
       // create linear problem
       std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
@@ -354,8 +354,8 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
 {
   // system type, shape function type and type of LM interpolation for quadratic elements
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
   //**********************************************************************
   //**********************************************************************
@@ -366,7 +366,7 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
       systype == CONTACT::SystemType::condensed_lagmult)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual) FOUR_C_THROW("Condensation only for dual LM");
+    if (shapefcn != Mortar::shape_dual) FOUR_C_THROW("Condensation only for dual LM");
 
     // complete stiffness matrix
     // (this is a prerequisite for the Split2x2 methods to be called later)
@@ -396,7 +396,7 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
     /* Apply basis transformation to K and f                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // basis transformation
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -683,7 +683,7 @@ void CONTACT::MtLagrangeStrategy::evaluate_meshtying(
     /* Apply basis transformation to K and f                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // basis transformation
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -883,8 +883,8 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
 
   // system type, shape function type and type of LM interpolation for quadratic elements
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
   //**********************************************************************
   //**********************************************************************
@@ -895,7 +895,7 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
       systype == CONTACT::SystemType::condensed_lagmult)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual) FOUR_C_THROW("Condensation only for dual LM");
+    if (shapefcn != Mortar::shape_dual) FOUR_C_THROW("Condensation only for dual LM");
 
     // extract slave displacements from disi
     Core::LinAlg::Vector<double> disis(*gsdofrowmap_);
@@ -925,7 +925,7 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
     /* Undo basis transformation to solution                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // undo basis transformation to solution
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -976,7 +976,7 @@ void CONTACT::MtLagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<d
     /* Undo basis transformation to solution                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // undo basis transformation to solution
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -1059,8 +1059,8 @@ bool CONTACT::MtLagrangeStrategy::evaluate_stiff(
       std::make_shared<Core::LinAlg::SparseMatrix>(*lm_dof_row_map_ptr(), 1, false, true);
   lm_diag_matrix_->complete();
 
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
+  if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
   {
     systrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*problem_dofs(), 100, false, true);
     std::shared_ptr<Core::LinAlg::SparseMatrix> eye =
@@ -1162,9 +1162,9 @@ void CONTACT::MtLagrangeStrategy::run_pre_apply_jacobian_inverse(
         std::make_shared<Core::LinAlg::SparseMatrix>(*kteff);
     Core::LinAlg::Vector<double> r = Core::LinAlg::Vector<double>(rhs);
 
-    auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+    auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // apply basis transformation to K and f
       k = Core::LinAlg::matrix_multiply(*k, false, *systrafo_, false, false, false, true);
@@ -1187,13 +1187,13 @@ void CONTACT::MtLagrangeStrategy::run_post_apply_jacobian_inverse(
     Core::LinAlg::Vector<double>& result)
 {
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
   if (systype == CONTACT::SystemType::condensed)
   {
     Mortar::Utils::mortar_recover(result, *mhatmatrix_);
 
     // undo basis transformation to solution
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       Core::LinAlg::Vector<double> inc = Core::LinAlg::Vector<double>(result);
       systrafo_->multiply(false, inc, result);
@@ -1221,11 +1221,11 @@ void CONTACT::MtLagrangeStrategy::remove_condensed_contributions_from_rhs(
     Core::LinAlg::Vector<double>& rhs) const
 {
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
   if (systype == CONTACT::SystemType::condensed)
   {
     // undo basis transformation to solution
-    if (dualquadslavetrafo() && lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (dualquadslavetrafo() && lagmultquad == Mortar::lagmult_lin)
     {
       auto r = Core::LinAlg::Vector<double>(rhs);
       systrafo_->multiply(true, r, rhs);

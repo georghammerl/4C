@@ -185,10 +185,10 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
       icontact.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::fpi)
   {
     set_poro_flag(true);
-    set_poro_type(Inpar::Mortar::poroelast);
+    set_poro_type(Mortar::poroelast);
   }
   if (icontact.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::poroscatra)
-    set_poro_type(Inpar::Mortar::poroscatra);
+    set_poro_type(Mortar::poroscatra);
 
   // set ehl contact
   if (icontact.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::ehl)
@@ -200,7 +200,7 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
   // so we only print a warning here, as it is possible to have another contact interface with a
   // different ID that does not need to be a self contact interface
   if (!(selfcontact_ or nonSmoothContact_) &&
-      interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::redundant_all)
+      interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::redundant_all)
   {
     if (Core::Communication::my_mpi_rank(Interface::get_comm()) == 0)
     {
@@ -512,7 +512,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
 
   switch (interface_data_->get_extend_ghosting())
   {
-    case Inpar::Mortar::ExtendGhosting::redundant_all:
+    case Mortar::ExtendGhosting::redundant_all:
     {
       // to ease our search algorithms we'll afford the luxury to ghost all nodes
       // on all processors. To do so, we'll take the node row map and export it to
@@ -559,7 +559,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
 
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::redundant_master:
+    case Mortar::ExtendGhosting::redundant_master:
     {
       // to ease our search algorithms we'll afford the luxury to ghost all master
       // nodes on all processors. To do so, we'll take the master node row map and
@@ -643,12 +643,12 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
 
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::roundrobin:
+    case Mortar::ExtendGhosting::roundrobin:
     {
       // Nothing to do in case of Round-Robin
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::binning:
+    case Mortar::ExtendGhosting::binning:
     {
       // Extend master column map via binning
 
@@ -714,8 +714,8 @@ void CONTACT::Interface::redistribute()
       interface_params().sublist("PARALLEL REDISTRIBUTION");
 
   // make sure we are supposed to be here
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") == Inpar::Mortar::ParallelRedist::redist_none)
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") == Mortar::ParallelRedist::redist_none)
   {
     FOUR_C_THROW(
         "You are not supposed to be here since you did not enable PARALLEL_REDIST in the "
@@ -738,9 +738,9 @@ void CONTACT::Interface::redistribute()
   //**********************************************************************
   // perform contact search (still with non-optimal distribution)
   initialize();
-  if (search_alg() == Inpar::Mortar::search_bfele)
+  if (search_alg() == Mortar::search_bfele)
     evaluate_search_brute_force(search_param());
-  else if (search_alg() == Inpar::Mortar::search_binarytree)
+  else if (search_alg() == Mortar::search_binarytree)
     evaluate_search_binarytree();
   else
     FOUR_C_THROW("Invalid search algorithm");
@@ -1134,7 +1134,7 @@ void CONTACT::Interface::collect_distribution_data(int& numColElements, int& num
 void CONTACT::Interface::create_search_tree()
 {
   // binary tree search
-  if (search_alg() == Inpar::Mortar::search_binarytree)
+  if (search_alg() == Mortar::search_binarytree)
   {
     //*****SELF CONTACT*****
     if (self_contact())
@@ -1170,14 +1170,14 @@ void CONTACT::Interface::create_search_tree()
       std::shared_ptr<Core::LinAlg::Map> melefullmap = nullptr;
       switch (interface_data_->get_extend_ghosting())
       {
-        case Inpar::Mortar::ExtendGhosting::roundrobin:
-        case Inpar::Mortar::ExtendGhosting::binning:
+        case Mortar::ExtendGhosting::roundrobin:
+        case Mortar::ExtendGhosting::binning:
         {
           melefullmap = melecolmap_;
           break;
         }
-        case Inpar::Mortar::ExtendGhosting::redundant_all:
-        case Inpar::Mortar::ExtendGhosting::redundant_master:
+        case Mortar::ExtendGhosting::redundant_all:
+        case Mortar::ExtendGhosting::redundant_master:
         {
           melefullmap = Core::LinAlg::allreduce_e_map(*melerowmap_);
           break;
@@ -1191,7 +1191,7 @@ void CONTACT::Interface::create_search_tree()
 
       {
         // get update type of binary tree
-        auto updatetype = Teuchos::getIntegralValue<Inpar::Mortar::BinaryTreeUpdateType>(
+        auto updatetype = Teuchos::getIntegralValue<Mortar::BinaryTreeUpdateType>(
             interface_params(), "BINARYTREE_UPDATETYPE");
 
         // create binary tree object for contact search and setup tree
@@ -1464,8 +1464,8 @@ void CONTACT::Interface::initialize()
   }
 
   // clear all Nitsche data
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM") ==
-      Inpar::Mortar::algorithm_gpts)
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM") ==
+      Mortar::algorithm_gpts)
   {
     for (int e = 0; e < discret().element_col_map()->num_my_elements(); ++e)
     {
@@ -1523,9 +1523,9 @@ void CONTACT::Interface::pre_evaluate(const int& step, const int& iter)
   //**********************************************************************
   // search algorithm
   //**********************************************************************
-  if (search_alg() == Inpar::Mortar::search_bfele)
+  if (search_alg() == Mortar::search_bfele)
     evaluate_search_brute_force(search_param());
-  else if (search_alg() == Inpar::Mortar::search_binarytree)
+  else if (search_alg() == Mortar::search_binarytree)
     evaluate_search_binarytree();
   else
     FOUR_C_THROW("Invalid search algorithm");
@@ -3105,14 +3105,14 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
 void CONTACT::Interface::post_evaluate(const int step, const int iter)
 {
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   switch (algo)
   {
     //*********************************
     // Mortar Coupling (STS)    (2D/3D)
     //*********************************
-    case Inpar::Mortar::algorithm_mortar:
+    case Mortar::algorithm_mortar:
     {
       // non-smooth contact
       if (nonSmoothContact_)
@@ -3129,7 +3129,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // Gauss-Point-To-Segment (GPTS)
     //*********************************
-    case Inpar::Mortar::algorithm_gpts:
+    case Mortar::algorithm_gpts:
     {
       // already stored
       return;
@@ -3138,7 +3138,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // Line-to-Segment Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_lts:
+    case Mortar::algorithm_lts:
     {
       // store lts into mortar data container
       store_lt_svalues();
@@ -3147,7 +3147,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // Node-to-Segment Coupling (2D/3D)
     //*********************************
-    case Inpar::Mortar::algorithm_nts:
+    case Mortar::algorithm_nts:
     {
       // store nts into mortar data container
       store_nt_svalues();
@@ -3156,7 +3156,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // line-to-line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_ltl:
+    case Mortar::algorithm_ltl:
     {
       return;
       break;
@@ -3164,7 +3164,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // Node-to-Line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_ntl:
+    case Mortar::algorithm_ntl:
     {
       FOUR_C_THROW("not yet implemented!");
       break;
@@ -3172,7 +3172,7 @@ void CONTACT::Interface::post_evaluate(const int step, const int iter)
     //*********************************
     // Segment-to-Line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_stl:
+    case Mortar::algorithm_stl:
     {
       // store lts into mortar data container
       store_lt_svalues();
@@ -3242,8 +3242,8 @@ void CONTACT::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
       // statement is included:
       // decide which type of coupling should be evaluated
       //********************************************************************
-      auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
-      if (algo == Inpar::Mortar::algorithm_ltl)
+      auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+      if (algo == Mortar::algorithm_ltl)
       {
         evaluate_ltl();
         return;
@@ -6162,15 +6162,14 @@ bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& sele)
   if (n_dim() == 3 && sele.is_quad())
   {
     // get LM interpolation and testing type
-    auto lmtype =
-        Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(interface_params(), "LM_QUAD");
+    auto lmtype = Teuchos::getIntegralValue<Mortar::LagMultQuad>(interface_params(), "LM_QUAD");
 
     // build linear integration elements from quadratic CElements
     std::vector<std::shared_ptr<Mortar::IntElement>> sauxelements;
     split_int_elements(sele, sauxelements);
 
     // different options for mortar integration
-    if (lmtype == Inpar::Mortar::lagmult_quad || lmtype == Inpar::Mortar::lagmult_lin)
+    if (lmtype == Mortar::lagmult_quad || lmtype == Mortar::lagmult_lin)
     {
       // do the element integration of kappa and store into gap
       int nrow = sele.num_node();
@@ -6183,7 +6182,7 @@ bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& sele)
       // do the assembly into the slave nodes
       integrator.assemble_g(get_comm(), sele, gseg);
     }
-    else if (lmtype == Inpar::Mortar::lagmult_pwlin)
+    else if (lmtype == Mortar::lagmult_pwlin)
     {
       // integrate each int element separately
       for (auto& sauxelement : sauxelements)

@@ -192,14 +192,13 @@ bool CONTACT::LineToSurfaceCoupling3d::check_orientation()
  *----------------------------------------------------------------------*/
 void CONTACT::LineToSurfaceCoupling3d::consist_dual_shape()
 {
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
   auto consistent =
-      Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
+      Teuchos::getIntegralValue<Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
 
-  if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
-    return;
+  if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin) return;
 
-  if (consistent == Inpar::Mortar::consistent_none) return;
+  if (consistent == Mortar::consistent_none) return;
 
   if (i_type() == LineToSurfaceCoupling3d::lts) return;
   FOUR_C_THROW("consistent dual shapes for stl is experimental!");

@@ -96,7 +96,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
 
   // shape function
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   //**********************************************************************
   //**********************************************************************
@@ -106,7 +106,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
   if (systype == CONTACT::SystemType::condensed)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     /**********************************************************************/
@@ -291,7 +291,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::recover_coupled(
     return;  // done already here if there are no off-diag blocks
 
   // shape function and system types
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
 
   //**********************************************************************
@@ -302,7 +302,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::recover_coupled(
   if (systype == CONTACT::SystemType::condensed)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     if (inc.size() != csx_s_.size())

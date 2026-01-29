@@ -12,7 +12,7 @@
 
 #include "4C_contact_input.hpp"
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"
-#include "4C_inpar_mortar.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_utils_singleton_owner.hpp"
 
 #include <mpi.h>
@@ -226,8 +226,8 @@ namespace Mortar
     //@}
 
     Teuchos::ParameterList imortar_;          // merged parameter list
-    Inpar::Mortar::ShapeFcn shapefcn_;        // lm shape function type
-    Inpar::Mortar::LagMultQuad lmquadtype_;   // type of quadratic lm interpolation
+    Mortar::ShapeFcn shapefcn_;               // lm shape function type
+    Mortar::LagMultQuad lmquadtype_;          // type of quadratic lm interpolation
     int ngp_;                                 // number of Gauss points
     Core::LinAlg::SerialDenseMatrix coords_;  // Gauss point coordinates
     std::vector<double> weights_;             // Gauss point weights

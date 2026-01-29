@@ -39,7 +39,6 @@
 #include "4C_inpar_IO_runtime_vtk_output_structure.hpp"
 #include "4C_inpar_IO_runtime_vtp_output_structure.hpp"
 #include "4C_inpar_levelset.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_inpar_plasticity.hpp"
 #include "4C_inpar_s2i.hpp"
 #include "4C_inpar_scatra.hpp"
@@ -56,6 +55,7 @@
 #include "4C_io_pstream.hpp"
 #include "4C_linear_solver_method_input.hpp"
 #include "4C_lubrication_input.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_particle_input.hpp"
 #include "4C_pasi_input.hpp"
 #include "4C_poroelast_input.hpp"
@@ -304,7 +304,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Solid::IOMonitorStructureDBC::valid_parameters());
   push_specs(specs, Inpar::IORuntimeOutput::valid_parameters());
   push_specs(specs, Inpar::IORuntimeVTPStructure::valid_parameters());
-  push_specs(specs, Inpar::Mortar::valid_parameters());
+  push_specs(specs, Mortar::valid_parameters());
   push_specs(specs, CONTACT::valid_parameters());
   push_specs(specs, Inpar::VolMortar::valid_parameters());
   push_specs(specs, Inpar::Wear::valid_parameters());

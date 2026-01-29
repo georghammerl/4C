@@ -58,10 +58,10 @@ ScaTra::MeshtyingStrategyS2I::MeshtyingStrategyS2I(
       imortarredistribution_(
           Teuchos::getIntegralValue<Inpar::S2I::CouplingType>(parameters.sublist("S2I COUPLING"),
               "COUPLINGTYPE") == Inpar::S2I::coupling_mortar_standard and
-          Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
+          Teuchos::getIntegralValue<Mortar::ParallelRedist>(
               Global::Problem::instance()->mortar_coupling_params().sublist(
                   "PARALLEL REDISTRIBUTION"),
-              "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none),
+              "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none),
       islavemap_(nullptr),
       imastermap_(nullptr),
       islavenodestomasterelements_(),
@@ -2161,9 +2161,9 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
             "Parallel redistribution only implemented for scatra-scatra interface coupling based "
             "on standard mortar approach!");
       }
-      if (Teuchos::getIntegralValue<Inpar::Mortar::MeshRelocation>(
+      if (Teuchos::getIntegralValue<Mortar::MeshRelocation>(
               Global::Problem::instance()->mortar_coupling_params(), "MESH_RELOCATION") !=
-          Inpar::Mortar::relocation_none)
+          Mortar::relocation_none)
       {
         FOUR_C_THROW("Mesh relocation not yet implemented for scatra-scatra interface coupling!");
       }
@@ -2273,8 +2273,8 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           {
             interface.interface_params()
                 .sublist("PARALLEL REDISTRIBUTION")
-                .set<Inpar::Mortar::ParallelRedist>("PARALLEL_REDIST",
-                    Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
+                .set<Mortar::ParallelRedist>("PARALLEL_REDIST",
+                    Teuchos::getIntegralValue<Mortar::ParallelRedist>(
                         Global::Problem::instance()->mortar_coupling_params().sublist(
                             "PARALLEL REDISTRIBUTION"),
                         "PARALLEL_REDIST"));
@@ -2311,13 +2311,13 @@ void ScaTra::MeshtyingStrategyS2I::setup_meshtying()
           // match slave-side and master-side elements at mortar interface
           switch (interface.search_alg())
           {
-            case Inpar::Mortar::search_bfele:
+            case Mortar::search_bfele:
             {
               interface.evaluate_search_brute_force(interface.search_param());
               break;
             }
 
-            case Inpar::Mortar::search_binarytree:
+            case Mortar::search_binarytree:
             {
               interface.evaluate_search_binarytree();
               break;

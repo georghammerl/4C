@@ -111,10 +111,10 @@ void Solid::ModelEvaluator::Meshtying::setup()
   if (!global_state().get_restart_step())
   {
     // perform mesh initialization if required by input parameter MESH_RELOCATION
-    auto mesh_relocation_parameter = Teuchos::getIntegralValue<Inpar::Mortar::MeshRelocation>(
+    auto mesh_relocation_parameter = Teuchos::getIntegralValue<Mortar::MeshRelocation>(
         Global::Problem::instance()->mortar_coupling_params(), "MESH_RELOCATION");
 
-    if (mesh_relocation_parameter == Inpar::Mortar::relocation_initial)
+    if (mesh_relocation_parameter == Mortar::relocation_initial)
     {
       std::shared_ptr<const Core::LinAlg::Vector<double>> Xslavemod =
           dynamic_cast<Mortar::StrategyBase&>(*strategy_ptr_).mesh_initialization();
@@ -171,8 +171,8 @@ bool Solid::ModelEvaluator::Meshtying::assemble_force(
     Core::LinAlg::Vector<double>& f, const double& timefac_np) const
 {
   std::shared_ptr<const Core::LinAlg::Vector<double>> block_vec_ptr = nullptr;
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
-          Inpar::Mortar::algorithm_gpts ||
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
+          Mortar::algorithm_gpts ||
       strategy().is_penalty())
   {
     block_vec_ptr = strategy().get_rhs_block_ptr(CONTACT::VecBlockType::displ);
@@ -212,8 +212,8 @@ bool Solid::ModelEvaluator::Meshtying::assemble_jacobian(
   // ---------------------------------------------------------------------
   // Penalty / gpts / Nitsche system: no additional/condensed dofs
   // ---------------------------------------------------------------------
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
-          Inpar::Mortar::algorithm_gpts ||
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(strategy().params(), "ALGORITHM") ==
+          Mortar::algorithm_gpts ||
       strategy().is_penalty())
   {
     block_ptr = strategy().get_matrix_block_ptr(CONTACT::MatBlockType::displ_displ);

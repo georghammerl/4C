@@ -12,8 +12,8 @@
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_utils_enum.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -350,8 +350,8 @@ void CONTACT::Utils::get_initialization_info(bool& Two_half_pass,
         "approach so far!");
   }
 
-  if (Two_half_pass && (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(
-                            mortar, "ALGORITHM") != Inpar::Mortar::algorithm_gpts))
+  if (Two_half_pass && (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar, "ALGORITHM") !=
+                           Mortar::algorithm_gpts))
   {
     FOUR_C_THROW(
         "ERROR: You activated the two half pass 'TwoHalfPass' approach, but the 'MORTAR COUPLING' "

@@ -250,15 +250,14 @@ namespace Mortar
      |  Evaluate Lagrange multiplier shape functions              popp 12/07|
      *----------------------------------------------------------------------*/
     template <class V>
-    void evaluate_shape_lm(const Inpar::Mortar::ShapeFcn& lmtype, const double* xi, V& val,
+    void evaluate_shape_lm(const Mortar::ShapeFcn& lmtype, const double* xi, V& val,
         Mortar::Element& ele, const int& valdim)
     {
       if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult called with xi=nullptr");
 
       // dual LM shape functions or not
       bool dual = false;
-      if (lmtype == Inpar::Mortar::shape_dual || lmtype == Inpar::Mortar::shape_petrovgalerkin)
-        dual = true;
+      if (lmtype == Mortar::shape_dual || lmtype == Mortar::shape_petrovgalerkin) dual = true;
 
       // get node number and node pointers
       Core::Nodes::Node** mynodes = ele.nodes();
@@ -397,7 +396,7 @@ namespace Mortar
      |  THIS IS A SPECIAL VERSION FOR 3D QUADRATIC MORTAR WITH CONST LM!    |
      *----------------------------------------------------------------------*/
     template <class V>
-    void evaluate_shape_lm_const(const Inpar::Mortar::ShapeFcn& lmtype, const double* xi, V& val,
+    void evaluate_shape_lm_const(const Mortar::ShapeFcn& lmtype, const double* xi, V& val,
         const Mortar::Element& ele, const int& valdim)
     {
       switch (ele.shape())
@@ -420,7 +419,7 @@ namespace Mortar
      |  THIS IS A SPECIAL VERSION FOR 3D QUADRATIC MORTAR WITH LIN LM!      |
      *----------------------------------------------------------------------*/
     template <class V>
-    void evaluate_shape_lm_lin(const Inpar::Mortar::ShapeFcn& lmtype, const double* xi, V& val,
+    void evaluate_shape_lm_lin(const Mortar::ShapeFcn& lmtype, const double* xi, V& val,
         Mortar::Element& ele, const int& valdim)
     {
       if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult_lin called with xi=nullptr");
@@ -433,8 +432,7 @@ namespace Mortar
 
       // dual shape functions or not
       bool dual = false;
-      if (lmtype == Inpar::Mortar::shape_dual || lmtype == Inpar::Mortar::shape_petrovgalerkin)
-        dual = true;
+      if (lmtype == Mortar::shape_dual || lmtype == Mortar::shape_petrovgalerkin) dual = true;
 
       // get node number and node pointers
       Core::Nodes::Node** mynodes = ele.nodes();

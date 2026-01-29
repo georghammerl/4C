@@ -810,7 +810,7 @@ bool Mortar::Coupling2d::integrate_overlap(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // explicitly defined shape function type needed
-  if (shape_fcn() == Inpar::Mortar::shape_undefined)
+  if (shape_fcn() == Mortar::shape_undefined)
     FOUR_C_THROW("IntegrateOverlap called without specific shape function defined!");
 
   /**********************************************************************/
@@ -849,14 +849,13 @@ bool Mortar::Coupling2d::integrate_overlap(
   // (3) quadratic element(s) involved -> linear LM interpolation
   // (4) quadratic element(s) involved -> piecew. linear LM interpolation
   // *******************************************************************
-  Inpar::Mortar::LagMultQuad lmtype = lag_mult_quad();
+  Mortar::LagMultQuad lmtype = lag_mult_quad();
 
   // *******************************************************************
   // cases (1), (2) and (3)
   // *******************************************************************
-  if (!quad() || (quad() && lmtype == Inpar::Mortar::lagmult_quad) ||
-      (quad() && lmtype == Inpar::Mortar::lagmult_lin) ||
-      (quad() && lmtype == Inpar::Mortar::lagmult_const))
+  if (!quad() || (quad() && lmtype == Mortar::lagmult_quad) ||
+      (quad() && lmtype == Mortar::lagmult_lin) || (quad() && lmtype == Mortar::lagmult_const))
   {
     // do the overlap integration (integrate and linearize both M and gap)
     Mortar::Integrator::impl(slave_element(), master_element(), interface_params())
@@ -867,7 +866,7 @@ bool Mortar::Coupling2d::integrate_overlap(
   // *******************************************************************
   // case (4)
   // *******************************************************************
-  else if (quad() && lmtype == Inpar::Mortar::lagmult_pwlin)
+  else if (quad() && lmtype == Mortar::lagmult_pwlin)
   {
     FOUR_C_THROW("Piecewise linear LM interpolation not (yet?) implemented in 2D");
   }
@@ -875,7 +874,7 @@ bool Mortar::Coupling2d::integrate_overlap(
   // *******************************************************************
   // undefined case
   // *******************************************************************
-  else if (quad() && lmtype == Inpar::Mortar::lagmult_undefined)
+  else if (quad() && lmtype == Mortar::lagmult_undefined)
   {
     FOUR_C_THROW(
         "Lagrange multiplier interpolation for quadratic elements undefined\n"
@@ -919,7 +918,7 @@ void Mortar::Coupling2dManager::integrate_coupling(
   //**********************************************************************
   // STANDARD INTEGRATION (SEGMENTS)
   //**********************************************************************
-  if (int_type() == Inpar::Mortar::inttype_segments)
+  if (int_type() == Mortar::inttype_segments)
   {
     // loop over all master elements associated with this slave element
     for (int m = 0; m < (int)master_elements().size(); ++m)
@@ -947,8 +946,7 @@ void Mortar::Coupling2dManager::integrate_coupling(
   //**********************************************************************
   // FAST INTEGRATION (ELEMENTS)
   //**********************************************************************
-  else if (int_type() == Inpar::Mortar::inttype_elements ||
-           int_type() == Inpar::Mortar::inttype_elements_BS)
+  else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
     if ((int)master_elements().size() == 0) return;
 
@@ -963,28 +961,28 @@ void Mortar::Coupling2dManager::integrate_coupling(
     // (3) quadratic element(s) involved -> linear LM interpolation
     // (4) quadratic element(s) involved -> piecew. linear LM interpolation
     // *******************************************************************
-    Inpar::Mortar::LagMultQuad lmtype = lag_mult_quad();
+    Mortar::LagMultQuad lmtype = lag_mult_quad();
 
     // *******************************************************************
     // cases (1), (2) and (3)
     // *******************************************************************
-    if (!quad() || (quad() && lmtype == Inpar::Mortar::lagmult_quad) ||
-        (quad() && lmtype == Inpar::Mortar::lagmult_lin))
+    if (!quad() || (quad() && lmtype == Mortar::lagmult_quad) ||
+        (quad() && lmtype == Mortar::lagmult_lin))
     {
       Mortar::Integrator::impl(slave_element(), master_element(0), imortar_)
           ->integrate_ele_based_2d(
               slave_element(), master_elements(), &boundary_ele, idiscret_.get_comm());
 
       // Perform Boundary Segmentation if required
-      if (int_type() == Inpar::Mortar::inttype_elements_BS)
+      if (int_type() == Mortar::inttype_elements_BS)
       {
         if (boundary_ele)
         {
           // std::cout << "Boundary segmentation for element: " << SlaveElement().Id() << "\n" ;
           // switch, if consistent boundary modification chosen
-          if (Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(
-                  imortar_, "LM_DUAL_CONSISTENT") != Inpar::Mortar::consistent_none &&
-              shape_fcn() != Inpar::Mortar::shape_standard  // so for petrov-Galerkin and dual
+          if (Teuchos::getIntegralValue<Mortar::ConsistentDualType>(
+                  imortar_, "LM_DUAL_CONSISTENT") != Mortar::consistent_none &&
+              shape_fcn() != Mortar::shape_standard  // so for petrov-Galerkin and dual
           )
           {
             // loop over all master elements associated with this slave element
@@ -1061,12 +1059,12 @@ bool Mortar::Coupling2dManager::evaluate_coupling(
   if (master_elements().size() == 0) return false;
 
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   //*********************************
   // Mortar Contact
   //*********************************
-  if (algo == Inpar::Mortar::algorithm_mortar or algo == Inpar::Mortar::algorithm_gpts)
+  if (algo == Mortar::algorithm_mortar or algo == Mortar::algorithm_gpts)
   {
     integrate_coupling(mparams_ptr);
   }
@@ -1088,13 +1086,11 @@ void Mortar::Coupling2dManager::consistent_dual_shape()
   // For standard shape functions no modification is necessary
   // A switch earlier in the process improves computational efficiency
   auto consistent =
-      Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
-  if (shape_fcn() == Inpar::Mortar::shape_standard || consistent == Inpar::Mortar::consistent_none)
-    return;
+      Teuchos::getIntegralValue<Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
+  if (shape_fcn() == Mortar::shape_standard || consistent == Mortar::consistent_none) return;
 
   // Consistent modification not yet checked for constant LM interpolation
-  if (quad() && lag_mult_quad() == Inpar::Mortar::lagmult_const &&
-      consistent != Inpar::Mortar::consistent_none)
+  if (quad() && lag_mult_quad() == Mortar::lagmult_const && consistent != Mortar::consistent_none)
     FOUR_C_THROW(
         "ERROR: Consistent dual shape functions not yet checked for constant LM interpolation!");
 
@@ -1160,10 +1156,10 @@ void Mortar::Coupling2dManager::consistent_dual_shape()
     sxi[0] = 0.5 * (1.0 - eta[0]) * ximin + 0.5 * (1.0 + eta[0]) * ximax;
 
     // evaluate trace space shape functions
-    if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+    if (lag_mult_quad() == Mortar::lagmult_lin)
     {
       slave_element().evaluate_shape_lag_mult_lin(
-          Inpar::Mortar::shape_standard, sxi.data(), sval, sderiv, nnodes);
+          Mortar::shape_standard, sxi.data(), sval, sderiv, nnodes);
     }
     else
       slave_element().evaluate_shape(sxi.data(), sval, sderiv, nnodes);
@@ -1190,7 +1186,7 @@ void Mortar::Coupling2dManager::consistent_dual_shape()
   Core::LinAlg::SerialDenseMatrix ae(nnodes, nnodes, true);
 
   // compute matrix A_e for linear interpolation of quadratic element
-  if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+  if (lag_mult_quad() == Mortar::lagmult_lin)
   {
     // how many non-zero nodes
     const int nnodeslin = 2;

@@ -74,9 +74,9 @@ void CONTACT::MtPenaltyStrategy::mortar_coupling(
   if (dualquadslavetrafo())
   {
     // type of LM interpolation for quadratic elements
-    auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
+    auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
 
-    if (lagmultquad != Inpar::Mortar::lagmult_lin)
+    if (lagmultquad != Mortar::lagmult_lin)
     {
       // modify dmatrix_
       std::shared_ptr<Core::LinAlg::SparseMatrix> temp1 =
@@ -133,8 +133,8 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
   TEUCHOS_FUNC_TIME_MONITOR("CONTACT::MtPenaltyStrategy::mesh_initialization");
 
   // get out of here is NTS algorithm is activated
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(params(), "ALGORITHM") ==
-      Inpar::Mortar::algorithm_nts)
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(params(), "ALGORITHM") ==
+      Mortar::algorithm_nts)
     return nullptr;
 
   // print message

@@ -223,9 +223,9 @@ namespace CONTACT
      \brief Return the Lagrange multiplier interpolation and testing type
 
      */
-    Inpar::Mortar::LagMultQuad lag_mult_quad() const override
+    Mortar::LagMultQuad lag_mult_quad() const override
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(imortar_, "LM_QUAD");
+      return Teuchos::getIntegralValue<Mortar::LagMultQuad>(imortar_, "LM_QUAD");
     }
 
     //@}
@@ -305,9 +305,9 @@ namespace CONTACT
      \brief Get integration type
 
      */
-    Inpar::Mortar::IntType int_type() const
+    Mortar::IntType int_type() const
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::IntType>(imortar_, "INTTYPE");
+      return Teuchos::getIntegralValue<Mortar::IntType>(imortar_, "INTTYPE");
     };
 
     /*!
@@ -320,9 +320,9 @@ namespace CONTACT
      \brief Return the Lagrange multiplier interpolation and testing type
 
      */
-    Inpar::Mortar::LagMultQuad lag_mult_quad() const
+    Mortar::LagMultQuad lag_mult_quad() const
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(imortar_, "LM_QUAD");
+      return Teuchos::getIntegralValue<Mortar::LagMultQuad>(imortar_, "LM_QUAD");
     }
 
     /*!
@@ -347,9 +347,9 @@ namespace CONTACT
      \brief Return the LM shape fcn type
 
      */
-    Inpar::Mortar::ShapeFcn shape_fcn() const
+    Mortar::ShapeFcn shape_fcn() const
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
+      return Teuchos::getIntegralValue<Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
     }
 
     /*!

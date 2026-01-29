@@ -37,7 +37,7 @@ CONTACT::AbstractStrategyDataContainer::AbstractStrategyDataContainer()
       non_redist_gmdofrowmap_(nullptr),
       non_redist_gsmdofrowmap_(nullptr),
       non_redist_gsdirichtoggle_(nullptr),
-      partype_(Inpar::Mortar::ParallelRedist::redist_none),
+      partype_(Mortar::ParallelRedist::redist_none),
       dmatrix_(nullptr),
       mmatrix_(nullptr),
       wgap_(nullptr),

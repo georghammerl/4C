@@ -320,8 +320,8 @@ Mortar::Integrator* Mortar::Integrator::impl(
 template <Core::FE::CellType distype_s, Core::FE::CellType distype_m>
 Mortar::IntegratorCalc<distype_s, distype_m>::IntegratorCalc(const Teuchos::ParameterList& params)
     : imortar_(params),
-      shapefcn_(Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
-      lmquadtype_(Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params, "LM_QUAD"))
+      shapefcn_(Teuchos::getIntegralValue<Mortar::ShapeFcn>(params, "LM_SHAPEFCN")),
+      lmquadtype_(Teuchos::getIntegralValue<Mortar::LagMultQuad>(params, "LM_QUAD"))
 {
   initialize_gp();
 }
@@ -352,11 +352,11 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::initialize_gp()
   int numgp = imortar_.get<int>("NUMGP_PER_DIM");
 
   // get integration type
-  auto integrationtype = Teuchos::getIntegralValue<Inpar::Mortar::IntType>(imortar_, "INTTYPE");
+  auto integrationtype = Teuchos::getIntegralValue<Mortar::IntType>(imortar_, "INTTYPE");
 
   // if we use segment-based integration, the shape of the cells has to be considered!
   Core::FE::CellType intshape;
-  if (integrationtype == Inpar::Mortar::inttype_segments)
+  if (integrationtype == Mortar::inttype_segments)
   {
     if (ndim_ == 2)
       intshape = Core::FE::CellType::line2;
@@ -382,8 +382,8 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::initialize_gp()
       Core::FE::GaussRule1D mygaussrule = Core::FE::GaussRule1D::line_5point;
 
       // GP switch if element-based version and non-zero value provided by user
-      if (integrationtype == Inpar::Mortar::inttype_elements ||
-          integrationtype == Inpar::Mortar::inttype_elements_BS)
+      if (integrationtype == Mortar::inttype_elements ||
+          integrationtype == Mortar::inttype_elements_BS)
       {
         if (numgp > 0)
         {
@@ -480,7 +480,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::initialize_gp()
     {
       // set default value for segment-based version first
       Core::FE::GaussRule2D mygaussrule = Core::FE::GaussRule2D::tri_7point;
-      if (integrationtype == Inpar::Mortar::inttype_segments)
+      if (integrationtype == Mortar::inttype_segments)
       {
         if (numgp > 0) switch (numgp)
           {
@@ -502,8 +502,8 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::initialize_gp()
           }
       }
       // GP switch if element-based version and non-zero value provided by user
-      else if (integrationtype == Inpar::Mortar::inttype_elements ||
-               integrationtype == Inpar::Mortar::inttype_elements_BS)
+      else if (integrationtype == Mortar::inttype_elements ||
+               integrationtype == Mortar::inttype_elements_BS)
       {
         if (numgp > 0)
         {
@@ -598,8 +598,8 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::initialize_gp()
       Core::FE::GaussRule2D mygaussrule = Core::FE::GaussRule2D::quad_25point;
 
       // GP switch if element-based version and non-zero value provided by user
-      if (integrationtype == Inpar::Mortar::inttype_elements ||
-          integrationtype == Inpar::Mortar::inttype_elements_BS)
+      if (integrationtype == Mortar::inttype_elements ||
+          integrationtype == Mortar::inttype_elements_BS)
       {
         if (numgp > 0)
         {
@@ -741,11 +741,11 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_ele_based_2d(
   // decide whether linear LM are used for quadratic FE here
   bool linlm = false;
   bool dualquad = false;
-  if (lmquadtype_ == Inpar::Mortar::lagmult_lin && sele.shape() == Core::FE::CellType::line3)
+  if (lmquadtype_ == Mortar::lagmult_lin && sele.shape() == Core::FE::CellType::line3)
   {
     bound = false;  // crosspoints and linear LM NOT at the same time!!!!
     linlm = true;
-    if (shapefcn_ == Inpar::Mortar::shape_dual) dualquad = true;
+    if (shapefcn_ == Mortar::shape_dual) dualquad = true;
   }
 
   double sxia = -1;
@@ -769,7 +769,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_ele_based_2d(
     double dsxideta = -0.5 * sxia + 0.5 * sxib;
 
     // evaluate Lagrange multiplier shape functions (on slave element)
-    if (lmquadtype_ == Inpar::Mortar::lagmult_const)
+    if (lmquadtype_ == Mortar::lagmult_const)
       Utils::evaluate_shape_lm_const(shapefcn_, sxi, lmval, sele, nrow);
     else if (linlm)
       Utils::evaluate_shape_lm_lin(shapefcn_, sxi, lmval, sele, nrow);
@@ -834,10 +834,10 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_segment_2d(Mortar::
     double& sxia, double& sxib, Mortar::Element& mele, double& mxia, double& mxib, MPI_Comm comm)
 {
   // get LMtype
-  Inpar::Mortar::LagMultQuad lmtype = lmquadtype_;
+  Mortar::LagMultQuad lmtype = lmquadtype_;
 
   // explicitly defined shape function type needed
-  if (shapefcn_ == Inpar::Mortar::shape_undefined)
+  if (shapefcn_ == Mortar::shape_undefined)
     FOUR_C_THROW("integrate_deriv_segment_2d called without specific shape function defined!");
 
   // check for problem dimension
@@ -905,11 +905,11 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_segment_2d(Mortar::
   // decide whether linear LM are used for quadratic FE here
   bool linlm = false;
   bool dualquad = false;
-  if (lmtype == Inpar::Mortar::lagmult_lin && sele.shape() == Core::FE::CellType::line3)
+  if (lmtype == Mortar::lagmult_lin && sele.shape() == Core::FE::CellType::line3)
   {
     bound = false;  // crosspoints and linear LM NOT at the same time!!!!
     linlm = true;
-    if (shapefcn_ == Inpar::Mortar::shape_dual) dualquad = true;
+    if (shapefcn_ == Mortar::shape_dual) dualquad = true;
   }
 
   //**********************************************************************
@@ -939,7 +939,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_segment_2d(Mortar::
     }
 
     // evaluate Lagrange multiplier shape functions (on slave element)
-    if (lmtype == Inpar::Mortar::lagmult_const)
+    if (lmtype == Mortar::lagmult_const)
       Utils::evaluate_shape_lm_const(shapefcn_, sxi, lmval, sele, nrow);
     else if (linlm)
       Utils::evaluate_shape_lm_lin(shapefcn_, sxi, lmval, sele, nrow);
@@ -1001,9 +1001,8 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_dm(Mortar::Element&
 
   // compute segment D/M matrix ****************************************
   // dual shape functions without locally linear Lagrange multipliers
-  if ((shapefcn_ == Inpar::Mortar::shape_dual ||
-          shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
-      lmquadtype_ != Inpar::Mortar::lagmult_lin)
+  if ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
+      lmquadtype_ != Mortar::lagmult_lin)
   {
     for (int j = 0; j < nrow; ++j)
     {
@@ -1064,9 +1063,8 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_dm(Mortar::Element&
       Mortar::Node* cnode = dynamic_cast<Mortar::Node*>(snodes[j]);
 
       if (cnode->owner() != Core::Communication::my_mpi_rank(comm)) continue;
-      if ((shapefcn_ == Inpar::Mortar::shape_standard && cnode->is_on_boundor_ce()) ||
-          ((shapefcn_ == Inpar::Mortar::shape_dual ||
-               shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
+      if ((shapefcn_ == Mortar::shape_standard && cnode->is_on_boundor_ce()) ||
+          ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
               cnode->is_on_bound()))
         continue;
 
@@ -1089,9 +1087,8 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_dm(Mortar::Element&
         double prod = lmval(j) * sval(k) * jac * wgt;
         if (abs(prod) > MORTARINTTOL)
         {
-          if ((shapefcn_ == Inpar::Mortar::shape_standard && snode->is_on_boundor_ce()) ||
-              ((shapefcn_ == Inpar::Mortar::shape_dual ||
-                   shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
+          if ((shapefcn_ == Mortar::shape_standard && snode->is_on_boundor_ce()) ||
+              ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
                   snode->is_on_bound()))
             cnode->add_m_value(snode->id(), -prod);
           else
@@ -1125,13 +1122,10 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_3d_dm_quad(Mortar::
   // CASES 1/2: standard LM shape functions and quadratic or linear interpolation
   // CASE 5: dual LM shape functions and linear interpolation
   // (here, we must NOT ignore the small off-diagonal terms for accurate convergence)
-  if ((shapefcn_ == Inpar::Mortar::shape_standard &&
-          (lmquadtype_ == Inpar::Mortar::lagmult_quad ||
-              lmquadtype_ == Inpar::Mortar::lagmult_lin)) ||
-      ((shapefcn_ == Inpar::Mortar::shape_dual ||
-           shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
-          (lmquadtype_ == Inpar::Mortar::lagmult_lin ||
-              lmquadtype_ == Inpar::Mortar::lagmult_const)))
+  if ((shapefcn_ == Mortar::shape_standard &&
+          (lmquadtype_ == Mortar::lagmult_quad || lmquadtype_ == Mortar::lagmult_lin)) ||
+      ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
+          (lmquadtype_ == Mortar::lagmult_lin || lmquadtype_ == Mortar::lagmult_const)))
   {
     // compute all mseg and dseg matrix entries
     // loop over Lagrange multiplier dofs j
@@ -1158,9 +1152,8 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_3d_dm_quad(Mortar::
         double prod = lmval[j] * sval(k) * jac * wgt;
         if (abs(prod) > MORTARINTTOL)
         {
-          if ((shapefcn_ == Inpar::Mortar::shape_standard && snode->is_on_boundor_ce()) ||
-              ((shapefcn_ == Inpar::Mortar::shape_dual ||
-                   shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
+          if ((shapefcn_ == Mortar::shape_standard && snode->is_on_boundor_ce()) ||
+              ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
                   snode->is_on_bound()))
             cnode->add_m_value(snode->id(), -prod);
           else
@@ -1170,8 +1163,7 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_3d_dm_quad(Mortar::
     }
   }
   // CASE 3: standard LM shape functions and piecewise linear interpolation
-  else if (shapefcn_ == Inpar::Mortar::shape_standard &&
-           lmquadtype_ == Inpar::Mortar::lagmult_pwlin)
+  else if (shapefcn_ == Mortar::shape_standard && lmquadtype_ == Mortar::lagmult_pwlin)
   {
     // compute all mseg and dseg matrix entries
     // loop over Lagrange multiplier dofs j
@@ -1207,9 +1199,8 @@ void inline Mortar::IntegratorCalc<distype_s, distype_m>::gp_3d_dm_quad(Mortar::
     }
   }
   // CASE 4: dual LM shape functions and quadratic interpolation
-  else if ((shapefcn_ == Inpar::Mortar::shape_dual ||
-               shapefcn_ == Inpar::Mortar::shape_petrovgalerkin) &&
-           lmquadtype_ == Inpar::Mortar::lagmult_quad)
+  else if ((shapefcn_ == Mortar::shape_dual || shapefcn_ == Mortar::shape_petrovgalerkin) &&
+           lmquadtype_ == Mortar::lagmult_quad)
   {
     // compute all mseg and dseg matrix entries
     // loop over Lagrange multiplier dofs j
@@ -1381,7 +1372,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_ele_based_3d(
     Mortar::Element& sele, std::vector<Mortar::Element*> meles, bool* boundary_ele, MPI_Comm comm)
 {
   // explicitly defined shape function type needed
-  if (shapefcn_ == Inpar::Mortar::shape_undefined)
+  if (shapefcn_ == Mortar::shape_undefined)
     FOUR_C_THROW(
         "integrate_deriv_cell_3d_aux_plane called without specific shape function defined!");
 
@@ -1432,7 +1423,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_ele_based_3d(
     double jacslave = sele.jacobian(sxi);
 
     // evaluate Lagrange multiplier shape functions (on slave element)
-    if (lmquadtype_ == Inpar::Mortar::lagmult_const)
+    if (lmquadtype_ == Mortar::lagmult_const)
       Utils::evaluate_shape_lm_const(shapefcn_, sxi, lmval, sele, nrow);
     else
       Utils::evaluate_shape_lm(shapefcn_, sxi, lmval, sele, nrow);
@@ -1510,7 +1501,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane(
     double* auxn, MPI_Comm comm)
 {
   // explicitly defined shape function type needed
-  if (shapefcn_ == Inpar::Mortar::shape_undefined)
+  if (shapefcn_ == Mortar::shape_undefined)
     FOUR_C_THROW(
         "integrate_deriv_cell_3d_aux_plane called without specific shape function defined!");
 
@@ -1690,10 +1681,10 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane_q
     Mortar::IntElement& mintele, std::shared_ptr<Mortar::IntCell> cell, double* auxn)
 {
   // get LMtype
-  Inpar::Mortar::LagMultQuad lmtype = lmquadtype_;
+  Mortar::LagMultQuad lmtype = lmquadtype_;
 
   // explicitly defined shape function type needed
-  if (shapefcn_ == Inpar::Mortar::shape_undefined)
+  if (shapefcn_ == Mortar::shape_undefined)
     FOUR_C_THROW(
         "ERROR: integrate_deriv_cell_3d_aux_plane_quad called without specific shape function "
         "defined!");
@@ -1751,8 +1742,8 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane_q
   // this is the case for dual quadratic and linear Lagrange multipliers on quad9/quad8/tri6
   // elements
   bool dualquad3d = false;
-  if ((shapefcn_ == Inpar::Mortar::shape_dual) &&
-      (lmtype == Inpar::Mortar::lagmult_quad || lmtype == Inpar::Mortar::lagmult_lin) &&
+  if ((shapefcn_ == Mortar::shape_dual) &&
+      (lmtype == Mortar::lagmult_quad || lmtype == Mortar::lagmult_lin) &&
       (sele.shape() == Core::FE::CellType::quad9 || sele.shape() == Core::FE::CellType::quad8 ||
           sele.shape() == Core::FE::CellType::tri6))
   {
@@ -1915,7 +1906,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane_q
     //      sintele.evaluate_shape_lag_mult(shapefcn_, sxi, lmintval, lmintderiv, nintrow);
     //    }
 
-    if (lmtype == Inpar::Mortar::lagmult_const)
+    if (lmtype == Mortar::lagmult_const)
       Utils::evaluate_shape_lm_const(shapefcn_, psxi, lmval, sele, nrow);
     else if (bound)
     {

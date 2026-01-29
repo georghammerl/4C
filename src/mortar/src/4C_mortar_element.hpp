@@ -12,10 +12,10 @@
 
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_elementtype.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_node.hpp"
 #include "4C_utils_pairedvector.hpp"
 
@@ -862,7 +862,7 @@ namespace Mortar
     /*!
     \brief Evaluate Lagrange multiplier shape functions and derivatives
     */
-    virtual bool evaluate_shape_lag_mult(const Inpar::Mortar::ShapeFcn& lmtype, const double* xi,
+    virtual bool evaluate_shape_lag_mult(const Mortar::ShapeFcn& lmtype, const double* xi,
         Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
         const int valdim, bool boundtrafo = true) const;
 
@@ -870,7 +870,7 @@ namespace Mortar
      *
      *  */
     template <unsigned elenumnode, unsigned eledim>
-    inline bool evaluate_shape_lag_mult(Inpar::Mortar::ShapeFcn lmtype, const double* xi,
+    inline bool evaluate_shape_lag_mult(Mortar::ShapeFcn lmtype, const double* xi,
         Core::LinAlg::Matrix<elenumnode, 1>& val, Core::LinAlg::Matrix<elenumnode, eledim>& deriv,
         unsigned valdim, bool boundtrafo) const
     {
@@ -884,24 +884,24 @@ namespace Mortar
     \brief Evaluate Lagrange multiplier shape functions and derivatives
     (special version for 3D quadratic mortar with linear Lagrange multipliers)
     */
-    virtual bool evaluate_shape_lag_mult_lin(const Inpar::Mortar::ShapeFcn& lmtype,
-        const double* xi, Core::LinAlg::SerialDenseVector& val,
-        Core::LinAlg::SerialDenseMatrix& deriv, const int valdim) const;
+    virtual bool evaluate_shape_lag_mult_lin(const Mortar::ShapeFcn& lmtype, const double* xi,
+        Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
+        const int valdim) const;
 
     /*!
     \brief Evaluate Lagrange multiplier shape functions and derivatives
     (special version for quadratic mortar with element-wise constant Lagrange multipliers)
     */
-    virtual bool evaluate_shape_lag_mult_const(const Inpar::Mortar::ShapeFcn& lmtype,
-        const double* xi, Core::LinAlg::SerialDenseVector& val,
-        Core::LinAlg::SerialDenseMatrix& deriv, const int valdim) const;
+    virtual bool evaluate_shape_lag_mult_const(const Mortar::ShapeFcn& lmtype, const double* xi,
+        Core::LinAlg::SerialDenseVector& val, Core::LinAlg::SerialDenseMatrix& deriv,
+        const int valdim) const;
 
     /*! \brief Evaluate Lagrange multiplier shape functions and derivatives
      *  (special version for 3D quadratic mortar with linear Lagrange multipliers)
      *
      *  */
     template <unsigned elenumnode, unsigned eledim>
-    inline bool evaluate_shape_lag_mult_lin(Inpar::Mortar::ShapeFcn lmtype, const double* xi,
+    inline bool evaluate_shape_lag_mult_lin(Mortar::ShapeFcn lmtype, const double* xi,
         Core::LinAlg::Matrix<elenumnode, 1>& val, Core::LinAlg::Matrix<elenumnode, eledim>& deriv,
         int valdim)
     {

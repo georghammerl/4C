@@ -557,8 +557,8 @@ namespace CONTACT
     CONTACT::ConstraintDirection& constr_direction() { return constr_direction_; };
     CONTACT::ConstraintDirection constr_direction() const { return constr_direction_; };
 
-    Inpar::Mortar::ParallelRedist& par_type() { return partype_; };
-    Inpar::Mortar::ParallelRedist par_type() const { return partype_; };
+    Mortar::ParallelRedist& par_type() { return partype_; };
+    Mortar::ParallelRedist par_type() const { return partype_; };
 
     //!@}
 
@@ -662,7 +662,7 @@ namespace CONTACT
     std::shared_ptr<Core::LinAlg::Vector<double>> non_redist_gsdirichtoggle_;
 
     //! parallel redistribution type
-    Inpar::Mortar::ParallelRedist partype_;
+    Mortar::ParallelRedist partype_;
 
     //!@}
 

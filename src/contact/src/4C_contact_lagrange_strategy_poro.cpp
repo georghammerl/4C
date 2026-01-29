@@ -438,7 +438,7 @@ void CONTACT::LagrangeStrategyPoro::evaluate_mat_poro_no_pen(
   nopenalpha_ = alphaf_;  // to use different alpha for nopen condition (not used at the moment)
 
   // shape function
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   //**********************************************************************
   //**********************************************************************
@@ -447,7 +447,7 @@ void CONTACT::LagrangeStrategyPoro::evaluate_mat_poro_no_pen(
   //**********************************************************************
 
   // double-check if this is a dual LM system
-  if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+  if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
     FOUR_C_THROW("Condensation only for dual LM");
 
   /**********************************************************************/
@@ -965,7 +965,7 @@ void CONTACT::LagrangeStrategyPoro::evaluate_other_mat_poro_no_pen(
       std::make_shared<Core::LinAlg::Map>(Feff->domain_map());
 
   // shape function
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   //**********************************************************************
   //**********************************************************************
@@ -974,7 +974,7 @@ void CONTACT::LagrangeStrategyPoro::evaluate_other_mat_poro_no_pen(
   //**********************************************************************
 
   // double-check if this is a dual LM system
-  if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+  if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
     FOUR_C_THROW("Condensation only for dual LM");
 
   /**********************************************************************/
@@ -1161,7 +1161,7 @@ void CONTACT::LagrangeStrategyPoro::recover_poro_no_pen(Core::LinAlg::Vector<dou
     return;
 
   // shape function and system types
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   //**********************************************************************
   //**********************************************************************
@@ -1170,7 +1170,7 @@ void CONTACT::LagrangeStrategyPoro::recover_poro_no_pen(Core::LinAlg::Vector<dou
   //**********************************************************************
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     // extract slave displacements from disi

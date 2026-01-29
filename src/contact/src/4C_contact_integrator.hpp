@@ -68,7 +68,7 @@ namespace CONTACT
     Integrator(const Integrator& old) = delete;
 
     //! get specified integration type
-    inline Inpar::Mortar::IntType integration_type() const { return integrationtype_; }
+    inline Mortar::IntType integration_type() const { return integrationtype_; }
 
     MPI_Comm get_comm() const { return Comm_; }
 
@@ -823,13 +823,13 @@ namespace CONTACT
      \brief Return the LM shape fcn type
 
      */
-    Inpar::Mortar::ShapeFcn shape_fcn() { return shapefcn_; }
+    Mortar::ShapeFcn shape_fcn() { return shapefcn_; }
 
     /*!
      \brief Return the LM interpolation / testing type for quadratic FE
 
      */
-    Inpar::Mortar::LagMultQuad lag_mult_quad() { return lagmultquad_; }
+    Mortar::LagMultQuad lag_mult_quad() { return lagmultquad_; }
     //@}
 
     //! containing contact input parameters
@@ -848,13 +848,13 @@ namespace CONTACT
 
     // inputs from parameter list
     //! lm shape function type
-    Inpar::Mortar::ShapeFcn shapefcn_;
+    Mortar::ShapeFcn shapefcn_;
     //! type of lm interpolation for quadr. FE
-    Inpar::Mortar::LagMultQuad lagmultquad_;
+    Mortar::LagMultQuad lagmultquad_;
     //! gp-wise evaluated slip increment
     bool gpslip_;
     //! contact algorithm
-    Inpar::Mortar::AlgorithmType algo_;
+    Mortar::AlgorithmType algo_;
     //! solution stratety
     CONTACT::SolvingStrategy stype_;
     //! flag for closest point normal -> change in linsize
@@ -887,7 +887,7 @@ namespace CONTACT
 
    private:
     //! integration type from the parameter-list
-    Inpar::Mortar::IntType integrationtype_;
+    Mortar::IntType integrationtype_;
   };  // class Integrator
 }  // namespace CONTACT
 

@@ -14,7 +14,7 @@
 #include "4C_contact_input.hpp"
 #include "4C_contact_paramsinterface.hpp"
 #include "4C_contact_utils.hpp"
-#include "4C_inpar_mortar.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_strategy_base.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -586,12 +586,12 @@ namespace CONTACT
     //! Return parallel redistribution status (yes or no)
     inline bool parallel_redistribution_status() const
     {
-      return (data().par_type() != Inpar::Mortar::ParallelRedist::redist_none);
+      return (data().par_type() != Mortar::ParallelRedist::redist_none);
     }
 
 
     //! Return specific parallel redistribution status
-    inline Inpar::Mortar::ParallelRedist which_parallel_redistribution() const
+    inline Mortar::ParallelRedist which_parallel_redistribution() const
     {
       return data().par_type();
     }
@@ -1330,7 +1330,7 @@ namespace CONTACT
     @return Flag to indicate, whether ghosting needs to be updated (true) or not (false)
     */
     bool is_update_of_ghosting_necessary(
-        const Inpar::Mortar::ExtendGhosting& ghosting_strategy, const bool first_time_step) const;
+        const Mortar::ExtendGhosting& ghosting_strategy, const bool first_time_step) const;
 
     /*!
     \brief Calculate absolute value of mean velocity of interface for binning
