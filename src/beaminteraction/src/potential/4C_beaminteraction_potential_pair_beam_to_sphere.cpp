@@ -8,7 +8,7 @@
 #include "4C_beaminteraction_potential_pair_beam_to_sphere.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beaminteraction_beam_to_beam_contact_utils.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_utils.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_utils_fem_shapefunctions.hpp"

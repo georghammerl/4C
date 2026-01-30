@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "4C_beam3_reissner.hpp"
-#include "4C_beaminteraction_beam_to_solid_volume_meshtying_pair_mortar.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_pair_mortar.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_line_to_3D_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_volume_segmentation.hpp"

@@ -8,8 +8,8 @@
 #include "4C_beaminteraction_potential_submodel_evaluator.hpp"
 
 #include "4C_beam3_base.hpp"
-#include "4C_beaminteraction_beam_to_beam_contact_utils.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_utils.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_beaminteraction_potential_pair_base.hpp"
 #include "4C_beaminteraction_str_model_evaluator_datastate.hpp"
