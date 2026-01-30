@@ -187,6 +187,15 @@ BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_indirect_assem
         .penalty_parameter_translational = parameters_.penalty_parameter_pos,
         .penalty_parameter_rotational = parameters_.penalty_parameter_rot};
 
+    if (parameters_.constraint_enforcement ==
+        BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::lagrange_multiplier)
+    {
+      mortar_manager_parameters.constraint_enforcement =
+          Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
+      mortar_manager_parameters.lagrange_formulation =
+          Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::saddlepoint;
+    }
+
     auto mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManager>(
         discret, mortar_manager_parameters);
     mortar_manager->setup();

@@ -29,7 +29,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect::eva
 {
   if (mortar_manager_->have_lagrange_dofs())
   {
-    mortar_manager_->evaluate_coupling_terms_lagrange(data_state);
+    mortar_manager_->evaluate_coupling_terms_lagrange(data_state, fe_sysmat, fe_sysvec);
   }
   else
   {

@@ -46,7 +46,7 @@ IO/RUNTIME VTK OUTPUT/BEAMS:
   STRAINS_GAUSSPOINT: true
   ELEMENT_GID: true
 STRUCT NOX/Status Test:
-  XML File: "beam3r_herm2line3_beam_to_beam_penalty_point_coupling_restart.xml"
+  XML File: "beam3r_herm2line3_beam_to_beam_point_coupling_restart.xml"
 MATERIALS:
   - MAT: 1
     MAT_BeamReissnerElastHyper:
