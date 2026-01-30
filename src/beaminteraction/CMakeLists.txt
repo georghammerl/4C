@@ -10,13 +10,15 @@ four_c_auto_define_module()
 set(_dependencies
     # cmake-format: sortable
     beam3
-    config
+    contact
     core
+    coupling
     geometry_pair
     global_data
     inpar
     mat
     rigidsphere
+    shell_kl_nurbs
     solid_3D_ele
     structure
     structure_new

@@ -5,12 +5,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_BEAMINTERACTION_LINK_BEAM3_REISSNER_LINE2_RIGIDJOINTED_HPP
-#define FOUR_C_BEAMINTERACTION_LINK_BEAM3_REISSNER_LINE2_RIGIDJOINTED_HPP
+#ifndef FOUR_C_BEAMINTERACTION_CROSSLINKING_LINK_BEAM3_REISSNER_LINE2_RIGIDJOINTED_HPP
+#define FOUR_C_BEAMINTERACTION_CROSSLINKING_LINK_BEAM3_REISSNER_LINE2_RIGIDJOINTED_HPP
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_link_rigidjointed.hpp"
+#include "4C_beaminteraction_crosslinking_link_rigidjointed.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 

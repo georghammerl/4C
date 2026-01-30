@@ -5,9 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_link_truss.hpp"
+#include "4C_beaminteraction_crosslinking_link_truss.hpp"
 
-#include "4C_beaminteraction_link.hpp"
+#include "4C_beaminteraction_crosslinking_link.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_comm_utils_factory.hpp"
 #include "4C_linalg_serialdensematrix.hpp"

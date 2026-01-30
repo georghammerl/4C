@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_crosslinker_handler.hpp"
+#include "4C_beaminteraction_crosslinking_handler.hpp"
 
 #include "4C_binstrategy_meshfree_multibin.hpp"
 #include "4C_fem_discretization.hpp"

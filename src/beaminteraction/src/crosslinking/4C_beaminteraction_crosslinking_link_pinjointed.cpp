@@ -5,11 +5,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_link_pinjointed.hpp"
+#include "4C_beaminteraction_crosslinking_link_pinjointed.hpp"
 
-#include "4C_beaminteraction_link.hpp"
-#include "4C_beaminteraction_link_beam3_reissner_line2_pinjointed.hpp"
-#include "4C_beaminteraction_link_truss.hpp"
+#include "4C_beaminteraction_crosslinking_link.hpp"
+#include "4C_beaminteraction_crosslinking_link_beam3_reissner_line2_pinjointed.hpp"
+#include "4C_beaminteraction_crosslinking_link_truss.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_general_largerotations.hpp"
 #include "4C_inpar_beaminteraction.hpp"

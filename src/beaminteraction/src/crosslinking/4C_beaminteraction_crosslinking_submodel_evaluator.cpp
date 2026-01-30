@@ -5,17 +5,17 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_beaminteraction_submodel_evaluator_crosslinking.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 
 #include "4C_beam3_base.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
-#include "4C_beaminteraction_crosslinker_handler.hpp"
-#include "4C_beaminteraction_crosslinker_node.hpp"
+#include "4C_beaminteraction_crosslinking_handler.hpp"
+#include "4C_beaminteraction_crosslinking_link.hpp"
+#include "4C_beaminteraction_crosslinking_link_beam3_reissner_line2_pinjointed.hpp"
+#include "4C_beaminteraction_crosslinking_link_beam3_reissner_line2_rigidjointed.hpp"
+#include "4C_beaminteraction_crosslinking_node.hpp"
 #include "4C_beaminteraction_crosslinking_params.hpp"
 #include "4C_beaminteraction_data.hpp"
-#include "4C_beaminteraction_link.hpp"
-#include "4C_beaminteraction_link_beam3_reissner_line2_pinjointed.hpp"
-#include "4C_beaminteraction_link_beam3_reissner_line2_rigidjointed.hpp"
 #include "4C_beaminteraction_str_model_evaluator_datastate.hpp"
 #include "4C_binstrategy_meshfree_multibin.hpp"
 #include "4C_fem_condition.hpp"
