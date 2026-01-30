@@ -66,8 +66,8 @@ std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integra
     case CONTACT::SolvingStrategy::penalty:
     case CONTACT::SolvingStrategy::multiscale:
     {
-      if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(mortar_params, "ALGORITHM") ==
-          Inpar::Mortar::algorithm_gpts)
+      if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar_params, "ALGORITHM") ==
+          Mortar::algorithm_gpts)
         integrator = std::make_shared<CONTACT::IntegratorNitsche>(mortar_params, slave_type, comm);
       else
         integrator = std::make_shared<CONTACT::Integrator>(mortar_params, slave_type, comm);

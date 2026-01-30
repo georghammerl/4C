@@ -564,10 +564,10 @@ void Wear::LagrangeStrategyWear::condense_wear_impl_expl(
     std::shared_ptr<Core::LinAlg::SparseOperator>& kteff,
     std::shared_ptr<Core::LinAlg::Vector<double>>& feff, Core::LinAlg::Vector<double>& gact)
 {
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   // double-check if this is a dual LM system
-  if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+  if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
     FOUR_C_THROW("Condensation only for dual LM");
 
   // get stick map
@@ -1569,11 +1569,11 @@ void Wear::LagrangeStrategyWear::condense_wear_discr(
     std::shared_ptr<Core::LinAlg::SparseOperator>& kteff,
     std::shared_ptr<Core::LinAlg::Vector<double>>& feff, Core::LinAlg::Vector<double>& gact)
 {
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
   auto wearshapefcn = Teuchos::getIntegralValue<Inpar::Wear::WearShape>(params(), "WEAR_SHAPEFCN");
 
   // double-check if this is a dual LM system
-  if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+  if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
     FOUR_C_THROW("Condensation only for dual LM");
   if (wearshapefcn != Inpar::Wear::wear_shape_dual) FOUR_C_THROW("Condensation only for dual wear");
 
@@ -4119,8 +4119,8 @@ void Wear::LagrangeStrategyWear::output_wear()
   {
     // only for dual/pg Lagrange multiplier so far
     // diagonality of mortar matrix D is assumed
-    auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-    if (shapefcn == Inpar::Mortar::shape_standard)
+    auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+    if (shapefcn == Mortar::shape_standard)
       FOUR_C_THROW("Evaluation of wear only for dual shape functions so far.");
 
     // vectors
@@ -4382,7 +4382,7 @@ void Wear::LagrangeStrategyWear::recover(std::shared_ptr<Core::LinAlg::Vector<do
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step()) return;
 
   // shape function and system types
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
 
   //**********************************************************************
@@ -4393,7 +4393,7 @@ void Wear::LagrangeStrategyWear::recover(std::shared_ptr<Core::LinAlg::Vector<do
   if ((systype == CONTACT::SystemType::condensed) && wearprimvar_)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     // **********************************************
@@ -4507,7 +4507,7 @@ void Wear::LagrangeStrategyWear::recover(std::shared_ptr<Core::LinAlg::Vector<do
   else if ((systype == CONTACT::SystemType::condensed) && !wearprimvar_)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     // extract slave displacements from disi
@@ -4645,7 +4645,7 @@ bool Wear::LagrangeStrategyWear::redistribute_contact(
   // (1) static redistribution: ONLY at time t=0 or after restart
   // (both cases can be identified via empty unbalance vectors)
   //**********************************************************************
-  if (which_parallel_redistribution() == Inpar::Mortar::ParallelRedist::redist_static)
+  if (which_parallel_redistribution() == Mortar::ParallelRedist::redist_static)
   {
     // this is the first time step (t=0) or restart
     if ((int)unbalanceEvaluationTime_.size() == 0 && (int)unbalanceNumSlaveElements_.size() == 0)
@@ -4677,7 +4677,7 @@ bool Wear::LagrangeStrategyWear::redistribute_contact(
   //**********************************************************************
   // (2) dynamic redistribution: whenever system is out of balance
   //**********************************************************************
-  else if (which_parallel_redistribution() == Inpar::Mortar::ParallelRedist::redist_dynamic)
+  else if (which_parallel_redistribution() == Mortar::ParallelRedist::redist_dynamic)
   {
     // this is the first time step (t=0) or restart
     if ((int)unbalanceEvaluationTime_.size() == 0 && (int)unbalanceNumSlaveElements_.size() == 0)

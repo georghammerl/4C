@@ -13,7 +13,7 @@
 
 #include "4C_coupling_adapter_volmortar.hpp"
 #include "4C_fs3i.hpp"
-#include "4C_inpar_fs3i.hpp"
+#include "4C_fs3i_input.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -156,7 +156,7 @@ namespace FS3I
 
     /// vector of scatra volume couplings (i.e. fluid to fluid-scalar and structure to
     /// structure-scalar)
-    std::vector<Inpar::FS3I::VolumeCoupling> volume_fieldcouplings_;
+    std::vector<FS3I::VolumeCoupling> volume_fieldcouplings_;
 
    private:
     //! volume coupling (using mortar) adapter

@@ -11,10 +11,10 @@
 #include "4C_config.hpp"
 
 #include "4C_comm_exporter.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_io_control.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_vector.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_paramsinterface.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_utils_pairedvector.hpp"
@@ -189,20 +189,17 @@ namespace Mortar
 
     inline const Teuchos::ParameterList& i_mortar() const { return imortar_; }
 
-    inline Inpar::Mortar::ShapeFcn& shape_fcn() { return shapefcn_; }
+    inline Mortar::ShapeFcn& shape_fcn() { return shapefcn_; }
 
-    inline Inpar::Mortar::ShapeFcn shape_fcn() const { return shapefcn_; }
+    inline Mortar::ShapeFcn shape_fcn() const { return shapefcn_; }
 
     inline bool& is_quad_slave() { return quadslave_; }
 
     inline bool is_quad_slave() const { return quadslave_; }
 
-    inline const Inpar::Mortar::ExtendGhosting& get_extend_ghosting() const
-    {
-      return extendghosting_;
-    }
+    inline const Mortar::ExtendGhosting& get_extend_ghosting() const { return extendghosting_; }
 
-    inline void set_extend_ghosting(const Inpar::Mortar::ExtendGhosting& extendghosting)
+    inline void set_extend_ghosting(const Mortar::ExtendGhosting& extendghosting)
     {
       extendghosting_ = extendghosting;
     }
@@ -400,9 +397,9 @@ namespace Mortar
 
     inline int max_dof_global() const { return maxdofglobal_; }
 
-    inline Inpar::Mortar::SearchAlgorithm& search_algorithm() { return searchalgo_; }
+    inline Mortar::SearchAlgorithm& search_algorithm() { return searchalgo_; }
 
-    inline Inpar::Mortar::SearchAlgorithm search_algorithm() const { return searchalgo_; }
+    inline Mortar::SearchAlgorithm search_algorithm() const { return searchalgo_; }
 
     inline std::shared_ptr<Mortar::BinaryTree>& binary_tree() { return binarytree_; }
 
@@ -430,9 +427,9 @@ namespace Mortar
 
 
 
-    inline Inpar::Mortar::Problemtype& poro_type() { return porotype_; }
+    inline Mortar::Problemtype& poro_type() { return porotype_; }
 
-    inline Inpar::Mortar::Problemtype poro_type() const { return porotype_; }
+    inline Mortar::Problemtype poro_type() const { return porotype_; }
 
     inline std::shared_ptr<Core::Communication::Exporter>& sl_exporter_ptr()
     {
@@ -505,13 +502,13 @@ namespace Mortar
     Teuchos::ParameterList imortar_;
 
     //! employed type of shape function set
-    Inpar::Mortar::ShapeFcn shapefcn_;
+    Mortar::ShapeFcn shapefcn_;
 
     //! flag indicating quadratic 2d/3d slave elements
     bool quadslave_;
 
     //! employed type of redundancy in storage of interface
-    Inpar::Mortar::ExtendGhosting extendghosting_;
+    Mortar::ExtendGhosting extendghosting_;
 
     //! @name Maps
     //! @{
@@ -597,7 +594,7 @@ namespace Mortar
     //! @{
 
     //! type of search algorithm
-    Inpar::Mortar::SearchAlgorithm searchalgo_;
+    Mortar::SearchAlgorithm searchalgo_;
 
     //! binary searchtree
     std::shared_ptr<Mortar::BinaryTree> binarytree_;
@@ -621,7 +618,7 @@ namespace Mortar
 
 
     //! value for poro problem type!
-    Inpar::Mortar::Problemtype porotype_;
+    Mortar::Problemtype porotype_;
 
     //! flag if ehl contact problem!
     bool ehl_;
@@ -763,7 +760,7 @@ namespace Mortar
     /*!
     \brief Get type of search algorithm
     */
-    Inpar::Mortar::SearchAlgorithm search_alg() const { return searchalgo_; };
+    Mortar::SearchAlgorithm search_alg() const { return searchalgo_; };
 
     /*!
     \brief Get search algorithm parameter
@@ -1394,7 +1391,7 @@ namespace Mortar
     void print_shape_fcn() const { std::cout << shapefcn_ << std::endl; };
 
     void set_poro_flag(bool poro) { interface_data_->is_poro() = poro; }
-    void set_poro_type(Inpar::Mortar::Problemtype type) { interface_data_->poro_type() = type; }
+    void set_poro_type(Mortar::Problemtype type) { interface_data_->poro_type() = type; }
     void set_ehl_flag(bool ehl) { ehl_ = ehl; }
 
     //@}
@@ -1840,8 +1837,8 @@ namespace Mortar
         idiscret_;                     ///< ref. to the discretization of the mortar interface
     int& dim_;                         ///< ref. to dimension of problem (2D or 3D)
     Teuchos::ParameterList& imortar_;  ///< ref. to containing contact input parameters of interface
-    Inpar::Mortar::ShapeFcn& shapefcn_;  ///< ref. to employed type of shape function set
-    bool& quadslave_;                    ///< ref. to flag indicating quadratic 2d/3d slave elements
+    Mortar::ShapeFcn& shapefcn_;       ///< ref. to employed type of shape function set
+    bool& quadslave_;                  ///< ref. to flag indicating quadratic 2d/3d slave elements
 
     std::shared_ptr<Core::LinAlg::Map>&
         oldnodecolmap_;  ///< ref. to column map of all interface nodes (overlap=1)
@@ -1881,7 +1878,7 @@ namespace Mortar
         lmdofmap_;       ///< ref. to row map of all Lagrange multiplier dofs
     int& maxdofglobal_;  ///< ref. to maximum dof ID in global discretization
 
-    Inpar::Mortar::SearchAlgorithm& searchalgo_;       ///< ref. to type of search algorithm
+    Mortar::SearchAlgorithm& searchalgo_;              ///< ref. to type of search algorithm
     std::shared_ptr<Mortar::BinaryTree>& binarytree_;  ///< ref. to binary searchtree
     double& searchparam_;                              ///< ref. to search parameter
     bool& searchuseauxpos_;      ///< ref. to use auxiliary position when computing dops

@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
-#include "4C_inpar_mortar.hpp"
 #include "4C_mortar_coupling3d_classes.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_utils_pairedvector.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -189,7 +189,7 @@ namespace Mortar
      \brief Return the LM interpolation / testing type for quadratic FE
 
      */
-    virtual Inpar::Mortar::LagMultQuad lag_mult_quad() const { return lmquadtype_; };
+    virtual Mortar::LagMultQuad lag_mult_quad() const { return lmquadtype_; };
 
     /*!
      \brief Get interface contact parameter list
@@ -201,7 +201,7 @@ namespace Mortar
      \brief Return the LM shape fcn type
 
      */
-    Inpar::Mortar::ShapeFcn shape_fcn() const { return shapefcn_; };
+    Mortar::ShapeFcn shape_fcn() const { return shapefcn_; };
 
     //@}
 
@@ -449,11 +449,11 @@ namespace Mortar
     Coupling3d operator=(const Coupling3d& old);
     Coupling3d(const Coupling3d& old);
 
-    Core::FE::Discretization& idiscret_;     // discretization of the contact interface
-    int dim_;                                // problem dimension (here: 3D)
-    Inpar::Mortar::ShapeFcn shapefcn_;       // lm shape function type
-    bool quad_;                              // flag indicating coupling type (true = quadratic)
-    Inpar::Mortar::LagMultQuad lmquadtype_;  // type of quadratic lm interpolation
+    Core::FE::Discretization& idiscret_;  // discretization of the contact interface
+    int dim_;                             // problem dimension (here: 3D)
+    Mortar::ShapeFcn shapefcn_;           // lm shape function type
+    bool quad_;                           // flag indicating coupling type (true = quadratic)
+    Mortar::LagMultQuad lmquadtype_;      // type of quadratic lm interpolation
 
     Mortar::Element& sele_;            // slave element to perform coupling for
     Mortar::Element& mele_;            // master element to perform coupling for
@@ -583,7 +583,7 @@ namespace Mortar
      \brief Get type of integration scheme
 
      */
-    virtual Inpar::Mortar::IntType int_type() { return integrationtype_; }
+    virtual Mortar::IntType int_type() { return integrationtype_; }
 
     /*!
      \brief Get coupling type
@@ -613,13 +613,13 @@ namespace Mortar
      \brief Return the LM interpolation / testing type for quadratic FE
 
      */
-    virtual Inpar::Mortar::LagMultQuad lag_mult_quad() { return lmquadtype_; };
+    virtual Mortar::LagMultQuad lag_mult_quad() { return lmquadtype_; };
 
     /*!
      \brief Return the LM shape fcn type
 
      */
-    virtual Inpar::Mortar::ShapeFcn shape_fcn() { return shapefcn_; }
+    virtual Mortar::ShapeFcn shape_fcn() { return shapefcn_; }
     //@}
 
    protected:
@@ -639,12 +639,12 @@ namespace Mortar
     Coupling3dManager operator=(const Coupling3dManager& old);
     Coupling3dManager(const Coupling3dManager& old);
 
-    Core::FE::Discretization& idiscret_;                  // discretization of the contact interface
-    int dim_;                                             // problem dimension (here: 3D)
-    Inpar::Mortar::IntType integrationtype_;              // integration type
-    Inpar::Mortar::ShapeFcn shapefcn_;                    // lm shape function type
-    Inpar::Mortar::LagMultQuad lmquadtype_;               // type of quadratic lm interpolation
-    Inpar::Mortar::ConsistentDualType lmdualconsistent_;  // flag indicating dual consistent lm
+    Core::FE::Discretization& idiscret_;           // discretization of the contact interface
+    int dim_;                                      // problem dimension (here: 3D)
+    Mortar::IntType integrationtype_;              // integration type
+    Mortar::ShapeFcn shapefcn_;                    // lm shape function type
+    Mortar::LagMultQuad lmquadtype_;               // type of quadratic lm interpolation
+    Mortar::ConsistentDualType lmdualconsistent_;  // flag indicating dual consistent lm
     bool quad_;                           // flag indicating coupling type (true = quadratic)
     Teuchos::ParameterList& imortar_;     // containing contact input parameters
     Mortar::Element* sele_;               // slave element
@@ -671,9 +671,9 @@ namespace Mortar
         Teuchos::ParameterList& params, Mortar::Element* sele, std::vector<Mortar::Element*> mele);
 
 
-    Inpar::Mortar::LagMultQuad lag_mult_quad() override
+    Mortar::LagMultQuad lag_mult_quad() override
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(imortar_, "LM_QUAD");
+      return Teuchos::getIntegralValue<Mortar::LagMultQuad>(imortar_, "LM_QUAD");
     }
 
     /*!
@@ -698,7 +698,7 @@ namespace Mortar
      \brief Get integration type
 
      */
-    Inpar::Mortar::IntType int_type() override { return integrationtype_; }
+    Mortar::IntType int_type() override { return integrationtype_; }
 
     /*!
      \brief Get coupling type

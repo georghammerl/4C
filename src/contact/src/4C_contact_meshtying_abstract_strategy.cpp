@@ -215,10 +215,10 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
   // {d}, we have to apply the transformation matrix T and vice versa
   // with the transformation matrix T^(-1).
   //----------------------------------------------------------------------
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (shapefcn == Inpar::Mortar::shape_dual &&
-      (n_dim() == 3 || (n_dim() == 2 && lagmultquad == Inpar::Mortar::lagmult_lin)))
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
+  if (shapefcn == Mortar::shape_dual &&
+      (n_dim() == 3 || (n_dim() == 2 && lagmultquad == Mortar::lagmult_lin)))
     for (int i = 0; i < (int)interface_.size(); ++i)
       dualquadslavetrafo_ += (interface_[i]->quadslave() && !(interface_[i]->is_nurbs()));
 
@@ -229,7 +229,7 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
   {
     // for locally linear Lagrange multipliers, consider both slave and master DOFs,
     // and otherwise, only consider slave DOFs
-    if (lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (lagmultquad == Mortar::lagmult_lin)
     {
       trafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
       invtrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
@@ -395,10 +395,10 @@ void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
   for (int i = 0; i < (int)interface_.size(); ++i) quadratic += interface_[i]->quadslave();
   if (quadratic) FOUR_C_THROW("restrict_meshtying_zone only implemented for first-order elements");
 
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  if ((shapefcn == Inpar::Mortar::shape_dual || shapefcn == Inpar::Mortar::shape_petrovgalerkin) &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(
-          params(), "LM_DUAL_CONSISTENT") == Inpar::Mortar::consistent_none)
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  if ((shapefcn == Mortar::shape_dual || shapefcn == Mortar::shape_petrovgalerkin) &&
+      Teuchos::getIntegralValue<Mortar::ConsistentDualType>(params(), "LM_DUAL_CONSISTENT") ==
+          Mortar::consistent_none)
     FOUR_C_THROW(
         "ERROR: restrict_meshtying_zone for dual shape functions "
         "only implemented in combination with consistent boundary modification");

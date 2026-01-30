@@ -15,6 +15,7 @@
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_binstrategy_input.hpp"
 #include "4C_browniandyn_input.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_cut_input.hpp"
@@ -23,15 +24,14 @@
 #include "4C_fbi_input.hpp"
 #include "4C_fem_general_element_definition.hpp"
 #include "4C_fem_nurbs_discretization_knotvector.hpp"
+#include "4C_fpsi_input.hpp"
+#include "4C_fs3i_input.hpp"
 #include "4C_geometric_search_input.hpp"
 #include "4C_global_legacy_module_problem_type_string.hpp"
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_inpar_fluid.hpp"
-#include "4C_inpar_fpsi.hpp"
-#include "4C_inpar_fs3i.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_inpar_io.hpp"
 #include "4C_inpar_IO_runtime_output.hpp"
@@ -39,7 +39,6 @@
 #include "4C_inpar_IO_runtime_vtk_output_structure.hpp"
 #include "4C_inpar_IO_runtime_vtp_output_structure.hpp"
 #include "4C_inpar_levelset.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_inpar_plasticity.hpp"
 #include "4C_inpar_s2i.hpp"
 #include "4C_inpar_scatra.hpp"
@@ -56,6 +55,7 @@
 #include "4C_io_pstream.hpp"
 #include "4C_linear_solver_method_input.hpp"
 #include "4C_lubrication_input.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_particle_input.hpp"
 #include "4C_pasi_input.hpp"
 #include "4C_poroelast_input.hpp"
@@ -304,7 +304,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Solid::IOMonitorStructureDBC::valid_parameters());
   push_specs(specs, Inpar::IORuntimeOutput::valid_parameters());
   push_specs(specs, Inpar::IORuntimeVTPStructure::valid_parameters());
-  push_specs(specs, Inpar::Mortar::valid_parameters());
+  push_specs(specs, Mortar::valid_parameters());
   push_specs(specs, CONTACT::valid_parameters());
   push_specs(specs, Inpar::VolMortar::valid_parameters());
   push_specs(specs, Inpar::Wear::valid_parameters());
@@ -336,7 +336,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, STI::valid_parameters());
 
   push_specs(specs, Inpar::S2I::valid_parameters());
-  push_specs(specs, Inpar::FS3I::valid_parameters());
+  push_specs(specs, FS3I::valid_parameters());
   push_specs(specs, PoroElast::valid_parameters());
   push_specs(specs, PoroElastScaTra::valid_parameters());
   push_specs(specs, PoroPressureBased::valid_parameters_porofluid());
@@ -353,8 +353,8 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Inpar::BioFilm::valid_parameters());
   push_specs(specs, Airway::valid_parameters());
   push_specs(specs, ReducedLung::valid_parameters());
-  push_specs(specs, Inpar::Cardiovascular0D::valid_parameters());
-  push_specs(specs, Inpar::FPSI::valid_parameters());
+  push_specs(specs, Cardiovascular0DInput::valid_parameters());
+  push_specs(specs, FPSI::valid_parameters());
   push_specs(specs, FBI::valid_parameters());
 
   push_specs(specs, Particle::valid_parameters());

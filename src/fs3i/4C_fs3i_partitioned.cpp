@@ -54,9 +54,9 @@ void FS3I::PartFS3I::init()
   // call setup in base class
   FS3I::FS3IBase::init();
 
-  volume_fieldcouplings_.push_back(Teuchos::getIntegralValue<Inpar::FS3I::VolumeCoupling>(
+  volume_fieldcouplings_.push_back(Teuchos::getIntegralValue<FS3I::VolumeCoupling>(
       Global::Problem::instance()->f_s3_i_dynamic_params(), "FLUIDSCAL_FIELDCOUPLING"));
-  volume_fieldcouplings_.push_back(Teuchos::getIntegralValue<Inpar::FS3I::VolumeCoupling>(
+  volume_fieldcouplings_.push_back(Teuchos::getIntegralValue<FS3I::VolumeCoupling>(
       Global::Problem::instance()->f_s3_i_dynamic_params(), "STRUCTSCAL_FIELDCOUPLING"));
 
   Global::Problem* problem = Global::Problem::instance();
@@ -118,7 +118,7 @@ void FS3I::PartFS3I::init()
   // transport discretization is empty
   if (fluidscatradis->num_global_nodes() == 0)
   {
-    if (not(volume_fieldcouplings_[0] == Inpar::FS3I::coupling_match))
+    if (not(volume_fieldcouplings_[0] == FS3I::coupling_match))
       FOUR_C_THROW(
           "If you clone your fluid-scatra mesh from the fluid use FLUIDSCAL_FIELDCOUPLING "
           "'volume_matching'!");
@@ -147,7 +147,7 @@ void FS3I::PartFS3I::init()
   }
   else
   {
-    if (not(volume_fieldcouplings_[0] == Inpar::FS3I::coupling_nonmatch))
+    if (not(volume_fieldcouplings_[0] == FS3I::coupling_nonmatch))
       FOUR_C_THROW(
           "If you have specified the fluid-scalar by TRANSPORT ELEMENTS use "
           "FLUIDSCAL_FIELDCOUPLING 'volume_nonmatching'!");
@@ -172,7 +172,7 @@ void FS3I::PartFS3I::init()
   // scalar transport discretization is empty
   if (structscatradis->num_global_nodes() == 0)
   {
-    if (not(volume_fieldcouplings_[1] == Inpar::FS3I::coupling_match))
+    if (not(volume_fieldcouplings_[1] == FS3I::coupling_match))
       FOUR_C_THROW(
           "If you clone your structure-scatra mesh from the structure use STRUCTSCAL_FIELDCOUPLING "
           "'volume_matching'!");
@@ -195,7 +195,7 @@ void FS3I::PartFS3I::init()
   }
   else
   {
-    if (not(volume_fieldcouplings_[1] == Inpar::FS3I::coupling_nonmatch))
+    if (not(volume_fieldcouplings_[1] == FS3I::coupling_nonmatch))
       FOUR_C_THROW(
           "If you have specified the structure-scalar by TRANSPORT2 ELEMENTS use "
           "STRUCTSCAL_FIELDCOUPLING 'volume_nonmatching'!");
@@ -875,10 +875,10 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> FS3I::PartFS3I::vol_mortar_m
 {
   switch (volume_fieldcouplings_[i])
   {
-    case Inpar::FS3I::coupling_match:
+    case FS3I::coupling_match:
       return mastervector;
       break;
-    case Inpar::FS3I::coupling_nonmatch:
+    case FS3I::coupling_nonmatch:
       return volume_coupling_objects_[i]->apply_vector_mapping21(*mastervector);
       break;
     default:
@@ -896,10 +896,10 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> FS3I::PartFS3I::vol_mortar_s
 {
   switch (volume_fieldcouplings_[i])
   {
-    case Inpar::FS3I::coupling_match:
+    case FS3I::coupling_match:
       return slavevector;
       break;
-    case Inpar::FS3I::coupling_nonmatch:
+    case FS3I::coupling_nonmatch:
       return volume_coupling_objects_[i]->apply_vector_mapping12(*slavevector);
       break;
     default:

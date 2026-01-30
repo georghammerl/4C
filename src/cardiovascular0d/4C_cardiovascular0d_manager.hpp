@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_inpar_cardiovascular0d.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
@@ -332,7 +332,7 @@ namespace Utils
     double adaptolbetter_;      ///< adaptive tolerance for solver useful?
     double tolres_struct_;      ///< tolerace for structural residual
     double tolres_cardvasc0d_;  ///< tolerace for cardiovascular0d residual
-    Inpar::Cardiovascular0D::Cardvasc0DSolveAlgo algochoice_;
+    Cardiovascular0DInput::Cardvasc0DSolveAlgo algochoice_;
     std::shared_ptr<Core::LinAlg::Vector<double>>
         dirichtoggle_;                                     ///< \b only for compatibility: dirichlet
                                                            ///< toggle -- monitor its target change!

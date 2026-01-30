@@ -13,7 +13,6 @@
 #include "4C_contact_interface.hpp"
 #include "4C_contact_node.hpp"
 #include "4C_fem_discretization.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_fevector.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"
@@ -22,6 +21,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_mortar_dofset.hpp"
 #include "4C_mortar_element.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_node.hpp"
 
 FOUR_C_NAMESPACE_OPEN

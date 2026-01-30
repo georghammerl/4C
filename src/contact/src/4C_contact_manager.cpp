@@ -28,12 +28,12 @@
 #include "4C_contact_wear_interface.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_inpar_wear.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
 #include "4C_io_input_parameter_container.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_utils.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -112,7 +112,7 @@ CONTACT::Manager::Manager(Core::FE::Discretization& discret, double alphaf)
   auto frictionType = Teuchos::getIntegralValue<CONTACT::FrictionType>(contactParams, "FRICTION");
   auto adhesionType = Teuchos::getIntegralValue<CONTACT::AdhesionType>(contactParams, "ADHESION");
   const bool nurbs = contactParams.get<bool>("NURBS");
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(contactParams, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(contactParams, "ALGORITHM");
 
   bool friplus = false;
   if ((wearLaw != Inpar::Wear::wear_none) ||
@@ -274,10 +274,9 @@ CONTACT::Manager::Manager(Core::FE::Discretization& discret, double alphaf)
     icparams.set<bool>("Searchele_AllProc", Searchele_AllProc);
 
     // Safety check for interface storage redundancy in case of self contact
-    Inpar::Mortar::ExtendGhosting redundant =
-        Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
-            icparams.sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
-    if (isanyselfcontact == true && redundant != Inpar::Mortar::ExtendGhosting::redundant_all)
+    Mortar::ExtendGhosting redundant = Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
+        icparams.sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
+    if (isanyselfcontact == true && redundant != Mortar::ExtendGhosting::redundant_all)
       FOUR_C_THROW("Manager: Self contact requires fully redundant slave and master storage");
 
     // Use factory to create an empty interface and store it in this Manager.
@@ -480,10 +479,10 @@ CONTACT::Manager::Manager(Core::FE::Discretization& discret, double alphaf)
                     CONTACT::Problemtype::poroelast ||
                 contactParams.get<CONTACT::Problemtype>("PROBTYPE") ==
                     CONTACT::Problemtype::poroscatra) &&
-            algo != Inpar::Mortar::algorithm_gpts)
+            algo != Mortar::algorithm_gpts)
           set_poro_parent_element(slavetype, mastertype, *cele, ele);
 
-        if (algo == Inpar::Mortar::algorithm_gpts)
+        if (algo == Mortar::algorithm_gpts)
         {
           std::shared_ptr<Core::Elements::FaceElement> faceele =
               std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
@@ -531,7 +530,7 @@ CONTACT::Manager::Manager(Core::FE::Discretization& discret, double alphaf)
     if ((contactParams.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::poroelast ||
             contactParams.get<CONTACT::Problemtype>("PROBTYPE") ==
                 CONTACT::Problemtype::poroscatra) &&
-        algo != Inpar::Mortar::algorithm_gpts)
+        algo != Mortar::algorithm_gpts)
       find_poro_interface_types(
           poromaster, poroslave, structmaster, structslave, slavetype, mastertype);
   }
@@ -578,14 +577,14 @@ CONTACT::Manager::Manager(Core::FE::Discretization& discret, double alphaf)
   }
   else if (((stype == CONTACT::SolvingStrategy::penalty ||
                 stype == CONTACT::SolvingStrategy::multiscale) &&
-               algo != Inpar::Mortar::algorithm_gpts) ||
+               algo != Mortar::algorithm_gpts) ||
            stype == CONTACT::SolvingStrategy::uzawa)
   {
     strategy_ = std::make_shared<PenaltyStrategy>(data_ptr, discret.dof_row_map(),
         discret.node_row_map(), contactParams, interfaces, dim, comm_, alphaf, maxdof);
   }
-  else if (algo == Inpar::Mortar::algorithm_gpts && (stype == CONTACT::SolvingStrategy::nitsche ||
-                                                        stype == CONTACT::SolvingStrategy::penalty))
+  else if (algo == Mortar::algorithm_gpts && (stype == CONTACT::SolvingStrategy::nitsche ||
+                                                 stype == CONTACT::SolvingStrategy::penalty))
   {
     if ((contactParams.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::poroelast ||
             contactParams.get<CONTACT::Problemtype>("PROBTYPE") ==
@@ -687,22 +686,22 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
   const Teuchos::ParameterList& mortarParallelRedistParams =
       mortar.sublist("PARALLEL REDISTRIBUTION");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none &&
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none &&
       mortarParallelRedistParams.get<int>("MIN_ELEPROC") < 0)
     FOUR_C_THROW(
         "Minimum number of elements per processor for parallel redistribution must be >= 0");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") == Inpar::Mortar::ParallelRedist::redist_dynamic &&
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(mortarParallelRedistParams,
+          "PARALLEL_REDIST") == Mortar::ParallelRedist::redist_dynamic &&
       mortarParallelRedistParams.get<double>("MAX_BALANCE_EVAL_TIME") < 1.0)
     FOUR_C_THROW(
         "Maximum allowed value of load balance for dynamic parallel redistribution must be "
         ">= 1.0");
 
   if (problemtype == Core::ProblemType::tsi &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none)
+      Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none)
     FOUR_C_THROW("Parallel redistribution not yet implemented for TSI problems");
 
   // *********************************************************************
@@ -804,52 +803,50 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
   // *********************************************************************
   //                       MORTAR-SPECIFIC CHECKS
   // *********************************************************************
-  if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
-      Inpar::Mortar::algorithm_mortar)
+  if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
+      Mortar::algorithm_mortar)
   {
     // *********************************************************************
     // invalid parameter combinations
     // *********************************************************************
     if (Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") !=
             CONTACT::SolvingStrategy::lagmult &&
-        Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-            Inpar::Mortar::shape_petrovgalerkin)
+        Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
+            Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Petrov-Galerkin approach for LM only with Lagrange multiplier strategy");
 
     if (Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") ==
             CONTACT::SolvingStrategy::lagmult &&
-        (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-                Inpar::Mortar::shape_standard &&
-            Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(mortar, "LM_QUAD") !=
-                Inpar::Mortar::lagmult_const) &&
+        (Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
+                Mortar::shape_standard &&
+            Teuchos::getIntegralValue<Mortar::LagMultQuad>(mortar, "LM_QUAD") !=
+                Mortar::lagmult_const) &&
         Teuchos::getIntegralValue<CONTACT::SystemType>(contact, "SYSTEM") ==
             CONTACT::SystemType::condensed)
       FOUR_C_THROW("Condensation of linear system only possible for dual Lagrange multipliers");
 
-    if (Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(
-            mortar, "LM_DUAL_CONSISTENT") != Inpar::Mortar::consistent_none &&
+    if (Teuchos::getIntegralValue<Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
+            Mortar::consistent_none &&
         Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") !=
             CONTACT::SolvingStrategy::lagmult &&
-        Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-            Inpar::Mortar::shape_standard)
+        Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
+            Mortar::shape_standard)
       FOUR_C_THROW(
           "Consistent dual shape functions in boundary elements only for Lagrange "
           "multiplier strategy.");
 
-    if (Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(
-            mortar, "LM_DUAL_CONSISTENT") != Inpar::Mortar::consistent_none &&
-        Teuchos::getIntegralValue<Inpar::Mortar::IntType>(mortar, "INTTYPE") ==
-            Inpar::Mortar::inttype_elements &&
-        (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-            Inpar::Mortar::shape_dual))
+    if (Teuchos::getIntegralValue<Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
+            Mortar::consistent_none &&
+        Teuchos::getIntegralValue<Mortar::IntType>(mortar, "INTTYPE") == Mortar::inttype_elements &&
+        (Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") == Mortar::shape_dual))
       FOUR_C_THROW(
           "Consistent dual shape functions in boundary elements not for purely "
           "element-based integration.");
 
     if (Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") ==
             CONTACT::SolvingStrategy::nitsche &&
-        Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(mortar, "ALGORITHM") !=
-            Inpar::Mortar::algorithm_gpts)
+        Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar, "ALGORITHM") !=
+            Mortar::algorithm_gpts)
       FOUR_C_THROW("Nitsche contact only with GPTS algorithm.");
 
 
@@ -857,8 +854,8 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     // not (yet) implemented combinations
     // *********************************************************************
 
-    if (mortar.get<bool>("CROSSPOINTS") && Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                                               mortar, "LM_QUAD") == Inpar::Mortar::lagmult_lin)
+    if (mortar.get<bool>("CROSSPOINTS") &&
+        Teuchos::getIntegralValue<Mortar::LagMultQuad>(mortar, "LM_QUAD") == Mortar::lagmult_lin)
       FOUR_C_THROW("Crosspoints and linear LM interpolation for quadratic FE not yet compatible");
 
     // check for self contact
@@ -875,8 +872,8 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     }
 
     if (self == true &&
-        Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-            "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none)
+        Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+            mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none)
       FOUR_C_THROW("Self contact and parallel redistribution not yet compatible");
 
     if (contact.get<bool>("INITCONTACTBYGAP") && contact.get<double>("INITCONTACTGAPVALUE") == 0.0)
@@ -894,9 +891,8 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     // *********************************************************************
     // thermal-structure-interaction contact
     // *********************************************************************
-    if (problemtype == Core::ProblemType::tsi &&
-        Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-            Inpar::Mortar::shape_standard)
+    if (problemtype == Core::ProblemType::tsi && Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar,
+                                                     "LM_SHAPEFCN") == Mortar::shape_standard)
       FOUR_C_THROW("Thermal contact only for dual shape functions");
 
     if (problemtype == Core::ProblemType::tsi &&
@@ -946,10 +942,9 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     // *********************************************************************
     // 3D quadratic mortar (choice of interpolation and testing fcts.)
     // *********************************************************************
-    if (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(mortar, "LM_QUAD") ==
-            Inpar::Mortar::lagmult_pwlin &&
-        Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-            Inpar::Mortar::shape_dual)
+    if (Teuchos::getIntegralValue<Mortar::LagMultQuad>(mortar, "LM_QUAD") ==
+            Mortar::lagmult_pwlin &&
+        Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") == Mortar::shape_dual)
       FOUR_C_THROW(
           "No piecewise linear approach (for LM) implemented for quadratic contact with "
           "DUAL shape fct.");
@@ -963,16 +958,16 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     {
       const Teuchos::ParameterList& porodyn =
           Global::Problem::instance()->poroelast_dynamic_params();
-      if ((Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-                  Inpar::Mortar::shape_dual &&
-              Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-                  Inpar::Mortar::shape_petrovgalerkin) &&
+      if ((Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
+                  Mortar::shape_dual &&
+              Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
+                  Mortar::shape_petrovgalerkin) &&
           Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") ==
               CONTACT::SolvingStrategy::lagmult)
         FOUR_C_THROW("POROCONTACT: Only dual and petrovgalerkin shape functions implemented yet!");
 
-      if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-              "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none &&
+      if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(mortarParallelRedistParams,
+              "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none &&
           Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(contact, "STRATEGY") ==
               CONTACT::SolvingStrategy::lagmult)
         // Since we use Pointers to Parent Elements, which are not copied to other procs!
@@ -1007,12 +1002,12 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
     // *********************************************************************
     // element-based vs. segment-based mortar integration
     // *********************************************************************
-    auto inttype = Teuchos::getIntegralValue<Inpar::Mortar::IntType>(mortar, "INTTYPE");
+    auto inttype = Teuchos::getIntegralValue<Mortar::IntType>(mortar, "INTTYPE");
 
-    if (inttype == Inpar::Mortar::inttype_elements && mortar.get<int>("NUMGP_PER_DIM") <= 0)
+    if (inttype == Mortar::inttype_elements && mortar.get<int>("NUMGP_PER_DIM") <= 0)
       FOUR_C_THROW("Invalid Gauss point number NUMGP_PER_DIM for element-based integration.");
 
-    if (inttype == Inpar::Mortar::inttype_elements_BS && mortar.get<int>("NUMGP_PER_DIM") <= 0)
+    if (inttype == Mortar::inttype_elements_BS && mortar.get<int>("NUMGP_PER_DIM") <= 0)
       FOUR_C_THROW(
           "Invalid Gauss point number NUMGP_PER_DIM for element-based integration with "
           "boundary segmentation."
@@ -1021,8 +1016,7 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
           "\ndomain, while pre-defined default values will be used in the segment-based boundary "
           "domain.");
 
-    if ((inttype == Inpar::Mortar::inttype_elements ||
-            inttype == Inpar::Mortar::inttype_elements_BS) &&
+    if ((inttype == Mortar::inttype_elements || inttype == Mortar::inttype_elements_BS) &&
         mortar.get<int>("NUMGP_PER_DIM") <= 1)
       FOUR_C_THROW("Invalid Gauss point number NUMGP_PER_DIM for element-based integration.");
   }  // END MORTAR CHECKS
@@ -1030,8 +1024,8 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
   // *********************************************************************
   //                       NTS-SPECIFIC CHECKS
   // *********************************************************************
-  else if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
-           Inpar::Mortar::algorithm_nts)
+  else if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
+           Mortar::algorithm_nts)
   {
     if (problemtype == Core::ProblemType::poroelast or problemtype == Core::ProblemType::fpsi or
         problemtype == Core::ProblemType::tsi)
@@ -1041,8 +1035,8 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
   // *********************************************************************
   //                       GPTS-SPECIFIC CHECKS
   // *********************************************************************
-  else if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
-           Inpar::Mortar::algorithm_gpts)
+  else if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar, "ALGORITHM") ==
+           Mortar::algorithm_gpts)
   {
     const_cast<Teuchos::ParameterList&>(Global::Problem::instance()->contact_dynamic_params())
         .set("SYSTEM", CONTACT::SystemType::none);
@@ -1152,8 +1146,7 @@ bool CONTACT::Manager::read_and_check_input(Teuchos::ParameterList& cparams) con
   // no parallel redistribution in the serial case
   if (Core::Communication::num_mpi_ranks(get_comm()) == 1)
     cparams.sublist("PARALLEL REDISTRIBUTION")
-        .set<Inpar::Mortar::ParallelRedist>(
-            "PARALLEL_REDIST", Inpar::Mortar::ParallelRedist::redist_none);
+        .set<Mortar::ParallelRedist>("PARALLEL_REDIST", Mortar::ParallelRedist::redist_none);
 
   // set dimension
   cparams.set<int>("DIMENSION", dim);
@@ -1195,8 +1188,8 @@ void CONTACT::Manager::read_restart(Core::IO::DiscretizationReader& reader,
 {
   // If Parent Elements are required, we need to reconnect them before contact restart!
   auto atype =
-      Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(get_strategy().params(), "ALGORITHM");
-  if (atype == Inpar::Mortar::algorithm_gpts)
+      Teuchos::getIntegralValue<Mortar::AlgorithmType>(get_strategy().params(), "ALGORITHM");
+  if (atype == Mortar::algorithm_gpts)
   {
     for (unsigned i = 0;
         i < dynamic_cast<CONTACT::AbstractStrategy&>(get_strategy()).contact_interfaces().size();

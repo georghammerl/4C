@@ -9,12 +9,12 @@
 
 #include "4C_beam3_euler_bernoulli.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_discretization_nullspace.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_linalg_krylov_projector.hpp"
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
@@ -515,15 +515,15 @@ std::shared_ptr<Core::LinAlg::Solver> Solid::SOLVER::Factory::build_cardiovascul
       actdis.get_comm());
 
   // solution algorithm - direct or simple
-  Inpar::Cardiovascular0D::Cardvasc0DSolveAlgo algochoice =
-      Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DSolveAlgo>(
+  Cardiovascular0DInput::Cardvasc0DSolveAlgo algochoice =
+      Teuchos::getIntegralValue<Cardiovascular0DInput::Cardvasc0DSolveAlgo>(
           cardvasc0dstructparams, "SOLALGORITHM");
 
   switch (algochoice)
   {
-    case Inpar::Cardiovascular0D::cardvasc0dsolve_direct:
+    case Cardiovascular0DInput::cardvasc0dsolve_direct:
       break;
-    case Inpar::Cardiovascular0D::cardvasc0dsolve_block:
+    case Cardiovascular0DInput::cardvasc0dsolve_block:
     {
       linsolver->put_solver_params_to_sub_params("Inverse1",
           Global::Problem::instance()->solver_params(linsolvernumber),

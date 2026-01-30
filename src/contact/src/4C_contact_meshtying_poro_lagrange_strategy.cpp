@@ -50,7 +50,7 @@ void CONTACT::PoroMtLagrangeStrategy::evaluate_meshtying_poro_off_diag(
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(params(), "SYSTEM");
 
   // shape function
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
 
   //**********************************************************************
   //**********************************************************************
@@ -61,7 +61,7 @@ void CONTACT::PoroMtLagrangeStrategy::evaluate_meshtying_poro_off_diag(
       systype == CONTACT::SystemType::condensed_lagmult)
   {
     // double-check if this is a dual LM system
-    if (shapefcn != Inpar::Mortar::shape_dual && shapefcn != Inpar::Mortar::shape_petrovgalerkin)
+    if (shapefcn != Mortar::shape_dual && shapefcn != Mortar::shape_petrovgalerkin)
       FOUR_C_THROW("Condensation only for dual LM");
 
     // h.Willmann actual method

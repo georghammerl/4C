@@ -117,7 +117,7 @@ CONTACT::AbstractStrategy::AbstractStrategy(
       Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(params_in, "STRATEGY");
   data_ptr_->constr_direction() =
       Teuchos::getIntegralValue<CONTACT::ConstraintDirection>(params_in, "CONSTRAINT_DIRECTIONS");
-  data_ptr_->par_type() = Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
+  data_ptr_->par_type() = Teuchos::getIntegralValue<Mortar::ParallelRedist>(
       params_in.sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
 
   auto ftype = Teuchos::getIntegralValue<CONTACT::FrictionType>(params(), "FRICTION");
@@ -167,11 +167,11 @@ bool CONTACT::AbstractStrategy::is_rebalancing_necessary(const bool first_time_s
 
   switch (which_parallel_redistribution())
   {
-    case Inpar::Mortar::ParallelRedist::redist_none:
+    case Mortar::ParallelRedist::redist_none:
     {
       break;
     }
-    case Inpar::Mortar::ParallelRedist::redist_static:
+    case Mortar::ParallelRedist::redist_static:
     {
       // Static redistribution: ONLY at time t=0 or after restart
       if (first_time_step)
@@ -182,7 +182,7 @@ bool CONTACT::AbstractStrategy::is_rebalancing_necessary(const bool first_time_s
 
       break;
     }
-    case Inpar::Mortar::ParallelRedist::redist_dynamic:
+    case Mortar::ParallelRedist::redist_dynamic:
     {
       // Dynamic redistribution: whenever system is out of balance
 
@@ -262,13 +262,13 @@ void CONTACT::AbstractStrategy::print_parallel_balance_indicators(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 bool CONTACT::AbstractStrategy::is_update_of_ghosting_necessary(
-    const Inpar::Mortar::ExtendGhosting& ghosting_strategy, const bool first_time_step) const
+    const Mortar::ExtendGhosting& ghosting_strategy, const bool first_time_step) const
 {
   bool enforce_update_of_ghosting = false;
   switch (ghosting_strategy)
   {
-    case Inpar::Mortar::ExtendGhosting::redundant_all:
-    case Inpar::Mortar::ExtendGhosting::redundant_master:
+    case Mortar::ExtendGhosting::redundant_all:
+    case Mortar::ExtendGhosting::redundant_master:
     {
       // this is the first time step (t=0) or restart
       if (first_time_step)
@@ -278,8 +278,8 @@ bool CONTACT::AbstractStrategy::is_update_of_ghosting_necessary(
 
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::roundrobin:
-    case Inpar::Mortar::ExtendGhosting::binning:
+    case Mortar::ExtendGhosting::roundrobin:
+    case Mortar::ExtendGhosting::binning:
     {
       enforce_update_of_ghosting = true;
       break;
@@ -328,8 +328,8 @@ bool CONTACT::AbstractStrategy::redistribute_with_safe_ghosting(
   Core::Communication::barrier(get_comm());
   const double t_start = Teuchos::Time::wallTime();
 
-  const Inpar::Mortar::ExtendGhosting ghosting_strategy =
-      Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
+  const Mortar::ExtendGhosting ghosting_strategy =
+      Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
           params().sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
 
   bool first_time_step = is_first_time_step();
@@ -339,7 +339,7 @@ bool CONTACT::AbstractStrategy::redistribute_with_safe_ghosting(
 
   // Prepare for extending the ghosting
   ivel_.resize(interfaces().size(), 0.0);  // initialize to zero for non-binning strategies
-  if (ghosting_strategy == Inpar::Mortar::ExtendGhosting::binning)
+  if (ghosting_strategy == Mortar::ExtendGhosting::binning)
     calc_mean_velocity_for_binning(velocity);
 
   // Set old and current displacement state (needed for search within redistribution)
@@ -388,9 +388,8 @@ bool CONTACT::AbstractStrategy::redistribute_contact_old(
 
   // Prepare for extending the ghosting
   ivel_.resize(interfaces().size(), 0.0);  // initialize to zero for non-binning strategies
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
-          params().sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY") ==
-      Inpar::Mortar::ExtendGhosting::binning)
+  if (Teuchos::getIntegralValue<Mortar::ExtendGhosting>(params().sublist("PARALLEL REDISTRIBUTION"),
+          "GHOSTING_STRATEGY") == Mortar::ExtendGhosting::binning)
     calc_mean_velocity_for_binning(vel);
 
   /* set old and current displacement state
@@ -708,10 +707,10 @@ void CONTACT::AbstractStrategy::setup(bool redistributed, bool init)
   // {d}, we have to apply the transformation matrix T and vice versa
   // with the transformation matrix T^(-1).
   //----------------------------------------------------------------------
-  auto shapefcn = Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
-  auto lagmultquad = Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if ((shapefcn == Inpar::Mortar::shape_dual || shapefcn == Inpar::Mortar::shape_petrovgalerkin) &&
-      (n_dim() == 3 || (n_dim() == 2 && lagmultquad == Inpar::Mortar::lagmult_lin)))
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
+  auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
+  if ((shapefcn == Mortar::shape_dual || shapefcn == Mortar::shape_petrovgalerkin) &&
+      (n_dim() == 3 || (n_dim() == 2 && lagmultquad == Mortar::lagmult_lin)))
     for (int i = 0; i < (int)interfaces().size(); ++i)
       dualquadslavetrafo_ += interfaces()[i]->quadslave();
 
@@ -722,7 +721,7 @@ void CONTACT::AbstractStrategy::setup(bool redistributed, bool init)
   {
     // for locally linear Lagrange multipliers, consider both slave and master DOFs,
     // and otherwise, only consider slave DOFs
-    if (lagmultquad == Inpar::Mortar::lagmult_lin)
+    if (lagmultquad == Mortar::lagmult_lin)
     {
       trafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
       invtrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
@@ -1086,9 +1085,8 @@ void CONTACT::AbstractStrategy::initialize_and_evaluate_interface(
   // get type of parallel strategy
   const Teuchos::ParameterList& mortarParallelRedistParams =
       params().sublist("PARALLEL REDISTRIBUTION");
-  Inpar::Mortar::ExtendGhosting extendghosting =
-      Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
-          mortarParallelRedistParams, "GHOSTING_STRATEGY");
+  Mortar::ExtendGhosting extendghosting = Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
+      mortarParallelRedistParams, "GHOSTING_STRATEGY");
 
   // Evaluation for all interfaces
   for (int i = 0; i < (int)interfaces().size(); ++i)
@@ -1101,7 +1099,7 @@ void CONTACT::AbstractStrategy::initialize_and_evaluate_interface(
 
     switch (extendghosting)
     {
-      case Inpar::Mortar::ExtendGhosting::roundrobin:
+      case Mortar::ExtendGhosting::roundrobin:
       {
         // first perform rrloop to detect the required ghosting
         interfaces()[i]->round_robin_detect_ghosting();
@@ -1110,15 +1108,15 @@ void CONTACT::AbstractStrategy::initialize_and_evaluate_interface(
         interfaces()[i]->evaluate(0, step_, iter_);
         break;
       }
-      case Inpar::Mortar::ExtendGhosting::binning:
+      case Mortar::ExtendGhosting::binning:
       {
         // required master elements are already ghosted (preparestepcontact) !!!
         // call evaluation
         interfaces()[i]->evaluate(0, step_, iter_);
         break;
       }
-      case Inpar::Mortar::ExtendGhosting::redundant_all:
-      case Inpar::Mortar::ExtendGhosting::redundant_master:
+      case Mortar::ExtendGhosting::redundant_all:
+      case Mortar::ExtendGhosting::redundant_master:
       {
         interfaces()[i]->evaluate(0, step_, iter_);
         break;

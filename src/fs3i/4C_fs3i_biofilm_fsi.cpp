@@ -129,8 +129,8 @@ void FS3I::BiofilmFSI::init()
   time_ = 0.;
 
   // safety checks
-  if (volume_fieldcouplings_[0] == Inpar::FS3I::coupling_nonmatch or
-      volume_fieldcouplings_[1] == Inpar::FS3I::coupling_nonmatch)
+  if (volume_fieldcouplings_[0] == FS3I::coupling_nonmatch or
+      volume_fieldcouplings_[1] == FS3I::coupling_nonmatch)
     FOUR_C_THROW("Mortar volume coupling is yet not implemented for biofilm-fs3i.");
   if (!problem->get_dis("scatra1")->has_condition("ScaTraFluxCalc") or
       !problem->get_dis("scatra2")->has_condition("ScaTraFluxCalc"))

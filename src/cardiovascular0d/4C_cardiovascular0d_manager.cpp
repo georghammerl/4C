@@ -98,7 +98,7 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
       adaptolbetter_(0.01),
       tolres_struct_(strparams.get("TOLRES", 1.0e-8)),
       tolres_cardvasc0d_(cv0dparams.get("TOL_CARDVASC0D_RES", 1.0e-8)),
-      algochoice_(Teuchos::getIntegralValue<Inpar::Cardiovascular0D::Cardvasc0DSolveAlgo>(
+      algochoice_(Teuchos::getIntegralValue<Cardiovascular0DInput::Cardvasc0DSolveAlgo>(
           cv0dparams, "SOLALGORITHM")),
       dirichtoggle_(nullptr),
       zeros_(std::make_shared<Core::LinAlg::Vector<double>>(*(actdisc_->dof_row_map()), true)),
@@ -161,10 +161,10 @@ Utils::Cardiovascular0DManager::Cardiovascular0DManager(
     // set number of degrees of freedom
     switch (cardvasc0d_model_->get_respiratory_model())
     {
-      case Inpar::Cardiovascular0D::resp_none:
+      case Cardiovascular0DInput::resp_none:
         num_cardiovascular0_did_ = 34;
         break;
-      case Inpar::Cardiovascular0D::resp_standard:
+      case Cardiovascular0DInput::resp_standard:
         num_cardiovascular0_did_ = 82;
         break;
       default:

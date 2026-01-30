@@ -32,9 +32,9 @@ Adapter::CouplingEhlMortar::CouplingEhlMortar(int spatial_dimension,
       regularization_compliance_(Global::Problem::instance()->contact_dynamic_params().get<double>(
           "REGULARIZATION_STIFFNESS"))
 {
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(
           Global::Problem::instance()->mortar_coupling_params().sublist("PARALLEL REDISTRIBUTION"),
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none)
+          "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none)
     FOUR_C_THROW(
         "EHL does not support parallel redistribution. Set \"PARALLEL_REDIST none\" in section "
         "\"MORTAR COUPLING\"");

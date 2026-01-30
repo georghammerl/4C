@@ -14,11 +14,11 @@
 #include "4C_contact_meshtying_poro_lagrange_strategy.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_io.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_mortar_defines.hpp"
 #include "4C_mortar_element.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_mortar_interface.hpp"
 #include "4C_mortar_node.hpp"
 #include "4C_mortar_utils.hpp"
@@ -302,11 +302,11 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
      * assigned only once!
      */
     {
-      const Inpar::Mortar::ParallelRedist parallelRedist =
-          Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
+      const Mortar::ParallelRedist parallelRedist =
+          Teuchos::getIntegralValue<Mortar::ParallelRedist>(
               mtparams.sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
       bool isFinalDistribution = false;
-      if (parallelRedist == Inpar::Mortar::ParallelRedist::redist_none or
+      if (parallelRedist == Mortar::ParallelRedist::redist_none or
           Core::Communication::num_mpi_ranks(comm_) == 1)
         isFinalDistribution = true;
 
@@ -400,8 +400,8 @@ bool CONTACT::MtManager::read_and_check_input(
   const Teuchos::ParameterList& mortarParallelRedistParams =
       mortar.sublist("PARALLEL REDISTRIBUTION");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(mortarParallelRedistParams,
-          "GHOSTING_STRATEGY") == Inpar::Mortar::ExtendGhosting::roundrobin)
+  if (Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
+          mortarParallelRedistParams, "GHOSTING_STRATEGY") == Mortar::ExtendGhosting::roundrobin)
     FOUR_C_THROW(
         "Extending the ghosting via a Round-Robin loop is not implemented for mortar meshtying.");
 
@@ -434,43 +434,40 @@ bool CONTACT::MtManager::read_and_check_input(
 
   if (Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(meshtying, "STRATEGY") ==
           CONTACT::SolvingStrategy::lagmult &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-          Inpar::Mortar::shape_standard &&
+      Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
+          Mortar::shape_standard &&
       (Teuchos::getIntegralValue<CONTACT::SystemType>(meshtying, "SYSTEM") ==
               CONTACT::SystemType::condensed ||
           Teuchos::getIntegralValue<CONTACT::SystemType>(meshtying, "SYSTEM") ==
               CONTACT::SystemType::condensed_lagmult))
     FOUR_C_THROW("Condensation of linear system only possible for dual Lagrange multipliers");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") == Inpar::Mortar::ParallelRedist::redist_dynamic and
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(mortarParallelRedistParams,
+          "PARALLEL_REDIST") == Mortar::ParallelRedist::redist_dynamic and
       onlymeshtying)
     FOUR_C_THROW("Dynamic parallel redistribution not possible for meshtying");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none &&
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none &&
       mortarParallelRedistParams.get<int>("MIN_ELEPROC") < 0)
     FOUR_C_THROW(
         "ERROR: Minimum number of elements per processor for parallel redistribution must be >= 0");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
-          Inpar::Mortar::consistent_none &&
+  if (Teuchos::getIntegralValue<Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
+          Mortar::consistent_none &&
       Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(meshtying, "STRATEGY") !=
           CONTACT::SolvingStrategy::lagmult &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-          Inpar::Mortar::shape_standard)
+      Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") != Mortar::shape_standard)
     FOUR_C_THROW(
         "ERROR: Consistent dual shape functions in boundary elements only for Lagrange multiplier "
         "strategy.");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
-          Inpar::Mortar::consistent_none &&
-      Teuchos::getIntegralValue<Inpar::Mortar::IntType>(mortar, "INTTYPE") ==
-          Inpar::Mortar::inttype_elements &&
-      (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-              Inpar::Mortar::shape_dual ||
-          Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-              Inpar::Mortar::shape_petrovgalerkin))
+  if (Teuchos::getIntegralValue<Mortar::ConsistentDualType>(mortar, "LM_DUAL_CONSISTENT") !=
+          Mortar::consistent_none &&
+      Teuchos::getIntegralValue<Mortar::IntType>(mortar, "INTTYPE") == Mortar::inttype_elements &&
+      (Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") == Mortar::shape_dual ||
+          Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
+              Mortar::shape_petrovgalerkin))
 
     // *********************************************************************
     // not (yet) implemented combinations
@@ -478,27 +475,25 @@ bool CONTACT::MtManager::read_and_check_input(
     if (mortar.get<bool>("CROSSPOINTS") && spatialDim == 3)
       FOUR_C_THROW("Crosspoints / edge node modification not yet implemented for 3D");
 
-  if (mortar.get<bool>("CROSSPOINTS") && Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                                             mortar, "LM_QUAD") == Inpar::Mortar::lagmult_lin)
+  if (mortar.get<bool>("CROSSPOINTS") &&
+      Teuchos::getIntegralValue<Mortar::LagMultQuad>(mortar, "LM_QUAD") == Mortar::lagmult_lin)
     FOUR_C_THROW("Crosspoints and linear LM interpolation for quadratic FE not yet compatible");
 
   if (mortar.get<bool>("CROSSPOINTS") &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none)
+      Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none)
     FOUR_C_THROW("Crosspoints and parallel redistribution not yet compatible");
 
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-          Inpar::Mortar::shape_petrovgalerkin and
+  if (Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
+          Mortar::shape_petrovgalerkin and
       onlymeshtying)
     FOUR_C_THROW("Petrov-Galerkin approach makes no sense for meshtying");
 
   // *********************************************************************
   // 3D quadratic mortar (choice of interpolation and testing fcts.)
   // *********************************************************************
-  if (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(mortar, "LM_QUAD") ==
-          Inpar::Mortar::lagmult_pwlin &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") ==
-          Inpar::Mortar::shape_dual)
+  if (Teuchos::getIntegralValue<Mortar::LagMultQuad>(mortar, "LM_QUAD") == Mortar::lagmult_pwlin &&
+      Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") == Mortar::shape_dual)
     FOUR_C_THROW(
         "ERROR: No pwlin approach (for LM) implemented for quadratic meshtying with DUAL shape "
         "fct.");
@@ -506,12 +501,12 @@ bool CONTACT::MtManager::read_and_check_input(
   // *********************************************************************
   // element-based vs. segment-based mortar integration
   // *********************************************************************
-  auto inttype = Teuchos::getIntegralValue<Inpar::Mortar::IntType>(mortar, "INTTYPE");
+  auto inttype = Teuchos::getIntegralValue<Mortar::IntType>(mortar, "INTTYPE");
 
-  if (inttype == Inpar::Mortar::inttype_elements && mortar.get<int>("NUMGP_PER_DIM") <= 0)
+  if (inttype == Mortar::inttype_elements && mortar.get<int>("NUMGP_PER_DIM") <= 0)
     FOUR_C_THROW("Invalid Gauss point number NUMGP_PER_DIM for element-based integration.");
 
-  if (inttype == Inpar::Mortar::inttype_elements_BS && mortar.get<int>("NUMGP_PER_DIM") <= 0)
+  if (inttype == Mortar::inttype_elements_BS && mortar.get<int>("NUMGP_PER_DIM") <= 0)
     FOUR_C_THROW(
         "ERROR: Invalid Gauss point number NUMGP_PER_DIM for element-based integration with "
         "boundary segmentation."
@@ -520,8 +515,7 @@ bool CONTACT::MtManager::read_and_check_input(
         "\ndomain, while pre-defined default values will be used in the segment-based boundary "
         "domain.");
 
-  if ((inttype == Inpar::Mortar::inttype_elements ||
-          inttype == Inpar::Mortar::inttype_elements_BS) &&
+  if ((inttype == Mortar::inttype_elements || inttype == Mortar::inttype_elements_BS) &&
       mortar.get<int>("NUMGP_PER_DIM") <= 1)
     FOUR_C_THROW("Invalid Gauss point number NUMGP_PER_DIM for element-based integration.");
 
@@ -544,20 +538,19 @@ bool CONTACT::MtManager::read_and_check_input(
   if (meshtyingandcontact)
   {
     // set options for mortar coupling
-    mtparams.set<Inpar::Mortar::SearchAlgorithm>(
-        "SEARCH_ALGORITHM", Inpar::Mortar::SearchAlgorithm::search_binarytree);
+    mtparams.set<Mortar::SearchAlgorithm>(
+        "SEARCH_ALGORITHM", Mortar::SearchAlgorithm::search_binarytree);
     mtparams.set<double>("SEARCH_PARAM", 0.3);
     mtparams.set<bool>("SEARCH_USE_AUX_POS", false);
-    mtparams.set<Inpar::Mortar::ShapeFcn>("LM_SHAPEFCN", Inpar::Mortar::shape_dual);
+    mtparams.set<Mortar::ShapeFcn>("LM_SHAPEFCN", Mortar::shape_dual);
     mtparams.set<CONTACT::SystemType>("SYSTEM", CONTACT::SystemType::condensed);
     mtparams.set<bool>("NURBS", false);
     mtparams.set<int>("NUMGP_PER_DIM", -1);
     mtparams.set<CONTACT::SolvingStrategy>("STRATEGY", CONTACT::SolvingStrategy::lagmult);
-    mtparams.set<Inpar::Mortar::IntType>("INTTYPE", Inpar::Mortar::IntType::inttype_segments);
+    mtparams.set<Mortar::IntType>("INTTYPE", Mortar::IntType::inttype_segments);
     mtparams.sublist("PARALLEL REDISTRIBUTION").set<std::string>("REDUNDANT_STORAGE", "Master");
     mtparams.sublist("PARALLEL REDISTRIBUTION")
-        .set<Inpar::Mortar::ParallelRedist>(
-            "PARALLEL_REDIST", Inpar::Mortar::ParallelRedist::redist_static);
+        .set<Mortar::ParallelRedist>("PARALLEL_REDIST", Mortar::ParallelRedist::redist_static);
   }
   // *********************************************************************
   // smooth interfaces
@@ -582,16 +575,15 @@ bool CONTACT::MtManager::read_and_check_input(
   // *********************************************************************
   if ((problemtype == Core::ProblemType::poroelast || problemtype == Core::ProblemType::fpsi ||
           problemtype == Core::ProblemType::fpsi_xfem) &&
-      (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-              Inpar::Mortar::shape_dual &&
-          Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
-              Inpar::Mortar::shape_petrovgalerkin))
+      (Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") != Mortar::shape_dual &&
+          Teuchos::getIntegralValue<Mortar::ShapeFcn>(mortar, "LM_SHAPEFCN") !=
+              Mortar::shape_petrovgalerkin))
     FOUR_C_THROW("POROCONTACT: Only dual and petrovgalerkin shape functions implemented yet!");
 
   if ((problemtype == Core::ProblemType::poroelast || problemtype == Core::ProblemType::fpsi ||
           problemtype == Core::ProblemType::fpsi_xfem) &&
-      Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") != Inpar::Mortar::ParallelRedist::redist_none)
+      Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") != Mortar::ParallelRedist::redist_none)
     FOUR_C_THROW(
         "POROCONTACT: Parallel Redistribution not implemented yet!");  // Since we use Pointers to
                                                                        // Parent Elements, which are
@@ -623,8 +615,7 @@ bool CONTACT::MtManager::read_and_check_input(
   // no parallel redistribution in the serial case
   if (Core::Communication::num_mpi_ranks(get_comm()) == 1)
     mtparams.sublist("PARALLEL REDISTRIBUTION")
-        .set<Inpar::Mortar::ParallelRedist>(
-            "PARALLEL_REDIST", Inpar::Mortar::ParallelRedist::redist_none);
+        .set<Mortar::ParallelRedist>("PARALLEL_REDIST", Mortar::ParallelRedist::redist_none);
 
   return true;
 }

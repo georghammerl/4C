@@ -10,9 +10,9 @@
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fpsi.hpp"
+#include "4C_fpsi_input.hpp"
 #include "4C_fpsi_utils.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_fpsi.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
-#include "4C_inpar_mortar.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_mortar_base_binarytree.hpp"
+#include "4C_mortar_input.hpp"
 
 #include <mpi.h>
 
@@ -191,7 +191,7 @@ namespace Mortar
     */
     BinaryTree(Core::FE::Discretization& discret, std::shared_ptr<Core::LinAlg::Map> selements,
         std::shared_ptr<Core::LinAlg::Map> melements, int dim, double eps,
-        Inpar::Mortar::BinaryTreeUpdateType updatetype, bool useauxpos);
+        Mortar::BinaryTreeUpdateType updatetype, bool useauxpos);
 
 
     //! @name Query methods
@@ -354,7 +354,7 @@ namespace Mortar
     //! master root tree node
     std::shared_ptr<BinaryTreeNode> mroot_;
     //! update type of binary tree
-    const Inpar::Mortar::BinaryTreeUpdateType updatetype_;
+    const Mortar::BinaryTreeUpdateType updatetype_;
     //! bool whether auxiliary position is used when computing dops
     bool useauxpos_;
   };  // class BinaryTree

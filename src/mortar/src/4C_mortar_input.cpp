@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_inpar_mortar.hpp"
+#include "4C_mortar_input.hpp"
 
 #include "4C_fem_condition_definition.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -13,7 +13,7 @@ FOUR_C_NAMESPACE_OPEN
 
 
 
-std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
+std::vector<Core::IO::InputSpec> Mortar::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;
 
@@ -23,7 +23,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
   specs.push_back(group("MORTAR COUPLING",
       {
 
-          deprecated_selection<Inpar::Mortar::ShapeFcn>("LM_SHAPEFCN",
+          deprecated_selection<Mortar::ShapeFcn>("LM_SHAPEFCN",
               {
                   {"Dual", shape_dual},
                   {"dual", shape_dual},
@@ -37,7 +37,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
               {.description = "Type of employed set of shape functions",
                   .default_value = shape_dual}),
 
-          deprecated_selection<Inpar::Mortar::SearchAlgorithm>("SEARCH_ALGORITHM",
+          deprecated_selection<Mortar::SearchAlgorithm>("SEARCH_ALGORITHM",
               {
                   {"BruteForce", search_bfele},
                   {"bruteforce", search_bfele},
@@ -50,7 +50,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
               {.description = "Type of contact search", .default_value = search_binarytree}),
 
 
-          deprecated_selection<Inpar::Mortar::BinaryTreeUpdateType>("BINARYTREE_UPDATETYPE",
+          deprecated_selection<Mortar::BinaryTreeUpdateType>("BINARYTREE_UPDATETYPE",
               {
                   {"BottomUp", binarytree_bottom_up},
                   {"TopDown", binarytree_top_down},
@@ -67,7 +67,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
               {.description = "If chosen auxiliary position is used for computing dops",
                   .default_value = true}),
 
-          deprecated_selection<Inpar::Mortar::LagMultQuad>("LM_QUAD",
+          deprecated_selection<Mortar::LagMultQuad>("LM_QUAD",
               {
                   {"undefined", lagmult_undefined},
                   {"quad", lagmult_quad},
@@ -86,7 +86,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
                   .default_value = false}),
 
 
-          deprecated_selection<Inpar::Mortar::ConsistentDualType>("LM_DUAL_CONSISTENT",
+          deprecated_selection<Mortar::ConsistentDualType>("LM_DUAL_CONSISTENT",
               {
                   {"none", consistent_none},
                   {"boundary", consistent_boundary},
@@ -97,14 +97,14 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
                       "same GPs as the contact terms",
                   .default_value = consistent_boundary}),
 
-          deprecated_selection<Inpar::Mortar::MeshRelocation>("MESH_RELOCATION",
+          deprecated_selection<Mortar::MeshRelocation>("MESH_RELOCATION",
               {
                   {"Initial", relocation_initial},
                   {"None", relocation_none},
               },
               {.description = "Type of mesh relocation", .default_value = relocation_initial}),
 
-          deprecated_selection<Inpar::Mortar::AlgorithmType>("ALGORITHM",
+          deprecated_selection<Mortar::AlgorithmType>("ALGORITHM",
               {
                   {"mortar", algorithm_mortar},
                   {"Mortar", algorithm_mortar},
@@ -122,7 +122,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
               {.description = "Type of meshtying/contact algorithm",
                   .default_value = algorithm_mortar}),
 
-          deprecated_selection<Inpar::Mortar::IntType>("INTTYPE",
+          deprecated_selection<Mortar::IntType>("INTTYPE",
               {
                   {"Segments", inttype_segments},
                   {"segments", inttype_segments},
@@ -138,7 +138,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
               {.description = "Number of employed integration points per dimension",
                   .default_value = 0}),
 
-          deprecated_selection<Inpar::Mortar::Triangulation>("TRIANGULATION",
+          deprecated_selection<Mortar::Triangulation>("TRIANGULATION",
               {
                   {"Delaunay", triangulation_delaunay},
                   {"delaunay", triangulation_delaunay},
@@ -216,8 +216,7 @@ std::vector<Core::IO::InputSpec> Inpar::Mortar::valid_parameters()
   return specs;
 }
 
-void Inpar::Mortar::set_valid_conditions(
-    std::vector<Core::Conditions::ConditionDefinition>& condlist)
+void Mortar::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition>& condlist)
 {
   using namespace Core::IO::InputSpecBuilders;
 

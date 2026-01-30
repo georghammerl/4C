@@ -13,12 +13,12 @@
 #include "4C_coupling_adapter_converter.hpp"
 #include "4C_fem_condition_selector.hpp"
 #include "4C_fluid_implicit_integration.hpp"
+#include "4C_fs3i_input.hpp"
 #include "4C_fsi_dyn.hpp"
 #include "4C_fsi_monolithicfluidsplit.hpp"
 #include "4C_fsi_monolithicstructuresplit.hpp"
 #include "4C_fsi_utils.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_fs3i.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
@@ -220,8 +220,8 @@ void FS3I::FS3IBase::check_f_s3_i_inputs()
 
   if (Teuchos::getIntegralValue<Inpar::ScaTra::ConvForm>(fs3idyn, "STRUCTSCAL_CONVFORM") ==
           Inpar::ScaTra::convform_convective and
-      Teuchos::getIntegralValue<Inpar::FS3I::VolumeCoupling>(fs3idyn, "STRUCTSCAL_FIELDCOUPLING") ==
-          Inpar::FS3I::coupling_match)
+      Teuchos::getIntegralValue<FS3I::VolumeCoupling>(fs3idyn, "STRUCTSCAL_FIELDCOUPLING") ==
+          FS3I::coupling_match)
   {
     FOUR_C_THROW(
         "Your scalar fields have to be calculated in conservative form, since the velocity field "

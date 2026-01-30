@@ -157,8 +157,8 @@ void Coupling::Adapter::CouplingMortar::setup(
   // displacements.
   // Example: nodes at the interface are also moved for matching discretizations
   // (P should be "unity matrix")!
-  if (Teuchos::getIntegralValue<Inpar::Mortar::MeshRelocation>(inputmortar, "MESH_RELOCATION") ==
-      Inpar::Mortar::relocation_initial)
+  if (Teuchos::getIntegralValue<Mortar::MeshRelocation>(inputmortar, "MESH_RELOCATION") ==
+      Mortar::relocation_initial)
   {
     // Warning:
     // Mesh relocation is not possible if coupled degrees of freedom are less than
@@ -287,12 +287,11 @@ void Coupling::Adapter::CouplingMortar::setup_interface(
   input.set<bool>("NURBS", nurbs);
 
   // set valid parameter values
-  input.set<Inpar::Mortar::ShapeFcn>("LM_SHAPEFCN", Inpar::Mortar::ShapeFcn::shape_dual);
-  input.set<Inpar::Mortar::ConsistentDualType>(
-      "LM_DUAL_CONSISTENT", Inpar::Mortar::ConsistentDualType::consistent_none);
+  input.set<Mortar::ShapeFcn>("LM_SHAPEFCN", Mortar::ShapeFcn::shape_dual);
+  input.set<Mortar::ConsistentDualType>(
+      "LM_DUAL_CONSISTENT", Mortar::ConsistentDualType::consistent_none);
   input.sublist("PARALLEL REDISTRIBUTION")
-      .set<Inpar::Mortar::ParallelRedist>(
-          "PARALLEL_REDIST", Inpar::Mortar::ParallelRedist::redist_none);
+      .set<Mortar::ParallelRedist>("PARALLEL_REDIST", Mortar::ParallelRedist::redist_none);
   input.set<int>("DIMENSION", spatial_dimension_);
 
   // create an empty mortar interface
@@ -452,12 +451,11 @@ void Coupling::Adapter::CouplingMortar::setup_interface(
    * fill_complete(), so we skip this expensive operation here and do it later. DOFs have to be
    * assigned only once!
    */
-  const Inpar::Mortar::ParallelRedist parallelRedist =
-      Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(
-          input.sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
+  const Mortar::ParallelRedist parallelRedist = Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+      input.sublist("PARALLEL REDISTRIBUTION"), "PARALLEL_REDIST");
   {
     bool isFinalDistribution = false;
-    if (parallelRedist == Inpar::Mortar::ParallelRedist::redist_none or
+    if (parallelRedist == Mortar::ParallelRedist::redist_none or
         Core::Communication::num_mpi_ranks(comm) == 1)
       isFinalDistribution = true;
 
@@ -478,7 +476,7 @@ void Coupling::Adapter::CouplingMortar::setup_interface(
   //**********************************************************************
   // PARALLEL REDISTRIBUTION OF INTERFACE
   //**********************************************************************
-  if (parallelRedist != Inpar::Mortar::ParallelRedist::redist_none and
+  if (parallelRedist != Mortar::ParallelRedist::redist_none and
       Core::Communication::num_mpi_ranks(comm) > 1)
   {
     // redistribute optimally among all procs
@@ -835,8 +833,8 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
     // const_cast to force modified X() into pnode
     // const_cast to force modified X() into alenode if fluid=slave
     // (remark: this is REALLY BAD coding)
-    if (Teuchos::getIntegralValue<Inpar::Mortar::MeshRelocation>(
-            mortar_coupling_params_, "MESH_RELOCATION") == Inpar::Mortar::relocation_initial)
+    if (Teuchos::getIntegralValue<Mortar::MeshRelocation>(
+            mortar_coupling_params_, "MESH_RELOCATION") == Mortar::relocation_initial)
     {
       for (int k = 0; k < dim; ++k)
       {
@@ -988,8 +986,8 @@ void Coupling::Adapter::CouplingMortar::create_p()
   check_setup();
 
   // check
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(
-          interface()->interface_params(), "LM_SHAPEFCN") != Inpar::Mortar::shape_dual)
+  if (Teuchos::getIntegralValue<Mortar::ShapeFcn>(interface()->interface_params(), "LM_SHAPEFCN") !=
+      Mortar::shape_dual)
     FOUR_C_THROW("Creation of P operator only for dual shape functions!");
 
   /********************************************************************/
@@ -1154,8 +1152,8 @@ void Coupling::Adapter::CouplingMortar::matrix_row_col_transform()
   // check for parallel redistribution
   bool parredist = false;
   const Teuchos::ParameterList& input = mortar_coupling_params_.sublist("PARALLEL REDISTRIBUTION");
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
-      Inpar::Mortar::ParallelRedist::redist_none)
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(input, "PARALLEL_REDIST") !=
+      Mortar::ParallelRedist::redist_none)
     parredist = true;
 
   // only for parallel redistribution case

@@ -51,9 +51,9 @@ Mortar::InterfaceDataContainer::InterfaceDataContainer()
       idiscret_(nullptr),
       dim_(-1),
       imortar_(Teuchos::ParameterList()),
-      shapefcn_(Inpar::Mortar::shape_undefined),
+      shapefcn_(Mortar::shape_undefined),
       quadslave_(false),
-      extendghosting_(Inpar::Mortar::ExtendGhosting::redundant_master),
+      extendghosting_(Mortar::ExtendGhosting::redundant_master),
       oldnodecolmap_(nullptr),
       oldelecolmap_(nullptr),
       snoderowmap_(nullptr),
@@ -75,14 +75,14 @@ Mortar::InterfaceDataContainer::InterfaceDataContainer()
       plmdofmap_(nullptr),
       lmdofmap_(nullptr),
       maxdofglobal_(-1),
-      searchalgo_(Inpar::Mortar::search_binarytree),
+      searchalgo_(Mortar::search_binarytree),
       binarytree_(nullptr),
       searchparam_(-1.0),
       searchuseauxpos_(false),
       inttime_interface_(0.0),
       nurbs_(false),
       poro_(false),
-      porotype_(Inpar::Mortar::other),
+      porotype_(Mortar::other),
       ehl_(false),
       isinit_(false)
 { /* empty */
@@ -207,10 +207,9 @@ Mortar::Interface::Interface(std::shared_ptr<InterfaceDataContainer> interfaceDa
   dim_ = spatialDim;
   imortar_.setParameters(imortar);
   quadslave_ = false;
-  interface_data_->set_extend_ghosting(Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
+  interface_data_->set_extend_ghosting(Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
       imortar.sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY"));
-  searchalgo_ =
-      Teuchos::getIntegralValue<Inpar::Mortar::SearchAlgorithm>(imortar, "SEARCH_ALGORITHM");
+  searchalgo_ = Teuchos::getIntegralValue<Mortar::SearchAlgorithm>(imortar, "SEARCH_ALGORITHM");
   searchparam_ = imortar.get<double>("SEARCH_PARAM");
   searchuseauxpos_ = imortar.get<bool>("SEARCH_USE_AUX_POS");
   nurbs_ = imortar.get<bool>("NURBS");
@@ -266,23 +265,22 @@ void Mortar::Interface::create_interface_discretization(
  *----------------------------------------------------------------------*/
 void Mortar::Interface::set_shape_function_type()
 {
-  auto shapefcn =
-      Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(interface_params(), "LM_SHAPEFCN");
+  auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(interface_params(), "LM_SHAPEFCN");
   switch (shapefcn)
   {
-    case Inpar::Mortar::shape_dual:
+    case Mortar::shape_dual:
     {
-      shapefcn_ = Inpar::Mortar::shape_dual;
+      shapefcn_ = Mortar::shape_dual;
       break;
     }
-    case Inpar::Mortar::shape_petrovgalerkin:
+    case Mortar::shape_petrovgalerkin:
     {
-      shapefcn_ = Inpar::Mortar::shape_petrovgalerkin;
+      shapefcn_ = Mortar::shape_petrovgalerkin;
       break;
     }
-    case Inpar::Mortar::shape_standard:
+    case Mortar::shape_standard:
     {
-      shapefcn_ = Inpar::Mortar::shape_standard;
+      shapefcn_ = Mortar::shape_standard;
       break;
     }
     default:
@@ -376,12 +374,12 @@ void Mortar::Interface::print_parallel_distribution() const
     my_m_ghostele[myrank] = melecolmap_->num_my_elements() - my_m_elements[myrank];
 
     // adapt output for redundant master or all redundant case
-    if (interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::redundant_master)
+    if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::redundant_master)
     {
       my_m_ghostnodes[myrank] = mnoderowmap_->num_global_elements() - my_m_nodes[myrank];
       my_m_ghostele[myrank] = melerowmap_->num_global_elements() - my_m_elements[myrank];
     }
-    else if (interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::redundant_all)
+    else if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::redundant_all)
     {
       my_m_ghostnodes[myrank] = mnoderowmap_->num_global_elements() - my_m_nodes[myrank];
       my_m_ghostele[myrank] = melerowmap_->num_global_elements() - my_m_elements[myrank];
@@ -588,15 +586,15 @@ void Mortar::Interface::fill_complete(
   // poro)
   if (interface_data_->is_poro())
   {
-    if (interface_data_->poro_type() == Inpar::Mortar::poroscatra)
+    if (interface_data_->poro_type() == Mortar::poroscatra)
       PoroElastScaTra::Utils::create_volume_ghosting(discret());
     else
       PoroElast::Utils::create_volume_ghosting(discret());
   }
   else if (imortar_.isParameter("STRATEGY"))
   {
-    if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM") ==
-        Inpar::Mortar::algorithm_gpts)
+    if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM") ==
+        Mortar::algorithm_gpts)
       create_volume_ghosting(discretization_map);
   }
 
@@ -628,8 +626,8 @@ void Mortar::Interface::initialize_corner_edge()
 {
   // if linear LM for quad displacements return!
   // TODO: this case needs a special treatment
-  bool lagmultlin = (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                         interface_params(), "LM_QUAD") == Inpar::Mortar::lagmult_lin);
+  bool lagmultlin = (Teuchos::getIntegralValue<Mortar::LagMultQuad>(
+                         interface_params(), "LM_QUAD") == Mortar::lagmult_lin);
 
   if (lagmultlin) return;
 
@@ -706,8 +704,8 @@ void Mortar::Interface::initialize_cross_points()
 void Mortar::Interface::initialize_lag_mult_lin()
 {
   // check for linear interpolation of 2D/3D quadratic Lagrange multipliers
-  bool lagmultlin = (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                         interface_params(), "LM_QUAD") == Inpar::Mortar::lagmult_lin);
+  bool lagmultlin = (Teuchos::getIntegralValue<Mortar::LagMultQuad>(
+                         interface_params(), "LM_QUAD") == Mortar::lagmult_lin);
 
   // modify nodes accordingly
   if (lagmultlin)
@@ -816,8 +814,8 @@ void Mortar::Interface::initialize_lag_mult_lin()
  *----------------------------------------------------------------------*/
 void Mortar::Interface::initialize_lag_mult_const()
 {
-  if ((Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(interface_params(), "LM_QUAD") ==
-          Inpar::Mortar::lagmult_const))
+  if ((Teuchos::getIntegralValue<Mortar::LagMultQuad>(interface_params(), "LM_QUAD") ==
+          Mortar::lagmult_const))
   {
     // modified treatment slave side nodes:
     // only the center-node carries LM
@@ -960,8 +958,8 @@ void Mortar::Interface::initialize_data_container()
 
   if (interface_params().isParameter("ALGORITHM"))
   {
-    if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(interface_params(), "ALGORITHM") ==
-        Inpar::Mortar::algorithm_gpts)
+    if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(interface_params(), "ALGORITHM") ==
+        Mortar::algorithm_gpts)
     {
       const int numMyMasterColumnElements = master_col_elements()->num_my_elements();
       for (int i = 0; i < numMyMasterColumnElements; ++i)
@@ -1097,8 +1095,8 @@ void Mortar::Interface::redistribute()
       interface_params().sublist("PARALLEL REDISTRIBUTION");
 
   // make sure we are supposed to be here
-  if (Teuchos::getIntegralValue<Inpar::Mortar::ParallelRedist>(mortarParallelRedistParams,
-          "PARALLEL_REDIST") == Inpar::Mortar::ParallelRedist::redist_none)
+  if (Teuchos::getIntegralValue<Mortar::ParallelRedist>(
+          mortarParallelRedistParams, "PARALLEL_REDIST") == Mortar::ParallelRedist::redist_none)
     FOUR_C_THROW("You are not supposed to be here...");
 
   // some local variables
@@ -1251,7 +1249,7 @@ void Mortar::Interface::extend_interface_ghosting(const bool isFinalParallelDist
     const Core::FE::ShapeFunctionType spatial_approximation_type)
 {
   //*****REDUNDANT SLAVE AND MASTER STORAGE*****
-  if (interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::redundant_all)
+  if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::redundant_all)
   {
     // to ease our search algorithms we'll afford the luxury to ghost all nodes
     // on all processors. To do so, we'll take the node row map and export it to
@@ -1317,8 +1315,7 @@ void Mortar::Interface::extend_interface_ghosting(const bool isFinalParallelDist
   }
 
   //*****ONLY REDUNDANT MASTER STORAGE*****
-  else if (interface_data_->get_extend_ghosting() ==
-           Inpar::Mortar::ExtendGhosting::redundant_master)
+  else if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::redundant_master)
   {
     // to ease our search algorithms we'll afford the luxury to ghost all master
     // nodes on all processors. To do so, we'll take the master node row map and
@@ -1420,8 +1417,8 @@ void Mortar::Interface::extend_interface_ghosting(const bool isFinalParallelDist
   }
 
   //*****NON-REDUNDANT STORAGE*****
-  else if (interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::roundrobin ||
-           interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::binning)
+  else if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::roundrobin ||
+           interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::binning)
   {
     // nothing to do here, we work with the given non-redundant distribution
     // of both slave and master nodes to the individual processors. However
@@ -1480,7 +1477,7 @@ void Mortar::Interface::extend_interface_ghosting(const bool isFinalParallelDist
     discret().export_column_nodes(newnodecolmap);
     discret().export_column_elements(*newelecolmap);
 
-    if (interface_data_->get_extend_ghosting() == Inpar::Mortar::ExtendGhosting::binning)
+    if (interface_data_->get_extend_ghosting() == Mortar::ExtendGhosting::binning)
     {
       /* We have to update the row/column maps split into master/slave. We start from the new
        * node/element column maps. Since we don't have row maps at this point, we can/have to pass
@@ -1559,29 +1556,29 @@ void Mortar::Interface::extend_interface_ghosting(const bool isFinalParallelDist
 void Mortar::Interface::create_search_tree()
 {
   // binary tree search
-  if (search_alg() == Inpar::Mortar::search_binarytree)
+  if (search_alg() == Mortar::search_binarytree)
   {
     // create fully overlapping map of all master elements
     // for non-redundant storage (RRloop) we handle the master elements
     // like the slave elements --> melecolmap_
-    auto strategy = Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
+    auto strategy = Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
         interface_params().sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
 
     // get update type of binary tree
-    auto updatetype = Teuchos::getIntegralValue<Inpar::Mortar::BinaryTreeUpdateType>(
+    auto updatetype = Teuchos::getIntegralValue<Mortar::BinaryTreeUpdateType>(
         interface_params(), "BINARYTREE_UPDATETYPE");
 
     std::shared_ptr<Core::LinAlg::Map> melefullmap = nullptr;
     switch (strategy)
     {
-      case Inpar::Mortar::ExtendGhosting::roundrobin:
-      case Inpar::Mortar::ExtendGhosting::binning:
+      case Mortar::ExtendGhosting::roundrobin:
+      case Mortar::ExtendGhosting::binning:
       {
         melefullmap = melecolmap_;
         break;
       }
-      case Inpar::Mortar::ExtendGhosting::redundant_all:
-      case Inpar::Mortar::ExtendGhosting::redundant_master:
+      case Mortar::ExtendGhosting::redundant_all:
+      case Mortar::ExtendGhosting::redundant_master:
       {
         melefullmap = Core::LinAlg::allreduce_e_map(*melerowmap_);
         break;
@@ -2143,10 +2140,9 @@ void Mortar::Interface::evaluate_geometry(std::vector<std::shared_ptr<Mortar::In
   // check
   if (n_dim() == 2) FOUR_C_THROW("Geometry evaluation for mortar interface only for 3D problems!");
 
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
-  if (algo == Inpar::Mortar::algorithm_nts)
-    FOUR_C_THROW("Geometry evaluation only for mortar problems!");
+  if (algo == Mortar::algorithm_nts) FOUR_C_THROW("Geometry evaluation only for mortar problems!");
 
   // interface needs to be complete
   if (!filled() && Core::Communication::my_mpi_rank(get_comm()) == 0)
@@ -2158,9 +2154,9 @@ void Mortar::Interface::evaluate_geometry(std::vector<std::shared_ptr<Mortar::In
   //**********************************************************************
   // search algorithm
   //**********************************************************************
-  if (search_alg() == Inpar::Mortar::search_bfele)
+  if (search_alg() == Mortar::search_bfele)
     evaluate_search_brute_force(search_param());
-  else if (search_alg() == Inpar::Mortar::search_binarytree)
+  else if (search_alg() == Mortar::search_binarytree)
     evaluate_search_binarytree();
   else
     FOUR_C_THROW("Invalid search algorithm");
@@ -2278,7 +2274,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   // smooth contact
   switch (algo)
@@ -2287,8 +2283,8 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     // Mortar Coupling (STS)    (2D/3D)
     // Gauss-Point-To-Segment (GPTS)
     //*********************************
-    case Inpar::Mortar::algorithm_mortar:
-    case Inpar::Mortar::algorithm_gpts:
+    case Mortar::algorithm_mortar:
+    case Mortar::algorithm_gpts:
     {
       //********************************************************************
       // 1) perform coupling (projection + overlap detection for sl/m pairs)
@@ -2302,7 +2298,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     //*********************************
     // Segment-to-Line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_stl:
+    case Mortar::algorithm_stl:
     {
       //********************************************************************
       // 1) perform coupling (projection + line clipping edge surface pairs)
@@ -2316,7 +2312,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     //*********************************
     // Line-to-Segment Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_lts:
+    case Mortar::algorithm_lts:
     {
       //********************************************************************
       // 1) perform coupling (projection + line clipping edge surface pairs)
@@ -2330,7 +2326,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     //*********************************
     // line-to-line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_ltl:
+    case Mortar::algorithm_ltl:
     {
       //********************************************************************
       // 1) perform coupling (find closest point between to lines)
@@ -2344,7 +2340,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     //*********************************
     // Node-to-Segment Coupling (2D/3D)
     //*********************************
-    case Inpar::Mortar::algorithm_nts:
+    case Mortar::algorithm_nts:
     {
       //********************************************************************
       // 1) try to project slave nodes onto master elements
@@ -2358,7 +2354,7 @@ void Mortar::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
     //*********************************
     // Node-to-Line Coupling (3D)
     //*********************************
-    case Inpar::Mortar::algorithm_ntl:
+    case Mortar::algorithm_ntl:
     {
       FOUR_C_THROW("not yet implemented!");
       break;
@@ -2502,9 +2498,9 @@ void Mortar::Interface::pre_evaluate(const int& step, const int& iter)
   //**********************************************************************
   // search algorithm
   //**********************************************************************
-  if (search_alg() == Inpar::Mortar::search_bfele)
+  if (search_alg() == Mortar::search_bfele)
     evaluate_search_brute_force(search_param());
-  else if (search_alg() == Inpar::Mortar::search_binarytree)
+  else if (search_alg() == Mortar::search_binarytree)
     evaluate_search_binarytree();
   else
     FOUR_C_THROW("Invalid search algorithm");
@@ -2712,24 +2708,24 @@ void Mortar::Interface::evaluate_search_brute_force(const double& eps)
   // create fully overlapping map of all master elements
   // for non-redundant storage (RRloop) we handle the master elements
   // like the slave elements --> melecolmap_
-  auto strategy = Teuchos::getIntegralValue<Inpar::Mortar::ExtendGhosting>(
+  auto strategy = Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
       interface_params().sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
   std::shared_ptr<Core::LinAlg::Map> melefullmap = nullptr;
 
   switch (strategy)
   {
-    case Inpar::Mortar::ExtendGhosting::redundant_all:
-    case Inpar::Mortar::ExtendGhosting::redundant_master:
+    case Mortar::ExtendGhosting::redundant_all:
+    case Mortar::ExtendGhosting::redundant_master:
     {
       melefullmap = Core::LinAlg::allreduce_e_map(*melerowmap_);
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::roundrobin:
+    case Mortar::ExtendGhosting::roundrobin:
     {
       melefullmap = melerowmap_;
       break;
     }
-    case Inpar::Mortar::ExtendGhosting::binning:
+    case Mortar::ExtendGhosting::binning:
     {
       melefullmap = melecolmap_;
       break;
@@ -3359,8 +3355,8 @@ void Mortar::Interface::assemble_lm(Core::LinAlg::Vector<double>& zglobal)
 void Mortar::Interface::assemble_d(Core::LinAlg::SparseMatrix& dglobal)
 {
   const bool nonsmooth = interface_params().get<bool>("NONSMOOTH_GEOMETRIES");
-  const bool lagmultlin = (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                               interface_params(), "LM_QUAD") == Inpar::Mortar::lagmult_lin);
+  const bool lagmultlin = (Teuchos::getIntegralValue<Mortar::LagMultQuad>(
+                               interface_params(), "LM_QUAD") == Mortar::lagmult_lin);
 
   // loop over proc's slave nodes of the interface for assembly
   // use standard row map to assemble each node only once
@@ -3397,8 +3393,8 @@ void Mortar::Interface::assemble_d(Core::LinAlg::SparseMatrix& dglobal)
           int col = kcnode->dofs()[j];
 
           // do the assembly into global D matrix
-          if (!nonsmooth and (shapefcn_ == Inpar::Mortar::shape_dual or
-                                 shapefcn_ == Inpar::Mortar::shape_petrovgalerkin))
+          if (!nonsmooth and
+              (shapefcn_ == Mortar::shape_dual or shapefcn_ == Mortar::shape_petrovgalerkin))
           {
             if (lagmultlin)
             {
@@ -3415,7 +3411,7 @@ void Mortar::Interface::assemble_d(Core::LinAlg::SparseMatrix& dglobal)
               if (row == col) dglobal.assemble(val, row, col);
             }
           }
-          else if (nonsmooth or shapefcn_ == Inpar::Mortar::shape_standard)
+          else if (nonsmooth or shapefcn_ == Mortar::shape_standard)
           {
             // don't check for diagonality
             // since for standard shape functions, as in general when using
@@ -3568,12 +3564,12 @@ void Mortar::Interface::assemble_trafo(Core::LinAlg::SparseMatrix& trafo,
     Core::LinAlg::SparseMatrix& invtrafo, std::set<int>& donebefore)
 {
   // check for dual shape functions and quadratic slave elements
-  if (shapefcn_ == Inpar::Mortar::shape_standard || !quadslave_)
+  if (shapefcn_ == Mortar::shape_standard || !quadslave_)
     FOUR_C_THROW("AssembleTrafo -> you should not be here...");
 
   // check whether locally linear LM interpolation is used
-  const bool lagmultlin = (Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(
-                               interface_params(), "LM_QUAD") == Inpar::Mortar::lagmult_lin);
+  const bool lagmultlin = (Teuchos::getIntegralValue<Mortar::LagMultQuad>(
+                               interface_params(), "LM_QUAD") == Mortar::lagmult_lin);
 
   //********************************************************************
   //********************************************************************
@@ -3617,7 +3613,7 @@ void Mortar::Interface::assemble_trafo(Core::LinAlg::SparseMatrix& trafo,
       case Core::FE::CellType::line3:
       {
         // modification factor
-        if (Inpar::Mortar::LagMultQuad() == Inpar::Mortar::lagmult_lin)
+        if (Mortar::LagMultQuad() == Mortar::lagmult_lin)
           theta = 1.0 / 2.0;
         else
           theta = 1.0 / 5.0;

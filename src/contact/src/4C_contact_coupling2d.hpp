@@ -122,9 +122,9 @@ namespace CONTACT
     \brief Return the LM shape fcn type
 
     */
-    Inpar::Mortar::ShapeFcn shape_fcn() const
+    Mortar::ShapeFcn shape_fcn() const
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
+      return Teuchos::getIntegralValue<Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
     }
 
     /*!

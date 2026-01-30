@@ -377,7 +377,7 @@ void Mortar::BinaryTreeNode::print_type()
  *----------------------------------------------------------------------*/
 Mortar::BinaryTree::BinaryTree(Core::FE::Discretization& discret,
     std::shared_ptr<Core::LinAlg::Map> selements, std::shared_ptr<Core::LinAlg::Map> melements,
-    int dim, double eps, Inpar::Mortar::BinaryTreeUpdateType updatetype, bool useauxpos)
+    int dim, double eps, Mortar::BinaryTreeUpdateType updatetype, bool useauxpos)
     : Mortar::BaseBinaryTree(discret, dim, eps),
       selements_(selements),
       melements_(melements),
@@ -570,10 +570,10 @@ void Mortar::BinaryTree::evaluate_search()
   // update binary tree according to update type
   switch (updatetype_)
   {
-    case Inpar::Mortar::binarytree_top_down:
+    case Mortar::binarytree_top_down:
       update_tree_top_down();
       break;
-    case Inpar::Mortar::binarytree_bottom_up:
+    case Mortar::binarytree_bottom_up:
       update_tree_bottom_up();
       break;
     default:

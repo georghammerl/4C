@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_general_utils_integration.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
@@ -129,7 +129,7 @@ namespace Utils
       return cardiovascular0dstructcoupcond_;
     }
 
-    Inpar::Cardiovascular0D::Cardvasc0DRespiratoryModel get_respiratory_model()
+    Cardiovascular0DInput::Cardvasc0DRespiratoryModel get_respiratory_model()
     {
       return respiratory_model_;
     }
@@ -148,9 +148,9 @@ namespace Utils
     std::vector<const Core::Conditions::Condition*>
         cardiovascular0dstructcoupcond_;  ///< 0D cardiovascular structure coupling conditions
     Cardiovascular0DType cardiovascular0dtype_;  ///< Cardiovascular0D type
-    const Inpar::Cardiovascular0D::Cardvasc0DAtriumModel atrium_model_;
-    const Inpar::Cardiovascular0D::Cardvasc0DVentricleModel ventricle_model_;
-    const Inpar::Cardiovascular0D::Cardvasc0DRespiratoryModel respiratory_model_;
+    const Cardiovascular0DInput::Cardvasc0DAtriumModel atrium_model_;
+    const Cardiovascular0DInput::Cardvasc0DVentricleModel ventricle_model_;
+    const Cardiovascular0DInput::Cardvasc0DRespiratoryModel respiratory_model_;
     //! gaussian integration to be used
     Core::FE::GaussRule2D gaussrule_;
 

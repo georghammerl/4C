@@ -10,8 +10,8 @@
 #include "4C_contact_input.hpp"
 #include "4C_global_data.hpp"
 #include "4C_global_legacy_module_problem_type.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_inpar_structure.hpp"
+#include "4C_mortar_input.hpp"
 
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -46,8 +46,8 @@ bool CONTACT::Utils::use_safe_redistribute_and_ghosting(const Teuchos::Parameter
        * Other cases require volume ghosting as well and, thus, have to stick to the old code
        * branch. Everything porous media related has to stick to the old code branch as well.
        */
-      if (Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(contactParams, "ALGORITHM") ==
-              Inpar::Mortar::algorithm_mortar &&
+      if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(contactParams, "ALGORITHM") ==
+              Mortar::algorithm_mortar &&
           (Global::Problem::instance()->get_problem_type() != Core::ProblemType::poroelast &&
               Global::Problem::instance()->get_problem_type() != Core::ProblemType::poroscatra))
         use_safe_ghosting_branch = true;

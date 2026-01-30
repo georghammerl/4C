@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_inpar_mortar.hpp"
+#include "4C_mortar_input.hpp"
 
 #include <mpi.h>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -94,18 +94,18 @@ namespace Mortar
      \brief Return the LM interpolation / testing type for quadratic FE
 
      */
-    Inpar::Mortar::LagMultQuad lag_mult_quad()
+    Mortar::LagMultQuad lag_mult_quad()
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(imortar_, "LM_QUAD");
+      return Teuchos::getIntegralValue<Mortar::LagMultQuad>(imortar_, "LM_QUAD");
     }
 
     /*!
      \brief Return the LM shape fcn type
 
      */
-    Inpar::Mortar::ShapeFcn shape_fcn()
+    Mortar::ShapeFcn shape_fcn()
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
+      return Teuchos::getIntegralValue<Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
     }
 
     /*!
@@ -262,18 +262,18 @@ namespace Mortar
      \brief Get type of quadratic LM interpolation
 
      */
-    virtual Inpar::Mortar::LagMultQuad lag_mult_quad()
+    virtual Mortar::LagMultQuad lag_mult_quad()
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::LagMultQuad>(imortar_, "LM_QUAD");
+      return Teuchos::getIntegralValue<Mortar::LagMultQuad>(imortar_, "LM_QUAD");
     }
 
     /*!
      \brief Get integration type
 
      */
-    virtual Inpar::Mortar::IntType int_type()
+    virtual Mortar::IntType int_type()
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::IntType>(imortar_, "INTTYPE");
+      return Teuchos::getIntegralValue<Mortar::IntType>(imortar_, "INTTYPE");
     }
 
     /*!
@@ -292,9 +292,9 @@ namespace Mortar
      \brief Return the LM shape fcn type
 
      */
-    Inpar::Mortar::ShapeFcn shape_fcn()
+    Mortar::ShapeFcn shape_fcn()
     {
-      return Teuchos::getIntegralValue<Inpar::Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
+      return Teuchos::getIntegralValue<Mortar::ShapeFcn>(imortar_, "LM_SHAPEFCN");
     }
 
     //@}

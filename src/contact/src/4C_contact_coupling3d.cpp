@@ -91,8 +91,7 @@ bool CONTACT::Coupling3d::integrate_cells(
   /* the current integration cell of the slave / master element pair    */
   /**********************************************************************/
 
-  static const auto algo =
-      Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  static const auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   // do nothing if there are no cells
   if (cells().size() == 0) return false;
@@ -128,7 +127,7 @@ bool CONTACT::Coupling3d::integrate_cells(
     // (3) quadratic element(s) involved -> linear LM interpolation
     // (4) quadratic element(s) involved -> piecew. linear LM interpolation
     // *******************************************************************
-    Inpar::Mortar::LagMultQuad lmtype = lag_mult_quad();
+    Mortar::LagMultQuad lmtype = lag_mult_quad();
 
     // *******************************************************************
     // case (1)
@@ -141,13 +140,12 @@ bool CONTACT::Coupling3d::integrate_cells(
     // *******************************************************************
     // cases (2) and (3)
     // *******************************************************************
-    else if ((quad() and
-                 (lmtype == Inpar::Mortar::lagmult_quad or lmtype == Inpar::Mortar::lagmult_lin or
-                     lmtype == Inpar::Mortar::lagmult_const)) or
-             algo == Inpar::Mortar::algorithm_gpts)
+    else if ((quad() and (lmtype == Mortar::lagmult_quad or lmtype == Mortar::lagmult_lin or
+                             lmtype == Mortar::lagmult_const)) or
+             algo == Mortar::algorithm_gpts)
     {
       // check for standard shape functions and quadratic LM interpolation
-      if (shape_fcn() == Inpar::Mortar::shape_standard && lmtype == Inpar::Mortar::lagmult_quad &&
+      if (shape_fcn() == Mortar::shape_standard && lmtype == Mortar::lagmult_quad &&
           (slave_element().shape() == Core::FE::CellType::quad8 ||
               slave_element().shape() == Core::FE::CellType::tri6))
         FOUR_C_THROW(
@@ -166,11 +164,10 @@ bool CONTACT::Coupling3d::integrate_cells(
     // *******************************************************************
     // case (4)
     // *******************************************************************
-    else if (quad() && lmtype == Inpar::Mortar::lagmult_pwlin)
+    else if (quad() && lmtype == Mortar::lagmult_pwlin)
     {
       // check for dual shape functions
-      if (shape_fcn() == Inpar::Mortar::shape_dual ||
-          shape_fcn() == Inpar::Mortar::shape_petrovgalerkin)
+      if (shape_fcn() == Mortar::shape_dual || shape_fcn() == Mortar::shape_petrovgalerkin)
         FOUR_C_THROW(
             "Piecewise linear LM interpolation not yet implemented for DUAL 3D quadratic "
             "contact");
@@ -187,7 +184,7 @@ bool CONTACT::Coupling3d::integrate_cells(
     // *******************************************************************
     // undefined case
     // *******************************************************************
-    else if (quad() && lmtype == Inpar::Mortar::lagmult_undefined)
+    else if (quad() && lmtype == Mortar::lagmult_undefined)
     {
       FOUR_C_THROW(
           "Lagrange multiplier interpolation for quadratic elements undefined\n"
@@ -1088,10 +1085,10 @@ void CONTACT::Coupling3dManager::integrate_coupling(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // get algorithm
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   // prepare linearizations
-  if (algo == Inpar::Mortar::algorithm_mortar)
+  if (algo == Mortar::algorithm_mortar)
     dynamic_cast<CONTACT::Element&>(slave_element()).prepare_dderiv(master_elements());
 
   // decide which type of numerical integration scheme
@@ -1099,7 +1096,7 @@ void CONTACT::Coupling3dManager::integrate_coupling(
   //**********************************************************************
   // STANDARD INTEGRATION (SEGMENTS)
   //**********************************************************************
-  if (int_type() == Inpar::Mortar::inttype_segments)
+  if (int_type() == Mortar::inttype_segments)
   {
     // loop over all master elements associated with this slave element
     for (int m = 0; m < (int)master_elements().size(); ++m)
@@ -1124,14 +1121,14 @@ void CONTACT::Coupling3dManager::integrate_coupling(
     for (int i = 0; i < (int)coupling().size(); ++i)
     {
       // temporary m-matrix linearization of this slave/master pair
-      if (algo == Inpar::Mortar::algorithm_mortar)
+      if (algo == Mortar::algorithm_mortar)
         dynamic_cast<CONTACT::Element&>(slave_element()).prepare_mderiv(master_elements(), i);
 
       // integrate cells
       coupling()[i]->integrate_cells(mparams_ptr);
 
       // assemble m-matrix for this slave/master pair
-      if (algo == Inpar::Mortar::algorithm_mortar)
+      if (algo == Mortar::algorithm_mortar)
         dynamic_cast<CONTACT::Element&>(slave_element())
             .assemble_mderiv_to_nodes(coupling()[i]->master_element());
     }
@@ -1140,8 +1137,7 @@ void CONTACT::Coupling3dManager::integrate_coupling(
   //**********************************************************************
   // ELEMENT-BASED INTEGRATION
   //**********************************************************************
-  else if (int_type() == Inpar::Mortar::inttype_elements ||
-           int_type() == Inpar::Mortar::inttype_elements_BS)
+  else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
     if ((int)master_elements().size() == 0) return;
 
@@ -1164,7 +1160,7 @@ void CONTACT::Coupling3dManager::integrate_coupling(
           slave_element(), feasible_ma_eles, &boundary_ele, &proj, get_comm(), mparams_ptr);
 
 
-      if (int_type() == Inpar::Mortar::inttype_elements_BS)
+      if (int_type() == Mortar::inttype_elements_BS)
       {
         if (boundary_ele == true)
         {
@@ -1189,14 +1185,14 @@ void CONTACT::Coupling3dManager::integrate_coupling(
           for (int i = 0; i < (int)coupling().size(); ++i)
           {
             // temporary m-matrix linearization of this slave/master pair
-            if (algo == Inpar::Mortar::algorithm_mortar)
+            if (algo == Mortar::algorithm_mortar)
               dynamic_cast<CONTACT::Element&>(slave_element()).prepare_mderiv(master_elements(), i);
 
             // integrate cells
             coupling()[i]->integrate_cells(mparams_ptr);
 
             // assemble m-matrix for this slave/master pair
-            if (algo == Inpar::Mortar::algorithm_mortar)
+            if (algo == Mortar::algorithm_mortar)
               dynamic_cast<CONTACT::Element&>(slave_element())
                   .assemble_mderiv_to_nodes(coupling()[i]->master_element());
           }
@@ -1223,10 +1219,10 @@ void CONTACT::Coupling3dManager::integrate_coupling(
   slave_element().mo_data().reset_deriv_dual_shape();
 
   // assemble element contribution to nodes
-  if (algo == Inpar::Mortar::algorithm_mortar)
+  if (algo == Mortar::algorithm_mortar)
   {
-    bool dual = (shape_fcn() == Inpar::Mortar::shape_dual) ||
-                (shape_fcn() == Inpar::Mortar::shape_petrovgalerkin);
+    bool dual =
+        (shape_fcn() == Mortar::shape_dual) || (shape_fcn() == Mortar::shape_petrovgalerkin);
     dynamic_cast<CONTACT::Element&>(slave_element()).assemble_dderiv_to_nodes(dual);
   }
   return;
@@ -1240,12 +1236,12 @@ bool CONTACT::Coupling3dManager::evaluate_coupling(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
 
   //*********************************
   // Mortar Contact
   //*********************************
-  if (algo == Inpar::Mortar::algorithm_mortar || algo == Inpar::Mortar::algorithm_gpts)
+  if (algo == Mortar::algorithm_mortar || algo == Mortar::algorithm_gpts)
     integrate_coupling(mparams_ptr);
 
   //*********************************
@@ -1270,11 +1266,11 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // get algorithm type
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(
       Mortar::Coupling3dQuadManager::imortar_, "ALGORITHM");
 
   // prepare linearizations
-  if (algo == Inpar::Mortar::algorithm_mortar)
+  if (algo == Mortar::algorithm_mortar)
     dynamic_cast<CONTACT::Element&>(slave_element()).prepare_dderiv(master_elements());
 
   // decide which type of numerical integration scheme
@@ -1282,7 +1278,7 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
   //**********************************************************************
   // STANDARD INTEGRATION (SEGMENTS)
   //**********************************************************************
-  if (int_type() == Inpar::Mortar::inttype_segments)
+  if (int_type() == Mortar::inttype_segments)
   {
     coupling().resize(0);
 
@@ -1321,13 +1317,13 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
     // integrate cells
     for (int i = 0; i < (int)coupling().size(); ++i)
     {
-      if (algo == Inpar::Mortar::algorithm_mortar)
+      if (algo == Mortar::algorithm_mortar)
         dynamic_cast<CONTACT::Element&>(slave_element())
             .prepare_mderiv(master_elements(), i % mauxelements.size());
 
       coupling()[i]->integrate_cells(mparams_ptr);
 
-      if (algo == Inpar::Mortar::algorithm_mortar)
+      if (algo == Mortar::algorithm_mortar)
         dynamic_cast<CONTACT::Element&>(slave_element())
             .assemble_mderiv_to_nodes(coupling()[i]->master_element());
     }
@@ -1336,12 +1332,10 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
   //**********************************************************************
   // FAST INTEGRATION (ELEMENTS)
   //**********************************************************************
-  else if (int_type() == Inpar::Mortar::inttype_elements ||
-           int_type() == Inpar::Mortar::inttype_elements_BS)
+  else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
     // check for standard shape functions and quadratic LM interpolation
-    if (shape_fcn() == Inpar::Mortar::shape_standard &&
-        lag_mult_quad() == Inpar::Mortar::lagmult_quad &&
+    if (shape_fcn() == Mortar::shape_standard && lag_mult_quad() == Mortar::lagmult_quad &&
         (slave_element().shape() == Core::FE::CellType::quad8 ||
             slave_element().shape() == Core::FE::CellType::tri6))
       FOUR_C_THROW(
@@ -1361,7 +1355,7 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
     integrator->integrate_deriv_ele_3d(
         slave_element(), master_elements(), &boundary_ele, &proj, get_comm(), mparams_ptr);
 
-    if (int_type() == Inpar::Mortar::inttype_elements_BS)
+    if (int_type() == Mortar::inttype_elements_BS)
     {
       if (boundary_ele == true)
       {
@@ -1402,11 +1396,11 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
 
         for (int i = 0; i < (int)coupling().size(); ++i)
         {
-          if (algo == Inpar::Mortar::algorithm_mortar)
+          if (algo == Mortar::algorithm_mortar)
             dynamic_cast<CONTACT::Element&>(slave_element())
                 .prepare_mderiv(master_elements(), i % mauxelements.size());
           coupling()[i]->integrate_cells(mparams_ptr);
-          if (algo == Inpar::Mortar::algorithm_mortar)
+          if (algo == Mortar::algorithm_mortar)
             dynamic_cast<CONTACT::Element&>(slave_element())
                 .assemble_mderiv_to_nodes(coupling()[i]->master_element());
         }
@@ -1425,10 +1419,10 @@ void CONTACT::Coupling3dQuadManager::integrate_coupling(
   slave_element().mo_data().reset_dual_shape();
   slave_element().mo_data().reset_deriv_dual_shape();
 
-  if (algo == Inpar::Mortar::algorithm_mortar)
+  if (algo == Mortar::algorithm_mortar)
     dynamic_cast<CONTACT::Element&>(slave_element())
-        .assemble_dderiv_to_nodes((shape_fcn() == Inpar::Mortar::shape_dual ||
-                                   shape_fcn() == Inpar::Mortar::shape_petrovgalerkin));
+        .assemble_dderiv_to_nodes(
+            (shape_fcn() == Mortar::shape_dual || shape_fcn() == Mortar::shape_petrovgalerkin));
 
   return;
 }
@@ -1441,12 +1435,12 @@ bool CONTACT::Coupling3dQuadManager::evaluate_coupling(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // decide which type of coupling should be evaluated
-  auto algo = Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(params(), "ALGORITHM");
+  auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(params(), "ALGORITHM");
 
   //*********************************
   // Mortar Contact
   //*********************************
-  if (algo == Inpar::Mortar::algorithm_mortar || algo == Inpar::Mortar::algorithm_gpts)
+  if (algo == Mortar::algorithm_mortar || algo == Mortar::algorithm_gpts)
     integrate_coupling(mparams_ptr);
 
   //*********************************
@@ -1464,23 +1458,21 @@ bool CONTACT::Coupling3dQuadManager::evaluate_coupling(
  *----------------------------------------------------------------------*/
 void CONTACT::Coupling3dManager::consistent_dual_shape()
 {
-  static const auto algo =
-      Teuchos::getIntegralValue<Inpar::Mortar::AlgorithmType>(imortar_, "ALGORITHM");
-  if (algo != Inpar::Mortar::algorithm_mortar) return;
+  static const auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
+  if (algo != Mortar::algorithm_mortar) return;
 
   // For standard shape functions no modification is necessary
   // A switch earlier in the process improves computational efficiency
   auto consistent =
-      Teuchos::getIntegralValue<Inpar::Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
-  if (shape_fcn() == Inpar::Mortar::shape_standard || consistent == Inpar::Mortar::consistent_none)
-    return;
+      Teuchos::getIntegralValue<Mortar::ConsistentDualType>(imortar_, "LM_DUAL_CONSISTENT");
+  if (shape_fcn() == Mortar::shape_standard || consistent == Mortar::consistent_none) return;
 
   // Consistent modification not yet checked for constant LM interpolation
-  if (quad() == true && lag_mult_quad() == Inpar::Mortar::lagmult_const &&
-      consistent != Inpar::Mortar::consistent_none)
+  if (quad() == true && lag_mult_quad() == Mortar::lagmult_const &&
+      consistent != Mortar::consistent_none)
     FOUR_C_THROW("Consistent dual shape functions not yet checked for constant LM interpolation!");
 
-  if (consistent == Inpar::Mortar::consistent_all && int_type() != Inpar::Mortar::inttype_segments)
+  if (consistent == Mortar::consistent_all && int_type() != Mortar::inttype_segments)
     FOUR_C_THROW(
         "Consistent dual shape functions on all elements only for segment-based "
         "integration");
@@ -1498,8 +1490,7 @@ void CONTACT::Coupling3dManager::consistent_dual_shape()
   // For Lagrange FE, the calculation of dual shape functions for fully
   // projecting elements is ok, since the integrands are polynomials (except
   // the jacobian)
-  if (int_type() == Inpar::Mortar::inttype_segments &&
-      consistent == Inpar::Mortar::consistent_boundary)
+  if (int_type() == Mortar::inttype_segments && consistent == Mortar::consistent_boundary)
   {
     // check, if slave element is fully projecting
     // for convenience, we don't check each quadrature point
@@ -1776,9 +1767,9 @@ void CONTACT::Coupling3dManager::consistent_dual_shape()
         Core::LinAlg::SerialDenseMatrix sderiv(nnodes, 2, true);
 
         // evaluate trace space shape functions at Gauss point
-        if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+        if (lag_mult_quad() == Mortar::lagmult_lin)
           slave_element().evaluate_shape_lag_mult_lin(
-              Inpar::Mortar::shape_standard, psxi, sval, sderiv, nnodes);
+              Mortar::shape_standard, psxi, sval, sderiv, nnodes);
         else
           slave_element().evaluate_shape(psxi, sval, sderiv, nnodes);
 
@@ -1880,7 +1871,7 @@ void CONTACT::Coupling3dManager::consistent_dual_shape()
 
   // compute matrix A_e and inverse of matrix M_e for
   // linear interpolation of quadratic element
-  if (lag_mult_quad() == Inpar::Mortar::lagmult_lin)
+  if (lag_mult_quad() == Mortar::lagmult_lin)
   {
     // declare and initialize to zero inverse of Matrix M_e
     Core::LinAlg::SerialDenseMatrix meinv(nnodes, nnodes, true);

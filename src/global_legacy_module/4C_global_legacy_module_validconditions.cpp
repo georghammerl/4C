@@ -12,24 +12,24 @@
 #include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
+#include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
 #include "4C_ehl_input.hpp"
 #include "4C_elch_input.hpp"
 #include "4C_fem_condition_definition.hpp"
+#include "4C_fpsi_input.hpp"
 #include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
-#include "4C_inpar_cardiovascular0d.hpp"
 #include "4C_inpar_fluid.hpp"
-#include "4C_inpar_fpsi.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_inpar_levelset.hpp"
-#include "4C_inpar_mortar.hpp"
 #include "4C_inpar_s2i.hpp"
 #include "4C_inpar_scatra.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_inpar_xfem.hpp"
 #include "4C_io_input_spec_builders.hpp"
+#include "4C_mortar_input.hpp"
 #include "4C_particle_input.hpp"
 #include "4C_porofluid_pressure_based_elast_scatra_input.hpp"
 #include "4C_red_airways_input.hpp"
@@ -823,19 +823,19 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
 
 
   // Finally, add the problem-specific conditions from the various modules
-  Inpar::Mortar::set_valid_conditions(condlist);
+  Mortar::set_valid_conditions(condlist);
   Inpar::S2I::set_valid_conditions(condlist);
   Inpar::ScaTra::set_valid_conditions(condlist);
   ElCh::set_valid_conditions(condlist);
   Inpar::FLUID::set_valid_conditions(condlist);
   ALE::set_valid_conditions(condlist);
   Inpar::FSI::set_valid_conditions(condlist);
-  Inpar::FPSI::set_valid_conditions(condlist);
+  FPSI::set_valid_conditions(condlist);
   Inpar::XFEM::set_valid_conditions(condlist);
   Inpar::BioFilm::set_valid_conditions(condlist);
   ArteryNetwork::set_valid_conditions(condlist);
   Airway::set_valid_conditions(condlist);
-  Inpar::Cardiovascular0D::set_valid_conditions(condlist);
+  Cardiovascular0DInput::set_valid_conditions(condlist);
   Inpar::Solid::set_valid_conditions(condlist);
   Thermo::set_valid_conditions(condlist);
   SSI::set_valid_conditions(condlist);
