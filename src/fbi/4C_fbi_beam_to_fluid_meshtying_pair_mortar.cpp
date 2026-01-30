@@ -7,8 +7,8 @@
 
 #include "4C_fbi_beam_to_fluid_meshtying_pair_mortar.hpp"
 
-#include "4C_beaminteraction_beam_to_solid_visualization_output_writer_base.hpp"
-#include "4C_beaminteraction_beam_to_solid_visualization_output_writer_visualization.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_visualization_output_writer_base.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_visualization_output_writer_visualization.hpp"
 #include "4C_fbi_beam_to_fluid_meshtying_output_params.hpp"
 #include "4C_fbi_beam_to_fluid_mortar_manager.hpp"
 #include "4C_fem_general_extract_values.hpp"

@@ -10,7 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_beam_to_solid_volume_meshtying_pair_base.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_pair_base.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

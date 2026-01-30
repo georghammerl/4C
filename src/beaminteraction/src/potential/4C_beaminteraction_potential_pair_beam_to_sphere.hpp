@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_beam_to_beam_contact_defines.hpp"
-#include "4C_beaminteraction_beam_to_beam_contact_tangentsmoothing.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_defines.hpp"
+#include "4C_beaminteraction_contact_beam_to_beam_tangentsmoothing.hpp"
 #include "4C_beaminteraction_potential_pair_base.hpp"
 #include "4C_fem_general_utils_integration.hpp"
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"

@@ -9,8 +9,8 @@
 
 #include "4C_ale_input.hpp"
 #include "4C_art_net_input.hpp"
-#include "4C_beaminteraction_beam_to_solid_edge_contact_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
