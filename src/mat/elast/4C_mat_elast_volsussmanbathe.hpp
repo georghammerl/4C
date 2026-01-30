@@ -22,7 +22,7 @@ namespace Mat
     namespace PAR
     {
       /*!
-       * @brief material parameters for volumetric contribution \f$\Psi=\kappa(J-1)^2\f$
+       * @brief material parameters for volumetric contribution \f$\Psi=\frac{\kappa}{2}(J-1)^2\f$
        *
        *  <h3>Input line</h3>
        *  MAT 1 ELAST_VolSussmanBathe KAPPA 10000

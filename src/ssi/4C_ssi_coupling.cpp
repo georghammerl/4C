@@ -82,8 +82,6 @@ void SSI::SSICouplingMatchingVolume::init(const int ndim,
     scatra_integrator->set_number_of_dof_set_two_tensor_quantity(scatra_dofset_counter);
   }
 
-  assign_material_pointers(structdis, scatradis);
-
   set_is_init(true);
 }
 

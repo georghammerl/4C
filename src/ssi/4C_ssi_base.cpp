@@ -182,11 +182,6 @@ void SSI::SSIBase::setup()
     FOUR_C_THROW("Scalar transport discretization does not have any degrees of freedom!");
   if (structure_->dof_row_map()->num_global_elements() == 0)
     FOUR_C_THROW("Structure discretization does not have any degrees of freedom!");
-
-  // set up materials
-  ssicoupling_->assign_material_pointers(
-      structure_->discretization(), scatra_field()->discretization());
-
   // set up scatra-scatra interface coupling
   if (ssi_interface_meshtying())
   {
@@ -224,6 +219,10 @@ void SSI::SSIBase::post_setup() const
   }
 
   structure_->post_setup();
+
+  // set up materials
+  ssicoupling_->assign_material_pointers(
+      structure_->discretization(), scatra_field()->discretization());
 }
 
 /*----------------------------------------------------------------------*
