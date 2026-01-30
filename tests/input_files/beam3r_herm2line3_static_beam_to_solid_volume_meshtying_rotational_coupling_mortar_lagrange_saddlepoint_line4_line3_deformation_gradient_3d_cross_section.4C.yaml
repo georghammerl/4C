@@ -1,5 +1,5 @@
 TITLE:
-  - "Description: Simulate a beam coupled to a cantilevered solid using Lagrange multipliers with the
+  - "Description: Simulate a fully coupled beam embedded in solid using Lagrange multipliers with the
     saddlepoint formulation."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
@@ -27,7 +27,7 @@ STRUCT NOX/Printing:
   Test Details: true
 IO/RUNTIME VTK OUTPUT:
   INTERVAL_STEPS: 1
-  EVERY_ITERATION: true
+  EVERY_ITERATION: false
 IO/RUNTIME VTK OUTPUT/STRUCTURE:
   OUTPUT_STRUCTURE: true
   DISPLACEMENT: true
@@ -41,14 +41,14 @@ IO/RUNTIME VTK OUTPUT/BEAMS:
   STRAINS_GAUSSPOINT: true
   ELEMENT_GID: true
 BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING/RUNTIME VTK OUTPUT:
-  WRITE_OUTPUT: true
+  WRITE_OUTPUT: false
   NODAL_FORCES: true
   MORTAR_LAMBDA_DISCRET: true
   MORTAR_LAMBDA_CONTINUOUS: true
   SEGMENTATION: true
   INTEGRATION_POINTS: true
 BEAM INTERACTION/BEAM TO SOLID SURFACE/RUNTIME VTK OUTPUT:
-  WRITE_OUTPUT: true
+  WRITE_OUTPUT: false
   NODAL_FORCES: true
   AVERAGED_NORMALS: true
   MORTAR_LAMBDA_DISCRET: true
