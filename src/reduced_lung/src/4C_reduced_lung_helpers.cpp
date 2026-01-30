@@ -54,8 +54,8 @@ namespace ReducedLung
   }
 
   Core::LinAlg::Map create_row_map(const MPI_Comm& comm, const AirwayContainer& airways,
-      const TerminalUnitContainer& terminal_units, const std::vector<Connection>& connections,
-      const std::vector<Bifurcation>& bifurcations,
+      const TerminalUnitContainer& terminal_units, const Junctions::ConnectionData& connections,
+      const Junctions::BifurcationData& bifurcations,
       const std::vector<BoundaryCondition>& boundary_conditions)
   {
     int n_local_state_equations = 0;
@@ -93,8 +93,8 @@ namespace ReducedLung
 
   Core::LinAlg::Map create_column_map(const MPI_Comm& comm, const AirwayContainer& airways,
       const TerminalUnitContainer& terminal_units, const std::map<int, int>& global_dof_per_ele,
-      const std::map<int, int>& first_global_dof_of_ele, const std::vector<Connection>& connections,
-      const std::vector<Bifurcation>& bifurcations,
+      const std::map<int, int>& first_global_dof_of_ele,
+      const Junctions::ConnectionData& connections, const Junctions::BifurcationData& bifurcations,
       const std::vector<BoundaryCondition>& boundary_conditions)
   {
     // Vector for intermediate storage of necessary dof ids
@@ -126,44 +126,46 @@ namespace ReducedLung
 
     // Loop over all connections of two elements and add relevant dof ids (p and q associated with
     // the end of the parent element and p and q associated with the start of the child element)
-    for (const auto& conn : connections)
+    for (size_t i = 0; i < connections.size(); ++i)
     {
-      int n_dofs_parent = global_dof_per_ele.find(conn.global_parent_element_id)->second;
+      int n_dofs_parent = global_dof_per_ele.find(connections.global_parent_element_id[i])->second;
       // p2 always second dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(conn.global_parent_element_id)->second + 1);
+          first_global_dof_of_ele.find(connections.global_parent_element_id[i])->second + 1);
       // q_out always last dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(conn.global_parent_element_id)->second + n_dofs_parent - 1);
+          first_global_dof_of_ele.find(connections.global_parent_element_id[i])->second +
+              n_dofs_parent - 1);
       // p1 always first dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(conn.global_child_element_id)->second);
+          first_global_dof_of_ele.find(connections.global_child_element_id[i])->second);
       // q_in always third dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(conn.global_child_element_id)->second + 2);
+          first_global_dof_of_ele.find(connections.global_child_element_id[i])->second + 2);
     }
 
     // Loop over all bifurcations and add relevant dof ids (p and q associated with the
     // end of the parent element and p and q associated with the start of the child elements)
-    for (const auto& bif : bifurcations)
+    for (size_t i = 0; i < bifurcations.size(); ++i)
     {
-      int n_dofs_parent = global_dof_per_ele.find(bif.global_parent_element_id)->second;
+      int n_dofs_parent = global_dof_per_ele.find(bifurcations.global_parent_element_id[i])->second;
       // p2 always second dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_parent_element_id)->second + 1);
+          first_global_dof_of_ele.find(bifurcations.global_parent_element_id[i])->second + 1);
       // q_out always last dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_parent_element_id)->second + n_dofs_parent - 1);
+          first_global_dof_of_ele.find(bifurcations.global_parent_element_id[i])->second +
+              n_dofs_parent - 1);
       // p1 always first dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_child_1_element_id)->second);
+          first_global_dof_of_ele.find(bifurcations.global_child_1_element_id[i])->second);
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_child_2_element_id)->second);
+          first_global_dof_of_ele.find(bifurcations.global_child_2_element_id[i])->second);
       // q_in always third dof of element
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_child_1_element_id)->second + 2);
+          first_global_dof_of_ele.find(bifurcations.global_child_1_element_id[i])->second + 2);
       locally_relevant_dof_indices.insert(locally_relevant_dof_indices.end(),
-          first_global_dof_of_ele.find(bif.global_child_2_element_id)->second + 2);
+          first_global_dof_of_ele.find(bifurcations.global_child_2_element_id[i])->second + 2);
     }
     // Loop over all boundary conditions and add relevant dof ids (dof where bc is applied)
     for (const auto& bc : boundary_conditions)
