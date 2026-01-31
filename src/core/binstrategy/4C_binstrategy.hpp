@@ -605,11 +605,11 @@ namespace Core::Binstrategy
      * \return extended element column map
      */
     std::shared_ptr<Core::LinAlg::Map> extend_element_col_map(
-        std::map<int, std::set<int>> const& bin_to_row_ele_map,
-        std::map<int, std::set<int>>& bin_to_row_ele_map_to_lookup_requests,
+        const std::map<int, std::set<int>>& bin_to_row_ele_map,
+        const std::map<int, std::set<int>>& bin_to_row_ele_map_to_lookup_requests,
         std::map<int, std::set<int>>& ext_bin_to_ele_map,
-        std::shared_ptr<Core::LinAlg::Map> bin_colmap = nullptr,
-        std::shared_ptr<Core::LinAlg::Map> bin_rowmap = nullptr,
+        std::shared_ptr<const Core::LinAlg::Map> bin_colmap = nullptr,
+        std::shared_ptr<const Core::LinAlg::Map> bin_rowmap = nullptr,
         const Core::LinAlg::Map* ele_colmap_from_standardghosting = nullptr) const;
 
     /*!

@@ -1251,10 +1251,11 @@ Core::Binstrategy::BinningStrategy::weighted_distribution_of_bins_to_procs(
 }
 
 std::shared_ptr<Core::LinAlg::Map> Core::Binstrategy::BinningStrategy::extend_element_col_map(
-    std::map<int, std::set<int>> const& bin_to_row_ele_map,
-    std::map<int, std::set<int>>& bin_to_row_ele_map_to_lookup_requests,
-    std::map<int, std::set<int>>& ext_bin_to_ele_map, std::shared_ptr<Core::LinAlg::Map> bin_colmap,
-    std::shared_ptr<Core::LinAlg::Map> bin_rowmap,
+    const std::map<int, std::set<int>>& bin_to_row_ele_map,
+    const std::map<int, std::set<int>>& bin_to_row_ele_map_to_lookup_requests,
+    std::map<int, std::set<int>>& ext_bin_to_ele_map,
+    std::shared_ptr<const Core::LinAlg::Map> bin_colmap,
+    std::shared_ptr<const Core::LinAlg::Map> bin_rowmap,
     const Core::LinAlg::Map* ele_colmap_from_standardghosting) const
 {
   // do communication to gather all elements for extended ghosting
@@ -1308,10 +1309,9 @@ std::shared_ptr<Core::LinAlg::Map> Core::Binstrategy::BinningStrategy::extend_el
 
     for (int i = 0; i < numbin; ++i)
     {
-      if (bin_to_row_ele_map_to_lookup_requests.find(binids[i]) !=
-          bin_to_row_ele_map_to_lookup_requests.end())
-        sdata[binids[i]].insert(bin_to_row_ele_map_to_lookup_requests[binids[i]].begin(),
-            bin_to_row_ele_map_to_lookup_requests[binids[i]].end());
+      const auto it_bin_id = bin_to_row_ele_map_to_lookup_requests.find(binids[i]);
+      if (it_bin_id != bin_to_row_ele_map_to_lookup_requests.end())
+        sdata[binids[i]].insert(it_bin_id->second.begin(), it_bin_id->second.end());
     }
 
     Core::LinAlg::gather<int>(sdata, rdata, 1, &iproc, comm_);

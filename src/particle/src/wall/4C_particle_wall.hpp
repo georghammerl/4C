@@ -322,8 +322,10 @@ namespace Particle
      *
      *
      * \param[in] bintorowelemap bin to row wall element distribution
+     * \param[in] stdelecolmap standard element column map
      */
-    void extend_wall_element_ghosting(std::map<int, std::set<int>>& bintorowelemap);
+    void extend_wall_element_ghosting(const std::map<int, std::set<int>>& bintorowelemap,
+        std::shared_ptr<const Core::LinAlg::Map> stdelecolmap);
 
     /*!
      * \brief init wall discretization

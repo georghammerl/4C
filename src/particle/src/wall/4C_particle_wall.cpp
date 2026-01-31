@@ -486,7 +486,7 @@ void Particle::WallHandlerDiscretCondition::distribute_wall_elements_and_nodes()
       *walldiscretization_, walldiscretization_->my_row_element_range(), bintorowelemap, disn_col);
 
   // extend wall element ghosting
-  extend_wall_element_ghosting(bintorowelemap);
+  extend_wall_element_ghosting(bintorowelemap, stdelecolmap);
 
   // update maps of state vectors
   walldatastate_->update_maps_of_state_vectors();
@@ -510,18 +510,19 @@ void Particle::WallHandlerDiscretCondition::transfer_wall_elements_and_nodes()
       *walldiscretization_, walldatastate_->get_disp_col(), bintorowelemap);
 
   // extend wall element ghosting
-  extend_wall_element_ghosting(bintorowelemap);
+  extend_wall_element_ghosting(bintorowelemap, nullptr);
 
   // update maps of state vectors
   walldatastate_->update_maps_of_state_vectors();
 }
 
 void Particle::WallHandlerDiscretCondition::extend_wall_element_ghosting(
-    std::map<int, std::set<int>>& bintorowelemap)
+    const std::map<int, std::set<int>>& bintorowelemap,
+    std::shared_ptr<const Core::LinAlg::Map> stdelecolmap)
 {
   std::map<int, std::set<int>> colbintoelemap;
   std::shared_ptr<Core::LinAlg::Map> extendedelecolmap = binstrategy_->extend_element_col_map(
-      bintorowelemap, bintorowelemap, colbintoelemap, bincolmap_);
+      bintorowelemap, bintorowelemap, colbintoelemap, bincolmap_, nullptr, stdelecolmap.get());
 
   Core::Binstrategy::Utils::extend_discretization_ghosting(
       *walldiscretization_, *extendedelecolmap, true, false, false);
