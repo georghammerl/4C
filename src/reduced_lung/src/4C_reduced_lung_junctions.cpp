@@ -58,7 +58,7 @@ namespace ReducedLung
                       bifurcations.global_child_2_element_id[i] != global_ele_ids[0])),
               "Bifurcation instantiated twice! Check node ordering in input file.");
           FOUR_C_ASSERT_ALWAYS(bifurcations.global_parent_element_id[i] != global_ele_ids[0],
-              "Second connection entity at parent element! Check input file.");
+              "Second bifurcation entity at parent element! Check input file.");
         }
         for (size_t i = 0; i < connections.size(); ++i)
         {
