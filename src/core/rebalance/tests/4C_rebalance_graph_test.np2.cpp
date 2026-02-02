@@ -118,6 +118,7 @@ namespace
     Teuchos::ParameterList geometric_search_params;
     geometric_search_params.set("BEAM_RADIUS_EXTENSION_FACTOR", 1.0);
     geometric_search_params.set("SPHERE_RADIUS_EXTENSION_FACTOR", 1.0);
+    geometric_search_params.set("POINT_TOLERANCE", 1e-4);
     geometric_search_params.set("WRITE_GEOMETRIC_SEARCH_VISUALIZATION", false);
     Teuchos::ParameterList io_params;
     io_params.set("VERBOSITY", verbosity_);
