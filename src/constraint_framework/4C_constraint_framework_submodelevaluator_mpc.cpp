@@ -136,8 +136,7 @@ void Constraints::SubmodelEvaluator::RveMultiPointConstraintManager::check_input
       Teuchos::getIntegralValue<Constraints::MultiPoint::RveReferenceDeformationDefinition>(
           mpc_parameter_list, "RVE_REFERENCE_POINTS");
 
-  node_search_toler_ =
-      Teuchos::getDoubleParameter(geom_search_parameter_list, "SPHERE_RADIUS_EXTENSION_FACTOR");
+  node_search_toler_ = Teuchos::getDoubleParameter(geom_search_parameter_list, "POINT_TOLERANCE");
 
   // Check the enforcement strategy
   switch (strategy_)

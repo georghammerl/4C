@@ -30,6 +30,11 @@ Core::IO::InputSpec Core::GeometricSearch::valid_parameters()
                       "times the sphere radius in all directions (+ and -).",
                   .default_value = 2.0}),
 
+          parameter<double>("POINT_TOLERANCE",
+              {.description =
+                      "Bounding volume of the sphere is the sphere center extended by this factor "
+                      "times the sphere radius in all directions (+ and -).",
+                  .default_value = 1e-4}),
           parameter<bool>("WRITE_GEOMETRIC_SEARCH_VISUALIZATION",
               {.description = "If visualization output for the geometric search should be written",
                   .default_value = false})},

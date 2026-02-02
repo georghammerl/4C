@@ -37,6 +37,12 @@ namespace Core::GeometricSearch
      */
     double get_sphere_bounding_volume_scaling() const { return sphere_radius_extension_factor_; }
 
+    /*! \brief Returns point tolerance for point bounding volume
+     *
+     * tolerance value added to the point position in all directions
+     */
+    double get_point_tolerance() const { return point_tolerance_; }
+
     /*!
      * \brief Returns a flag indicating if visualization output should be written or not
      */
@@ -49,6 +55,7 @@ namespace Core::GeometricSearch
    private:
     double beam_radius_extension_factor_;
     double sphere_radius_extension_factor_;
+    double point_tolerance_;
     bool write_visualization_;
   };
 }  // namespace Core::GeometricSearch
