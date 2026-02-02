@@ -29,6 +29,9 @@ Core::GeometricSearch::GeometricSearchParams::GeometricSearchParams(
   FOUR_C_ASSERT(!std::signbit(sphere_radius_extension_factor_),
       "Sphere radius extension factor needs to be positive!");
 
+  point_tolerance_ = geometric_search_params.get<double>("POINT_TOLERANCE");
+  FOUR_C_ASSERT(!std::signbit(point_tolerance_), "Point tolerance needs to be positive!");
+
   verbosity_ = Teuchos::getIntegralValue<Core::IO::Verbositylevel>(io_params, "VERBOSITY");
 
   write_visualization_ = geometric_search_params.get<bool>("WRITE_GEOMETRIC_SEARCH_VISUALIZATION");
