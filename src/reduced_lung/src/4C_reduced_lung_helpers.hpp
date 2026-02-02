@@ -13,6 +13,7 @@
 #include "4C_io_discretization_visualization_writer_mesh.hpp"
 #include "4C_linalg_map.hpp"
 #include "4C_reduced_lung_airways.hpp"
+#include "4C_reduced_lung_junctions.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
 
 #include <mpi.h>
@@ -46,45 +47,6 @@ namespace ReducedLung
     int global_dof_id;
     int funct_num;
     int local_dof_id = 0;
-  };
-
-  struct Connection
-  {
-    int first_global_equation_id;
-    int first_local_equation_id;
-    int local_connection_id;
-    int global_parent_element_id;
-    int global_child_element_id;
-    enum DofNumbering
-    {
-      p_out_parent = 0,
-      p_in_child = 1,
-      q_out_parent = 2,
-      q_in_child = 3
-    };
-    std::array<int, 4> global_dof_ids;
-    std::array<int, 4> local_dof_ids{};
-  };
-
-  struct Bifurcation
-  {
-    int first_global_equation_id;
-    int first_local_equation_id;
-    int local_bifurcation_id;
-    int global_parent_element_id;
-    int global_child_1_element_id;
-    int global_child_2_element_id;
-    enum DofNumbering
-    {
-      p_out_parent = 0,
-      p_in_child_1 = 1,
-      p_in_child_2 = 2,
-      q_out_parent = 3,
-      q_in_child_1 = 4,
-      q_in_child_2 = 5
-    };
-    std::array<int, 6> global_dof_ids;
-    std::array<int, 6> local_dof_ids{};
   };
 
   enum ElementDofNumbering
@@ -149,17 +111,15 @@ namespace ReducedLung
    * @param comm Communicator of the 4C discretization.
    * @param airways Vector of locally owned airways.
    * @param terminal_units Locally owned terminal units.
-   * @param connections Vector with Connection type entries (parent element id and child
-   * element id).
-   * @param bifurcations Vector with Bifurcation type entries (parent element id and two
-   * child element ids).
+   * @param connections Connection data (parent element id and child element id).
+   * @param bifurcations Bifurcation data (parent element id and two child element ids).
    * @param boundary_conditions Vector with boundary condition information. Here, only the boundary
    * element ids are needed.
    * @return map with locally owned rows.
    */
   Core::LinAlg::Map create_row_map(const MPI_Comm& comm, const AirwayContainer& airways,
-      const TerminalUnitContainer& terminal_units, const std::vector<Connection>& connections,
-      const std::vector<Bifurcation>& bifurcations,
+      const TerminalUnitContainer& terminal_units, const Junctions::ConnectionData& connections,
+      const Junctions::BifurcationData& bifurcations,
       const std::vector<BoundaryCondition>& boundary_conditions);
 
   /*!
@@ -175,18 +135,16 @@ namespace ReducedLung
    * @param terminal_units Locally owned terminal units
    * @param global_dof_per_ele Map from global element id to associated dofs (over all processors).
    * @param first_global_dof_of_ele Map from global element id to its first global dof id.
-   * @param connections Vector with Connection type entries (parent element id and child
-   * element id).
-   * @param bifurcations Vector with Bifurcation type entries (parent element id and two
-   * child element ids).
+   * @param connections Connection data (parent element id and child element id).
+   * @param bifurcations Bifurcation data (parent element id and two child element ids).
    * @param boundary_conditions Vector with boundary condition information. Here, only the boundary
    * element ids are needed.
    * @return map with distribution of column indices for the system matrix.
    */
   Core::LinAlg::Map create_column_map(const MPI_Comm& comm, const AirwayContainer& airways,
       const TerminalUnitContainer& terminal_units, const std::map<int, int>& global_dof_per_ele,
-      const std::map<int, int>& first_global_dof_of_ele, const std::vector<Connection>& connections,
-      const std::vector<Bifurcation>& bifurcations,
+      const std::map<int, int>& first_global_dof_of_ele,
+      const Junctions::ConnectionData& connections, const Junctions::BifurcationData& bifurcations,
       const std::vector<BoundaryCondition>& boundary_conditions);
 
   /*!

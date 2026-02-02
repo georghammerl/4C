@@ -534,22 +534,22 @@ namespace ReducedLung
       void operator()(KelvinVoigt& kelvin_voigt_model) const
       {
         kelvin_voigt_model.viscosity_eta.push_back(
-            params.kelvin_voigt.viscosity_kelvin_voigt_eta.at(
+            params->kelvin_voigt.viscosity_kelvin_voigt_eta.at(
                 ele->id(), "viscosity_kelvin_voigt_eta"));
       }
       void operator()(FourElementMaxwell& model) const
       {
-        model.elasticity_E_m.push_back(params.four_element_maxwell.elasticity_maxwell_e_m.at(
+        model.elasticity_E_m.push_back(params->four_element_maxwell.elasticity_maxwell_e_m.at(
             ele->id(), "elasticity_maxwell_e_m"));
-        model.viscosity_eta.push_back(params.four_element_maxwell.viscosity_kelvin_voigt_eta.at(
+        model.viscosity_eta.push_back(params->four_element_maxwell.viscosity_kelvin_voigt_eta.at(
             ele->id(), "viscosity_kelvin_voigt_eta"));
-        model.viscosity_eta_m.push_back(params.four_element_maxwell.viscosity_maxwell_eta_m.at(
+        model.viscosity_eta_m.push_back(params->four_element_maxwell.viscosity_maxwell_eta_m.at(
             ele->id(), "viscosity_maxwell_eta_m"));
         model.maxwell_pressure_p_m.push_back(0.0);
       }
 
       Core::Elements::Element* ele;
-      ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel params;
+      const ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel* params;
     };
 
     struct AddElasticityModelParameter
@@ -557,7 +557,7 @@ namespace ReducedLung
       void operator()(LinearElasticity& linear_elasticity_model) const
       {
         linear_elasticity_model.elasticity_E.push_back(
-            params.linear.elasticity_e.at(ele->id(), "elasticity_e"));
+            params->linear.elasticity_e.at(ele->id(), "elasticity_e"));
         // Vector initialization for internal pressure state.
         linear_elasticity_model.elastic_pressure_p_el.push_back(0.0);
         linear_elasticity_model.elastic_pressure_grad_dp_el.push_back(0.0);
@@ -565,7 +565,7 @@ namespace ReducedLung
       void operator()(OgdenHyperelasticity& ogden_model) const {}
 
       Core::Elements::Element* ele;
-      ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel params;
+      const ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel* params;
     };
 
     /**
@@ -581,7 +581,7 @@ namespace ReducedLung
      */
     template <typename R, typename E>
     void add_terminal_unit_ele(TerminalUnitContainer& terminal_units, Core::Elements::Element* ele,
-        int local_element_id, ReducedLungParameters::LungTree::TerminalUnits tu_params)
+        int local_element_id, const ReducedLungParameters::LungTree::TerminalUnits& tu_params)
     {
       TerminalUnitModel& model = register_or_access_terminal_unit_model<R, E>(terminal_units);
 
@@ -596,9 +596,9 @@ namespace ReducedLung
       const double volume = (4.0 / 3.0) * std::numbers::pi * radius * radius * radius;
       model.data.volume_v.push_back(volume);
       model.data.reference_volume_v0.push_back(volume);
-      std::visit(AddRheologicalModelParameter{.ele = ele, .params = tu_params.rheological_model},
+      std::visit(AddRheologicalModelParameter{.ele = ele, .params = &tu_params.rheological_model},
           model.rheological_model);
-      std::visit(AddElasticityModelParameter{.ele = ele, .params = tu_params.elasticity_model},
+      std::visit(AddElasticityModelParameter{.ele = ele, .params = &tu_params.elasticity_model},
           model.elasticity_model);
     }
 

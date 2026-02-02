@@ -23,6 +23,7 @@
 #include "4C_reduced_lung_airways.hpp"
 #include "4C_reduced_lung_helpers.hpp"
 #include "4C_reduced_lung_input.hpp"
+#include "4C_reduced_lung_junctions.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
 #include "4C_utils_function_of_time.hpp"
 
@@ -202,11 +203,9 @@ namespace ReducedLung
 
     // Create entities with equations connecting elements (acting on "nodes" of the lung tree).
     std::vector<BoundaryCondition> boundary_conditions;
-    std::vector<Connection> connections;
-    std::vector<Bifurcation> bifurcations;
+    Junctions::ConnectionData connections;
+    Junctions::BifurcationData bifurcations;
     int n_boundary_conditions = 0;
-    int n_connections = 0;
-    int n_bifurcations = 0;
     // Find all nodes with boundary conditions
     std::vector<const Core::Conditions::Condition*> conditions;
     actdis->get_condition("RedAirwayPrescribedCond", conditions);
@@ -286,78 +285,12 @@ namespace ReducedLung
           FOUR_C_ASSERT(false, "Boundary condition not implemented!");
         }
       }
-      else if (node_out_n_eles == 2)
-      {
-        std::array<int, 2> global_ele_ids{global_ele_ids_per_node[node_out.global_id()][0],
-            global_ele_ids_per_node[node_out.global_id()][1]};
-        // Check that each element only owns one connection at the outlet and that the same
-        // connection isn't instantiated a second time from the other element.
-        for (const auto& conn : connections)
-        {
-          FOUR_C_ASSERT_ALWAYS((conn.global_parent_element_id != global_ele_ids[1] ||
-                                   conn.global_child_element_id != global_ele_ids[0]),
-              "Connection instantiated twice! Check node ordering in input file.");
-          FOUR_C_ASSERT_ALWAYS(conn.global_parent_element_id != global_ele_ids[0],
-              "Second connection entity at parent element! Check input file.");
-        }
-        for (const auto& bif : bifurcations)
-        {
-          FOUR_C_ASSERT_ALWAYS((((bif.global_parent_element_id != global_ele_ids[1]) ||
-                                    (bif.global_child_1_element_id != global_ele_ids[0] &&
-                                        bif.global_child_2_element_id != global_ele_ids[0])) &&
-                                   (bif.global_parent_element_id != global_ele_ids[0])),
-              "Bifurcation and connection instantiated at the same node! Check input file.");
-        }
-        // dofs: {p2_parent, p1_child, q2_parent (q for non-compliant airways), q1_child}
-        std::array<int, 4> global_dof_ids{first_global_dof_of_ele[global_ele_ids[0]] + 1,
-            first_global_dof_of_ele[global_ele_ids[1]],
-            first_global_dof_of_ele[global_ele_ids[0]] + global_dof_per_ele[global_ele_ids[0]] - 1,
-            first_global_dof_of_ele[global_ele_ids[1]] + 2};
-        Connection conn{0, 0, n_connections, global_ele_ids[0], global_ele_ids[1], global_dof_ids};
-        connections.push_back(conn);
-        n_connections++;
-      }
-      else if (node_out_n_eles == 3)
-      {
-        std::array<int, 3> global_ele_ids{global_ele_ids_per_node[node_out.global_id()][0],
-            global_ele_ids_per_node[node_out.global_id()][1],
-            global_ele_ids_per_node[node_out.global_id()][2]};
-        // Check that each element only owns one bifurcation at the outlet and that the same
-        // bifurcation isn't instantiated a second time from another element.
-        for (const auto& bif : bifurcations)
-        {
-          FOUR_C_ASSERT_ALWAYS(((bif.global_parent_element_id != global_ele_ids[1] &&
-                                    bif.global_parent_element_id != global_ele_ids[2]) ||
-                                   (bif.global_child_1_element_id != global_ele_ids[0] &&
-                                       bif.global_child_2_element_id != global_ele_ids[0])),
-              "Bifurcation instantiated twice! Check node ordering in input file.");
-          FOUR_C_ASSERT_ALWAYS(bif.global_parent_element_id != global_ele_ids[0],
-              "Second connection entity at parent element! Check input file.");
-        }
-        for (auto conn : connections)
-        {
-          FOUR_C_ASSERT_ALWAYS(((conn.global_parent_element_id != global_ele_ids[1] ||
-                                    conn.global_child_element_id != global_ele_ids[0]) &&
-                                   conn.global_parent_element_id != global_ele_ids[0]),
-              "Connection and bifurcation instantiated at the same node! Check input file.");
-        }
-        // dofs: {p2_parent, p1_child_1, p1_child_2, q2_parent (q for non-compliant airways),
-        // q1_child_1, q1_child_2}
-        std::array<int, 6> global_dof_ids{first_global_dof_of_ele[global_ele_ids[0]] + 1,
-            first_global_dof_of_ele[global_ele_ids[1]], first_global_dof_of_ele[global_ele_ids[2]],
-            first_global_dof_of_ele[global_ele_ids[0]] + global_dof_per_ele[global_ele_ids[0]] - 1,
-            first_global_dof_of_ele[global_ele_ids[1]] + 2,
-            first_global_dof_of_ele[global_ele_ids[2]] + 2};
-        Bifurcation bif{0, 0, n_bifurcations, global_ele_ids[0], global_ele_ids[1],
-            global_ele_ids[2], global_dof_ids};
-        bifurcations.push_back(bif);
-        n_bifurcations++;
-      }
-      else
-      {
-        FOUR_C_THROW("Too many elements at junction.");
-      }
     }
+
+    Junctions::create_junctions(*actdis, global_ele_ids_per_node, global_dof_per_ele,
+        first_global_dof_of_ele, connections, bifurcations);
+    int n_connections = static_cast<int>(connections.size());
+    int n_bifurcations = static_cast<int>(bifurcations.size());
 
     // Print info on instantiated objects.
     {
@@ -402,18 +335,7 @@ namespace ReducedLung
       }
     }
     // Assign local equation ids to connections, bifurcations, and boundary conditions.
-    for (Connection& conn : connections)
-    {
-      // Every connection adds 1 momentum and 1 mass balance equation.
-      conn.first_local_equation_id = n_local_equations;
-      n_local_equations += 2;
-    }
-    for (Bifurcation& bif : bifurcations)
-    {
-      // Every bifurcation adds 2 momentum balance equations and 1 mass balance equation.
-      bif.first_local_equation_id = n_local_equations;
-      n_local_equations += 3;
-    }
+    Junctions::assign_junction_local_equation_ids(connections, bifurcations, n_local_equations);
     for (BoundaryCondition& bc : boundary_conditions)
     {
       // Each boundaary condition adds 1 equation enforcing it at the respective dof.
@@ -436,14 +358,7 @@ namespace ReducedLung
 
     // Assign global equation ids to connections, bifurcations, and boundary conditions based on the
     // row map. Maybe not necessary, but helps with debugging.
-    for (Connection& conn : connections)
-    {
-      conn.first_global_equation_id = row_map.gid(conn.first_local_equation_id);
-    }
-    for (Bifurcation& bif : bifurcations)
-    {
-      bif.first_global_equation_id = row_map.gid(bif.first_local_equation_id);
-    }
+    Junctions::assign_junction_global_equation_ids(row_map, connections, bifurcations);
     for (BoundaryCondition& bc : boundary_conditions)
     {
       bc.global_equation_id = row_map.gid(bc.local_equation_id);
@@ -472,24 +387,7 @@ namespace ReducedLung
         tu_model.data.lid_q.push_back(locally_relevant_dof_map.lid(tu_model.data.gid_q[i]));
       }
     }
-    for (Connection& conn : connections)
-    {
-      int i = 0;
-      for (const int& gid : conn.global_dof_ids)
-      {
-        conn.local_dof_ids[i] = locally_relevant_dof_map.lid(gid);
-        i++;
-      }
-    }
-    for (Bifurcation& bif : bifurcations)
-    {
-      int i = 0;
-      for (const int& gid : bif.global_dof_ids)
-      {
-        bif.local_dof_ids[i] = locally_relevant_dof_map.lid(gid);
-        i++;
-      }
-    }
+    Junctions::assign_junction_local_dof_ids(locally_relevant_dof_map, connections, bifurcations);
     for (BoundaryCondition& bc : boundary_conditions)
     {
       bc.local_dof_id = locally_relevant_dof_map.lid(bc.global_dof_id);
@@ -546,111 +444,9 @@ namespace ReducedLung
           rhs, terminal_units, locally_relevant_dofs, dt);
       TerminalUnits::update_jacobian(sysmat, terminal_units, locally_relevant_dofs, dt);
 
-      // Assemble connection equations.
-      for (const Connection& conn : connections)
-      {
-        std::array<double, 2> vals;
-        double res;
-        // Momentum balance (p2_parent - p1_child = 0).
-        vals = {1.0, -1.0};
-        std::array<int, 2> local_dof_ids{conn.local_dof_ids[Connection::p_out_parent],
-            conn.local_dof_ids[Connection::p_in_child]};
-        if (!sysmat.filled())
-        {
-          sysmat.insert_my_values(
-              conn.first_local_equation_id, vals.size(), vals.data(), local_dof_ids.data());
-        }
-        else
-        {
-          sysmat.replace_my_values(
-              conn.first_local_equation_id, vals.size(), vals.data(), local_dof_ids.data());
-        }
-        res = -locally_relevant_dofs.local_values_as_span()[local_dof_ids[0]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids[1]];
-        rhs.replace_local_value(conn.first_local_equation_id, res);
-
-        // Mass balance (q_out_parent - q_in_child = 0).
-        vals = {1.0, -1.0};
-        local_dof_ids = {conn.local_dof_ids[Connection::q_out_parent],
-            conn.local_dof_ids[Connection::q_in_child]};
-        if (!sysmat.filled())
-        {
-          sysmat.insert_my_values(
-              conn.first_local_equation_id + 1, vals.size(), vals.data(), local_dof_ids.data());
-        }
-        else
-        {
-          sysmat.replace_my_values(
-              conn.first_local_equation_id + 1, vals.size(), vals.data(), local_dof_ids.data());
-        }
-        res = -locally_relevant_dofs.local_values_as_span()[local_dof_ids[0]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids[1]];
-        rhs.replace_local_value(conn.first_local_equation_id + 1, res);
-      }
-
-      // Assemble bifurcation equations
-      for (const Bifurcation& bif : bifurcations)
-      {
-        std::array<double, 2> vals_mom_balance;
-        std::array<double, 3> vals_mass_balance;
-        double res;
-        // Momentum balance parent - child_1 (p2_parent - p1_child_1 = 0).
-        vals_mom_balance = {1.0, -1.0};
-        std::array<int, 2> local_dof_ids_mom_balance{bif.local_dof_ids[Bifurcation::p_out_parent],
-            bif.local_dof_ids[Bifurcation::p_in_child_1]};
-        if (!sysmat.filled())
-        {
-          sysmat.insert_my_values(bif.first_local_equation_id, vals_mom_balance.size(),
-              vals_mom_balance.data(), local_dof_ids_mom_balance.data());
-        }
-        else
-        {
-          sysmat.replace_my_values(bif.first_local_equation_id, vals_mom_balance.size(),
-              vals_mom_balance.data(), local_dof_ids_mom_balance.data());
-        }
-        res = -locally_relevant_dofs.local_values_as_span()[local_dof_ids_mom_balance[0]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids_mom_balance[1]];
-        rhs.replace_local_value(bif.first_local_equation_id, res);
-
-        // Momentum balance parent - child_2 (p2_parent - p1_child_2 = 0).
-        vals_mom_balance = {1.0, -1.0};
-        local_dof_ids_mom_balance = {bif.local_dof_ids[Bifurcation::p_out_parent],
-            bif.local_dof_ids[Bifurcation::p_in_child_2]};
-        if (!sysmat.filled())
-        {
-          sysmat.insert_my_values(bif.first_local_equation_id + 1, vals_mom_balance.size(),
-              vals_mom_balance.data(), local_dof_ids_mom_balance.data());
-        }
-        else
-        {
-          sysmat.replace_my_values(bif.first_local_equation_id + 1, vals_mom_balance.size(),
-              vals_mom_balance.data(), local_dof_ids_mom_balance.data());
-        }
-        res = -locally_relevant_dofs.local_values_as_span()[local_dof_ids_mom_balance[0]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids_mom_balance[1]];
-        rhs.replace_local_value(bif.first_local_equation_id + 1, res);
-
-        // Mass balance (q_out_parent - q_in_child_1 - q_in_child_1 = 0).
-        vals_mass_balance = {1.0, -1.0, -1.0};
-        std::array<int, 3> local_dof_ids_mass_balance = {
-            bif.local_dof_ids[Bifurcation::q_out_parent],
-            bif.local_dof_ids[Bifurcation::q_in_child_1],
-            bif.local_dof_ids[Bifurcation::q_in_child_2]};
-        if (!sysmat.filled())
-        {
-          sysmat.insert_my_values(bif.first_local_equation_id + 2, vals_mass_balance.size(),
-              vals_mass_balance.data(), local_dof_ids_mass_balance.data());
-        }
-        else
-        {
-          sysmat.replace_my_values(bif.first_local_equation_id + 2, vals_mass_balance.size(),
-              vals_mass_balance.data(), local_dof_ids_mass_balance.data());
-        }
-        res = -locally_relevant_dofs.local_values_as_span()[local_dof_ids_mass_balance[0]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids_mass_balance[1]] +
-              locally_relevant_dofs.local_values_as_span()[local_dof_ids_mass_balance[2]];
-        rhs.replace_local_value(bif.first_local_equation_id + 2, res);
-      }
+      Junctions::update_negative_residual_vector(
+          rhs, connections, bifurcations, locally_relevant_dofs);
+      Junctions::update_jacobian(sysmat, connections, bifurcations);
 
       // Assemble boundary conditions (equation: dof_value - bc_value = 0).
       for (const BoundaryCondition& bc : boundary_conditions)

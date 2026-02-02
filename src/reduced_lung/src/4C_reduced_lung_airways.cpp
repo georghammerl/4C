@@ -73,9 +73,17 @@ namespace ReducedLung
       std::array<double, 3> values;
       for (size_t i = 0; i < data.number_of_elements(); i++)
       {
-        column_indices = {data.lid_p1[i], data.lid_p2[i], data.lid_q1[i]};
-        values = {1.0, -1.0, -resistance_derivative[i] - inertia_derivative[i]};
-        target.insert_my_values(data.local_row_id[i], 3, values.data(), column_indices.data());
+        if (!target.filled())
+        {
+          column_indices = {data.lid_p1[i], data.lid_p2[i], data.lid_q1[i]};
+          values = {1.0, -1.0, -resistance_derivative[i] - inertia_derivative[i]};
+          target.insert_my_values(data.local_row_id[i], 3, values.data(), column_indices.data());
+        }
+        else
+        {
+          auto grad_q = -resistance_derivative[i] - inertia_derivative[i];
+          target.replace_my_values(data.local_row_id[i], 1, &grad_q, &data.lid_q1[i]);
+        }
       }
     }
 
@@ -119,18 +127,34 @@ namespace ReducedLung
         double dt)
     {
       [[maybe_unused]] int err;  // Saves error code of trilinos functions.
-      std::array<int, 4> column_indices;
-      std::array<double, 4> values;
       for (size_t i = 0; i < data.number_of_elements(); i++)
       {
-        column_indices = {data.lid_p1[i], data.lid_p2[i], data.lid_q1[i], data.lid_q2[i]};
-        values = {1.0, -1.0, resistance_derivative.first[i] + inertia_derivative.first[i],
-            resistance_derivative.second[i] + inertia_derivative.second[i]};
-        target.insert_my_values(data.local_row_id[i], 4, values.data(), column_indices.data());
-        values = {1.0, 1.0, viscous_wall_resistance_derivative.first[i],
-            viscous_wall_resistance_derivative.second[i]};
-        target.insert_my_values(static_cast<int>(data.local_row_id[i] + data.number_of_elements()),
-            4, values.data(), column_indices.data());
+        if (!target.filled())
+        {
+          std::array<int, 4> column_indices;
+          std::array<double, 4> values;
+          column_indices = {data.lid_p1[i], data.lid_p2[i], data.lid_q1[i], data.lid_q2[i]};
+          values = {1.0, -1.0, resistance_derivative.first[i] + inertia_derivative.first[i],
+              resistance_derivative.second[i] + inertia_derivative.second[i]};
+          target.insert_my_values(data.local_row_id[i], 4, values.data(), column_indices.data());
+          values = {1.0, 1.0, viscous_wall_resistance_derivative.first[i],
+              viscous_wall_resistance_derivative.second[i]};
+          target.insert_my_values(
+              static_cast<int>(data.local_row_id[i] + data.number_of_elements()), 4, values.data(),
+              column_indices.data());
+        }
+        else
+        {
+          std::array<int, 2> q_column_indices{data.lid_q1[i], data.lid_q2[i]};
+          std::array<double, 2> grad_q{resistance_derivative.first[i] + inertia_derivative.first[i],
+              resistance_derivative.second[i] + inertia_derivative.second[i]};
+          target.replace_my_values(data.local_row_id[i], 2, grad_q.data(), q_column_indices.data());
+          grad_q = {viscous_wall_resistance_derivative.first[i],
+              viscous_wall_resistance_derivative.second[i]};
+          target.replace_my_values(
+              static_cast<int>(data.local_row_id[i] + data.number_of_elements()), 2, grad_q.data(),
+              q_column_indices.data());
+        }
       }
     }
 
