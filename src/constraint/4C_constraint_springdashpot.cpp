@@ -1055,6 +1055,7 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
 
           // spring displacement
           gap = gap_[node_gid];
+          gapdt = gapdt_[node_gid];
 
           // assemble into residual vector and stiffness matrix
           std::vector<double> out_vec(numdof, 0.);
