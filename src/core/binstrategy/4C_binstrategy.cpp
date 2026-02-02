@@ -863,7 +863,7 @@ void Core::Binstrategy::BinningStrategy::add_ijk_to_axis_aligned_ijk_range(
     {
       // this is needed if your element is cut by a periodic boundary and you don't
       // want a bounding box that is as big as the the whole binning domain
-      if ((ijk[dim] == 0) && (abs(ijk[dim] - ijk_range[dim * 2]) > cutcheckfac))
+      if (pbconoff_[dim] && (ijk[dim] == 0) && (abs(ijk[dim] - ijk_range[dim * 2]) > cutcheckfac))
       {
         ijk_range[dim * 2 + 1] = bin_per_dir_[dim];
         continue;
@@ -876,7 +876,7 @@ void Core::Binstrategy::BinningStrategy::add_ijk_to_axis_aligned_ijk_range(
     if (ijk[dim] > ijk_range[dim * 2 + 1])
     {
       // cut check
-      if ((ijk[dim] == bin_per_dir_[dim] - 1) &&
+      if (pbconoff_[dim] && (ijk[dim] == bin_per_dir_[dim] - 1) &&
           (abs(ijk[dim] - ijk_range[dim * 2 + 1]) > cutcheckfac))
       {
         ijk_range[dim * 2] = -1;
