@@ -138,6 +138,7 @@ bool Solid::ModelEvaluator::SpringDashpot::evaluate_stiff()
   const double fac_disp = eval_data().get_tim_int_factor_disp();
   const double time_fac = fac_vel / fac_disp;
   Teuchos::ParameterList springdashpotparams;
+
   if (fac_vel > 0.0) springdashpotparams.set("time_fac", time_fac);
 
   // loop over all spring dashpot conditions and evaluate them

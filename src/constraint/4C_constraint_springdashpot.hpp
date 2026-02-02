@@ -101,15 +101,6 @@ namespace Constraints
         Core::LinAlg::MultiVector<double>& normals,
         Core::LinAlg::MultiVector<double>& stress) const;
 
-    //! select spring stiffness for tensile or compressive spring
-    double select_stiffness(double gap)
-    {
-      if (gap > 0)
-        return stiff_tens_;  // gap positive: tensile spring
-      else
-        return stiff_comp_;  // gap negative: compressive spring
-    }
-
     //! output of spring offset
     void output_prestr_offset(Core::LinAlg::Vector<double>& springprestroffset) const;
 
@@ -133,9 +124,6 @@ namespace Constraints
     void reset_step_state();
 
    private:
-    //! set type of spring during initialization
-    void set_spring_type();
-
     //! set up MORTAR interface for direction cursurfnormal
     void initialize_cur_surf_normal();
 
@@ -158,11 +146,9 @@ namespace Constraints
     //! @name Spring properties
     //@{
 
-    //! Spring stiffness when spring is in tension
-    const double stiff_tens_;
+    //! Spring stiffness
+    const double stiff_;
 
-    //! Spring stiffness when spring is in compression
-    const double stiff_comp_;
 
     //! Spring offset
     const double offset_;
