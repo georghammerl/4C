@@ -85,6 +85,18 @@ namespace Core::LinAlg
     return symmetric_tensor;
   }
 
+
+  /*!
+   * @brief Creates a symmetric tensor from a strain-like Voigt notation matrix.
+   */
+  constexpr auto make_symmetric_tensor_from_strain_like_voigt_matrix(const auto& strain_like_voigt)
+    requires(std::remove_cvref_t<decltype(strain_like_voigt)>::num_cols() == 1)
+  {
+    auto stress_like_voigt = strain_like_voigt;
+    Voigt::Strains::to_stress_like(strain_like_voigt, stress_like_voigt);
+    return make_symmetric_tensor_from_stress_like_voigt_matrix(stress_like_voigt);
+  }
+
   /*!
    * @brief Create an arbitrarily-ranked tensor from a matrix.
    *

@@ -720,11 +720,11 @@ void Mat::PlasticLinElast::fd_check(
 
       // deviatoric strain
       // dev = strain - volstrain
-      Core::LinAlg::SymmetricTensor<double, 3, 3> devstrain = disturbstrain - volumetricstrain;
+      disturbdevstrain = disturbstrain - volumetricstrain;
 
       // ----------------------------------------------------------- stress
       // deviatoric stress = 2 . G . devstrain
-      devdisturbstress = 2.0 * G * devstrain;
+      devdisturbstress = 2.0 * G * disturbdevstrain;
       double devstressfac = 0.0;
       double betafac = 0.0;
       // update of trial state
@@ -745,8 +745,7 @@ void Mat::PlasticLinElast::fd_check(
         for (int i2 = 0; i2 < 3; ++i2)
         {
           // build the finite difference tangent
-          cmatFD(i1, i2, k1, k2) = 0.0;
-          cmatFD(i1, i2, k1, k2) += (disturbstress(i1, i2) / (delta)-stress(i1, i2) / (delta));
+          cmatFD(i1, i2, k1, k2) += (disturbstress(i1, i2) - stress(i1, i2)) / (delta);
         }  // loop stresses
 
       // undisturb the respective strain quantities (disturbstrain=strain)
