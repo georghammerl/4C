@@ -10,6 +10,7 @@
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_crosslinking_input.hpp"
 #include "4C_beaminteraction_input_beam_to_solid.hpp"
+#include "4C_beaminteraction_spherebeamlinking_input.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_legacy_enum_definitions_conditions.hpp"
@@ -53,49 +54,6 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
       {.required = false}));
 
   /*----------------------------------------------------------------------*/
-  /* parameters for sphere beam link submodel */
-  specs.push_back(group("BEAM INTERACTION/SPHERE BEAM LINK",
-      {
-
-          parameter<bool>(
-              "SPHEREBEAMLINKING", {.description = "Integrins in problem", .default_value = false}),
-
-          // Reading double parameter for contraction rate for active linker
-          parameter<double>("CONTRACTIONRATE",
-              {.description = "contraction rate of cell (integrin linker) in [microm/s]",
-                  .default_value = 0.0}),
-          // time step for stochastic events concerning sphere beam linking
-          parameter<double>("TIMESTEP",
-              {.description = "time step for stochastic events concerning sphere beam linking "
-                              "(e.g. catch-slip-bond behavior) ",
-                  .default_value = -1.0}),
-          parameter<std::string>("MAXNUMLINKERPERTYPE",
-              {.description = "number of crosslinker of certain type ", .default_value = "0"}),
-          // material number characterizing crosslinker type
-          parameter<std::string>("MATLINKERPERTYPE",
-              {.description = "material number characterizing crosslinker type ",
-                  .default_value = "-1"}),
-          // distance between two binding spots on a filament (same on all filaments)
-          parameter<std::string>("FILAMENTBSPOTINTERVALGLOBAL",
-              {.description = "distance between two binding spots on all filaments",
-                  .default_value = "-1.0"}),
-          // distance between two binding spots on a filament (as percentage of current filament
-          // length)
-          parameter<std::string>("FILAMENTBSPOTINTERVALLOCAL",
-              {.description = "distance between two binding spots on current filament",
-                  .default_value = "-1.0"}),
-          // start and end for bspots on a filament in arc parameter (same on each filament
-          // independent of their length)
-          parameter<std::string>("FILAMENTBSPOTRANGEGLOBAL",
-              {.description = "Lower and upper arc parameter bound for binding spots on a filament",
-                  .default_value = "-1.0 -1.0"}),
-          // start and end for bspots on a filament in percent of reference filament length
-          parameter<std::string>("FILAMENTBSPOTRANGELOCAL",
-              {.description = "Lower and upper arc parameter bound for binding spots on a filament",
-                  .default_value = "0.0 1.0"})},
-      {.required = false}));
-
-  /*----------------------------------------------------------------------*/
   /* parameters for beam to sphere contact */
   specs.push_back(group("BEAM INTERACTION/BEAM TO SPHERE CONTACT",
       {
@@ -114,8 +72,7 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
                   .default_value = 0.0})},
       {.required = false}));
 
-  /*----------------------------------------------------------------------*/
-  /* parameters for beam to solid contact */
+  // get parameters for beam to solid interaction
   std::vector<Core::IO::InputSpec> beam_to_solid_contact = BeamToSolid::valid_parameters();
   specs.insert(specs.end(), beam_to_solid_contact.begin(), beam_to_solid_contact.end());
 
@@ -123,6 +80,12 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
   std::vector<Core::IO::InputSpec> crosslinking_specs =
       BeamInteraction::valid_parameters_crosslinking();
   specs.insert(specs.end(), crosslinking_specs.begin(), crosslinking_specs.end());
+
+  // get parameters for sphere beam linking
+  std::vector<Core::IO::InputSpec> spherebeamlinking_specs =
+      BeamInteraction::valid_parameters_spherebeamlinking();
+  specs.insert(specs.end(), spherebeamlinking_specs.begin(), spherebeamlinking_specs.end());
+
   return specs;
 }
 
