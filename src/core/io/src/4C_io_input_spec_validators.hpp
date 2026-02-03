@@ -218,7 +218,7 @@ namespace Core::IO::InputSpecBuilders::Validators
     class ValidatorImpl<RangeLike<T>>
     {
      public:
-      ValidatorImpl(ValidatorImpl<T> inner) : inner_validator_(inner) {}
+      explicit ValidatorImpl(ValidatorImpl<T> inner) : inner_validator_(inner) {}
 
       template <std::ranges::range R>
       [[nodiscard]]
@@ -251,7 +251,7 @@ namespace Core::IO::InputSpecBuilders::Validators
     class ValidatorImpl<std::optional<T>>
     {
      public:
-      ValidatorImpl(ValidatorImpl<T> inner) : inner_validator_(inner) {}
+      explicit ValidatorImpl(ValidatorImpl<T> inner) : inner_validator_(inner) {}
 
       template <typename U>
       [[nodiscard]] bool operator()(const std::optional<U>& opt) const

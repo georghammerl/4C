@@ -138,4 +138,7 @@ namespace
     EXPECT_FALSE(v2(0));
   }
 
+  // Ensure that optional and non-optional validators are not assignable to each other
+  static_assert(!std::assignable_from<Validator<std::optional<int>>, Validator<int>>);
+  static_assert(!std::assignable_from<Validator<int>, Validator<std::optional<int>>>);
 }  // namespace
