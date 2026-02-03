@@ -21,9 +21,9 @@ FOUR_C_NAMESPACE_OPEN
 Mat::PAR::StVenantKirchhoffOrthotropic::StVenantKirchhoffOrthotropic(
     const Core::Mat::PAR::Parameter::Data& matdata)
     : Parameter(matdata),
-      youngs_(matdata.parameters.get<std::array<double, 3>>("YOUNG")),
-      shear_(matdata.parameters.get<std::array<double, 3>>("SHEAR")),
-      poissonratio_(matdata.parameters.get<std::array<double, 3>>("NUE")),
+      youngs_(matdata.parameters.get<Core::IO::InputField<std::array<double, 3>>>("YOUNG")),
+      shear_(matdata.parameters.get<Core::IO::InputField<std::array<double, 3>>>("SHEAR")),
+      poissonratio_(matdata.parameters.get<Core::IO::InputField<std::array<double, 3>>>("NUE")),
       density_(matdata.parameters.get<double>("DENS"))
 {
 }
@@ -109,7 +109,7 @@ void Mat::StVenantKirchhoffOrthotropic::evaluate(const Core::LinAlg::Tensor<doub
     Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat, int gp, int eleGID)
 {
   cmat = StVenantKirchhoffOrthotropic::evaluate_stress_linearization(
-      params_->youngs_, params_->shear_, params_->poissonratio_);
+      params_->youngs_.at(eleGID), params_->shear_.at(eleGID), params_->poissonratio_.at(eleGID));
 
   stress = StVenantKirchhoffOrthotropic::evaluate_stress(glstrain, cmat);
 }
@@ -122,7 +122,7 @@ double Mat::StVenantKirchhoffOrthotropic::strain_energy(
     const int gp, const int eleGID) const
 {
   auto cmat = StVenantKirchhoffOrthotropic::evaluate_stress_linearization(
-      params_->youngs_, params_->shear_, params_->poissonratio_);
+      params_->youngs_.at(eleGID), params_->shear_.at(eleGID), params_->poissonratio_.at(eleGID));
 
   auto stress = StVenantKirchhoffOrthotropic::evaluate_stress(glstrain, cmat);
 

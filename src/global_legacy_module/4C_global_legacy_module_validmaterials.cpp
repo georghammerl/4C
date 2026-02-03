@@ -1115,16 +1115,15 @@ std::unordered_map<Core::Materials::MaterialType, Core::IO::InputSpec> Global::v
     known_materials[Core::Materials::m_orthostvenant] = group(
         "MAT_Struct_StVenantKirchhoffOrthotropic",
         {
-            parameter<std::array<double, 3>>(
-                "YOUNG", {.description = "Vector of Young's moduli for the principal directions "
-                                         "with the ordering [E1, E2, E3].",
-                             .validator = all_elements(positive<double>())}),
-            parameter<std::array<double, 3>>("SHEAR",
-                {.description = "Vector of shear moduli with the ordering [G12, G23, G13].",
-                    .validator = all_elements(positive<double>())}),
-            parameter<std::array<double, 3>>("NUE",
-                {.description = "Vector of Poisson's ratios with the ordering [nu12, nu23, nu13].",
-                    .validator = all_elements(in_range<double>(-1.0, excl(0.5)))}),
+            input_field<std::array<double, 3>>("YOUNG",
+                {.description = "Input vector field of Young's moduli for the principal directions "
+                                "with the ordering [E1, E2, E3]."}),
+            input_field<std::array<double, 3>>("SHEAR",
+                {.description =
+                        "Input vector field of shear moduli with the ordering [G12, G23, G13]."}),
+            input_field<std::array<double, 3>>(
+                "NUE", {.description = "Input vector field of Poisson's ratios with the ordering "
+                                       "[nu12, nu23, nu13]."}),
             parameter<double>("DENS", {.description = "mass density"}),
         },
         {.description = "St.Venant--Kirchhoff material with orthotropy"});

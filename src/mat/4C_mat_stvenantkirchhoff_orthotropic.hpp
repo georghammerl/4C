@@ -12,6 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_comm_parobjectfactory.hpp"
+#include "4C_io_input_field.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_linalg_tensor_conversion.hpp"
@@ -36,11 +37,11 @@ namespace Mat
       //@{
 
       /// Young's moduli E1, E2, E3 along principal directions
-      const std::array<double, 3> youngs_;
+      const Core::IO::InputField<std::array<double, 3>> youngs_;
       /// Shear moduli G12, G23, G13
-      const std::array<double, 3> shear_;
+      const Core::IO::InputField<std::array<double, 3>> shear_;
       /// Possion's ratios nu12, nu23, nu13
-      const std::array<double, 3> poissonratio_;
+      const Core::IO::InputField<std::array<double, 3>> poissonratio_;
       /// Mass density
       const double density_;
 

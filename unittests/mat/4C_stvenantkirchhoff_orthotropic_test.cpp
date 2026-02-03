@@ -25,11 +25,15 @@ namespace
    protected:
     void SetUp() override
     {
+      const Core::IO::InputField<std::array<double, 3>> young_field(young_);
+      const Core::IO::InputField<std::array<double, 3>> shear_field(shear_);
+      const Core::IO::InputField<std::array<double, 3>> nu_field(nu_);
+
       Core::IO::InputParameterContainer container;
       // add material parameters to container
-      container.add("YOUNG", young_);
-      container.add("SHEAR", shear_);
-      container.add("NUE", nu_);
+      container.add("YOUNG", young_field);
+      container.add("SHEAR", shear_field);
+      container.add("NUE", nu_field);
       container.add("DENS", rho_);
 
       // initialize parameter class for StVenantKirchhoffOrthotropic material with container
@@ -47,6 +51,7 @@ namespace
     const std::array<double, 3> shear_ = {5.2, 3.5, 5.2};
     const std::array<double, 3> nu_ = {0.35, 0.49, 0.35};
     const double rho_ = 1.0;  // dummy value (needed for construction)
+
     std::shared_ptr<Mat::PAR::StVenantKirchhoffOrthotropic>
         parameters_stvenantkirchhofforthotropic_;
 
