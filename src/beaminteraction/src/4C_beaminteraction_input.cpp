@@ -8,9 +8,9 @@
 #include "4C_beaminteraction_input.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_crosslinking_input.hpp"
-#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_beaminteraction_spherebeamlinking_input.hpp"
 #include "4C_fem_condition_definition.hpp"

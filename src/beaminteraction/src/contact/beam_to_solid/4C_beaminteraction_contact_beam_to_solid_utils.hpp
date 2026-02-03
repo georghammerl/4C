@@ -12,7 +12,7 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_calc_utils.hpp"
-#include "4C_beaminteraction_input_beam_to_solid.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_faces.hpp"
 #include "4C_linalg_fevector.hpp"

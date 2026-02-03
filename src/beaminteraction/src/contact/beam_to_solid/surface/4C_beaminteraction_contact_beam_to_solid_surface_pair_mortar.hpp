@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_pair_base.hpp"
-#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 
 FOUR_C_NAMESPACE_OPEN

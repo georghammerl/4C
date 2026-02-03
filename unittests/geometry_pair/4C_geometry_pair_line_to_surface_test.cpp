@@ -10,7 +10,7 @@
 #include "4C_geometry_pair_line_to_surface.hpp"
 
 #include "4C_beam3_reissner.hpp"
-#include "4C_beaminteraction_input_beam_to_solid.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_geometry_pair_element_evaluation_functions.hpp"
 #include "4C_geometry_pair_line_to_surface_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_surface_geometry_test.hpp"
