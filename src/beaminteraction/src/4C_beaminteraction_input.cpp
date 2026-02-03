@@ -9,7 +9,7 @@
 
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
-#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
+#include "4C_beaminteraction_contact_input.hpp"
 #include "4C_beaminteraction_crosslinking_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_beaminteraction_spherebeamlinking_input.hpp"
@@ -55,30 +55,23 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
                   .default_value = SearchStrategy::bruteforce_with_binning})},
       {.required = false}));
 
+  // get beam contact parameters
+  std::vector<Core::IO::InputSpec> contact_specs = BeamInteraction::valid_parameters_contact();
+  specs.insert(specs.end(), contact_specs.begin(), contact_specs.end());
 
-  // get parameters for beam to solid interaction
-  std::vector<Core::IO::InputSpec> beam_to_solid_contact = BeamToSolid::valid_parameters();
-  specs.insert(specs.end(), beam_to_solid_contact.begin(), beam_to_solid_contact.end());
-
-  // get parameters for crosslinking
+  // get beam crosslinking parameters
   std::vector<Core::IO::InputSpec> crosslinking_specs =
       BeamInteraction::valid_parameters_crosslinking();
   specs.insert(specs.end(), crosslinking_specs.begin(), crosslinking_specs.end());
 
-  // get parameters for sphere beam linking
-  std::vector<Core::IO::InputSpec> spherebeamlinking_specs =
-      BeamInteraction::valid_parameters_spherebeamlinking();
-  specs.insert(specs.end(), spherebeamlinking_specs.begin(), spherebeamlinking_specs.end());
-
-  // get parameters for beam potential
+  // get beam potential parameters
   Core::IO::InputSpec beam_potential_specs = BeamInteraction::Potential::valid_parameters();
   specs.push_back(beam_potential_specs);
 
-  // get parameters for beam to sphere contact
-  std::vector<Core::IO::InputSpec> beam_to_sphere_contact_specs =
-      BeamInteraction::valid_parameters_contact_beam_to_sphere();
-  specs.insert(
-      specs.end(), beam_to_sphere_contact_specs.begin(), beam_to_sphere_contact_specs.end());
+  // get sphere beam linking parameters
+  std::vector<Core::IO::InputSpec> spherebeamlinking_specs =
+      BeamInteraction::valid_parameters_spherebeamlinking();
+  specs.insert(specs.end(), spherebeamlinking_specs.begin(), spherebeamlinking_specs.end());
 
   return specs;
 }

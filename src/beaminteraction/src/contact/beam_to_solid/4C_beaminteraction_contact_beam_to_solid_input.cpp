@@ -7,6 +7,7 @@
 
 #include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
 #include "4C_beaminteraction_input.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_geometry_pair_input.hpp"
@@ -317,6 +318,10 @@ std::vector<Core::IO::InputSpec> BeamToSolid::valid_parameters()
                                 .default_value = false}),
       },
       {.required = false}));
+
+  // Beam to edge contact parameters
+  specs.push_back(BeamInteraction::valid_beam_to_edge_contact_parameters());
+
   return specs;
 }
 
