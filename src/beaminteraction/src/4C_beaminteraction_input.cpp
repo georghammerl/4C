@@ -8,6 +8,7 @@
 #include "4C_beaminteraction_input.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_crosslinking_input.hpp"
 #include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
@@ -54,24 +55,6 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
                   .default_value = SearchStrategy::bruteforce_with_binning})},
       {.required = false}));
 
-  /*----------------------------------------------------------------------*/
-  /* parameters for beam to sphere contact */
-  specs.push_back(group("BEAM INTERACTION/BEAM TO SPHERE CONTACT",
-      {
-
-          deprecated_selection<BeamInteraction::Strategy>("STRATEGY",
-              {
-                  {"None", bstr_none},
-                  {"none", bstr_none},
-                  {"Penalty", bstr_penalty},
-                  {"penalty", bstr_penalty},
-              },
-              {.description = "Type of employed solving strategy", .default_value = bstr_none}),
-
-          parameter<double>("PENALTY_PARAMETER",
-              {.description = "Penalty parameter for beam-to-rigidsphere contact",
-                  .default_value = 0.0})},
-      {.required = false}));
 
   // get parameters for beam to solid interaction
   std::vector<Core::IO::InputSpec> beam_to_solid_contact = BeamToSolid::valid_parameters();
@@ -90,6 +73,12 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
   // get parameters for beam potential
   Core::IO::InputSpec beam_potential_specs = BeamInteraction::Potential::valid_parameters();
   specs.push_back(beam_potential_specs);
+
+  // get parameters for beam to sphere contact
+  std::vector<Core::IO::InputSpec> beam_to_sphere_contact_specs =
+      BeamInteraction::valid_parameters_contact_beam_to_sphere();
+  specs.insert(
+      specs.end(), beam_to_sphere_contact_specs.begin(), beam_to_sphere_contact_specs.end());
 
   return specs;
 }
