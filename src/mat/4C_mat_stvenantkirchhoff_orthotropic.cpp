@@ -17,14 +17,13 @@
 FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*
- |                                                                      |
  *----------------------------------------------------------------------*/
 Mat::PAR::StVenantKirchhoffOrthotropic::StVenantKirchhoffOrthotropic(
     const Core::Mat::PAR::Parameter::Data& matdata)
     : Parameter(matdata),
-      youngs_(matdata.parameters.get<std::vector<double>>("YOUNG")),
-      shear_(matdata.parameters.get<std::vector<double>>("SHEAR")),
-      poissonratio_(matdata.parameters.get<std::vector<double>>("NUE")),
+      youngs_(matdata.parameters.get<std::array<double, 3>>("YOUNG")),
+      shear_(matdata.parameters.get<std::array<double, 3>>("SHEAR")),
+      poissonratio_(matdata.parameters.get<std::array<double, 3>>("NUE")),
       density_(matdata.parameters.get<double>("DENS"))
 {
 }
@@ -47,13 +46,11 @@ Core::Communication::ParObject* Mat::StVenantKirchhoffOrthotropicType::create(
 
 
 /*----------------------------------------------------------------------*
- |                                                                      |
  *----------------------------------------------------------------------*/
 Mat::StVenantKirchhoffOrthotropic::StVenantKirchhoffOrthotropic() : params_(nullptr) {}
 
 
 /*----------------------------------------------------------------------*
- |                                                                      |
  *----------------------------------------------------------------------*/
 Mat::StVenantKirchhoffOrthotropic::StVenantKirchhoffOrthotropic(
     Mat::PAR::StVenantKirchhoffOrthotropic* params)
@@ -63,7 +60,6 @@ Mat::StVenantKirchhoffOrthotropic::StVenantKirchhoffOrthotropic(
 
 
 /*----------------------------------------------------------------------*
- |                                                                      |
  *----------------------------------------------------------------------*/
 void Mat::StVenantKirchhoffOrthotropic::pack(Core::Communication::PackBuffer& data) const
 {
@@ -79,7 +75,6 @@ void Mat::StVenantKirchhoffOrthotropic::pack(Core::Communication::PackBuffer& da
 
 
 /*----------------------------------------------------------------------*
- |                                                                      |
  *----------------------------------------------------------------------*/
 void Mat::StVenantKirchhoffOrthotropic::unpack(Core::Communication::UnpackBuffer& buffer)
 {
@@ -106,7 +101,6 @@ void Mat::StVenantKirchhoffOrthotropic::unpack(Core::Communication::UnpackBuffer
 }
 
 /*----------------------------------------------------------------------*
-//calculates stresses using one of the above method to evaluate the elasticity tensor
  *----------------------------------------------------------------------*/
 void Mat::StVenantKirchhoffOrthotropic::evaluate(const Core::LinAlg::Tensor<double, 3, 3>* defgrad,
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain,
@@ -122,7 +116,6 @@ void Mat::StVenantKirchhoffOrthotropic::evaluate(const Core::LinAlg::Tensor<doub
 
 
 /*----------------------------------------------------------------------*
- |  Calculate strain energy                                    gee 10/09|
  *----------------------------------------------------------------------*/
 double Mat::StVenantKirchhoffOrthotropic::strain_energy(
     const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, const EvaluationContext& context,

@@ -25,7 +25,6 @@ namespace Mat
 {
   namespace PAR
   {
-    /*----------------------------------------------------------------------*/
     /// material parameters for orthotropic St. Venant--Kirchhoff
     class StVenantKirchhoffOrthotropic : public Core::Mat::PAR::Parameter
     {
@@ -36,20 +35,20 @@ namespace Mat
       /// @name material parameters
       //@{
 
-      /// Young's modulus
-      const std::vector<double> youngs_;
-      /// Shear modulus
-      const std::vector<double> shear_;
-      /// Possion's ratio
-      const std::vector<double> poissonratio_;
-      /// mass density
+      /// Young's moduli E1, E2, E3 along principal directions
+      const std::array<double, 3> youngs_;
+      /// Shear moduli G12, G23, G13
+      const std::array<double, 3> shear_;
+      /// Possion's ratios nu12, nu23, nu13
+      const std::array<double, 3> poissonratio_;
+      /// Mass density
       const double density_;
 
       //@}
 
       std::shared_ptr<Core::Mat::Material> create_material() override;
 
-    };  // class StVenantKirchhoff
+    };  // class StVenantKirchhoffOrthotropic
   }  // namespace PAR
 
   class StVenantKirchhoffOrthotropicType : public Core::Communication::ParObjectType
@@ -65,8 +64,11 @@ namespace Mat
     static StVenantKirchhoffOrthotropicType instance_;
   };
 
-  /*----------------------------------------------------------------------*/
-  /// Wrapper for St.-Venant-Kirchhoff material
+  /*
+   * Wrapper for St.-Venant-Kirchhoff material with an orthotropic material tensor.
+   * The behavior of the material is governed by 9 independent parameters, 3 Young's moduli,
+   * 3 shear moduli and 3 Poisson ratios.
+   */
   class StVenantKirchhoffOrthotropic : public So3Material
   {
    public:
@@ -91,7 +93,7 @@ namespace Mat
 
     [[nodiscard]] Core::Materials::MaterialType material_type() const override
     {
-      return Core::Materials::m_stvenant;
+      return Core::Materials::m_orthostvenant;
     }
 
     void valid_kinematics(Inpar::Solid::KinemType kinem) override
@@ -105,17 +107,6 @@ namespace Mat
     {
       return std::make_shared<StVenantKirchhoffOrthotropic>(*this);
     }
-
-    /// Young's modulus
-    [[nodiscard]] std::vector<double> youngs() const { return params_->youngs_; }
-
-    /// Poisson's ratio
-    [[nodiscard]] std::vector<double> poisson_ratio() const { return params_->poissonratio_; }
-
-    [[nodiscard]] double density() const override { return params_->density_; }
-
-    /// shear modulus
-    [[nodiscard]] std::vector<double> shear_mod() const { return params_->shear_; }
 
     [[nodiscard]] Core::Mat::PAR::Parameter* parameter() const override { return params_; }
 
@@ -140,8 +131,53 @@ namespace Mat
       return Core::LinAlg::ddot(cmat, glstrain);
     }
 
+
+    /**
+     * @brief Build the stiffness tensor used for stress linearization of an orthotropic
+     * St.-Venant-Kirchhoff material.
+     *
+     * This function constructs the 4th-order elastic stiffness tensor \f$\mathbb{C}\f$  from
+     * orthotropic engineering constants: Young's moduli \f$E_1,E_2,E_3\f$, shear moduli
+     * \f$G_{12},G_{23},G_{13}\f$, and Poisson's ratios
+     * \f$\nu_{12},\nu_{23},\nu_{13}\f$.
+     *
+     * The tensor is populated via a 6x6 stress-like Voigt view:
+     * \f[
+     *   \mathbf{C}_\text{Voigt} =
+     *   \begin{bmatrix}
+     *     C_{11} & C_{12} & C_{13} & 0      & 0      & 0 \\
+     *     C_{21} & C_{22} & C_{23} & 0      & 0      & 0 \\
+     *     C_{31} & C_{32} & C_{33} & 0      & 0      & 0 \\
+     *     0      & 0      & 0      & G_{23} & 0      & 0 \\
+     *     0      & 0      & 0      & 0      & G_{13} & 0 \\
+     *     0      & 0      & 0      & 0      & 0      & G_{12}
+     *   \end{bmatrix}.
+     * \f]
+     *
+     * The reciprocal Poisson ratios are computed using orthotropic reciprocity:
+     * \f[
+     *   \nu_{21}=\nu_{12}\frac{E_2}{E_1},\quad
+     *   \nu_{32}=\nu_{23}\frac{E_3}{E_2},\quad
+     *   \nu_{31}=\nu_{13}\frac{E_3}{E_1}.
+     * \f]
+     *
+     * A common denominator is used for the normal components:
+     * \f[
+     *   \text{factor} =
+     *   1 - \nu_{12}\nu_{21} - \nu_{23}\nu_{32} - \nu_{31}\nu_{13} - 2\nu_{12}\nu_{23}\nu_{31}.
+     * \f]
+     *
+     * @param[in] E  Young's moduli \f$(E_1,E_2,E_3)\f$ in material principal directions.
+     * @param[in] G  Shear moduli \f$(G_{12},G_{23},G_{13})\f$ (ordering as used by the
+     * implementation).
+     * @param[in] nu Poisson ratios \f$(\nu_{12},\nu_{23},\nu_{13})\f$ (ordering as used by the
+     * implementation).
+     *
+     * @return The orthotropic stiffness tensor \f$\mathbb{C}\f$ as a symmetric 4th-order tensor.
+     */
     static Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> evaluate_stress_linearization(
-        const std::vector<double> E, const std::vector<double> G, const std::vector<double> nu)
+        const std::array<double, 3>& E, const std::array<double, 3>& G,
+        const std::array<double, 3>& nu)
     {
       Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3> cmat{};
       Core::LinAlg::Matrix<6, 6> cmat_view = Core::LinAlg::make_stress_like_voigt_view(cmat);
@@ -150,9 +186,9 @@ namespace Mat
       const double E2 = E[1];
       const double E3 = E[2];
 
-      const double G23 = G[0];
-      const double G13 = G[1];
-      const double G12 = G[2];
+      const double G12 = G[0];
+      const double G23 = G[1];
+      const double G13 = G[2];
 
       const double nu12 = nu[0];
       const double nu23 = nu[1];
@@ -162,18 +198,19 @@ namespace Mat
       const double nu32 = nu23 * (E3 / E2);
       const double nu31 = nu13 * (E3 / E1);
 
-      const double factor = 1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu12 * nu23 * nu31;
+      const double inverse_factor =
+          1. / (1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu12 * nu23 * nu31);
 
       // write non-zero components
-      cmat_view(0, 0) = E1 * (1 - nu23 * nu32) / factor;
-      cmat_view(0, 1) = E1 * (nu21 + nu31 * nu23) / factor;
-      cmat_view(0, 2) = E1 * (nu31 + nu21 * nu32) / factor;
-      cmat_view(1, 0) = E2 * (nu12 + nu13 * nu32) / factor;
-      cmat_view(1, 1) = E2 * (1 - nu31 * nu13) / factor;
-      cmat_view(1, 2) = E2 * (nu32 + nu12 * nu31) / factor;
-      cmat_view(2, 0) = E3 * (nu13 + nu12 * nu23) / factor;
-      cmat_view(2, 1) = E3 * (nu23 + nu21 * nu13) / factor;
-      cmat_view(2, 2) = E3 * (1 - nu12 * nu21) / factor;
+      cmat_view(0, 0) = E1 * (1 - nu23 * nu32) * inverse_factor;
+      cmat_view(0, 1) = E1 * (nu21 + nu31 * nu23) * inverse_factor;
+      cmat_view(0, 2) = E1 * (nu31 + nu21 * nu32) * inverse_factor;
+      cmat_view(1, 0) = E2 * (nu12 + nu13 * nu32) * inverse_factor;
+      cmat_view(1, 1) = E2 * (1 - nu31 * nu13) * inverse_factor;
+      cmat_view(1, 2) = E2 * (nu32 + nu12 * nu31) * inverse_factor;
+      cmat_view(2, 0) = E3 * (nu13 + nu12 * nu23) * inverse_factor;
+      cmat_view(2, 1) = E3 * (nu23 + nu21 * nu13) * inverse_factor;
+      cmat_view(2, 2) = E3 * (1 - nu12 * nu21) * inverse_factor;
       // ~~~
       cmat_view(3, 3) = G23;
       cmat_view(4, 4) = G13;

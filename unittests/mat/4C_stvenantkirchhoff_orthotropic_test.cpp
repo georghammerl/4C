@@ -43,9 +43,9 @@ namespace
     }
 
     //! material parameters
-    const std::vector<double> young_ = {162.0, 10.0, 10.0};
-    const std::vector<double> shear_ = {3.5, 5.2, 5.2};
-    const std::vector<double> nu_ = {0.35, 0.49, 0.35};
+    const std::array<double, 3> young_ = {162.0, 10.0, 10.0};
+    const std::array<double, 3> shear_ = {5.2, 3.5, 5.2};
+    const std::array<double, 3> nu_ = {0.35, 0.49, 0.35};
     const double rho_ = 1.0;  // dummy value (needed for construction)
     std::shared_ptr<Mat::PAR::StVenantKirchhoffOrthotropic>
         parameters_stvenantkirchhofforthotropic_;
