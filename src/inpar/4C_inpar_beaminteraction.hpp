@@ -87,7 +87,7 @@ namespace Inpar
     /**
      * \brief Types of beam interaction conditions
      */
-    enum class BeamInteractionConditions
+    enum class BeamInteractionConditionTypes
     {
       //! Default value.
       none,
@@ -187,7 +187,7 @@ namespace Inpar
      * \brief Get all available beam interaction conditions, excluding the default value.
      */
     void beam_interaction_conditions_get_all(
-        std::vector<Inpar::BeamInteraction::BeamInteractionConditions>& interactions);
+        std::vector<Inpar::BeamInteraction::BeamInteractionConditionTypes>& interactions);
 
     /// beam interaction parameters
     std::vector<Core::IO::InputSpec> valid_parameters();

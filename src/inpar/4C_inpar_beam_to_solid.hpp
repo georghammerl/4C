@@ -29,7 +29,7 @@ namespace Inpar
 {
   namespace BeamInteraction
   {
-    enum class BeamInteractionConditions;
+    enum class BeamInteractionConditionTypes;
   }
 }  // namespace Inpar
 
@@ -42,7 +42,7 @@ namespace Inpar
      * \brief Get the condition strings for the beam-to-solid interactions.
      */
     void beam_to_solid_interaction_get_string(
-        const Inpar::BeamInteraction::BeamInteractionConditions& interaction,
+        const Inpar::BeamInteraction::BeamInteractionConditionTypes& interaction,
         std::array<std::string, 2>& condition_names);
 
     /**

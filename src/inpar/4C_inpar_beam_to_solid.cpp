@@ -20,35 +20,35 @@ FOUR_C_NAMESPACE_OPEN
  *
  */
 void Inpar::BeamToSolid::beam_to_solid_interaction_get_string(
-    const Inpar::BeamInteraction::BeamInteractionConditions& interaction,
+    const Inpar::BeamInteraction::BeamInteractionConditionTypes& interaction,
     std::array<std::string, 2>& condition_names)
 {
   if (interaction ==
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_volume_meshtying)
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying)
   {
     condition_names[0] = "BeamToSolidVolumeMeshtyingLine";
     condition_names[1] = "BeamToSolidVolumeMeshtyingVolume";
   }
   else if (interaction ==
-           Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_meshtying)
+           Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying)
   {
     condition_names[0] = "BeamToSolidSurfaceMeshtyingLine";
     condition_names[1] = "BeamToSolidSurfaceMeshtyingSurface";
   }
   else if (interaction ==
-           Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact)
+           Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact)
   {
     condition_names[0] = "BeamToSolidSurfaceContactLine";
     condition_names[1] = "BeamToSolidSurfaceContactSurface";
   }
   else if (interaction ==
-           Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_edge_contact)
+           Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact)
   {
     condition_names[0] = "BeamToSolidEdgeContactBeam";
     condition_names[1] = "BeamToSolidEdgeContactEdge";
   }
-  else if (interaction ==
-           Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_indirect)
+  else if (interaction == Inpar::BeamInteraction::BeamInteractionConditionTypes::
+                              beam_to_beam_point_coupling_indirect)
   {
     condition_names[0] = "BeamToSolidEdgeContactBeam";
     condition_names[1] = "BeamToSolidEdgeContactEdge";
@@ -333,7 +333,7 @@ void Inpar::BeamToSolid::set_valid_conditions(
   {
     std::array<std::string, 2> condition_names;
     beam_to_solid_interaction_get_string(
-        Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_volume_meshtying,
+        Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
         condition_names);
 
     Core::Conditions::ConditionDefinition beam_to_solid_volume_meshtying_condition(
@@ -357,7 +357,7 @@ void Inpar::BeamToSolid::set_valid_conditions(
   {
     std::array<std::string, 2> condition_names;
     beam_to_solid_interaction_get_string(
-        Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_meshtying,
+        Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
         condition_names);
 
     Core::Conditions::ConditionDefinition beam_to_solid_surface_meshtying_condition(
@@ -381,7 +381,7 @@ void Inpar::BeamToSolid::set_valid_conditions(
   {
     std::array<std::string, 2> condition_names;
     beam_to_solid_interaction_get_string(
-        Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact,
+        Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
         condition_names);
 
     Core::Conditions::ConditionDefinition beam_to_solid_surface_contact_condition(

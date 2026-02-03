@@ -17,15 +17,15 @@ FOUR_C_NAMESPACE_OPEN
 
 
 void Inpar::BeamInteraction::beam_interaction_conditions_get_all(
-    std::vector<Inpar::BeamInteraction::BeamInteractionConditions>& interactions)
+    std::vector<Inpar::BeamInteraction::BeamInteractionConditionTypes>& interactions)
 {
-  interactions = {Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_direct,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_indirect,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_volume_meshtying,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_meshtying,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact,
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_edge_contact};
+  interactions = {Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
 }
 
 std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()

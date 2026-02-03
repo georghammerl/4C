@@ -72,7 +72,7 @@ void BeamInteraction::set_valid_beam_to_edge_contact_conditions(
 
   std::array<std::string, 2> condition_names;
   Inpar::BeamToSolid::beam_to_solid_interaction_get_string(
-      Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_edge_contact,
+      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact,
       condition_names);
 
   Core::Conditions::ConditionDefinition beam_to_solid_edge_contact_condition(

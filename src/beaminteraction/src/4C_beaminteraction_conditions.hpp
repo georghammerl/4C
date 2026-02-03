@@ -237,7 +237,7 @@ namespace BeamInteraction
     /**
      * \brief Return a const reference to the condition map.
      */
-    inline const std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    inline const std::map<Inpar::BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>&
     get_condition_map() const
     {
@@ -247,7 +247,7 @@ namespace BeamInteraction
     /**
      * \brief Return a mutable reference to the condition map.
      */
-    inline std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    inline std::map<Inpar::BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>&
     get_condition_map()
     {
@@ -280,7 +280,7 @@ namespace BeamInteraction
     //! A map containing all types of beam interaction conditions. The map keys are the beam
     //! interaction type, the values are vectors with conditions (since we can have multiple
     //! conditions of the same interaction type).
-    std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    std::map<Inpar::BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>
         condition_map_;
   };
