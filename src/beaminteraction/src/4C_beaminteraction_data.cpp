@@ -7,11 +7,11 @@
 
 #include "4C_beaminteraction_data.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_pack_buffer.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_comm_parobject.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>

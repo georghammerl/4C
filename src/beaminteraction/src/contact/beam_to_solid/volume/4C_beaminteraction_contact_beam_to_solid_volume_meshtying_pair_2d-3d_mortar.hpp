@@ -12,9 +12,9 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_pair_2d-3d_base.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_shape_functions.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_vector.hpp"
 
 

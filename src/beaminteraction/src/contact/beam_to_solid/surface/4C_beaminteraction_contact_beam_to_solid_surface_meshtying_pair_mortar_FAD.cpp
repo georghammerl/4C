@@ -14,13 +14,13 @@
 #include "4C_beaminteraction_contact_beam_to_solid_surface_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_utils.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_fem_general_extract_values.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_evaluation_functions.hpp"
 #include "4C_geometry_pair_element_faces.hpp"
 #include "4C_geometry_pair_input.hpp"
 #include "4C_geometry_pair_line_to_surface.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_fevector.hpp"
 
 FOUR_C_NAMESPACE_OPEN

@@ -16,12 +16,12 @@
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_evaluation_data_base.hpp"
 #include "4C_geometry_pair_utility_functions.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

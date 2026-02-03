@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_binstrategy_utils.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fevector.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_mapextractor.hpp"

@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_structure_new_enum_lists.hpp"
 #include "4C_structure_new_model_evaluator_generic.hpp"  // base class

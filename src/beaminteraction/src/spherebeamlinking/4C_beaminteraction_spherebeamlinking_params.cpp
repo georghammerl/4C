@@ -7,8 +7,8 @@
 
 #include "4C_beaminteraction_spherebeamlinking_params.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_io_value_parser.hpp"
 #include "4C_mat_crosslinkermat.hpp"
 #include "4C_structure_new_timint_basedataglobalstate.hpp"

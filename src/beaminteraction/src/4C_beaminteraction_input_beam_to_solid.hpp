@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_INPAR_BEAM_TO_SOLID_HPP
-#define FOUR_C_INPAR_BEAM_TO_SOLID_HPP
+#ifndef FOUR_C_BEAMINTERACTION_INPUT_BEAM_TO_SOLID_HPP
+#define FOUR_C_BEAMINTERACTION_INPUT_BEAM_TO_SOLID_HPP
 
 
 #include "4C_config.hpp"

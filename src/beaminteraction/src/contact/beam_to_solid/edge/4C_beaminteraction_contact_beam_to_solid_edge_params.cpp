@@ -8,9 +8,9 @@
 #include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_solid_conditions.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_io_input_spec_validators.hpp"
 #include "4C_utils_exceptions.hpp"

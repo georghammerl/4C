@@ -7,9 +7,9 @@
 
 #include "4C_beaminteraction_crosslinking_link.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_general_largerotations.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_utils_exceptions.hpp"

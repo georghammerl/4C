@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_parobject.hpp"
 #include "4C_comm_parobjectfactory.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
 FOUR_C_NAMESPACE_OPEN

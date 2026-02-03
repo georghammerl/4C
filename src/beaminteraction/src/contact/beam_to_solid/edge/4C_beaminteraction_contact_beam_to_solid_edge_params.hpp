@@ -11,7 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_solid_utils.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_io_input_spec.hpp"
 
 FOUR_C_NAMESPACE_OPEN

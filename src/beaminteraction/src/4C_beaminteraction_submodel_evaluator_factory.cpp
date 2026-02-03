@@ -9,10 +9,10 @@
 
 #include "4C_beaminteraction_contact_submodel_evaluator.hpp"
 #include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_potential_submodel_evaluator.hpp"
 #include "4C_beaminteraction_spherebeamlinking_submodel_evaluator.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

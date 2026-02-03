@@ -10,10 +10,10 @@
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_contact_submodel_evaluator_assembly_manager_indirect.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 
 #include <array>
 

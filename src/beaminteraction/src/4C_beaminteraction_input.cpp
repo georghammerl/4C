@@ -5,11 +5,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_inpar_beaminteraction.hpp"
+#include "4C_beaminteraction_input.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_beaminteraction_input_beam_to_solid.hpp"
 #include "4C_fem_condition_definition.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_legacy_enum_definitions_conditions.hpp"
 
