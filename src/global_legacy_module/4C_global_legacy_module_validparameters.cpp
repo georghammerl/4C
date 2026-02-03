@@ -313,7 +313,6 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
   push_specs(specs, Inpar::IORuntimeOutput::Solid::valid_parameters());
   push_specs(specs, Beam::IORuntimeOutput::valid_parameters());
   push_specs(specs, BeamInteraction::Contact::BeamToBeam::valid_parameters());
-  push_specs(specs, BeamInteraction::Potential::valid_parameters());
   push_specs(specs, BeamInteraction::valid_beam_to_edge_contact_parameters());
   push_specs(specs, BeamInteraction::valid_parameters());
   push_specs(specs, BrownianDynamics::valid_parameters());

@@ -10,6 +10,7 @@
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_crosslinking_input.hpp"
 #include "4C_beaminteraction_input_beam_to_solid.hpp"
+#include "4C_beaminteraction_potential_input.hpp"
 #include "4C_beaminteraction_spherebeamlinking_input.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_io_input_spec_builders.hpp"
@@ -85,6 +86,10 @@ std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
   std::vector<Core::IO::InputSpec> spherebeamlinking_specs =
       BeamInteraction::valid_parameters_spherebeamlinking();
   specs.insert(specs.end(), spherebeamlinking_specs.begin(), spherebeamlinking_specs.end());
+
+  // get parameters for beam potential
+  Core::IO::InputSpec beam_potential_specs = BeamInteraction::Potential::valid_parameters();
+  specs.push_back(beam_potential_specs);
 
   return specs;
 }
