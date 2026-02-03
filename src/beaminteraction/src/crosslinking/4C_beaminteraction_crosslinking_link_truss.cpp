@@ -71,7 +71,7 @@ std::shared_ptr<BeamInteraction::BeamLink> BeamInteraction::BeamLinkTruss::clone
 void BeamInteraction::BeamLinkTruss::init(int id, const std::vector<std::pair<int, int>>& eleids,
     const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
     const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-    Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
+    BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
 {
   issetup_ = false;
 

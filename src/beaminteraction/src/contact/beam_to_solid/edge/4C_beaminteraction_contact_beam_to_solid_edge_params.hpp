@@ -22,7 +22,7 @@ namespace BeamInteraction
   /// Parameters for beam-to-solid edge contact
   struct BeamToSolidEdgeContactParameters
   {
-    Inpar::BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement;
+    BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement;
     PenaltyLawParameters penalty_law;
   };
 

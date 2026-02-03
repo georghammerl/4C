@@ -99,8 +99,7 @@ namespace BeamInteraction
      * @brief Get the Jacobian for the configuration the Lagrange multipliers are defined in
      */
     ScalarType get_jacobian_for_configuration(const ScalarType& eta,
-        const Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration)
-        const;
+        const BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration) const;
 
    private:
     //! Integral of the shape function matrix of the beam (transposed) multiplied with the normal

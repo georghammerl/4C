@@ -214,7 +214,7 @@ Core::LinAlg::Matrix<3, 1, ScalarType>
 BeamInteraction::BeamToSolidSurfaceMeshtyingPairBase<ScalarType, Beam, Surface>::evaluate_coupling(
     const GeometryPair::ProjectionPoint1DTo3D<double>& evaluation_point) const
 {
-  using namespace Inpar::BeamToSolid;
+  using namespace BeamToSolid;
 
   Core::LinAlg::Matrix<3, 1, ScalarType> r_beam(Core::LinAlg::Initialization::zero);
   Core::LinAlg::Matrix<3, 1, ScalarType> r_surface(Core::LinAlg::Initialization::zero);

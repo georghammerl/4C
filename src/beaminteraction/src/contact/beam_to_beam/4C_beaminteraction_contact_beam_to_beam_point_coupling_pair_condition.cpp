@@ -191,9 +191,9 @@ BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_indirect_assem
         BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::lagrange_multiplier)
     {
       mortar_manager_parameters.constraint_enforcement =
-          Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
+          BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
       mortar_manager_parameters.lagrange_formulation =
-          Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::saddlepoint;
+          BeamToSolid::BeamToSolidLagrangeFormulation::saddlepoint;
     }
 
     auto mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManager>(

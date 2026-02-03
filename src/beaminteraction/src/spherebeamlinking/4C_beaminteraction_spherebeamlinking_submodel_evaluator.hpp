@@ -51,9 +51,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current model evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_spherebeamlink;
+        return BeamInteraction::SubModelType::submodel_spherebeamlink;
       }
 
       //! derived

@@ -77,8 +77,8 @@ namespace BeamInteraction
    */
   struct PenaltyLawParameters
   {
-    Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw type{
-        Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none};
+    BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw type{
+        BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none};
     double penalty_parameter = 0.0;
     double penalty_parameter_g0 = 0.0;
   };
@@ -111,8 +111,7 @@ namespace BeamInteraction
   [[nodiscard]] std::pair<unsigned int, unsigned int>
   mortar_shape_functions_to_number_of_lagrange_values(
       const std::shared_ptr<const BeamToSolidParamsBase>& beam_to_solid_params,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions shape_function,
-      const unsigned int n_dim);
+      const BeamToSolid::BeamToSolidMortarShapefunctions shape_function, const unsigned int n_dim);
 
   /**
    * \brief Setup the triad interpolation scheme for the current triad and reference triad of the
@@ -139,8 +138,7 @@ namespace BeamInteraction
    * @param psi_solid (out) Rotation vector of the constructed solid triad.
    */
   template <typename Solid, typename ScalarType>
-  void get_solid_rotation_vector(
-      const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+  void get_solid_rotation_vector(const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
       const Core::LinAlg::Matrix<3, 1, double>& xi,
       const GeometryPair::ElementData<Solid, double>& q_solid_ref,
       const GeometryPair::ElementData<Solid, ScalarType>& q_solid,
@@ -229,7 +227,7 @@ namespace BeamInteraction
    */
   template <typename Solid, typename ScalarType>
   void get_solid_rotation_vector_deformation_gradient3_d(
-      const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+      const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
       const Core::LinAlg::Matrix<3, 1, double>& xi,
       const GeometryPair::ElementData<Solid, double>& q_solid_ref,
       const GeometryPair::ElementData<Solid, ScalarType>& q_solid,
@@ -267,7 +265,7 @@ namespace BeamInteraction
    */
   template <typename Solid, typename ScalarType>
   void get_solid_rotation_vector_deformation_gradient2_d(
-      const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+      const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
       const Core::LinAlg::Matrix<3, 1, double>& xi,
       const GeometryPair::ElementData<Solid, double>& q_solid_ref,
       const GeometryPair::ElementData<Solid, ScalarType>& q_solid,

@@ -55,10 +55,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the contact type.
      */
-    inline Inpar::BeamToSolid::BeamToSolidSurfaceContact get_contact_type() const
-    {
-      return contact_type_;
-    }
+    inline BeamToSolid::BeamToSolidSurfaceContact get_contact_type() const { return contact_type_; }
 
     /**
      * \brief Returns the information for the penalty law.
@@ -68,7 +65,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the configuration where the mortar contact is defined in.
      */
-    inline Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn
+    inline BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn
     get_beam_to_solid_surface_contact_mortar_defined_in() const
     {
       return mortar_contact_configuration_;
@@ -86,13 +83,13 @@ namespace BeamInteraction
 
    private:
     //! Type of contact constraints.
-    Inpar::BeamToSolid::BeamToSolidSurfaceContact contact_type_;
+    BeamToSolid::BeamToSolidSurfaceContact contact_type_;
 
     //! Penalty law parameters
     PenaltyLawParameters penalty_law_data_;
 
     //! Configuration where the mortar contact is defined
-    Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_contact_configuration_;
+    BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_contact_configuration_;
 
     //! Pointer to the visualization output parameters for beam to solid surface problems.
     std::shared_ptr<BeamToSolidSurfaceVisualizationOutputParams> output_params_ptr_;

@@ -13,6 +13,7 @@
 
 #include "4C_beaminteraction_submodel_evaluator_generic.hpp"
 #include "4C_binstrategy_utils.hpp"
+#include "4C_inpar_beaminteraction.hpp"
 #include "4C_io_visualization_manager.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -54,9 +55,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current submodel evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_beamcontact;
+        return BeamInteraction::SubModelType::submodel_beamcontact;
       }
 
       //! @name Derived public BeamInteraction::SubmodelEvaluator::Generic methods

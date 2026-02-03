@@ -335,23 +335,23 @@ void Solid::TimeInt::Base::select_energy_types_to_be_written()
                 int_ptr_->model_eval_ptr()->evaluator(Inpar::Solid::model_beaminteraction));
 
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_beamcontact))
+                BeamInteraction::SubModelType::submodel_beamcontact))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_contact_penalty_potential);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_potential))
+                BeamInteraction::SubModelType::submodel_potential))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_interaction_potential);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_crosslinking))
+                BeamInteraction::SubModelType::submodel_crosslinking))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_beam_link_internal_energy);
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_beam_link_kinetic_energy);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_spherebeamlink))
+                BeamInteraction::SubModelType::submodel_spherebeamlink))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_sphere_link_internal_energy);
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_sphere_link_kinetic_energy);

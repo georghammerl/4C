@@ -434,17 +434,17 @@ void BeamInteraction::BeamToSolidSurfaceContactPairMortar<ScalarType, Beam, Surf
 template <typename ScalarType, typename Beam, typename Surface, typename Mortar>
 ScalarType BeamInteraction::BeamToSolidSurfaceContactPairMortar<ScalarType, Beam, Surface,
     Mortar>::get_jacobian_for_configuration(const ScalarType& eta,
-    const Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration) const
+    const BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration) const
 {
   Core::LinAlg::Matrix<3, 1, ScalarType> dr_beam;
   switch (mortar_configuration)
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::reference_configuration:
+    case BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::reference_configuration:
     {
       GeometryPair::evaluate_position_derivative1<Beam>(eta, this->ele1posref_, dr_beam);
       return Core::FADUtils::vector_norm(dr_beam);
     }
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::current_configuration:
+    case BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::current_configuration:
     {
       GeometryPair::evaluate_position_derivative1<Beam>(eta, this->ele1pos_, dr_beam);
       return Core::FADUtils::vector_norm(dr_beam);
@@ -466,7 +466,7 @@ beam_to_solid_surface_contact_pair_mortar_factory_template_beam_surface(
 
   switch (beam_to_surface_contact_params.get_mortar_shape_function_type())
   {
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
       return std::make_shared<BeamInteraction::BeamToSolidSurfaceContactPairMortar<ScalarType, Beam,
           Surface, t_line2_scalar>>();
     default:

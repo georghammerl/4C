@@ -186,14 +186,14 @@ void BeamInteraction::BeamToSolidSurfaceMeshtyingPairMortar<Beam, Surface, Morta
       Core::LinAlg::Initialization::zero);
   switch (this->params()->beam_to_solid_surface_meshtying_params()->get_coupling_type())
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::reference_configuration_forced_to_zero:
+    case BeamToSolid::BeamToSolidSurfaceCoupling::reference_configuration_forced_to_zero:
     {
       beam_coupling_dof = Core::FADUtils::cast_to_double(this->ele1pos_.element_position_);
       surface_coupling_dof = Core::FADUtils::cast_to_double(
           this->face_element_->get_face_element_data().element_position_);
       break;
     }
-    case Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::displacement:
+    case BeamToSolid::BeamToSolidSurfaceCoupling::displacement:
     {
       beam_coupling_dof = Core::FADUtils::cast_to_double(this->ele1pos_.element_position_);
       beam_coupling_dof -= this->ele1posref_.element_position_;
@@ -222,13 +222,13 @@ void BeamInteraction::BeamToSolidSurfaceMeshtyingPairMortar<Beam, Surface, Morta
 std::shared_ptr<BeamInteraction::BeamContactPair>
 BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_factory(
     const Core::FE::CellType surface_shape,
-    const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction)
+    const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction)
 {
   using namespace GeometryPair;
 
   switch (mortar_shapefunction)
   {
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
     {
       switch (surface_shape)
       {
@@ -255,7 +255,7 @@ BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_factory(
       }
       break;
     }
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line3:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line3:
     {
       switch (surface_shape)
       {
@@ -282,7 +282,7 @@ BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_factory(
       }
       break;
     }
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line4:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line4:
     {
       switch (surface_shape)
       {

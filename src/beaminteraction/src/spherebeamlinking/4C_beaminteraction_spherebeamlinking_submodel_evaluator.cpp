@@ -91,7 +91,7 @@ void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::init_submodel_depend
   // init pointer to crosslinker submodel
   Solid::ModelEvaluator::BeamInteraction::Map::const_iterator miter;
   for (miter = (*submodelmap).begin(); miter != (*submodelmap).end(); ++miter)
-    if (miter->first == Inpar::BeamInteraction::submodel_crosslinking)
+    if (miter->first == BeamInteraction::SubModelType::submodel_crosslinking)
       sm_crosslinkink_ptr_ =
           std::dynamic_pointer_cast<BeamInteraction::SubmodelEvaluator::Crosslinking>(
               miter->second);
@@ -967,7 +967,7 @@ void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::create_beam_to_spher
       // Todo introduce enum for type of linkage (only linear Beam3r element possible so far)
       //      and introduce corresponding input parameter
       std::shared_ptr<BeamInteraction::BeamLinkPinJointed> linkelepairptr =
-          BeamInteraction::BeamLinkPinJointed::create(Inpar::BeamInteraction::truss);
+          BeamInteraction::BeamLinkPinJointed::create(BeamInteraction::JointType::truss);
 
       // unique linker id is bspot elegid and locspot id paired
       int id = BeamInteraction::Utils::cantor_pairing(eleids[1]);
@@ -1124,9 +1124,9 @@ void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::update_linker_length
 
   // adapt force/strain in linker
   // note: problem time step is used here
-  double contraction_per_dt =
-      spherebeamlinking_params_ptr_->contraction_rate(Inpar::BeamInteraction::linkertype_integrin) *
-      g_state().get_delta_time()[0];
+  double contraction_per_dt = spherebeamlinking_params_ptr_->contraction_rate(
+                                  BeamInteraction::CrosslinkerType::linkertype_integrin) *
+                              g_state().get_delta_time()[0];
   double scalefac = 0.0;
   int unsigned const numrowsphereeles =
       ele_type_map_extractor_ptr()->sphere_map()->num_my_elements();

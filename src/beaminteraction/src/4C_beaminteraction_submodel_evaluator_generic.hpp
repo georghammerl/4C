@@ -111,7 +111,7 @@ namespace BeamInteraction
 
      public:
       //! Returns the type of the current model evaluator
-      virtual Inpar::BeamInteraction::SubModelType type() const = 0;
+      virtual BeamInteraction::SubModelType type() const = 0;
 
       //! \brief reset model specific variables (without jacobian)
       virtual void reset() = 0;

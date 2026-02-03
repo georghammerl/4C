@@ -549,19 +549,19 @@ namespace Discret
       //! get centerline pos at binding spot with locn x stored in element parameter space
       //! coordinates \in [-1,1] from displacement state vector
       void get_pos_of_binding_spot(Core::LinAlg::Matrix<3, 1>& pos, std::vector<double>& disp,
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotlocn,
+          BeamInteraction::CrosslinkerType linkertype, int bspotlocn,
           Core::Geo::MeshFree::BoundingBox const& periodic_boundingbox) const;
 
       //! get triad at binding spot with locn x stored in element parameter space coordinates \in
       //! [-1,1] from displacement state vector
       void get_triad_of_binding_spot(Core::LinAlg::Matrix<3, 3>& triad, std::vector<double>& disp,
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotlocn) const;
+          BeamInteraction::CrosslinkerType linkertype, int bspotlocn) const;
 
       /** \brief get entire binding spot information of element
        *
        */
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::vector<double>> const&
-      get_binding_spots() const
+      std::map<BeamInteraction::CrosslinkerType, std::vector<double>> const& get_binding_spots()
+          const
       {
         return bspotposxi_;
       }
@@ -574,8 +574,7 @@ namespace Discret
       /** \brief get number of binding spots of certain binding spot type on this element
        *
        */
-      unsigned int get_number_of_binding_spots(
-          Inpar::BeamInteraction::CrosslinkerType linkertype) const
+      unsigned int get_number_of_binding_spots(BeamInteraction::CrosslinkerType linkertype) const
       {
         return bspotposxi_.at(linkertype).size();
       }
@@ -584,7 +583,7 @@ namespace Discret
        *
        */
       double get_binding_spot_xi(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, unsigned int bspotlocn) const
+          BeamInteraction::CrosslinkerType linkertype, unsigned int bspotlocn) const
       {
         if (bspotlocn > bspotposxi_.at(linkertype).size())
           FOUR_C_THROW("number of requested binding spot exceeds total number of binding spots");
@@ -596,7 +595,7 @@ namespace Discret
        *
        */
       void set_binding_spots(
-          std::map<Inpar::BeamInteraction::CrosslinkerType, std::vector<double>> bspotposxi)
+          std::map<BeamInteraction::CrosslinkerType, std::vector<double>> bspotposxi)
       {
         bspotposxi_.clear();
         bspotposxi_ = bspotposxi;
@@ -606,7 +605,7 @@ namespace Discret
        *
        */
       void set_positions_of_binding_spot_type(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, std::vector<double> const& bspotposxi)
+          BeamInteraction::CrosslinkerType linkertype, std::vector<double> const& bspotposxi)
       {
         bspotposxi_[linkertype] = bspotposxi;
       }
@@ -614,12 +613,12 @@ namespace Discret
       /** \brief set/get type of filament the element is part of
        *
        */
-      void set_filament_type(Inpar::BeamInteraction::FilamentType filamenttype)
+      void set_filament_type(BeamInteraction::FilamentType filamenttype)
       {
         filamenttype_ = filamenttype;
       }
 
-      Inpar::BeamInteraction::FilamentType get_filament_type() const { return filamenttype_; }
+      BeamInteraction::FilamentType get_filament_type() const { return filamenttype_; }
 
       /**
        * \brief Get the bounding volume of the element for geometric search
@@ -636,10 +635,10 @@ namespace Discret
      private:
       //! position of binding spots on beam element in local coordinate system
       //! size of vector equals number of binding spots on this element
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::vector<double>> bspotposxi_;
+      std::map<BeamInteraction::CrosslinkerType, std::vector<double>> bspotposxi_;
 
       //! type of filament element belongs to
-      Inpar::BeamInteraction::FilamentType filamenttype_;
+      BeamInteraction::FilamentType filamenttype_;
 
       //! @}
 

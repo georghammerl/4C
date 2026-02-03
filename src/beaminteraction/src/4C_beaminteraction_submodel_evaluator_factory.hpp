@@ -36,14 +36,14 @@ namespace BeamInteraction
       virtual ~Factory() = default;
 
       std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> build_model_evaluators(
-          const std::set<Inpar::BeamInteraction::SubModelType>& submodeltypes) const;
+          const std::set<BeamInteraction::SubModelType>& submodeltypes) const;
 
      private:
     };
 
     //! non-member function, which relates to the Solid::ModelEvaluator::Factory
     std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> build_model_evaluators(
-        const std::set<Inpar::BeamInteraction::SubModelType>& submodeltypes);
+        const std::set<BeamInteraction::SubModelType>& submodeltypes);
 
   }  // namespace SubmodelEvaluator
 }  // namespace BeamInteraction

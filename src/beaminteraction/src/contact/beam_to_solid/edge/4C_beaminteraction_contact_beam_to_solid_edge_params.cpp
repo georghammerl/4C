@@ -30,19 +30,18 @@ Core::IO::InputSpec BeamInteraction::valid_beam_to_edge_contact_parameters()
       "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT",
       {
 
-          parameter<Inpar::BeamToSolid::BeamToSolidConstraintEnforcement>("CONSTRAINT_ENFORCEMENT",
+          parameter<BeamToSolid::BeamToSolidConstraintEnforcement>("CONSTRAINT_ENFORCEMENT",
               {.description = "How the beam-to-edge constraints should be enforced.",
-                  .default_value = Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::none,
+                  .default_value = BeamToSolid::BeamToSolidConstraintEnforcement::none,
                   .store = in_struct(&BeamToSolidEdgeContactParameters::constraint_enforcement)}),
 
           group<PenaltyLawParameters>("PENALTY_LAW",
               {
 
-                  parameter<Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw>(
-                      "TYPE", {.description = "Type of penalty law",
-                                  .default_value =
-                                      Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none,
-                                  .store = in_struct(&PenaltyLawParameters::type)}),
+                  parameter<BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw>("TYPE",
+                      {.description = "Type of penalty law",
+                          .default_value = BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none,
+                          .store = in_struct(&PenaltyLawParameters::type)}),
 
                   parameter<double>("PENALTY_PARAMETER",
                       {.description = "Penalty parameter for beam-to-solid surface contact",
@@ -71,9 +70,8 @@ void BeamInteraction::set_valid_beam_to_edge_contact_conditions(
   using namespace Core::IO::InputSpecBuilders;
 
   std::array<std::string, 2> condition_names;
-  Inpar::BeamToSolid::beam_to_solid_interaction_get_string(
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact,
-      condition_names);
+  BeamToSolid::beam_to_solid_interaction_get_string(
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact, condition_names);
 
   Core::Conditions::ConditionDefinition beam_to_solid_edge_contact_condition(
       "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT BEAM", condition_names[0],
@@ -100,7 +98,7 @@ BeamInteraction::initialize_validate_beam_to_edge_contact_params()
               "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT"));
 
   if (beam_to_edge_contact_params->penalty_law.type ==
-      Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none)
+      BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::none)
     FOUR_C_THROW("Penalty law is required for Beam-to-solid edge contact");
 
   return beam_to_edge_contact_params;

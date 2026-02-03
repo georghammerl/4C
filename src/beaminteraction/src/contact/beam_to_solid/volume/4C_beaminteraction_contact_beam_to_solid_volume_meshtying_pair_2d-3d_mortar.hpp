@@ -245,7 +245,7 @@ namespace BeamInteraction
    */
   std::unique_ptr<BeamContactPair> create_beam_to_solid_volume_pair_mortar_cross_section(
       const Core::FE::CellType shape,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
+      const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
       const int n_fourier_modes);
 
 }  // namespace BeamInteraction

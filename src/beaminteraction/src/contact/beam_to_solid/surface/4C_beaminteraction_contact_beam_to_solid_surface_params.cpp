@@ -21,10 +21,9 @@ FOUR_C_NAMESPACE_OPEN
  */
 BeamInteraction::BeamToSolidSurfaceContactParams::BeamToSolidSurfaceContactParams()
     : BeamToSolidParamsBase(),
-      contact_type_(Inpar::BeamToSolid::BeamToSolidSurfaceContact::none),
+      contact_type_(BeamToSolid::BeamToSolidSurfaceContact::none),
       penalty_law_data_{},
-      mortar_contact_configuration_(
-          Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::none),
+      mortar_contact_configuration_(BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn::none),
       output_params_ptr_(nullptr)
 {
   // Empty Constructor.
@@ -46,11 +45,11 @@ void BeamInteraction::BeamToSolidSurfaceContactParams::init()
 
   // Get parameters form input file.
   {
-    contact_type_ = Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContact>(
+    contact_type_ = Teuchos::getIntegralValue<BeamToSolid::BeamToSolidSurfaceContact>(
         beam_to_solid_contact_params_list, "CONTACT_TYPE");
 
     penalty_law_data_.type =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw>(
             beam_to_solid_contact_params_list, "PENALTY_LAW");
     penalty_law_data_.penalty_parameter =
         beam_to_solid_contact_params_list.get<double>("PENALTY_PARAMETER");
@@ -58,7 +57,7 @@ void BeamInteraction::BeamToSolidSurfaceContactParams::init()
         beam_to_solid_contact_params_list.get<double>("PENALTY_PARAMETER_G0");
 
     mortar_contact_configuration_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn>(
             beam_to_solid_contact_params_list, "MORTAR_CONTACT_DEFINED_IN");
   }
 
@@ -81,10 +80,10 @@ int BeamInteraction::BeamToSolidSurfaceContactParams::get_fad_order() const
 {
   switch (get_contact_type())
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContact::gap_variation:
+    case BeamToSolid::BeamToSolidSurfaceContact::gap_variation:
       return 1;
       break;
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContact::potential:
+    case BeamToSolid::BeamToSolidSurfaceContact::potential:
       return 2;
       break;
     default:

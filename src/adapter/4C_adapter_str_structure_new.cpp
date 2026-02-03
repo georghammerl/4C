@@ -530,21 +530,21 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
           .sublist("SPHERE BEAM LINK")
           .get<bool>("SPHEREBEAMLINKING") or
       beamtobeamcontactconditions.size() > 0 or
-      Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
+      Teuchos::getIntegralValue<BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "STRATEGY") != BeamInteraction::Strategy::bstr_none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID VOLUME MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE CONTACT"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
       Global::Problem::instance()->parameters().isParameter(
           "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT") or
       beampotconditions.size() > 0 or beampenaltycouplingconditions_direct.size() > 0 or

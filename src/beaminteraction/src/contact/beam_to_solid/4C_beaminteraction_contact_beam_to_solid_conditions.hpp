@@ -345,7 +345,7 @@ namespace BeamInteraction
       typename... BtsMortarShape>
   std::shared_ptr<BeamInteraction::BeamContactPair> create_beam_to_solid_volume_pair_mortar(
       const Core::FE::CellType shape,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
+      const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
       BtsMortarShape... other_mortar_shape_function);
 
   /**

@@ -11,6 +11,7 @@
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_comm_parobject.hpp"
 #include "4C_global_data.hpp"
+#include "4C_inpar_beaminteraction.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
@@ -23,8 +24,8 @@ FOUR_C_NAMESPACE_OPEN
 BeamInteraction::BeamInteractionParams::BeamInteractionParams()
     : isinit_(false),
       issetup_(false),
-      rep_strategy_(Inpar::BeamInteraction::repstr_adaptive),
-      search_strategy_(Inpar::BeamInteraction::SearchStrategy::bruteforce_with_binning)
+      rep_strategy_(BeamInteraction::RepartitionStrategy::repstr_adaptive),
+      search_strategy_(BeamInteraction::SearchStrategy::bruteforce_with_binning)
 {
   // empty constructor
 }
@@ -38,11 +39,11 @@ void BeamInteraction::BeamInteractionParams::init()
   Teuchos::ParameterList const& params_list =
       Global::Problem::instance()->beam_interaction_params();
 
-  rep_strategy_ = Teuchos::getIntegralValue<Inpar::BeamInteraction::RepartitionStrategy>(
+  rep_strategy_ = Teuchos::getIntegralValue<BeamInteraction::RepartitionStrategy>(
       params_list, "REPARTITIONSTRATEGY");
 
-  search_strategy_ = Teuchos::getIntegralValue<Inpar::BeamInteraction::SearchStrategy>(
-      params_list, "SEARCH_STRATEGY");
+  search_strategy_ =
+      Teuchos::getIntegralValue<BeamInteraction::SearchStrategy>(params_list, "SEARCH_STRATEGY");
 
   isinit_ = true;
 }
@@ -200,7 +201,7 @@ void BeamInteraction::Data::BindEventData::unpack(Core::Communication::UnpackBuf
 BeamInteraction::Data::UnBindEventData::UnBindEventData()
     : clgid_(-1),
       eletoupdate_(std::make_pair(-1, -1)),
-      linkertype_(Inpar::BeamInteraction::linkertype_arbitrary)
+      linkertype_(BeamInteraction::CrosslinkerType::linkertype_arbitrary)
 {
   // empty
 }

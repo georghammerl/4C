@@ -71,12 +71,12 @@ namespace BeamInteraction
     unsigned int n_lambda_element_rotational = 0;
 
     //! Flag on how to enforce the coupling constraints.
-    Inpar::BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement =
-        Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::none;
+    BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement =
+        BeamToSolid::BeamToSolidConstraintEnforcement::none;
 
     //! Flag on how the extended system is built up.
-    Inpar::BeamToSolid::BeamToSolidLagrangeFormulation lagrange_formulation =
-        Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::none;
+    BeamToSolid::BeamToSolidLagrangeFormulation lagrange_formulation =
+        BeamToSolid::BeamToSolidLagrangeFormulation::none;
 
     //! Penalty parameter for positional coupling.
     double penalty_parameter_translational = 0.0;

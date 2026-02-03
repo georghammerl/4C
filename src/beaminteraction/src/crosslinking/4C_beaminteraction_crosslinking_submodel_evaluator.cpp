@@ -263,8 +263,8 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::set_filament_types()
         filament_nodes_and_conditions.find(currnode->id())->second;
 
     // get filament type
-    Inpar::BeamInteraction::FilamentType filetype = Inpar::BeamInteraction::string_to_filament_type(
-        (cond->parameters().get<std::string>("TYPE")));
+    BeamInteraction::FilamentType filetype =
+        BeamInteraction::string_to_filament_type((cond->parameters().get<std::string>("TYPE")));
 
     for (int i = 0; i < currnode->num_element(); ++i)
     {
@@ -332,7 +332,7 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::get_all_possible_bspot_li
     BeamInteraction::Data::BeamData const* beamdata_i = beam_data_[beamele->lid()].get();
 
     // exclude current element/filament if filetype_none
-    if (beamele->get_filament_type() == Inpar::BeamInteraction::filetype_none) continue;
+    if (beamele->get_filament_type() == BeamInteraction::FilamentType::filetype_none) continue;
 
     // loop over all binding spot types of current filament
     for (auto const& iter : beamdata_i->get_b_spot_status())
@@ -375,7 +375,8 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::get_all_possible_bspot_li
           if (BeamInteraction::Utils::do_beam_elements_share_nodes(beamele, nb_beamele)) continue;
 
           // exclude neighbor element/filament if filetype_none
-          if (nb_beamele->get_filament_type() == Inpar::BeamInteraction::filetype_none) continue;
+          if (nb_beamele->get_filament_type() == BeamInteraction::FilamentType::filetype_none)
+            continue;
 
           // loop over binding spots of neighboring element
           for (unsigned int nb_locbspot_i = 0;
@@ -570,8 +571,8 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::unambiguous_decisions_on_
       long long nb_bspotgid = BeamInteraction::Utils::cantor_pairing(
           std::make_pair(iter.get_ele_gid2(), iter.get_loc_bspot_id2()));
 
-      Inpar::BeamInteraction::CrosslinkerType linkertype =
-          static_cast<Inpar::BeamInteraction::CrosslinkerType>(iter.get_type());
+      BeamInteraction::CrosslinkerType linkertype =
+          static_cast<BeamInteraction::CrosslinkerType>(iter.get_type());
 
       // check if binding spot has reached its maximum number of bonds
       if (bondsperbindingspot.find(bspotgid) != bondsperbindingspot.end() and
@@ -2501,7 +2502,7 @@ bool BeamInteraction::SubmodelEvaluator::Crosslinking::check_bind_event_criteria
   check_init();
 
   int const potbeampartnerrowlid = discret().element_row_map()->lid(potbeampartner->id());
-  Inpar::BeamInteraction::CrosslinkerType linkertype = crosslinker_i->get_material()->linker_type();
+  BeamInteraction::CrosslinkerType linkertype = crosslinker_i->get_material()->linker_type();
 
   // check compatibility of crosslinker type and filament type (some linker can only
   // bind to certain filament types)
@@ -2629,7 +2630,7 @@ bool BeamInteraction::SubmodelEvaluator::Crosslinking::
         BeamInteraction::Data::BeamData const* beamdata_i, int locnbspot,
         int potbeampartnerrowlid) const
 {
-  Inpar::BeamInteraction::CrosslinkerType linkertype = crosslinker_i->get_material()->linker_type();
+  BeamInteraction::CrosslinkerType linkertype = crosslinker_i->get_material()->linker_type();
 
   if (not(cldata_i->get_number_of_bonds() == 1 and
           crosslinking_params_ptr_->max_number_of_bonds_per_filament_bspot(linkertype) > 1))
@@ -2714,28 +2715,27 @@ bool BeamInteraction::SubmodelEvaluator::Crosslinking::
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 bool BeamInteraction::SubmodelEvaluator::Crosslinking::check_linker_and_filament_type_compatibility(
-    Inpar::BeamInteraction::CrosslinkerType linkertype,
-    Inpar::BeamInteraction::FilamentType filamenttype) const
+    BeamInteraction::CrosslinkerType linkertype, BeamInteraction::FilamentType filamenttype) const
 {
   switch (linkertype)
   {
-    case Inpar::BeamInteraction::linkertype_arbitrary:
+    case BeamInteraction::CrosslinkerType::linkertype_arbitrary:
     {
       // no check of filament type necessary
       return true;
       break;
     }
-    case Inpar::BeamInteraction::linkertype_actin:
+    case BeamInteraction::CrosslinkerType::linkertype_actin:
     {
-      if (filamenttype == Inpar::BeamInteraction::filetype_actin)
+      if (filamenttype == BeamInteraction::FilamentType::filetype_actin)
         return true;
       else
         return false;
       break;
     }
-    case Inpar::BeamInteraction::linkertype_collagen:
+    case BeamInteraction::CrosslinkerType::linkertype_collagen:
     {
-      if (filamenttype == Inpar::BeamInteraction::filetype_collagen)
+      if (filamenttype == BeamInteraction::FilamentType::filetype_collagen)
         return true;
       else
         return false;
@@ -3117,10 +3117,11 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::
     // create and initialize objects of beam-to-beam connections
     // Todo move this inside the create routines (or one create routine in BeamLink class)
     std::shared_ptr<BeamInteraction::BeamLink> linkelepairptr;
-    if (cl_node->get_material()->joint_type() == Inpar::BeamInteraction::beam3r_line2_rigid)
+    if (cl_node->get_material()->joint_type() == BeamInteraction::JointType::beam3r_line2_rigid)
       linkelepairptr = BeamInteraction::BeamLinkRigidJointed::create();
-    else if (cl_node->get_material()->joint_type() == Inpar::BeamInteraction::beam3r_line2_pin or
-             cl_node->get_material()->joint_type() == Inpar::BeamInteraction::truss)
+    else if (cl_node->get_material()->joint_type() ==
+                 BeamInteraction::JointType::beam3r_line2_pin or
+             cl_node->get_material()->joint_type() == BeamInteraction::JointType::truss)
       linkelepairptr =
           BeamInteraction::BeamLinkPinJointed::create(cl_node->get_material()->joint_type());
 

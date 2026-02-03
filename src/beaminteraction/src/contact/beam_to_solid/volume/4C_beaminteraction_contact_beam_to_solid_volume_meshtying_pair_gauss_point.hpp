@@ -17,13 +17,10 @@ FOUR_C_NAMESPACE_OPEN
 
 
 // Forward declarations.
-namespace Inpar
+namespace BeamToSolid
 {
-  namespace BeamToSolid
-  {
-    enum class BeamToSolidRotationCoupling;
-  }
-}  // namespace Inpar
+  enum class BeamToSolidRotationCoupling;
+}
 namespace LargeRotations
 {
   template <unsigned int numnodes, typename T>
@@ -106,7 +103,7 @@ namespace BeamInteraction
      * @param local_stiff (in/out) Local pair stiffness matrix.
      */
     void evaluate_rotational_coupling_terms(
-        const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+        const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
         const GeometryPair::ElementData<Solid, scalar_type_rot_2nd>& q_solid,
         const LargeRotations::TriadInterpolationLocalRotationVectors<3, double>&
             triad_interpolation_scheme,

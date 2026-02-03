@@ -24,8 +24,7 @@ BeamInteraction::BeamToSolidVolumeMeshtyingParams::BeamToSolidVolumeMeshtyingPar
     : BeamToSolidParamsBase(),
       integration_points_circumference_(0),
       n_fourier_modes_(-1),
-      rotational_coupling_triad_construction_(
-          Inpar::BeamToSolid::BeamToSolidRotationCoupling::none),
+      rotational_coupling_triad_construction_(BeamToSolid::BeamToSolidRotationCoupling::none),
       rotational_coupling_penalty_parameter_(0.0),
       output_params_ptr_(nullptr),
       couple_restart_state_(false)
@@ -58,20 +57,18 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingParams::init()
 
     // Type of rotational coupling.
     rotational_coupling_triad_construction_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidRotationCoupling>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidRotationCoupling>(
             beam_to_solid_contact_params_list, "ROTATION_COUPLING");
-    rotational_coupling_ = rotational_coupling_triad_construction_ !=
-                           Inpar::BeamToSolid::BeamToSolidRotationCoupling::none;
+    rotational_coupling_ =
+        rotational_coupling_triad_construction_ != BeamToSolid::BeamToSolidRotationCoupling::none;
 
     // Mortar contact discretization to be used.
     mortar_shape_function_rotation_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidMortarShapefunctions>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidMortarShapefunctions>(
             beam_to_solid_contact_params_list, "ROTATION_COUPLING_MORTAR_SHAPE_FUNCTION");
-    if (get_contact_discretization() ==
-            Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar and
+    if (get_contact_discretization() == BeamToSolid::BeamToSolidContactDiscretization::mortar and
         rotational_coupling_ and
-        mortar_shape_function_rotation_ ==
-            Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::none)
+        mortar_shape_function_rotation_ == BeamToSolid::BeamToSolidMortarShapefunctions::none)
       FOUR_C_THROW(
           "If mortar coupling and rotational coupling are activated, the shape function type for "
           "rotational coupling has to be explicitly given.");

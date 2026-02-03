@@ -55,10 +55,12 @@ namespace Solid
     // forward declaration
     class BeamInteractionDataState;
 
+    // ! TODO this class has a nameclash / problem with the namespace BeamInteraction, how to solve
+    // this nicely? Rename this to something more senseful?
     class BeamInteraction : public Generic
     {
      public:
-      using Map = std::map<enum Inpar::BeamInteraction::SubModelType,
+      using Map = std::map<enum FourC::BeamInteraction::SubModelType,
           std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
       using Vector =
           std::vector<std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
@@ -168,7 +170,7 @@ namespace Solid
 
      public:
       /// check if the given model type is active.
-      bool have_sub_model_type(Inpar::BeamInteraction::SubModelType const& submodeltype) const;
+      bool have_sub_model_type(FourC::BeamInteraction::SubModelType const& submodeltype) const;
 
       //! check if lagrange formulation is active
       bool have_lagrange_dofs() const;
@@ -188,7 +190,7 @@ namespace Solid
       //! give submodels a certain order in which they are evaluated
       virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> transform_to_vector(
           Solid::ModelEvaluator::BeamInteraction::Map submodel_map,
-          std::vector<Inpar::BeamInteraction::SubModelType>& sorted_submodel_types) const;
+          std::vector<FourC::BeamInteraction::SubModelType>& sorted_submodel_types) const;
 
       //! @}
 
@@ -239,7 +241,7 @@ namespace Solid
       //!@name data for submodel management
       //! @{
       /// current active model types for the model evaluator
-      std::shared_ptr<std::set<Inpar::BeamInteraction::SubModelType>> submodeltypes_;
+      std::shared_ptr<std::set<FourC::BeamInteraction::SubModelType>> submodeltypes_;
 
       std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> me_map_ptr_;
 

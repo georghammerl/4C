@@ -237,7 +237,7 @@ namespace BeamInteraction
       discret->get_condition("BeamLineFilamentCondition", filamentconditions);
 
       // compute number of linker types
-      std::vector<Inpar::BeamInteraction::CrosslinkerType> linkertypes = params.linker_types();
+      std::vector<BeamInteraction::CrosslinkerType> linkertypes = params.linker_types();
 
       // loop over all relevant (on myrank) filaments
       for (auto const& filiter : relevantfilaments)
@@ -302,7 +302,7 @@ namespace BeamInteraction
               << Core::IO::endl;
           Core::IO::cout(Core::IO::debug)
               << numbspot << " binding spots of type "
-              << Inpar::BeamInteraction::crosslinker_type_to_string(linkertypes[linkertype_i])
+              << BeamInteraction::crosslinker_type_to_string(linkertypes[linkertype_i])
               << " on filament " << filiter << " (consists of "
               << static_cast<int>(sortedfilamenteles.size()) << " elements)"
               << " with: " << Core::IO::endl;
@@ -457,8 +457,8 @@ namespace BeamInteraction
      *-----------------------------------------------------------------------------*/
     void set_binding_spots_positions_on_filament(
         std::vector<Core::Elements::Element*>& sortedfilamenteles, double start,
-        Inpar::BeamInteraction::CrosslinkerType linkertype, int numbspot,
-        double filamentbspotinterval, double tol)
+        BeamInteraction::CrosslinkerType linkertype, int numbspot, double filamentbspotinterval,
+        double tol)
     {
       // default no occupied binding spots
       std::pair<double, double> elearcinterval = std::make_pair(0.0, 0.0);
@@ -504,7 +504,7 @@ namespace BeamInteraction
     /*-----------------------------------------------------------------------------*
      *-----------------------------------------------------------------------------*/
     void get_pos_and_triad_of_binding_spot(Core::Elements::Element* ele,
-        Core::Geo::MeshFree::BoundingBox& pbb, Inpar::BeamInteraction::CrosslinkerType linkertype,
+        Core::Geo::MeshFree::BoundingBox& pbb, BeamInteraction::CrosslinkerType linkertype,
         int locbspotnum, Core::LinAlg::Matrix<3, 1>& bspotpos,
         Core::LinAlg::Matrix<3, 3>& bspottriad, std::vector<double>& eledisp)
     {
@@ -526,7 +526,7 @@ namespace BeamInteraction
      *-----------------------------------------------------------------------------*/
     void get_pos_and_triad_of_binding_spot(Core::FE::Discretization const& discret,
         Core::Elements::Element* ele, Core::LinAlg::Vector<double>& ia_discolnp,
-        Core::Geo::MeshFree::BoundingBox& pbb, Inpar::BeamInteraction::CrosslinkerType linkertype,
+        Core::Geo::MeshFree::BoundingBox& pbb, BeamInteraction::CrosslinkerType linkertype,
         int locbspotnum, Core::LinAlg::Matrix<3, 1>& bspotpos,
         Core::LinAlg::Matrix<3, 3>& bspottriad)
     {

@@ -603,19 +603,19 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPair2D3DMortar<Beam, Solid,
 std::unique_ptr<BeamInteraction::BeamContactPair>
 BeamInteraction::create_beam_to_solid_volume_pair_mortar_cross_section(
     const Core::FE::CellType shape,
-    const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
+    const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
     const int n_fourier_modes)
 {
   using namespace GeometryPair;
 
   // Function to create the mortar pair for a given solid type
   auto make_mortar_pair =
-      []<typename Solid>(Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
+      []<typename Solid>(BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
           int n_fourier_modes) -> std::unique_ptr<BeamInteraction::BeamContactPair>
   {
     switch (mortar_shape_function)
     {
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
         switch (n_fourier_modes)
         {
           case 0:

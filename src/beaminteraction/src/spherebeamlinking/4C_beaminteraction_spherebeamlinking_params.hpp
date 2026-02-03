@@ -88,7 +88,7 @@ namespace BeamInteraction
     };
 
     /// contraction rate of cell (integrin linker) in [microm/s]
-    double contraction_rate(Inpar::BeamInteraction::CrosslinkerType linkertype) const
+    double contraction_rate(BeamInteraction::CrosslinkerType linkertype) const
     {
       check_init_setup();
       return contractionrate_.at(linkertype);
@@ -109,21 +109,21 @@ namespace BeamInteraction
     };
 
     /// get all active linker types
-    std::vector<Inpar::BeamInteraction::CrosslinkerType> const& linker_types() const
+    std::vector<BeamInteraction::CrosslinkerType> const& linker_types() const
     {
       check_init_setup();
       return linkertypes_;
     };
 
     // distance between two binding spots on a filament
-    double filament_bspot_interval_global(Inpar::BeamInteraction::CrosslinkerType linkertype) const
+    double filament_bspot_interval_global(BeamInteraction::CrosslinkerType linkertype) const
     {
       check_init_setup();
       return filamentbspotintervalglobal_.at(linkertype);
     };
 
     // distance between two binding spots on a filament
-    double filament_bspot_interval_local(Inpar::BeamInteraction::CrosslinkerType linkertype) const
+    double filament_bspot_interval_local(BeamInteraction::CrosslinkerType linkertype) const
     {
       check_init_setup();
       return filamentbspotintervallocal_.at(linkertype);
@@ -131,7 +131,7 @@ namespace BeamInteraction
 
     // start and end arc parameter for binding spots on a filament
     std::pair<double, double> const& filament_bspot_range_local(
-        Inpar::BeamInteraction::CrosslinkerType linkertype) const
+        BeamInteraction::CrosslinkerType linkertype) const
     {
       check_init_setup();
       return filamentbspotrangelocal_.at(linkertype);
@@ -139,7 +139,7 @@ namespace BeamInteraction
 
     // start and end arc parameter for binding spots on a filament
     std::pair<double, double> const& filament_bspot_range_global(
-        Inpar::BeamInteraction::CrosslinkerType linkertype) const
+        BeamInteraction::CrosslinkerType linkertype) const
     {
       check_init_setup();
       return filamentbspotrangeglobal_.at(linkertype);
@@ -154,7 +154,7 @@ namespace BeamInteraction
     double deltatime_;
     bool own_deltatime_;
     /// contraction rate of cell (integrin linker) in [microm/s]
-    std::map<Inpar::BeamInteraction::CrosslinkerType, double> contractionrate_;
+    std::map<BeamInteraction::CrosslinkerType, double> contractionrate_;
     /// crosslinker material
     std::vector<std::shared_ptr<Mat::CrosslinkerMat>> mat_;
     /// number of crosslinkers in the simulated volume
@@ -162,18 +162,16 @@ namespace BeamInteraction
     /// material numbers for crosslinker types
     std::vector<int> matlinkerpertype_;
     /// linker and therefore binding spot types
-    std::vector<Inpar::BeamInteraction::CrosslinkerType> linkertypes_;
+    std::vector<BeamInteraction::CrosslinkerType> linkertypes_;
     /// distance between two binding spots on each filament
-    std::map<Inpar::BeamInteraction::CrosslinkerType, double> filamentbspotintervalglobal_;
+    std::map<BeamInteraction::CrosslinkerType, double> filamentbspotintervalglobal_;
     /// distance between two binding spots on a filament as percentage of filament reference length
-    std::map<Inpar::BeamInteraction::CrosslinkerType, double> filamentbspotintervallocal_;
+    std::map<BeamInteraction::CrosslinkerType, double> filamentbspotintervallocal_;
     /// start and end arc parameter for binding spots on a filament
-    std::map<Inpar::BeamInteraction::CrosslinkerType, std::pair<double, double>>
-        filamentbspotrangeglobal_;
+    std::map<BeamInteraction::CrosslinkerType, std::pair<double, double>> filamentbspotrangeglobal_;
     /// start and end arc parameter for binding spots on a filament
     /// in percent of filament reference length
-    std::map<Inpar::BeamInteraction::CrosslinkerType, std::pair<double, double>>
-        filamentbspotrangelocal_;
+    std::map<BeamInteraction::CrosslinkerType, std::pair<double, double>> filamentbspotrangelocal_;
   };
 
 }  // namespace BeamInteraction

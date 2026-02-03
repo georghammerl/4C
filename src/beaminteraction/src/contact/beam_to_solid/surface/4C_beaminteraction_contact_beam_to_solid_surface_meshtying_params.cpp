@@ -21,11 +21,10 @@ FOUR_C_NAMESPACE_OPEN
  */
 BeamInteraction::BeamToSolidSurfaceMeshtyingParams::BeamToSolidSurfaceMeshtyingParams()
     : BeamToSolidParamsBase(),
-      coupling_type_(Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::none),
+      coupling_type_(BeamToSolid::BeamToSolidSurfaceCoupling::none),
       output_params_ptr_(nullptr),
       rotational_coupling_penalty_parameter_(-1.0),
-      rotational_coupling_triad_construction_(
-          Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling::none)
+      rotational_coupling_triad_construction_(BeamToSolid::BeamToSolidSurfaceRotationCoupling::none)
 {
   // Empty Constructor.
 }
@@ -47,7 +46,7 @@ void BeamInteraction::BeamToSolidSurfaceMeshtyingParams::init()
   // Get parameters form input file.
   {
     // Type of coupling evaluation to be used.
-    coupling_type_ = Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceCoupling>(
+    coupling_type_ = Teuchos::getIntegralValue<BeamToSolid::BeamToSolidSurfaceCoupling>(
         beam_to_solid_surface_meshtying_params_list, "COUPLING_TYPE");
 
     // Parameters for rotational coupling.
@@ -57,17 +56,16 @@ void BeamInteraction::BeamToSolidSurfaceMeshtyingParams::init()
         beam_to_solid_surface_meshtying_params_list.get<double>(
             "ROTATIONAL_COUPLING_PENALTY_PARAMETER");
     rotational_coupling_triad_construction_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidSurfaceRotationCoupling>(
             beam_to_solid_surface_meshtying_params_list, "ROTATIONAL_COUPLING_SURFACE_TRIAD");
 
     if (rotational_coupling_)
     {
       switch (coupling_type_)
       {
-        case Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::consistent_fad:
-        case Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::displacement_fad:
-        case Inpar::BeamToSolid::BeamToSolidSurfaceCoupling::
-            reference_configuration_forced_to_zero_fad:
+        case BeamToSolid::BeamToSolidSurfaceCoupling::consistent_fad:
+        case BeamToSolid::BeamToSolidSurfaceCoupling::displacement_fad:
+        case BeamToSolid::BeamToSolidSurfaceCoupling::reference_configuration_forced_to_zero_fad:
           break;
         default:
           FOUR_C_THROW(

@@ -92,16 +92,16 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, 
 
   const auto rot_coupling_type =
       this->params()->beam_to_solid_volume_meshtying_params()->get_rotational_coupling_type();
-  if (rot_coupling_type == Inpar::BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
+  if (rot_coupling_type == BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
   {
     // In the case of "fix_triad_2d" we couple both, the ey and ez direction to the beam. Therefore,
     // we have to evaluate the coupling terms w.r.t both of those coupling types.
     evaluate_rotational_coupling_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid,
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid,
         triad_interpolation_scheme, ref_triad_interpolation_scheme, local_g, local_G_B, local_G_S,
         local_FB_L, local_FS_L, local_kappa);
     evaluate_rotational_coupling_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid,
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid,
         triad_interpolation_scheme, ref_triad_interpolation_scheme, local_g, local_G_B, local_G_S,
         local_FB_L, local_FS_L, local_kappa);
   }
@@ -153,7 +153,7 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, 
 template <typename Beam, typename Solid, typename Mortar, typename MortarRot>
 void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, Mortar,
     MortarRot>::evaluate_rotational_coupling_terms(  //
-    const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+    const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
     const GeometryPair::ElementData<Solid, scalar_type_rot_1st>& q_solid,
     const LargeRotations::TriadInterpolationLocalRotationVectors<3, double>&
         triad_interpolation_scheme,
@@ -386,18 +386,18 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, 
 
   const auto rot_coupling_type =
       this->params()->beam_to_solid_volume_meshtying_params()->get_rotational_coupling_type();
-  if (rot_coupling_type == Inpar::BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
+  if (rot_coupling_type == BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
   {
     // In the case of "fix_triad_2d" we couple both, the ey and ez direction to the beam. Therefore,
     // we have to evaluate the coupling terms w.r.t both of those coupling types.
     evaluate_rotational_coupling_stiff_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid,
-        lambda_rot, triad_interpolation_scheme, ref_triad_interpolation_scheme, local_stiff_BB,
-        local_stiff_BS, local_stiff_SB, local_stiff_SS);
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid, lambda_rot,
+        triad_interpolation_scheme, ref_triad_interpolation_scheme, local_stiff_BB, local_stiff_BS,
+        local_stiff_SB, local_stiff_SS);
     evaluate_rotational_coupling_stiff_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid,
-        lambda_rot, triad_interpolation_scheme, ref_triad_interpolation_scheme, local_stiff_BB,
-        local_stiff_BS, local_stiff_SB, local_stiff_SS);
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid, lambda_rot,
+        triad_interpolation_scheme, ref_triad_interpolation_scheme, local_stiff_BB, local_stiff_BS,
+        local_stiff_SB, local_stiff_SS);
   }
   else
     evaluate_rotational_coupling_stiff_terms(rot_coupling_type, q_solid, lambda_rot,
@@ -436,7 +436,7 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, 
 template <typename Beam, typename Solid, typename Mortar, typename MortarRot>
 void BeamInteraction::BeamToSolidVolumeMeshtyingPairMortarRotation<Beam, Solid, Mortar, MortarRot>::
     evaluate_rotational_coupling_stiff_terms(
-        const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+        const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
         const GeometryPair::ElementData<Solid, scalar_type_rot_2nd>& q_solid,
         Core::LinAlg::Matrix<MortarRot::n_dof_, 1, double>& lambda_rot,
         const LargeRotations::TriadInterpolationLocalRotationVectors<3, double>&

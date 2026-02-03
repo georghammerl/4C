@@ -16,19 +16,19 @@
 FOUR_C_NAMESPACE_OPEN
 
 
-void Inpar::BeamInteraction::beam_interaction_conditions_get_all(
-    std::vector<Inpar::BeamInteraction::BeamInteractionConditionTypes>& interactions)
+void BeamInteraction::beam_interaction_conditions_get_all(
+    std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions)
 {
-  interactions = {Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
-      Inpar::BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
+  interactions = {BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
 }
 
-std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()
+std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;
 
@@ -36,7 +36,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()
   specs.push_back(group("BEAM INTERACTION",
       {
 
-          deprecated_selection<Inpar::BeamInteraction::RepartitionStrategy>("REPARTITIONSTRATEGY",
+          deprecated_selection<BeamInteraction::RepartitionStrategy>("REPARTITIONSTRATEGY",
               {
                   {"Adaptive", repstr_adaptive},
                   {"adaptive", repstr_adaptive},
@@ -162,7 +162,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()
   specs.push_back(group("BEAM INTERACTION/BEAM TO SPHERE CONTACT",
       {
 
-          deprecated_selection<Inpar::BeamInteraction::Strategy>("STRATEGY",
+          deprecated_selection<BeamInteraction::Strategy>("STRATEGY",
               {
                   {"None", bstr_none},
                   {"none", bstr_none},
@@ -183,7 +183,7 @@ std::vector<Core::IO::InputSpec> Inpar::BeamInteraction::valid_parameters()
   return specs;
 }
 
-void Inpar::BeamInteraction::set_valid_conditions(
+void BeamInteraction::set_valid_conditions(
     std::vector<Core::Conditions::ConditionDefinition>& condlist)
 {
   using namespace Core::IO::InputSpecBuilders;
@@ -217,7 +217,7 @@ void Inpar::BeamInteraction::set_valid_conditions(
   condlist.push_back(penalty_coupling_condition_direct);
 
   // beam-to-solid interactions
-  Inpar::BeamToSolid::set_valid_conditions(condlist);
+  BeamToSolid::set_valid_conditions(condlist);
 
   // Beam-to-beam point couplings based on CPP conditions.
   {

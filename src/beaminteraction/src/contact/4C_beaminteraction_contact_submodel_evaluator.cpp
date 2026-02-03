@@ -79,7 +79,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
       Global::Problem::instance()->geometric_search_params(),
       Global::Problem::instance()->io_params());
   if (beam_interaction_params_ptr_->get_search_strategy() ==
-          Inpar::BeamInteraction::SearchStrategy::bounding_volume_hierarchy &&
+          BeamInteraction::SearchStrategy::bounding_volume_hierarchy &&
       geometric_search_params_ptr_->get_write_visualization_flag())
   {
     geometric_search_visualization_ptr_ =
@@ -134,9 +134,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
   }
 
-  if (Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
+  if (Teuchos::getIntegralValue<BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none)
+          "STRATEGY") != BeamInteraction::Strategy::bstr_none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::RigidSphere);
 
@@ -147,9 +147,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_volume_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID VOLUME MESHTYING");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_volume_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -175,9 +175,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_surface_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID SURFACE MESHTYING");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_surface_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -203,9 +203,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_surface_contact_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID SURFACE CONTACT");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_surface_contact_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -913,7 +913,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::find_and_store_neighboring
   beam_interaction_conditions_ptr_->build_id_sets(discret_ptr());
 
   if (beam_interaction_params_ptr_->get_search_strategy() ==
-      Inpar::BeamInteraction::SearchStrategy::bruteforce_with_binning)
+      BeamInteraction::SearchStrategy::bruteforce_with_binning)
   {
     // loop over all row beam elements
     // note: like this we ensure that first element of pair is always a beam element, also only
@@ -957,7 +957,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::find_and_store_neighboring
     }
   }
   else if (beam_interaction_params_ptr_->get_search_strategy() ==
-           Inpar::BeamInteraction::SearchStrategy::bounding_volume_hierarchy)
+           BeamInteraction::SearchStrategy::bounding_volume_hierarchy)
   {
     // Get vector of all beam element bounding boxes.
     int const numroweles = ele_type_map_extractor_ptr()->beam_map()->num_my_elements();

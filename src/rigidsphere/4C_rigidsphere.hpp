@@ -337,7 +337,7 @@ namespace Discret
       void scale_radius(double scalefac) { radius_ *= scalefac; };
 
       /// return binding spot xi function dummy
-      double get_binding_spot_xi(Inpar::BeamInteraction::CrosslinkerType dummy1, int dummy2) const
+      double get_binding_spot_xi(BeamInteraction::CrosslinkerType dummy1, int dummy2) const
       {
         return 0.0;
       }

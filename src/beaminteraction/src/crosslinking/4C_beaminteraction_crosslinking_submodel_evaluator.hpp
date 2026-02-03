@@ -80,9 +80,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current model evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_crosslinking;
+        return BeamInteraction::SubModelType::submodel_crosslinking;
       }
 
       //! derived
@@ -343,9 +343,8 @@ namespace BeamInteraction
           int potbeampartnerrowlid) const;
 
       /// check if crosslinke and filament type are compatible
-      bool check_linker_and_filament_type_compatibility(
-          Inpar::BeamInteraction::CrosslinkerType linkertype,
-          Inpar::BeamInteraction::FilamentType filamenttype) const;
+      bool check_linker_and_filament_type_compatibility(BeamInteraction::CrosslinkerType linkertype,
+          BeamInteraction::FilamentType filamenttype) const;
 
       /// if crosslinker is singly bound, we fetch the orientation vector of the
       /// filament axis at the already occupied binding spot for the orientation

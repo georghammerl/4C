@@ -38,7 +38,7 @@ ScalarType BeamInteraction::penalty_force(
 
   switch (penalty_law.type)
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear:
+    case BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear:
     {
       if (gap < 0.0)
       {
@@ -46,7 +46,7 @@ ScalarType BeamInteraction::penalty_force(
       }
       break;
     }
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear_quadratic:
+    case BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear_quadratic:
     {
       if (gap < 0.0)
       {
@@ -79,7 +79,7 @@ ScalarType BeamInteraction::penalty_potential(
 
   switch (penalty_law.type)
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear:
+    case BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear:
     {
       if (gap < 0.0)
       {
@@ -87,7 +87,7 @@ ScalarType BeamInteraction::penalty_potential(
       }
       break;
     }
-    case Inpar::BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear_quadratic:
+    case BeamToSolid::BeamToSolidSurfaceContactPenaltyLaw::linear_quadratic:
     {
       if (gap < 0.0)
       {
@@ -117,12 +117,11 @@ ScalarType BeamInteraction::penalty_potential(
 std::pair<unsigned int, unsigned int>
 BeamInteraction::mortar_shape_functions_to_number_of_lagrange_values(
     const std::shared_ptr<const BeamToSolidParamsBase>& beam_to_solid_params,
-    const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions shape_function,
-    const unsigned int n_dim)
+    const BeamToSolid::BeamToSolidMortarShapefunctions shape_function, const unsigned int n_dim)
 {
   auto get_number_of_values_per_entry = [&]()
   {
-    if (Inpar::BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section ==
+    if (BeamToSolid::BeamToSolidContactDiscretization::mortar_cross_section ==
         beam_to_solid_params->get_contact_discretization())
     {
       const auto beam_to_volume_parameters =
@@ -140,25 +139,25 @@ BeamInteraction::mortar_shape_functions_to_number_of_lagrange_values(
 
   switch (shape_function)
   {
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::none:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::none:
     {
       const unsigned int n_lambda_node = 0;
       const unsigned int n_lambda_element = 0;
       return {n_lambda_node, n_lambda_element};
     }
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
     {
       const unsigned int n_lambda_node = 1 * n_dim * number_of_values_per_entry;
       const unsigned int n_lambda_element = 0;
       return {n_lambda_node, n_lambda_element};
     }
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line3:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line3:
     {
       const unsigned int n_lambda_node = 1 * n_dim * number_of_values_per_entry;
       const unsigned int n_lambda_element = 1 * n_dim * number_of_values_per_entry;
       return {n_lambda_node, n_lambda_element};
     }
-    case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line4:
+    case BeamToSolid::BeamToSolidMortarShapefunctions::line4:
     {
       const unsigned int n_lambda_node = 1 * n_dim * number_of_values_per_entry;
       const unsigned int n_lambda_element = 2 * n_dim * number_of_values_per_entry;
@@ -206,7 +205,7 @@ void BeamInteraction::get_beam_triad_interpolation_scheme(const Core::FE::Discre
  */
 template <typename Solid, typename ScalarType>
 void BeamInteraction::get_solid_rotation_vector(
-    const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+    const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
     const Core::LinAlg::Matrix<3, 1, double>& xi,
     const GeometryPair::ElementData<Solid, double>& q_solid_ref,
     const GeometryPair::ElementData<Solid, ScalarType>& q_solid,
@@ -215,32 +214,32 @@ void BeamInteraction::get_solid_rotation_vector(
 {
   switch (rot_coupling_type)
   {
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::polar_decomposition_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::polar_decomposition_2d:
       get_solid_rotation_vector_polar_decomposition2_d<Solid>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_average_2d:
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d:
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_average_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d:
       get_solid_rotation_vector_deformation_gradient2_d<Solid>(
           rot_coupling_type, xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_1:
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_2:
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_3:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_1:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_2:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_3:
       get_solid_rotation_vector_deformation_gradient3_d<Solid>(
           rot_coupling_type, xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_general:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_general:
       get_solid_rotation_vector_deformation_gradient_3d_general<Solid>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::
+    case BeamToSolid::BeamToSolidRotationCoupling::
         deformation_gradient_3d_general_in_cross_section_plane:
       get_solid_rotation_vector_deformation_gradient_3d_general_in_cross_section_plane<Solid>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_base_1:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_base_1:
       get_solid_rotation_vector_deformation_gradient_3d_base1<Solid>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       return;
@@ -517,7 +516,7 @@ void BeamInteraction::get_solid_rotation_vector_deformation_gradient_3d_base1(
  */
 template <typename Solid, typename ScalarType>
 void BeamInteraction::get_solid_rotation_vector_deformation_gradient3_d(
-    const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+    const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
     const Core::LinAlg::Matrix<3, 1, double>& xi,
     const GeometryPair::ElementData<Solid, double>& q_solid_ref,
     const GeometryPair::ElementData<Solid, ScalarType>& q_solid,
@@ -540,21 +539,21 @@ void BeamInteraction::get_solid_rotation_vector_deformation_gradient3_d(
   unsigned int constructed_basis_vector_to_triad_order[3];
   switch (rot_coupling_type)
   {
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_1:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_1:
       local_basis_vector_construction_order[0] = 0;
       local_basis_vector_construction_order[1] = 2;
       constructed_basis_vector_to_triad_order[0] = 0;
       constructed_basis_vector_to_triad_order[1] = 1;
       constructed_basis_vector_to_triad_order[2] = 2;
       break;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_2:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_2:
       local_basis_vector_construction_order[0] = 1;
       local_basis_vector_construction_order[1] = 0;
       constructed_basis_vector_to_triad_order[0] = 1;
       constructed_basis_vector_to_triad_order[1] = 2;
       constructed_basis_vector_to_triad_order[2] = 0;
       break;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_3:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_3d_local_3:
       local_basis_vector_construction_order[0] = 2;
       local_basis_vector_construction_order[1] = 1;
       constructed_basis_vector_to_triad_order[0] = 2;
@@ -679,7 +678,7 @@ void BeamInteraction::get_solid_rotation_vector_polar_decomposition2_d(
  */
 template <typename Solid, typename ScalarType>
 void BeamInteraction::get_solid_rotation_vector_deformation_gradient2_d(
-    const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+    const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
     const Core::LinAlg::Matrix<3, 1, double>& xi,
     const GeometryPair::ElementData<Solid, double>& q_solid_ref,
     const GeometryPair::ElementData<Solid, ScalarType>& q_solid,
@@ -703,14 +702,14 @@ void BeamInteraction::get_solid_rotation_vector_deformation_gradient2_d(
   ScalarType angle;
   switch (rot_coupling_type)
   {
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d:
       angle = atan2(deformation_gradient(2, 1), deformation_gradient(1, 1));
       break;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d:
       angle =
           atan2(deformation_gradient(2, 2), deformation_gradient(1, 2)) - std::numbers::pi * 0.5;
       break;
-    case Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_average_2d:
+    case BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_average_2d:
       angle = 0.5 * (atan2(deformation_gradient(2, 1), deformation_gradient(1, 1)) +
                         atan2(deformation_gradient(2, 2), deformation_gradient(1, 2))) -
               std::numbers::pi * 0.25;
@@ -853,17 +852,17 @@ namespace BeamInteraction
   initialize_template_penalty(line_to_surface_patch_scalar_type_fixed_size_hermite_nurbs_9);
 
 
-#define initialize_template_get_solid_rotation_vector(a, fad_order)                              \
-  template void                                                                                  \
-  get_solid_rotation_vector<a, Core::FADUtils::HigherOrderFadType<fad_order,                     \
-                                   Sacado::Fad::SLFad<double, 3 + a::n_dof_>>::type>(            \
-      const Inpar::BeamToSolid::BeamToSolidRotationCoupling&,                                    \
-      const Core::LinAlg::Matrix<3, 1, double>&, const GeometryPair::ElementData<a, double>&,    \
-      const GeometryPair::ElementData<a, Core::FADUtils::HigherOrderFadType<fad_order,           \
-                                             Sacado::Fad::SLFad<double, 3 + a::n_dof_>>::type>&, \
-      const Core::LinAlg::Matrix<4, 1, double>&,                                                 \
-      Core::LinAlg::Matrix<3, 1,                                                                 \
-          Core::FADUtils::HigherOrderFadType<fad_order,                                          \
+#define initialize_template_get_solid_rotation_vector(a, fad_order)                               \
+  template void                                                                                   \
+  get_solid_rotation_vector<a, Core::FADUtils::HigherOrderFadType<fad_order,                      \
+                                   Sacado::Fad::SLFad<double, 3 + a::n_dof_>>::type>(             \
+      const BeamToSolid::BeamToSolidRotationCoupling&, const Core::LinAlg::Matrix<3, 1, double>&, \
+      const GeometryPair::ElementData<a, double>&,                                                \
+      const GeometryPair::ElementData<a, Core::FADUtils::HigherOrderFadType<fad_order,            \
+                                             Sacado::Fad::SLFad<double, 3 + a::n_dof_>>::type>&,  \
+      const Core::LinAlg::Matrix<4, 1, double>&,                                                  \
+      Core::LinAlg::Matrix<3, 1,                                                                  \
+          Core::FADUtils::HigherOrderFadType<fad_order,                                           \
               Sacado::Fad::SLFad<double, 3 + a::n_dof_>>::type>&);
 
   initialize_template_get_solid_rotation_vector(t_hex8, 1);

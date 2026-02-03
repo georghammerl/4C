@@ -60,7 +60,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the type of rotational coupling to be used.
      */
-    inline Inpar::BeamToSolid::BeamToSolidRotationCoupling get_rotational_coupling_type() const
+    inline BeamToSolid::BeamToSolidRotationCoupling get_rotational_coupling_type() const
     {
       return rotational_coupling_triad_construction_;
     }
@@ -69,8 +69,8 @@ namespace BeamInteraction
      * \brief Returns the shape function for the mortar Lagrange-multiplicators to interpolate the
      * rotational coupling.
      */
-    inline Inpar::BeamToSolid::BeamToSolidMortarShapefunctions
-    get_mortar_shape_function_rotation_type() const
+    inline BeamToSolid::BeamToSolidMortarShapefunctions get_mortar_shape_function_rotation_type()
+        const
     {
       return mortar_shape_function_rotation_;
     }
@@ -104,10 +104,10 @@ namespace BeamInteraction
     int n_fourier_modes_;
 
     //! Type of rotational coupling.
-    Inpar::BeamToSolid::BeamToSolidRotationCoupling rotational_coupling_triad_construction_;
+    BeamToSolid::BeamToSolidRotationCoupling rotational_coupling_triad_construction_;
 
     //! Shape function for the mortar Lagrange-multiplicators
-    Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function_rotation_;
+    BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function_rotation_;
 
     //! Penalty parameter for rotational coupling.
     double rotational_coupling_penalty_parameter_;
