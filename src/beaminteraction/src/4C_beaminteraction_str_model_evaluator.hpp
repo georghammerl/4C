@@ -57,7 +57,7 @@ namespace Solid
 
     // ! TODO this class has a nameclash / problem with the namespace BeamInteraction, how to solve
     // this nicely? Rename this to something more senseful?
-    class BeamInteraction : public Generic
+    class BeamInteractionModelEvaluator : public Generic
     {
      public:
       using Map = std::map<enum FourC::BeamInteraction::SubModelType,
@@ -66,7 +66,7 @@ namespace Solid
           std::vector<std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
 
       //! constructor
-      BeamInteraction();
+      BeamInteractionModelEvaluator();
 
       void setup() override;
 
@@ -188,8 +188,8 @@ namespace Solid
       void init_and_setup_sub_model_evaluators();
 
       //! give submodels a certain order in which they are evaluated
-      virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> transform_to_vector(
-          Solid::ModelEvaluator::BeamInteraction::Map submodel_map,
+      virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector>
+      transform_to_vector(Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map submodel_map,
           std::vector<FourC::BeamInteraction::SubModelType>& sorted_submodel_types) const;
 
       //! @}
@@ -243,9 +243,9 @@ namespace Solid
       /// current active model types for the model evaluator
       std::shared_ptr<std::set<FourC::BeamInteraction::SubModelType>> submodeltypes_;
 
-      std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> me_map_ptr_;
+      std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> me_map_ptr_;
 
-      std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> me_vec_ptr_;
+      std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector> me_vec_ptr_;
       //! @}
 
       //!@name data for handling two distinct parallel distributed discretizations

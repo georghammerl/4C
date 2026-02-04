@@ -140,7 +140,8 @@ namespace BeamInteraction
 
       //! derived
       void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap) override;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelmap) override;
 
       //! derived
       void add_bins_to_bin_col_map(std::set<int>& colbins) override;

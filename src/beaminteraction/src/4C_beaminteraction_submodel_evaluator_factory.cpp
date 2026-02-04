@@ -26,13 +26,13 @@ BeamInteraction::SubmodelEvaluator::Factory::Factory()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map>
+std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map>
 BeamInteraction::SubmodelEvaluator::Factory::build_model_evaluators(
     const std::set<BeamInteraction::SubModelType>& submodeltypes) const
 {
   // create a new standard map
-  std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> model_map =
-      std::make_shared<Solid::ModelEvaluator::BeamInteraction::Map>();
+  std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> model_map =
+      std::make_shared<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map>();
 
   std::set<BeamInteraction::SubModelType>::const_iterator mt_iter;
   for (mt_iter = submodeltypes.begin(); mt_iter != submodeltypes.end(); ++mt_iter)
@@ -66,7 +66,7 @@ BeamInteraction::SubmodelEvaluator::Factory::build_model_evaluators(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map>
+std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map>
 BeamInteraction::SubmodelEvaluator::build_model_evaluators(
     const std::set<BeamInteraction::SubModelType>& submodeltypes)
 {

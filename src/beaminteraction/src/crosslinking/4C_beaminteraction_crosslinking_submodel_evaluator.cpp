@@ -235,7 +235,7 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::post_setup()
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::Crosslinking::init_submodel_dependencies(
-    std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap)
+    std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const submodelmap)
 {
   check_init_setup();
   // no active influence on other submodels

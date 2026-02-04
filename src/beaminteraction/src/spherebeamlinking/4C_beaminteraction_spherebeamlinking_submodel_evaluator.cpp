@@ -84,12 +84,12 @@ void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::post_setup()
 /*-------------------------------------------------------------------------------*
  *-------------------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::SphereBeamLinking::init_submodel_dependencies(
-    std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap)
+    std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const submodelmap)
 {
   check_init_setup();
 
   // init pointer to crosslinker submodel
-  Solid::ModelEvaluator::BeamInteraction::Map::const_iterator miter;
+  Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map::const_iterator miter;
   for (miter = (*submodelmap).begin(); miter != (*submodelmap).end(); ++miter)
     if (miter->first == BeamInteraction::SubModelType::submodel_crosslinking)
       sm_crosslinkink_ptr_ =
