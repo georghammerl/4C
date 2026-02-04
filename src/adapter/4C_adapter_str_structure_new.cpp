@@ -18,7 +18,7 @@
 #include "4C_beam3_kirchhoff.hpp"
 #include "4C_beam3_reissner.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
-#include "4C_beaminteraction_input.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_binstrategy.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_fem_condition.hpp"

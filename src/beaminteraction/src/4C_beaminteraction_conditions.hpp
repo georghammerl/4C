@@ -57,6 +57,30 @@ namespace Solid
 
 namespace BeamInteraction
 {
+
+  /**
+   * \brief Types of beam interaction conditions
+   */
+  enum class BeamInteractionConditionTypes
+  {
+    //! Default value.
+    none,
+    //! Beam-to-beam contact.
+    beam_to_beam_contact,
+    //! Beam-to-solid volume mesh tying.
+    beam_to_solid_volume_meshtying,
+    //! Beam-to-solid surface mesh tying.
+    beam_to_solid_surface_meshtying,
+    //! beam-to-beam penalty point coupling with direct pair creation.
+    beam_to_beam_point_coupling_direct,
+    //! beam-to-beam penalty point coupling with indirect pair creation.
+    beam_to_beam_point_coupling_indirect,
+    //! Beam-to-solid surface contact.
+    beam_to_solid_surface_contact,
+    //! Beam-to-solid edge contact.
+    beam_to_solid_edge_contact
+  };
+
   /**
    * \brief This abstract base class represents a single beam interaction condition.
    */

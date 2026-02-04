@@ -11,7 +11,6 @@
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_submodel_evaluator_generic.hpp"
 #include "4C_binstrategy_utils.hpp"
 #include "4C_io_visualization_manager.hpp"

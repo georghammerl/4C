@@ -10,7 +10,6 @@
 
 #include "4C_config.hpp"
 
-#include "4C_beaminteraction_input.hpp"
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
 #include "4C_linalg_mapextractor.hpp"
@@ -46,6 +45,19 @@ namespace BeamInteraction
   {
     class Generic;
   }
+}  // namespace BeamInteraction
+
+namespace BeamInteraction
+{
+  /// type of the used submodel for beaminteraction
+  enum SubModelType
+  {
+    submodel_crosslinking,    ///< evaluate the structural model
+    submodel_beamcontact,     ///< evaluate the contact model
+    submodel_potential,       ///< evaluate the model for potential-based interactions
+    submodel_spherebeamlink,  ///< evaluate model for cell filament interactions
+    submodel_vague            ///< undefined model type
+  };
 }  // namespace BeamInteraction
 
 namespace Solid

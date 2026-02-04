@@ -8,7 +8,7 @@
 #include "4C_beam3_base.hpp"
 
 #include "4C_beaminteraction_calc_utils.hpp"
-#include "4C_beaminteraction_input.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 #include "4C_browniandyn_input.hpp"  // enums
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_geometry_periodic_boundingbox.hpp"

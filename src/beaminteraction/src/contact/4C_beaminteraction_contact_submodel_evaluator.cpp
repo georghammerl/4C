@@ -21,6 +21,7 @@
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_visualization_output_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_visualization_output_writer.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
 #include "4C_beaminteraction_contact_runtime_visualization_output_params.hpp"

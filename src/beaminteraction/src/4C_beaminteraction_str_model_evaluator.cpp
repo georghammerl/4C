@@ -12,6 +12,7 @@
 #include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
 #include "4C_beaminteraction_contact_submodel_evaluator.hpp"
 #include "4C_beaminteraction_crosslinking_handler.hpp"

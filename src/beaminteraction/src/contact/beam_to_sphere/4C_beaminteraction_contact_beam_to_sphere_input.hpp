@@ -18,6 +18,15 @@ FOUR_C_NAMESPACE_OPEN
 
 namespace BeamInteraction
 {
+
+  /// type of employed solving strategy for contact
+  /// (this enum represents the input file parameter STRATEGY)
+  enum Strategy
+  {
+    bstr_none,    ///< no beam contact
+    bstr_penalty  ///< penalty method
+  };
+
   /// get beam to sphere contact parameters
   std::vector<Core::IO::InputSpec> valid_parameters_contact_beam_to_sphere();
 

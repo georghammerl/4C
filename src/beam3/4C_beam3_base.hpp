@@ -11,7 +11,7 @@
 #include "4C_config.hpp"
 
 #include "4C_beam3_spatial_discretization_utils.hpp"
-#include "4C_beaminteraction_input.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_elementtype.hpp"

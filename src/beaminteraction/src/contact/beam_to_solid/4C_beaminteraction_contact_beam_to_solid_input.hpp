@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_conditions.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_io_input_spec.hpp"
 
