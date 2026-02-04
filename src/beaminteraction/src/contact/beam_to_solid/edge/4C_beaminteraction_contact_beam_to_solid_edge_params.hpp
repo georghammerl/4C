@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_utils.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io_input_spec.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -22,7 +22,7 @@ namespace BeamInteraction
   /// Parameters for beam-to-solid edge contact
   struct BeamToSolidEdgeContactParameters
   {
-    Inpar::BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement;
+    BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement;
     PenaltyLawParameters penalty_law;
   };
 

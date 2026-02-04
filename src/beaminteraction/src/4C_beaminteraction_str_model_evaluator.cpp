@@ -10,7 +10,9 @@
 #include "4C_beam3_base.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
 #include "4C_beaminteraction_contact_submodel_evaluator.hpp"
 #include "4C_beaminteraction_crosslinking_handler.hpp"
@@ -25,7 +27,6 @@
 #include "4C_fem_general_utils_createdis.hpp"
 #include "4C_fem_geometry_periodic_boundingbox.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io.hpp"
 #include "4C_io_pstream.hpp"
 #include "4C_linalg_fevector.hpp"
@@ -48,7 +49,7 @@ FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-Solid::ModelEvaluator::BeamInteraction::BeamInteraction()
+Solid::ModelEvaluator::BeamInteractionModelEvaluator::BeamInteractionModelEvaluator()
     : discret_ptr_(nullptr),
       beaminteraction_params_ptr_(nullptr),
       submodeltypes_(nullptr),
@@ -75,7 +76,7 @@ Solid::ModelEvaluator::BeamInteraction::BeamInteraction()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::setup()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::setup()
 {
   check_init();
 
@@ -95,7 +96,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
   // get myrank
   myrank_ = Core::Communication::my_mpi_rank(discret_ptr()->get_comm());
 
-  beaminteraction_params_ptr_ = std::make_shared<FourC::BeamInteraction::BeamInteractionParams>();
+  beaminteraction_params_ptr_ = std::make_shared<BeamInteraction::BeamInteractionParams>();
   beaminteraction_params_ptr_->init();
   beaminteraction_params_ptr_->setup();
 
@@ -129,9 +130,8 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
 
   ia_state_ptr_->get_dis_np() =
       std::make_shared<Core::LinAlg::Vector<double>>(*global_state_ptr()->get_dis_np());
-  FourC::BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(
-      *ia_state_ptr_->get_dis_np(), *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(),
-      *ia_discret_);
+  BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(*ia_state_ptr_->get_dis_np(),
+      *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(), *ia_discret_);
 
   // -------------------------------------------------------------------------
   // initialize coupling adapter to transform matrices between the two discrets
@@ -203,9 +203,9 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
 
   // construct, init and setup beam crosslinker handler and binning strategy
   // todo: move this and its single call during partition to crosslinker submodel
-  if (have_sub_model_type(Inpar::BeamInteraction::submodel_crosslinking))
+  if (have_sub_model_type(BeamInteraction::SubModelType::submodel_crosslinking))
   {
-    beam_crosslinker_handler_ = std::make_shared<FourC::BeamInteraction::BeamCrosslinkerHandler>();
+    beam_crosslinker_handler_ = std::make_shared<BeamInteraction::BeamCrosslinkerHandler>();
     beam_crosslinker_handler_->init(global_state().get_my_rank(), binstrategy_);
     beam_crosslinker_handler_->setup();
   }
@@ -214,8 +214,8 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
   print_binning_info_to_screen();
 
   // extract map for each eletype that is in discretization
-  eletypeextractor_ = std::make_shared<FourC::BeamInteraction::Utils::MapExtractor>();
-  FourC::BeamInteraction::Utils::setup_ele_type_map_extractor(*ia_discret_, *eletypeextractor_);
+  eletypeextractor_ = std::make_shared<BeamInteraction::Utils::MapExtractor>();
+  BeamInteraction::Utils::setup_ele_type_map_extractor(*ia_discret_, *eletypeextractor_);
 
   // initialize and setup submodel evaluators
   init_and_setup_sub_model_evaluators();
@@ -239,7 +239,7 @@ void Solid::ModelEvaluator::BeamInteraction::setup()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::post_setup_submodels()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::post_setup_submodels()
 {
   check_init();
 
@@ -250,7 +250,7 @@ void Solid::ModelEvaluator::BeamInteraction::post_setup_submodels()
     (*some_iter)->post_setup();
 
   if (beaminteraction_params_ptr_->get_repartition_strategy() ==
-      Inpar::BeamInteraction::repstr_adaptive)
+      BeamInteraction::RepartitionStrategy::repstr_adaptive)
   {
     // submodel loop to determine half interaction radius
     for (some_iter = me_vec_ptr_->begin(); some_iter != me_vec_ptr_->end(); ++some_iter)
@@ -273,11 +273,11 @@ void Solid::ModelEvaluator::BeamInteraction::post_setup_submodels()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::set_sub_model_types()
 {
   check_init();
 
-  submodeltypes_ = std::make_shared<std::set<enum Inpar::BeamInteraction::SubModelType>>();
+  submodeltypes_ = std::make_shared<std::set<enum BeamInteraction::SubModelType>>();
 
   // ---------------------------------------------------------------------------
   // check for crosslinking in biopolymer networks
@@ -286,7 +286,7 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
           ->beam_interaction_params()
           .sublist("SPHERE BEAM LINK")
           .get<bool>("SPHEREBEAMLINKING"))
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_spherebeamlink);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_spherebeamlink);
 
   // ---------------------------------------------------------------------------
   // check for crosslinking in biopolymer networks
@@ -295,7 +295,7 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
           ->beam_interaction_params()
           .sublist("CROSSLINKING")
           .get<bool>("CROSSLINKER"))
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_crosslinking);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_crosslinking);
 
   // ---------------------------------------------------------------------------
   // check for point to point penalty coupling conditions
@@ -306,12 +306,12 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   discret_ptr_->get_condition(
       "PenaltyPointCouplingConditionDirect", beampenaltycouplingconditions_direct);
   if (beampenaltycouplingconditions_direct.size() > 0)
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_beamcontact);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_beamcontact);
   std::vector<const Core::Conditions::Condition*> beampenaltycouplingconditions_indirect;
   discret_ptr_->get_condition(
       "PenaltyPointCouplingConditionIndirect", beampenaltycouplingconditions_indirect);
   if (beampenaltycouplingconditions_indirect.size() > 0)
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_beamcontact);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_beamcontact);
 
   // ---------------------------------------------------------------------------
   // check for beam contact
@@ -322,24 +322,24 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   discret_ptr_->get_condition("BeamToBeamContact", beamtobeamcontactconditions);
 
   if (beamtobeamcontactconditions.size() > 0 or
-      Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
+      Teuchos::getIntegralValue<BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "STRATEGY") != BeamInteraction::Strategy::bstr_none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID VOLUME MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE CONTACT"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
       Global::Problem::instance()->parameters().isParameter(
           "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT"))
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_beamcontact);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_beamcontact);
 
   // ---------------------------------------------------------------------------
   // check for beam potential-based interactions
@@ -347,7 +347,7 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
   std::vector<const Core::Conditions::Condition*> beampotconditions;
   discret().get_condition("BeamPotentialLineCharge", beampotconditions);
   if (beampotconditions.size() > 0)
-    submodeltypes_->insert(Inpar::BeamInteraction::submodel_potential);
+    submodeltypes_->insert(BeamInteraction::SubModelType::submodel_potential);
 
   // Ensure that no point coupling condition connects two beams that are possibly in contact with
   // each other.
@@ -376,13 +376,13 @@ void Solid::ModelEvaluator::BeamInteraction::set_sub_model_types()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::init_and_setup_sub_model_evaluators()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::init_and_setup_sub_model_evaluators()
 {
   check_init();
 
   // model map
-  me_map_ptr_ = FourC::BeamInteraction::SubmodelEvaluator::build_model_evaluators(*submodeltypes_);
-  std::vector<Inpar::BeamInteraction::SubModelType> sorted_submodeltypes;
+  me_map_ptr_ = BeamInteraction::SubmodelEvaluator::build_model_evaluators(*submodeltypes_);
+  std::vector<BeamInteraction::SubModelType> sorted_submodeltypes;
 
   // build and sort submodel vector
   me_vec_ptr_ = transform_to_vector(*me_map_ptr_, sorted_submodeltypes);
@@ -394,8 +394,7 @@ void Solid::ModelEvaluator::BeamInteraction::init_and_setup_sub_model_evaluators
         ->init(ia_discret_, bindis_, global_state_ptr(), global_in_output_ptr(), ia_state_ptr_,
             beam_crosslinker_handler_, binstrategy_,
             tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(),
-            std::dynamic_pointer_cast<FourC::BeamInteraction::Utils::MapExtractor>(
-                eletypeextractor_));
+            std::dynamic_pointer_cast<BeamInteraction::Utils::MapExtractor>(eletypeextractor_));
     (*some_iter)->setup();
   }
 
@@ -407,18 +406,18 @@ void Solid::ModelEvaluator::BeamInteraction::init_and_setup_sub_model_evaluators
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector>
-Solid::ModelEvaluator::BeamInteraction::transform_to_vector(
-    Solid::ModelEvaluator::BeamInteraction::Map submodel_map,
-    std::vector<Inpar::BeamInteraction::SubModelType>& sorted_submodel_types) const
+std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector>
+Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_to_vector(
+    Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map submodel_map,
+    std::vector<BeamInteraction::SubModelType>& sorted_submodel_types) const
 {
-  std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> me_vec_ptr =
-      std::make_shared<Solid::ModelEvaluator::BeamInteraction::Vector>(0);
+  std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector> me_vec_ptr =
+      std::make_shared<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector>(0);
 
-  Solid::ModelEvaluator::BeamInteraction::Map::iterator miter;
+  Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map::iterator miter;
 
   // if there is a contractile cell submodel, put in first place
-  miter = submodel_map.find(Inpar::BeamInteraction::submodel_spherebeamlink);
+  miter = submodel_map.find(BeamInteraction::SubModelType::submodel_spherebeamlink);
   if (miter != submodel_map.end())
   {
     // put it in first place
@@ -439,8 +438,8 @@ Solid::ModelEvaluator::BeamInteraction::transform_to_vector(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::have_sub_model_type(
-    Inpar::BeamInteraction::SubModelType const& submodeltype) const
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::have_sub_model_type(
+    BeamInteraction::SubModelType const& submodeltype) const
 {
   check_init();
   return (submodeltypes_->find(submodeltype) != submodeltypes_->end());
@@ -448,7 +447,7 @@ bool Solid::ModelEvaluator::BeamInteraction::have_sub_model_type(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::partition_problem()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::partition_problem()
 {
   check_init();
 
@@ -483,7 +482,7 @@ void Solid::ModelEvaluator::BeamInteraction::partition_problem()
   // now node (=crosslinker) to bin (=element) relation needs to be
   // established in binning discretization. Therefore some nodes need to
   // change their owner according to the bins owner they reside in
-  if (have_sub_model_type(Inpar::BeamInteraction::submodel_crosslinking))
+  if (have_sub_model_type(BeamInteraction::SubModelType::submodel_crosslinking))
     beam_crosslinker_handler_->distribute_linker_to_bins(noderowmap);
 
   // determine boundary bins (physical boundary as well as boundary to other procs)
@@ -516,7 +515,7 @@ void Solid::ModelEvaluator::BeamInteraction::partition_problem()
   // assign Elements to bins
   binstrategy_->remove_all_eles_from_bins();
   binstrategy_->assign_eles_to_bins(*ia_discret_, ia_state_ptr_->get_extended_bin_to_row_ele_map(),
-      FourC::BeamInteraction::Utils::convert_element_to_bin_content_type);
+      BeamInteraction::Utils::convert_element_to_bin_content_type);
 
   // update maps of state vectors and matrices
   update_maps();
@@ -527,7 +526,7 @@ void Solid::ModelEvaluator::BeamInteraction::partition_problem()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::post_partition_problem()
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::post_partition_problem()
 {
   check_init();
 
@@ -542,9 +541,10 @@ bool Solid::ModelEvaluator::BeamInteraction::post_partition_problem()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::extend_ghosting()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::extend_ghosting()
 {
-  TEUCHOS_FUNC_TIME_MONITOR("Solid::ModelEvaluator::BeamInteraction::extend_ghosting");
+  TEUCHOS_FUNC_TIME_MONITOR(
+      "Solid::ModelEvaluator::BeamInteractionModelEvaluator::extend_ghosting");
 
   ia_state_ptr_->get_extended_bin_to_row_ele_map().clear();
 
@@ -604,7 +604,8 @@ void Solid::ModelEvaluator::BeamInteraction::extend_ghosting()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::reset(const Core::LinAlg::Vector<double>& x)
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::reset(
+    const Core::LinAlg::Vector<double>& x)
 {
   check_init_setup();
 
@@ -613,11 +614,10 @@ void Solid::ModelEvaluator::BeamInteraction::reset(const Core::LinAlg::Vector<do
       global_state().get_time_n(), Global::Problem::instance()->function_manager());
 
   // get current displacement state and export to interaction discretization dofmap
-  FourC::BeamInteraction::Utils::update_dof_map_of_vector(
+  BeamInteraction::Utils::update_dof_map_of_vector(
       *ia_discret_, ia_state_ptr_->get_dis_np(), global_state().get_dis_np());
-  FourC::BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(
-      *ia_state_ptr_->get_dis_np(), *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(),
-      *ia_discret_);
+  BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(*ia_state_ptr_->get_dis_np(),
+      *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(), *ia_discret_);
 
   // update column vector
   ia_state_ptr_->get_dis_col_np() =
@@ -654,14 +654,14 @@ void Solid::ModelEvaluator::BeamInteraction::reset(const Core::LinAlg::Vector<do
   // note: this is only necessary if active sets change in consecutive iteration steps
   // ( as crosslinker for example are only updated each time step, we only need to do this
   // every time step)
-  if (have_sub_model_type(Inpar::BeamInteraction::submodel_potential) ||
-      have_sub_model_type(Inpar::BeamInteraction::submodel_beamcontact))
+  if (have_sub_model_type(BeamInteraction::SubModelType::submodel_potential) ||
+      have_sub_model_type(BeamInteraction::SubModelType::submodel_beamcontact))
     update_coupling_adapter_and_matrix_transformation();
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::evaluate_force()
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::evaluate_force()
 {
   check_init_setup();
 
@@ -682,7 +682,7 @@ bool Solid::ModelEvaluator::BeamInteraction::evaluate_force()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::evaluate_stiff()
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::evaluate_stiff()
 {
   check_init_setup();
 
@@ -703,7 +703,7 @@ bool Solid::ModelEvaluator::BeamInteraction::evaluate_stiff()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::evaluate_force_stiff()
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::evaluate_force_stiff()
 {
   check_init_setup();
 
@@ -729,13 +729,13 @@ bool Solid::ModelEvaluator::BeamInteraction::evaluate_force_stiff()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::have_lagrange_dofs() const
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::have_lagrange_dofs() const
 {
   bool lagrange_flag = false;
   for (std::size_t i = 0; i < me_vec_ptr_->size(); ++i)
   {
     auto beam_contact_model =
-        std::dynamic_pointer_cast<FourC::BeamInteraction::SubmodelEvaluator::BeamContact const>(
+        std::dynamic_pointer_cast<BeamInteraction::SubmodelEvaluator::BeamContact const>(
             (*me_vec_ptr_)[i]);
     if (!beam_contact_model) continue;
 
@@ -754,7 +754,7 @@ bool Solid::ModelEvaluator::BeamInteraction::have_lagrange_dofs() const
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::assemble_force(
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::assemble_force(
     Core::LinAlg::Vector<double>& f, const double& timefac_np) const
 {
   check_init_setup();
@@ -764,7 +764,7 @@ bool Solid::ModelEvaluator::BeamInteraction::assemble_force(
   if (have_lagrange_dofs())
   {
     auto beam_contact_model =
-        std::dynamic_pointer_cast<FourC::BeamInteraction::SubmodelEvaluator::BeamContact const>(
+        std::dynamic_pointer_cast<BeamInteraction::SubmodelEvaluator::BeamContact const>(
             (*me_vec_ptr_)[0]);
 
     beam_contact_model->assemble_force(f);
@@ -775,7 +775,7 @@ bool Solid::ModelEvaluator::BeamInteraction::assemble_force(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::assemble_jacobian(
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::assemble_jacobian(
     Core::LinAlg::SparseOperator& jac, const double& timefac_np) const
 {
   check_init_setup();
@@ -786,7 +786,7 @@ bool Solid::ModelEvaluator::BeamInteraction::assemble_jacobian(
   if (have_lagrange_dofs())
   {
     auto beam_contact_model =
-        std::dynamic_pointer_cast<FourC::BeamInteraction::SubmodelEvaluator::BeamContact const>(
+        std::dynamic_pointer_cast<BeamInteraction::SubmodelEvaluator::BeamContact const>(
             (*me_vec_ptr_)[0]);
 
     beam_contact_model->assemble_stiff(jac);
@@ -801,7 +801,7 @@ bool Solid::ModelEvaluator::BeamInteraction::assemble_jacobian(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::write_restart(
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::write_restart(
     Core::IO::DiscretizationWriter& iowriter, const bool& forced_writerestart) const
 {
   check_init_setup();
@@ -833,7 +833,8 @@ void Solid::ModelEvaluator::BeamInteraction::write_restart(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::read_restart(Core::IO::DiscretizationReader& ioreader)
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::read_restart(
+    Core::IO::DiscretizationReader& ioreader)
 {
   check_init_setup();
 
@@ -875,7 +876,7 @@ void Solid::ModelEvaluator::BeamInteraction::read_restart(Core::IO::Discretizati
   // Check if we need to store the restart displacement in the data state container.
   const Teuchos::ParameterList& beam_interaction_params =
       Global::Problem::instance()->beam_interaction_params();
-  if (have_sub_model_type(Inpar::BeamInteraction::submodel_beamcontact) &&
+  if (have_sub_model_type(BeamInteraction::SubModelType::submodel_beamcontact) &&
       beam_interaction_params.sublist("BEAM TO SOLID VOLUME MESHTYING")
           .get<bool>("COUPLE_RESTART_STATE"))
   {
@@ -887,7 +888,7 @@ void Solid::ModelEvaluator::BeamInteraction::read_restart(Core::IO::Discretizati
   }
 }
 
-void Solid::ModelEvaluator::BeamInteraction::run_pre_compute_x(
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::run_pre_compute_x(
     const Core::LinAlg::Vector<double>& xold, Core::LinAlg::Vector<double>& dir_mutable,
     const NOX::Nln::Group& curr_grp)
 {
@@ -895,7 +896,7 @@ void Solid::ModelEvaluator::BeamInteraction::run_pre_compute_x(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::run_post_compute_x(
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::run_post_compute_x(
     const Core::LinAlg::Vector<double>& xold, const Core::LinAlg::Vector<double>& dir,
     const Core::LinAlg::Vector<double>& xnew)
 {
@@ -904,7 +905,8 @@ void Solid::ModelEvaluator::BeamInteraction::run_post_compute_x(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::run_post_iterate(const ::NOX::Solver::Generic& solver)
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::run_post_iterate(
+    const ::NOX::Solver::Generic& solver)
 {
   check_init_setup();
 
@@ -916,7 +918,8 @@ void Solid::ModelEvaluator::BeamInteraction::run_post_iterate(const ::NOX::Solve
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::update_step_state(const double& timefac_n)
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::update_step_state(
+    const double& timefac_n)
 {
   check_init_setup();
 
@@ -934,7 +937,7 @@ void Solid::ModelEvaluator::BeamInteraction::update_step_state(const double& tim
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::update_step_element()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::update_step_element()
 {
   check_init_setup();
 
@@ -970,7 +973,7 @@ void Solid::ModelEvaluator::BeamInteraction::update_step_element()
     binstrategy_->remove_all_eles_from_bins();
     binstrategy_->assign_eles_to_bins(*ia_discret_,
         ia_state_ptr_->get_extended_bin_to_row_ele_map(),
-        FourC::BeamInteraction::Utils::convert_element_to_bin_content_type);
+        BeamInteraction::Utils::convert_element_to_bin_content_type);
 
     // current displacement state gets new reference state
     dis_at_last_redistr_ =
@@ -991,7 +994,7 @@ void Solid::ModelEvaluator::BeamInteraction::update_step_element()
     binstrategy_->remove_all_eles_from_bins();
     binstrategy_->assign_eles_to_bins(*ia_discret_,
         ia_state_ptr_->get_extended_bin_to_row_ele_map(),
-        FourC::BeamInteraction::Utils::convert_element_to_bin_content_type);
+        BeamInteraction::Utils::convert_element_to_bin_content_type);
 
     if (global_state().get_my_rank() == 0)
     {
@@ -1021,10 +1024,11 @@ void Solid::ModelEvaluator::BeamInteraction::update_step_element()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-bool Solid::ModelEvaluator::BeamInteraction::check_if_beam_discret_redistribution_needs_to_be_done()
+bool Solid::ModelEvaluator::BeamInteractionModelEvaluator::
+    check_if_beam_discret_redistribution_needs_to_be_done()
 {
   if (beaminteraction_params_ptr_->get_repartition_strategy() !=
-      Inpar::BeamInteraction::repstr_adaptive)
+      BeamInteraction::RepartitionStrategy::repstr_adaptive)
     return true;
 
   Core::LinAlg::Vector<double> dis_increment(*global_state().dof_row_map(), true);
@@ -1037,8 +1041,8 @@ bool Solid::ModelEvaluator::BeamInteraction::check_if_beam_discret_redistributio
     /* Hermite Interpolation: Check whether node is a beam node which is NOT
      * used for centerline interpolation if so, we simply skip it because
      * it does not have position DoFs */
-    if (FourC::BeamInteraction::Utils::is_beam_node(*node) and
-        not FourC::BeamInteraction::Utils::is_beam_centerline_node(*node))
+    if (BeamInteraction::Utils::is_beam_node(*node) and
+        not BeamInteraction::Utils::is_beam_centerline_node(*node))
       continue;
 
     // get GIDs of this node's degrees of freedom
@@ -1078,14 +1082,14 @@ bool Solid::ModelEvaluator::BeamInteraction::check_if_beam_discret_redistributio
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::determine_stress_strain()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::determine_stress_strain()
 {
   // empty
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::determine_energy()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::determine_energy()
 {
   check_init_setup();
 
@@ -1102,7 +1106,7 @@ void Solid::ModelEvaluator::BeamInteraction::determine_energy()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::output_step_state(
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::output_step_state(
     Core::IO::DiscretizationWriter& iowriter) const
 {
   check_init_setup();
@@ -1117,7 +1121,7 @@ void Solid::ModelEvaluator::BeamInteraction::output_step_state(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::runtime_output_step_state() const
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::runtime_output_step_state() const
 {
   check_init_setup();
 
@@ -1132,14 +1136,14 @@ void Solid::ModelEvaluator::BeamInteraction::runtime_output_step_state() const
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Map>
-Solid::ModelEvaluator::BeamInteraction::get_block_dof_row_map_ptr() const
+Solid::ModelEvaluator::BeamInteractionModelEvaluator::get_block_dof_row_map_ptr() const
 {
   check_init_setup();
 
   if (have_lagrange_dofs())
   {
     auto beam_contact_model =
-        std::dynamic_pointer_cast<FourC::BeamInteraction::SubmodelEvaluator::BeamContact const>(
+        std::dynamic_pointer_cast<BeamInteraction::SubmodelEvaluator::BeamContact const>(
             (*me_vec_ptr_)[0]);
 
     return beam_contact_model->get_lagrange_map();
@@ -1153,7 +1157,7 @@ Solid::ModelEvaluator::BeamInteraction::get_block_dof_row_map_ptr() const
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>>
-Solid::ModelEvaluator::BeamInteraction::get_current_solution_ptr() const
+Solid::ModelEvaluator::BeamInteractionModelEvaluator::get_current_solution_ptr() const
 {
   // there are no model specific solution entries
   return nullptr;
@@ -1162,7 +1166,7 @@ Solid::ModelEvaluator::BeamInteraction::get_current_solution_ptr() const
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<const Core::LinAlg::Vector<double>>
-Solid::ModelEvaluator::BeamInteraction::get_last_time_step_solution_ptr() const
+Solid::ModelEvaluator::BeamInteractionModelEvaluator::get_last_time_step_solution_ptr() const
 {
   // there are no model specific solution entries
   return nullptr;
@@ -1170,7 +1174,7 @@ Solid::ModelEvaluator::BeamInteraction::get_last_time_step_solution_ptr() const
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::post_output()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::post_output()
 {
   //  tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box()->ApplyDirichlet(
   //  global_state().get_time_n()
@@ -1179,7 +1183,7 @@ void Solid::ModelEvaluator::BeamInteraction::post_output()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::reset_step_state()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::reset_step_state()
 {
   Vector::iterator some_iter;
   for (some_iter = me_vec_ptr_->begin(); some_iter != me_vec_ptr_->end(); ++some_iter)
@@ -1188,12 +1192,14 @@ void Solid::ModelEvaluator::BeamInteraction::reset_step_state()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::update_coupling_adapter_and_matrix_transformation()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::
+    update_coupling_adapter_and_matrix_transformation()
 {
   check_init();
 
   TEUCHOS_FUNC_TIME_MONITOR(
-      "Solid::ModelEvaluator::BeamInteraction::update_coupling_adapter_and_matrix_transformation");
+      "Solid::ModelEvaluator::BeamInteractionModelEvaluator::update_coupling_adapter_and_matrix_"
+      "transformation");
 
   // reset transformation member variables (eg. exporter) by rebuilding
   // and provide new maps for coupling adapter
@@ -1203,7 +1209,7 @@ void Solid::ModelEvaluator::BeamInteraction::update_coupling_adapter_and_matrix_
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::build_row_ele_to_bin_map()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::build_row_ele_to_bin_map()
 {
   check_init();
 
@@ -1228,7 +1234,7 @@ void Solid::ModelEvaluator::BeamInteraction::build_row_ele_to_bin_map()
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::update_maps()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::update_maps()
 {
   check_init();
 
@@ -1237,15 +1243,13 @@ void Solid::ModelEvaluator::BeamInteraction::update_maps()
   // todo: check if update is necessary (->SameAs())
 
   // beam displacement
-  FourC::BeamInteraction::Utils::update_dof_map_of_vector(
-      *ia_discret_, ia_state_ptr_->get_dis_np());
+  BeamInteraction::Utils::update_dof_map_of_vector(*ia_discret_, ia_state_ptr_->get_dis_np());
 
   // get current displacement state and export to interaction discretization dofmap
-  FourC::BeamInteraction::Utils::update_dof_map_of_vector(
+  BeamInteraction::Utils::update_dof_map_of_vector(
       *ia_discret_, ia_state_ptr_->get_dis_np(), global_state().get_dis_np());
-  FourC::BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(
-      *ia_state_ptr_->get_dis_np(), *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(),
-      *ia_discret_);
+  BeamInteraction::Utils::periodic_boundary_consistent_dis_vector(*ia_state_ptr_->get_dis_np(),
+      *tim_int().get_data_sdyn_ptr()->get_periodic_bounding_box(), *ia_discret_);
 
   // update column vector
   ia_state_ptr_->get_dis_col_np() =
@@ -1271,16 +1275,17 @@ void Solid::ModelEvaluator::BeamInteraction::update_maps()
   ia_state_ptr_->get_stiff() = std::make_shared<Core::LinAlg::SparseMatrix>(
       *ia_discret_->dof_row_map(), 81, true, true, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
-  FourC::BeamInteraction::Utils::setup_ele_type_map_extractor(*ia_discret_, *eletypeextractor_);
+  BeamInteraction::Utils::setup_ele_type_map_extractor(*ia_discret_, *eletypeextractor_);
 }
 
 /*-----------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::transform_force()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_force()
 {
   check_init();
 
-  TEUCHOS_FUNC_TIME_MONITOR("Solid::ModelEvaluator::BeamInteraction::transform_force");
+  TEUCHOS_FUNC_TIME_MONITOR(
+      "Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_force");
 
   // transform force vector to problem discret layout/distribution
   force_beaminteraction_ = coupsia_->master_to_slave(*ia_force_beaminteraction_);
@@ -1288,11 +1293,12 @@ void Solid::ModelEvaluator::BeamInteraction::transform_force()
 
 /*-----------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::transform_stiff()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_stiff()
 {
   check_init();
 
-  TEUCHOS_FUNC_TIME_MONITOR("Solid::ModelEvaluator::BeamInteraction::transform_stiff");
+  TEUCHOS_FUNC_TIME_MONITOR(
+      "Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_stiff");
 
   stiff_beaminteraction_->un_complete();
   // transform stiffness matrix to problem discret layout/distribution
@@ -1302,7 +1308,7 @@ void Solid::ModelEvaluator::BeamInteraction::transform_stiff()
 
 /*-----------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::transform_force_stiff()
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_force_stiff()
 {
   check_init();
 
@@ -1312,7 +1318,7 @@ void Solid::ModelEvaluator::BeamInteraction::transform_force_stiff()
 
 /*-----------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::print_binning_info_to_screen() const
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::print_binning_info_to_screen() const
 {
   std::vector<std::shared_ptr<Core::FE::Discretization>> discret_vec(1, ia_discret_);
   std::vector<std::shared_ptr<const Core::LinAlg::Vector<double>>> disnp_vec(1, nullptr);
@@ -1343,7 +1349,7 @@ void Solid::ModelEvaluator::BeamInteraction::print_binning_info_to_screen() cons
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void Solid::ModelEvaluator::BeamInteraction::logo() const
+void Solid::ModelEvaluator::BeamInteractionModelEvaluator::logo() const
 {
   check_init();
 

@@ -19,13 +19,10 @@ FOUR_C_NAMESPACE_OPEN
 
 
 // Forward declaration.
-namespace Inpar
+namespace BeamToSolid
 {
-  namespace BeamToSolid
-  {
-    enum class BeamToSolidMortarShapefunctions;
-  }
-}  // namespace Inpar
+  enum class BeamToSolidMortarShapefunctions;
+}
 
 
 namespace BeamInteraction
@@ -91,7 +88,7 @@ namespace BeamInteraction
    */
   std::shared_ptr<BeamInteraction::BeamContactPair>
   beam_to_solid_surface_meshtying_pair_mortar_factory(const Core::FE::CellType surface_shape,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction);
+      const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction);
 }  // namespace BeamInteraction
 
 FOUR_C_NAMESPACE_CLOSE

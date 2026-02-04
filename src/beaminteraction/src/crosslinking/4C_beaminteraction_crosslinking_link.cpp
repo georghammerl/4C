@@ -7,6 +7,7 @@
 
 #include "4C_beaminteraction_crosslinking_link.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_general_largerotations.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
@@ -27,7 +28,7 @@ BeamInteraction::BeamLink::BeamLink()
       isinit_(false),
       issetup_(false),
       id_(-1),
-      linkertype_(Inpar::BeamInteraction::linkertype_arbitrary),
+      linkertype_(BeamInteraction::CrosslinkerType::linkertype_arbitrary),
       timelinkwasset_(-1.0),
       reflength_(-1.0)
 {
@@ -56,7 +57,7 @@ BeamInteraction::BeamLink::BeamLink(const BeamInteraction::BeamLink& old)
 void BeamInteraction::BeamLink::init(const int id, const std::vector<std::pair<int, int>>& eleids,
     const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
     const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-    Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
+    BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
 {
   issetup_ = false;
 

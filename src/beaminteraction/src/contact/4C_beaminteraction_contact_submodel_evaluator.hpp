@@ -54,9 +54,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current submodel evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_beamcontact;
+        return BeamInteraction::SubModelType::submodel_beamcontact;
       }
 
       //! @name Derived public BeamInteraction::SubmodelEvaluator::Generic methods
@@ -126,7 +126,8 @@ namespace BeamInteraction
 
       //! derived
       void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap) override;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelmap) override;
 
       //! derived
       void add_bins_to_bin_col_map(std::set<int>& colbins) override;
@@ -180,7 +181,7 @@ namespace BeamInteraction
       /**
        * \brief Return the dof rowmap of the lagrange multipliers.
        */
-      std::shared_ptr<const FourC::Core::LinAlg::Map> get_lagrange_map() const;
+      std::shared_ptr<const Core::LinAlg::Map> get_lagrange_map() const;
 
       /**
        * \brief Method used to assemble the force vector when using Lagrange Multipliers

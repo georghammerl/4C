@@ -11,6 +11,7 @@
 #include "4C_beaminteraction_calc_utils.hpp"
 #include "4C_beaminteraction_conditions.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_params.hpp"
@@ -20,6 +21,7 @@
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_visualization_output_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_visualization_output_writer.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_beaminteraction_contact_params.hpp"
 #include "4C_beaminteraction_contact_runtime_visualization_output_params.hpp"
@@ -35,7 +37,6 @@
 #include "4C_geometry_pair_input.hpp"
 #include "4C_geometry_pair_line_to_3D_evaluation_data.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
 #include "4C_io_pstream.hpp"
@@ -79,7 +80,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
       Global::Problem::instance()->geometric_search_params(),
       Global::Problem::instance()->io_params());
   if (beam_interaction_params_ptr_->get_search_strategy() ==
-          Inpar::BeamInteraction::SearchStrategy::bounding_volume_hierarchy &&
+          BeamInteraction::SearchStrategy::bounding_volume_hierarchy &&
       geometric_search_params_ptr_->get_write_visualization_flag())
   {
     geometric_search_visualization_ptr_ =
@@ -134,9 +135,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Beam);
   }
 
-  if (Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
+  if (Teuchos::getIntegralValue<BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none)
+          "STRATEGY") != BeamInteraction::Strategy::bstr_none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::RigidSphere);
 
@@ -147,9 +148,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_volume_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID VOLUME MESHTYING");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_volume_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -175,9 +176,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_surface_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID SURFACE MESHTYING");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_surface_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -203,9 +204,9 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::setup()
   const Teuchos::ParameterList& beam_to_solid_surface_contact_parameters =
       Global::Problem::instance()->beam_interaction_params().sublist(
           "BEAM TO SOLID SURFACE CONTACT");
-  if (Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+  if (Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           beam_to_solid_surface_contact_parameters, "CONTACT_DISCRETIZATION") !=
-      Inpar::BeamToSolid::BeamToSolidContactDiscretization::none)
+      BeamToSolid::BeamToSolidContactDiscretization::none)
   {
     contactelementtypes_.push_back(Core::Binstrategy::Utils::BinContentType::Solid);
 
@@ -304,7 +305,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::post_setup()
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 void BeamInteraction::SubmodelEvaluator::BeamContact::init_submodel_dependencies(
-    std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap)
+    std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const submodelmap)
 {
   check_init_setup();
   // no active influence on other submodels
@@ -438,9 +439,10 @@ bool BeamInteraction::SubmodelEvaluator::BeamContact::pre_update_step_element(bo
    * from previous time step */
   /* Fixme
    * writing this output also must be done BEFORE re-distribution which
-   * currently happens in Solid::ModelEvaluator::BeamInteraction::update_step_element()
-   * before calling update_step_element() on all submodels.
-   * Hence, the only option currently is to call it from pre_update_step_element() */
+   * currently happens in
+   * Solid::ModelEvaluator::BeamInteractionModelEvaluator::update_step_element() before calling
+   * update_step_element() on all submodels. Hence, the only option currently is to call it from
+   * pre_update_step_element() */
   /* Note: another option would be to not use any data from state vectors or elements and only
    * write previously computed and (locally) stored data at this point. Like
    * this, it works in SubmodelEvaluator::BeamPotential */
@@ -869,7 +871,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::get_half_interaction_dista
   }
 }
 
-std::shared_ptr<const FourC::Core::LinAlg::Map>
+std::shared_ptr<const Core::LinAlg::Map>
 BeamInteraction::SubmodelEvaluator::BeamContact::get_lagrange_map() const
 {
   return get_lagrange_multiplier_assembly_manager()->get_mortar_manager()->get_lambda_dof_row_map();
@@ -913,7 +915,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::find_and_store_neighboring
   beam_interaction_conditions_ptr_->build_id_sets(discret_ptr());
 
   if (beam_interaction_params_ptr_->get_search_strategy() ==
-      Inpar::BeamInteraction::SearchStrategy::bruteforce_with_binning)
+      BeamInteraction::SearchStrategy::bruteforce_with_binning)
   {
     // loop over all row beam elements
     // note: like this we ensure that first element of pair is always a beam element, also only
@@ -957,7 +959,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::find_and_store_neighboring
     }
   }
   else if (beam_interaction_params_ptr_->get_search_strategy() ==
-           Inpar::BeamInteraction::SearchStrategy::bounding_volume_hierarchy)
+           BeamInteraction::SearchStrategy::bounding_volume_hierarchy)
   {
     // Get vector of all beam element bounding boxes.
     int const numroweles = ele_type_map_extractor_ptr()->beam_map()->num_my_elements();

@@ -12,7 +12,6 @@
 
 #include "4C_coupling_adapter.hpp"
 #include "4C_coupling_adapter_converter.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_mapextractor.hpp"
 #include "4C_structure_new_enum_lists.hpp"
 #include "4C_structure_new_model_evaluator_generic.hpp"  // base class
@@ -48,6 +47,19 @@ namespace BeamInteraction
   }
 }  // namespace BeamInteraction
 
+namespace BeamInteraction
+{
+  /// type of the used submodel for beaminteraction
+  enum SubModelType
+  {
+    submodel_crosslinking,    ///< evaluate the structural model
+    submodel_beamcontact,     ///< evaluate the contact model
+    submodel_potential,       ///< evaluate the model for potential-based interactions
+    submodel_spherebeamlink,  ///< evaluate model for cell filament interactions
+    submodel_vague            ///< undefined model type
+  };
+}  // namespace BeamInteraction
+
 namespace Solid
 {
   namespace ModelEvaluator
@@ -55,16 +67,15 @@ namespace Solid
     // forward declaration
     class BeamInteractionDataState;
 
-    class BeamInteraction : public Generic
+    class BeamInteractionModelEvaluator : public Generic
     {
      public:
-      using Map = std::map<enum Inpar::BeamInteraction::SubModelType,
-          std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
-      using Vector =
-          std::vector<std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
+      using Map = std::map<enum BeamInteraction::SubModelType,
+          std::shared_ptr<BeamInteraction::SubmodelEvaluator::Generic>>;
+      using Vector = std::vector<std::shared_ptr<BeamInteraction::SubmodelEvaluator::Generic>>;
 
       //! constructor
-      BeamInteraction();
+      BeamInteractionModelEvaluator();
 
       void setup() override;
 
@@ -168,7 +179,7 @@ namespace Solid
 
      public:
       /// check if the given model type is active.
-      bool have_sub_model_type(Inpar::BeamInteraction::SubModelType const& submodeltype) const;
+      bool have_sub_model_type(BeamInteraction::SubModelType const& submodeltype) const;
 
       //! check if lagrange formulation is active
       bool have_lagrange_dofs() const;
@@ -186,9 +197,9 @@ namespace Solid
       void init_and_setup_sub_model_evaluators();
 
       //! give submodels a certain order in which they are evaluated
-      virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> transform_to_vector(
-          Solid::ModelEvaluator::BeamInteraction::Map submodel_map,
-          std::vector<Inpar::BeamInteraction::SubModelType>& sorted_submodel_types) const;
+      virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector>
+      transform_to_vector(Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map submodel_map,
+          std::vector<BeamInteraction::SubModelType>& sorted_submodel_types) const;
 
       //! @}
 
@@ -234,16 +245,16 @@ namespace Solid
       std::shared_ptr<Core::FE::Discretization> discret_ptr_;
 
       //! data container holding all beaminteraction related parameters
-      std::shared_ptr<FourC::BeamInteraction::BeamInteractionParams> beaminteraction_params_ptr_;
+      std::shared_ptr<BeamInteraction::BeamInteractionParams> beaminteraction_params_ptr_;
 
       //!@name data for submodel management
       //! @{
       /// current active model types for the model evaluator
-      std::shared_ptr<std::set<Inpar::BeamInteraction::SubModelType>> submodeltypes_;
+      std::shared_ptr<std::set<BeamInteraction::SubModelType>> submodeltypes_;
 
-      std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> me_map_ptr_;
+      std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> me_map_ptr_;
 
-      std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Vector> me_vec_ptr_;
+      std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector> me_vec_ptr_;
       //! @}
 
       //!@name data for handling two distinct parallel distributed discretizations
@@ -281,7 +292,7 @@ namespace Solid
       std::shared_ptr<Core::LinAlg::SparseMatrix> stiff_beaminteraction_;
 
       //! beam crosslinker handler
-      std::shared_ptr<FourC::BeamInteraction::BeamCrosslinkerHandler> beam_crosslinker_handler_;
+      std::shared_ptr<BeamInteraction::BeamCrosslinkerHandler> beam_crosslinker_handler_;
 
       //! binning strategy
       std::shared_ptr<Core::Binstrategy::BinningStrategy> binstrategy_;

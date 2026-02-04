@@ -11,9 +11,9 @@
 #include "4C_config.hpp"
 
 #include "4C_beaminteraction_crosslinking_link.hpp"
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_parobject.hpp"
 #include "4C_comm_parobjectfactory.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -81,7 +81,7 @@ namespace BeamInteraction
     void init(int id, const std::vector<std::pair<int, int>>& eleids,
         const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
         const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-        Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset) override;
+        BeamInteraction::CrosslinkerType linkertype, double timelinkwasset) override;
 
     //! Setup
     void setup(const int matnum) override;
@@ -156,7 +156,7 @@ namespace BeamInteraction
         std::vector<Core::LinAlg::Matrix<3, 3>>& bspottriad) override;
 
     //! return appropriate instance of the desired class (acts as a simple factory)
-    static std::shared_ptr<BeamLinkPinJointed> create(Inpar::BeamInteraction::JointType type);
+    static std::shared_ptr<BeamLinkPinJointed> create(BeamInteraction::JointType type);
 
     void print(std::ostream& out) const;
     //@}

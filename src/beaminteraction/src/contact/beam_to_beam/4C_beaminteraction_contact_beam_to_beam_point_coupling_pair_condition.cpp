@@ -8,12 +8,12 @@
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair_condition.hpp"
 
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_contact_submodel_evaluator_assembly_manager_indirect.hpp"
 #include "4C_comm_mpi_utils.hpp"
 #include "4C_fem_condition.hpp"
 #include "4C_fem_discretization.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 
 #include <array>
 
@@ -191,9 +191,9 @@ BeamInteraction::BeamToBeamPointCouplingConditionIndirect::create_indirect_assem
         BeamToBeamPointCouplingPairParameters::ConstraintEnforcement::lagrange_multiplier)
     {
       mortar_manager_parameters.constraint_enforcement =
-          Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
+          BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
       mortar_manager_parameters.lagrange_formulation =
-          Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::saddlepoint;
+          BeamToSolid::BeamToSolidLagrangeFormulation::saddlepoint;
     }
 
     auto mortar_manager = std::make_shared<BeamInteraction::BeamToSolidMortarManager>(

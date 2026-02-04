@@ -20,14 +20,11 @@ FOUR_C_NAMESPACE_OPEN
 
 
 // Forward declaration.
-namespace Inpar
+namespace BeamToSolid
 {
-  namespace BeamToSolid
-  {
-    enum class BeamToSolidMortarShapefunctions;
-    enum class BeamToSolidSurfaceRotationCoupling;
-  }  // namespace BeamToSolid
-}  // namespace Inpar
+  enum class BeamToSolidMortarShapefunctions;
+  enum class BeamToSolidSurfaceRotationCoupling;
+}  // namespace BeamToSolid
 namespace GeometryPair
 {
   enum class SurfaceNormals;
@@ -174,7 +171,7 @@ namespace BeamInteraction
         const GeometryPair::ElementData<Surface, double>& q_solid_ref,
         const GeometryPair::ElementData<Surface, ScalarTypeRotVec>& q_solid,
         const Core::LinAlg::Matrix<4, 1, double>& quaternion_beam_ref,
-        const Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling surface_triad_type,
+        const BeamToSolid::BeamToSolidSurfaceRotationCoupling surface_triad_type,
         Core::LinAlg::Matrix<3, 1, ScalarTypeRotVec>& psi_solid) const;
 
     /**
@@ -196,7 +193,7 @@ namespace BeamInteraction
    */
   std::shared_ptr<BeamInteraction::BeamContactPair>
   beam_to_solid_surface_meshtying_pair_mortar_fad_factory(const Core::FE::CellType surface_shape,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction,
+      const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction,
       const bool rotational_coupling, const GeometryPair::SurfaceNormals surface_normal_strategy);
 }  // namespace BeamInteraction
 

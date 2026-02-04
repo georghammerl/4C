@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_pair_base.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -99,8 +99,7 @@ namespace BeamInteraction
      * @brief Get the Jacobian for the configuration the Lagrange multipliers are defined in
      */
     ScalarType get_jacobian_for_configuration(const ScalarType& eta,
-        const Inpar::BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration)
-        const;
+        const BeamToSolid::BeamToSolidSurfaceContactMortarDefinedIn mortar_configuration) const;
 
    private:
     //! Integral of the shape function matrix of the beam (transposed) multiplied with the normal

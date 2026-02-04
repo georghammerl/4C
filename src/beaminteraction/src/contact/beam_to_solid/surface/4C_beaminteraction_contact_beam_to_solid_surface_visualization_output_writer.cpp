@@ -199,7 +199,7 @@ void BeamInteraction::BeamToSolidSurfaceVisualizationOutputWriter::
   {
     const std::vector<std::shared_ptr<BeamInteractionConditionBase>>& surface_condition_vector =
         beam_contact->get_conditions()->get_condition_map().at(
-            Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_meshtying);
+            BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying);
     for (const auto& condition : surface_condition_vector)
     {
       // Get the line-to-surface evaluation data for the current condition.

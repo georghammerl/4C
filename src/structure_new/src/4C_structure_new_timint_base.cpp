@@ -330,28 +330,28 @@ void Solid::TimeInt::Base::select_energy_types_to_be_written()
       }
       case Inpar::Solid::model_beaminteraction:
       {
-        Solid::ModelEvaluator::BeamInteraction const beaminteraction_evaluator =
-            dynamic_cast<Solid::ModelEvaluator::BeamInteraction const&>(
+        Solid::ModelEvaluator::BeamInteractionModelEvaluator const beaminteraction_evaluator =
+            dynamic_cast<Solid::ModelEvaluator::BeamInteractionModelEvaluator const&>(
                 int_ptr_->model_eval_ptr()->evaluator(Inpar::Solid::model_beaminteraction));
 
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_beamcontact))
+                BeamInteraction::SubModelType::submodel_beamcontact))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_contact_penalty_potential);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_potential))
+                BeamInteraction::SubModelType::submodel_potential))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_interaction_potential);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_crosslinking))
+                BeamInteraction::SubModelType::submodel_crosslinking))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_beam_link_internal_energy);
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_beam_link_kinetic_energy);
         }
         if (beaminteraction_evaluator.have_sub_model_type(
-                Inpar::BeamInteraction::submodel_spherebeamlink))
+                BeamInteraction::SubModelType::submodel_spherebeamlink))
         {
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_sphere_link_internal_energy);
           evaldata.insert_energy_type_to_be_considered(Solid::beam_to_sphere_link_kinetic_energy);
@@ -495,7 +495,7 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
         dataglobalstate_->get_step_n() == Global::Problem::instance()->restart())
       return;
     // TODO: This if statement can be removed once
-    // Solid::ModelEvaluator::BeamInteraction::output_step_state is removed
+    // Solid::ModelEvaluator::BeamInteractionModelEvaluator::output_step_state is removed
     // if state already exists, add restart information
     if (dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()))
     {
@@ -519,7 +519,7 @@ void Solid::TimeInt::Base::output_step(bool forced_writerestart)
 
   // output results (not necessary if restart in same step)
   // TODO: This if statement can be removed once
-  // Solid::ModelEvaluator::BeamInteraction::output_step_state is removed
+  // Solid::ModelEvaluator::BeamInteractionModelEvaluator::output_step_state is removed
   if (dataio_->is_write_state() and
       dataio_->write_results_for_this_step(dataglobalstate_->get_step_n()) and (not datawritten))
   {

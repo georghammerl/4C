@@ -11,6 +11,7 @@
 #include "4C_art_net_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_beam_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_edge_params.hpp"
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_cardiovascular0d_input.hpp"
 #include "4C_constraint_framework_input.hpp"
@@ -18,7 +19,6 @@
 #include "4C_elch_input.hpp"
 #include "4C_fem_condition_definition.hpp"
 #include "4C_fpsi_input.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_bio.hpp"
 #include "4C_inpar_cardiac_monodomain.hpp"
 #include "4C_inpar_fluid.hpp"
@@ -845,7 +845,7 @@ std::vector<Core::Conditions::ConditionDefinition> Global::valid_conditions()
   BeamInteraction::Contact::BeamToBeam::set_valid_conditions(condlist);
   BeamInteraction::Potential::set_valid_conditions(condlist);
   Constraints::set_valid_conditions(condlist);
-  Inpar::BeamInteraction::set_valid_conditions(condlist);
+  BeamInteraction::set_valid_conditions(condlist);
   BeamInteraction::set_valid_beam_to_edge_contact_conditions(condlist);
   EHL::set_valid_conditions(condlist);
   PoroPressureBased::set_valid_conditions_porofluid_elast_scatra(condlist);

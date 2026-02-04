@@ -189,7 +189,7 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairGaussPoint<Beam, Solid>::eva
   // This function only gives contributions for rotational coupling.
   auto rot_coupling_type =
       this->params()->beam_to_solid_volume_meshtying_params()->get_rotational_coupling_type();
-  if (rot_coupling_type == Inpar::BeamToSolid::BeamToSolidRotationCoupling::none) return;
+  if (rot_coupling_type == BeamToSolid::BeamToSolidRotationCoupling::none) return;
 
   // Call Evaluate on the geometry Pair. Only do this once for meshtying.
   if (!this->meshtying_is_evaluated_)
@@ -226,15 +226,15 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairGaussPoint<Beam, Solid>::eva
       Core::LinAlg::Initialization::zero);
 
 
-  if (rot_coupling_type == Inpar::BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
+  if (rot_coupling_type == BeamToSolid::BeamToSolidRotationCoupling::fix_triad_2d)
   {
     // In the case of "fix_triad_2d" we couple both, the ey and ez direction to the beam. Therefore,
     // we have to evaluate the coupling terms w.r.t both of those coupling types.
     evaluate_rotational_coupling_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid,
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_y_2d, q_solid,
         triad_interpolation_scheme, ref_triad_interpolation_scheme, local_force, local_stiff);
     evaluate_rotational_coupling_terms(
-        Inpar::BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid,
+        BeamToSolid::BeamToSolidRotationCoupling::deformation_gradient_z_2d, q_solid,
         triad_interpolation_scheme, ref_triad_interpolation_scheme, local_force, local_stiff);
   }
   else
@@ -271,7 +271,7 @@ void BeamInteraction::BeamToSolidVolumeMeshtyingPairGaussPoint<Beam, Solid>::eva
 template <typename Beam, typename Solid>
 void BeamInteraction::BeamToSolidVolumeMeshtyingPairGaussPoint<Beam,
     Solid>::evaluate_rotational_coupling_terms(  //
-    const Inpar::BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
+    const BeamToSolid::BeamToSolidRotationCoupling& rot_coupling_type,
     const GeometryPair::ElementData<Solid, scalar_type_rot_2nd>& q_solid,
     const LargeRotations::TriadInterpolationLocalRotationVectors<3, double>&
         triad_interpolation_scheme,

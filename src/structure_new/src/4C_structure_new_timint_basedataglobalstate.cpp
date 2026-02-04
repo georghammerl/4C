@@ -394,8 +394,8 @@ int Solid::TimeInt::BaseDataGlobalState::setup_block_information(
     }
     case Inpar::Solid::model_beaminteraction:
     {
-      const Solid::ModelEvaluator::BeamInteraction& beaminteraction_evaluator =
-          dynamic_cast<const Solid::ModelEvaluator::BeamInteraction&>(me);
+      const Solid::ModelEvaluator::BeamInteractionModelEvaluator& beaminteraction_evaluator =
+          dynamic_cast<const Solid::ModelEvaluator::BeamInteractionModelEvaluator&>(me);
       if (beaminteraction_evaluator.have_lagrange_dofs())
       {
         model_block_id_[mt] = max_block_num_;

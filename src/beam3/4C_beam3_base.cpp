@@ -8,6 +8,7 @@
 #include "4C_beam3_base.hpp"
 
 #include "4C_beaminteraction_calc_utils.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 #include "4C_browniandyn_input.hpp"  // enums
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_geometry_periodic_boundingbox.hpp"
@@ -27,7 +28,7 @@ Discret::Elements::Beam3Base::Beam3Base(int id, int owner)
     : Core::Elements::Element(id, owner),
       Tref_(0),
       centerline_hermite_(true),
-      filamenttype_(Inpar::BeamInteraction::filetype_none),
+      filamenttype_(BeamInteraction::FilamentType::filetype_none),
       interface_ptr_(nullptr),
       browndyn_interface_ptr_(nullptr)
 {
@@ -388,7 +389,7 @@ void Discret::Elements::Beam3Base::get_directions_of_shifts(std::vector<double>&
 /*--------------------------------------------------------------------------------------------*
  *--------------------------------------------------------------------------------------------*/
 void Discret::Elements::Beam3Base::get_pos_of_binding_spot(Core::LinAlg::Matrix<3, 1>& pos,
-    std::vector<double>& disp, Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotlocn,
+    std::vector<double>& disp, BeamInteraction::CrosslinkerType linkertype, int bspotlocn,
     Core::Geo::MeshFree::BoundingBox const& periodic_boundingbox) const
 {
   const double xi = bspotposxi_.at(linkertype)[bspotlocn];
@@ -402,8 +403,7 @@ void Discret::Elements::Beam3Base::get_pos_of_binding_spot(Core::LinAlg::Matrix<
 /*--------------------------------------------------------------------------------------------*
  *--------------------------------------------------------------------------------------------*/
 void Discret::Elements::Beam3Base::get_triad_of_binding_spot(Core::LinAlg::Matrix<3, 3>& triad,
-    std::vector<double>& disp, Inpar::BeamInteraction::CrosslinkerType linkertype,
-    int bspotlocn) const
+    std::vector<double>& disp, BeamInteraction::CrosslinkerType linkertype, int bspotlocn) const
 {
   const double xi = bspotposxi_.at(linkertype)[bspotlocn];
   // get position

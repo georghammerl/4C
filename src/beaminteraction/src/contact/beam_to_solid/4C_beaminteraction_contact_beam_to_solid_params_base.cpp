@@ -21,13 +21,13 @@ FOUR_C_NAMESPACE_OPEN
 BeamInteraction::BeamToSolidParamsBase::BeamToSolidParamsBase()
     : isinit_(false),
       issetup_(false),
-      constraint_enforcement_(Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::none),
-      contact_discretization_(Inpar::BeamToSolid::BeamToSolidContactDiscretization::none),
-      mortar_shape_function_(Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::none),
+      constraint_enforcement_(BeamToSolid::BeamToSolidConstraintEnforcement::none),
+      contact_discretization_(BeamToSolid::BeamToSolidContactDiscretization::none),
+      mortar_shape_function_(BeamToSolid::BeamToSolidMortarShapefunctions::none),
       penalty_parameter_(-1.0),
       gauss_rule_(Core::FE::GaussRule1D::undefined),
       rotational_coupling_(false),
-      lagrange_formulation_(Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::none)
+      lagrange_formulation_(BeamToSolid::BeamToSolidLagrangeFormulation::none)
 {
   // Empty Constructor.
 }
@@ -43,25 +43,25 @@ void BeamInteraction::BeamToSolidParamsBase::set_base_params(
   {
     // Constraint enforcement.
     constraint_enforcement_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidConstraintEnforcement>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidConstraintEnforcement>(
             beam_to_solid_params_list, "CONSTRAINT_STRATEGY");
 
     //  Type of lagrange formulation used
     if (beam_to_solid_params_list.isParameter("LAGRANGE_FORMULATION"))
     {
       lagrange_formulation_ =
-          Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidLagrangeFormulation>(
+          Teuchos::getIntegralValue<BeamToSolid::BeamToSolidLagrangeFormulation>(
               beam_to_solid_params_list, "LAGRANGE_FORMULATION");
     }
 
     // Contact discretization to be used.
     contact_discretization_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
             beam_to_solid_params_list, "CONTACT_DISCRETIZATION");
 
     // Contact discretization to be used.
     mortar_shape_function_ =
-        Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidMortarShapefunctions>(
+        Teuchos::getIntegralValue<BeamToSolid::BeamToSolidMortarShapefunctions>(
             beam_to_solid_params_list, "MORTAR_SHAPE_FUNCTION");
 
     // Penalty parameter.

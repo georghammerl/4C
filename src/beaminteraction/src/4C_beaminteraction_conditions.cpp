@@ -11,6 +11,7 @@
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair.hpp"
 #include "4C_beaminteraction_contact_beam_to_beam_point_coupling_pair_condition.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_conditions.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_params.hpp"
@@ -21,7 +22,6 @@
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_evaluation_data_base.hpp"
 #include "4C_geometry_pair_utility_functions.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -68,22 +68,37 @@ BeamInteraction::BeamInteractionConditions::BeamInteractionConditions() {}
 /**
  *
  */
+void BeamInteraction::BeamInteractionConditions::beam_interaction_conditions_get_all(
+    std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions)
+{
+  interactions = {BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
+}
+
+/**
+ *
+ */
 void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions(
     const Core::FE::Discretization& discret, const BeamContactParams& params_ptr)
 {
   condition_map_.clear();
 
   // Get all available interaction types.
-  std::vector<Inpar::BeamInteraction::BeamInteractionConditions> interaction_types;
-  Inpar::BeamInteraction::beam_interaction_conditions_get_all(interaction_types);
+  std::vector<BeamInteraction::BeamInteractionConditionTypes> interaction_types;
+  BeamInteraction::BeamInteractionConditions::beam_interaction_conditions_get_all(
+      interaction_types);
 
   // Loop over interaction types.
   for (const auto& interaction_type : interaction_types)
   {
-    if (interaction_type ==
-            Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact or
+    if (interaction_type == BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact or
         interaction_type ==
-            Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_indirect)
+            BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect)
     {
       // Add all beam-to-beam conditions.
       std::vector<std::shared_ptr<BeamInteractionConditionBase>>& interaction_vector =
@@ -91,13 +106,12 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
 
       // Get the names for the conditions of this type.
       std::string condition_name;
-      if (interaction_type ==
-          Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact)
+      if (interaction_type == BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact)
       {
         condition_name = "BeamToBeamContact";
       }
-      else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
-                                       beam_to_beam_point_coupling_indirect)
+      else if (interaction_type ==
+               BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect)
       {
         condition_name = "PenaltyPointCouplingConditionIndirect";
       }
@@ -133,13 +147,13 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
         {
           // We found the matching conditions, now create the beam-to-beam condition objects.
           if (interaction_type ==
-              Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_contact)
+              BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact)
           {
             interaction_vector.push_back(
                 std::make_shared<BeamInteraction::BeamToBeamContactCondition>(
                     *condition_1, *condition_2));
           }
-          else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
+          else if (interaction_type == BeamInteraction::BeamInteractionConditionTypes::
                                            beam_to_beam_point_coupling_indirect)
           {
             interaction_vector.push_back(
@@ -160,14 +174,14 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
         FOUR_C_THROW(
             "There are multiple definitions of the same COUPLING_ID for {}", condition_name);
     }
-    else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
-                                     beam_to_solid_volume_meshtying or
-             interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
-                                     beam_to_solid_surface_meshtying or
+    else if (interaction_type ==
+                 BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying or
              interaction_type ==
-                 Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact or
+                 BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying or
              interaction_type ==
-                 Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_edge_contact)
+                 BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact or
+             interaction_type ==
+                 BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact)
     {
       // Add all beam-to-solid conditions.
       std::vector<std::shared_ptr<BeamInteractionConditionBase>>& interaction_vector =
@@ -175,7 +189,7 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
 
       // Get the names for the conditions of this type.
       std::array<std::string, 2> condition_names;
-      Inpar::BeamToSolid::beam_to_solid_interaction_get_string(interaction_type, condition_names);
+      BeamToSolid::beam_to_solid_interaction_get_string(interaction_type, condition_names);
 
       // Get the conditions from the discretization.
       std::vector<const Core::Conditions::Condition*> condition_line;
@@ -204,22 +218,22 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
           // We found the matching conditions, now create the beam-to-solid condition objects.
           std::shared_ptr<BeamInteractionConditionBase> new_condition;
           if (interaction_type ==
-              Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_volume_meshtying)
+              BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying)
             new_condition = std::make_shared<BeamInteraction::BeamToSolidConditionVolumeMeshtying>(
                 *map_item.second.first, *map_item.second.second,
                 params_ptr.beam_to_solid_volume_meshtying_params());
-          else if (interaction_type == Inpar::BeamInteraction::BeamInteractionConditions::
-                                           beam_to_solid_surface_meshtying)
+          else if (interaction_type ==
+                   BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying)
             new_condition = std::make_shared<BeamInteraction::BeamToSolidConditionSurface>(
                 *map_item.second.first, *map_item.second.second,
                 params_ptr.beam_to_solid_surface_meshtying_params(), true);
           else if (interaction_type ==
-                   Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_surface_contact)
+                   BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact)
             new_condition = std::make_shared<BeamInteraction::BeamToSolidConditionSurface>(
                 *map_item.second.first, *map_item.second.second,
                 params_ptr.beam_to_solid_surface_contact_params(), false);
           else if (interaction_type ==
-                   Inpar::BeamInteraction::BeamInteractionConditions::beam_to_solid_edge_contact)
+                   BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact)
             new_condition =
                 std::make_shared<BeamInteraction::BeamToLineCondition>(*map_item.second.first,
                     *map_item.second.second, params_ptr.beam_to_solid_edge_contact_params());
@@ -239,7 +253,7 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
             condition_names[0], condition_names[1]);
     }
     else if (interaction_type ==
-             Inpar::BeamInteraction::BeamInteractionConditions::beam_to_beam_point_coupling_direct)
+             BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct)
     {
       std::vector<std::shared_ptr<BeamInteractionConditionBase>>& interaction_vector =
           condition_map_[interaction_type];

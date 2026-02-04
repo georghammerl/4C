@@ -10,10 +10,10 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_submodel_evaluator_generic.hpp"
 #include "4C_binstrategy_utils.hpp"
 #include "4C_comm_exporter.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
 
@@ -62,6 +62,108 @@ namespace BeamInteraction
   class CrosslinkingParams;
   class BeamLink;
 
+  /// type of linker
+  enum JointType
+  {
+    beam3r_line2_rigid,  ///< rigid joint
+    beam3r_line2_pin,    ///< pin joint
+    truss                ///< truss
+  };
+
+  /// type of filament
+  enum FilamentType
+  {
+    filetype_arbitrary,  ///< no special type
+    filetype_actin,      ///< actin type
+    filetype_collagen,   ///< collagen type
+    filetype_none        ///< filament which does not bind
+  };
+
+  /// type of crosslinker
+  enum CrosslinkerType
+  {
+    linkertype_arbitrary,  ///< binds to all filament
+    linkertype_actin,      ///< only binds to actin filaments
+    linkertype_collagen,   ///< only binds to collagen filaments
+    linkertype_integrin    ///< sphere to beam linker
+  };
+
+  //! Map type std::string to enum
+  inline JointType string_to_joint_type(const std::string& name)
+  {
+    JointType type = beam3r_line2_rigid;
+    if (name == "beam3rline2rigid")
+      type = beam3r_line2_rigid;
+    else if (name == "beam3rline2pin")
+      type = beam3r_line2_pin;
+    else if (name == "truss")
+      type = truss;
+    else
+      FOUR_C_THROW("invalid filament type std::string ");
+
+    return type;
+  };
+
+  //! Map type std::string to enum
+  inline FilamentType string_to_filament_type(const std::string& name)
+  {
+    FilamentType type = filetype_arbitrary;
+    if (name == "arbitrary")
+      type = filetype_arbitrary;
+    else if (name == "actin")
+      type = filetype_actin;
+    else if (name == "collagen")
+      type = filetype_collagen;
+    else if (name == "none")
+      type = filetype_none;
+    else
+      FOUR_C_THROW("invalid filament type std::string ");
+
+    return type;
+  };
+
+  //! Map type std::string to enum
+  inline CrosslinkerType string_to_crosslinker_type(const std::string& name)
+  {
+    CrosslinkerType type = linkertype_arbitrary;
+    if (name == "arbitrary")
+      type = linkertype_arbitrary;
+    else if (name == "actin")
+      type = linkertype_actin;
+    else if (name == "collagen")
+      type = linkertype_collagen;
+    else if (name == "integrin")
+      type = linkertype_integrin;
+    else
+    {
+      FOUR_C_THROW(
+          "invalid crosslinker type {}. Possible values are arbitrary, actin, collagen and "
+          "integrin.",
+          name.c_str());
+    }
+
+    return type;
+  };
+
+  //! Map action type enum to std::string
+  static inline std::string crosslinker_type_to_string(const CrosslinkerType type)
+  {
+    switch (type)
+    {
+      case linkertype_arbitrary:
+        return "arbitrary";
+      case linkertype_actin:
+        return "actin";
+      case linkertype_collagen:
+        return "collagen";
+      case linkertype_integrin:
+        return "integrin";
+      default:
+        return "unknown";
+    }
+    return "";
+  };
+
   namespace SubmodelEvaluator
   {
     class Crosslinking : public Generic
@@ -80,9 +182,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current model evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_crosslinking;
+        return BeamInteraction::SubModelType::submodel_crosslinking;
       }
 
       //! derived
@@ -140,7 +242,8 @@ namespace BeamInteraction
 
       //! derived
       void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap) override;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelmap) override;
 
       //! derived
       void add_bins_to_bin_col_map(std::set<int>& colbins) override;
@@ -343,9 +446,8 @@ namespace BeamInteraction
           int potbeampartnerrowlid) const;
 
       /// check if crosslinke and filament type are compatible
-      bool check_linker_and_filament_type_compatibility(
-          Inpar::BeamInteraction::CrosslinkerType linkertype,
-          Inpar::BeamInteraction::FilamentType filamenttype) const;
+      bool check_linker_and_filament_type_compatibility(BeamInteraction::CrosslinkerType linkertype,
+          BeamInteraction::FilamentType filamenttype) const;
 
       /// if crosslinker is singly bound, we fetch the orientation vector of the
       /// filament axis at the already occupied binding spot for the orientation

@@ -10,8 +10,7 @@
 
 #include "4C_config.hpp"
 
-#include "4C_binstrategy_utils.hpp"
-#include "4C_inpar_beaminteraction.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 #include "4C_linalg_fevector.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_mapextractor.hpp"
@@ -285,13 +284,13 @@ namespace BeamInteraction
      *-----------------------------------------------------------------------------*/
     void set_binding_spots_positions_on_filament(
         std::vector<Core::Elements::Element*>& sortedfilamenteles, double start,
-        Inpar::BeamInteraction::CrosslinkerType linkertype, int numbspot,
-        double filamentbspotinterval, double tol);
+        BeamInteraction::CrosslinkerType linkertype, int numbspot, double filamentbspotinterval,
+        double tol);
 
     /*-----------------------------------------------------------------------------*
      *-----------------------------------------------------------------------------*/
     void get_pos_and_triad_of_binding_spot(Core::Elements::Element* ele,
-        Core::Geo::MeshFree::BoundingBox& pbb, Inpar::BeamInteraction::CrosslinkerType linkertype,
+        Core::Geo::MeshFree::BoundingBox& pbb, BeamInteraction::CrosslinkerType linkertype,
         int locbspotnum, Core::LinAlg::Matrix<3, 1>& bspotpos,
         Core::LinAlg::Matrix<3, 3>& bspottriad, std::vector<double>& eledisp);
 
@@ -299,7 +298,7 @@ namespace BeamInteraction
      *-----------------------------------------------------------------------------*/
     void get_pos_and_triad_of_binding_spot(Core::FE::Discretization const& discret,
         Core::Elements::Element* ele, Core::LinAlg::Vector<double>& ia_discolnp,
-        Core::Geo::MeshFree::BoundingBox& pbb, Inpar::BeamInteraction::CrosslinkerType linkertype,
+        Core::Geo::MeshFree::BoundingBox& pbb, BeamInteraction::CrosslinkerType linkertype,
         int locbspotnum, Core::LinAlg::Matrix<3, 1>& bspotpos,
         Core::LinAlg::Matrix<3, 3>& bspottriad);
 

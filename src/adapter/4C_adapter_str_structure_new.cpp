@@ -17,6 +17,8 @@
 #include "4C_adapter_str_wrapper.hpp"
 #include "4C_beam3_kirchhoff.hpp"
 #include "4C_beam3_reissner.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
+#include "4C_beaminteraction_contact_beam_to_sphere_input.hpp"
 #include "4C_binstrategy.hpp"
 #include "4C_contact_input.hpp"
 #include "4C_fem_condition.hpp"
@@ -24,8 +26,6 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_dofset.hpp"
 #include "4C_global_data.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_inpar_fsi.hpp"
 #include "4C_io.hpp"
 #include "4C_io_pstream.hpp"
@@ -530,21 +530,21 @@ void Adapter::StructureBaseAlgorithmNew::set_model_types(
           .sublist("SPHERE BEAM LINK")
           .get<bool>("SPHEREBEAMLINKING") or
       beamtobeamcontactconditions.size() > 0 or
-      Teuchos::getIntegralValue<Inpar::BeamInteraction::Strategy>(
+      Teuchos::getIntegralValue<BeamInteraction::Strategy>(
           Global::Problem::instance()->beam_interaction_params().sublist("BEAM TO SPHERE CONTACT"),
-          "STRATEGY") != Inpar::BeamInteraction::bstr_none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "STRATEGY") != BeamInteraction::Strategy::bstr_none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID VOLUME MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE MESHTYING"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
-      Teuchos::getIntegralValue<Inpar::BeamToSolid::BeamToSolidContactDiscretization>(
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
+      Teuchos::getIntegralValue<BeamToSolid::BeamToSolidContactDiscretization>(
           Global::Problem::instance()->beam_interaction_params().sublist(
               "BEAM TO SOLID SURFACE CONTACT"),
-          "CONTACT_DISCRETIZATION") != Inpar::BeamToSolid::BeamToSolidContactDiscretization::none or
+          "CONTACT_DISCRETIZATION") != BeamToSolid::BeamToSolidContactDiscretization::none or
       Global::Problem::instance()->parameters().isParameter(
           "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT") or
       beampotconditions.size() > 0 or beampenaltycouplingconditions_direct.size() > 0 or

@@ -629,8 +629,8 @@ void BeamDiscretizationRuntimeOutputWriter::append_element_filament_id_and_type(
     const Core::Conditions::Condition* cond =
         beam_line_filament_conditioned_nodes.find(ele->nodes()[0]->id())->second;
     double current_id = cond->parameters().get<int>("ID");
-    double current_type = Inpar::BeamInteraction::string_to_filament_type(
-        (cond->parameters().get<std::string>("TYPE")));
+    double current_type =
+        BeamInteraction::string_to_filament_type((cond->parameters().get<std::string>("TYPE")));
 
     for (int i = 0; i < num_cells_per_element_[ibeamele]; ++i)
     {

@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_potential_input.hpp"
 #include "4C_beaminteraction_submodel_evaluator_generic.hpp"
 #include "4C_binstrategy_utils.hpp"
@@ -46,9 +47,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current submodel evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_potential;
+        return BeamInteraction::SubModelType::submodel_potential;
       }
 
       //! @name Derived public BeamInteraction::SubmodelEvaluator::Generic methods
@@ -109,7 +110,8 @@ namespace BeamInteraction
 
       //! derived
       void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap) override;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelmap) override;
 
       //! derived
       void add_bins_to_bin_col_map(std::set<int>& colbins) override;

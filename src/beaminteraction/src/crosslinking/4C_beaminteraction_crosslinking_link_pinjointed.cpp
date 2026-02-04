@@ -10,9 +10,9 @@
 #include "4C_beaminteraction_crosslinking_link.hpp"
 #include "4C_beaminteraction_crosslinking_link_beam3_reissner_line2_pinjointed.hpp"
 #include "4C_beaminteraction_crosslinking_link_truss.hpp"
+#include "4C_beaminteraction_input.hpp"
 #include "4C_comm_pack_helpers.hpp"
 #include "4C_fem_general_largerotations.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_utils_exceptions.hpp"
@@ -44,7 +44,7 @@ void BeamInteraction::BeamLinkPinJointed::init(int id,
     const std::vector<std::pair<int, int>>& eleids,
     const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
     const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-    Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
+    BeamInteraction::CrosslinkerType linkertype, double timelinkwasset)
 {
   issetup_ = false;
 
@@ -103,11 +103,11 @@ void BeamInteraction::BeamLinkPinJointed::reset_state(
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<BeamInteraction::BeamLinkPinJointed> BeamInteraction::BeamLinkPinJointed::create(
-    Inpar::BeamInteraction::JointType type)
+    BeamInteraction::JointType type)
 {
-  if (type == Inpar::BeamInteraction::beam3r_line2_pin)
+  if (type == BeamInteraction::JointType::beam3r_line2_pin)
     return std::make_shared<BeamInteraction::BeamLinkBeam3rLine2PinJointed>();
-  else if (type == Inpar::BeamInteraction::truss)
+  else if (type == BeamInteraction::JointType::truss)
     return std::make_shared<BeamInteraction::BeamLinkTruss>();
   else
     FOUR_C_THROW(

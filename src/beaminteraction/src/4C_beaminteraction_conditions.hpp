@@ -11,8 +11,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_fem_condition.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <map>
@@ -57,6 +57,30 @@ namespace Solid
 
 namespace BeamInteraction
 {
+
+  /**
+   * \brief Types of beam interaction conditions
+   */
+  enum class BeamInteractionConditionTypes
+  {
+    //! Default value.
+    none,
+    //! Beam-to-beam contact.
+    beam_to_beam_contact,
+    //! Beam-to-solid volume mesh tying.
+    beam_to_solid_volume_meshtying,
+    //! Beam-to-solid surface mesh tying.
+    beam_to_solid_surface_meshtying,
+    //! beam-to-beam penalty point coupling with direct pair creation.
+    beam_to_beam_point_coupling_direct,
+    //! beam-to-beam penalty point coupling with indirect pair creation.
+    beam_to_beam_point_coupling_indirect,
+    //! Beam-to-solid surface contact.
+    beam_to_solid_surface_contact,
+    //! Beam-to-solid edge contact.
+    beam_to_solid_edge_contact
+  };
+
   /**
    * \brief This abstract base class represents a single beam interaction condition.
    */
@@ -164,6 +188,12 @@ namespace BeamInteraction
     virtual ~BeamInteractionConditions() = default;
 
     /**
+     * \brief Get all available beam interaction conditions, excluding the default value.
+     */
+    void beam_interaction_conditions_get_all(
+        std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions);
+
+    /**
      * \brief Get all beam interaction conditions from the discretization.
      *
      * This method searches the discretization for input beam interaction conditions, finds the
@@ -237,7 +267,7 @@ namespace BeamInteraction
     /**
      * \brief Return a const reference to the condition map.
      */
-    inline const std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    inline const std::map<BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>&
     get_condition_map() const
     {
@@ -247,7 +277,7 @@ namespace BeamInteraction
     /**
      * \brief Return a mutable reference to the condition map.
      */
-    inline std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    inline std::map<BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>&
     get_condition_map()
     {
@@ -280,7 +310,7 @@ namespace BeamInteraction
     //! A map containing all types of beam interaction conditions. The map keys are the beam
     //! interaction type, the values are vectors with conditions (since we can have multiple
     //! conditions of the same interaction type).
-    std::map<Inpar::BeamInteraction::BeamInteractionConditions,
+    std::map<BeamInteraction::BeamInteractionConditionTypes,
         std::vector<std::shared_ptr<BeamInteractionConditionBase>>>
         condition_map_;
   };

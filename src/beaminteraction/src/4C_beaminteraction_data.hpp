@@ -10,7 +10,8 @@
 
 #include "4C_config.hpp"
 
-#include "4C_inpar_beaminteraction.hpp"
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
+#include "4C_beaminteraction_input.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
 #include <map>
@@ -72,13 +73,13 @@ namespace BeamInteraction
     }
 
     /// number of crosslinkers per type
-    Inpar::BeamInteraction::RepartitionStrategy get_repartition_strategy() const
+    BeamInteraction::RepartitionStrategy get_repartition_strategy() const
     {
       check_init_setup();
       return rep_strategy_;
     };
 
-    Inpar::BeamInteraction::SearchStrategy get_search_strategy() const
+    BeamInteraction::SearchStrategy get_search_strategy() const
     {
       check_init_setup();
       return search_strategy_;
@@ -91,10 +92,10 @@ namespace BeamInteraction
     bool issetup_;
 
     /// number of crosslinker that are initially set
-    Inpar::BeamInteraction::RepartitionStrategy rep_strategy_;
+    BeamInteraction::RepartitionStrategy rep_strategy_;
 
     /// search strategy for beam coupling
-    Inpar::BeamInteraction::SearchStrategy search_strategy_;
+    BeamInteraction::SearchStrategy search_strategy_;
   };
 
 
@@ -185,46 +186,43 @@ namespace BeamInteraction
 
       int get_id() const { return id_; };
 
-      std::map<Inpar::BeamInteraction::CrosslinkerType,
-          std::map<int, Core::LinAlg::Matrix<3, 1>>> const&
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 1>>> const&
       get_b_spot_positions() const
       {
         return bspotpos_;
       };
 
       Core::LinAlg::Matrix<3, 1> const& get_b_spot_position(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid) const
+          BeamInteraction::CrosslinkerType linkertype, int bspotid) const
       {
         return bspotpos_.at(linkertype).at(bspotid);
       };
 
-      std::map<Inpar::BeamInteraction::CrosslinkerType,
-          std::map<int, Core::LinAlg::Matrix<3, 3>>> const&
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 3>>> const&
       get_b_spot_triads() const
       {
         return bspottriad_;
       };
       Core::LinAlg::Matrix<3, 3> const& get_b_spot_triad(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid) const
+          BeamInteraction::CrosslinkerType linkertype, int bspotid) const
       {
         return bspottriad_.at(linkertype).at(bspotid);
       };
 
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> const&
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> const&
       get_b_spot_status() const
       {
         return bspotstatus_;
       };
 
       std::set<int> const& get_b_spot_status_at(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid) const
+          BeamInteraction::CrosslinkerType linkertype, int bspotid) const
       {
         return bspotstatus_.at(linkertype).at(bspotid);
       };
 
       // not [] necessary here in case element has no binding spot of certain type
-      unsigned int get_number_of_binding_spots_of_type(
-          Inpar::BeamInteraction::CrosslinkerType linkertype)
+      unsigned int get_number_of_binding_spots_of_type(BeamInteraction::CrosslinkerType linkertype)
       {
         return bspotstatus_[linkertype].size();
       };
@@ -232,47 +230,47 @@ namespace BeamInteraction
 
       void set_id(int id) { id_ = id; };
 
-      void set_b_spot_positions(std::map<Inpar::BeamInteraction::CrosslinkerType,
+      void set_b_spot_positions(std::map<BeamInteraction::CrosslinkerType,
           std::map<int, Core::LinAlg::Matrix<3, 1>>> const& bspotpos)
       {
         bspotpos_ = bspotpos;
       };
-      void set_b_spot_position(Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid,
+      void set_b_spot_position(BeamInteraction::CrosslinkerType linkertype, int bspotid,
           Core::LinAlg::Matrix<3, 1> const& bspotpos)
       {
         bspotpos_[linkertype][bspotid] = bspotpos;
       };
 
-      void set_b_spot_triads(std::map<Inpar::BeamInteraction::CrosslinkerType,
+      void set_b_spot_triads(std::map<BeamInteraction::CrosslinkerType,
           std::map<int, Core::LinAlg::Matrix<3, 3>>> const& bspottriad)
       {
         bspottriad_ = bspottriad;
       };
-      void set_b_spot_triad(Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid,
+      void set_b_spot_triad(BeamInteraction::CrosslinkerType linkertype, int bspotid,
           Core::LinAlg::Matrix<3, 3> const& bspottriad)
       {
         bspottriad_[linkertype][bspotid] = bspottriad;
       };
 
       void set_b_spot_status(
-          std::map<Inpar::BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> const&
+          std::map<BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> const&
               bspotstatus)
       {
         bspotstatus_ = bspotstatus;
       };
       void set_b_spot_status(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int bspotid, std::set<int> clgids)
+          BeamInteraction::CrosslinkerType linkertype, int bspotid, std::set<int> clgids)
       {
         bspotstatus_[linkertype][bspotid] = clgids;
       };
 
       void erase_bond_from_binding_spot(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int locbspotid, int clgid)
+          BeamInteraction::CrosslinkerType linkertype, int locbspotid, int clgid)
       {
         bspotstatus_.at(linkertype).at(locbspotid).erase(clgid);
       }
       void add_bond_to_binding_spot(
-          Inpar::BeamInteraction::CrosslinkerType linkertype, int locbspotid, int clgid)
+          BeamInteraction::CrosslinkerType linkertype, int locbspotid, int clgid)
       {
         bspotstatus_.at(linkertype).at(locbspotid).insert(clgid);
       }
@@ -303,15 +301,15 @@ namespace BeamInteraction
       int id_;
 
       /// current position at bindingspots (xi) (key is local number of binding spot)
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 1>>>
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 1>>>
           bspotpos_;
 
       /// current triad at bindingspots (xi) (key is local number of binding spot)
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 3>>>
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, Core::LinAlg::Matrix<3, 3>>>
           bspottriad_;
 
       /// key is locn of bspot, holds gid of crosslinker to which it is bonded
-      std::map<Inpar::BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> bspotstatus_;
+      std::map<BeamInteraction::CrosslinkerType, std::map<int, std::set<int>>> bspotstatus_;
 
       //! @}
     };
@@ -405,14 +403,14 @@ namespace BeamInteraction
 
       std::pair<int, int> const& get_ele_toupdate() const { return eletoupdate_; };
 
-      Inpar::BeamInteraction::CrosslinkerType get_linker_type() const { return linkertype_; };
+      BeamInteraction::CrosslinkerType get_linker_type() const { return linkertype_; };
 
 
       void set_cl_id(int clgid) { clgid_ = clgid; };
 
       void set_ele_toupdate(std::pair<int, int> eletoupdate) { eletoupdate_ = eletoupdate; };
 
-      void set_linker_type(Inpar::BeamInteraction::CrosslinkerType linkertype)
+      void set_linker_type(BeamInteraction::CrosslinkerType linkertype)
       {
         linkertype_ = linkertype;
       };
@@ -447,7 +445,7 @@ namespace BeamInteraction
       std::pair<int, int> eletoupdate_;
 
       /// type of binding spot where unbinding takes place
-      Inpar::BeamInteraction::CrosslinkerType linkertype_;
+      BeamInteraction::CrosslinkerType linkertype_;
 
 
       //! @}

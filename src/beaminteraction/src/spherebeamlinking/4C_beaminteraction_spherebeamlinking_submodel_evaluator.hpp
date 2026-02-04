@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_submodel_evaluator_generic.hpp"
 #include "4C_binstrategy_utils.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_io_visualization_manager.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
@@ -51,9 +51,9 @@ namespace BeamInteraction
       void post_setup() override;
 
       //! Returns the type of the current model evaluator
-      Inpar::BeamInteraction::SubModelType type() const override
+      BeamInteraction::SubModelType type() const override
       {
-        return Inpar::BeamInteraction::submodel_spherebeamlink;
+        return BeamInteraction::SubModelType::submodel_spherebeamlink;
       }
 
       //! derived
@@ -111,7 +111,8 @@ namespace BeamInteraction
 
       //! derived
       void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelmap) override;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelmap) override;
 
       //! derived
       void add_bins_to_bin_col_map(std::set<int>& colbins) override;

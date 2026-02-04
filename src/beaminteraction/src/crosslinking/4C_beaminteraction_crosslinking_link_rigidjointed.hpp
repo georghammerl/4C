@@ -80,7 +80,7 @@ namespace BeamInteraction
     void init(const int id, const std::vector<std::pair<int, int>>& eleids,
         const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
         const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-        Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset) override;
+        BeamInteraction::CrosslinkerType linkertype, double timelinkwasset) override;
 
     //! Setup
     void setup(const int matnum) override;

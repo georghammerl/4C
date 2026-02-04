@@ -10,6 +10,7 @@
 #include "4C_beam3_reissner.hpp"
 #include "4C_beam3_triad_interpolation_local_rotation_vectors.hpp"
 #include "4C_beaminteraction_calc_utils.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_mortar_manager.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_surface_meshtying_params.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_utils.hpp"
@@ -20,7 +21,6 @@
 #include "4C_geometry_pair_element_faces.hpp"
 #include "4C_geometry_pair_input.hpp"
 #include "4C_geometry_pair_line_to_surface.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_fevector.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -442,16 +442,16 @@ void BeamInteraction::BeamToSolidSurfaceMeshtyingPairMortarRotationFAD<ScalarTyp
     const GeometryPair::ElementData<Surface, double>& q_solid_ref,
     const GeometryPair::ElementData<Surface, ScalarTypeRotVec>& q_solid,
     const Core::LinAlg::Matrix<4, 1, double>& quaternion_beam_ref,
-    const Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling surface_triad_type,
+    const BeamToSolid::BeamToSolidSurfaceRotationCoupling surface_triad_type,
     Core::LinAlg::Matrix<3, 1, ScalarTypeRotVec>& psi_solid) const
 {
   switch (surface_triad_type)
   {
-    case Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling::averaged:
+    case BeamToSolid::BeamToSolidSurfaceRotationCoupling::averaged:
       get_surface_rotation_vector_averaged<Surface>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       break;
-    case Inpar::BeamToSolid::BeamToSolidSurfaceRotationCoupling::surface_cross_section_director:
+    case BeamToSolid::BeamToSolidSurfaceRotationCoupling::surface_cross_section_director:
       get_surface_rotation_vector_cross_section_director<Surface>(
           xi, q_solid_ref, q_solid, quaternion_beam_ref, psi_solid);
       break;
@@ -1103,7 +1103,7 @@ beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar_x_volume(
 std::shared_ptr<BeamInteraction::BeamContactPair>
 BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_fad_factory(
     const Core::FE::CellType surface_shape,
-    const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction,
+    const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shapefunction,
     const bool rotational_coupling, const GeometryPair::SurfaceNormals surface_normal_strategy)
 {
   using namespace GeometryPair;
@@ -1112,17 +1112,17 @@ BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_fad_factory(
   {
     switch (mortar_shapefunction)
     {
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
       {
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar<t_line2>(
             surface_shape, rotational_coupling);
       }
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line3:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line3:
       {
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar<t_line3>(
             surface_shape, rotational_coupling);
       }
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line4:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line4:
       {
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar<t_line4>(
             surface_shape, rotational_coupling);
@@ -1135,13 +1135,13 @@ BeamInteraction::beam_to_solid_surface_meshtying_pair_mortar_fad_factory(
   {
     switch (mortar_shapefunction)
     {
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line2:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line2:
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar_x_volume<t_line2>(
             surface_shape, rotational_coupling);
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line3:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line3:
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar_x_volume<t_line3>(
             surface_shape, rotational_coupling);
-      case Inpar::BeamToSolid::BeamToSolidMortarShapefunctions::line4:
+      case BeamToSolid::BeamToSolidMortarShapefunctions::line4:
         return beam_to_solid_surface_meshtying_pair_mortar_fad_factory_mortar_x_volume<t_line4>(
             surface_shape, rotational_coupling);
       default:

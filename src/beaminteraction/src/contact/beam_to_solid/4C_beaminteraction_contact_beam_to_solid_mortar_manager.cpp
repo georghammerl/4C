@@ -456,7 +456,7 @@ void BeamInteraction::BeamToSolidMortarManager::evaluate_coupling_terms_lagrange
 bool BeamInteraction::BeamToSolidMortarManager::have_lagrange_dofs() const
 {
   return parameters_.constraint_enforcement ==
-         Inpar::BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
+         BeamToSolid::BeamToSolidConstraintEnforcement::lagrange;
 }
 
 /**
@@ -761,8 +761,7 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_force(
   f.update(1.0, force_solid_lin_lambda_times_lambda_on_f, 1.0);
   f.update(1.0, force_beam_lin_lambda_times_lambda_on_f, 1.0);
 
-  if (parameters_.lagrange_formulation ==
-      Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
+  if (parameters_.lagrange_formulation == BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
   {
     const double penalty_translation = parameters_.penalty_parameter_translational;
     auto kappa_times_lambda = Core::LinAlg::Vector<double>(kappa_->get_map());
@@ -806,8 +805,7 @@ void BeamInteraction::BeamToSolidMortarManager::assemble_stiff(
   lambda_non_active_matrix.complete();
   lm_lm.add(lambda_non_active_matrix, false, 1.0, 1.0);
 
-  if (parameters_.lagrange_formulation ==
-      Inpar::BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
+  if (parameters_.lagrange_formulation == BeamToSolid::BeamToSolidLagrangeFormulation::regularized)
   {
     // Set penalty entry
     const double penalty_translation = parameters_.penalty_parameter_translational;

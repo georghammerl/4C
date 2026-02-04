@@ -45,7 +45,7 @@ template <typename ScalarType, typename Beam, typename Surface>
 ScalarType BeamInteraction::BeamToSolidSurfaceMeshtyingPairGaussPointBase<ScalarType, Beam,
     Surface>::get_penalty_potential() const
 {
-  using namespace Inpar::BeamToSolid;
+  using namespace BeamToSolid;
 
   // If there are no intersection segments, no penalty potential exists for this pair.
   if (this->line_to_3D_segments_.size() == 0) return 0.0;

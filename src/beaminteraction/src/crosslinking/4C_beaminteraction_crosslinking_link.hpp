@@ -10,9 +10,9 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_crosslinking_submodel_evaluator.hpp"
 #include "4C_comm_parobject.hpp"
 #include "4C_comm_parobjectfactory.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -80,7 +80,7 @@ namespace BeamInteraction
     virtual void init(const int id, const std::vector<std::pair<int, int>>& eleids,
         const std::vector<Core::LinAlg::Matrix<3, 1>>& initpos,
         const std::vector<Core::LinAlg::Matrix<3, 3>>& inittriad,
-        Inpar::BeamInteraction::CrosslinkerType linkertype, double timelinkwasset);
+        BeamInteraction::CrosslinkerType linkertype, double timelinkwasset);
 
     //! Setup
     virtual void setup(const int matnum);
@@ -150,7 +150,7 @@ namespace BeamInteraction
       return bspotpos2_;
     }
 
-    inline Inpar::BeamInteraction::CrosslinkerType get_linker_type() const { return linkertype_; }
+    inline BeamInteraction::CrosslinkerType get_linker_type() const { return linkertype_; }
 
     //! return time at which linker was set
     inline double get_time_link_was_set() const { return timelinkwasset_; }
@@ -250,7 +250,7 @@ namespace BeamInteraction
     Core::LinAlg::Matrix<3, 1> bspotpos2_;
 
     //! type of filament element belongs to
-    Inpar::BeamInteraction::CrosslinkerType linkertype_;
+    BeamInteraction::CrosslinkerType linkertype_;
 
     //! stores the the time the link was set (can e.g. be used to calculate
     //  lifetime of a link or check if link is new in certain time step)

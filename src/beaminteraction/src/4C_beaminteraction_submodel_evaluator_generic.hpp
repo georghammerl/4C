@@ -10,8 +10,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_input.hpp"
 #include "4C_beaminteraction_str_model_evaluator.hpp"
-#include "4C_inpar_beaminteraction.hpp"
 
 namespace NOX
 {
@@ -111,7 +111,7 @@ namespace BeamInteraction
 
      public:
       //! Returns the type of the current model evaluator
-      virtual Inpar::BeamInteraction::SubModelType type() const = 0;
+      virtual BeamInteraction::SubModelType type() const = 0;
 
       //! \brief reset model specific variables (without jacobian)
       virtual void reset() = 0;
@@ -176,7 +176,8 @@ namespace BeamInteraction
 
       //! reset routine for model evlaluator
       virtual void init_submodel_dependencies(
-          std::shared_ptr<Solid::ModelEvaluator::BeamInteraction::Map> const submodelvector) = 0;
+          std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> const
+              submodelvector) = 0;
 
       //! \brief add subproblem specific contributions to bin col map
       virtual void add_bins_to_bin_col_map(std::set<int>& colbins) = 0;

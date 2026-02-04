@@ -56,7 +56,8 @@ Solid::ModelEvaluator::Factory::build_model_evaluators(
         (*model_map)[*mt_iter] = std::make_shared<Solid::ModelEvaluator::BrownianDyn>();
         break;
       case Inpar::Solid::model_beaminteraction:
-        (*model_map)[*mt_iter] = std::make_shared<Solid::ModelEvaluator::BeamInteraction>();
+        (*model_map)[*mt_iter] =
+            std::make_shared<Solid::ModelEvaluator::BeamInteractionModelEvaluator>();
         break;
       case Inpar::Solid::model_contact:
       {

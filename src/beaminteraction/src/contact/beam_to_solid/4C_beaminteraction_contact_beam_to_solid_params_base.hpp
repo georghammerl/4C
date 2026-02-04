@@ -11,8 +11,8 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_fem_general_utils_integration.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN
@@ -82,7 +82,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the contact discretization method.
      */
-    inline Inpar::BeamToSolid::BeamToSolidConstraintEnforcement get_constraint_enforcement() const
+    inline BeamToSolid::BeamToSolidConstraintEnforcement get_constraint_enforcement() const
     {
       return constraint_enforcement_;
     }
@@ -90,7 +90,7 @@ namespace BeamInteraction
     /**
      * \brief Returns constraints enforcement strategy.
      */
-    inline Inpar::BeamToSolid::BeamToSolidContactDiscretization get_contact_discretization() const
+    inline BeamToSolid::BeamToSolidContactDiscretization get_contact_discretization() const
     {
       return contact_discretization_;
     }
@@ -98,7 +98,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the type of lagrange formulation used.
      */
-    inline Inpar::BeamToSolid::BeamToSolidLagrangeFormulation get_lagrange_formulation() const
+    inline BeamToSolid::BeamToSolidLagrangeFormulation get_lagrange_formulation() const
     {
       return lagrange_formulation_;
     }
@@ -106,8 +106,7 @@ namespace BeamInteraction
     /**
      * \brief Returns the shape function for the mortar Lagrange-multiplicators.
      */
-    inline Inpar::BeamToSolid::BeamToSolidMortarShapefunctions get_mortar_shape_function_type()
-        const
+    inline BeamToSolid::BeamToSolidMortarShapefunctions get_mortar_shape_function_type() const
     {
       return mortar_shape_function_;
     }
@@ -147,13 +146,13 @@ namespace BeamInteraction
     bool issetup_;
 
     //! Enforcement strategy for constraints.
-    Inpar::BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement_;
+    BeamToSolid::BeamToSolidConstraintEnforcement constraint_enforcement_;
 
     //! discretization used for the contact.
-    Inpar::BeamToSolid::BeamToSolidContactDiscretization contact_discretization_;
+    BeamToSolid::BeamToSolidContactDiscretization contact_discretization_;
 
     //! Shape function for the mortar Lagrange-multiplicators
-    Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function_;
+    BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function_;
 
     //! Penalty parameter.
     double penalty_parameter_;
@@ -165,7 +164,7 @@ namespace BeamInteraction
     bool rotational_coupling_;
 
     //! Type of lagrange formulation
-    Inpar::BeamToSolid::BeamToSolidLagrangeFormulation lagrange_formulation_;
+    BeamToSolid::BeamToSolidLagrangeFormulation lagrange_formulation_;
   };
 
 }  // namespace BeamInteraction

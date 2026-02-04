@@ -10,11 +10,11 @@
 #include "4C_geometry_pair_line_to_surface.hpp"
 
 #include "4C_beam3_reissner.hpp"
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_geometry_pair_element_evaluation_functions.hpp"
 #include "4C_geometry_pair_line_to_surface_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_surface_geometry_test.hpp"
 #include "4C_geometry_pair_utility_classes.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 
 using namespace GeometryPair;
 

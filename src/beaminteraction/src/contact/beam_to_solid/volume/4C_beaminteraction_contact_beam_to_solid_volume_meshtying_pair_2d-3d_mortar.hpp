@@ -11,10 +11,10 @@
 
 #include "4C_config.hpp"
 
+#include "4C_beaminteraction_contact_beam_to_solid_input.hpp"
 #include "4C_beaminteraction_contact_beam_to_solid_volume_meshtying_pair_2d-3d_base.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_geometry_pair_element_shape_functions.hpp"
-#include "4C_inpar_beam_to_solid.hpp"
 #include "4C_linalg_vector.hpp"
 
 
@@ -245,7 +245,7 @@ namespace BeamInteraction
    */
   std::unique_ptr<BeamContactPair> create_beam_to_solid_volume_pair_mortar_cross_section(
       const Core::FE::CellType shape,
-      const Inpar::BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
+      const BeamToSolid::BeamToSolidMortarShapefunctions mortar_shape_function,
       const int n_fourier_modes);
 
 }  // namespace BeamInteraction
