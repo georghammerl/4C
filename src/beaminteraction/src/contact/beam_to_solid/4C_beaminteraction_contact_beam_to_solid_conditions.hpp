@@ -32,13 +32,11 @@ namespace BeamInteraction
 {
   class BeamToSolidParamsBase;
 }
-namespace Inpar
+namespace BeamToSolid
 {
-  namespace BeamToSolid
-  {
-    enum class BeamToSolidMortarShapefunctions;
-  }
-}  // namespace Inpar
+  enum class BeamToSolidMortarShapefunctions;
+}
+
 
 
 namespace BeamInteraction

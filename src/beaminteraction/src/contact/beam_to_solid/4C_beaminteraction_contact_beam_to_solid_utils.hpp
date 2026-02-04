@@ -28,14 +28,11 @@ namespace BeamInteraction
   class BeamToSolidMortarManager;
   class BeamContactPair;
 }  // namespace BeamInteraction
-namespace Inpar
+namespace BeamToSolid
 {
-  namespace BeamToSolid
-  {
-    enum class BeamToSolidRotationCoupling;
-    enum class BeamToSolidMortarShapefunctions;
-  }  // namespace BeamToSolid
-}  // namespace Inpar
+  enum class BeamToSolidRotationCoupling;
+  enum class BeamToSolidMortarShapefunctions;
+}  // namespace BeamToSolid
 namespace Core::LinAlg
 {
   template <unsigned int rows, unsigned int cols, class ValueType>
