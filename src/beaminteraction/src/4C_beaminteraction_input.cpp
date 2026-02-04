@@ -131,8 +131,9 @@ void BeamInteraction::set_valid_conditions(
             parameter<int>("MAX_NUMBER_OF_PAIRS_PER_ELEMENT",
                 {.description = "How many Lagrange multipliers shall be allocated per beam element",
                     .default_value = 0}),
-            parameter<::FourC::BeamInteraction::BeamToBeamPointCouplingPairParameters::
-                    ConstraintEnforcement>("CONSTRAINT_ENFORCEMENT",
+            parameter<
+                BeamInteraction::BeamToBeamPointCouplingPairParameters::ConstraintEnforcement>(
+                "CONSTRAINT_ENFORCEMENT",
                 {.description = "Specifies the constraint enforcement technique for beam-to-beam "
                                 "point couplings."})},
         {.required = false}));

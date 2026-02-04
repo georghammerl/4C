@@ -182,7 +182,7 @@ namespace BeamInteraction
       /**
        * \brief Return the dof rowmap of the lagrange multipliers.
        */
-      std::shared_ptr<const FourC::Core::LinAlg::Map> get_lagrange_map() const;
+      std::shared_ptr<const Core::LinAlg::Map> get_lagrange_map() const;
 
       /**
        * \brief Method used to assemble the force vector when using Lagrange Multipliers

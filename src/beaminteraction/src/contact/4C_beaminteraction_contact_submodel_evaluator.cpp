@@ -870,7 +870,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContact::get_half_interaction_dista
   }
 }
 
-std::shared_ptr<const FourC::Core::LinAlg::Map>
+std::shared_ptr<const Core::LinAlg::Map>
 BeamInteraction::SubmodelEvaluator::BeamContact::get_lagrange_map() const
 {
   return get_lagrange_multiplier_assembly_manager()->get_mortar_manager()->get_lambda_dof_row_map();

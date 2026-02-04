@@ -55,15 +55,12 @@ namespace Solid
     // forward declaration
     class BeamInteractionDataState;
 
-    // ! TODO this class has a nameclash / problem with the namespace BeamInteraction, how to solve
-    // this nicely? Rename this to something more senseful?
     class BeamInteractionModelEvaluator : public Generic
     {
      public:
-      using Map = std::map<enum FourC::BeamInteraction::SubModelType,
-          std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
-      using Vector =
-          std::vector<std::shared_ptr<FourC::BeamInteraction::SubmodelEvaluator::Generic>>;
+      using Map = std::map<enum BeamInteraction::SubModelType,
+          std::shared_ptr<BeamInteraction::SubmodelEvaluator::Generic>>;
+      using Vector = std::vector<std::shared_ptr<BeamInteraction::SubmodelEvaluator::Generic>>;
 
       //! constructor
       BeamInteractionModelEvaluator();
@@ -170,7 +167,7 @@ namespace Solid
 
      public:
       /// check if the given model type is active.
-      bool have_sub_model_type(FourC::BeamInteraction::SubModelType const& submodeltype) const;
+      bool have_sub_model_type(BeamInteraction::SubModelType const& submodeltype) const;
 
       //! check if lagrange formulation is active
       bool have_lagrange_dofs() const;
@@ -190,7 +187,7 @@ namespace Solid
       //! give submodels a certain order in which they are evaluated
       virtual std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Vector>
       transform_to_vector(Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map submodel_map,
-          std::vector<FourC::BeamInteraction::SubModelType>& sorted_submodel_types) const;
+          std::vector<BeamInteraction::SubModelType>& sorted_submodel_types) const;
 
       //! @}
 
@@ -236,12 +233,12 @@ namespace Solid
       std::shared_ptr<Core::FE::Discretization> discret_ptr_;
 
       //! data container holding all beaminteraction related parameters
-      std::shared_ptr<FourC::BeamInteraction::BeamInteractionParams> beaminteraction_params_ptr_;
+      std::shared_ptr<BeamInteraction::BeamInteractionParams> beaminteraction_params_ptr_;
 
       //!@name data for submodel management
       //! @{
       /// current active model types for the model evaluator
-      std::shared_ptr<std::set<FourC::BeamInteraction::SubModelType>> submodeltypes_;
+      std::shared_ptr<std::set<BeamInteraction::SubModelType>> submodeltypes_;
 
       std::shared_ptr<Solid::ModelEvaluator::BeamInteractionModelEvaluator::Map> me_map_ptr_;
 
@@ -283,7 +280,7 @@ namespace Solid
       std::shared_ptr<Core::LinAlg::SparseMatrix> stiff_beaminteraction_;
 
       //! beam crosslinker handler
-      std::shared_ptr<FourC::BeamInteraction::BeamCrosslinkerHandler> beam_crosslinker_handler_;
+      std::shared_ptr<BeamInteraction::BeamCrosslinkerHandler> beam_crosslinker_handler_;
 
       //! binning strategy
       std::shared_ptr<Core::Binstrategy::BinningStrategy> binstrategy_;
