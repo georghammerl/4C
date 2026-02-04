@@ -703,13 +703,17 @@ namespace Core::IO
 
     /**
      * A tag type to indicate that a field in the parameter data cannot take a value.
+     *
+     * @note This is essentially std::monostate but with a better static assert message in case
+     * one tries to assign a value to it.
      */
-    struct RejectField
+    struct RejectTag
     {
-      RejectField() = default;
+      RejectTag() = default;
 
       template <typename T>
-      RejectField(const T&)
+        requires(!std::same_as<std::decay_t<T>, RejectTag>)
+      /*implicit*/ RejectTag(const T&)
       {
         static_assert(false,
             "You try to assign a value to a field that does not take a value for this parameter "
@@ -719,13 +723,13 @@ namespace Core::IO
 
     /**
      * The type used for the default value of a parameter. If the parameter is optional, the user
-     * cannot specify a default value, so this type becomes RejectField. Otherwise, the default
+     * cannot specify a default value, so this type becomes RejectTag. Otherwise, the default
      * value can be either not set, resulting in the std::monostate, or set to a value of the
      * parameter type.
      */
     template <typename T>
     using DefaultType =
-        std::conditional_t<OptionalType<T>, RejectField, std::variant<std::monostate, T>>;
+        std::conditional_t<OptionalType<T>, RejectTag, std::variant<std::monostate, T>>;
 
     /**
      * Function type for a function that describes enum values.
@@ -735,11 +739,20 @@ namespace Core::IO
 
     /**
      * The type used for the enum value description. If T is not an enum type, this is
-     * equal to RejectField.
+     * equal to RejectTag.
      */
     template <typename T>
     using EnumValueDescription =
-        std::conditional_t<std::is_enum_v<T>, EnumValueDescriptionFunction<T>, RejectField>;
+        std::conditional_t<std::is_enum_v<T>, EnumValueDescriptionFunction<T>, RejectTag>;
+
+
+    /**
+     * The type used for the size information of a parameter. If T is not a vector or array type,
+     * this is equal to RejectTag.
+     */
+    template <typename T>
+    using SizeInfo = std::conditional_t<dynamic_rank<T>() == 0, RejectTag,
+        std::conditional_t<dynamic_rank<T>() == 1, Size, std::array<Size, dynamic_rank<T>()>>>;
 
     //! Additional parameters for a parameter().
     template <typename T>
@@ -781,48 +794,12 @@ namespace Core::IO
        * details.
        */
       StoreFunction<T> store{nullptr};
-    };
-
-    template <typename T>
-      requires(dynamic_rank<T>() == 1)
-    struct ParameterDataIn<T>
-    {
-      using StoredType = T;
-
-      std::string description{};
-
-      DefaultType<T> default_value{};
-
-      ParameterCallback on_parse_callback{nullptr};
-
-      std::optional<Validators::Validator<T>> validator{std::nullopt};
-
-      StoreFunction<T> store{nullptr};
 
       /**
        * The size of the vector. This can be a fixed size, #dynamic_size, or a callback that
        * determines the size at runtime.
        */
-      Size size{dynamic_size};
-    };
-
-    template <typename T>
-      requires(dynamic_rank<T>() > 1)
-    struct ParameterDataIn<T>
-    {
-      using StoredType = T;
-
-      std::string description{};
-
-      DefaultType<T> default_value{};
-
-      ParameterCallback on_parse_callback{nullptr};
-
-      std::optional<Validators::Validator<T>> validator{std::nullopt};
-
-      StoreFunction<T> store{nullptr};
-
-      std::array<Size, dynamic_rank<T>()> size;
+      SizeInfo<T> size{};
     };
 
     template <typename Selector, typename StorageType>
