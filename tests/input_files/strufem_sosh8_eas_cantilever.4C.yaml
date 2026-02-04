@@ -40,6 +40,13 @@ MATERIALS:
     ELAST_CoupNeoHooke:
       YOUNG: 1e+06
       NUE: 0.45
+RESULT DESCRIPTION:
+  - STRUCTURE:
+      DIS: "structure"
+      NODE: 404
+      QUANTITY: "dispy"
+      VALUE: -1.4563603778
+      TOLERANCE: 1e-08
 FUNCT1:
   - COMPONENT: 0
     SYMBOLIC_FUNCTION_OF_SPACE_TIME: "a"
