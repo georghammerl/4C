@@ -7,6 +7,9 @@ TITLE:
   - "- initial and boundary conditions on macro and micro scales as given by the reference"
   - "- coupling between macro and micro scales based on Butler-Volmer charge transfer kinetics"
   - "- discharge from fully charged state at C rate of 1"
+  - "NOTE: This file only defines the material definition for a multiscale simulation scenario. It is
+    thus NOT a self-contained 4C input file. The corresponding 4C input file is the file that references
+    this file with a MICROFILE attribute."
 PROBLEM SIZE:
   DIM: 1
 PROBLEM TYPE:

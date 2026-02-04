@@ -1,7 +1,7 @@
 TITLE:
-  - This is an input file for the micro scale of a multi scale
-  - simulation. It is referenced in the material of the
-  - corresponding macro file. This file cannot be run standalone.
+  - "NOTE: This file only defines the material definition for a multiscale simulation scenario. It is
+    thus NOT a self-contained 4C input file. The corresponding 4C input file is the file that references
+    this file with a MICROFILE attribute."
 PROBLEM SIZE:
   ELEMENTS: 27
   NODES: 64
