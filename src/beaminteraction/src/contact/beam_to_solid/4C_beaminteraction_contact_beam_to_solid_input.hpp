@@ -188,9 +188,6 @@ namespace BeamToSolid
     potential
   };
 
-
-  // ! TODO THIS CAN BE REMOVE??
-
   /**
    * \brief Type of penalty law to be used.
    */
@@ -204,8 +201,6 @@ namespace BeamToSolid
     //! regularization.
     linear_quadratic
   };
-
-  // ! TODO THIS CAN BE REMOVED AS WELL??
 
   /**
    * \brief Configuration in which the mortar contact is defined
