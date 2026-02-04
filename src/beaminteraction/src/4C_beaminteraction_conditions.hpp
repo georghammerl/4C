@@ -164,6 +164,12 @@ namespace BeamInteraction
     virtual ~BeamInteractionConditions() = default;
 
     /**
+     * \brief Get all available beam interaction conditions, excluding the default value.
+     */
+    void beam_interaction_conditions_get_all(
+        std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions);
+
+    /**
      * \brief Get all beam interaction conditions from the discretization.
      *
      * This method searches the discretization for input beam interaction conditions, finds the

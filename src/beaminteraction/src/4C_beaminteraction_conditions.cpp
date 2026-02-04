@@ -68,6 +68,21 @@ BeamInteraction::BeamInteractionConditions::BeamInteractionConditions() {}
 /**
  *
  */
+void BeamInteraction::BeamInteractionConditions::beam_interaction_conditions_get_all(
+    std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions)
+{
+  interactions = {BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
+      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
+}
+
+/**
+ *
+ */
 void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions(
     const Core::FE::Discretization& discret, const BeamContactParams& params_ptr)
 {
@@ -75,7 +90,8 @@ void BeamInteraction::BeamInteractionConditions::set_beam_interaction_conditions
 
   // Get all available interaction types.
   std::vector<BeamInteraction::BeamInteractionConditionTypes> interaction_types;
-  BeamInteraction::beam_interaction_conditions_get_all(interaction_types);
+  BeamInteraction::BeamInteractionConditions::beam_interaction_conditions_get_all(
+      interaction_types);
 
   // Loop over interaction types.
   for (const auto& interaction_type : interaction_types)

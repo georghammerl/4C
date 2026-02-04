@@ -20,18 +20,6 @@
 FOUR_C_NAMESPACE_OPEN
 
 
-void BeamInteraction::beam_interaction_conditions_get_all(
-    std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions)
-{
-  interactions = {BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_contact,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_direct,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_beam_point_coupling_indirect,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_volume_meshtying,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_meshtying,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_surface_contact,
-      BeamInteraction::BeamInteractionConditionTypes::beam_to_solid_edge_contact};
-}
-
 std::vector<Core::IO::InputSpec> BeamInteraction::valid_parameters()
 {
   using namespace Core::IO::InputSpecBuilders;

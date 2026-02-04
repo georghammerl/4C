@@ -182,12 +182,6 @@ namespace BeamInteraction
     return "";
   };
 
-  /**
-   * \brief Get all available beam interaction conditions, excluding the default value.
-   */
-  void beam_interaction_conditions_get_all(
-      std::vector<BeamInteraction::BeamInteractionConditionTypes>& interactions);
-
   /// beam interaction parameters
   std::vector<Core::IO::InputSpec> valid_parameters();
 
