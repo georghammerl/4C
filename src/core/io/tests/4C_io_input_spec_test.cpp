@@ -880,6 +880,10 @@ specs:
             type: enum
             required: false
             default: null
+            choices:
+              - name: A
+              - name: B
+              - name: C
           - name: group2
             type: group
             required: false
@@ -963,6 +967,10 @@ specs:
             type: enum
             required: false
             default: null
+            choices:
+              - name: A
+              - name: B
+              - name: C
           - name: group2
             type: group
             required: false
@@ -1050,6 +1058,10 @@ specs:
             type: enum
             required: false
             default: null
+            choices:
+              - name: A
+              - name: B
+              - name: C
           - name: group2
             type: group
             required: false
@@ -2554,6 +2566,27 @@ parameters:
       InputParameterContainer container;
       FOUR_C_EXPECT_THROW_WITH_MESSAGE(spec.match(node, container), Core::Exception,
           "Candidate parameter 'a' does not pass validation: null_or{in_range[0,10]}");
+    }
+  }
+
+  TEST(InputSpecTest, OptionalEnum)
+  {
+    enum class EnumClass
+    {
+      A,
+      B,
+    };
+
+    auto spec = parameter<std::optional<EnumClass>>("e", {});
+    {
+      ryml::Tree tree = init_yaml_tree_with_exceptions();
+      ryml::NodeRef root = tree.rootref();
+      ryml::parse_in_arena(R"(e: A)", root);
+
+      ConstYamlNodeRef node(root, "");
+      InputParameterContainer container;
+      spec.match(node, container);
+      EXPECT_EQ(container.get<std::optional<EnumClass>>("e"), EnumClass::A);
     }
   }
 

@@ -1975,7 +1975,7 @@ void Core::IO::Internal::ParameterSpec<T>::emit_metadata(
   }
 
   // Enums are special: their validation is built in
-  if constexpr (std::is_enum_v<T>)
+  if constexpr (std::is_enum_v<RemoveOptional<T>>)
   {
     if (data.validator)
     {
@@ -1987,7 +1987,7 @@ void Core::IO::Internal::ParameterSpec<T>::emit_metadata(
       // If no validator is set, we emit all enum values as valid values.
       auto choices_node = node.node["choices"];
       choices_node |= ryml::SEQ;
-      for (const auto& choice : EnumTools::enum_values<T>())
+      for (const auto& choice : EnumTools::enum_values<RemoveOptional<T>>())
       {
         auto choice_node = choices_node.append_child();
         choice_node |= ryml::MAP;
