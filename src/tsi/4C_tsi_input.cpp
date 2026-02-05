@@ -150,13 +150,6 @@ std::vector<Core::IO::InputSpec> TSI::valid_parameters()
           parameter<bool>("MERGE_TSI_BLOCK_MATRIX",
               {.description = "Merge TSI block matrix", .default_value = false}),
 
-          // in case of monolithic TSI nodal values (displacements, temperatures and
-          // reaction forces) at fix points of the body can be calculated
-          // default: "No", i.e. nothing is calculated
-          parameter<bool>("CALC_NECKING_TSI_VALUES",
-              {.description = "Calculate nodal values for evaluation and validation of necking",
-                  .default_value = false}),
-
           deprecated_selection<LineSearch>("TSI_LINE_SEARCH",
               {
                   {"none", LS_none},

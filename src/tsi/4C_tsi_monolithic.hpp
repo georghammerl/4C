@@ -268,11 +268,6 @@ namespace TSI
 
     bool printiter_;  //!< print intermediate iterations during solution
 
-    //! calculate nodal values (displacements, temperatures, reaction forces) at
-    //! specific nodes used for validation of implementation with literature
-    //! here: validation of thermoplasticity with e.g. Simo and Miehe (1992)
-    void calculate_necking_tsi_results();
-
     //@}
 
     //! @name Global vectors
