@@ -70,7 +70,7 @@ namespace TSI
   //!
   //!  \note There is the Algorithm class for general purpose TSI algorithms.
   //!  This simplifies the monolithic implementation.
-  class Monolithic : public Algorithm
+  class Monolithic final : public Algorithm
   {
    public:
     explicit Monolithic(MPI_Comm comm, const Teuchos::ParameterList& sdynparams);
@@ -95,9 +95,6 @@ namespace TSI
 
     /// non-linear solve, i.e. (multiple) corrector
     void solve() override;
-
-    //! outer level TSI time loop
-    void time_loop() override;
 
     //! read restart data
     void read_restart(int step  //!< step number where the calculation is continued
@@ -141,13 +138,13 @@ namespace TSI
     //@}
 
     //! evaluate all fields at x^n+1 with x^n+1 = x_n + stepinc
-    virtual void evaluate(std::shared_ptr<Core::LinAlg::Vector<double>>
+    void evaluate(std::shared_ptr<Core::LinAlg::Vector<double>>
             stepinc  //!< increment between time step n and n+1
     );
 
     //! extract initial guess from fields
     //! returns \f$\Delta x_{n+1}^{<k>}\f$
-    virtual void initial_guess(std::shared_ptr<Core::LinAlg::Vector<double>> ig);
+    void initial_guess(std::shared_ptr<Core::LinAlg::Vector<double>> ig);
 
     //! is convergence reached of iterative solution technique?
     //! keep your fingers crossed...
@@ -181,9 +178,6 @@ namespace TSI
     void print_newton_iter_header(FILE* ofile  //!< output file handle
     );
 
-    //! print statistics of converged Newton-Raphson iteration
-    void print_newton_conv();
-
     //! Determine norm of force residual
     double calculate_vector_norm(const TSI::VectorNorm norm,  //!< norm to use
         const Core::LinAlg::Vector<double>& vect              //!< the vector of interest
@@ -192,12 +186,11 @@ namespace TSI
     //@}
 
     //! apply infnorm scaling to linear block system
-    virtual void scale_system(
-        Core::LinAlg::BlockSparseMatrixBase& mat, Core::LinAlg::Vector<double>& b);
+    void scale_system(Core::LinAlg::BlockSparseMatrixBase& mat, Core::LinAlg::Vector<double>& b);
 
     //! undo infnorm scaling from scaled solution
-    virtual void unscale_solution(Core::LinAlg::BlockSparseMatrixBase& mat,
-        Core::LinAlg::Vector<double>& x, Core::LinAlg::Vector<double>& b);
+    void unscale_solution(Core::LinAlg::BlockSparseMatrixBase& mat, Core::LinAlg::Vector<double>& x,
+        Core::LinAlg::Vector<double>& b);
 
    protected:
     //! @name Time loop building blocks
@@ -205,11 +198,11 @@ namespace TSI
     //! start a new time step
     void prepare_time_step() override;
 
+    //! take current results for converged and save for next time step
+    void update() override;
+
     //! calculate stresses, strains, energies
     void prepare_output() override;
-    //@}
-
-    void prepare_contact_strategy() override;
 
     //! convergence check for Newton solver
     bool convergence_check(int itnum, int itmax, double ittol);
@@ -221,14 +214,14 @@ namespace TSI
       \param sx (o) structural vector (e.g. displacements)
       \param tx (o) thermal vector (e.g. temperatures)
       */
-    virtual void extract_field_vectors(std::shared_ptr<Core::LinAlg::Vector<double>> x,
+    void extract_field_vectors(std::shared_ptr<Core::LinAlg::Vector<double>> x,
         std::shared_ptr<Core::LinAlg::Vector<double>>& sx,
         std::shared_ptr<Core::LinAlg::Vector<double>>& tx);
 
     //! @name Access methods for subclasses
 
     //! full monolithic dof row map
-    std::shared_ptr<const Core::LinAlg::Map> dof_row_map() const;
+    [[nodiscard]] std::shared_ptr<const Core::LinAlg::Map> dof_row_map() const;
 
     //! set full monolithic dof row map
     /*!
@@ -237,10 +230,6 @@ namespace TSI
      maps must be row maps by themselves and must not contain identical GIDs.
     */
     void set_dof_row_maps();
-
-    //! combined DBC map
-    //! unique map of all dofs that should be constrained with DBC
-    std::shared_ptr<Core::LinAlg::Map> combined_dbc_map();
 
     //! extractor to communicate between full monolithic map and block maps
     std::shared_ptr<Core::LinAlg::MultiMapExtractor> extractor() const { return blockrowdofmap_; }
@@ -276,10 +265,6 @@ namespace TSI
 
     //! enum for STR time integartion
     Inpar::Solid::DynamicType strmethodname_;
-
-    //! apply structural displacements and velocities on thermo discretization
-    void apply_struct_coupling_state(std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
-        std::shared_ptr<const Core::LinAlg::Vector<double>> vel) override;
 
    private:
     //! if just rho_inf is specified for genAlpha, the other parameters in the global parameter

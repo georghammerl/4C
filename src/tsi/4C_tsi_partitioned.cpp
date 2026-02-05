@@ -8,17 +8,15 @@
 #include "4C_tsi_partitioned.hpp"
 
 #include "4C_adapter_str_structure.hpp"
-#include "4C_contact_abstract_strategy.hpp"
 #include "4C_contact_lagrange_strategy_tsi.hpp"
-#include "4C_contact_meshtying_contact_bridge.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
 #include "4C_inpar_structure.hpp"
-#include "4C_linalg_utils_sparse_algebra_create.hpp"
-#include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_thermo_adapter.hpp"
 #include "4C_tsi_input.hpp"
 #include "4C_tsi_utils.hpp"
+
+#include <Teuchos_StandardParameterEntryValidators.hpp>
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -157,43 +155,6 @@ void TSI::Partitioned::solve()
 
   return;
 }  // Solve()
-
-
-/*----------------------------------------------------------------------*
- | time loop                                                 dano 12/09 |
- *----------------------------------------------------------------------*/
-void TSI::Partitioned::time_loop()
-{
-  // tsi with or without contact
-  // only tsi
-  // time loop
-  while (not_finished())
-  {
-    // counter and print header
-    prepare_time_step();
-
-    // normally prepare_time_step() should be called outside the nonlinear loop,
-    // but at this point the coupling variables are not known, yet!
-    // call prepare_time_step() after ApplyCouplingState()/ApplyStructVariables()
-
-    // integrate time step
-    solve();
-
-    // calculate stresses, strains, energies
-    prepare_output();
-
-    // update all single field solvers
-    update();
-
-    // write output to screen and files
-    output();
-
-  }  // time loop
-
-  // ==================================================================
-
-}  // TSI::Partitioned::TimeLoop()
-
 
 /*----------------------------------------------------------------------*
  | One-way coupling (only one field knows its counterpart)   dano 06/10 |
@@ -1279,15 +1240,6 @@ void TSI::Partitioned::prepare_output()
   structure_field()->discretization()->clear_state(true);
 
 }  // prepare_output()
-
-
-/*----------------------------------------------------------------------*
- |                                                                      |
- *----------------------------------------------------------------------*/
-void TSI::Partitioned::prepare_contact_strategy()
-{
-  TSI::Algorithm::prepare_contact_strategy();
-}  // prepare_contact_strategy()
 
 
 /*----------------------------------------------------------------------*

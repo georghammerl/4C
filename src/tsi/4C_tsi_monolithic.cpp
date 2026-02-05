@@ -12,8 +12,6 @@
 #include "4C_contact_abstract_strategy.hpp"
 #include "4C_contact_interface.hpp"
 #include "4C_contact_lagrange_strategy_tsi.hpp"
-#include "4C_contact_meshtying_contact_bridge.hpp"
-#include "4C_contact_node.hpp"
 #include "4C_fem_condition_locsys.hpp"
 #include "4C_fem_discretization_nullspace.hpp"
 #include "4C_fem_general_assemblestrategy.hpp"
@@ -23,20 +21,15 @@
 #include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linalg_sparsematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
-#include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linear_solver_method.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
-#include "4C_mortar_manager_base.hpp"
 #include "4C_mortar_multifield_coupling.hpp"
-#include "4C_structure_new_model_evaluator_contact.hpp"
-#include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_model_evaluator_structure.hpp"
 #include "4C_structure_new_timint_base.hpp"
+#include "4C_thermo_adapter.hpp"
 #include "4C_thermo_ele_action.hpp"
-#include "4C_thermo_timint.hpp"
 #include "4C_tsi_utils.hpp"
-#include "4C_utils_enum.hpp"
 
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_TimeMonitor.hpp>
@@ -106,12 +99,12 @@ TSI::Monolithic::Monolithic(MPI_Comm comm, const Teuchos::ParameterList& sdynpar
   // --------------------------------- TSI solver: create a linear solver
 
   // get iterative solver
-  if (merge_tsi_blockmatrix_ == false) create_linear_solver();
+  if (not merge_tsi_blockmatrix_) create_linear_solver();
   // get direct solver, e.g. UMFPACK
   else  // (merge_tsi_blockmatrix_ == true)
   {
     if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-      std::cout << "Merged TSI block matrix is used!\n" << std::endl;
+      std::cout << "Merged TSI block matrix is used!\n\n";
 
     // get solver parameter list of linear TSI solver
     const int linsolvernumber = tsidynmono_.get<int>("LINEAR_SOLVER");
@@ -139,9 +132,10 @@ TSI::Monolithic::Monolithic(MPI_Comm comm, const Teuchos::ParameterList& sdynpar
       locsysman_ = structure_field()->locsys_manager();
     }
     else
+    {
       locsysman_ = nullptr;
+    }
   }
-
   // structural and thermal contact
   prepare_contact_strategy();
 }  // Monolithic()
@@ -198,8 +192,6 @@ void TSI::Monolithic::read_restart(int step)
   p.set<std::string>("action", "calc_struct_reset_istep");
   structure_field()->discretization()->evaluate(p);
 
-
-  return;
 }  // read_restart()
 
 
@@ -233,9 +225,11 @@ void TSI::Monolithic::create_linear_solver()
   const int linsolvernumber = tsidynmono_.get<int>("LINEAR_SOLVER");
   // check if the TSI solver has a valid solver number
   if (linsolvernumber == (-1))
+  {
     FOUR_C_THROW(
         "no linear solver defined for monolithic TSI. Please set LINEAR_SOLVER in TSI DYNAMIC to a "
         "valid number!");
+  }
 
   // get solver parameter list of linear TSI solver
   const Teuchos::ParameterList& tsisolverparams =
@@ -246,13 +240,13 @@ void TSI::Monolithic::create_linear_solver()
 
   if (solvertype != Core::LinearSolver::SolverType::belos)
   {
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!" << std::endl;
-    std::cout << " Note: the BGS2x2 preconditioner now " << std::endl;
-    std::cout << " uses the structural solver and thermal solver blocks" << std::endl;
-    std::cout << " for building the internal inverses" << std::endl;
-    std::cout << " Remove the old BGS PRECONDITIONER BLOCK entries " << std::endl;
-    std::cout << " in the input files!" << std::endl;
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!\n";
+    std::cout << " Note: the BGS2x2 preconditioner now \n";
+    std::cout << " uses the structural solver and thermal solver blocks\n";
+    std::cout << " for building the internal inverses\n";
+    std::cout << " Remove the old BGS PRECONDITIONER BLOCK entries \n";
+    std::cout << " in the input files!\n";
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!\n";
     FOUR_C_THROW("Iterative solver expected");
   }
 
@@ -321,37 +315,7 @@ void TSI::Monolithic::solve()
       FOUR_C_THROW("Solution technique \"{}\" is not implemented", soltech_);
       break;
   }  // end switch (soltechnique_)
-
-  return;
 }  // Solve()
-
-
-/*----------------------------------------------------------------------*
- | time loop of the monolithic system                        dano 11/10 |
- *----------------------------------------------------------------------*/
-void TSI::Monolithic::time_loop()
-{
-  // time loop
-  while (not_finished())
-  {
-    // counter and print header
-    // predict solution of both field (call the adapter)
-    prepare_time_step();
-
-    // integrate time step
-    solve();
-
-    // calculate stresses, strains, energies
-    prepare_output();
-
-    // update all single field solvers
-    update();
-
-    // write output to screen and files
-    output();
-
-  }  // not_finished
-}  // TimeLoop()
 
 
 /*----------------------------------------------------------------------*
@@ -572,11 +536,7 @@ void TSI::Monolithic::newton_full()
   iter_ -= 1;
 
   // test whether max iterations was hit
-  if ((converged()) and (Core::Communication::my_mpi_rank(get_comm()) == 0))
-  {
-    print_newton_conv();
-  }
-  else if (iter_ >= itermax_)
+  if (iter_ >= itermax_ and not converged())
   {
     if (Teuchos::getIntegralValue<Inpar::Solid::DivContAct>(sdyn_, "DIVERCONT") ==
         Inpar::Solid::divcont_continue)
@@ -811,13 +771,10 @@ void TSI::Monolithic::ptc()
   iter_ -= 1;
 
   // test whether max iterations was hit
-  if ((converged()) and (Core::Communication::my_mpi_rank(get_comm()) == 0))
+  if (iter_ >= itermax_ and not converged())
   {
-    print_newton_conv();
-  }
-  else if (iter_ >= itermax_)
     FOUR_C_THROW("PTC unconverged in {} iterations", iter_);
-
+  }
 }  // PTC()
 
 
@@ -1102,7 +1059,7 @@ void TSI::Monolithic::linear_solve()
   iterinc_->put_scalar(0.0);  // Useful? depends on solver and more
 
   // default: use block matrix
-  if (merge_tsi_blockmatrix_ == false)
+  if (not merge_tsi_blockmatrix_)
   {
     // Infnormscaling: scale system before solving
     scale_system(*systemmatrix_, *rhs_);
@@ -1207,8 +1164,6 @@ bool TSI::Monolithic::converged()
       convinc = norminc_ < tolinc_;
       break;
     case TSI::convnorm_rel:
-      convinc = norminc_ < std::max(norminciter0_ * tolinc_, 1e-15);
-      break;
     case TSI::convnorm_mix:
       convinc = norminc_ < std::max(norminciter0_ * tolinc_, 1e-15);
       break;
@@ -1492,9 +1447,6 @@ void TSI::Monolithic::print_newton_iter_header(FILE* ofile)
   // print it, now
   fflush(ofile);
 
-  // nice to have met you
-  return;
-
 }  // print_newton_iter_header()
 
 
@@ -1666,21 +1618,7 @@ void TSI::Monolithic::print_newton_iter_text(FILE* ofile)
   // print it, now
   fflush(ofile);
 
-  // nice to have met you
-  return;
-
 }  // print_newton_iter_text
-
-
-/*----------------------------------------------------------------------*
- | print statistics of converged NRI                         dano 11/10 |
- | originally by bborn 08/09                                            |
- *----------------------------------------------------------------------*/
-void TSI::Monolithic::print_newton_conv()
-{
-  // somebody did the door
-  return;
-}  // print_newton_conv()
 
 
 /*----------------------------------------------------------------------*
@@ -1949,23 +1887,6 @@ void TSI::Monolithic::apply_thermo_coupl_matrix_conv_bc(
 
 }  // ApplyThermoCouplMatrix()
 
-
-/*----------------------------------------------------------------------*
- | map containing the dofs with Dirichlet BC                 dano 03/11 |
- *----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Map> TSI::Monolithic::combined_dbc_map()
-{
-  const std::shared_ptr<const Core::LinAlg::Map> scondmap =
-      structure_field()->get_dbc_map_extractor()->cond_map();
-  const std::shared_ptr<const Core::LinAlg::Map> tcondmap =
-      thermo_field()->get_dbc_map_extractor()->cond_map();
-  std::shared_ptr<Core::LinAlg::Map> condmap = Core::LinAlg::merge_map(scondmap, tcondmap, false);
-  return condmap;
-
-}  // combined_dbc_map()
-
-
-
 /*----------------------------------------------------------------------*
  | recover structural and thermal Lagrange multipliers from  seitz 11/15|
  | displacements and temperature                                        |
@@ -2167,42 +2088,38 @@ void TSI::Monolithic::set_default_parameters()
     case TSI::bop_and:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-        std::cout << "Convergence test of TSI:\n res, inc with 'AND'." << std::endl;
+        std::cout << "Convergence test of TSI:\n res, inc with 'AND'.\n";
       break;
     }
     case TSI::bop_or:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-        std::cout << "Convergence test of TSI:\n res, inc with 'OR'." << std::endl;
+        std::cout << "Convergence test of TSI:\n res, inc with 'OR'.\n";
       break;
     }
     case TSI::bop_coupl_and_single:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
         std::cout
-            << "Convergence test of TSI:\n res, inc, str-res, thermo-res, dis, temp with 'AND'."
-            << std::endl;
+            << "Convergence test of TSI:\n res, inc, str-res, thermo-res, dis, temp with 'AND'.\n";
       break;
     }
     case TSI::bop_coupl_or_single:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-        std::cout << "Convergence test of TSI:\n (res, inc) or (str-res, thermo-res, dis, temp)."
-                  << std::endl;
+        std::cout << "Convergence test of TSI:\n (res, inc) or (str-res, thermo-res, dis, temp).\n";
       break;
     }
     case TSI::bop_and_single:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-        std::cout << "Convergence test of TSI:\n str-res, thermo-res, dis, temp with 'AND'."
-                  << std::endl;
+        std::cout << "Convergence test of TSI:\n str-res, thermo-res, dis, temp with 'AND'.\n";
       break;
     }
     case TSI::bop_or_single:
     {
       if (Core::Communication::my_mpi_rank(get_comm()) == 0)
-        std::cout << "Convergence test of TSI:\n str-res, thermo-res, dis, temp with 'OR'."
-                  << std::endl;
+        std::cout << "Convergence test of TSI:\n str-res, thermo-res, dis, temp with 'OR'.\n";
       break;
     }
     default:
@@ -2288,10 +2205,16 @@ void TSI::Monolithic::set_default_parameters()
   normtempi_ = 0.0;
   normthrrhs_ = 0.0;
   normthrrhsiter0_ = 0.0;
-
-  return;
-
 }  // SetDefaultParameter()
+
+void TSI::Monolithic::update()
+{
+  apply_thermo_coupling_state(thermo_field()->tempnp());
+  structure_field()->update();
+  thermo_field()->update();
+  if (contact_strategy_lagrange_ != nullptr)
+    contact_strategy_lagrange_->update((structure_field()->dispnp()));
+}
 
 /*----------------------------------------------------------------------*
  |                                                                      |
@@ -2307,36 +2230,6 @@ void TSI::Monolithic::prepare_output()
   // reset states
   structure_field()->discretization()->clear_state(true);
 }
-
-/*----------------------------------------------------------------------*
- |                                                                      |
- *----------------------------------------------------------------------*/
-void TSI::Monolithic::prepare_contact_strategy() { TSI::Algorithm::prepare_contact_strategy(); }
-
-/*----------------------------------------------------------------------*
- |                                                                      |
- *----------------------------------------------------------------------*/
-void TSI::Monolithic::apply_struct_coupling_state(
-    std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
-    std::shared_ptr<const Core::LinAlg::Vector<double>> vel)
-{
-  if (matchinggrid_)
-  {
-    if (disp != nullptr) thermo_field()->discretization()->set_state(1, "displacement", *disp);
-    if (vel != nullptr) thermo_field()->discretization()->set_state(1, "velocity", *vel);
-  }
-  else
-  {
-    if (disp != nullptr)
-      thermo_field()->discretization()->set_state(
-          1, "displacement", *volcoupl_->apply_vector_mapping21(*disp));
-    if (vel != nullptr)
-      thermo_field()->discretization()->set_state(
-          1, "velocity", *volcoupl_->apply_vector_mapping21(*vel));
-  }
-}  // apply_struct_coupling_state()
-
-
 
 /*----------------------------------------------------------------------*
  |                                                                      |
