@@ -38,14 +38,10 @@ namespace TSI
   //!  the order in which the filters handle the Discretizations, which in turn
   //!  defines the dof number ordering of the Discretizations... Don't get
   //!  confused. Just always list structure, thermo. In that order.
-  class Partitioned : public Algorithm
+  class Partitioned final : public Algorithm
   {
    public:
     explicit Partitioned(MPI_Comm comm);
-
-
-    //! outer level time loop (to be implemented by deriving classes)
-    void time_loop() override;
 
     //! non-linear solve, i.e. (multiple) corrector
     void solve() override;
@@ -78,11 +74,6 @@ namespace TSI
 
     //! take current results for converged and save for next time step
     void update() override;
-    //@}
-
-    void prepare_contact_strategy() override;
-
-    //! @name Solve
 
     //! solve temperature equations for current time step
     void do_thermo_step();

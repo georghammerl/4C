@@ -93,7 +93,6 @@ void TSI::Utils::ThermoStructureCloneStrategy::set_element_data(
   {
     FOUR_C_THROW("unsupported element type '{}'", Core::Utils::get_dynamic_type_name(*newele));
   }
-  return;
 }  // set_element_data()
 
 
@@ -104,7 +103,7 @@ bool TSI::Utils::ThermoStructureCloneStrategy::determine_ele_type(
     Core::Elements::Element* actele, const bool ismyele, std::vector<std::string>& eletype)
 {
   // we only support thermo elements here
-  eletype.push_back("THERMO");
+  eletype.emplace_back("THERMO");
 
   return true;  // yes, we copy EVERY element (no submeshes)
 }  // determine_ele_type()
@@ -144,9 +143,11 @@ void TSI::Utils::setup_tsi(MPI_Comm comm)
   if (thermdis->num_global_nodes() == 0)
   {
     if (!matchinggrid)
+    {
       FOUR_C_THROW(
           "MATCHINGGRID is set to 'no' in TSI DYNAMIC section, but thermo discretization is "
           "empty!");
+    }
 
     Core::FE::clone_discretization<TSI::Utils::ThermoStructureCloneStrategy>(
         *structdis, *thermdis, Global::Problem::instance()->cloning_material_map());
@@ -192,9 +193,11 @@ void TSI::Utils::setup_tsi(MPI_Comm comm)
   else
   {
     if (matchinggrid)
+    {
       FOUR_C_THROW(
           "MATCHINGGRID is set to 'yes' in TSI DYNAMIC section, but thermo discretization is not "
           "empty!");
+    }
 
     // first call fill_complete for single discretizations.
     // This way the physical dofs are numbered successively
@@ -268,9 +271,6 @@ void TSI::Utils::TSIMaterialStrategy::assign_material2_to1(
   // call default assignment
   Coupling::VolMortar::Utils::DefaultMaterialStrategy::assign_material2_to1(
       volmortar, ele1, ids_2, dis1, dis2);
-
-  // done
-  return;
 };
 
 
@@ -331,9 +331,6 @@ void TSI::Utils::TSIMaterialStrategy::assign_material1_to2(
   {
     therm->set_kinematic_type(kintype);  // set kintype in cloned thermal element
   }
-
-  // done
-  return;
 }
 
 
@@ -344,7 +341,7 @@ void TSI::Utils::TSIMaterialStrategy::assign_material1_to2(
 void TSI::printlogo()
 {
   // more at http://www.ascii-art.de under entry "rockets"
-  std::cout << "Welcome to Thermo-Structure-Interaction " << std::endl;
+  std::cout << "Welcome to Thermo-Structure-Interaction \n";
   std::cout << "         !\n"
             << "         !\n"
             << "         ^\n"
@@ -373,8 +370,7 @@ void TSI::printlogo()
             << "         .\n"
             << "         .\n"
             << "         .\n"
-            << "\n"
-            << std::endl;
+            << "\n\n";
 }  // printlogo()
 
 

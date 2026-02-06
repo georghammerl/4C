@@ -76,8 +76,8 @@ namespace TSI
     explicit Algorithm(MPI_Comm comm);
 
 
-    //! outer level time loop (to be implemented by deriving classes)
-    virtual void time_loop() = 0;
+    //! outer level time loop
+    void time_loop();
 
     /// initialise TSI system
     virtual void setup_system() = 0;
@@ -112,10 +112,10 @@ namespace TSI
     virtual void prepare_output() = 0;
 
     //! take current results for converged and save for next time step
-    void update() override;
+    void update() override = 0;
 
     //! write output
-    virtual void output(bool forced_writerestart = false);
+    void output(bool forced_writerestart = false);
 
     //! communicate displacement vector to thermal field to enable their
     //! visualisation on the deformed body
@@ -127,18 +127,16 @@ namespace TSI
     //! @name Transfer methods
 
     //! apply temperature state on structure discretization
-    virtual void apply_thermo_coupling_state(
-        std::shared_ptr<const Core::LinAlg::Vector<double>> temp,
+    void apply_thermo_coupling_state(std::shared_ptr<const Core::LinAlg::Vector<double>> temp,
         std::shared_ptr<const Core::LinAlg::Vector<double>> temp_res = nullptr);
 
     //! apply structural displacements and velocities on thermo discretization
-    virtual void apply_struct_coupling_state(
-        std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
+    void apply_struct_coupling_state(std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
         std::shared_ptr<const Core::LinAlg::Vector<double>> vel);
 
     //! Prepare a ptr to the contact strategy from the structural field,
     //! store it in tsi and hand it to the thermal field
-    virtual void prepare_contact_strategy();
+    void prepare_contact_strategy();
 
     //! Access to the dof coupling for matching grid TSI
     Coupling::Adapter::Coupling& structure_thermo_coupling() { return *coupST_; }

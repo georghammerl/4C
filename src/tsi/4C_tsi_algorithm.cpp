@@ -10,7 +10,6 @@
 #include "4C_adapter_str_factory.hpp"
 #include "4C_adapter_str_structure_new.hpp"
 #include "4C_adapter_str_wrapper.hpp"
-#include "4C_contact_lagrange_strategy.hpp"
 #include "4C_contact_lagrange_strategy_tsi.hpp"
 #include "4C_contact_meshtying_contact_bridge.hpp"
 #include "4C_contact_strategy_factory.hpp"
@@ -22,8 +21,6 @@
 #include "4C_global_data.hpp"
 #include "4C_io.hpp"
 #include "4C_mortar_multifield_coupling.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_structure_new_model_evaluator_structure.hpp"
 #include "4C_thermo_adapter.hpp"
 #include "4C_tsi_input.hpp"
 #include "4C_tsi_utils.hpp"
@@ -169,25 +166,7 @@ TSI::Algorithm::Algorithm(MPI_Comm comm)
   // reset states
   structure_field()->discretization()->clear_state(true);
   thermo_field()->discretization()->clear_state(true);
-
-  return;
 }
-
-
-
-/*----------------------------------------------------------------------*
- | update (protected)                                        dano 12/09 |
- *----------------------------------------------------------------------*/
-void TSI::Algorithm::update()
-{
-  apply_thermo_coupling_state(thermo_field()->tempnp());
-  structure_field()->update();
-  thermo_field()->update();
-  if (contact_strategy_lagrange_ != nullptr)
-    contact_strategy_lagrange_->update((structure_field()->dispnp()));
-  return;
-}
-
 
 /*----------------------------------------------------------------------*
  | output (protected)                                        dano 12/09 |
@@ -315,6 +294,29 @@ void TSI::Algorithm::output(bool forced_writerestart)
   thermo_field()->discretization()->clear_state(true);
 }  // output()
 
+void TSI::Algorithm::time_loop()
+{
+  // time loop
+  while (not_finished())
+  {
+    // increment step, print header and apply coupling (only monolithic scheme)
+    prepare_time_step();
+
+    // integrate time step
+    solve();
+
+    // calculate stresses, strains, energies
+    prepare_output();
+
+    // update all single field solvers
+    update();
+
+    // write output to screen and files
+    output();
+
+  }  // not_finished
+}
+
 
 /*----------------------------------------------------------------------*
  | communicate the displacement vector to Thermo field          dano 12/11 |
@@ -364,9 +366,6 @@ void TSI::Algorithm::output_deformation_in_thermo(
     }
 
   }  // for lnodid
-
-  return;
-
 }  // output_deformation_in_thermo()
 
 
@@ -450,9 +449,11 @@ void TSI::Algorithm::prepare_contact_strategy()
   if (stype == CONTACT::SolvingStrategy::lagmult)
   {
     if (structure_field()->have_model(Inpar::Solid::model_contact))
+    {
       FOUR_C_THROW(
           "structure should not have a Lagrange strategy ... as long as condensed"
           "contact formulations are not moved to the new structural time integration");
+    }
 
     std::vector<const Core::Conditions::Condition*> ccond;
     structure_field()->discretization()->get_condition("Contact", ccond);
