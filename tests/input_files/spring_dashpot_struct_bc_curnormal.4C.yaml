@@ -1,11 +1,15 @@
 TITLE:
-  - "spring_dashpot_current_normal"
+  - "Test spring dashpot conditions with option cursurfnormal"
+  - "6 cubes meshed with 1 HEX8, 1 HEX20, 1 HEX27, 12 TET4, 12 TET10 and 64 HEX8 elements respectively"
+  - "Each cube is connected to a plate of BELE3_3 elements with spring dashpot boundary conditions"
+  - "The first two cubes elements apply stiffness = 0 and viscosity = 5, the last 4 cubes apply a stiffness
+    = 2 and viscosity = 0"
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
 SOLVER 1:
   SOLVER: "UMFPACK"
 STRUCTURAL DYNAMIC:
-  INT_STRATEGY: Old
+  INT_STRATEGY: Standard
   RESTARTEVERY: 2
   TIMESTEP: 0.5
   NUMSTEP: 2

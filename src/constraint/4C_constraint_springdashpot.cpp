@@ -23,13 +23,11 @@
 #include "4C_io_pstream.hpp"
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_utils_sparse_algebra_assemble.hpp"
-#include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_shell7p_ele.hpp"
 #include "4C_shell7p_ele_scatra.hpp"
 #include "4C_shell7p_line.hpp"
 #include "4C_truss3.hpp"
-#include "4C_utils_enum.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_utils_function.hpp"
 #include "4C_utils_function_of_time.hpp"
@@ -450,15 +448,12 @@ namespace
   }
 }  // namespace
 
-/*----------------------------------------------------------------------*
- |                                                         pfaller Apr15|
- *----------------------------------------------------------------------*/
+
 Constraints::SpringDashpot::SpringDashpot(
     std::shared_ptr<Core::FE::Discretization> dis, const Core::Conditions::Condition& cond)
     : actdisc_(std::move(dis)),
       spring_(&cond),
-      stiff_tens_((spring_->parameters().get<std::vector<double>>("STIFF"))[0]),
-      stiff_comp_((spring_->parameters().get<std::vector<double>>("STIFF"))[0]),
+      stiff_((spring_->parameters().get<std::vector<double>>("STIFF"))[0]),
       offset_((spring_->parameters().get<std::vector<double>>("DISPLOFFSET"))[0]),
       viscosity_((spring_->parameters().get<std::vector<double>>("VISCO"))[0]),
       coupling_(spring_->parameters().get<std::optional<int>>("COUPLING").value_or(-1)),
@@ -477,7 +472,7 @@ Constraints::SpringDashpot::SpringDashpot(
   offset_prestr_new_->put_scalar(0.0);
 
   // set type of this spring
-  set_spring_type();
+  springtype_ = spring_->parameters().get<RobinSpringDashpotType>("DIRECTION");
 
   if (springtype_ != RobinSpringDashpotType::cursurfnormal && coupling_ >= 0)
   {
@@ -560,7 +555,9 @@ void Constraints::SpringDashpot::evaluate_robin(std::shared_ptr<Core::LinAlg::Sp
 
   // time-integration factor for stiffness contribution of dashpot, d(v_{n+1})/d(d_{n+1})
   const double time_fac = p.get("time_fac", 0.0);
-  const double total_time = p.get("total time", 0.0);
+
+  const double total_time = p.get("total time", -1.0);
+  if (total_time < 0) FOUR_C_THROW("No valid 'total time' given for spring-dashpot condition!");
 
   std::vector<bool> onoff_bool(onoff.size(), true);
   std::transform(onoff.begin(), onoff.end(), onoff_bool.begin(), [](int i) { return i == 1; });
@@ -861,16 +858,13 @@ void Constraints::SpringDashpot::evaluate_robin(std::shared_ptr<Core::LinAlg::Sp
 
 
 // old version, NOT consistently integrated over element surface!!
-/*----------------------------------------------------------------------*
- |                                                         pfaller Mar16|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::evaluate_force(Core::LinAlg::Vector<double>& fint,
     const std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
     const Core::LinAlg::Vector<double>& vel, const Teuchos::ParameterList& p)
 {
   if (disp == nullptr) FOUR_C_THROW("Cannot find displacement state in discretization");
 
-  if (springtype_ == RobinSpringDashpotType::cursurfnormal) get_cur_normals(disp, p);
+  get_cur_normals(disp, p);
 
   // loop nodes of current condition
   for (int node_gid : *nodes_)
@@ -893,9 +887,8 @@ void Constraints::SpringDashpot::evaluate_force(Core::LinAlg::Vector<double>& fi
       std::vector<int> dofs = actdisc_->dof(0, node);
 
       // initialize
-      double gap = 0.;          // displacement
-      double gapdt = 0.;        // velocity
-      double springstiff = 0.;  // spring stiffness
+      double gap = 0.;    // displacement
+      double gapdt = 0.;  // velocity
 
       // calculation of normals and displacements differs for each spring variant
       switch (springtype_)
@@ -946,24 +939,21 @@ void Constraints::SpringDashpot::evaluate_force(Core::LinAlg::Vector<double>& fi
 
           // spring displacement
           gap = gap_[gid];
-          //        gapdt = gapdt_[gid]; // unused ?!?
-
-          // select spring stiffnes
-          springstiff = select_stiffness(gap);
+          gapdt = gapdt_[node_gid];
 
           // assemble into residual vector
           std::vector<double> out_vec(numdof, 0.);
           for (int k = 0; k < numdof; ++k)
           {
             // force
-            const double val =
-                -nodalarea *
-                (springstiff * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) * normal[k];
+            const double val = -nodalarea *
+                               (stiff_ * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) *
+                               normal[k];
             fint.sum_into_global_values(1, &val, &dofs[k]);
 
             // store spring stress for output
             out_vec[k] =
-                (springstiff * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) * normal[k];
+                (stiff_ * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) * normal[k];
           }
           // add to output
           springstress_.insert(std::pair<int, std::vector<double>>(gid, out_vec));
@@ -975,9 +965,6 @@ void Constraints::SpringDashpot::evaluate_force(Core::LinAlg::Vector<double>& fi
 
 
 // old version, NOT consistently integrated over element surface!!
-/*----------------------------------------------------------------------*
- |                                                         pfaller mar16|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix& stiff,
     Core::LinAlg::Vector<double>& fint,
     const std::shared_ptr<const Core::LinAlg::Vector<double>> disp,
@@ -992,7 +979,8 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
   }
 
   // time-integration factor for stiffness contribution of dashpot, d(v_{n+1})/d(d_{n+1})
-  const double dt = p.get("dt", 1.0);
+  const double dt = p.get("dt", -1.0);
+  if (dt < 0) FOUR_C_THROW("No valid time step 'dt' given for spring-dashpot condition!");
 
   // loop nodes of current condition
   for (int node_gid : *nodes_)
@@ -1015,9 +1003,8 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
       std::vector<int> dofs = actdisc_->dof(0, node);
 
       // initialize
-      double gap = 0.;          // displacement
-      double gapdt = 0.;        // velocity
-      double springstiff = 0.;  // spring stiffness
+      double gap = 0.;    // displacement
+      double gapdt = 0.;  // velocity
 
       // calculation of normals and displacements differs for each spring variant
       switch (springtype_)
@@ -1070,17 +1057,14 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
           gap = gap_[node_gid];
           gapdt = gapdt_[node_gid];
 
-          // select spring stiffnes
-          springstiff = select_stiffness(gap);
-
           // assemble into residual vector and stiffness matrix
           std::vector<double> out_vec(numdof, 0.);
           for (int k = 0; k < numdof; ++k)
           {
             // force
-            const double val =
-                -nodalarea *
-                (springstiff * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) * normal[k];
+            const double val = -nodalarea *
+                               (stiff_ * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) *
+                               normal[k];
             fint.sum_into_global_values(1, &val, &dofs[k]);
 
             // stiffness
@@ -1094,7 +1078,7 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
               for (auto& i : dgap)
               {
                 const double dval =
-                    -nodalarea * (springstiff * i.second + viscosity_ * i.second / dt) * normal[k];
+                    -nodalarea * (stiff_ * i.second + viscosity_ * i.second / dt) * normal[k];
                 stiff.assemble(dval, dofs[k], i.first);
               }
 
@@ -1102,8 +1086,7 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
               for (auto& i : dnormal[k])
               {
                 const double dval =
-                    -nodalarea *
-                    (springstiff * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) *
+                    -nodalarea * (stiff_ * (gap - offsetprestr[k] - offset_) + viscosity_ * gapdt) *
                     i.second;
                 stiff.assemble(dval, dofs[k], i.first);
               }
@@ -1122,9 +1105,6 @@ void Constraints::SpringDashpot::evaluate_force_stiff(Core::LinAlg::SparseMatrix
     stiff.complete();  // sparsity pattern might have changed
 }
 
-/*----------------------------------------------------------------------*
- |                                                         pfaller Mar16|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::reset_newton()
 {
   // all springs
@@ -1141,9 +1121,6 @@ void Constraints::SpringDashpot::reset_newton()
   }
 }
 
-/*----------------------------------------------------------------------*
- |                                                             mhv 12/15|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::reset_prestress(const Core::LinAlg::Vector<double>& dis)
 {
   // this should be sufficient, no need to loop over nodes anymore
@@ -1173,17 +1150,11 @@ void Constraints::SpringDashpot::reset_prestress(const Core::LinAlg::Vector<doub
   }
 }
 
-/*----------------------------------------------------------------------*
- |                                                             mhv 12/15|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::set_restart(Core::LinAlg::Vector<double>& vec)
 {
   offset_prestr_new_->update(1.0, vec, 0.0);
 }
 
-/*----------------------------------------------------------------------*
- |                                                             mhv 12/15|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::set_restart_old(Core::LinAlg::MultiVector<double>& vec)
 {
   // loop nodes of current condition
@@ -1223,9 +1194,6 @@ void Constraints::SpringDashpot::set_restart_old(Core::LinAlg::MultiVector<doubl
   }  // loop over nodes
 }
 
-/*----------------------------------------------------------------------*
- |                                                         pfaller Jan14|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::output_gap_normal(Core::LinAlg::Vector<double>& gap,
     Core::LinAlg::MultiVector<double>& normals, Core::LinAlg::MultiVector<double>& stress) const
 {
@@ -1269,18 +1237,12 @@ void Constraints::SpringDashpot::output_gap_normal(Core::LinAlg::Vector<double>&
   }
 }
 
-/*----------------------------------------------------------------------*
- |                                                             mhv Dec15|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::output_prestr_offset(
     Core::LinAlg::Vector<double>& springprestroffset) const
 {
   springprestroffset.update(1.0, *offset_prestr_new_, 0.0);
 }
 
-/*----------------------------------------------------------------------*
- |                                                             mhv Dec15|
- *----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::output_prestr_offset_old(
     Core::LinAlg::MultiVector<double>& springprestroffset) const
 {
@@ -1300,9 +1262,6 @@ void Constraints::SpringDashpot::output_prestr_offset_old(
   }
 }
 
-/*-----------------------------------------------------------------------*
-|(private)                                                  pfaller Apr15|
- *-----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::initialize_cur_surf_normal()
 {
   // create MORTAR interface
@@ -1329,9 +1288,6 @@ void Constraints::SpringDashpot::initialize_cur_surf_normal()
 
 // ToDo: this function should vanish completely
 // obsolete when using new EvaluateRobin function!
-/*-----------------------------------------------------------------------*
-|(private) adapted from mhv 01/14                           pfaller Apr15|
- *-----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::get_area(
     const std::map<int, std::shared_ptr<Core::Elements::Element>>& geom)
 {
@@ -1458,9 +1414,6 @@ void Constraints::SpringDashpot::get_area(
 }
 
 
-/*-----------------------------------------------------------------------*
-|(private)                                                    mhv 12/2015|
- *-----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::initialize_prestr_offset()
 {
   offset_prestr_.clear();
@@ -1486,14 +1439,12 @@ void Constraints::SpringDashpot::initialize_prestr_offset()
 }
 
 
-/*-----------------------------------------------------------------------*
-|(private)                                                  pfaller Apr15|
- *-----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::get_cur_normals(
     const std::shared_ptr<const Core::LinAlg::Vector<double>>& disp, Teuchos::ParameterList p)
 {
   // get current time step size
-  const double dt = p.get("dt", 1.0);
+  const double dt = p.get("dt", -1.0);
+  if (dt < 0) FOUR_C_THROW("No valid time step 'dt' given for spring-dashpot condition!");
 
   // temp nodal gap
   std::map<int, double> tmpgap;
@@ -1515,17 +1466,7 @@ void Constraints::SpringDashpot::get_cur_normals(
   }
 }
 
-/*-----------------------------------------------------------------------*
-|(private)                                                  pfaller Apr15|
- *-----------------------------------------------------------------------*/
-void Constraints::SpringDashpot::set_spring_type()
-{
-  // get spring direction from condition
-  springtype_ = spring_->parameters().get<RobinSpringDashpotType>("DIRECTION");
-}
 
-/*-----------------------------------------------------------------------*
- *-----------------------------------------------------------------------*/
 void Constraints::SpringDashpot::update()
 {
   // store current time step

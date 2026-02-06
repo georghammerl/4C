@@ -603,7 +603,6 @@ namespace Inpar
       using namespace Core::IO::InputSpecBuilders;
 
       /*--------------------------------------------------------------------*/
-
       // structural Robin spring dashpot boundary condition (spring and dashpot in parallel)
 
       Core::Conditions::ConditionDefinition robinspringdashpotsurf(
@@ -654,7 +653,6 @@ namespace Inpar
 
       /*--------------------------------------------------------------------*/
       // surface coupling for spring dashpot DIRECTION cursurfnormal
-      // pfaller Apr15
 
       Core::Conditions::ConditionDefinition springdashpotcoupcond(
           "DESIGN SURF ROBIN SPRING DASHPOT COUPLING CONDITIONS", "RobinSpringDashpotCoupling",
