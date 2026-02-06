@@ -210,7 +210,8 @@ Adapter::ScaTraBaseAlgorithm::ScaTraBaseAlgorithm(const Teuchos::ParameterList& 
     {
       case Inpar::ScaTra::timeint_one_step_theta:
       {
-        if (elchparams->sublist("SCL").get<bool>("ADD_MICRO_MACRO_COUPLING"))
+        if (elchparams->isSublist("SCL") and
+            elchparams->sublist("SCL").get<bool>("ADD_MICRO_MACRO_COUPLING"))
         {
           if (disname == "scatra")
           {

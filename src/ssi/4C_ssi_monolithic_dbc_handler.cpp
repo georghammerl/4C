@@ -195,7 +195,7 @@ std::shared_ptr<SSI::DBCHandlerBase> SSI::build_dbc_handler(const bool is_scatra
 
   switch (matrixtype_ssi)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       dbc_handler = std::make_shared<SSI::DBCHandlerBlock>(
           is_scatra_manifold, scatra, scatra_manifold, ssi_maps, structure);

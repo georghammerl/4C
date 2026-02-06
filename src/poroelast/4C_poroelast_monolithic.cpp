@@ -479,7 +479,7 @@ void PoroElast::Monolithic::setup_equilibration()
   auto equilibration_method =
       std::vector<Core::LinAlg::EquilibrationMethod>(1, equilibration_method_);
   equilibration_ = Core::LinAlg::build_equilibration(
-      Core::LinAlg::MatrixType::block_field, equilibration_method, fullmap_);
+      Core::LinAlg::MatrixType::block, equilibration_method, fullmap_);
 }
 
 void PoroElast::Monolithic::setup_system_matrix(Core::LinAlg::BlockSparseMatrixBase& mat)

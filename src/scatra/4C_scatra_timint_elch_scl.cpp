@@ -45,7 +45,7 @@ ScaTra::ScaTraTimIntElchSCL::ScaTraTimIntElchSCL(std::shared_ptr<Core::FE::Discr
           Teuchos::getIntegralValue<Core::LinAlg::MatrixType>(params->sublist("SCL"), "MATRIXTYPE"))
 {
   if (matrixtype_elch_scl_ != Core::LinAlg::MatrixType::sparse and
-      matrixtype_elch_scl_ != Core::LinAlg::MatrixType::block_field)
+      matrixtype_elch_scl_ != Core::LinAlg::MatrixType::block)
     FOUR_C_THROW("Only sparse and block field matrices supported in SCL computations");
 
   if (elchparams_->get<bool>("INITPOTCALC"))
@@ -114,12 +114,11 @@ void ScaTra::ScaTraTimIntElchSCL::setup()
     case Core::LinAlg::MatrixType::sparse:
       block_map_vec_scl = {full_map_elch_scl_};
       break;
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
       block_map_vec_scl = {dof_row_map(), micro_scatra_field()->dof_row_map()};
       break;
     default:
       FOUR_C_THROW("Matrix type not supported.");
-      break;
   }
   full_block_map_elch_scl_ =
       std::make_shared<Core::LinAlg::MultiMapExtractor>(*full_map_elch_scl_, block_map_vec_scl);
@@ -140,7 +139,7 @@ void ScaTra::ScaTraTimIntElchSCL::setup()
           *full_map_elch_scl_, expected_entries_per_row, explicitdirichlet, savegraph);
       break;
     }
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       const int expected_entries_per_row = 81;
       const bool explicitdirichlet = false;
@@ -154,7 +153,6 @@ void ScaTra::ScaTraTimIntElchSCL::setup()
     }
     default:
       FOUR_C_THROW("Matrix type not supported.");
-      break;
   }
 
   // extractor to get micro or macro dofs from global vector
@@ -175,7 +173,7 @@ void ScaTra::ScaTraTimIntElchSCL::setup()
   {
     case Core::LinAlg::MatrixType::sparse:
       break;
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       std::ostringstream scatrablockstr;
       scatrablockstr << 1;
@@ -960,7 +958,7 @@ void ScaTra::ScaTraTimIntElchSCL::assemble_and_apply_mesh_tying()
           &(micro_side_converter), &(micro_side_converter), *sparse_systemmatrix, true, true);
       break;
     }
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       auto block_systemmatrix =
           Core::LinAlg::cast_to_block_sparse_matrix_base_and_check_success(system_matrix_elch_scl_);

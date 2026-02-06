@@ -250,7 +250,7 @@ SSTI::SSTIMatrices::SSTIMatrices(std::shared_ptr<SSTI::SSTIMapsMono> ssti_maps_m
   // perform initializations associated with global system matrix
   switch (matrixtype_global)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       systemmatrix_ = setup_block_matrix(
           *ssti_maps_mono->block_map_system_matrix(), *ssti_maps_mono->block_map_system_matrix());

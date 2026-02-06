@@ -164,10 +164,8 @@ std::vector<Core::IO::InputSpec> ElCh::valid_parameters()
   /*----------------------------------------------------------------------*/
   // sublist for space-charge layers
   specs.push_back(group("ELCH CONTROL/SCL",
-      {
-
-          parameter<bool>("ADD_MICRO_MACRO_COUPLING",
-              {.description = "flag for micro macro coupling with scls", .default_value = false}),
+      {parameter<bool>("ADD_MICRO_MACRO_COUPLING",
+           {.description = "flag for micro macro coupling with scls", .default_value = false}),
           parameter<bool>("COUPLING_OUTPUT",
               {.description = "write coupled node gids and node coordinates to csv file",
                   .default_value = false}),
@@ -175,14 +173,8 @@ std::vector<Core::IO::InputSpec> ElCh::valid_parameters()
               {.description = "calculate initial potential field?", .default_value = false}),
           parameter<int>(
               "SOLVER", {.description = "solver for coupled SCL problem", .default_value = -1}),
-          deprecated_selection<Core::LinAlg::MatrixType>("MATRIXTYPE",
-              {
-                  {"undefined", Core::LinAlg::MatrixType::undefined},
-                  {"block", Core::LinAlg::MatrixType::block_field},
-                  {"sparse", Core::LinAlg::MatrixType::sparse},
-              },
-              {.description = "type of global system matrix in global system of equations",
-                  .default_value = Core::LinAlg::MatrixType::undefined}),
+          parameter<Core::LinAlg::MatrixType>("MATRIXTYPE",
+              {.description = "type of global system matrix in global system of equations"}),
           parameter<int>(
               "ADAPT_TIME_STEP", {.description = "time step when time step size should be updated "
                                                  "to 'ADAPTED_TIME_STEP_SIZE'.",

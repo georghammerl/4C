@@ -31,9 +31,8 @@ namespace Core::LinAlg
   //! type of global system matrix in global system of equations
   enum class MatrixType
   {
-    undefined,           /*!< Type of system matrix is undefined. */
     sparse,              /*!< System matrix is a sparse matrix. */
-    block_field,         /*!< System matrix is a block matrix that consists of NxN matrices.
+    block,               /*!< System matrix is a block matrix that consists of NxN matrices.
                             In the simplest case, where each (physical) field is represented by just one
                             sparse matrix, N equals the number of (physical) fields of your problem.
                             However, it is also possible that the matrix of each (physical) field itself is

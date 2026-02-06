@@ -372,7 +372,7 @@ namespace SSI
       const Core::LinAlg::MatrixType scatra_matrixtype_;
 
       //! matrix type of scatra manifold matrix
-      const Core::LinAlg::MatrixType scatra_manifold_matrixtype_;
+      std::optional<Core::LinAlg::MatrixType> scatra_manifold_matrixtype_{std::nullopt};
 
       //! matrix type of ssi matrix
       const Core::LinAlg::MatrixType ssi_matrixtype_;

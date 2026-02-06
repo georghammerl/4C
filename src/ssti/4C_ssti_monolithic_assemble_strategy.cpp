@@ -1348,7 +1348,7 @@ std::shared_ptr<SSTI::AssembleStrategyBase> SSTI::build_assemble_strategy(
 
   switch (matrixtype_ssti)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       switch (matrixtype_scatra)
       {
