@@ -1043,8 +1043,7 @@ void STI::Monolithic::assemble_mat_and_rhs()
           FOUR_C_THROW("Invalid matrix type associated with scalar transport field!");
           break;
         }
-        case Core::LinAlg::MatrixType::undefined:
-        case Core::LinAlg::MatrixType::block_field:
+        case Core::LinAlg::MatrixType::block:
         case Core::LinAlg::MatrixType::block_condition_dof:
           break;
       }

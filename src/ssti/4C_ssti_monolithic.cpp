@@ -331,7 +331,7 @@ void SSTI::SSTIMono::setup_system()
   residual_ = std::make_shared<Core::LinAlg::Vector<double>>(
       *ssti_maps_mono_->maps_sub_problems()->full_map(), true);
 
-  if (matrixtype_ == Core::LinAlg::MatrixType::block_field)
+  if (matrixtype_ == Core::LinAlg::MatrixType::block)
   {
     // safety check
     const bool allowed_block_system_solvers = solver_->params().isSublist("Teko Parameters") or
@@ -701,7 +701,7 @@ std::vector<Core::LinAlg::EquilibrationMethod> SSTI::SSTIMono::get_block_equilib
           std::vector<Core::LinAlg::EquilibrationMethod>(1, equilibration_method_.global);
       break;
     }
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       if (equilibration_method_.global != Core::LinAlg::EquilibrationMethod::local)
       {

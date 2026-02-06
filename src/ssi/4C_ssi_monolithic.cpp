@@ -716,7 +716,7 @@ void SSI::SsiMono::setup_system()
   // perform initializations associated with global system matrix
   switch (matrixtype_)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       // feed block preconditioner with null space information for each block of global block system
       // matrix
@@ -1019,7 +1019,7 @@ std::vector<Core::LinAlg::EquilibrationMethod> SSI::SsiMono::get_block_equilibra
       equilibration_method_vector = std::vector(1, equilibration_method_.global);
       break;
     }
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       if (equilibration_method_.global != Core::LinAlg::EquilibrationMethod::local)
       {
@@ -1388,7 +1388,7 @@ void SSI::SsiMono::calc_initial_time_derivative()
   // assemble global mass matrix from
   switch (matrix_type())
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       switch (scatra_field()->matrix_type())
       {
@@ -1596,7 +1596,7 @@ void SSI::SsiMono::print_system_matrix_rhs_to_mat_lab_format() const
   // print system matrix
   switch (matrixtype_)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       auto block_matrix =
           cast_to_const_block_sparse_matrix_base_and_check_success(ssi_matrices_->system_matrix());

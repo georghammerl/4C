@@ -86,14 +86,8 @@ std::vector<Core::IO::InputSpec> SSTI::valid_parameters()
           parameter<int>(
               "LINEAR_SOLVER", {.description = "ID of linear solver for global system of equations",
                                    .default_value = -1}),
-          deprecated_selection<Core::LinAlg::MatrixType>("MATRIXTYPE",
-              {
-                  {"undefined", Core::LinAlg::MatrixType::undefined},
-                  {"block", Core::LinAlg::MatrixType::block_field},
-                  {"sparse", Core::LinAlg::MatrixType::sparse},
-              },
-              {.description = "type of global system matrix in global system of equations",
-                  .default_value = Core::LinAlg::MatrixType::undefined}),
+          parameter<Core::LinAlg::MatrixType>("MATRIXTYPE",
+              {.description = "type of global system matrix in global system of equations"}),
           parameter<Core::LinAlg::EquilibrationMethod>("EQUILIBRATION",
               {.description = "flag for equilibration of global system of equations",
                   .default_value = Core::LinAlg::EquilibrationMethod::none}),

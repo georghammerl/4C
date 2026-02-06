@@ -166,12 +166,8 @@ void PoroPressureBased::PorofluidElastScatraMonolithicAlgorithm::setup_system()
       81, true, true);
 
   // instantiate appropriate equilibration class
-  auto equilibration_method =
-      std::vector<Core::LinAlg::EquilibrationMethod>(1, equilibration_method_);
   equilibration_ = Core::LinAlg::build_equilibration(
-      Core::LinAlg::MatrixType::block_field, equilibration_method, fullmap_);
-
-  return;
+      Core::LinAlg::MatrixType::block, {equilibration_method_}, fullmap_);
 }
 
 /*----------------------------------------------------------------------*

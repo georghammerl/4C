@@ -527,7 +527,7 @@ std::shared_ptr<SSI::AssembleStrategyBase> SSI::build_assemble_strategy(
 
   switch (matrixtype_ssi)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       switch (matrixtype_scatra)
       {

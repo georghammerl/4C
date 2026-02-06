@@ -476,7 +476,7 @@ std::shared_ptr<Core::LinAlg::Equilibration> Core::LinAlg::build_equilibration(M
               std::make_shared<Core::LinAlg::EquilibrationSparse>(method_global, dofrowmap);
           break;
         }
-        case Core::LinAlg::MatrixType::block_field:
+        case Core::LinAlg::MatrixType::block:
         case Core::LinAlg::MatrixType::block_condition:
         case Core::LinAlg::MatrixType::block_condition_dof:
         {

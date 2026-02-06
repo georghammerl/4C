@@ -25,6 +25,7 @@
 
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 
+#include <optional>
 #include <utility>
 
 FOUR_C_NAMESPACE_OPEN
@@ -457,7 +458,7 @@ void SSI::Utils::SSIMatrices::initialize_system_matrix(
 {
   switch (ssi_matrixtype)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       system_matrix_ = setup_block_matrix(
           *ssi_maps.block_map_system_matrix(), *ssi_maps.block_map_system_matrix());
@@ -508,9 +509,6 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> SSI::Utils::SSIMatrices::setup_spars
  *----------------------------------------------------------------------*/
 SSI::Utils::SSIMaps::SSIMaps(const SsiMono& ssi_mono_algorithm)
     : scatra_matrixtype_(ssi_mono_algorithm.scatra_field()->matrix_type()),
-      scatra_manifold_matrixtype_(ssi_mono_algorithm.is_scatra_manifold()
-                                      ? ssi_mono_algorithm.scatra_manifold()->matrix_type()
-                                      : Core::LinAlg::MatrixType::undefined),
       ssi_matrixtype_(ssi_mono_algorithm.matrix_type())
 {
   std::vector<std::shared_ptr<const Core::LinAlg::Map>> partial_maps(
@@ -523,6 +521,7 @@ SSI::Utils::SSIMaps::SSIMaps(const SsiMono& ssi_mono_algorithm)
       std::make_shared<Core::LinAlg::Map>(*ssi_mono_algorithm.structure_field()->dof_row_map());
   if (ssi_mono_algorithm.is_scatra_manifold())
   {
+    scatra_manifold_matrixtype_ = ssi_mono_algorithm.scatra_manifold()->matrix_type();
     partial_maps[get_problem_position(Subproblem::manifold)] =
         std::make_shared<Core::LinAlg::Map>(*ssi_mono_algorithm.scatra_manifold()->dof_row_map());
     auto temp_map = merge_map(partial_maps[0], partial_maps[1], false);
@@ -539,7 +538,7 @@ SSI::Utils::SSIMaps::SSIMaps(const SsiMono& ssi_mono_algorithm)
 
   switch (ssi_matrixtype_)
   {
-    case Core::LinAlg::MatrixType::block_field:
+    case Core::LinAlg::MatrixType::block:
     {
       auto block_map_structure = std::make_shared<Core::LinAlg::MultiMapExtractor>(
           *ssi_mono_algorithm.structure_field()->discretization()->dof_row_map(),
@@ -649,7 +648,7 @@ std::vector<int> SSI::Utils::SSIMaps::get_block_positions(const Subproblem subpr
     }
     case Subproblem::manifold:
     {
-      if (scatra_manifold_matrixtype_ == Core::LinAlg::MatrixType::sparse)
+      if (scatra_manifold_matrixtype_.value() == Core::LinAlg::MatrixType::sparse)
         block_position.emplace_back(2);
       else
       {

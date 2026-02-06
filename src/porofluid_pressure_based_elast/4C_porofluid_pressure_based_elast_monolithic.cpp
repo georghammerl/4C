@@ -152,7 +152,7 @@ void PoroPressureBased::PorofluidElastMonolithicAlgorithm::setup_system()
   auto equilibration_method =
       std::vector<Core::LinAlg::EquilibrationMethod>(1, equilibration_method_);
   equilibration_ = Core::LinAlg::build_equilibration(
-      Core::LinAlg::MatrixType::block_field, equilibration_method, fullmap_);
+      Core::LinAlg::MatrixType::block, equilibration_method, fullmap_);
 
   // structure_field: check whether we have locsys BCs, i.e. inclined structural
   //  Dirichlet BC
