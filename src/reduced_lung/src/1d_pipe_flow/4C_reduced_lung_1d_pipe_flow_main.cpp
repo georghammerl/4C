@@ -27,6 +27,7 @@
 #include "4C_utils_function_of_time.hpp"
 
 #include <boost/graph/subgraph.hpp>
+#include <Teuchos_SerialDenseSolver.hpp>
 #include <Teuchos_StandardParameterEntryValidators.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -147,6 +148,275 @@ namespace ReducedLung1dPipeFlow
     u_condition = 0.5 * (W_in + characteristic_W_outgoing);
   }
 
+  void compute_residual(Teuchos::SerialDenseVector<int, double>& f, const int N_connected_nodes,
+      Teuchos::SerialDenseVector<int, double> x, const std::vector<double>& junction_normal,
+      const std::vector<double>& junction_ref_area_A0,
+      const std::vector<double>& junction_characteristic_out,
+      const std::vector<double>& junction_beta, const double density_rho)
+  {
+    // define vectors with primary variables at junction
+    std::vector<double> junction_velocity_u(N_connected_nodes);
+    std::vector<double> junction_area_A(N_connected_nodes);
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      junction_velocity_u[i] = x(i);
+      junction_area_A[i] = x(N_connected_nodes + i);
+    }
+
+    // initialize the residual
+    f.putScalar(0.0);
+
+    // fill the entities that have to do with forward characteristic speeds
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      f[i] = junction_velocity_u[i] +
+             junction_normal[i] * 4.0 * pow(junction_area_A[i], 0.25) *
+                 sqrt(0.5 * junction_beta[i] / density_rho) -
+             junction_characteristic_out[i];
+    }
+
+    // fill the entities that have to do with the mass conservation
+    f[N_connected_nodes] = 0.0;
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      f[N_connected_nodes] += junction_normal[i] * junction_area_A[i] * junction_velocity_u[i];
+    }
+
+    // fill the entities that have to do with the pressure conservation
+    // reference pressure
+    const double P0 = 0.5 * density_rho * pow(junction_velocity_u[0], 2) +
+                      junction_beta[0] * (sqrt(junction_area_A[0]) - sqrt(junction_ref_area_A0[0]));
+    for (int i = 1; i < N_connected_nodes; i++)
+    {
+      f[N_connected_nodes + i] =
+          P0 - (0.5 * density_rho * pow(junction_velocity_u[i], 2) +
+                   junction_beta[i] * (sqrt(junction_area_A[i]) - sqrt(junction_ref_area_A0[i])));
+    }
+  }
+
+  void compute_jacobian(Teuchos::SerialDenseMatrix<int, double>& jacobian,
+      const int N_connected_nodes, Teuchos::SerialDenseVector<int, double> x,
+      const std::vector<double>& junction_normal, const std::vector<double>& junction_beta,
+      const double density_rho)
+  {
+    std::vector<double> junction_velocity_u(N_connected_nodes);
+    std::vector<double> junction_area_A(N_connected_nodes);
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      junction_velocity_u[i] = x(i);
+      junction_area_A[i] = x(N_connected_nodes + i);
+    }
+    jacobian.putScalar(0.0);
+
+    // fill the entities that have to do with forward characteristic speeds
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      jacobian(i, i) = 1.0;
+      jacobian(i, i + N_connected_nodes) = junction_normal[i] * pow(junction_area_A[i], -0.75) *
+                                           sqrt(0.5 * junction_beta[i] / density_rho);
+    }
+
+    // fill the entities that have to do with the mass conservation
+    for (int i = 0; i < N_connected_nodes; i++)
+    {
+      jacobian(N_connected_nodes, i) = junction_normal[i] * junction_area_A[i];
+      jacobian(N_connected_nodes, N_connected_nodes + i) =
+          junction_normal[i] * junction_velocity_u[i];
+    }
+
+    // fill the entities that have to do with the pressure conservation
+    // reference pressure of first node in junction
+    const double P_u = density_rho * junction_velocity_u[0];
+    const double P_A = 0.5 * junction_beta[0] / (sqrt(junction_area_A[0]));
+    // pressure conservation
+    for (int i = 1; i < N_connected_nodes; i++)
+    {
+      jacobian(N_connected_nodes + i, 0) = P_u;
+      jacobian(N_connected_nodes + i, i) = -density_rho * junction_velocity_u[i];
+      jacobian(N_connected_nodes + i, N_connected_nodes) = P_A;
+      jacobian(N_connected_nodes + i, N_connected_nodes + i) =
+          -0.5 * junction_beta[i] / (sqrt(junction_area_A[i]));
+    }
+  }
+
+  void get_conditions_at_junctions(const double density_rho,
+      const Core::LinAlg::Vector<double>& characteristics_for_junction,
+      Core::LinAlg::Vector<double>& solution_for_junction,
+      const Core::LinAlg::Vector<double>& normals_for_junction,
+      const Core::LinAlg::Vector<double>& area0_for_junction,
+      const Core::LinAlg::Vector<double>& beta_for_junction,
+      const std::vector<JunctionInfo>& all_junctions, Core::LinAlg::Vector<double>& dof_update)
+  {
+    for (const auto& junction : all_junctions)
+    {
+      // Get number of connected nodes
+      const int N_connected_nodes = static_cast<int>(junction.node_ids.size());
+      // create vectors for node data
+      // the junction conditions are computed on every rank that participates in the junction
+      std::vector<double> junction_area_A(N_connected_nodes);
+      std::vector<double> junction_velocity_u(N_connected_nodes);
+      std::vector<double> junction_normal(N_connected_nodes);
+      std::vector<double> junction_beta(N_connected_nodes);
+      std::vector<double> junction_characteristic_out(N_connected_nodes);
+      std::vector<double> junction_ref_area_A0(N_connected_nodes);
+
+      for (int i = 0; i < N_connected_nodes; ++i)
+      {
+        int global_node_id = junction.node_ids[i];
+
+        // get local ID for solution
+        const int local_A_id = solution_for_junction.get_map().lid(global_node_id * 2);
+        const int local_u_id = solution_for_junction.get_map().lid(global_node_id * 2 + 1);
+        const int local_node_id = characteristics_for_junction.get_map().lid(global_node_id);
+
+        // get data from node
+        junction_area_A[i] = solution_for_junction.get_values()[local_A_id];
+        junction_velocity_u[i] = solution_for_junction.get_values()[local_u_id];
+        junction_characteristic_out[i] = characteristics_for_junction.get_values()[local_node_id];
+        junction_normal[i] = normals_for_junction.get_values()[local_node_id];
+
+        FOUR_C_ASSERT(junction_normal[i] == -1.0 || junction_normal[i] == 1.0,
+            "Junction normals need to be in/ outlet");
+
+        junction_ref_area_A0[i] = area0_for_junction.get_values()[local_node_id];
+        junction_beta[i] = beta_for_junction.get_values()[local_node_id];
+      }
+
+      /**************************************************************/
+      // Newton-Raphson-method
+
+      // first guess from old values
+      // x = [u_0 u_1 ... u_N A_0 A_1 ... A_N]^T
+      Teuchos::SerialDenseVector<int, double> x(2 * N_connected_nodes);
+      for (int i = 0; i < N_connected_nodes; ++i)
+      {
+        x(i) = junction_velocity_u[i];
+        x(N_connected_nodes + i) = junction_area_A[i];
+      }
+      // Weighted Root Mean Square (WRMS) Setup
+      constexpr double WRMS_TOL = 1.0;
+      Teuchos::SerialDenseVector<int, double> ATOL(2 * N_connected_nodes);
+      for (int i = 0; i < N_connected_nodes; ++i)
+      {
+        ATOL(i) = 1e-5;                      // for velocity (u)
+        ATOL(N_connected_nodes + i) = 1e-8;  // for area (A)
+      }
+
+      Teuchos::SerialDenseVector<int, double> w(2 * N_connected_nodes);
+      for (int i = 0; i < 2 * N_connected_nodes; ++i)
+      {
+        constexpr double RTOL = 1e-6;
+        w(i) = 1.0 / (RTOL * std::abs(x(i)) + ATOL(i));
+      }
+
+      // derive residual vector
+      Teuchos::SerialDenseVector<int, double> f(2 * N_connected_nodes);
+      compute_residual(f, N_connected_nodes, x, junction_normal, junction_ref_area_A0,
+          junction_characteristic_out, junction_beta, density_rho);
+
+      const auto compute_wrms = [&](const Teuchos::SerialDenseVector<int, double>& vec) -> double
+      {
+        double sum = 0.0;
+        for (int i = 0; i < 2 * N_connected_nodes; ++i)
+        {
+          const double scaled = w(i) * vec(i);
+          sum += scaled * scaled;
+        }
+        return std::sqrt(sum / (2 * N_connected_nodes));
+      };
+
+      // Jacobian matrix needed for Newton-Raphson method
+      Teuchos::SerialDenseMatrix<int, double> Jacobian(
+          2 * N_connected_nodes, 2 * N_connected_nodes);
+
+      // Newton-Raphson iterations
+      int itrs = 0;
+
+      while (compute_wrms(f) > WRMS_TOL)
+      {
+        // step 2: calculate Jacobian
+        compute_jacobian(
+            Jacobian, N_connected_nodes, x, junction_normal, junction_beta, density_rho);
+
+        // step 3: find solution_junction = solution_junction - Jacobian^-1 * f
+        // dx = Jacobian^-1 * f
+        Teuchos::SerialDenseSolver<int, double> junction_solver;
+        Teuchos::SerialDenseVector<int, double> dx(2 * N_connected_nodes);
+        junction_solver.setMatrix(Teuchos::rcpFromRef(Jacobian));
+        junction_solver.setVectors(Teuchos::rcpFromRef(dx), Teuchos::rcpFromRef(f));
+        junction_solver.factorWithEquilibration(true), junction_solver.factor();
+        junction_solver.solve();
+
+        //  Update solution vector: x = x - Jacobian^-1 * f = x - dx
+        for (int i = 0; i < 2 * N_connected_nodes; ++i)
+        {
+          x(i) -= dx(i);
+        }
+
+        // step 4: recalculate residual
+        compute_residual(f, N_connected_nodes, x, junction_normal, junction_ref_area_A0,
+            junction_characteristic_out, junction_beta, density_rho);
+
+        // prevent infinite loop
+        itrs++;
+        if (itrs >= 20)
+        {
+          FOUR_C_THROW("Newton Raphson at junction exceeded maximum allowed iterations, WRMS is",
+              compute_wrms(f));
+        }
+      }
+
+      for (int i = 0; i < N_connected_nodes; ++i)
+      {
+        // set A_np and u_np for application of fluxes at junctions
+        dof_update.replace_global_value(2 * junction.node_ids[i], x(i + N_connected_nodes));
+        dof_update.replace_global_value(2 * junction.node_ids[i] + 1, x(i));
+      }
+    }
+  }
+
+  void update_rhs_with_junction_properties(const double density_rho,
+      Core::LinAlg::Vector<double>& rhs_junction,
+      const Core::LinAlg::Vector<double>& solution_update_junction,
+      const Core::LinAlg::Vector<double>& beta, const Core::LinAlg::Vector<double>& reference_area,
+      const Core::LinAlg::Vector<double>& normals, const Core::LinAlg::Vector<double>& solution,
+      const std::vector<JunctionInfo>& all_junctions)
+  {
+    for (const auto& [node_ids, node_owners] : all_junctions)
+    {
+      for (const auto global_node_id : node_ids)
+      {
+        // node found on this rank
+        if (const int local_node_id = normals.get_map().lid(global_node_id); local_node_id != -1)
+        {
+          const int A_id = 2 * local_node_id;
+          const int junction_dof_id_A = solution_update_junction.get_map().lid(2 * global_node_id);
+          const int junction_dof_id_u =
+              solution_update_junction.get_map().lid(2 * global_node_id + 1);
+          const double A_condition = solution_update_junction.get_values()[junction_dof_id_A];
+          const double u_condition = solution_update_junction.get_values()[junction_dof_id_u];
+
+          const double A_n = solution.get_values()[A_id];
+          const double u_n = solution.get_values()[A_id + 1];
+          const double beta_node = beta.get_values()[local_node_id];
+          const double A0_node = reference_area.get_values()[local_node_id];
+          const double normal_in_out = normals.get_values()[local_node_id];
+          // derive flux over boundaries
+          const double F1 = A_condition * u_condition;
+          const double F2 = 0.5 * pow(u_condition, 2) +
+                            (beta_node * (sqrt(A_condition) - sqrt(A0_node))) / density_rho;
+          const double F1_h = A_n * u_n;
+          const double F2_h =
+              0.5 * pow(u_n, 2) + (beta_node * (sqrt(A_n) - sqrt(A0_node))) / density_rho;
+
+          // set values in rhs_junction
+          rhs_junction.replace_local_value(2 * local_node_id, normal_in_out * (F1_h - F1));
+          rhs_junction.replace_local_value(2 * local_node_id + 1, normal_in_out * (F2_h - F2));
+        }
+      }
+    }
+  }
+
   void main()
   {
     std::shared_ptr<Core::FE::Discretization> discretization =
@@ -194,6 +464,8 @@ namespace ReducedLung1dPipeFlow
     auto mass_matrix =
         std::make_shared<Core::LinAlg::SparseMatrix>(*discretization->dof_row_map(), 4);
     auto rhs = std::make_shared<Core::LinAlg::Vector<double>>(*discretization->dof_row_map());
+    auto rhs_junction =
+        std::make_shared<Core::LinAlg::Vector<double>>(*discretization->dof_row_map());
 
     // Normals definition: Iteration over all elements and summing -1 for the first node, and +1
     // for the second node of the element -> Domain nodes sum up to 0, inflow nodes to -1 ,and
@@ -212,6 +484,119 @@ namespace ReducedLung1dPipeFlow
     Core::LinAlg::export_to(normals_evaluation, normals);
     Core::LinAlg::export_to(normals, normals_evaluation);
 
+    // Get local rank
+    int mpi_rank = Core::Communication::my_mpi_rank(discretization->get_comm());
+    auto* comm = discretization->get_comm();
+
+    /**************************
+     *Geometry check: go through geometry and check for junctions: same coordinates of nodes
+     ************************/
+    std::vector<NodeInfo> local_in_out_nodes;
+    local_in_out_nodes.reserve(discretization->num_my_row_nodes());
+    for (const auto& node : discretization->my_row_node_range())
+    {
+      // only add them to nodes if they are an inner or outer boundary node
+      if (normals.get_values()[discretization->node_row_map()->lid(node.global_id())] != 0.0)
+      {
+        local_in_out_nodes.push_back(NodeInfo{
+            .id = node.global_id(),
+            .owner = mpi_rank,
+            .x = node.x()[0],
+            .y = node.x()[1],
+            .z = node.x()[2],
+        });
+      }
+    }
+
+    auto all_in_out_nodes = Core::Communication::all_reduce(
+        local_in_out_nodes, comm);  // contains all nodes with normal_in_out = +/-1
+    std::unordered_set<int> visited_nodes;
+    std::vector<JunctionInfo> all_junctions;
+
+    for (auto it = all_in_out_nodes.begin(); it != all_in_out_nodes.end(); ++it)
+    {
+      const auto& [id1, owner1, x1, y1, z1] = *it;
+      if (visited_nodes.contains(id1)) continue;
+
+      JunctionInfo junction_info;
+      junction_info.node_ids.push_back(id1);
+      junction_info.node_owners.push_back(owner1);
+
+      visited_nodes.insert(id1);
+      for (auto it_other = it + 1; it_other != all_in_out_nodes.end(); ++it_other)
+      {
+        const auto& [id2, owner2, x2, y2, z2] = *it_other;
+        // junctions
+        if (constexpr double tol = 1e-10;
+            std::abs(x1 - x2) < tol && std::abs(y1 - y2) < tol && std::abs(z1 - z2) < tol)
+        {
+          visited_nodes.insert(id2);
+          junction_info.node_ids.push_back(id2);
+          junction_info.node_owners.push_back(owner2);
+        }
+      }
+
+      if (junction_info.node_ids.size() > 1)
+      {
+        bool does_this_rank_participate = std::ranges::find(junction_info.node_owners, mpi_rank) !=
+                                          junction_info.node_owners.end();
+        if (does_this_rank_participate) all_junctions.emplace_back(junction_info);
+      }
+    }
+    // Now we have a list of all_junctions that are relevant on a rank. This means every rank know
+    // which nodes/dof are required to evaluate the junction.
+    std::vector<int> locally_relevant_dof_for_junctions;
+    std::vector<int> locally_relevant_nodes_for_junctions;
+    std::vector<int> owned_nodes_at_junctions;
+
+    for (const auto& [node_ids, node_owners] : all_junctions)
+    {
+      // Remap nodes to dof
+      for (std::size_t i = 0; i < node_ids.size(); ++i)
+      {
+        int node_id = node_ids[i];
+        // Locally relevant for junction
+        // A
+        locally_relevant_dof_for_junctions.push_back(node_id * 2);
+        // u
+        locally_relevant_dof_for_junctions.push_back(node_id * 2 + 1);
+        // nodes and elements
+        locally_relevant_nodes_for_junctions.push_back(node_id);
+        // owned nodes
+        if (node_owners[i] == mpi_rank)
+        {
+          owned_nodes_at_junctions.push_back(node_id);
+        }
+      }
+    }
+
+    // Define maps for junction mapping
+    Core::LinAlg::Map locally_relevant_junction_dof_map(-1,
+        static_cast<int>(locally_relevant_dof_for_junctions.size()),
+        locally_relevant_dof_for_junctions.data(), 0, comm);
+    Core::LinAlg::Map locally_relevant_junction_node_map(-1,
+        static_cast<int>(locally_relevant_nodes_for_junctions.size()),
+        locally_relevant_nodes_for_junctions.data(), 0, comm);
+    Core::LinAlg::Map owned_junction_node_map(-1, static_cast<int>(owned_nodes_at_junctions.size()),
+        owned_nodes_at_junctions.data(), 0, comm);
+
+    Core::LinAlg::Vector<double> solution_for_junction(locally_relevant_junction_dof_map);
+    Core::LinAlg::export_to(solution, solution_for_junction);
+
+    Core::LinAlg::Vector<double> area0_for_junctions(locally_relevant_junction_node_map);
+    Core::LinAlg::export_to(reference_area_0, area0_for_junctions);
+
+    Core::LinAlg::Vector<double> beta_for_junctions(locally_relevant_junction_node_map);
+    Core::LinAlg::export_to(beta, beta_for_junctions);
+
+    Core::LinAlg::Vector<double> characteristics_for_junctions(locally_relevant_junction_node_map);
+    Core::LinAlg::Vector<double> owned_characteristics_at_junction(owned_junction_node_map);
+
+    Core::LinAlg::Vector<double> normals_for_junctions(locally_relevant_junction_node_map);
+    Core::LinAlg::export_to(normals, normals_for_junctions);
+
+    Core::LinAlg::Vector<double> updated_solutions_on_junctions(locally_relevant_junction_dof_map);
+
     /************/
 
     double time_n = 0.0;
@@ -219,6 +604,8 @@ namespace ReducedLung1dPipeFlow
     double min_time_step_size = 1.0;
 
     Core::FE::AssembleStrategy strategy(0, 0, mass_matrix, nullptr, rhs, nullptr, nullptr);
+    Core::FE::AssembleStrategy strategy_junction(
+        0, 0, nullptr, nullptr, rhs_junction, nullptr, nullptr);
 
     const auto compute_local_contributions =
         [&](Core::Elements::Element& element, Core::Elements::LocationArray& la,
@@ -236,6 +623,7 @@ namespace ReducedLung1dPipeFlow
       Core::LinAlg::Matrix<2, 1> Pext_node;
       Pext_node(0, 0) = 0;
       Pext_node(1, 0) = 0;
+
       // check size of element_matrix
       FOUR_C_ASSERT(element_matrix.num_cols() == 4, "Internal error.");
       FOUR_C_ASSERT(element_matrix.num_rows() == 4, "Internal error.");
@@ -244,7 +632,8 @@ namespace ReducedLung1dPipeFlow
       std::vector<double> local_solution =
           Core::FE::extract_values(solution_for_evaluation, la[0].lm_);
 
-      // check if element is part of a boundary
+      // check if element is part of a boundary or junction
+      std::array<bool, 2> is_junction = {false, false};
       std::array<bool, 2> is_boundary = {false, false};
       std::array<int, 2> normal_in_out = {0, 0};
 
@@ -261,12 +650,23 @@ namespace ReducedLung1dPipeFlow
               "Normals should be 0, 1 or -1");
         }
 
-        // check if junction, capillary or boundary
-        if (normal_in_out[inode] != 0)
+        // check if junction or outer boundary
+
+        // set property if node is junction, capillary or boundary
+        if (normals_for_junctions.get_map().lid(global_node_id) != -1)
+        {
+          is_junction[inode] = true;
+        }
+        else
         {
           is_boundary[inode] = true;
         }
+        FOUR_C_ASSERT(is_junction[inode] + is_boundary[inode] == 0 ||
+                          is_junction[inode] + is_boundary[inode] == 1,
+            "Node can only be part of boundary OR junction. Or be part of the "
+            "domain.");
       }
+
 
       // Computation of domain
       for (int gp = 0; gp < gauss_integration.num_points(); ++gp)
@@ -420,7 +820,7 @@ namespace ReducedLung1dPipeFlow
       for (int boundary_local_index = 0; boundary_local_index < element.num_node();
           ++boundary_local_index)
       {
-        if (is_boundary[boundary_local_index])
+        if (is_boundary[boundary_local_index] || is_junction[boundary_local_index])
         {
           double xi = normal_in_out[boundary_local_index];
           Core::LinAlg::Matrix<2, 2 * 2> N_matrix;
@@ -496,8 +896,8 @@ namespace ReducedLung1dPipeFlow
           FOUR_C_ASSERT(normal_in_out[boundary_local_index] * lambda_out * dt < L,
               "Characteristic computation out of element {}.", element.id());
 
-          // extrapolation: computation of outgoing characteristic extrapolated from last time step
-          // (x = 0 + lambda_2 * dt)
+          // extrapolation: computation of outgoing characteristic extrapolated from last time
+          // step (x = 0 + lambda_2 * dt)
           double N1 = 1 - normal_in_out[boundary_local_index] * (dt * lambda_out / L);
           double N2 = normal_in_out[boundary_local_index] * dt * lambda_out / L;
 
@@ -512,131 +912,146 @@ namespace ReducedLung1dPipeFlow
           double c_0 =
               sqrt(beta_element * sqrt(reference_area_element) / (2 * input.fluid.density_rho));
 
+          // if junction, update outgoing characteristics
+          if (is_junction[boundary_local_index])
+          {
+            // update characteristics for later junction computation
+            if (int global_id = element.node_ids()[boundary_local_index];
+                owned_characteristics_at_junction.get_map().lid(global_id) >= 0)
+            {
+              owned_characteristics_at_junction.replace_local_value(
+                  owned_characteristics_at_junction.get_map().lid(global_id),
+                  characteristic_W_outgoing);
+            }
+          }
 
           /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
           // when outer boundary, prescribed parameter and reflection boundary condition
           /+********************************************************************************/
-
-          double u_condition = 0.0;
-          double A_condition = boundary_A;
-
-          // precribed inflow
-          double heavyside = 1.0;
-          double time_cyc = time_n;
-          if (auto period = input.boundary_conditions.cycle_period)
-          {
-            while (time_cyc > *period)
-            {
-              time_cyc -= *period;
-            }
-          }
-
-          if (auto pulse = input.boundary_conditions.pulse_width)
-          {
-            if (time_cyc > *pulse)
-            {
-              heavyside = 0.0;
-            }
-          }
-
-          // inlet
-          if (normal_in_out[boundary_local_index] == -1)
-          {
-            //  modify outgoing characteristic if source term is used
-            characteristic_W_outgoing +=
-                dt * (-input.fluid.viscous_resistance_K_R * boundary_u / boundary_A);
-
-            // prescribed u
-            if (input.boundary_conditions.input == "velocity")
-            {
-              u_condition = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
-              // A derived from characteristics and prescribed u
-              A_condition = (pow(u_condition - characteristic_W_outgoing, 4) / 64) *
-                            pow(input.fluid.density_rho / beta_element, 2);
-            }
-            else if (input.boundary_conditions.input == "area")
-            {
-              A_condition = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
-              u_condition = characteristic_W_outgoing +
-                            4 * std::pow(A_condition, 0.25) *
-                                sqrt(0.5 * beta_element / input.fluid.density_rho);
-            }
-            else if (input.boundary_conditions.input == "pressure")
-            {
-              // prescribed p from function
-              double pressure_fct =
-                  input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
-              A_condition = pow(
-                  (pressure_fct - boundary_Pext) / beta_element + sqrt(reference_area_element), 2);
-              u_condition = characteristic_W_outgoing +
-                            4 * std::pow(A_condition, 0.25) *
-                                sqrt(0.5 * beta_element / input.fluid.density_rho);
-            }
-            else if (input.boundary_conditions.input == "flow")
-            {
-              // Newton-Raphson iteration to get conditions for A and u
-              // Q = A(W1, W2) * u(W1,W2)
-              double flow_fct = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
-
-              conditions_from_newton_raphson(input, flow_fct, reference_area_element,
-                  characteristic_W_outgoing, beta_element, A_condition, u_condition);
-            }
-            else
-            {
-              FOUR_C_ASSERT(false, "no boundary condition provided");
-            }
-          }
-
-          // outlet
           else
           {
-            if (input.boundary_conditions.output == "reflection")
-            {
-              double reflection_factor = input.boundary_conditions.condition_outflow;
-              double characteristic_W_incoming =
-                  -4 * c_0 - reflection_factor * (characteristic_W_outgoing - 4 * c_0);
+            double u_condition = 0.0;
+            double A_condition = boundary_A;
 
-              FOUR_C_ASSERT(reflection_factor >= -1 && reflection_factor <= 1,
-                  "Error in reflection factor computation.");
-              A_condition = pow((characteristic_W_outgoing - characteristic_W_incoming) * 0.25, 4) *
-                            pow(input.fluid.density_rho * 0.5 / beta_element, 2);
-              u_condition = (characteristic_W_outgoing + characteristic_W_incoming) * 0.5;
-            }
-            else if (input.boundary_conditions.output == "pressure")
+            // precribed inflow
+            double heavyside = 1.0;
+            double time_cyc = time_n;
+            if (auto period = input.boundary_conditions.cycle_period)
             {
-              // prescribed p at outlet
-              A_condition = pow((input.boundary_conditions.condition_outflow * 1333.22 -
-                                    boundary_Pext) /  // Conversion mmHg -> dyn/cm2
-                                        beta_element +
-                                    sqrt(reference_area_element),
-                  2);
-              u_condition = characteristic_W_outgoing -
-                            4 * std::pow(A_condition, 0.25) *
-                                sqrt(0.5 * beta_element / input.fluid.density_rho);
+              while (time_cyc > *period)
+              {
+                time_cyc -= *period;
+              }
             }
+
+            if (auto pulse = input.boundary_conditions.pulse_width)
+            {
+              if (time_cyc > *pulse)
+              {
+                heavyside = 0.0;
+              }
+            }
+
+            // inlet
+            if (normal_in_out[boundary_local_index] == -1)
+            {
+              //  modify outgoing characteristic if source term is used
+              characteristic_W_outgoing +=
+                  dt * (-input.fluid.viscous_resistance_K_R * boundary_u / boundary_A);
+
+              // prescribed u
+              if (input.boundary_conditions.input == "velocity")
+              {
+                u_condition = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
+                // A derived from characteristics and prescribed u
+                A_condition = (pow(u_condition - characteristic_W_outgoing, 4) / 64) *
+                              pow(input.fluid.density_rho / beta_element, 2);
+              }
+              else if (input.boundary_conditions.input == "area")
+              {
+                A_condition = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
+                u_condition = characteristic_W_outgoing +
+                              4 * std::pow(A_condition, 0.25) *
+                                  sqrt(0.5 * beta_element / input.fluid.density_rho);
+              }
+              else if (input.boundary_conditions.input == "pressure")
+              {
+                // prescribed p from function
+                double pressure_fct =
+                    input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
+                A_condition = pow(
+                    (pressure_fct - boundary_Pext) / beta_element + sqrt(reference_area_element),
+                    2);
+                u_condition = characteristic_W_outgoing +
+                              4 * std::pow(A_condition, 0.25) *
+                                  sqrt(0.5 * beta_element / input.fluid.density_rho);
+              }
+              else if (input.boundary_conditions.input == "flow")
+              {
+                // Newton-Raphson iteration to get conditions for A and u
+                // Q = A(W1, W2) * u(W1,W2)
+                double flow_fct = input.boundary_conditions.bc_fct->evaluate(time_n, 0) * heavyside;
+
+                conditions_from_newton_raphson(input, flow_fct, reference_area_element,
+                    characteristic_W_outgoing, beta_element, A_condition, u_condition);
+              }
+              else
+              {
+                FOUR_C_ASSERT(false, "no boundary condition provided");
+              }
+            }
+            // outlet
             else
             {
-              FOUR_C_ASSERT(false, "no outlet boundary condition provided");
+              if (input.boundary_conditions.output == "reflection")
+              {
+                double reflection_factor = input.boundary_conditions.condition_outflow;
+                double characteristic_W_incoming =
+                    -4 * c_0 - reflection_factor * (characteristic_W_outgoing - 4 * c_0);
+
+                FOUR_C_ASSERT(reflection_factor >= -1 && reflection_factor <= 1,
+                    "Error in reflection factor computation.");
+                A_condition =
+                    pow((characteristic_W_outgoing - characteristic_W_incoming) * 0.25, 4) *
+                    pow(input.fluid.density_rho * 0.5 / beta_element, 2);
+                u_condition = (characteristic_W_outgoing + characteristic_W_incoming) * 0.5;
+              }
+              else if (input.boundary_conditions.output == "pressure")
+              {
+                // prescribed p at outlet
+                A_condition = pow((input.boundary_conditions.condition_outflow * 1333.22 -
+                                      boundary_Pext) /  // Conversion mmHg -> dyn/cm2
+                                          beta_element +
+                                      sqrt(reference_area_element),
+                    2);
+                u_condition = characteristic_W_outgoing -
+                              4 * std::pow(A_condition, 0.25) *
+                                  sqrt(0.5 * beta_element / input.fluid.density_rho);
+              }
+              else
+              {
+                FOUR_C_ASSERT(false, "no outlet boundary condition provided");
+              }
             }
-          }
 
-          FOUR_C_ASSERT(
-              (boundary_u + sound_speed_c_boundary) * dt / L < 1, "CFL condition violated.");
+            FOUR_C_ASSERT(
+                (boundary_u + sound_speed_c_boundary) * dt / L < 1, "CFL condition violated.");
 
-          double F1 = A_condition * u_condition;
-          double F2 = 0.5 * pow(u_condition, 2) +
-                      (beta_element * (sqrt(A_condition) - sqrt(reference_area_element))) /
-                          input.fluid.density_rho;
-          double F1_h = boundary_A * boundary_u;
-          double F2_h = 0.5 * pow(boundary_u, 2) +
-                        (beta_element * (sqrt(boundary_A) - sqrt(reference_area_element))) /
+            double F1 = A_condition * u_condition;
+            double F2 = 0.5 * pow(u_condition, 2) +
+                        (beta_element * (sqrt(A_condition) - sqrt(reference_area_element))) /
                             input.fluid.density_rho;
+            double F1_h = boundary_A * boundary_u;
+            double F2_h = 0.5 * pow(boundary_u, 2) +
+                          (beta_element * (sqrt(boundary_A) - sqrt(reference_area_element))) /
+                              input.fluid.density_rho;
 
-          element_rhs(2 * boundary_local_index) +=
-              normal_in_out[boundary_local_index] * (F1_h - F1);
-          element_rhs(2 * boundary_local_index + 1) +=
-              normal_in_out[boundary_local_index] * (F2_h - F2);
-        }  // boundary
+            element_rhs(2 * boundary_local_index) +=
+                normal_in_out[boundary_local_index] * (F1_h - F1);
+            element_rhs(2 * boundary_local_index + 1) +=
+                normal_in_out[boundary_local_index] * (F2_h - F2);
+          }  // boundary
+        }  // boundary || junction
       }  // loop over nodes in element
     };
 
@@ -677,6 +1092,20 @@ namespace ReducedLung1dPipeFlow
 
       // get mass_matrix and rhs
       discretization->evaluate(dummy, strategy, compute_local_contributions);
+
+      // export characteristics information to junction mapping
+      Core::LinAlg::export_to(owned_characteristics_at_junction, characteristics_for_junctions);
+
+      get_conditions_at_junctions(input.fluid.density_rho, characteristics_for_junctions,
+          solution_for_junction, normals_for_junctions, area0_for_junctions, beta_for_junctions,
+          all_junctions, updated_solutions_on_junctions);
+
+      update_rhs_with_junction_properties(input.fluid.density_rho, *rhs_junction,
+          updated_solutions_on_junctions, beta, reference_area_0, normals, solution, all_junctions);
+
+      //     update rhs with contributions from junction
+      rhs->update(1.0, *rhs_junction, 1.0);
+
       mass_matrix->epetra_matrix().FillComplete();
 
       solver.reset();
@@ -689,10 +1118,13 @@ namespace ReducedLung1dPipeFlow
       // U_n+1 = 1.0 * U_n + dt*y
       solution.update(dt, y->as_multi_vector(), 1.0);
       Core::LinAlg::export_to(solution, solution_for_evaluation);
+      Core::LinAlg::export_to(solution, solution_for_junction);
 
       // reset used vectors
       rhs->put_scalar(0.0);
+      rhs_junction->put_scalar(0.0);
       y->put_scalar(0.0);
+
       // output for visualization
       for (const auto& node : discretization->my_row_node_range())
       {

@@ -19,6 +19,25 @@ FOUR_C_NAMESPACE_OPEN
 namespace ReducedLung1dPipeFlow
 {
   /**
+   * Who owns nodes in a junction.
+   */
+  struct JunctionInfo
+  {
+    std::vector<int> node_ids;
+    std::vector<int> node_owners;
+  };
+
+  /**
+   * ID, owner, coordinates of a node
+   */
+  struct NodeInfo
+  {
+    int id;
+    int owner;
+    double x, y, z;
+  };
+
+  /**
    * Fills vectors created from nodal maps with data from input file.
    *
    * Input values are listed in @param parameters and accessed to fill the passed vectors.
@@ -72,12 +91,66 @@ namespace ReducedLung1dPipeFlow
       double& A_condition, double& u_condition);
 
   /**
-   * Calculate flow velocity and vessel area as primary variables in a pipe over time. Pressure and
-   * flux can be determined from these two variables.
-   * For calculation, the governing equations are solved on each element and then assembled for the
-   * whole geometry.
-   * (I) : (par A / par t) + (par (A * u) / par x) = 0
-   * (II) : (par u / par t) + 1/rho (par p / par x) + viscosity * u / A = 0
+   * Calculate residual vector for Newton-Raphson iterations.
+   * @param f residual vector to be computed
+   * @param x solution vector
+   * Further information needed for the computation of characteristics are the number of connected
+   * nodes at a junction @param N_connected_nodes and the geometry or material properties at the
+   * respective nodes.
+   * The first N rows in f refer to characteristic speed information, N+1 to mass conservation, and
+   * the remaining to pressure conservation.
+   */
+  void compute_residual(Teuchos::SerialDenseVector<int, double>& f, const int N_connected_nodes,
+      Teuchos::SerialDenseVector<int, double> x, const std::vector<double>& junction_normal,
+      const std::vector<double>& junction_ref_area_A0,
+      const std::vector<double>& junction_characteristic_out,
+      const std::vector<double>& junction_beta, const double density_rho);
+
+  /**
+   * Jacobian computation for Newton-Raphson iterations.
+   * The Jacobian is defined as follows: J = (par f)/(par x), with residual f and @param x the
+   * solution vector.
+   * The first N (@param N_connected_nodes) rows in f refer to characteristic speed information, N+1
+   * to mass conservation, and the remaining to pressure conservation.
+   */
+  void compute_jacobian(Teuchos::SerialDenseMatrix<int, double>& jacobian,
+      const int N_connected_nodes, Teuchos::SerialDenseVector<int, double> x,
+      const std::vector<double>& junction_normal, const std::vector<double>& junction_beta,
+      const double density_rho);
+
+  /**
+   * Compute the values for A_np and u_np for all nodes at the junctions.
+   * Information of all nodes being part of the junction need to be stored locally
+   * (vectors_junction) so that conditions A and u can be computed for all nodes on the process they
+   * belong to.
+   * @param all_junctions contains the information of nodes of all junction son the rank
+   * @param dof_update is the vector where the conditions for the prmary variables are stored so
+   * that they can be applied to the rhs vector
+   */
+  void get_conditions_at_junctions(const double density_rho,
+      const Core::LinAlg::Vector<double>& characteristics_for_junction,
+      Core::LinAlg::Vector<double>& solution_for_junction,
+      const Core::LinAlg::Vector<double>& normals_for_junction,
+      const Core::LinAlg::Vector<double>& area0_for_junction,
+      const Core::LinAlg::Vector<double>& beta_for_junction,
+      const std::vector<JunctionInfo>& all_junctions, Core::LinAlg::Vector<double>& dof_update);
+
+  /**
+   * Compute the contribution of the junctions to the rhs vector with +=(F_h - F).
+   */
+  void update_rhs_with_junction_properties(const double density_rho,
+      Core::LinAlg::Vector<double>& rhs_junction,
+      const Core::LinAlg::Vector<double>& solution_update_junction,
+      const Core::LinAlg::Vector<double>& beta, const Core::LinAlg::Vector<double>& reference_area,
+      const Core::LinAlg::Vector<double>& normals, const Core::LinAlg::Vector<double>& solution,
+      const std::vector<JunctionInfo>& all_junctions);
+
+  /**
+   * Calculate flow velocity and vessel area as primary variables in a pipe over time. Pressure
+   * and flux can be determined from these two variables. For calculation, the governing
+   * equations are solved on each element and then assembled for the whole geometry. (I) : (par
+   * A / par t) + (par (A * u) / par x) = 0 (II) : (par u / par t) + 1/rho (par p / par x) +
+   * viscosity * u / A = 0
    */
   void main();
 
