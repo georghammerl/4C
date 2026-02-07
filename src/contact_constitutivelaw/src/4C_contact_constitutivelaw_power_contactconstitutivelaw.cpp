@@ -39,9 +39,12 @@ CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::PowerConstitutiveLaw(
 double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate(
     const double gap, CONTACT::Node* cnode)
 {
-  if (gap + params_.get_offset() > 0)
+  if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
   const double result = -(params_.getdata() * pow(-gap - params_.get_offset(), params_.get_b()));
@@ -61,7 +64,10 @@ double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate_derivative(
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
   return params_.getdata() * params_.get_b() *

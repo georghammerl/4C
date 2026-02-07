@@ -78,7 +78,10 @@ double CONTACT::CONSTITUTIVELAW::PythonSurrogateConstitutiveLaw::evaluate(
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
   const double pressure = pimpl_->evaluate(gap, params_.get_offset()).cast<double>();
@@ -93,7 +96,10 @@ double CONTACT::CONSTITUTIVELAW::PythonSurrogateConstitutiveLaw::evaluate_deriva
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes.");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
   const double derivative = pimpl_->evaluate_derivative(gap, params_.get_offset()).cast<double>();

@@ -38,10 +38,14 @@ CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::BrokenRationalConstitut
 double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate(
     const double gap, CONTACT::Node* cnode)
 {
-  if (gap + params_.get_offset() > 0)
+  if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
+
   const double result =
       -(params_.getdata() * 1. / (-gap - params_.get_offset() - params_.get_b()) + params_.get_c());
   if (result > 0)
@@ -56,9 +60,12 @@ double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate(
 double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate_derivative(
     const double gap, CONTACT::Node* cnode)
 {
-  if (gap + params_.get_offset() > 0)
+  if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
   return (-params_.getdata() * 1. /
