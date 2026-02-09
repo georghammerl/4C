@@ -808,10 +808,10 @@ function(
   get_filename_component(name_of_reference_file ${name_of_input_file} NAME_WE)
 
   set(RUNCOMPARISON_SER
-      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_SER_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
+      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_SER_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/ref/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
       )
   set(RUNCOMPARISON_PAR
-      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_PAR_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
+      "${FOUR_C_PYTHON_VENV_BUILD}/bin/post-processing-comparison ${test_directory}/xxx${IDENTIFIER}_PAR_${name_of_input_file}${FIELD}*.case ${PROJECT_SOURCE_DIR}/tests/input_files/ref/${name_of_reference_file}${IDENTIFIER}${FIELD}.csv"
       )
 
   # specify test case

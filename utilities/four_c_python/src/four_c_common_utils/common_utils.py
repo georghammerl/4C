@@ -8,6 +8,7 @@
 """Utils."""
 
 import sys
+from pathlib import Path
 
 
 def file_contents(filename):
@@ -65,3 +66,27 @@ def _common_write_error(allerrors, deststream, header=None):
 
     # footer
     deststream.write("E" + " " * (max_width + 2) + "E\n" + "E" * (max_width + 4) + "\n")
+
+
+def get_module_name(file: Path) -> str | None:
+    """Get the corresponding module name for a file.
+
+    The module name is determined by the parent folder
+    name which is on the same level as the first
+    .contains_modules file.
+
+    Args:
+        file: The file to get the module name from
+
+    Returns:
+        The module name or None if no module is found
+    """
+
+    current_dir = file.parent.absolute()
+
+    while True:
+        if current_dir == Path("/"):
+            return None
+        if (current_dir / ".contains_modules").is_file():
+            return file.absolute().relative_to(current_dir).parts[0]
+        current_dir = current_dir.parent
