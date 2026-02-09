@@ -7,7 +7,6 @@
 
 #include "4C_contact_penalty_strategy.hpp"
 
-#include "4C_contact_constitutivelaw_cubic_contactconstitutivelaw.hpp"
 #include "4C_contact_defines.hpp"
 #include "4C_contact_element.hpp"
 #include "4C_contact_input.hpp"

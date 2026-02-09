@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_contact_constitutivelaw_python_surrogate_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_python_surrogate.hpp"
 
 #include "4C_contact_rough_node.hpp"
 #include "4C_global_data.hpp"

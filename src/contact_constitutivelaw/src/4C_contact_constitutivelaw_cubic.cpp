@@ -5,38 +5,37 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_contact_constitutivelaw_power_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_cubic.hpp"
 
 #include "4C_global_data.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 
-#include <math.h>
-
 FOUR_C_NAMESPACE_OPEN
 
-
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams::PowerConstitutiveLawParams(
+CONTACT::CONSTITUTIVELAW::CubicConstitutiveLawParams::CubicConstitutiveLawParams(
     const Core::IO::InputParameterContainer& container)
     : CONTACT::CONSTITUTIVELAW::Parameter(container),
       a_(container.get<double>("A")),
-      b_(container.get<double>("B"))
+      b_(container.get<double>("B")),
+      c_(container.get<double>("C")),
+      d_(container.get<double>("D"))
 {
 }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::PowerConstitutiveLaw(
-    CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams params)
+CONTACT::CONSTITUTIVELAW::CubicConstitutiveLaw::CubicConstitutiveLaw(
+    CONTACT::CONSTITUTIVELAW::CubicConstitutiveLawParams params)
     : params_(std::move(params))
 {
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate(
+double CONTACT::CONSTITUTIVELAW::CubicConstitutiveLaw::evaluate(
     const double gap, CONTACT::Node* cnode)
 {
   if (gap + params_.get_offset() > 0.0)
@@ -47,7 +46,14 @@ double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate(
         gap, params_.get_offset());
   }
 
-  const double result = -(params_.getdata() * pow(-gap - params_.get_offset(), params_.get_b()));
+  const double negative_gap = -gap;
+
+  const double result = -params_.getdata() * (negative_gap - params_.get_offset()) *
+                            (negative_gap - params_.get_offset()) *
+                            (negative_gap - params_.get_offset()) -
+                        params_.get_b() * (negative_gap - params_.get_offset()) *
+                            (negative_gap - params_.get_offset()) -
+                        params_.get_c() * (negative_gap - params_.get_offset()) - params_.get_d();
 
   if (result > 0)
     FOUR_C_THROW(
@@ -59,7 +65,7 @@ double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate_derivative(
+double CONTACT::CONSTITUTIVELAW::CubicConstitutiveLaw::evaluate_derivative(
     const double gap, CONTACT::Node* cnode)
 {
   if (gap + params_.get_offset() > 0.0)
@@ -70,8 +76,8 @@ double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate_derivative(
         gap, params_.get_offset());
   }
 
-  return params_.getdata() * params_.get_b() *
-         pow(-gap - params_.get_offset(), params_.get_b() - 1);
+  return 3 * params_.getdata() * (-gap - params_.get_offset()) * (-gap - params_.get_offset()) +
+         2 * params_.get_b() * (-gap - params_.get_offset()) + params_.get_c();
 }
 
 FOUR_C_NAMESPACE_CLOSE

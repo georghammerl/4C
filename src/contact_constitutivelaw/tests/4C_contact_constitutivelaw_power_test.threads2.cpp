@@ -7,7 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include "4C_contact_constitutivelaw_power_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_power.hpp"
+
 #include "4C_contact_node.hpp"
 
 namespace

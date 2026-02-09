@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_contact_constitutivelaw_brokenrational_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_linear.hpp"
 
 #include "4C_global_data.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
@@ -16,26 +16,25 @@ FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLawParams::BrokenRationalConstitutiveLawParams(
+CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams::LinearConstitutiveLawParams(
     const Core::IO::InputParameterContainer& container)
     : CONTACT::CONSTITUTIVELAW::Parameter(container),
       a_(container.get<double>("A")),
-      b_(container.get<double>("B")),
-      c_(container.get<double>("C"))
+      b_(container.get<double>("B"))
 {
 }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::BrokenRationalConstitutiveLaw(
-    CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLawParams params)
+CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::LinearConstitutiveLaw(
+    CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams params)
     : params_(std::move(params))
 {
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate(
+double CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::evaluate(
     const double gap, CONTACT::Node* cnode)
 {
   if (gap + params_.get_offset() > 0.0)
@@ -46,18 +45,12 @@ double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate(
         gap, params_.get_offset());
   }
 
-  const double result =
-      -(params_.getdata() * 1. / (-gap - params_.get_offset() - params_.get_b()) + params_.get_c());
-  if (result > 0)
-    FOUR_C_THROW(
-        "The constitutive function you are using seems to be positive, even though the gap is "
-        "negative. Please check your coefficients!");
-  return result;
+  return params_.getdata() * (gap + params_.get_offset()) + params_.get_b();
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate_derivative(
+double CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::evaluate_derivative(
     const double gap, CONTACT::Node* cnode)
 {
   if (gap + params_.get_offset() > 0.0)
@@ -68,9 +61,7 @@ double CONTACT::CONSTITUTIVELAW::BrokenRationalConstitutiveLaw::evaluate_derivat
         gap, params_.get_offset());
   }
 
-  return (-params_.getdata() * 1. /
-          ((-gap - params_.get_offset() - params_.get_b()) *
-              (-gap - params_.get_offset() - params_.get_b())));
+  return params_.getdata();
 }
 
 FOUR_C_NAMESPACE_CLOSE

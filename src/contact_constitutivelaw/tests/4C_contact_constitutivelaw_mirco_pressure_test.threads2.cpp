@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "4C_contact_constitutivelaw_mirco_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_mirco.hpp"
 #include "4C_contact_rough_node.hpp"
 #include "4C_global_data.hpp"
 #include "4C_mat_material_factory.hpp"

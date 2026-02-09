@@ -7,7 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include "4C_contact_constitutivelaw_python_surrogate_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_python_surrogate.hpp"
+
 #include "4C_contact_node.hpp"
 #include "4C_unittest_utils_support_files_test.hpp"
 
