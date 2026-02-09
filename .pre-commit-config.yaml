@@ -156,12 +156,21 @@ repos:
         entry: utilities/python-venv/bin/check-preprocessor
 
       - id: input-files
-        name: Test input files
-        description: "Check input files conform to expectations"
+        name: Check for untested input files
+        description: "Check that all input files are added in tests/list_of_tests.cmake"
         language: python
         files: 'tests/input_files/.*\.4C\.(yaml|json)$'
         exclude: '.*\.mat\.4C\.(yaml|json)$'
         entry: utilities/python-venv/bin/check-test-files
+
+      - id: companion-input-files
+        name: Check for unused companion input files
+        description: "Check that all companion input files are used within an input file"
+        language: python
+        # all individual files in tests/input_files
+        files: "tests/input_files/.*"
+        entry: utilities/python-venv/bin/check-companion-test-files
+        require_serial: true # To give a non duplicated error output
 
       - id: non-ascii-chars
         name: Non-ASCII characters
@@ -178,7 +187,9 @@ repos:
 
       - id: check-python-files
         name: Check python files
-        description: "Check that all python files are located within utilities/four_c_python"
+        description: "Check that all python files are located within utilities/four_c_python or follow
+          the naming convention"
         language: python
         types: [python]
         entry: utilities/python-venv/bin/check-python-files
+        require_serial: true # To give a non duplicated error output

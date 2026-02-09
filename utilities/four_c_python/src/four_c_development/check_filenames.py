@@ -9,30 +9,7 @@
 import sys
 
 from pathlib import Path
-
-
-def get_module_name(file: Path) -> str | None:
-    """Get the corresponding module name for a file.
-
-    The module name is determined by the parent folder
-    name which is on the same level as the first
-    .contains_modules file.
-
-    Args:
-        file: The file to get the module name from
-
-    Returns:
-        The module name or None if no module is found
-    """
-
-    current_dir = file.parent.absolute()
-
-    while True:
-        if current_dir == Path("/"):
-            return None
-        if (current_dir / ".contains_modules").is_file():
-            return file.absolute().relative_to(current_dir).parts[0]
-        current_dir = current_dir.parent
+from four_c_common_utils import common_utils as utils
 
 
 def check_file_name(file: Path) -> bool:
@@ -48,7 +25,7 @@ def check_file_name(file: Path) -> bool:
         True if the file has a valid filename, False otherwise
     """
 
-    module_name = get_module_name(file)
+    module_name = utils.get_module_name(file)
 
     if not file.name.startswith("4C_" if module_name is None else f"4C_{module_name}"):
         return False

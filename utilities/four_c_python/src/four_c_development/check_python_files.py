@@ -5,26 +5,57 @@
 # See the LICENSE.md file in the top-level for license information.
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
-"""Check that all Python files are located within utilities/four_c_python."""
+"""Check Python file locations and naming conventions."""
 
 import sys
+from pathlib import Path
+from four_c_common_utils import common_utils as utils
+
+
+def valid_python_file_name(file: Path) -> bool:
+    """Validate location and naming of Python file."""
+
+    # check 1: all python files in utilities/four_c_python/ are allowed
+    if "utilities/four_c_python/" in str(file):
+        return True
+
+    # check 2: all python files in /tests/input_files/ are allowed
+    if "tests/input_files/" in str(file):
+        return True
+
+    # check 3: all python files in src/ must be named 4C_<module>_*.py, where <module> is the name of the module they are located in
+    if str(file).startswith("src/"):
+        module_name = utils.get_module_name(file)
+
+        if module_name is None:
+            return False
+
+        expected_prefix = f"4C_{module_name}_"
+
+        return file.name.startswith(expected_prefix)
+
+    return False
 
 
 def main():
-    """Check that all Python files are located within utilities/four_c_python."""
+    """Check that all Python files adhere to our naming conventions."""
 
-    wrong_files = [
-        file for file in sys.argv[1:] if "utilities/four_c_python/" not in file
-    ]
+    wrong_files = []
+
+    for file in sys.argv[1:]:
+        if not valid_python_file_name(Path(file)):
+            wrong_files.append(file)
 
     if wrong_files:
-        print("The following Python files are outside 'utilities/four_c_python':\n")
+        print("The following Python files violate location or naming rules:\n")
         for file in wrong_files:
             print(f"    {file}")
 
         print(
-            "\nPlease move these files into the 'utilities/four_c_python' directory.\n"
-            "This ensures all Python utilities are centralized in one place."
+            "\nThe following rules apply:\n"
+            "    - Python files for development (pre-commit hook, ...) should be located in 'utilities/four_c_python' /\n"
+            "    - Python files inside modules under src/ must be named according to their module name: 4C_<module>_*.py\n"
+            "    - Python files in /tests/input_files/ are allowed (e.g., for testing purposes) and must be utilized/typed within input files\n"
         )
         sys.exit(1)
 
