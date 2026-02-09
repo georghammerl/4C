@@ -104,7 +104,6 @@ std::unique_ptr<Particle::ConstraintsHandler> Particle::create_constraints(
   const auto constraint_type =
       params.sublist("INITIAL AND BOUNDARY CONDITIONS").get<Particle::Constraint>("CONSTRAINT");
 
-  // create density correction handler
   switch (constraint_type)
   {
     case Particle::NoConstraint:

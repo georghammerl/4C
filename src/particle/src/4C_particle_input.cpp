@@ -179,7 +179,7 @@ std::vector<Core::IO::InputSpec> Particle::valid_parameters()
                       "particle phase",
                   .default_value = "none"}),
 
-          // kinematic constrain
+          // kinematic constraint
           parameter<Constraint>(
               "CONSTRAINT", {.description = "type of kinematic constraint imposed",
                                 .default_value = Particle::NoConstraint}),
