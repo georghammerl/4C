@@ -229,6 +229,13 @@ namespace Discret
         nodal_directors_(node_id, 2) = director[2];
       }
 
+      //! Initialize thickness directors at gauss points
+      inline void initialize_thickness_directors(
+          const Core::LinAlg::SerialDenseMatrix& nodal_directors)
+      {
+        shell_interface_->initialize_thickness_directors(nodal_directors, thickness_);
+      }
+
      private:
       //! discretization type
       Core::FE::CellType distype_ = Core::FE::CellType::dis_none;

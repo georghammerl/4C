@@ -355,11 +355,7 @@ bool Discret::Elements::Shell7p::read_element(const std::string& eletype,
 
   // setup shell calculation interface
   shell_interface_->setup(*this, *solid_material(), container, locking_types, shell_data);
-  if (!material_post_setup_)
-  {
-    shell_interface_->material_post_setup(*this, *solid_material());
-    material_post_setup_ = true;
-  }
+
   return true;
 }
 FOUR_C_NAMESPACE_CLOSE

@@ -69,6 +69,16 @@ namespace Discret
           const Solid::Elements::ShellData& shell_data) = 0;
 
       /*!
+       * @brief Initialize thickness director vectors at gauss points from nodal directors and
+       * thickness
+       *
+       * @param nodal_directors (in) : Nodal director unit vectors in reference configuration
+       * @param thickness (in) : Element thickness
+       */
+      virtual void initialize_thickness_directors(
+          const Core::LinAlg::SerialDenseMatrix& nodal_directors, double thickness) = 0;
+
+      /*!
        * @brief A setup routine for the materials after the whole input is read before evaluation.
        *
        * @param ele (in) : Reference to the element
@@ -180,6 +190,14 @@ namespace Discret
        * @param data (out):  data to be filled by element if it recognizes the name
        */
       virtual void vis_data(const std::string& name, std::vector<double>& data) = 0;
+
+      /*!
+       * \brief Get current thickness director vectors at all gauss points
+       *
+       * @return Reference to vector containing thickness director vectors at each gauss point
+       */
+      [[nodiscard]] virtual const std::vector<Core::LinAlg::Matrix<3, 1>>&
+      get_cur_thickness_director() const = 0;
     };  // class Shell7pEleInterface
   }  // namespace Elements
 

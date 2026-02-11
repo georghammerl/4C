@@ -8,6 +8,7 @@
 #include "4C_shell7p_utils.hpp"
 
 #include "4C_comm_exporter.hpp"
+#include "4C_comm_pack_buffer.hpp"
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_fem_general_utils_fem_shapefunctions.hpp"
@@ -626,6 +627,9 @@ void Solid::Utils::Shell::Director::setup_shell_element_directors(
           num_node, Discret::Elements::Shell::Internal::num_dim);
       setup_director_for_element(*scatra_ele, nodal_directors);
       scatra_ele->set_all_nodal_directors(nodal_directors);
+
+      // Initialize thickness directors at gauss points
+      scatra_ele->initialize_thickness_directors(nodal_directors);
     }
     else if (auto* shell_ele = dynamic_cast<Discret::Elements::Shell7p*>(actele))
     {
@@ -636,6 +640,9 @@ void Solid::Utils::Shell::Director::setup_shell_element_directors(
           num_node, Discret::Elements::Shell::Internal::num_dim);
       setup_director_for_element(*shell_ele, nodal_directors);
       shell_ele->set_all_nodal_directors(nodal_directors);
+
+      // Initialize thickness directors at gauss points
+      shell_ele->initialize_thickness_directors(nodal_directors);
     }
     else
       FOUR_C_THROW("Element is not a shell element");
@@ -727,4 +734,43 @@ int Solid::Utils::Shell::ReadElement::read_and_set_num_ans(const Core::FE::CellT
       FOUR_C_THROW("ANS is not supported with {}", distype);
   }
 }
+
+void Solid::Utils::Shell::Output::pack_thickness_data(
+    const std::vector<Core::LinAlg::Matrix<3, 1>>& thickness_director,
+    Inpar::Solid::OptQuantityType output_type, Core::Communication::PackBuffer& data)
+{
+  const int numgpt = static_cast<int>(thickness_director.size());
+
+  switch (output_type)
+  {
+    case Inpar::Solid::optquantity_shell7pthicknessdirector:
+    {
+      // Output thickness director vectors (3 components per gauss point)
+      Core::LinAlg::SerialDenseMatrix director_matrix(numgpt, 3);
+      for (int i = 0; i < numgpt; ++i)
+      {
+        for (int d = 0; d < 3; ++d)
+        {
+          director_matrix(i, d) = thickness_director[i](d);
+        }
+      }
+      add_to_pack(data, director_matrix);
+      break;
+    }
+    case Inpar::Solid::optquantity_shell7pthickness:
+    {
+      // Output scalar thickness as twice the norm of director (1 component per gauss point)
+      Core::LinAlg::SerialDenseMatrix thickness(numgpt, 1);
+      for (int i = 0; i < numgpt; ++i)
+      {
+        thickness(i, 0) = 2.0 * thickness_director[i].norm2();
+      }
+      add_to_pack(data, thickness);
+      break;
+    }
+    default:
+      FOUR_C_THROW("Invalid optional quantity type for shell7p thickness output");
+  }
+}
+
 FOUR_C_NAMESPACE_CLOSE

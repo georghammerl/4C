@@ -868,6 +868,27 @@ void Solid::ModelEvaluator::Structure::write_output_runtime_structure(
         eval_data().get_opt_quantity_data_node_postprocessed(), Core::IO::OutputEntity::node,
         context);
   }
+  else if (structure_output_params.output_optional_quantity() ==
+           Inpar::Solid::optquantity_shell7pthickness)
+  {
+    // Write nodal shell7p thickness
+    std::vector<std::optional<std::string>> context(1, "shell7p_thickness");
+    vtu_writer_ptr_->append_result_data_vector_with_context(
+        eval_data().get_opt_quantity_data_node_postprocessed(), Core::IO::OutputEntity::node,
+        context);
+  }
+  else if (structure_output_params.output_optional_quantity() ==
+           Inpar::Solid::optquantity_shell7pthicknessdirector)
+  {
+    // Write nodal shell7p thickness director vector
+    std::vector<std::optional<std::string>> context(
+        Inpar::Solid::get_opt_quantity_num_components(
+            Inpar::Solid::optquantity_shell7pthicknessdirector),
+        "shell7p_thickness_director");
+    vtu_writer_ptr_->append_result_data_vector_with_context(
+        eval_data().get_opt_quantity_data_node_postprocessed(), Core::IO::OutputEntity::node,
+        context);
+  }
 
   // finalize everything and write all required files to filesystem
   vtu_writer_ptr_->write_to_disk(time, timestep_number);
@@ -909,6 +930,13 @@ void Solid::ModelEvaluator::Structure::output_runtime_structure_postprocess_opti
     case Inpar::Solid::optquantity_membranethickness:
     {
       // evaluate thickness of membrane finite elements
+      eval_data().set_action_type(Core::Elements::struct_calc_thickness);
+      break;
+    }
+    case Inpar::Solid::optquantity_shell7pthickness:
+    case Inpar::Solid::optquantity_shell7pthicknessdirector:
+    {
+      // evaluate thickness of shell7p finite elements
       eval_data().set_action_type(Core::Elements::struct_calc_thickness);
       break;
     }
@@ -966,11 +994,17 @@ void Solid::ModelEvaluator::Structure::output_runtime_structure_postprocess_opti
       *(discret().element_row_map()), *(discret().element_col_map()), discret().get_comm());
   ex.do_export(gp_thickness_data);
 
-  Core::LinAlg::MultiVector<double> row_nodal_data(*discret().node_row_map(), 1, true);
+  // Determine number of components based on output type
+  const int num_components = Inpar::Solid::get_opt_quantity_num_components(global_in_output()
+          .get_runtime_output_params()
+          ->get_structure_params()
+          ->output_optional_quantity());
+
+  Core::LinAlg::MultiVector<double> row_nodal_data(*discret().node_row_map(), num_components, true);
   postprocess_gauss_point_data_to_nodes(gp_thickness_data, row_nodal_data);
 
-  auto opt_quantity =
-      std::make_shared<Core::LinAlg::MultiVector<double>>(*discret().node_col_map(), 1, true);
+  auto opt_quantity = std::make_shared<Core::LinAlg::MultiVector<double>>(
+      *discret().node_col_map(), num_components, true);
   export_to(row_nodal_data, *opt_quantity);
   eval_data().set_opt_quantity_data_node_postprocessed(opt_quantity);
 }

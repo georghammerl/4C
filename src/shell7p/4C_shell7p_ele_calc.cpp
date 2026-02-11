@@ -27,7 +27,6 @@ Discret::Elements::Shell7pEleCalc<distype>::Shell7pEleCalc()
       intpoints_midsurface_(
           Shell::create_gauss_integration_points<distype>(Shell::get_gauss_rule<distype>()))
 {
-  cur_thickness_.resize(intpoints_midsurface_.num_points(), shell_data_.thickness);
 }
 
 
@@ -38,8 +37,9 @@ void Discret::Elements::Shell7pEleCalc<distype>::setup(Core::Elements::Element& 
     const Solid::Elements::ShellData& shell_data)
 {
   shell_data_ = shell_data;
-  // initialize current thickness at all gp
-  cur_thickness_.resize(intpoints_midsurface_.num_points(), shell_data_.thickness);
+  // initialize current thickness director vector at all gp
+  cur_thickness_director_.resize(intpoints_midsurface_.num_points(),
+      Core::LinAlg::Matrix<3, 1>(Core::LinAlg::Initialization::zero));
   //  set up of materials with GP data (e.g., history variables)
   solid_material.setup(intpoints_midsurface_.num_points(), read_fibers(container),
       read_coordinate_system(container));
@@ -51,7 +51,7 @@ void Discret::Elements::Shell7pEleCalc<distype>::pack(Core::Communication::PackB
   add_to_pack(data, shell_data_.sdc);
   add_to_pack(data, shell_data_.thickness);
   add_to_pack(data, shell_data_.num_ans);
-  add_to_pack(data, cur_thickness_);
+  add_to_pack(data, cur_thickness_director_);
 }
 
 template <Core::FE::CellType distype>
@@ -60,9 +60,16 @@ void Discret::Elements::Shell7pEleCalc<distype>::unpack(Core::Communication::Unp
   extract_from_pack(buffer, shell_data_.sdc);
   extract_from_pack(buffer, shell_data_.thickness);
   extract_from_pack(buffer, shell_data_.num_ans);
-  extract_from_pack(buffer, cur_thickness_);
+  extract_from_pack(buffer, cur_thickness_director_);
 }
 
+template <Core::FE::CellType distype>
+void Discret::Elements::Shell7pEleCalc<distype>::initialize_thickness_directors(
+    const Core::LinAlg::SerialDenseMatrix& nodal_directors, const double thickness)
+{
+  Shell::initialize_thickness_directors_from_nodal_directors<distype>(
+      nodal_directors, intpoints_midsurface_, thickness, cur_thickness_director_);
+}
 
 template <Core::FE::CellType distype>
 void Discret::Elements::Shell7pEleCalc<distype>::material_post_setup(
@@ -147,6 +154,10 @@ double Discret::Elements::Shell7pEleCalc<distype>::calculate_internal_energy(
       {
         double integration_factor = gpweight * da;
 
+        // update current thickness director at gauss point
+        cur_thickness_director_[gp] = Shell::update_gauss_point_thickness_director<distype>(
+            nodal_coordinates.a3_curr_, shape_functions.shapefunctions_);
+
         const std::vector<double> shape_functions_ans =
             Shell::get_shapefunctions_for_ans<distype>(xi_gp, shell_data_.num_ans);
 
@@ -157,8 +168,8 @@ double Discret::Elements::Shell7pEleCalc<distype>::calculate_internal_energy(
 
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          // modify the current covariant metric tensor to neglect the quadratic terms in thickness
-          // directions
+          // modify the current covariant metric tensor to neglect the quadratic terms in
+          // thickness directions
           Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
@@ -179,11 +190,7 @@ double Discret::Elements::Shell7pEleCalc<distype>::calculate_internal_energy(
               .ref_coords = nullptr};
           double psi = solid_material.strain_energy(strains.gl_strain_, context, gp, ele.id());
 
-          double thickness = 0.0;
-          for (int i = 0; i < Shell::Internal::num_node<distype>; ++i)
-            thickness += thickness * shape_functions.shapefunctions_(i);
-
-          intenergy += psi * integration_factor * 0.5 * thickness;
+          intenergy += psi * integration_factor * cur_thickness_director_[gp].norm2();
         }
       });
 
@@ -274,8 +281,8 @@ void Discret::Elements::Shell7pEleCalc<distype>::calculate_stresses_strains(
           zeta = intpoints_thickness_.qxg[gpt][0] / condfac;
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          // modify the current covariant metric tensor to neglect the quadratic terms in thickness
-          // directions
+          // modify the current covariant metric tensor to neglect the quadratic terms in
+          // thickness directions
           Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
@@ -371,8 +378,8 @@ void Discret::Elements::Shell7pEleCalc<distype>::evaluate_nonlinear_force_stiffn
       {
         double integration_factor = gpweight * da;
 
-        // update current thickness at gauss point
-        cur_thickness_[gp] = Shell::update_gauss_point_thickness<distype>(
+        // update current thickness director at gauss point
+        cur_thickness_director_[gp] = Shell::update_gauss_point_thickness_director<distype>(
             nodal_coordinates.a3_curr_, shape_functions.shapefunctions_);
 
         // reset mid-surface material tensor and stress resultants to zero
@@ -409,8 +416,8 @@ void Discret::Elements::Shell7pEleCalc<distype>::evaluate_nonlinear_force_stiffn
 
           Shell::evaluate_metrics(shape_functions, g_reference, g_current, nodal_coordinates, zeta);
 
-          // modify the current covariant metric tensor to neglect the quadratic terms in thickness
-          // directions
+          // modify the current covariant metric tensor to neglect the quadratic terms in
+          // thickness directions
           Shell::modify_covariant_metrics(g_reference, g_current, a_reference, a_current, zeta,
               shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
               shell_data_.num_ans);
@@ -559,8 +566,8 @@ void Discret::Elements::Shell7pEleCalc<distype>::update(Core::Elements::Element&
                 shape_functions_ans, metrics_collocation_reference, metrics_collocation_current,
                 shell_data_.num_ans);
 
-            // evaluate Green-Lagrange strains and deformation gradient in curvilinear coordinate
-            // system
+            // evaluate Green-Lagrange strains and deformation gradient in curvilinear
+            // coordinate system
             auto strains = evaluate_strains(g_reference, g_current);
 
             // transform gl strains to cartesian system
@@ -583,16 +590,16 @@ template <Core::FE::CellType distype>
 void Discret::Elements::Shell7pEleCalc<distype>::vis_data(
     const std::string& name, std::vector<double>& data)
 {
+  auto thickness_gp = get_cur_thickness_director();
   if (name == "thickness")
   {
     if (data.size() != 1) FOUR_C_THROW("size mismatch");
-    for (auto& thickness_data : cur_thickness_)
+    for (auto& thickness_data : thickness_gp)
     {
-      data[0] += thickness_data;
+      data[0] += 2.0 * thickness_data.norm2();
     }
     data[0] = data[0] / intpoints_midsurface_.num_points();
   }
-
 }  // vis_data()
 
 // template classes
