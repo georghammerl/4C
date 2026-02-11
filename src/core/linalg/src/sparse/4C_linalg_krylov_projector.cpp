@@ -11,7 +11,6 @@
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_sparsematrix.hpp"
-#include "4C_linalg_transfer.hpp"
 #include "4C_linalg_utils_densematrix_communication.hpp"
 #include "4C_linalg_utils_densematrix_multiply.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
@@ -22,13 +21,6 @@
 
 FOUR_C_NAMESPACE_OPEN
 
-/* ====================================================================
-    public
-   ==================================================================== */
-
-/* --------------------------------------------------------------------
-                          Constructor
-   -------------------------------------------------------------------- */
 Core::LinAlg::KrylovProjector::KrylovProjector(
     const std::vector<int> modeids, const std::string* weighttype, const Core::LinAlg::Map* map)
     : complete_(false), modeids_(modeids), weighttype_(weighttype), p_(nullptr), pt_(nullptr)
@@ -43,12 +35,9 @@ Core::LinAlg::KrylovProjector::KrylovProjector(
     FOUR_C_THROW("No permissible weight type.");
 
   invw_tc_ = std::make_shared<Core::LinAlg::SerialDenseMatrix>(nsdim_, nsdim_);
-}  // Core::LinAlg::KrylovProjector::KrylovProjector
+}
 
 
-/* --------------------------------------------------------------------
-                  Give out std::shared_ptr to c_ for change
-   -------------------------------------------------------------------- */
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
 Core::LinAlg::KrylovProjector::get_non_const_kernel()
 {
@@ -62,9 +51,7 @@ Core::LinAlg::KrylovProjector::get_non_const_kernel()
   return c_;
 }
 
-/* --------------------------------------------------------------------
-                  Give out std::shared_ptr to w_ for change
-   -------------------------------------------------------------------- */
+
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
 Core::LinAlg::KrylovProjector::get_non_const_weights()
 {
@@ -83,6 +70,7 @@ Core::LinAlg::KrylovProjector::get_non_const_weights()
   return w_;
 }
 
+
 void Core::LinAlg::KrylovProjector::set_cw(Core::LinAlg::MultiVector<double>& c0,
     Core::LinAlg::MultiVector<double>& w0, const Core::LinAlg::Map* newmap)
 {
@@ -93,20 +81,17 @@ void Core::LinAlg::KrylovProjector::set_cw(Core::LinAlg::MultiVector<double>& c0
   w_ = std::make_shared<Core::LinAlg::MultiVector<double>>(*newmap, nsdim_, false);
   *c_ = c0;
   *w_ = w0;
-  return;
 }
+
 
 void Core::LinAlg::KrylovProjector::set_cw(
     Core::LinAlg::MultiVector<double>& c0, Core::LinAlg::MultiVector<double>& w0)
 {
   *c_ = c0;
   *w_ = w0;
-  return;
 }
 
-/* --------------------------------------------------------------------
-            Compute (w_^T c_)^(-1) and set complete flag
-   -------------------------------------------------------------------- */
+
 void Core::LinAlg::KrylovProjector::fill_complete()
 {
   if (c_ == nullptr)
@@ -175,14 +160,9 @@ void Core::LinAlg::KrylovProjector::fill_complete()
         "projection.");
 
   complete_ = true;
-
-  return;
 }
-// Core::LinAlg::KrylovProjector::fill_complete
 
-/* --------------------------------------------------------------------
-                    Create projector P(^T) (for direct solvers)
-   -------------------------------------------------------------------- */
+
 Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::get_p()
 {
   /*
@@ -203,6 +183,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::get_p()
 
   return *p_;
 }
+
 
 Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::get_pt()
 {
@@ -236,9 +217,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::get_pt()
   return *pt_;
 }
 
-/* --------------------------------------------------------------------
-                  Apply projector P(^T) (for iterative solvers)
-   -------------------------------------------------------------------- */
+
 Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::to_full(
     const Core::LinAlg::Vector<double>& Y) const
 {
@@ -256,6 +235,7 @@ Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::to_full(
 
   return apply_projector(Y, *w_, *c_, *invw_tc_);
 }
+
 
 Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::to_reduced(
     const Core::LinAlg::Vector<double>& Y) const
@@ -276,9 +256,7 @@ Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::to_reduced(
   return apply_projector(Y, *c_, *w_, invwTcT);
 }
 
-/* --------------------------------------------------------------------
-                  give out projection P^T A P
-   -------------------------------------------------------------------- */
+
 std::unique_ptr<Core::LinAlg::SparseOperator> Core::LinAlg::KrylovProjector::to_reduced(
     const Core::LinAlg::SparseOperator& A) const
 {
@@ -330,13 +308,7 @@ std::unique_ptr<Core::LinAlg::SparseOperator> Core::LinAlg::KrylovProjector::to_
   return std::make_unique<Core::LinAlg::SparseMatrix>(std::move(mat3));
 }
 
-/* ====================================================================
-    private methods
-   ==================================================================== */
 
-/* --------------------------------------------------------------------
-                    Create projector (for direct solvers)
-   -------------------------------------------------------------------- */
 Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
     const Core::LinAlg::MultiVector<double>& v1, const Core::LinAlg::MultiVector<double>& v2,
     const Core::LinAlg::SerialDenseMatrix& inv_v1Tv2)
@@ -357,9 +329,7 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
   // compute P by multiplying upright temp1 with lying v1^T:
   Core::LinAlg::SparseMatrix P = multiply_multi_vector_multi_vector(temp1, v1, 1, false);
 
-  //--------------------------------------------------------
   // Add identity matrix
-  //--------------------------------------------------------
   const int nummyrows = v1.local_length();
   const double one = 1.0;
   // loop over all proc-rows
@@ -372,16 +342,12 @@ Core::LinAlg::SparseMatrix Core::LinAlg::KrylovProjector::create_projector(
     P.assemble(one, grid, grid);
   }
 
-  // call fill complete
   P.complete();
 
   return P;
 }
 
 
-/* --------------------------------------------------------------------
-                  Apply projector P(T) (for iterative solvers)
-   -------------------------------------------------------------------- */
 Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::apply_projector(
     const Core::LinAlg::Vector<double>& Y, const Core::LinAlg::MultiVector<double>& v1,
     const Core::LinAlg::MultiVector<double>& v2,
@@ -420,6 +386,6 @@ Core::LinAlg::Vector<double> Core::LinAlg::KrylovProjector::apply_projector(
   }
 
   return result;
-}  // Core::LinAlg::KrylovProjector::apply_projector
+}
 
 FOUR_C_NAMESPACE_CLOSE
