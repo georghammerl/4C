@@ -9,7 +9,6 @@
 add_subdirectory(common)
 
 # List all test directories here
-add_subdirectory(fbi)
 add_subdirectory(geometry_pair)
 add_subdirectory(io)
 add_subdirectory(mat)
