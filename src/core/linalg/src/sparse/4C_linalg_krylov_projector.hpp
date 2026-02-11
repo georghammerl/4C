@@ -29,34 +29,38 @@ namespace Core::LinAlg
   /*!
   A class providing a Krylov projectors. Used for projected preconditioner,
   projected operator, and directly in direct solver.
-
   */
-
   class KrylovProjector : public LinearSystemProjector
   {
    public:
     /*!
-    \brief Standard Constructor, sets mode-ids and weighttype. kernel and weight
-           vector as well as their inner product matrix are allocated, but still
-           have to be set. Use GetNonConstKernel() and GetNonConstWeights() to
-           get pointer and set the vectors and call fill_complete() tobe able to
-           use projector.
-    */
-    KrylovProjector(const std::vector<int>
-                        modeids,        //! ids of to-be-projected modes according element nullspace
-        const std::string* weighttype,  //! type of weights: integration or pointvalues
-        const Core::LinAlg::Map* map    //! map for kernel and weight vectors
-    );
+     * \brief Standard constructor for KrylovProjector.
+     *
+     * Sets the mode IDs and weight type. The kernel and weight vectors as well as
+     * their inner product matrix are allocated but not initialized. After construction,
+     * use GetNonConstKernel() and GetNonConstWeights() to obtain writable pointers,
+     * set the vectors, and call fill_complete() before using the projector.
+     *
+     * \param modeids[in] IDs of the modes to be projected, corresponding to the element nullspace.
+     * \param weighttype[in] Type of weights used for projection (e.g., "integration" or
+     * "pointvalues").
+     * \param map[in] Map defining the layout/distribution of the kernel and weight vectors.
+     */
+    KrylovProjector(const std::vector<int> modeids, const std::string* weighttype,
+        const Core::LinAlg::Map* map);
 
     //! give out std::shared_ptr to c_ for change
     std::shared_ptr<Core::LinAlg::MultiVector<double>> get_non_const_kernel();
 
     //! give out std::shared_ptr to w_ for change
     std::shared_ptr<Core::LinAlg::MultiVector<double>> get_non_const_weights();
+
     // set c_ and w_ from outside
     void set_cw(Core::LinAlg::MultiVector<double>& c0, Core::LinAlg::MultiVector<double>& w0,
         const Core::LinAlg::Map* newmap);
+
     void set_cw(Core::LinAlg::MultiVector<double>& c0, Core::LinAlg::MultiVector<double>& w0);
+
     //! compute (w^T c)^(-1) and completes projector for use
     void fill_complete();
 
