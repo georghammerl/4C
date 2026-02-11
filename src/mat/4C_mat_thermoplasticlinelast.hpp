@@ -20,6 +20,8 @@
 #include "4C_mat_thermomechanical.hpp"
 #include "4C_material_parameter_base.hpp"
 
+#include <boost/range/empty.hpp>
+
 FOUR_C_NAMESPACE_OPEN
 
 namespace Mat
@@ -174,37 +176,37 @@ namespace Mat
 
     //! calculate relative/over stress
     void rel_dev_stress(
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& devstress,  //!< deviatoric stress tensor
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& beta,       //!< back stress tensor
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& eta               //!< relative stress
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& devstress,  //!< deviatoric stress tensor
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& beta,       //!< back stress tensor
+        Core::LinAlg::SymmetricTensor<double, 3, 3>& eta               //!< relative stress
     ) const;
 
     //! computes isotropic elasticity tensor in matrix notion for 3d
     void setup_cmat(
-        Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>& cmat  //!< elastic material tangent
+        Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>& cmat,  //!< elastic material tangent
+        double mu,
+        double lambda  //!< elastic material tangent
     ) const;
 
     //! computes isotropic elastoplastic tensor in matrix notion for 3d
-    void setup_cmat_elasto_plastic(Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
+    void setup_cmat_elasto_plastic(Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>&
                                        cmat,  //!< elasto-plastic material tangent
         double Dgamma,                        //!< plastic multiplier
         double G,                             //!< shear modulus
         double q,                             //!< relative effective stress
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1> flowvector,  //!< flow vector
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1> Nbar,        //!< unit vector
-        double heaviside,                                         //!< Heaviside function
-        double Hiso,                                              //!< isotropic hardening modulus
-        double Hkin                                               //!< kinematic hardening modulus
+        const Core::LinAlg::SymmetricTensor<double, 3, 3> Nbar,  //!< unit vector
+        double Hiso,                                             //!< isotropic hardening modulus
+        double Hkin                                              //!< kinematic hardening modulus
     ) const;
 
     //! computes isotropic elastoplastic tensor in matrix notation for 3d
     void setup_cmat_elasto_plastic2(Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>& cmat,
-        double Dgamma, double q, Core::LinAlg::Matrix<NUM_STRESS_3D, 1> unitflow) const;
+        double Dgamma, double q, Core::LinAlg::SymmetricTensor<double, 3, 3> unitflow) const;
 
     //! computes continuum elastoplastic tensor in matrix notation for 3d
     void setup_continuum_cmat_elasto_plastic(
         Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>& cmat, double Dgamma, double q,
-        Core::LinAlg::Matrix<NUM_STRESS_3D, 1> unitflow) const;
+        Core::LinAlg::SymmetricTensor<double, 3, 3> unitflow) const;
 
     //! calculates the derivative of get_sigma_y_at_strainbarnp() w.r.t. astrain_{n+1}
     //! and returns the isotropic hardening modulus
@@ -232,18 +234,18 @@ namespace Mat
       //! Output is called after(!!) Update, so that newest values are included in
       //! the old history vectors last_
       //! in contrast: the current history vectors curr_are reset to zero
-      return (strainbarpllast_->at(gp));
+      return (strainbarpllast_.at(gp));
     }
 
     // return current scalar-valued accumulated strain
     double accumulated_strain_curr(int gp  //!< current Gauss point
     ) const
     {
-      return (strainbarplcurr_->at(gp));
+      return (strainbarplcurr_.at(gp));
     }
 
     //! check if history variables are already initialised
-    bool initialized() const { return (isinit_ and (strainplcurr_ != nullptr)); }
+    bool initialized() const { return (isinit_ and (!strainplcurr_.empty())); }
 
     void reinit(const Core::LinAlg::Tensor<double, 3, 3>* defgrd,
         const Core::LinAlg::SymmetricTensor<double, 3, 3>& glstrain, double temperature,
@@ -292,57 +294,55 @@ namespace Mat
 
     //! calculate elastic strain rate, using additive split of strains
     //! (o) save strain^e' in strainelrate_
-    void strain_rate_split(int gp,  //!< (i): current Gauss point
-        const double stepsize,      //!< (i): stepsize
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>&
-            strainrate  //!< (i): total strain rate ( B d')
+    void strain_rate_split(int gp,                    //!< (i): current Gauss point
+        const double stepsize,                        //!< (i): stepsize
+        const Core::LinAlg::Matrix<6, 1>& strainrate  //!< (i): total strain rate ( B d')
     );
 
     //! return current plastic strain vector
     //! \f${\boldsymbol \varepsilon}^p_{n+1}\f$
-    Core::LinAlg::Matrix<NUM_STRESS_3D, 1> plastic_strain(int gp) const
+    Core::LinAlg::SymmetricTensor<double, 3, 3> plastic_strain(int gp) const
     {
-      return strainplcurr_->at(gp);
+      return strainplcurr_.at(gp);
     }
 
     //! return current elastic strain rate vector
     //! \f$\dot{\boldsymbol \varepsilon}^e_{n+1}\f$
-    Core::LinAlg::Matrix<NUM_STRESS_3D, 1> elastic_strain_rate(int gp) const
+    Core::LinAlg::Matrix<6, 1> elastic_strain_rate(int gp) const
     {
-      return strainelrate_->at(gp);
+      return Core::LinAlg::make_strain_like_voigt_matrix(strainelrate_.at(gp));
     }
 
     //! compute internal dissipation terms
     void dissipation(int gp,  // current Gauss point
         double sigma_yiso,    // isotropic work hardening von Mises stress
         double Dgamma,        // plastic multiplier/increment
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& N,      // flow vector
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& stress  // total mechanical stress
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& N,      // flow vector
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& stress  // total mechanical stress
     );
 
     //! compute linearisation of internal dissipation for k_Td
-    void dissipation_coupl_cond(const Core::LinAlg::Matrix<NUM_STRESS_3D, NUM_STRESS_3D>&
-                                    cmat,                 // elasto-plastic tangent modulus (out)
-        int gp,                                           // current Gauss point
-        double G,                                         // shear modulus
-        double Hiso,                                      // isotropic hardening modulus
-        double Hkin,                                      // kinematic hardening modulus
-        double heaviside,                                 // Heaviside function
-        double etanorm,                                   // norm of eta^{trial}_{n+1}
-        double Dgamma,                                    // plastic multiplier
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& N,  // flow vector
-        const Core::LinAlg::Matrix<NUM_STRESS_3D, 1>& stress  // flow vector
+    void dissipation_coupl_cond(const Core::LinAlg::SymmetricTensor<double, 3, 3, 3, 3>&
+                                    cmat,  // elasto-plastic tangent modulus (out)
+        int gp,                            // current Gauss point
+        double G,                          // shear modulus
+        double Hiso,                       // isotropic hardening modulus
+        double Hkin,                       // kinematic hardening modulus
+        double etanorm,                    // norm of eta^{trial}_{n+1}
+        double Dgamma,                     // plastic multiplier
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& N,      // flow vector
+        const Core::LinAlg::SymmetricTensor<double, 3, 3>& stress  // flow vector
     );
 
     //! return mechanical dissipation term due to kinematic hardening
     //! \f$ D_{\rm mech,kin}\f$
-    double mechanical_kinematic_dissipation(int gp) const { return dmech_->at(gp); }
+    double mechanical_kinematic_dissipation(int gp) const { return dmech_.at(gp); }
 
     //! return linearisation of mechanical dissipation w.r.t. displacements
     //! \f$ k_Td += \dfrac{\partial D_{\rm mech}}{\partial d_{n+1}}\f$
-    Core::LinAlg::Matrix<NUM_STRESS_3D, 1> dissipation_linearised_for_coupl_cond(int gp) const
+    Core::LinAlg::Matrix<6, 1> dissipation_linearised_for_coupl_cond(int gp) const
     {
-      return dmech_d_->at(gp);
+      return Core::LinAlg::make_strain_like_voigt_matrix(dmech_d_.at(gp));
     }
 
     //@}
@@ -397,34 +397,34 @@ namespace Mat
 
     //! plastic history vector
     //! old plastic strain at t_n
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         strainpllast_;  //!< \f${\varepsilon}^p_{n}\f$
     //! current plastic strain at t_n+1
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         strainplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
     //! old back stress at t_n
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         backstresslast_;  //!< \f${\beta}_{n}\f$
     //! current back stress at t_n+1
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>>
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>>
         backstresscurr_;  //!< \f${\beta}_{n+1}\f$
     //! old accumulated plastic strain at t_n
-    std::shared_ptr<std::vector<double>> strainbarpllast_;  //!< \f${\varepsilon}^p_{n}\f$
+    std::vector<double> strainbarpllast_;  //!< \f${\varepsilon}^p_{n}\f$
     //! current accumulated plastic strain at t_n+1
-    std::shared_ptr<std::vector<double>> strainbarplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
+    std::vector<double> strainbarplcurr_;  //!< \f${\varepsilon}^p_{n+1}\f$
 
     //! @name specific methods for the combination TSI and plastic material
     //@{
 
     //! mechanical dissipation term due to kinematic and isotropic hardening at t_n+1
-    std::shared_ptr<std::vector<double>> dmech_;
+    std::vector<double> dmech_;
     //! linearisation of mechanical dissipation term w.r.t. to d_{n+1}
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>> dmech_d_;
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>> dmech_d_;
     //! save plastic strain increment: Incstrainpl = strain^p_{n+1} - strain^p_n
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>> incstrainpl_;
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>> incstrainpl_;
     //! elastic strain rate required for thermoelastic heating term
     //! use additive split: strain^e' = strain' - strain^p'
-    std::shared_ptr<std::vector<Core::LinAlg::Matrix<NUM_STRESS_3D, 1>>> strainelrate_;
+    std::vector<Core::LinAlg::SymmetricTensor<double, 3, 3>> strainelrate_;
 
     //@}
 

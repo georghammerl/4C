@@ -116,6 +116,7 @@ namespace Core::LinAlg::TensorGenerators
 
   template <typename T, std::size_t... n>
   static constexpr SymmetricTensor<T, n...> ones = full<n...>(static_cast<T>(1));
+
 }  // namespace Core::LinAlg::TensorGenerators
 
 FOUR_C_NAMESPACE_CLOSE
