@@ -227,6 +227,10 @@ namespace BeamInteraction
      */
     bool have_lagrange_dofs() const;
 
+    BeamToSolid::BeamToSolidLagrangeFormulation get_lagrange_formulation()
+    {
+      return parameters_.lagrange_formulation;
+    }
 
     /**
      * \brief Get the global vector of Lagrange multipliers.

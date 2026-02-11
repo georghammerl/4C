@@ -65,6 +65,8 @@ namespace BeamToSolid
     none,
     //!  Lagrange multiplier preserving the saddlepoint nature of the system
     saddlepoint,
+    //!  Augmented system adding penalty contributions to the saddlepoint system
+    augmented,
     //!  Penalty regularized approach assembled into a 2x2 block system.
     regularized
   };
