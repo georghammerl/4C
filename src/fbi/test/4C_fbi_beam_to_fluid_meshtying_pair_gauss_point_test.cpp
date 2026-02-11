@@ -7,10 +7,11 @@
 
 #include <gtest/gtest.h>
 
+#include "4C_fbi_beam_to_fluid_meshtying_pair_gauss_point.hpp"
+
 #include "4C_beam3_euler_bernoulli.hpp"
 #include "4C_beaminteraction_contact_pair.hpp"
 #include "4C_beaminteraction_geometry_pair_access_traits.hpp"
-#include "4C_fbi_beam_to_fluid_meshtying_pair_gauss_point.hpp"
 #include "4C_fbi_beam_to_fluid_meshtying_params.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fluid_ele.hpp"
