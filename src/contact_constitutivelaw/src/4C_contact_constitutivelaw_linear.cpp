@@ -5,20 +5,18 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_contact_constitutivelaw_power_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_linear.hpp"
 
 #include "4C_global_data.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
-
-#include <math.h>
 
 FOUR_C_NAMESPACE_OPEN
 
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams::PowerConstitutiveLawParams(
+CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams::LinearConstitutiveLawParams(
     const Core::IO::InputParameterContainer& container)
     : CONTACT::CONSTITUTIVELAW::Parameter(container),
       a_(container.get<double>("A")),
@@ -28,44 +26,42 @@ CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams::PowerConstitutiveLawParams
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::PowerConstitutiveLaw(
-    CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams params)
+CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::LinearConstitutiveLaw(
+    CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams params)
     : params_(std::move(params))
 {
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate(
-    const double gap, CONTACT::Node* cnode)
-{
-  if (gap + params_.get_offset() > 0)
-  {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
-  }
-
-  const double result = -(params_.getdata() * pow(-gap - params_.get_offset(), params_.get_b()));
-
-  if (result > 0)
-    FOUR_C_THROW(
-        "The constitutive function you are using seems to be positive, even though the gap is "
-        "negative. Please check your coefficients!");
-
-  return result;
-}
-
-/*----------------------------------------------------------------------*
- *----------------------------------------------------------------------*/
-double CONTACT::CONSTITUTIVELAW::PowerConstitutiveLaw::evaluate_derivative(
+double CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::evaluate(
     const double gap, CONTACT::Node* cnode)
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
 
-  return params_.getdata() * params_.get_b() *
-         pow(-gap - params_.get_offset(), params_.get_b() - 1);
+  return params_.getdata() * (gap + params_.get_offset()) + params_.get_b();
+}
+
+/*----------------------------------------------------------------------*
+ *----------------------------------------------------------------------*/
+double CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw::evaluate_derivative(
+    const double gap, CONTACT::Node* cnode)
+{
+  if (gap + params_.get_offset() > 0.0)
+  {
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
+  }
+
+  return params_.getdata();
 }
 
 FOUR_C_NAMESPACE_CLOSE

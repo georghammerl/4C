@@ -5,8 +5,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef FOUR_C_CONTACT_CONSTITUTIVELAW_POWER_CONTACTCONSTITUTIVELAW_HPP
-#define FOUR_C_CONTACT_CONSTITUTIVELAW_POWER_CONTACTCONSTITUTIVELAW_HPP
+#ifndef FOUR_C_CONTACT_CONSTITUTIVELAW_LINEAR_HPP
+#define FOUR_C_CONTACT_CONSTITUTIVELAW_LINEAR_HPP
 
 
 #include "4C_config.hpp"
@@ -22,70 +22,72 @@ namespace CONTACT
   namespace CONSTITUTIVELAW
   {
     /*----------------------------------------------------------------------*/
-    /** \brief constitutive law parameters for a power contact law \f$ Ax^B \f$ relating the gap to
+    /** \brief constitutive law parameters for a linear contact law \f$ Ax+B \f$ relating the gap to
      * the contact pressure
      *
      */
-    class PowerConstitutiveLawParams : public Parameter
+    class LinearConstitutiveLawParams : public Parameter
     {
      public:
       /** \brief standard constructor
        * \param[in] container containing the law parameter from the input file
        */
-      PowerConstitutiveLawParams(const Core::IO::InputParameterContainer& container);
+      LinearConstitutiveLawParams(const Core::IO::InputParameterContainer& container);
 
-      /// @name get-functions for the Constitutive Law parameters of a power law function
+
+      /// @name get-functions for the Constitutive Law parameters of a broken rational function
       //@{
-      /// Get the scaling factor
+      /// Get the slope
       double getdata() const { return a_; };
-      /// Get the power coefficient
+      /// Get the y intercept
       double get_b() const { return b_; };
       //@}
 
      private:
-      /// @name Constitutive Law parameters of a power function
+      /// @name Constitutive Law parameters of a linear function
       //@{
-      /// scaling factor
-      const double a_;
-      /// power coefficient
+      /// slope
+      double a_;
+      /// y intercept
       const double b_;
       //@}
     };  // class
 
     /*----------------------------------------------------------------------*/
-    /** \brief implements a power contact constitutive law \f$ Ax^B \f$ relating the gap to the
+    /** \brief implements a linear contact constitutive law \f$ Ax+B \f$ relating the gap to the
      * contact pressure
-     *
      */
-    class PowerConstitutiveLaw : public ConstitutiveLaw
+    class LinearConstitutiveLaw : public ConstitutiveLaw
     {
      public:
       /// construct the constitutive law object given a set of parameters
-      explicit PowerConstitutiveLaw(CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams params);
+      explicit LinearConstitutiveLaw(CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams params);
 
       //! @name Access methods
       //@{
 
-      /// Get scaling factor of power law
+      /// Get slope of linear polynomial
       double getdata() { return params_.getdata(); }
-      /// Get power coefficient of power law
+      /// Get y intercept of linear polynomial
       double get_b() { return params_.get_b(); }
 
       /// Return quick accessible contact constitutive law parameter data
       const CONTACT::CONSTITUTIVELAW::Parameter* parameter() const override { return &params_; }
+
       //@}
 
       //! @name Evaluation methods
       //@{
       /// Evaluate the constitutive law
-      double evaluate(double gap, CONTACT::Node* cnode) override;
+      double evaluate(const double gap, CONTACT::Node* cnode) override;
+
       /// Evaluate derivative of the constitutive law
-      double evaluate_derivative(double gap, CONTACT::Node* cnode) override;
+      double evaluate_derivative(const double gap, CONTACT::Node* cnode) override;
       //@}
 
      private:
       /// my constitutive law parameters
-      CONTACT::CONSTITUTIVELAW::PowerConstitutiveLawParams params_;
+      CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams params_;
     };
   }  // namespace CONSTITUTIVELAW
 }  // namespace CONTACT

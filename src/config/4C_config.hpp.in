@@ -26,6 +26,10 @@
 #define FOUR_C_NAMESPACE_OPEN namespace FourC {
 #define FOUR_C_NAMESPACE_CLOSE }
 
+// GCC/Clang attribute to hide symbols from the public ABI of a shared library. This is used
+// to mark symbols with hidden visibility to prevent their export from shared objects.
+#define FOUR_C_HIDDEN __attribute__((visibility("hidden")))
+
 /// Dependencies
 /// The following flags are set when configuring the project with CMake.
 

@@ -7,28 +7,32 @@
 
 #include <gtest/gtest.h>
 
-#include "4C_contact_constitutivelaw_linear.hpp"
+#include "4C_contact_constitutivelaw_python_surrogate.hpp"
 
 #include "4C_contact_node.hpp"
+#include "4C_unittest_utils_support_files_test.hpp"
+
+#ifdef FOUR_C_WITH_PYBIND11
 
 namespace
 {
   using namespace FourC;
 
-  class LinearConstitutiveLawTest : public ::testing::Test
+  class PythonSurrogateConstitutiveLawTest : public ::testing::Test
   {
    public:
-    LinearConstitutiveLawTest()
+    PythonSurrogateConstitutiveLawTest()
     {
+      /// initialize container for material parameters
       Core::IO::InputParameterContainer container;
-      // add parameters to container
-      container.add("A", 1.5);
-      container.add("B", 0.0);
+      container.add("Python_Filename",
+          TESTING::get_support_file_path(
+              "test_files/4C_contact_constitutivelaw_python_surrogate_linear.py"));
       container.add("Offset", 0.5);
 
-      CONTACT::CONSTITUTIVELAW::LinearConstitutiveLawParams params(container);
-
-      coconstlaw_ = std::make_unique<CONTACT::CONSTITUTIVELAW::LinearConstitutiveLaw>(params);
+      CONTACT::CONSTITUTIVELAW::PythonSurrogateConstitutiveLawParams params(container);
+      coconstlaw_ =
+          std::make_shared<CONTACT::CONSTITUTIVELAW::PythonSurrogateConstitutiveLaw>(params);
     }
 
     std::shared_ptr<CONTACT::CONSTITUTIVELAW::ConstitutiveLaw> coconstlaw_;
@@ -36,21 +40,23 @@ namespace
     std::shared_ptr<CONTACT::Node> cnode;
   };
 
-  //! test member function Evaluate
-  TEST_F(LinearConstitutiveLawTest, TestEvaluate)
+  //! test member function evaluate()
+  TEST_F(PythonSurrogateConstitutiveLawTest, TestEvaluate)
   {
     // gap < 0
     EXPECT_ANY_THROW(coconstlaw_->evaluate(1.0, cnode.get()));
-    // 0< gap < offset
+    // 0 < gap < offset
     EXPECT_ANY_THROW(coconstlaw_->evaluate(-0.25, cnode.get()));
     // offset < gap
     EXPECT_NEAR(coconstlaw_->evaluate(-0.75, cnode.get()), -0.375, 1.e-15);
   }
 
-  //! test member function EvaluateDeriv
-  TEST_F(LinearConstitutiveLawTest, TestEvaluateDeriv)
+  //! test member function evaluate_deriv()
+  TEST_F(PythonSurrogateConstitutiveLawTest, TestEvaluateDeriv)
   {
     EXPECT_NEAR(coconstlaw_->evaluate_derivative(-0.75, cnode.get()), 1.5, 1.e-15);
     EXPECT_ANY_THROW(coconstlaw_->evaluate_derivative(-0.25, cnode.get()));
   }
 }  // namespace
+
+#endif

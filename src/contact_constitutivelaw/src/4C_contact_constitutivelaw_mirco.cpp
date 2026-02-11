@@ -5,7 +5,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "4C_contact_constitutivelaw_mirco_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_mirco.hpp"
 
 #include "4C_contact_rough_node.hpp"
 #include "4C_global_data.hpp"
@@ -124,8 +124,12 @@ double CONTACT::CONSTITUTIVELAW::MircoConstitutiveLaw::evaluate(
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes. ");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
+
   if (-(gap + params_.get_offset()) < params_.get_active_gap_tolerance())
   {
     return 0.0;
@@ -152,8 +156,12 @@ double CONTACT::CONSTITUTIVELAW::MircoConstitutiveLaw::evaluate_derivative(
 {
   if (gap + params_.get_offset() > 0.0)
   {
-    FOUR_C_THROW("You should not be here. The Evaluate function is only tested for active nodes.");
+    FOUR_C_THROW(
+        "The Evaluate function can only operate on active nodes. With a current gap = {} and an "
+        "initial offset = {}, this node is inactive though.",
+        gap, params_.get_offset());
   }
+
   if (-(gap + params_.get_offset()) < params_.get_active_gap_tolerance())
   {
     return 0.0;

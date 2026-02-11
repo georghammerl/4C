@@ -7,7 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include "4C_contact_constitutivelaw_brokenrational_contactconstitutivelaw.hpp"
+#include "4C_contact_constitutivelaw_brokenrational.hpp"
+
 #include "4C_contact_node.hpp"
 
 namespace
