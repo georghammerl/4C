@@ -21,6 +21,7 @@
 #include "4C_elch_input.hpp"
 #include "4C_fbi_input.hpp"
 #include "4C_fem_general_element_definition.hpp"
+#include "4C_fem_geometry_searchtree_input.hpp"
 #include "4C_fem_nurbs_discretization_knotvector.hpp"
 #include "4C_fpsi_input.hpp"
 #include "4C_fs3i_input.hpp"
@@ -39,7 +40,6 @@
 #include "4C_inpar_plasticity.hpp"
 #include "4C_inpar_s2i.hpp"
 #include "4C_inpar_scatra.hpp"
-#include "4C_inpar_searchtree.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_inpar_volmortar.hpp"
 #include "4C_inpar_wear.hpp"
@@ -355,7 +355,7 @@ std::vector<Core::IO::InputSpec> Global::valid_parameters()
 
   push_specs(specs, Particle::valid_parameters());
 
-  push_specs(specs, Inpar::Geo::valid_parameters());
+  push_specs(specs, Geo::valid_parameters());
   push_specs(specs, Core::Binstrategy::valid_parameters());
   push_specs(specs, Core::GeometricSearch::valid_parameters());
   push_specs(specs, PaSI::valid_parameters());
