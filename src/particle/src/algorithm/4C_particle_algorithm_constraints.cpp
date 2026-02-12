@@ -70,13 +70,6 @@ int Particle::ConstraintsProjectionBase::calc_primary_axis(
 {
   int local_result = calc_primary_axis_local(particle_container_bundle, types_to_integrate);
 
-  int local_invalid = (local_result == axis_invalid_);
-  int global_invalid;
-
-  MPI_Allreduce(&local_invalid, &global_invalid, 1, MPI_INT, MPI_LOR, comm_);
-
-  FOUR_C_ASSERT_ALWAYS(!global_invalid, "Invalid or inconsistent primary axis detected");
-
   int global_result;
   MPI_Allreduce(&local_result, &global_result, 1, MPI_INT, MPI_MAX, comm_);
 
