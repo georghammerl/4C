@@ -586,22 +586,6 @@ void Discret::Elements::Shell7pEleCalc<distype>::update(Core::Elements::Element&
   solid_material.update();
 }
 
-template <Core::FE::CellType distype>
-void Discret::Elements::Shell7pEleCalc<distype>::vis_data(
-    const std::string& name, std::vector<double>& data)
-{
-  auto thickness_gp = get_cur_thickness_director();
-  if (name == "thickness")
-  {
-    if (data.size() != 1) FOUR_C_THROW("size mismatch");
-    for (auto& thickness_data : thickness_gp)
-    {
-      data[0] += 2.0 * thickness_data.norm2();
-    }
-    data[0] = data[0] / intpoints_midsurface_.num_points();
-  }
-}  // vis_data()
-
 // template classes
 template class Discret::Elements::Shell7pEleCalc<Core::FE::CellType::quad4>;
 template class Discret::Elements::Shell7pEleCalc<Core::FE::CellType::quad8>;

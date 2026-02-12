@@ -184,14 +184,6 @@ namespace Discret
           Core::Elements::Element& ele, Mat::So3Material& solid_material) = 0;
 
       /*!
-       * \brief Query data to be visualized using BINIO of a given name
-       *
-       * @param name (in):   Name of data that is currently processed for visualization
-       * @param data (out):  data to be filled by element if it recognizes the name
-       */
-      virtual void vis_data(const std::string& name, std::vector<double>& data) = 0;
-
-      /*!
        * \brief Get current thickness director vectors at all gauss points
        *
        * @return Reference to vector containing thickness director vectors at each gauss point

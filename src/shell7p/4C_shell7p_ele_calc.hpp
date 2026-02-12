@@ -86,8 +86,6 @@ namespace Discret
       void reset_to_last_converged(
           Core::Elements::Element& ele, Mat::So3Material& solid_material) override;
 
-      void vis_data(const std::string& name, std::vector<double>& data) override;
-
       [[nodiscard]] const std::vector<Core::LinAlg::Matrix<3, 1>>& get_cur_thickness_director()
           const override
       {

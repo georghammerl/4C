@@ -295,8 +295,6 @@ void Discret::Elements::Shell7pScatra::set_params_interface_ptr(const Teuchos::P
 
 void Discret::Elements::Shell7pScatra::vis_names(std::map<std::string, int>& names)
 {
-  std::string result_thickness = "thickness";
-  names[result_thickness] = 1;
   solid_material()->vis_names(names);
 }  // vis_names()
 
@@ -305,8 +303,6 @@ bool Discret::Elements::Shell7pScatra::vis_data(const std::string& name, std::ve
 {
   // Put the owner of this element into the file (use base class method for this)
   if (Core::Elements::Element::vis_data(name, data)) return true;
-
-  shell_interface_->vis_data(name, data);
 
   return solid_material()->vis_data(name, data, id());
 
