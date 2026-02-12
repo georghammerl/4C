@@ -49,7 +49,7 @@ namespace Particle
      * \param[in] comm MPI communicator
      * \param[in] tol zero threshold
      */
-    ConstraintsProjectionBase(MPI_Comm comm, double tol = 1e-16);
+    ConstraintsProjectionBase(MPI_Comm comm, double tol = 1e-12);
 
    public:
     /*!
@@ -135,10 +135,12 @@ namespace Particle
      *
      *
      * \param[in] n_particle_stored number of particles stored in a bundle
-     * \param[in] pos_state_dim offset for the state vectors
+     * \param[in] pos_state_dim offset for the position state vector
      * \param[in] pos pointer to the position state vector
+     * \param[in] rad pointer to the radius vector
      */
-    virtual void check(int n_particle_stored, int pos_state_dim, const double* pos) const = 0;
+    virtual void check(
+        int n_particle_stored, int pos_state_dim, const double* pos, const double* rad) const = 0;
 
    protected:
     MPI_Comm comm_;
@@ -202,10 +204,12 @@ namespace Particle
      *
      *
      * \param[in] n_particle_stored number of particles stored in a bundle
-     * \param[in] pos_state_dim offset for the state vectors
+     * \param[in] pos_state_dim offset for the position state vector
      * \param[in] pos pointer to the position state vector
+     * \param[in] rad pointer to the radius vector
      */
-    void check(int n_particle_stored, int pos_state_dim, const double* pos) const override;
+    void check(int n_particle_stored, int pos_state_dim, const double* pos,
+        const double* rad) const override;
   };
 
   class ConstraintsProjection1D : public ConstraintsProjectionBase
@@ -260,10 +264,12 @@ namespace Particle
      *
      *
      * \param[in] n_particle_stored number of particles stored in a bundle
-     * \param[in] pos_state_dim offset for the state vectors
+     * \param[in] pos_state_dim offset for the position state vector
      * \param[in] pos pointer to the position state vector
+     * \param[in] rad pointer to the radius vector
      */
-    void check(int n_particle_stored, int pos_state_dim, const double* pos) const override;
+    void check(int n_particle_stored, int pos_state_dim, const double* pos,
+        const double* rad) const override;
 
     mutable int index0_;
     mutable int index1_;
