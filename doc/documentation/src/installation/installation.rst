@@ -502,14 +502,14 @@ Wait until both instances are connected and then start the computation by pressi
 
 **Adding yaml Schema to VS Code**
 
-In order to use the Yaml schema in VS Code, which simplifies editing |FOURC|  input files significantly, is done in two steps.configure
+In order to use the Yaml schema in VS Code, which simplifies editing |FOURC|  input files significantly, is done in two steps.
 
 1. Install the official YAML by Red Hat extension within VS Code
 
-2. Goto file :math:`\to` Preferences :math:`\to` Settings
+2. Go to file :math:`\to` Preferences :math:`\to` Settings
 
    Search for "schemas".
-   You'll find the entry **JSON: Schemas** containing the link *Edit in settings.json*; click on it.
+   You'll find the entry **Yaml: Schemas** containing the link *Edit in settings.json*; click on it.
 
    In the ``settings.json`` file, you might have entries already; add the following entry to the main dictionary
    (adjust the directory of the json file to your build directory, where this file is located):
