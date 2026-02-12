@@ -405,7 +405,7 @@ bool BeamInteraction::SubmodelEvaluator::BeamContact::evaluate_force_stiff()
         beam_interaction_data_state_ptr()->get_force_np(),
         beam_interaction_data_state_ptr()->get_stiff());
 
-  print_active_beam_contact_set(Core::IO::cout.os(Core::IO::verbose));
+  print_active_beam_contact_set(Core::IO::cout.os(Core::IO::debug));
 
   return true;
 }
