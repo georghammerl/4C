@@ -192,8 +192,8 @@ namespace Solid
       //! get the current plastic strain type [derived]
       [[nodiscard]] Inpar::Solid::StrainType get_plastic_strain_output_type() const override;
 
-      //! get the current strain type [derived]
-      virtual Inpar::Solid::OptQuantityType get_opt_quantity_output_type() const;
+      //! get the current optional quantity output type [derived]
+      [[nodiscard]] Inpar::Solid::OptQuantityType get_opt_quantity_output_type() const override;
 
       //< get the manager of Gauss point data output
       std::shared_ptr<GaussPointDataOutputManager>& gauss_point_data_output_manager_ptr() override;

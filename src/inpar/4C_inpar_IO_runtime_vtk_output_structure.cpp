@@ -83,6 +83,9 @@ namespace Inpar
                     {
                         {"No", Inpar::Solid::optquantity_none},
                         {"membranethickness", Inpar::Solid::optquantity_membranethickness},
+                        {"shell7pthickness", Inpar::Solid::optquantity_shell7pthickness},
+                        {"shell7pthicknessdirector",
+                            Inpar::Solid::optquantity_shell7pthicknessdirector},
                     },
                     {.description = "Output of an optional quantity",
                         .default_value = Inpar::Solid::optquantity_none}),

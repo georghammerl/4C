@@ -166,6 +166,9 @@ namespace Solid
       //! get the current plastic strain type
       virtual Inpar::Solid::StrainType get_plastic_strain_output_type() const = 0;
 
+      //! get the current optional quantity output type
+      virtual Inpar::Solid::OptQuantityType get_opt_quantity_output_type() const = 0;
+
       virtual std::shared_ptr<ModelEvaluator::GaussPointDataOutputManager>&
       gauss_point_data_output_manager_ptr() = 0;
 

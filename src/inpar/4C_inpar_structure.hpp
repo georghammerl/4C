@@ -289,9 +289,29 @@ namespace Inpar
     /// (this enum represents the input file parameter OPTIONAL_QUANTITY)
     enum OptQuantityType
     {
-      optquantity_none,              ///< no optional output
-      optquantity_membranethickness  ///< output of thickness of membrane finite elements
+      optquantity_none,                     ///< no optional output
+      optquantity_membranethickness,        ///< output of thickness of membrane finite elements
+      optquantity_shell7pthickness,         ///< output of thickness of shell7p finite elements
+      optquantity_shell7pthicknessdirector  ///< output of thickness director vector of shell7p
+                                            ///< finite elements
     };
+
+    /// Get the number of components for a given optional quantity type
+    [[nodiscard]] constexpr int get_opt_quantity_num_components(OptQuantityType type) noexcept
+    {
+      switch (type)
+      {
+        case optquantity_none:
+          return 0;
+        case optquantity_membranethickness:
+        case optquantity_shell7pthickness:
+          return 1;
+        case optquantity_shell7pthicknessdirector:
+          return 3;
+        default:
+          return 0;
+      }
+    }
 
     /*!
      * \brief Type of output of gauss point data

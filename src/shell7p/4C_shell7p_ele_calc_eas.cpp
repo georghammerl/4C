@@ -30,7 +30,6 @@ Discret::Elements::Shell7pEleCalcEas<distype>::Shell7pEleCalcEas()
           Shell::create_gauss_integration_points<distype>(Shell::get_gauss_rule<distype>()))
 {
   old_step_length_ = 0.0;
-  cur_thickness_.resize(intpoints_midsurface_.num_points(), shell_data_.thickness);
 }
 
 template <Core::FE::CellType distype>
@@ -40,11 +39,12 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::setup(Core::Elements::Elemen
     const Solid::Elements::ShellData& shell_data)
 {
   shell_data_ = shell_data;
-  cur_thickness_.resize(intpoints_midsurface_.num_points(), shell_data_.thickness);
+  cur_thickness_director_.resize(intpoints_midsurface_.num_points(),
+      Core::LinAlg::Matrix<3, 1>(Core::LinAlg::Initialization::zero));
   locking_types_ = locking_types;
 
   // init sizes of EAS data for integration
-  eas_iteration_data_.alpha_.shape(locking_types.total, 1);
+  eas_iteration_data_.alpha_.shape(locking_types_.total, 1);
   eas_iteration_data_.RTilde_.shape(locking_types_.total, 1);
   eas_iteration_data_.invDTilde_.shape(locking_types_.total, locking_types_.total);
   eas_iteration_data_.transL_.shape(
@@ -77,7 +77,7 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::pack(
   add_to_pack(data, locking_types_.total);
 
   add_to_pack(data, old_step_length_);
-  add_to_pack(data, cur_thickness_);
+  add_to_pack(data, cur_thickness_director_);
 }
 
 template <Core::FE::CellType distype>
@@ -101,7 +101,15 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::unpack(
   extract_from_pack(buffer, locking_types_.total);
 
   extract_from_pack(buffer, old_step_length_);
-  extract_from_pack(buffer, cur_thickness_);
+  extract_from_pack(buffer, cur_thickness_director_);
+}
+
+template <Core::FE::CellType distype>
+void Discret::Elements::Shell7pEleCalcEas<distype>::initialize_thickness_directors(
+    const Core::LinAlg::SerialDenseMatrix& nodal_directors, const double thickness)
+{
+  Shell::initialize_thickness_directors_from_nodal_directors<distype>(
+      nodal_directors, intpoints_midsurface_, thickness, cur_thickness_director_);
 }
 
 template <Core::FE::CellType distype>
@@ -208,6 +216,10 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
       {
         double integration_factor = gpweight * da;
 
+        // update current thickness director at gauss point
+        cur_thickness_director_[gp] = Shell::update_gauss_point_thickness_director<distype>(
+            nodal_coordinates.a3_curr_, shape_functions.shapefunctions_);
+
         //  make shape functions for incompatible strains
         eas_kinematics.M = Shell::evaluate_eas_shape_functions(
             xi_gp, locking_types_, a_reference, metrics_centroid_reference);
@@ -253,11 +265,7 @@ double Discret::Elements::Shell7pEleCalcEas<distype>::calculate_internal_energy(
           double psi = solid_material.strain_energy(
               eas_kinematics.enhanced_gl_strain_, context, gp, ele.id());
 
-          double thickness = 0.0;
-          for (int i = 0; i < Shell::Internal::num_node<distype>; ++i)
-            thickness += thickness * shape_functions.shapefunctions_(i);
-
-          intenergy += psi * integration_factor * 0.5 * thickness;
+          intenergy += psi * integration_factor * cur_thickness_director_[gp].norm2();
         }
       });
 
@@ -503,8 +511,8 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::evaluate_nonlinear_force_sti
       {
         double integration_factor = gpweight * da;
 
-        // update current thickness at gauss point
-        cur_thickness_[gp] = Shell::update_gauss_point_thickness<distype>(
+        // update current thickness director at gauss point
+        cur_thickness_director_[gp] = Shell::update_gauss_point_thickness_director<distype>(
             nodal_coordinates.a3_curr_, shape_functions.shapefunctions_);
 
         // reset mid-surface material tensor and stress resultants to zero
@@ -833,22 +841,6 @@ void Discret::Elements::Shell7pEleCalcEas<distype>::update(Core::Elements::Eleme
   }
   solid_material.update();
 }
-
-template <Core::FE::CellType distype>
-void Discret::Elements::Shell7pEleCalcEas<distype>::vis_data(
-    const std::string& name, std::vector<double>& data)
-{
-  if (name == "thickness")
-  {
-    if (data.size() != 1) FOUR_C_THROW("size mismatch");
-    for (auto& thickness_data : cur_thickness_)
-    {
-      data[0] += thickness_data;
-    }
-    data[0] = data[0] / intpoints_midsurface_.num_points();
-  }
-
-}  // vis_data()
 
 // template classes
 template class Discret::Elements::Shell7pEleCalcEas<Core::FE::CellType::quad4>;

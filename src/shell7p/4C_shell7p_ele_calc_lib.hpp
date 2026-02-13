@@ -499,20 +499,44 @@ namespace Discret::Elements::Shell
    * in the parameter space
    */
   template <Core::FE::CellType distype>
-  double update_gauss_point_thickness(
+  Core::LinAlg::Matrix<3, 1> update_gauss_point_thickness_director(
       const Core::LinAlg::Matrix<Internal::num_node<distype>, Internal::num_dim>& a3current,
       const Core::LinAlg::Matrix<Internal::num_node<distype>, 1>& shapefunctions)
   {
-    double current_thickness = 0;
+    Core::LinAlg::Matrix<3, 1> current_director(Core::LinAlg::Initialization::zero);
+    current_director.multiply_tn(a3current, shapefunctions);
+    return current_director;
+  }
+
+  /*!
+   * @brief Initialize gauss point thickness directors from nodal directors in reference
+   * configuration
+   *
+   * @tparam distype : The discretization type known at compile time
+   * @param nodal_directors (in) : Nodal directors in reference configuration
+   * @param intpoints (in) : Integration points in mid-surface
+   * @param thickness (in) : Thickness of the element
+   * @param thickness_directors (out) : Thickness directors at gauss points to be initialized
+   */
+  template <Core::FE::CellType distype>
+  void initialize_thickness_directors_from_nodal_directors(
+      const Core::LinAlg::SerialDenseMatrix& nodal_directors,
+      const Core::FE::IntegrationPoints2D& intpoints, const double thickness,
+      std::vector<Core::LinAlg::Matrix<3, 1>>& thickness_directors)
+  {
+    Core::LinAlg::Matrix<Internal::num_node<distype>, Internal::num_dim> nodal_directors_ref;
     for (int i = 0; i < Internal::num_node<distype>; ++i)
+      for (int j = 0; j < Internal::num_dim; ++j) nodal_directors_ref(i, j) = nodal_directors(i, j);
+
+    Core::LinAlg::Matrix<Internal::num_node<distype>, 1> shape_functions;
+    for (int gp = 0; gp < intpoints.num_points(); ++gp)
     {
-      double nodal_thickness = 0;
-      for (int d = 0; d < Internal::num_dim; ++d)
-        nodal_thickness += a3current(i, d) * a3current(i, d);
-      nodal_thickness = 2 * std::sqrt(nodal_thickness);
-      current_thickness += shapefunctions(i) * nodal_thickness;
+      const auto* xi = intpoints.point(gp);
+      Core::FE::shape_function_2d(shape_functions, xi[0], xi[1], distype);
+      thickness_directors[gp] =
+          update_gauss_point_thickness_director<distype>(nodal_directors_ref, shape_functions);
+      thickness_directors[gp].scale(0.5 * thickness);
     }
-    return std::abs(current_thickness);
   }
 
   /*!

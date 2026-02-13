@@ -47,6 +47,9 @@ namespace Discret
           const Solid::Elements::ShellLockingTypes& locking_types,
           const Solid::Elements::ShellData& shell_data) override;
 
+      void initialize_thickness_directors(
+          const Core::LinAlg::SerialDenseMatrix& nodal_directors, const double thickness) override;
+
       void pack(Core::Communication::PackBuffer& data) const override;
 
       void unpack(Core::Communication::UnpackBuffer& buffer) override;
@@ -85,7 +88,11 @@ namespace Discret
       void reset_to_last_converged(
           Core::Elements::Element& ele, Mat::So3Material& solid_material) override;
 
-      void vis_data(const std::string& name, std::vector<double>& data) override;
+      [[nodiscard]] const std::vector<Core::LinAlg::Matrix<3, 1>>& get_cur_thickness_director()
+          const override
+      {
+        return cur_thickness_director_;
+      }
 
      private:
       //! EAS matrices and vectors to be stored between iterations
@@ -108,8 +115,9 @@ namespace Discret
       //! old step length
       double old_step_length_;
 
-      //! shell thickness at gauss point in spatial frame
-      std::vector<double> cur_thickness_;
+      //! shell thickness director at gauss points in spatial frame
+      std::vector<Core::LinAlg::Matrix<3, 1>> cur_thickness_director_;
+
 
     };  // class Shell7pEleCalcEas
   }  // namespace Elements

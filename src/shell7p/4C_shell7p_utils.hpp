@@ -164,6 +164,20 @@ namespace Solid::Utils::Shell
 
   }  // namespace ReadElement
 
+  namespace Output
+  {
+    /*!
+     * @brief Pack shell7p thickness data based on output type
+     *
+     * @param thickness_director (in) : Thickness director vectors at gauss points
+     * @param output_type (in) : Type of output (scalar thickness or 3D director)
+     * @param data (out) : Packed data buffer to be filled
+     */
+    void pack_thickness_data(const std::vector<Core::LinAlg::Matrix<3, 1>>& thickness_director,
+        Inpar::Solid::OptQuantityType output_type, Core::Communication::PackBuffer& data);
+
+  }  // namespace Output
+
 }  // namespace Solid::Utils::Shell
 
 FOUR_C_NAMESPACE_CLOSE

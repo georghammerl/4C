@@ -5,9 +5,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
-#include "4C_mat_material_factory.hpp"
 #include "4C_shell7p_ele.hpp"
 #include "4C_shell7p_ele_calc_interface.hpp"
 #include "4C_shell7p_ele_neumann_evaluator.hpp"
@@ -83,6 +83,12 @@ int Discret::Elements::Shell7p::evaluate(Teuchos::ParameterList& params,
   // get params interface pointer
   set_params_interface_ptr(params);
 
+  if (!material_post_setup_)
+  {
+    shell_interface_->material_post_setup(*this, *solid_material());
+    material_post_setup_ = true;
+  }
+
   const Core::Elements::ActionType action = std::invoke(
       [&]()
       {
@@ -139,6 +145,21 @@ int Discret::Elements::Shell7p::evaluate(Teuchos::ParameterList& params,
           ShellStressIO{get_io_stress_type(*this, params), get_mutable_stress_data(*this, params)},
           ShellStrainIO{get_io_strain_type(*this, params), get_mutable_strain_data(*this, params)},
           discretization, nodal_directors_, dof_index_array, params);
+    }
+    break;
+    case Core::Elements::struct_calc_thickness:
+    {
+      if (Core::Communication::my_mpi_rank(discretization.get_comm()) == owner())
+      {
+        auto thickdata = str_params_interface().opt_quantity_data_ptr();
+        if (thickdata == nullptr) FOUR_C_THROW("Cannot get 'shell7p thickness' data");
+
+        Core::Communication::PackBuffer data;
+        Solid::Utils::Shell::Output::pack_thickness_data(
+            shell_interface_->get_cur_thickness_director(),
+            str_params_interface().get_opt_quantity_output_type(), data);
+        std::copy(data().begin(), data().end(), std::back_inserter(*thickdata));
+      }
     }
     break;
     case Core::Elements::struct_calc_energy:
