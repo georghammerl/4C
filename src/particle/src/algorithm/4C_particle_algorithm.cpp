@@ -111,7 +111,8 @@ void Particle::ParticleAlgorithm::setup()
   if (particlerigidbody_) particlerigidbody_->setup(particleengine_);
 
   // setup particle time integration
-  particletimint_->setup(particleengine_, particlerigidbody_, create_constraints(params_));
+  particletimint_->setup(
+      particleengine_, particlerigidbody_, create_constraints(params_, get_comm()));
 
   // setup particle interaction handler
   if (particleinteraction_) particleinteraction_->setup(particleengine_, particlewall_);
