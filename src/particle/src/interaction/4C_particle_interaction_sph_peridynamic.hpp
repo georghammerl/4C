@@ -18,6 +18,9 @@
 #include "4C_particle_engine_typedefs.hpp"
 #include "4C_particle_interaction_sph.hpp"
 
+#include <array>
+#include <vector>
+
 FOUR_C_NAMESPACE_OPEN
 
 /*---------------------------------------------------------------------------*
@@ -104,6 +107,15 @@ namespace Particle
 
     //! peridynamic dimension
     const PeridynamicDimension peridynamic_dimension_;
+
+    //! pre-crack line segments: each is {x1, y1, z1, x2, y2, z2}
+    std::vector<std::array<double, 6>> pre_crack_lines_;
+
+    //! pre-crack parallelogram patches: each is {p0x,p0y,p0z, p1x,p1y,p1z, p2x,p2y,p2z}
+    std::vector<std::array<double, 9>> pre_crack_planes_;
+
+    //! check if the bond from pos_i to pos_j crosses any pre-crack line segment or plane
+    bool bond_crosses_pre_crack(const double* pos_i, const double* pos_j) const;
   };
 
 }  // namespace Particle
