@@ -28,7 +28,8 @@ void BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect::eva
     const std::shared_ptr<const Solid::ModelEvaluator::BeamInteractionDataState>& data_state,
     std::shared_ptr<Core::LinAlg::FEVector<double>> fe_sysvec,
     std::shared_ptr<Core::LinAlg::SparseMatrix> fe_sysmat,
-    const BeamInteraction::BeamToSolidVolumeMeshtyingParams& beam_to_solid_volume_meshtying_params)
+    const std::shared_ptr<BeamInteraction::BeamToSolidVolumeMeshtyingParams>
+        beam_to_solid_volume_meshtying_params)
 {
   if (mortar_manager_->have_lagrange_dofs())
   {
@@ -45,8 +46,7 @@ void BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect::eva
       std::shared_ptr<Core::LinAlg::SparseMatrix> sysmat_penalty = nullptr;
       if (fe_sysmat != nullptr)
       {
-        sysmat_penalty = std::make_shared<Core::LinAlg::SparseMatrix>(
-            *dof_row_map, 81);  // TODO: Better way than doing it this way with setting the 81?
+        sysmat_penalty = std::make_shared<Core::LinAlg::SparseMatrix>(*dof_row_map, 81);
       }
       std::shared_ptr<Core::LinAlg::FEVector<double>> sysvec_penalty = nullptr;
       if (fe_sysvec != nullptr)
@@ -78,16 +78,19 @@ void BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerInDirect::eva
           else
           {
             FOUR_C_THROW(
-                "Global ID {} from sub map is not found in dof row map. This is should not happen.",
+                "Global ID {} from sub map is not found in dof row map. This should not happen.",
                 gid);
           }
         }
       };
 
-      add_scaling_values_to_vector(*solid_map,
-          beam_to_solid_volume_meshtying_params.get_augmentation_scaling_parameter_solid());
-      add_scaling_values_to_vector(*beam_map,
-          beam_to_solid_volume_meshtying_params.get_augmentation_scaling_parameter_beam());
+      if (beam_to_solid_volume_meshtying_params != nullptr)
+      {
+        add_scaling_values_to_vector(*solid_map,
+            beam_to_solid_volume_meshtying_params->get_augmentation_scaling_parameter_solid());
+        add_scaling_values_to_vector(*beam_map,
+            beam_to_solid_volume_meshtying_params->get_augmentation_scaling_parameter_beam());
+      }
 
       // Scale the penalty contributions and add them to the system matrix and vector.
       if (fe_sysmat != nullptr)

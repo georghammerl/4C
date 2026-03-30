@@ -71,11 +71,15 @@ void BeamInteraction::BeamToSolidParamsBase::set_base_params(
     if (penalty_parameter_ < 0.0)
       FOUR_C_THROW("beam-to-volume-meshtying penalty parameter must not be negative!");
 
-    // Augmentation scaling parameters.
-    augmentation_scaling_parameter_beam_ =
-        beam_to_solid_params_list.get<double>("AUGMENTATION_SCALING_PARAMETER_BEAM");
-    augmentation_scaling_parameter_solid_ =
-        beam_to_solid_params_list.get<double>("AUGMENTATION_SCALING_PARAMETER_SOLID");
+    if (beam_to_solid_params_list.isParameter("AUGMENTATION_SCALING_PARAMETER_BEAM") and
+        beam_to_solid_params_list.isParameter("AUGMENTATION_SCALING_PARAMETER_SOLID"))
+    {
+      // Augmentation scaling parameters.
+      augmentation_scaling_parameter_beam_ =
+          beam_to_solid_params_list.get<double>("AUGMENTATION_SCALING_PARAMETER_BEAM");
+      augmentation_scaling_parameter_solid_ =
+          beam_to_solid_params_list.get<double>("AUGMENTATION_SCALING_PARAMETER_SOLID");
+    }
 
     // Gauss rule for integration along the beam (segments).
     gauss_rule_ =

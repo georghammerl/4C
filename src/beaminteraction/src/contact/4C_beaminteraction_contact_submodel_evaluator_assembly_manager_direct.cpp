@@ -37,7 +37,8 @@ void BeamInteraction::SubmodelEvaluator::BeamContactAssemblyManagerDirect::evalu
     const std::shared_ptr<const Solid::ModelEvaluator::BeamInteractionDataState>& data_state,
     std::shared_ptr<Core::LinAlg::FEVector<double>> fe_sysvec,
     std::shared_ptr<Core::LinAlg::SparseMatrix> fe_sysmat,
-    const BeamInteraction::BeamToSolidVolumeMeshtyingParams& beam_to_solid_volume_meshtying_params)
+    const std::shared_ptr<BeamInteraction::BeamToSolidVolumeMeshtyingParams>
+        beam_to_solid_volume_meshtying_params)
 {
   // resulting discrete element force vectors of the two interacting elements
   std::vector<Core::LinAlg::SerialDenseVector> eleforce(2);
