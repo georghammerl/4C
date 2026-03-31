@@ -236,13 +236,13 @@ namespace CONTACT
       return ct_values_;
     }
 
-    inline int& sm_pairs() { return smpairs_; }
+    inline int& sm_pairs() { return source_target_pairs_; }
 
-    [[nodiscard]] inline int sm_pairs() const { return smpairs_; }
+    [[nodiscard]] inline int sm_pairs() const { return source_target_pairs_; }
 
-    inline int& sm_int_pairs() { return smintpairs_; }
+    inline int& sm_int_pairs() { return source_target_int_pairs_; }
 
-    [[nodiscard]] inline int sm_int_pairs() const { return smintpairs_; }
+    [[nodiscard]] inline int sm_int_pairs() const { return source_target_int_pairs_; }
 
     inline int& int_cells() { return intcells_; }
 
@@ -269,16 +269,16 @@ namespace CONTACT
     //! @name Maps
     //! @{
 
-    //! row map of all active slave nodes
+    //! row map of all active source nodes
     std::shared_ptr<Core::LinAlg::Map> activenodes_;
 
-    //! row map of all active slave dofs
+    //! row map of all active source dofs
     std::shared_ptr<Core::LinAlg::Map> activedofs_;
 
-    //! row map of all inactive slave nodes
+    //! row map of all inactive source nodes
     std::shared_ptr<Core::LinAlg::Map> inactivenodes_;
 
-    //! row map of all inactive slave dofs
+    //! row map of all inactive source dofs
     std::shared_ptr<Core::LinAlg::Map> inactivedofs_;
 
     //! row map of global N-matrix
@@ -287,37 +287,37 @@ namespace CONTACT
     //! row map of global T-matrix
     std::shared_ptr<Core::LinAlg::Map> activet_;
 
-    //! row map of all slip slave nodes
+    //! row map of all slip source nodes
     std::shared_ptr<Core::LinAlg::Map> slipnodes_;
 
-    //! row map of all slip slave dofs
+    //! row map of all slip source dofs
     std::shared_ptr<Core::LinAlg::Map> slipdofs_;
 
     //! row map of part of T-matrix (slip nodes)
     std::shared_ptr<Core::LinAlg::Map> slipt_;
 
-    //! row map of all nonsmooth slave nodes
+    //! row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map> nonsmoothnodes_;
 
-    //! row map of all smooth slave nodes
+    //! row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map> smoothnodes_;
 
-    //! row map of all nonsmooth slave nodes
+    //! row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_vertex_rowmap_;
 
-    //! row map of all smooth slave nodes
+    //! row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_vertex_colmap_;
 
-    //! row map of all nonsmooth slave nodes
+    //! row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_edge_rowmap_;
 
-    //! row map of all smooth slave nodes
+    //! row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_edge_colmap_;
 
-    //! row map of all nonsmooth slave nodes
+    //! row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_surf_rowmap_;
 
-    //! row map of all smooth slave nodes
+    //! row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map> sdof_surf_colmap_;
 
     std::shared_ptr<Core::LinAlg::Map> nextendedghosting_;
@@ -334,11 +334,11 @@ namespace CONTACT
     //! ct-values of each node
     std::shared_ptr<Core::LinAlg::Vector<double>> ct_values_;
 
-    //! proc local number of slave/master pairs
-    int smpairs_;
+    //! proc local number of source/target pairs
+    int source_target_pairs_;
 
-    //! proc local number of slave/master integration pairs
-    int smintpairs_;
+    //! proc local number of source/target integration pairs
+    int source_target_int_pairs_;
 
     ///< proc local number of integration cells
     int intcells_;
@@ -660,16 +660,16 @@ namespace CONTACT
     }
 
     /*!
-    \brief Get number of slave / master pairs of this interface (proc local)
+    \brief Get number of source / target pairs of this interface (proc local)
 
     */
-    [[nodiscard]] virtual int slave_master_pairs() const { return smpairs_; }
+    [[nodiscard]] virtual int source_target_pairs() const { return source_target_pairs_; }
 
     /*!
-    \brief Get number of slave / master integration pairs of this interface (proc local)
+    \brief Get number of source / target integration pairs of this interface (proc local)
 
     */
-    [[nodiscard]] virtual int slave_master_int_pairs() const { return smintpairs_; }
+    [[nodiscard]] virtual int source_target_int_pairs() const { return source_target_int_pairs_; }
 
     /*!
     \brief Get number of integration cells of this interface (proc local)
@@ -716,7 +716,7 @@ namespace CONTACT
     \brief Update the parallel layout, distribution, and related data structures
 
     1. If required by \c perform_rebalancing, let's rebalance the interface discretizations.
-    1. If required by \c enforce_ghosting_update, let's update the ghosting of the master-sided
+    1. If required by \c enforce_ghosting_update, let's update the ghosting of the target-sided
     interface.
     1. fill_complete to update all relevant maps on all procs.
     1. Re-create search tree, if ghosting has changed.
@@ -747,22 +747,22 @@ namespace CONTACT
     desirable, which divides the interface among all available
     processors. redistribute() is the method to achieve this.
     Moreover, for contact problems we have to account for the fact
-    that only parts of the slave surface actually need to evaluate
-    contact terms (those parts that are "close" to the master side).
+    that only parts of the source surface actually need to evaluate
+    contact terms (those parts that are "close" to the target side).
 
     Internally, we call ZOLTAN to re-partition the contact interfaces
-    in three independent parts: (1) close slave part, (2) non-close
-    slave part, (3) master part. This results in new "optimal" node/element
+    in three independent parts: (1) close source part, (2) non-close
+    source part, (3) target part. This results in new "optimal" node/element
     maps of the interface discretization. Note that after redistribute(),
     we must call fill_complete() again. Note also that for contact
     simulations redistribute() might be called dynamically again and
     again to account for changes of the contact zone.
 
-    Two special cases are treated separately: First, if ALL slave
+    Two special cases are treated separately: First, if ALL source
     elements of the interface have some "close" neighbors, we do not
-    need to distinguish the two different slave parts. Thus, we
+    need to distinguish the two different source parts. Thus, we
     simply call the base class method redistribute() also used for
-    meshtying. Second, if NO slave element of the interface has any
+    meshtying. Second, if NO source element of the interface has any
     "close" neighbors, we do not need to redistribute at all. This
     is indicated by returning with a boolean return value FALSE.
 
@@ -783,16 +783,16 @@ namespace CONTACT
     /*!
     \brief Collect data concerning load balance and parallel distribution
 
-    Check all slave elements and count
+    Check all source elements and count
     - possibly active elements in the column map
     - possibly active elements in the row map
 
     \param[out] numColElements Number of column elements that are potentially in contact
     \param[out] numRowElements Number of row elements that are potentially in contact
 
-    \note We are only interested in slave elements here, since they have to do (almost) all the work
-    during evaluation. Master elements don't require any computations and, hence, can be neglected
-    here.
+    \note We are only interested in source elements here, since they have to do (almost) all the
+    work during evaluation. Target elements don't require any computations and, hence, can be
+    neglected here.
     */
     void collect_distribution_data(int& numColElements, int& numRowElements);
 
@@ -839,8 +839,8 @@ namespace CONTACT
     void export_nodal_normals() const override;
 
     /*!
-    \brief Binary tree search algorithm for potentially coupling slave /
-    master pairs (element-based algorithm) including self-contact
+    \brief Binary tree search algorithm for potentially coupling source /
+    target pairs (element-based algorithm) including self-contact
 
     Derived version!
 
@@ -848,12 +848,12 @@ namespace CONTACT
     bool evaluate_search_binarytree() final;
 
     /*!
-    \brief Integrate Mortar matrix M and gap g on slave/master overlaps
+    \brief Integrate Mortar matrix M and gap g on source/target overlaps
 
     Derived version!
 
     */
-    bool mortar_coupling(Mortar::Element* sele, std::vector<Mortar::Element*> mele,
+    bool mortar_coupling(Mortar::Element* source_elem, std::vector<Mortar::Element*> target_elem,
         const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr) final;
 
     /*!
@@ -881,21 +881,21 @@ namespace CONTACT
     void evaluate_stl() final;
 
     /*!
-    \brief Integrate penalty scaling factor \f$\kappa\f$ on slave element
+    \brief Integrate penalty scaling factor \f$\kappa\f$ on source element
 
     This method is only called, if a penalty strategy is applied. It is
     called ONCE at the beginning of the simulation and evaluates the
-    penalty scaling factor kappa_j = int_{slave} (N_j) dslave. The
+    penalty scaling factor kappa_j = int_{source} (N_j) dsource. The
     correct interpolation N_j is chosen for any case (2D, 3D, linear
     quadratic, piecewise linear...)
 
     \todo maybe update kappa each time step?
 
     */
-    virtual bool integrate_kappa_penalty(CONTACT::Element& sele);
+    virtual bool integrate_kappa_penalty(CONTACT::Element& source_elem);
 
     /*!
-    \brief Evaluate relative movement (jump) of slave nodes
+    \brief Evaluate relative movement (jump) of source nodes
 
     In the case of frictional contact, an important geometric measure is
     the relative movement (jump) of the contacting bodies. Here, this is evaluated
@@ -918,10 +918,10 @@ namespace CONTACT
         std::map<int, double>& mygap, std::map<int, std::map<int, double>>& dmygap);
 
     /*!
-    \brief Assemble slave coordinates (xs)
+    \brief Assemble source coordinates (xs)
 
     */
-    virtual void assemble_slave_coord(std::shared_ptr<Core::LinAlg::Vector<double>>& xsmod);
+    virtual void assemble_source_coord(std::shared_ptr<Core::LinAlg::Vector<double>>& xsmod);
 
     /*!
     \brief Evaluate L2 Norm of tangential contact conditions
@@ -983,7 +983,7 @@ namespace CONTACT
 
     This method builds an algebraic form of the FULL linearization
     of the normal contact condition g~ = 0. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal normals and of the Mortar matrices D  and M.
 
     */
@@ -995,7 +995,7 @@ namespace CONTACT
     This method builds an algebraic form of the FULL linearization
     of the tangential contact condition (frictionless) and/or normal
     condition (tractionlss).
-    Concretely, this means assembling the linearization of the slave side
+    Concretely, this means assembling the linearization of the source side
     nodal tangents / nodal normals and the current Lagrange multipliers.
 
       usePoroLM: linearisation will be multiplied with ...
@@ -1064,7 +1064,7 @@ namespace CONTACT
 
     This method builds an algebraic form of the FULL linearization
     of the tangential stick condition delta tg = 0. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal tangents and of the Mortar matrices D  and M.
 
     */
@@ -1076,7 +1076,7 @@ namespace CONTACT
 
     This method builds an algebraic form of the FULL linearization
     of the tangential slip condition. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal tangents and of the Mortar matrices D  and M.
 
     */
@@ -1101,7 +1101,7 @@ namespace CONTACT
     /*!
     \brief Update active set and check for convergence
 
-    In this function we loop over all  slave nodes to check, whether the
+    In this function we loop over all  source nodes to check, whether the
     assumption of them being active or inactive respectively has been correct.
     If a single node changes state, the active set is adapted accordingly and the convergence
     flag is kept on false.
@@ -1120,7 +1120,7 @@ namespace CONTACT
     /*!
     \brief Update active set to conform with given active set from input file
 
-    In this function we loop over all  slave nodes to check, whether the
+    In this function we loop over all  source nodes to check, whether the
     current active set decision for each node still conforms with the prescribed value
     from the input file. If not, the input file overrules the current value.
 
@@ -1153,7 +1153,7 @@ namespace CONTACT
     \brief Update the lagrange multiplier sets for self contact
 
     \param(in) gref_lmmap: global lagrange multiplier reference map
-    \param(in) gref_smmap: global merged slave/master reference map
+    \param(in) gref_smmap: global merged source/target reference map
     */
     void update_self_contact_lag_mult_set(
         const Core::LinAlg::Map& gref_lmmap, const Core::LinAlg::Map& gref_smmap);
@@ -1175,7 +1175,7 @@ namespace CONTACT
     );
 
     /*!
-    \brief Derivative of D-matrix multiplied with a slave dof vector
+    \brief Derivative of D-matrix multiplied with a source dof vector
 
     \todo Complete documentation of input parameters.
 
@@ -1185,7 +1185,7 @@ namespace CONTACT
     virtual void assemble_coup_lin_d(
         Core::LinAlg::SparseMatrix& CoupLin, const std::shared_ptr<Core::LinAlg::Vector<double>> x);
 
-    /*! \brief Derivative of (transposed) M-matrix multiplied with a slave dof vector
+    /*! \brief Derivative of (transposed) M-matrix multiplied with a source dof vector
 
     \todo Complete documentation of input parameters.
 
@@ -1314,13 +1314,13 @@ namespace CONTACT
     \brief Add line to line penalty forces
 
     */
-    void add_lts_forces_master(Core::LinAlg::FEVector<double>& feff);
+    void add_lts_forces_target(Core::LinAlg::FEVector<double>& feff);
 
     /*!
     \brief Add line to line penalty forces
 
     */
-    void add_nts_forces_master(Core::LinAlg::FEVector<double>& feff);
+    void add_nts_forces_target(Core::LinAlg::FEVector<double>& feff);
 
     /*!
     \brief Add line to line penalty forces - friction
@@ -1335,16 +1335,16 @@ namespace CONTACT
     void add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff);
 
     /*!
-    \brief Add line to segment penalty stiffness contribution master side
+    \brief Add line to segment penalty stiffness contribution target side
 
     */
-    void add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kteff);
+    void add_lts_stiffness_target(Core::LinAlg::SparseMatrix& kteff);
 
     /*!
-    \brief Add node to segment penalty stiffness contribution master side
+    \brief Add node to segment penalty stiffness contribution target side
 
     */
-    void add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kteff);
+    void add_nts_stiffness_target(Core::LinAlg::SparseMatrix& kteff);
 
     /*!
     \brief Add line to line penalty stiffness contribution
@@ -1417,10 +1417,10 @@ namespace CONTACT
      *  done so, then all elements/nodes are considered to be far nodes. The list of close
      *  element/nodes is left empty.
      *
-     *  \param closeele (out)     (slave) interface element GIDs of the close set
-     *  \param noncloseele (out)  (slave) interface element GIDs of the far set
-     *  \param localcns (out)     (slave) node GIDs of the elements in the close set
-     *  \param localfns (out)     (slave) node GIDs of the elements in the far set
+     *  \param closeele (out)     (source) interface element GIDs of the close set
+     *  \param noncloseele (out)  (source) interface element GIDs of the far set
+     *  \param localcns (out)     (source) node GIDs of the elements in the close set
+     *  \param localfns (out)     (source) node GIDs of the elements in the far set
      *
      *  All sets are restricted to the current/local processor. */
     virtual void split_into_far_and_close_sets(std::vector<int>& closeele,
@@ -1436,7 +1436,7 @@ namespace CONTACT
     void initialize_data_container() override;
 
     /*!
-    \brief initialize slave/master node status for corner/edge modification
+    \brief initialize source/target node status for corner/edge modification
 
     Derived version!
 
@@ -1449,7 +1449,7 @@ namespace CONTACT
     Derived version!
 
     */
-    virtual void set_cpp_normal(Mortar::Node& snode, double* normal,
+    virtual void set_cpp_normal(Mortar::Node& source_node, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& normallin);
 
     /*!
@@ -1480,13 +1480,13 @@ namespace CONTACT
         const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr) final;
 
     /*!
-    \brief export master nodal normals for cpp calculation
+    \brief export target nodal normals for cpp calculation
 
     */
-    virtual void export_master_nodal_normals() const;
+    virtual void export_target_nodal_normals() const;
 
     /*!
-    \brief evaluate cpp normals on slave side based on averaged normal field on master side
+    \brief evaluate cpp normals on source side based on averaged normal field on target side
 
     */
     virtual void evaluate_cpp_normals();
@@ -1501,18 +1501,19 @@ namespace CONTACT
     void post_evaluate(const int step, const int iter) override;
 
     /*!
-    \brief Compute cpp normal based on averaged nodal normal field on master side.
+    \brief Compute cpp normal based on averaged nodal normal field on target side.
 
     */
-    virtual double compute_cpp_normal(Mortar::Node& mrtrnode, std::vector<Mortar::Element*> meles,
-        double* normal, std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin);
+    virtual double compute_cpp_normal(Mortar::Node& mrtrnode,
+        std::vector<Mortar::Element*> target_elems, double* normal,
+        std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin);
 
     /*!
     \brief 2D routine for cpp normal
 
     */
     virtual double compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
-        std::vector<Mortar::Element*> meles, double* normal,
+        std::vector<Mortar::Element*> target_elems, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin) const;
 
     /*!
@@ -1520,22 +1521,23 @@ namespace CONTACT
 
     */
     virtual double compute_cpp_normal_3d(Mortar::Node& mrtrnode,
-        std::vector<Mortar::Element*> meles, double* normal,
+        std::vector<Mortar::Element*> target_elems, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin);
 
     /*!
-    \brief Compute normal between slave and master node
+    \brief Compute normal between source and target node
 
     */
-    virtual double compute_normal_node_to_node(const Mortar::Node& snode, const Mortar::Node& mnode,
-        double* normal, std::vector<Core::Gen::Pairedvector<int, double>>& normaltonodelin) const;
+    virtual double compute_normal_node_to_node(const Mortar::Node& source_node,
+        const Mortar::Node& target_node, double* normal,
+        std::vector<Core::Gen::Pairedvector<int, double>>& normaltonodelin) const;
 
     /*!
-    \brief Compute normal between slave node and master edge ele
+    \brief Compute normal between source node and target edge ele
 
     */
-    virtual double compute_normal_node_to_edge(const Mortar::Node& snode,
-        const Mortar::Element& mele, double* normal,
+    virtual double compute_normal_node_to_edge(const Mortar::Node& source_node,
+        const Mortar::Element& target_elem, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& normaltonodelin) const;
 
     /*!
@@ -1558,16 +1560,16 @@ namespace CONTACT
     virtual void store_lt_svalues();
 
     /*!
-    \brief Update interface master and slave sets
+    \brief Update interface target and source sets
 
     This update is usually only done ONCE in the initialization phase
-    and sets up the slave and master sets (elements, nodes, dofs) for
+    and sets up the source and target sets (elements, nodes, dofs) for
     the whole simulation. Yet, in the case of self contact the sets
     need to be updated again and again during simulation time, as the
-    slave/master status is assigned dynamically.
+    source/target status is assigned dynamically.
 
     */
-    void update_master_slave_sets() override;
+    void update_target_source_sets() override;
 
    private:
     //! @name Parallel distribution and ghosting
@@ -1596,7 +1598,7 @@ namespace CONTACT
     \brief Extend the interface ghosting while guaranteeing sufficient extension
 
     \note The argument \c meanVelocity is just needed for contact problems that extend the
-    master-sided interface ghosting via binning.
+    target-sided interface ghosting via binning.
 
     @param meanVelocity Mean velocity of this interface
 
@@ -1660,35 +1662,35 @@ namespace CONTACT
         constr_direction_;  ///< ref. to direction in which the contact constraints are formulated
 
     std::shared_ptr<Core::LinAlg::Map>&
-        activenodes_;                                 ///< ref. to row map of all active slave nodes
-    std::shared_ptr<Core::LinAlg::Map>& activedofs_;  ///< ref. to row map of all active slave dofs
+        activenodes_;  ///< ref. to row map of all active source nodes
+    std::shared_ptr<Core::LinAlg::Map>& activedofs_;  ///< ref. to row map of all active source dofs
     std::shared_ptr<Core::LinAlg::Map>&
-        inactivenodes_;  ///< ref. to row map of all active slave nodes
+        inactivenodes_;  ///< ref. to row map of all active source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        inactivedofs_;                               ///< ref. to row map of all active slave dofs
+        inactivedofs_;                               ///< ref. to row map of all active source dofs
     std::shared_ptr<Core::LinAlg::Map>& activen_;    ///< ref. to row map of global N-matrix
     std::shared_ptr<Core::LinAlg::Map>& activet_;    ///< ref. to row map of global T-matrix
-    std::shared_ptr<Core::LinAlg::Map>& slipnodes_;  ///< ref. to row map of all slip slave nodes
-    std::shared_ptr<Core::LinAlg::Map>& slipdofs_;   ///< ref. to row map of all slip slave dofs
+    std::shared_ptr<Core::LinAlg::Map>& slipnodes_;  ///< ref. to row map of all slip source nodes
+    std::shared_ptr<Core::LinAlg::Map>& slipdofs_;   ///< ref. to row map of all slip source dofs
     std::shared_ptr<Core::LinAlg::Map>&
         slipt_;  ///< ref. to row map of part of T-matrix (slip nodes)
 
     std::shared_ptr<Core::LinAlg::Map>&
-        nonsmoothnodes_;  ///< ref. to row map of all nonsmooth slave nodes
+        nonsmoothnodes_;  ///< ref. to row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        smoothnodes_;  ///< ref. to row map of all smooth slave nodes
+        smoothnodes_;  ///< ref. to row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofVertexRowmap_;  ///< ref. to row map of all nonsmooth slave nodes
+        sdofVertexRowmap_;  ///< ref. to row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofVertexColmap_;  ///< ref. to row map of all smooth slave nodes
+        sdofVertexColmap_;  ///< ref. to row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofEdgeRowmap_;  ///< ref. to row map of all nonsmooth slave nodes
+        sdofEdgeRowmap_;  ///< ref. to row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofEdgeColmap_;  ///< ref. to row map of all smooth slave nodes
+        sdofEdgeColmap_;  ///< ref. to row map of all smooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofSurfRowmap_;  ///< ref. to row map of all nonsmooth slave nodes
+        sdofSurfRowmap_;  ///< ref. to row map of all nonsmooth source nodes
     std::shared_ptr<Core::LinAlg::Map>&
-        sdofSurfColmap_;  ///< ref. to row map of all smooth slave nodes
+        sdofSurfColmap_;  ///< ref. to row map of all smooth source nodes
 
     std::shared_ptr<Core::LinAlg::Map>& nextendedghosting_;
     std::shared_ptr<Core::LinAlg::Map>& eextendedghosting_;
@@ -1701,9 +1703,10 @@ namespace CONTACT
     std::shared_ptr<Core::LinAlg::Vector<double>>& cnValues_;  ///< ref. to cn
     std::shared_ptr<Core::LinAlg::Vector<double>>& ctValues_;  ///< ref. to ct
 
-    int& smpairs_;     ///< ref. to proc local number of slave/master pairs
-    int& smintpairs_;  ///< ref. to proc local number of slave/master integration pairs
-    int& intcells_;    ///< ref. to proc local number of integration cells
+    int& source_target_pairs_;  ///< ref. to proc local number of source/target pairs
+    int&
+        source_target_int_pairs_;  ///< ref. to proc local number of source/target integration pairs
+    int& intcells_;                ///< ref. to proc local number of integration cells
 
     /// @}
    private:

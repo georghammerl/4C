@@ -76,7 +76,7 @@ namespace CONTACT
 
     The additionally necessary restart information in the contact
     case are the current Lagrange multiplier values and the current
-    active set status of each slave node.
+    active set status of each source node.
 
     \param output (in): IO::discretization writer for restart
     \param forcedrestart (in): Force writing of restart data?
@@ -88,7 +88,7 @@ namespace CONTACT
 
     This method has the inverse functionality of write_restart, as
     it reads the activetoggle / lmold vectors and stores the restart
-    status into each slave node. Moreover, all global maps concerning
+    status into each source node. Moreover, all global maps concerning
     the active set and the old mortar matrices D,M are rebuilt based
     on the restart information.
 
@@ -124,27 +124,27 @@ namespace CONTACT
     /*!
     \brief Set Parent Elements for Poro Face Elements
 
-    \param slavetype type of slave elements --> = (-1; //1 poro, 0 struct, -1 default)
-    \param mastertype type of master elements --> = (-1; //1 poro, 0 struct, -1 default)
+    \param sourcetype type of source elements --> = (-1; //1 poro, 0 struct, -1 default)
+    \param targettype type of target elements --> = (-1; //1 poro, 0 struct, -1 default)
     \param[out] cele Reference to pointer of contact face element
     \param[out] ele Reference to pointer of contact parent element
 
     */
-    void set_poro_parent_element(int& slavetype, int& mastertype, CONTACT::Element& cele,
+    void set_poro_parent_element(int& sourcetype, int& targettype, CONTACT::Element& cele,
         std::shared_ptr<Core::Elements::Element> ele);
 
     /*!
     \brief Find Physical Type (Poro or Structure) of Poro Interface
 
-    \param poromaster ??
-    \param poroslave ??
-    \param structmaster ??
-    \param structslave ??
-    \param slavetype ??
-    \param mastertype ??
+    \param porotarget ??
+    \param porosource ??
+    \param structtarget ??
+    \param structsource ??
+    \param sourcetype ??
+    \param targettype ??
     */
-    void find_poro_interface_types(bool& poromaster, bool& poroslave, bool& structmaster,
-        bool& structslave, int& slavetype, int& mastertype) const;
+    void find_poro_interface_types(bool& porotarget, bool& porosource, bool& structtarget,
+        bool& structsource, int& sourcetype, int& targettype) const;
 
     //! @}
 

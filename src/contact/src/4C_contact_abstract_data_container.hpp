@@ -39,12 +39,12 @@ namespace CONTACT
       return unbalance_evaluation_time_;
     };
 
-    //! Return parallel unbalance factors (number of slave elements) for current time step
+    //! Return parallel unbalance factors (number of source elements) for current time step
     //! \f$t_{n+1}\f$
-    std::vector<int>& unbalance_element_factors() { return unbalance_num_slave_elements_; };
+    std::vector<int>& unbalance_element_factors() { return unbalance_num_source_elements_; };
     const std::vector<int>& unbalance_element_factors() const
     {
-      return unbalance_num_slave_elements_;
+      return unbalance_num_source_elements_;
     };
 
     //! return global Lagrange mult. dof row map (of all interfaces)
@@ -74,32 +74,32 @@ namespace CONTACT
       return gsclmdofrowmap_;
     };
 
-    //! return global slave node row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_node_row_map_ptr() { return gsnoderowmap_; };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_node_row_map_ptr() const
+    //! return global source node row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map>& global_source_node_row_map_ptr() { return gsnoderowmap_; };
+    std::shared_ptr<const Core::LinAlg::Map> global_source_node_row_map_ptr() const
     {
       return gsnoderowmap_;
     };
 
-    //! return global master node row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map>& global_master_node_row_map_ptr() { return gmnoderowmap_; };
-    std::shared_ptr<const Core::LinAlg::Map> global_master_node_row_map_ptr() const
+    //! return global target node row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map>& global_target_node_row_map_ptr() { return gtnoderowmap_; };
+    std::shared_ptr<const Core::LinAlg::Map> global_target_node_row_map_ptr() const
     {
-      return gmnoderowmap_;
+      return gtnoderowmap_;
     };
 
-    //! return global slave dof row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_dof_row_map_ptr() { return gsdofrowmap_; };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_dof_row_map_ptr() const
+    //! return global source dof row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map>& global_source_dof_row_map_ptr() { return gsdofrowmap_; };
+    std::shared_ptr<const Core::LinAlg::Map> global_source_dof_row_map_ptr() const
     {
       return gsdofrowmap_;
     };
 
-    //! return global master dof row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map>& global_master_dof_row_map_ptr() { return gmdofrowmap_; };
-    std::shared_ptr<const Core::LinAlg::Map> global_master_dof_row_map_ptr() const
+    //! return global target dof row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map>& global_target_dof_row_map_ptr() { return gtdofrowmap_; };
+    std::shared_ptr<const Core::LinAlg::Map> global_target_dof_row_map_ptr() const
     {
-      return gmdofrowmap_;
+      return gtdofrowmap_;
     };
 
     //! return global internal dof row map
@@ -109,14 +109,14 @@ namespace CONTACT
       return gndofrowmap_;
     };
 
-    //! return global slave and master dof row map (s+m map)
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_master_dof_row_map_ptr()
+    //! return global source and target dof row map (s+m map)
+    std::shared_ptr<Core::LinAlg::Map>& global_source_target_dof_row_map_ptr()
     {
-      return gsmdofrowmap_;
+      return gstdofrowmap_;
     };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_master_dof_row_map_ptr() const
+    std::shared_ptr<const Core::LinAlg::Map> global_source_target_dof_row_map_ptr() const
     {
-      return gsmdofrowmap_;
+      return gstdofrowmap_;
     };
 
     //! return global displacement dof row map (s+m+n map)
@@ -126,7 +126,7 @@ namespace CONTACT
       return gdisprowmap_;
     };
 
-    //! return global active slave node row map (of all interfaces)
+    //! return global active source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_active_node_row_map_ptr() { return gactivenodes_; };
     std::shared_ptr<const Core::LinAlg::Map> global_active_node_row_map_ptr() const
     {
@@ -138,7 +138,7 @@ namespace CONTACT
       return *gactivenodes_;
     }
 
-    //! return global active slave dof row map (of all interfaces)
+    //! return global active source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_active_dof_row_map_ptr() { return gactivedofs_; };
     std::shared_ptr<const Core::LinAlg::Map> global_active_dof_row_map_ptr() const
     {
@@ -146,12 +146,12 @@ namespace CONTACT
     };
     Core::LinAlg::Map& global_active_dof_row_map()
     {
-      if (!gactivedofs_) FOUR_C_THROW("The gAugActiveSlaveDofsPtr_ is not initialized!");
+      if (!gactivedofs_) FOUR_C_THROW("The gAugActiveSourceDofsPtr_ is not initialized!");
       return *gactivedofs_;
     }
 
 
-    //! return global inactive slave node row map (of all interfaces)
+    //! return global inactive source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_inactive_node_row_map_ptr()
     {
       return ginactivenodes_;
@@ -166,7 +166,7 @@ namespace CONTACT
       return *ginactivenodes_;
     }
 
-    //! return global inactive slave dof row map (of all interfaces)
+    //! return global inactive source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_inactive_dof_row_map_ptr()
     {
       return ginactivedofs_;
@@ -182,7 +182,7 @@ namespace CONTACT
     }
 
 
-    //! return global active slave dof row map in normal direction (of all interfaces)
+    //! return global active source dof row map in normal direction (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_active_n_dof_row_map_ptr() { return gactiven_; };
     std::shared_ptr<const Core::LinAlg::Map> global_active_n_dof_row_map_ptr() const
     {
@@ -194,7 +194,7 @@ namespace CONTACT
       return *gactiven_;
     }
 
-    //! return global active slave dof row map in tangential direction (of all interfaces)
+    //! return global active source dof row map in tangential direction (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_active_t_dof_row_map_ptr() { return gactivet_; };
     std::shared_ptr<const Core::LinAlg::Map> global_active_t_dof_row_map_ptr() const
     {
@@ -206,50 +206,53 @@ namespace CONTACT
       return *gactivet_;
     }
 
-    //! return global slip slave node row map (of all interfaces)
+    //! return global slip source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_slip_node_row_map_ptr() { return gslipnodes_; };
     std::shared_ptr<const Core::LinAlg::Map> global_slip_node_row_map_ptr() const
     {
       return gslipnodes_;
     };
 
-    //! return global slip slave dof row map (of all interfaces)
+    //! return global slip source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_slip_dof_row_map_ptr() { return gslipdofs_; };
     std::shared_ptr<const Core::LinAlg::Map> global_slip_dof_row_map_ptr() const
     {
       return gslipdofs_;
     };
 
-    //! return global slip slave dof row map in tangential direction (of all interfaces)
+    //! return global slip source dof row map in tangential direction (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>& global_slip_t_dof_row_map_ptr() { return gslipt_; };
     std::shared_ptr<const Core::LinAlg::Map> global_slip_t_dof_row_map_ptr() const
     {
       return gslipt_;
     };
 
-    //! return global slave dof row map associated with vertex nodes
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_dof_vertex_row_map_ptr()
+    //! return global source dof row map associated with vertex nodes
+    std::shared_ptr<Core::LinAlg::Map>& global_source_dof_vertex_row_map_ptr()
     {
       return gsdof_vertex_;
     };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_dof_vertex_row_map_ptr() const
+    std::shared_ptr<const Core::LinAlg::Map> global_source_dof_vertex_row_map_ptr() const
     {
       return gsdof_vertex_;
     };
 
-    //! return global slave dof row map associated with edge nodes
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_dof_edge_row_map_ptr() { return gsdof_edge_; };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_dof_edge_row_map_ptr() const
+    //! return global source dof row map associated with edge nodes
+    std::shared_ptr<Core::LinAlg::Map>& global_source_dof_edge_row_map_ptr()
+    {
+      return gsdof_edge_;
+    };
+    std::shared_ptr<const Core::LinAlg::Map> global_source_dof_edge_row_map_ptr() const
     {
       return gsdof_edge_;
     };
 
-    //! return global slave dof row map associated with surface nodes
-    std::shared_ptr<Core::LinAlg::Map>& global_slave_dof_surface_row_map_ptr()
+    //! return global source dof row map associated with surface nodes
+    std::shared_ptr<Core::LinAlg::Map>& global_source_dof_surface_row_map_ptr()
     {
       return gsdof_surf_;
     };
-    std::shared_ptr<const Core::LinAlg::Map> global_slave_dof_surface_row_map_ptr() const
+    std::shared_ptr<const Core::LinAlg::Map> global_source_dof_surface_row_map_ptr() const
     {
       return gsdof_surf_;
     };
@@ -264,44 +267,44 @@ namespace CONTACT
       return non_redist_glmdofrowmap_;
     };
 
-    //! return global slave dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_slave_dof_row_map_ptr()
+    //! return global source dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_source_dof_row_map_ptr()
     {
       return non_redist_gsdofrowmap_;
     };
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_slave_dof_row_map_ptr() const
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_source_dof_row_map_ptr() const
     {
       return non_redist_gsdofrowmap_;
     };
 
-    //! return global master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_master_dof_row_map_ptr()
+    //! return global target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_target_dof_row_map_ptr()
     {
-      return non_redist_gmdofrowmap_;
+      return non_redist_gtdofrowmap_;
     };
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_master_dof_row_map_ptr() const
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_target_dof_row_map_ptr() const
     {
-      return non_redist_gmdofrowmap_;
-    };
-
-    //! return global slave and master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_slave_master_dof_row_map_ptr()
-    {
-      return non_redist_gsmdofrowmap_;
-    };
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_slave_master_dof_row_map_ptr() const
-    {
-      return non_redist_gsmdofrowmap_;
+      return non_redist_gtdofrowmap_;
     };
 
-    //! return global dirichlet toggle of all slave dofs (before parallel redistribution)
+    //! return global source and target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map>& non_redist_global_source_target_dof_row_map_ptr()
+    {
+      return non_redist_gstdofrowmap_;
+    };
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_global_source_target_dof_row_map_ptr() const
+    {
+      return non_redist_gstdofrowmap_;
+    };
+
+    //! return global dirichlet toggle of all source dofs (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Vector<double>>&
-    non_redist_global_slave_dirich_toggle_dof_row_map_ptr()
+    non_redist_global_source_dirich_toggle_dof_row_map_ptr()
     {
       return non_redist_gsdirichtoggle_;
     };
     std::shared_ptr<const Core::LinAlg::Vector<double>>
-    non_redist_global_slave_dirich_toggle_dof_row_map_ptr() const
+    non_redist_global_source_dirich_toggle_dof_row_map_ptr() const
     {
       return non_redist_gsdirichtoggle_;
     };
@@ -387,7 +390,7 @@ namespace CONTACT
       return *constrrhs_;
     }
 
-    //! return global Matrix LinD containing slave fc derivatives
+    //! return global Matrix LinD containing source fc derivatives
     std::shared_ptr<Core::LinAlg::SparseMatrix>& d_lin_matrix_ptr() { return lindmatrix_; };
     std::shared_ptr<const Core::LinAlg::SparseMatrix> d_lin_matrix_ptr() const
     {
@@ -399,7 +402,7 @@ namespace CONTACT
       return *lindmatrix_;
     }
 
-    //! return global Matrix LinM containing master fc derivatives
+    //! return global Matrix LinM containing target fc derivatives
     std::shared_ptr<Core::LinAlg::SparseMatrix>& m_lin_matrix_ptr() { return linmmatrix_; };
     std::shared_ptr<const Core::LinAlg::SparseMatrix> m_lin_matrix_ptr() const
     {
@@ -516,8 +519,8 @@ namespace CONTACT
     bool is_non_smooth_contact() const { return non_smooth_contact_; };
 
     //! return flag indicating whether trafo should be applied
-    bool& is_dual_quad_slave_trafo() { return dualquadslavetrafo_; };
-    bool is_dual_quad_slave_trafo() const { return dualquadslavetrafo_; };
+    bool& is_dual_quad_source_trafo() { return dualquadsourcetrafo_; };
+    bool is_dual_quad_source_trafo() const { return dualquadsourcetrafo_; };
 
     //! return transformation matrix T for dual quad 3D case
     std::shared_ptr<Core::LinAlg::SparseMatrix>& trafo_ptr() { return trafo_; };
@@ -572,23 +575,23 @@ namespace CONTACT
     //! global Lagrange mult. dof row map for self contact (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gsclmdofrowmap_;
 
-    //! global slave node row map (of all interfaces)
+    //! global source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gsnoderowmap_;
 
-    //! global master node row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map> gmnoderowmap_;
+    //! global target node row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map> gtnoderowmap_;
 
-    //! global slave dof row map (of all interfaces)
+    //! global source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gsdofrowmap_;
 
-    //! global master dof row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map> gmdofrowmap_;
+    //! global target dof row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map> gtdofrowmap_;
 
     //! global internal dof row map
     std::shared_ptr<Core::LinAlg::Map> gndofrowmap_;
 
-    //! global slave and master dof row map (s+m map)
-    std::shared_ptr<Core::LinAlg::Map> gsmdofrowmap_;
+    //! global source and target dof row map (s+m map)
+    std::shared_ptr<Core::LinAlg::Map> gstdofrowmap_;
 
     //! global displacement dof row map (s+m+n map)
     std::shared_ptr<Core::LinAlg::Map> gdisprowmap_;
@@ -596,42 +599,42 @@ namespace CONTACT
     //! @name Active set
     //!@{
 
-    //! global active slave node row map (of all interfaces)
+    //! global active source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gactivenodes_;
 
-    //! global active slave dof row map (of all interfaces)
+    //! global active source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gactivedofs_;
 
-    //! global inactive slave node row map (of all interfaces)
+    //! global inactive source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> ginactivenodes_;
 
-    //! global inactive slave dof row map (of all interfaces)
+    //! global inactive source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> ginactivedofs_;
 
-    //! global active slave dof row map in normal direction (of all interfaces)
+    //! global active source dof row map in normal direction (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gactiven_;
 
     //! global dof row map of matrix T (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gactivet_;
 
-    //! global slip slave node row map (of all interfaces)
+    //! global slip source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gslipnodes_;
 
-    //! global slip slave dof row map (of all interfaces)
+    //! global slip source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gslipdofs_;
 
-    //! global slip slave dof row map in tangential direction (of all interfaces)
+    //! global slip source dof row map in tangential direction (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gslipt_;
 
     //!@}
 
-    //! global slave dof row map of vertex nodes
+    //! global source dof row map of vertex nodes
     std::shared_ptr<Core::LinAlg::Map> gsdof_vertex_;
 
-    //! global slave dof row map of edge nodes
+    //! global source dof row map of edge nodes
     std::shared_ptr<Core::LinAlg::Map> gsdof_edge_;
 
-    //! global slave dof row map of surface nodes
+    //! global source dof row map of surface nodes
     std::shared_ptr<Core::LinAlg::Map> gsdof_surf_;
 
     //! @name Parallel redistribution
@@ -641,24 +644,24 @@ namespace CONTACT
      */
     std::vector<double> unbalance_evaluation_time_;
 
-    /*! Max-to-min ratio of number of row slave elements across all processes for current time step
+    /*! Max-to-min ratio of number of row source elements across all processes for current time step
      * \f$t_{n+1}\f$
      */
-    std::vector<int> unbalance_num_slave_elements_;
+    std::vector<int> unbalance_num_source_elements_;
 
     //! global LM dof row map (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Map> non_redist_glmdofrowmap_;
 
-    //! global slave dof row map (before parallel redistribution)
+    //! global source dof row map (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Map> non_redist_gsdofrowmap_;
 
-    //! global master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map> non_redist_gmdofrowmap_;
+    //! global target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map> non_redist_gtdofrowmap_;
 
-    //! global slave and master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map> non_redist_gsmdofrowmap_;
+    //! global source and target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map> non_redist_gstdofrowmap_;
 
-    //! global dirichlet toggle of all slave dofs (before parallel redistribution)
+    //! global dirichlet toggle of all source dofs (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Vector<double>> non_redist_gsdirichtoggle_;
 
     //! parallel redistribution type
@@ -698,10 +701,10 @@ namespace CONTACT
     //! global constraint right-hand side vector (only for saddlepoint problems)
     std::shared_ptr<Core::LinAlg::Vector<double>> constrrhs_;
 
-    //! global Matrix LinD containing slave fc derivatives
+    //! global Matrix LinD containing source fc derivatives
     std::shared_ptr<Core::LinAlg::SparseMatrix> lindmatrix_;
 
-    //! global Matrix LinM containing master fc derivatives
+    //! global Matrix LinM containing target fc derivatives
     std::shared_ptr<Core::LinAlg::SparseMatrix> linmmatrix_;
 
     //! global K matrix
@@ -773,7 +776,7 @@ namespace CONTACT
     bool non_smooth_contact_;
 
     //! flag indicating whether trafo should be applied
-    bool dualquadslavetrafo_;
+    bool dualquadsourcetrafo_;
 
     //!@}
 

@@ -71,7 +71,7 @@ void CONTACT::PenaltyStrategy::save_reference_state(
   // initialize the displacement field
   set_state(Mortar::state_new_displacement, *dis);
 
-  // kappa will be the shape function integral on the slave sides
+  // kappa will be the shape function integral on the source sides
   // (1) build the nodal information
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
@@ -82,22 +82,22 @@ void CONTACT::PenaltyStrategy::save_reference_state(
     // do the computation of nodal shape function integral
     // (for convenience, the results will be stored in nodal gap)
 
-    // loop over proc's slave elements of the interface for integration
+    // loop over proc's source elements of the interface for integration
     // use standard column map to include processor's ghosted elements
-    for (int j = 0; j < interface_[i]->slave_col_elements()->num_my_elements(); ++j)
+    for (int j = 0; j < interface_[i]->source_col_elements()->num_my_elements(); ++j)
     {
-      int gid1 = interface_[i]->slave_col_elements()->gid(j);
+      int gid1 = interface_[i]->source_col_elements()->gid(j);
       Core::Elements::Element* ele1 = interface_[i]->discret().g_element(gid1);
-      if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-      Element* selement = dynamic_cast<Element*>(ele1);
+      if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+      Element* source_element = dynamic_cast<Element*>(ele1);
 
-      interface_[i]->integrate_kappa_penalty(*selement);
+      interface_[i]->integrate_kappa_penalty(*source_element);
     }
 
-    // loop over all slave row nodes on the current interface
-    for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+    // loop over all source row nodes on the current interface
+    for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->slave_row_nodes()->gid(j);
+      int gid = interface_[i]->source_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
@@ -139,7 +139,7 @@ void CONTACT::PenaltyStrategy::initialize()
   lindmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
       *gsdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   linmmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
-      *gmdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
+      *gtdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
   // (re)setup global vector containing lagrange multipliers
   z_ = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
@@ -246,18 +246,18 @@ void CONTACT::PenaltyStrategy::evaluate_contact(
   }
 
   // fill_complete() global matrices LinD, LinM, LinZ
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
-  linzmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
+  linzmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
 
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
   // Concretely, we apply the following transformations:
   // LinD      ---->   T^(-T) * LinD
   // D         ---->   D * T^(-1)
   //----------------------------------------------------------------------
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     // modify lindmatrix_ and dmatrix_
     std::shared_ptr<Core::LinAlg::SparseMatrix> temp1 =
@@ -303,7 +303,7 @@ void CONTACT::PenaltyStrategy::evaluate_contact(
   if (parallel_redistribution_status())
   {
     lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-    linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+    linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
   }
 
   // add to kteff
@@ -326,7 +326,7 @@ void CONTACT::PenaltyStrategy::evaluate_contact(
   if (parallel_redistribution_status())
   {
     dtilde = Core::LinAlg::matrix_row_transform(*dtilde, *non_redist_gsdofrowmap_);
-    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gmdofrowmap_);
+    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gtdofrowmap_);
   }
 
   // add to kteff
@@ -370,7 +370,7 @@ void CONTACT::PenaltyStrategy::evaluate_contact(
 
   {
     std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-        std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
     mmatrix_->multiply(true, *z_, *fcmm);
     Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
     Core::LinAlg::export_to(*fcmm, fcmmtemp);
@@ -490,7 +490,7 @@ void CONTACT::PenaltyStrategy::initialize_uzawa(
   if (parallel_redistribution_status())
   {
     dtilde = Core::LinAlg::matrix_row_transform(*dtilde, *non_redist_gsdofrowmap_);
-    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gmdofrowmap_);
+    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gtdofrowmap_);
   }
 
   // remove contact stiffness #2 from kteff
@@ -519,7 +519,7 @@ void CONTACT::PenaltyStrategy::initialize_uzawa(
   feff->update(1 - alphaf_, fcmdtemp, 1.0);
 
   std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
   mmatrix_->multiply(true, *z_, *fcmm);
   Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
   Core::LinAlg::export_to(*fcmm, fcmmtemp);
@@ -530,14 +530,14 @@ void CONTACT::PenaltyStrategy::initialize_uzawa(
   lindmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
       *gsdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   linmmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
-      *gmdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
+      *gtdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
   // reset nodal derivZ values
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
-    for (int j = 0; j < interface_[i]->slave_col_nodes_bound()->num_my_elements(); ++j)
+    for (int j = 0; j < interface_[i]->source_col_nodes_bound()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->slave_col_nodes_bound()->gid(j);
+      int gid = interface_[i]->source_col_nodes_bound()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
@@ -705,7 +705,7 @@ void CONTACT::PenaltyStrategy::update_uzawa_augmented_lagrange()
 void CONTACT::PenaltyStrategy::evaluate_force(CONTACT::ParamsInterface& cparams)
 {
   //---------------------------------------------------------------
-  // For selfcontact the master/slave sets are updated within the -
+  // For selfcontact the target/source sets are updated within the -
   // contact search, see SelfBinaryTree.                          -
   // Therefore, we have to initialize the mortar matrices after   -
   // interface evaluations.                                       -
@@ -738,7 +738,6 @@ void CONTACT::PenaltyStrategy::evaluate_force(CONTACT::ParamsInterface& cparams)
   // assemble force and stiffness
   assemble();
 
-  // bye bye
   return;
 }
 
@@ -834,18 +833,18 @@ void CONTACT::PenaltyStrategy::assemble()
   }
 
   // fill_complete() global matrices LinD, LinM, LinZ
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
-  linzmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
+  linzmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
 
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
   // Concretely, we apply the following transformations:
   // LinD      ---->   T^(-T) * LinD
   // D         ---->   D * T^(-1)
   //----------------------------------------------------------------------
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     // modify lindmatrix_ and dmatrix_
     std::shared_ptr<Core::LinAlg::SparseMatrix> temp1 =
@@ -866,7 +865,7 @@ void CONTACT::PenaltyStrategy::assemble()
   if (parallel_redistribution_status())
   {
     lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-    linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+    linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
   }
 
   // add to kteff
@@ -889,7 +888,7 @@ void CONTACT::PenaltyStrategy::assemble()
   if (parallel_redistribution_status())
   {
     dtilde = Core::LinAlg::matrix_row_transform(*dtilde, *non_redist_gsdofrowmap_);
-    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gmdofrowmap_);
+    mtilde = Core::LinAlg::matrix_row_transform(*mtilde, *non_redist_gtdofrowmap_);
   }
 
   // add to kteff
@@ -910,7 +909,7 @@ void CONTACT::PenaltyStrategy::assemble()
 
   {
     std::shared_ptr<Core::LinAlg::Vector<double>> fcmm =
-        std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
     mmatrix_->multiply(true, *z_, *fcmm);
     Core::LinAlg::Vector<double> fcmmtemp(*problem_dofs());
     Core::LinAlg::export_to(*fcmm, fcmmtemp);
@@ -963,7 +962,6 @@ void CONTACT::PenaltyStrategy::evaluate_force_stiff(CONTACT::ParamsInterface& cp
   // call the evaluate force routine if not done before
   if (!evalForceCalled_) evaluate_force(cparams);
 
-  // bye bye
   return;
 }
 

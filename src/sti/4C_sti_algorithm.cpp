@@ -121,7 +121,7 @@ STI::Algorithm::Algorithm(MPI_Comm comm, const Teuchos::ParameterList& stidyn,
         {
           // consider conditions for slave side only
           if (condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-              Inpar::S2I::side_slave)
+              Inpar::S2I::side_source)
           {
             // extract ID of current condition
             const int condid = condition->parameters().get<int>("ConditionID");
@@ -197,7 +197,7 @@ void STI::Algorithm::modify_field_parameters_for_thermo_field()
 
     // make sure that interface side underlying Lagrange multiplier definition is slave side
     fieldparameters_->sublist("S2I COUPLING")
-        .set<Inpar::S2I::InterfaceSides>("LMSIDE", Inpar::S2I::InterfaceSides::side_slave);
+        .set<Inpar::S2I::InterfaceSides>("LMSIDE", Inpar::S2I::InterfaceSides::side_source);
   }
 }  // STI::Algorithm::modify_field_parameters_for_thermo_field()
 
@@ -314,7 +314,7 @@ void STI::Algorithm::transfer_scatra_to_thermo(
             std::make_shared<Core::LinAlg::Vector<double>>(
                 *scatra_->scatra_field()->discretization()->dof_row_map(), true);
         strategyscatra_->interface_maps()->insert_vector(
-            *strategyscatra_->coupling_adapter()->master_to_slave(
+            *strategyscatra_->coupling_adapter()->target_to_source(
                 *strategyscatra_->interface_maps()->extract_vector(*scatra, 2)),
             1, *imasterphinp);
         thermo_->scatra_field()->discretization()->set_state(2, "imasterscatra", *imasterphinp);
@@ -333,7 +333,7 @@ void STI::Algorithm::transfer_scatra_to_thermo(
         {
           // consider conditions for slave side only
           if (condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-              Inpar::S2I::side_slave)
+              Inpar::S2I::side_source)
           {
             // extract ID of current condition
             const int condid = condition->parameters().get<int>("ConditionID");
@@ -381,7 +381,7 @@ void STI::Algorithm::transfer_thermo_to_scatra(
     {
       // consider conditions for slave side only
       if (condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-          Inpar::S2I::side_slave)
+          Inpar::S2I::side_source)
       {
         // extract ID of current condition
         const int condid = condition->parameters().get<int>("ConditionID");

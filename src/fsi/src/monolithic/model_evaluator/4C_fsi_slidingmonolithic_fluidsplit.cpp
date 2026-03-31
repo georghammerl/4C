@@ -266,7 +266,7 @@ void FSI::SlidingMonolithicFluidSplit::setup_system()
     coupfa.setup_coupling(*fluid_field()->discretization(), *ale_field()->discretization(),
         *fluidnodemap, *alenodemap, ndim);
 
-    fluid_field()->set_mesh_map(coupfa.master_dof_map());
+    fluid_field()->set_mesh_map(coupfa.target_dof_map());
 
     // create combined map
     create_combined_dof_row_map();
@@ -295,8 +295,9 @@ void FSI::SlidingMonolithicFluidSplit::setup_system()
           fluid_field()->discretization(), *coupsfm_, true, aleproj_);
 
       iprojdispinc_ =
-          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->slave_dof_map(), true);
-      iprojdisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->slave_dof_map(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->source_dof_map(), true);
+      iprojdisp_ =
+          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->source_dof_map(), true);
     }
     notsetup_ = false;
   }
@@ -909,12 +910,12 @@ void FSI::SlidingMonolithicFluidSplit::setup_system_matrix(Core::LinAlg::BlockSp
     // We cannot copy the pressure value. It is not used anyway. So no exact
     // match here.
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmii, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), mat.matrix(1, 2), false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), mat.matrix(1, 2), false);
 
     std::shared_ptr<Core::LinAlg::SparseMatrix> lfmgi =
         std::make_shared<Core::LinAlg::SparseMatrix>(fmgi.row_map(), 81, false);
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmgi, 1.0,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), *lfmgi, false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), *lfmgi, false);
 
     // ---------Addressing contribution to block (2,4)
     lfmgi->complete(aii.domain_map(), mortarp->range_map());
@@ -1439,7 +1440,7 @@ void FSI::SlidingMonolithicFluidSplit::update()
   // update history variables for sliding ale
   if (aleproj_ != FSI::ALEprojection_none)
   {
-    iprojdisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->slave_dof_map(), true);
+    iprojdisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->source_dof_map(), true);
     std::shared_ptr<Core::LinAlg::Vector<double>> idispale = ale_to_fluid_interface(
         ale_field()->interface()->extract_fsi_cond_vector(*ale_field()->dispnp()));
 
@@ -1711,7 +1712,7 @@ void FSI::SlidingMonolithicFluidSplit::recover_lagrange_multiplier()
 
     // extract inner velocity DOFs after calling AleToFluid()
     std::shared_ptr<Core::LinAlg::Map> velothermap = Core::LinAlg::split_map(
-        *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling().master_dof_map());
+        *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling().target_dof_map());
     Core::LinAlg::MapExtractor velothermapext =
         Core::LinAlg::MapExtractor(*fluid_field()->velocity_row_map(), velothermap, false);
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(*velothermap, true);

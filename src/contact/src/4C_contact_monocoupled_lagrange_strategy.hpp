@@ -117,7 +117,7 @@ namespace CONTACT
         std::shared_ptr<Core::LinAlg::SparseMatrix> invda) override;
 
     std::map<int, std::shared_ptr<Core::LinAlg::SparseOperator>>
-        csx_s_;  // offdiagonal coupling stiffness blocks on slave side!
+        csx_s_;  // offdiagonal coupling stiffness blocks on source side!
 
     std::shared_ptr<Core::LinAlg::SparseMatrix> dhat_;
     std::shared_ptr<Core::LinAlg::SparseMatrix> mhataam_;

@@ -30,8 +30,8 @@ namespace Wear
   /// (this enum represents the input file parameter WEAR_SIDE)
   enum WearSide
   {
-    wear_slave,  ///< wear on slave side
-    wear_both    ///< slave and master wear
+    wear_source,  ///< wear on slave side
+    wear_both     ///< slave and master wear
   };
 
   /// Definition of contact wear algorithm

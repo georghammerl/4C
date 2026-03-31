@@ -1916,8 +1916,8 @@ void FLD::FluidImplicitTimeInt::evaluate_fluid_edge_based(
       if (ele == nullptr) FOUR_C_THROW("expect FluidIntFace element");
 
       // get the parent fluid elements
-      Core::Elements::Element* p_master = ele->parent_master_element();
-      Core::Elements::Element* p_slave = ele->parent_slave_element();
+      Core::Elements::Element* p_master = ele->parent_target_element();
+      Core::Elements::Element* p_slave = ele->parent_source_element();
 
       size_t p_master_numnode = p_master->num_node();
       size_t p_slave_numnode = p_slave->num_node();

@@ -263,7 +263,7 @@ void SSI::SSICouplingNonMatchingBoundary::setup()
 
   // extractor for coupled surface of structure discretization with surface scatra
   extractor_ = std::make_shared<Core::LinAlg::MapExtractor>(
-      *structdis_->dof_row_map(0), adaptermeshtying_->master_dof_map(), true);
+      *structdis_->dof_row_map(0), adaptermeshtying_->target_dof_map(), true);
 
   set_is_setup(true);
 }
@@ -285,7 +285,7 @@ void SSI::SSICouplingNonMatchingBoundary::set_mesh_disp(
     std::shared_ptr<Adapter::ScaTraBaseAlgorithm> scatra, const Core::LinAlg::Vector<double>& disp)
 {
   scatra->scatra_field()->apply_mesh_movement(
-      *adaptermeshtying_->master_to_slave(*extractor_->extract_cond_vector(disp)));
+      *adaptermeshtying_->target_to_source(*extractor_->extract_cond_vector(disp)));
 }
 
 /*----------------------------------------------------------------------*/
@@ -296,9 +296,9 @@ void SSI::SSICouplingNonMatchingBoundary::set_velocity_fields(
     std::shared_ptr<const Core::LinAlg::Vector<double>> vel)
 {
   scatra->scatra_field()->set_convective_velocity(
-      *adaptermeshtying_->master_to_slave(*extractor_->extract_cond_vector(*convvel)));
+      *adaptermeshtying_->target_to_source(*extractor_->extract_cond_vector(*convvel)));
   scatra->scatra_field()->set_velocity_field(
-      *adaptermeshtying_->master_to_slave(*extractor_->extract_cond_vector(*vel)));
+      *adaptermeshtying_->target_to_source(*extractor_->extract_cond_vector(*vel)));
 }
 
 /*----------------------------------------------------------------------*/

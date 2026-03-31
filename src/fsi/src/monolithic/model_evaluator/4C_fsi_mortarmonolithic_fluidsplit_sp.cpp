@@ -227,7 +227,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_system()
     coup_fluid_ale.setup_coupling(*fluid_field()->discretization(), *ale_field()->discretization(),
         *fluidnodemap, *alenodemap, ndim);
 
-    fluid_field()->set_mesh_map(coup_fluid_ale.master_dof_map());
+    fluid_field()->set_mesh_map(coup_fluid_ale.target_dof_map());
 
     create_combined_dof_row_map();
 
@@ -963,7 +963,7 @@ void FSI::MortarMonolithicFluidSplitSaddlePoint::setup_system_matrix(
     // Addressing contribution to block (4,5)
     (*fluid_mesh_inner_inner_transform_)(fluid_shape_deriv->full_row_map(),
         fluid_shape_deriv->full_col_map(), fluid_mesh_interf_inner, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coup_fluid_ale), mat.matrix(1, 2), false);
+        Coupling::Adapter::CouplingTargetConverter(coup_fluid_ale), mat.matrix(1, 2), false);
   }
 
   // finally assign fluid matrix to block (1,1)

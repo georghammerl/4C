@@ -78,12 +78,12 @@ bool Mortar::Coupling3d::evaluate_coupling()
   project_master();
 
   // tolerance for polygon clipping
-  const double sminedge = slave_int_element().min_edge_size();
-  const double mminedge = master_int_element().min_edge_size();
+  const double sminedge = source_int_element().min_edge_size();
+  const double mminedge = target_int_element().min_edge_size();
   tol = MORTARCLIPTOL * std::min(sminedge, mminedge);
 
   // do polygon clipping
-  bool do_clip = polygon_clipping_convex_hull(slave_vertices(), master_vertices(), clip(), tol);
+  bool do_clip = polygon_clipping_convex_hull(source_vertices(), target_vertices(), clip(), tol);
   int clipsize = (int)(clip().size());
 
   // within polygon clipping we may have performed a second rough check
@@ -97,7 +97,7 @@ bool Mortar::Coupling3d::evaluate_coupling()
   if (clipsize < 3) return false;
 
   // proceed only if clipping polygon has non-zero area
-  if (polygon_area() < MORTARINTLIM * slave_element_area()) return false;
+  if (polygon_area() < MORTARINTLIM * source_element_area()) return false;
 
   // check / set  projection status of slave nodes
   has_proj_status();
@@ -114,19 +114,19 @@ bool Mortar::Coupling3d::evaluate_coupling()
  *----------------------------------------------------------------------*/
 bool Mortar::Coupling3d::rough_check_centers()
 {
-  const double some = slave_int_element().max_edge_size();
-  const double mme = master_int_element().max_edge_size();
+  const double some = source_int_element().max_edge_size();
+  const double mme = target_int_element().max_edge_size();
   const double near = 2.0 * std::max(some, mme);
 
   double loccs[2] = {0.0, 0.0};
-  Core::FE::CellType dts = slave_int_element().shape();
+  Core::FE::CellType dts = source_int_element().shape();
   if (dts == Core::FE::CellType::tri3 || dts == Core::FE::CellType::tri6)
   {
     loccs[0] = 1.0 / 3.0;
     loccs[1] = 1.0 / 3.0;
   }
   double loccm[2] = {0.0, 0.0};
-  Core::FE::CellType dtm = master_int_element().shape();
+  Core::FE::CellType dtm = target_int_element().shape();
   if (dtm == Core::FE::CellType::tri3 || dtm == Core::FE::CellType::tri6)
   {
     loccm[0] = 1.0 / 3.0;
@@ -135,8 +135,8 @@ bool Mortar::Coupling3d::rough_check_centers()
 
   double sc[3] = {0.0, 0.0, 0.0};
   double mc[3] = {0.0, 0.0, 0.0};
-  slave_int_element().local_to_global(loccs, sc, 0);
-  master_int_element().local_to_global(loccm, mc, 0);
+  source_int_element().local_to_global(loccs, sc, 0);
+  target_int_element().local_to_global(loccm, mc, 0);
 
   const double cdist = sqrt((mc[0] - sc[0]) * (mc[0] - sc[0]) + (mc[1] - sc[1]) * (mc[1] - sc[1]) +
                             (mc[2] - sc[2]) * (mc[2] - sc[2]));
@@ -153,14 +153,14 @@ bool Mortar::Coupling3d::rough_check_centers()
 bool Mortar::Coupling3d::rough_check_nodes()
 {
   // project master nodes onto auxiliary plane
-  int nnodes = master_int_element().num_node();
-  Core::Nodes::Node** mynodes = master_int_element().nodes();
+  int nnodes = target_int_element().num_node();
+  Core::Nodes::Node** mynodes = target_int_element().nodes();
   if (!mynodes) FOUR_C_THROW("rough_check_nodes: Null pointer!");
 
   // prepare check
   bool near = false;
-  const double some = slave_int_element().max_edge_size();
-  const double mme = master_int_element().max_edge_size();
+  const double some = source_int_element().max_edge_size();
+  const double mme = target_int_element().max_edge_size();
   const double limit = 0.3 * std::max(some, mme);
 
   for (int i = 0; i < nnodes; ++i)
@@ -196,7 +196,7 @@ bool Mortar::Coupling3d::rough_check_orient()
   // for tri3, tri6 elements: xi = eta = 1/3
   double loccenter[2] = {0.0, 0.0};
 
-  Core::FE::CellType dt = master_int_element().shape();
+  Core::FE::CellType dt = target_int_element().shape();
   if (dt == Core::FE::CellType::tri3 || dt == Core::FE::CellType::tri6)
   {
     loccenter[0] = 1.0 / 3;
@@ -213,7 +213,7 @@ bool Mortar::Coupling3d::rough_check_orient()
 
   // compute the unit normal vector at the master element center
   double nmc[3] = {0.0, 0.0, 0.0};
-  master_int_element().compute_unit_normal_at_xi(loccenter, nmc);
+  target_int_element().compute_unit_normal_at_xi(loccenter, nmc);
 
   // check orientation with respect to slave element
   double dot = nmc[0] * auxn()[0] + nmc[1] * auxn()[1] + nmc[2] * auxn()[2];
@@ -234,7 +234,7 @@ bool Mortar::Coupling3d::auxiliary_plane()
   // for tri3, tri6 elements: xi = eta = 1/3
   double loccenter[2] = {0.0, 0.0};
 
-  Core::FE::CellType dt = slave_int_element().shape();
+  Core::FE::CellType dt = source_int_element().shape();
   if (dt == Core::FE::CellType::tri3 || dt == Core::FE::CellType::tri6)
   {
     loccenter[0] = 1.0 / 3.0;
@@ -250,10 +250,10 @@ bool Mortar::Coupling3d::auxiliary_plane()
     FOUR_C_THROW("auxiliary_plane called for unknown element type");
 
   // compute element center via shape fct. interpolation
-  slave_int_element().local_to_global(loccenter, auxc(), 0);
+  source_int_element().local_to_global(loccenter, auxc(), 0);
 
   // we then compute the unit normal vector at the element center
-  lauxn() = slave_int_element().compute_unit_normal_at_xi(loccenter, auxn());
+  lauxn() = source_int_element().compute_unit_normal_at_xi(loccenter, auxn());
 
 
   // calculate auxplane with cpp normal!
@@ -296,8 +296,8 @@ bool Mortar::Coupling3d::auxiliary_plane()
 bool Mortar::Coupling3d::project_slave()
 {
   // project slave nodes onto auxiliary plane
-  int nnodes = slave_int_element().num_node();
-  Core::Nodes::Node** mynodes = slave_int_element().nodes();
+  int nnodes = source_int_element().num_node();
+  Core::Nodes::Node** mynodes = source_int_element().nodes();
   if (!mynodes) FOUR_C_THROW("project_slave: Null pointer!");
 
   // initialize storage for slave coords + their ids
@@ -322,8 +322,8 @@ bool Mortar::Coupling3d::project_slave()
     snodeids[0] = mycnode->id();
 
     // store into vertex data structure
-    slave_vertices().push_back(
-        Vertex(vertices, Vertex::slave, snodeids, nullptr, nullptr, false, false, nullptr, -1.0));
+    source_vertices().push_back(
+        Vertex(vertices, Vertex::source, snodeids, nullptr, nullptr, false, false, nullptr, -1.0));
 
     // std::cout << "->RealNode(S) " << mycnode->Id() << ": " << mycnode->xspatial()[0] << " " <<
     // mycnode->xspatial()[1] << " " << mycnode->xspatial()[2] << std::endl; std::cout <<
@@ -341,8 +341,8 @@ bool Mortar::Coupling3d::project_slave()
 bool Mortar::Coupling3d::project_master()
 {
   // project master nodes onto auxiliary plane
-  int nnodes = master_int_element().num_node();
-  Core::Nodes::Node** mynodes = master_int_element().nodes();
+  int nnodes = target_int_element().num_node();
+  Core::Nodes::Node** mynodes = target_int_element().nodes();
   if (!mynodes) FOUR_C_THROW("project_master: Null pointer!");
 
   // initialize storage for master coords + their ids
@@ -367,8 +367,8 @@ bool Mortar::Coupling3d::project_master()
     mnodeids[0] = mycnode->id();
 
     // store into vertex data structure
-    master_vertices().push_back(Vertex(
-        vertices, Vertex::projmaster, mnodeids, nullptr, nullptr, false, false, nullptr, -1.0));
+    target_vertices().push_back(Vertex(
+        vertices, Vertex::projtarget, mnodeids, nullptr, nullptr, false, false, nullptr, -1.0));
 
     // std::cout << "->RealNode(M) " << mycnode->Id() << ": " << mycnode->xspatial()[0] << " " <<
     // mycnode->xspatial()[1] << " " << mycnode->xspatial()[2] << std::endl; std::cout <<
@@ -1653,8 +1653,8 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
       // but instead check if the two elements to be clipped are
       // close to each other at all. If so, then really throw the
       // FOUR_C_THROW, if not, simply continue with the next pair!
-      int sid = slave_element().id();
-      int mid = master_element().id();
+      int sid = source_element().id();
+      int mid = target_element().id();
       bool nearcheck = rough_check_nodes();
       if (nearcheck)
       {
@@ -1693,28 +1693,28 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
                         << std::endl;
 
         // get slave and master nodes
-        int nsnodes = slave_int_element().num_node();
-        Core::Nodes::Node** mysnodes = slave_int_element().nodes();
+        int nsnodes = source_int_element().num_node();
+        Core::Nodes::Node** mysnodes = source_int_element().nodes();
         if (!mysnodes) FOUR_C_THROW("Null pointer!");
         std::vector<Node*> mycsnodes(nsnodes);
         for (int i = 0; i < nsnodes; ++i) mycsnodes[i] = dynamic_cast<Node*>(mysnodes[i]);
-        int nmnodes = master_int_element().num_node();
-        Core::Nodes::Node** mymnodes = master_int_element().nodes();
+        int nmnodes = target_int_element().num_node();
+        Core::Nodes::Node** mymnodes = target_int_element().nodes();
         if (!mymnodes) FOUR_C_THROW("Null pointer!");
         std::vector<Node*> mycmnodes(nmnodes);
         for (int i = 0; i < nmnodes; ++i) mycmnodes[i] = dynamic_cast<Node*>(mymnodes[i]);
 
         // get node coordinates
         Core::LinAlg::SerialDenseMatrix scoord(3, nsnodes);
-        slave_int_element().get_nodal_coords(scoord);
-        double scolor = (double)slave_int_element().owner();
+        source_int_element().get_nodal_coords(scoord);
+        double scolor = (double)source_int_element().owner();
         Core::LinAlg::SerialDenseMatrix mcoord(3, nmnodes);
-        master_int_element().get_nodal_coords(mcoord);
-        double mcolor = (double)master_int_element().owner();
+        target_int_element().get_nodal_coords(mcoord);
+        double mcolor = (double)target_int_element().owner();
 
         // plot elements
         // 3D linear case (3noded triangular elements)
-        if (slave_int_element().shape() == Core::FE::CellType::tri3)
+        if (source_int_element().shape() == Core::FE::CellType::tri3)
         {
           gmshfilecontent << "ST(" << std::scientific << scoord(0, 0) << "," << scoord(1, 0) << ","
                           << scoord(2, 0) << "," << scoord(0, 1) << "," << scoord(1, 1) << ","
@@ -1723,7 +1723,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
           gmshfilecontent << "{" << std::scientific << scolor << "," << scolor << "," << scolor
                           << "};" << std::endl;
         }
-        else if (slave_int_element().shape() == Core::FE::CellType::quad4)
+        else if (source_int_element().shape() == Core::FE::CellType::quad4)
         {
           gmshfilecontent << "SQ(" << std::scientific << scoord(0, 0) << "," << scoord(1, 0) << ","
                           << scoord(2, 0) << "," << scoord(0, 1) << "," << scoord(1, 1) << ","
@@ -1734,7 +1734,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
                           << "," << scolor << "};" << std::endl;
         }
 
-        if (master_int_element().shape() == Core::FE::CellType::tri3)
+        if (target_int_element().shape() == Core::FE::CellType::tri3)
         {
           gmshfilecontent << "ST(" << std::scientific << mcoord(0, 0) << "," << mcoord(1, 0) << ","
                           << mcoord(2, 0) << "," << mcoord(0, 1) << "," << mcoord(1, 1) << ","
@@ -1743,7 +1743,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
           gmshfilecontent << "{" << std::scientific << mcolor << "," << mcolor << "," << mcolor
                           << "};" << std::endl;
         }
-        else if (master_int_element().shape() == Core::FE::CellType::quad4)
+        else if (target_int_element().shape() == Core::FE::CellType::quad4)
         {
           gmshfilecontent << "SQ(" << std::scientific << mcoord(0, 0) << "," << mcoord(1, 0) << ","
                           << mcoord(2, 0) << "," << mcoord(0, 1) << "," << mcoord(1, 1) << ","
@@ -2332,7 +2332,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
     bool close = false;
 
     // do not collapse poly1 (slave) points
-    if (convexhull[i].v_type() == Mortar::Vertex::slave)
+    if (convexhull[i].v_type() == Mortar::Vertex::source)
     {
       collconvexhull.push_back(convexhull[i]);
       continue;
@@ -2342,7 +2342,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
     for (int j = 0; j < (int)convexhull.size(); ++j)
     {
       // only collapse with poly1 (slave) points
-      if (convexhull[j].v_type() != Mortar::Vertex::slave) continue;
+      if (convexhull[j].v_type() != Mortar::Vertex::source) continue;
 
       // distance vector
       std::array<double, 3> diff = {0.0, 0.0, 0.0};
@@ -2358,7 +2358,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
     }
 
     // do not check poly2 (master) points
-    if (convexhull[i].v_type() == Mortar::Vertex::projmaster)
+    if (convexhull[i].v_type() == Mortar::Vertex::projtarget)
     {
       if (!close) collconvexhull.push_back(convexhull[i]);
       continue;
@@ -2370,7 +2370,7 @@ bool Mortar::Coupling3d::polygon_clipping_convex_hull(std::vector<Vertex>& poly1
       for (int j = 0; j < (int)convexhull.size(); ++j)
       {
         // only collapse with poly2 (master) points
-        if (convexhull[j].v_type() != Mortar::Vertex::projmaster) continue;
+        if (convexhull[j].v_type() != Mortar::Vertex::projtarget) continue;
 
         // distance vector
         std::array<double, 3> diff = {0.0, 0.0, 0.0};
@@ -2642,10 +2642,10 @@ double Mortar::Coupling3d::polygon_area()
 /*----------------------------------------------------------------------*
  |  Compute and return area of slave element (3D)             popp 11/08|
  *----------------------------------------------------------------------*/
-double Mortar::Coupling3d::slave_element_area() const
+double Mortar::Coupling3d::source_element_area() const
 {
   // initialize
-  double selearea = slave_int_element().mo_data().area();
+  double selearea = source_int_element().mo_data().area();
 
   return selearea;
 }
@@ -2657,8 +2657,8 @@ double Mortar::Coupling3d::slave_element_area() const
 bool Mortar::Coupling3d::has_proj_status()
 {
   // check all nodes
-  int nnodes = slave_int_element().num_node();
-  Core::Nodes::Node** mynodes = slave_int_element().nodes();
+  int nnodes = source_int_element().num_node();
+  Core::Nodes::Node** mynodes = source_int_element().nodes();
   if (!mynodes) FOUR_C_THROW("has_proj_status: Null pointer!");
 
   // loop over all slave nodes
@@ -2674,7 +2674,7 @@ bool Mortar::Coupling3d::has_proj_status()
 
       // check if this clip vertex is slave-type and has the
       // current slave node id
-      if ((int)(clip()[j].v_type()) == Vertex::slave)
+      if ((int)(clip()[j].v_type()) == Vertex::source)
         if (mycnode->id() == clip()[j].nodeids()[0]) identical = true;
 
       // set hasproj to true, if so
@@ -2692,8 +2692,8 @@ bool Mortar::Coupling3d::has_proj_status()
 bool Mortar::Coupling3d::triangulation(std::map<int, double>& projpar, double tol)
 {
   // number of nodes
-  const int nsrows = slave_element().num_node();
-  const int nmrows = master_element().num_node();
+  const int nsrows = source_element().num_node();
+  const int nmrows = target_element().num_node();
 
   // preparations
   int clipsize = (int)(clip().size());
@@ -3230,7 +3230,7 @@ bool Mortar::Coupling3d::center_triangulation(
   cells().resize(0);
   int clipsize = (int)(clip().size());
   std::vector<Core::Gen::Pairedvector<int, double>> lincenter(
-      3, (master_element().num_node() + slave_element().num_node()) * 3);
+      3, (target_element().num_node() + source_element().num_node()) * 3);
 
   //**********************************************************************
   // (1) Trivial clipping polygon -> IntCells
@@ -3364,13 +3364,13 @@ bool Mortar::Coupling3d::integrate_cells(
   for (int i = 0; i < (int)(cells().size()); ++i)
   {
     // integrate cell only if it has a non-zero area
-    if (cells()[i]->area() < MORTARINTLIM * slave_element_area()) continue;
+    if (cells()[i]->area() < MORTARINTLIM * source_element_area()) continue;
 
     // set segmentation status of all slave nodes
     // (hassegment_ of a slave node is true if ANY segment/cell
     // is integrated that contributes to this slave node)
-    int nnodes = slave_int_element().num_node();
-    Core::Nodes::Node** mynodes = slave_int_element().nodes();
+    int nnodes = source_int_element().num_node();
+    Core::Nodes::Node** mynodes = source_int_element().nodes();
     if (!mynodes) FOUR_C_THROW("Null pointer!");
     for (int k = 0; k < nnodes; ++k)
     {
@@ -3395,9 +3395,9 @@ bool Mortar::Coupling3d::integrate_cells(
     if (!quad())
     {
       // call integrator
-      Mortar::Integrator::impl(slave_element(), master_element(), interface_params())
+      Mortar::Integrator::impl(source_element(), target_element(), interface_params())
           ->integrate_cell_3d_aux_plane(
-              slave_element(), master_element(), cells()[i], auxn(), get_comm());
+              source_element(), target_element(), cells()[i], auxn(), get_comm());
     }
 
     // *******************************************************************
@@ -3407,12 +3407,12 @@ bool Mortar::Coupling3d::integrate_cells(
                            lmtype == Mortar::lagmult_const))
     {
       // dynamic_cast to make sure to pass in IntElement&
-      Mortar::IntElement& sintref = dynamic_cast<Mortar::IntElement&>(slave_int_element());
-      Mortar::IntElement& mintref = dynamic_cast<Mortar::IntElement&>(master_int_element());
+      Mortar::IntElement& sintref = dynamic_cast<Mortar::IntElement&>(source_int_element());
+      Mortar::IntElement& mintref = dynamic_cast<Mortar::IntElement&>(target_int_element());
 
-      Mortar::Integrator::impl(slave_element(), master_element(), interface_params())
+      Mortar::Integrator::impl(source_element(), target_element(), interface_params())
           ->integrate_cell_3d_aux_plane_quad(
-              slave_element(), master_element(), sintref, mintref, cells()[i], auxn());
+              source_element(), target_element(), sintref, mintref, cells()[i], auxn());
     }
 
     // *******************************************************************
@@ -3427,12 +3427,12 @@ bool Mortar::Coupling3d::integrate_cells(
             "mortar");
 
       // dynamic_cast to make sure to pass in IntElement&
-      Mortar::IntElement& sintref = dynamic_cast<Mortar::IntElement&>(slave_int_element());
-      Mortar::IntElement& mintref = dynamic_cast<Mortar::IntElement&>(master_int_element());
+      Mortar::IntElement& sintref = dynamic_cast<Mortar::IntElement&>(source_int_element());
+      Mortar::IntElement& mintref = dynamic_cast<Mortar::IntElement&>(target_int_element());
 
-      Mortar::Integrator::impl(slave_element(), master_element(), interface_params())
+      Mortar::Integrator::impl(source_element(), target_element(), interface_params())
           ->integrate_cell_3d_aux_plane_quad(
-              slave_element(), master_element(), sintref, mintref, cells()[i], auxn());
+              source_element(), target_element(), sintref, mintref, cells()[i], auxn());
     }
 
     // *******************************************************************
@@ -3471,7 +3471,7 @@ void Mortar::Coupling3d::gmsh_output_cells(int lid) const
 
   // write each integration cell only once
   // (no overlap, only owner of slave element writes output)
-  if (proc != slave_element().owner()) return;
+  if (proc != source_element().owner()) return;
 
   // construct unique filename for gmsh output
   // first index = time step index
@@ -3562,7 +3562,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[3] = ele.nodes()[7];
 
     auxele.push_back(std::make_shared<IntElement>(
-        0, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        0, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // second integration element
     // containing parent nodes 4,1,5,8
@@ -3577,7 +3577,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[3] = ele.nodes()[8];
 
     auxele.push_back(std::make_shared<IntElement>(
-        1, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        1, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // third integration element
     // containing parent nodes 8,5,2,6
@@ -3592,7 +3592,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[3] = ele.nodes()[6];
 
     auxele.push_back(std::make_shared<IntElement>(
-        2, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        2, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // fourth integration element
     // containing parent nodes 7,8,6,3
@@ -3607,7 +3607,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[3] = ele.nodes()[3];
 
     auxele.push_back(std::make_shared<IntElement>(
-        3, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        3, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
   }
 
   // *********************************************************** quad8 ***
@@ -3632,7 +3632,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[7];
 
     auxele.push_back(std::make_shared<IntElement>(
-        0, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_slave(), false));
+        0, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_source(), false));
 
     // second integration element
     // containing parent nodes 1,5,4
@@ -3645,7 +3645,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[4];
 
     auxele.push_back(std::make_shared<IntElement>(
-        1, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_slave(), false));
+        1, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_source(), false));
 
     // third integration element
     // containing parent nodes 2,6,5
@@ -3658,7 +3658,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[5];
 
     auxele.push_back(std::make_shared<IntElement>(
-        2, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_slave(), false));
+        2, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_source(), false));
 
     // fourth integration element
     // containing parent nodes 3,7,6
@@ -3671,7 +3671,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[6];
 
     auxele.push_back(std::make_shared<IntElement>(
-        3, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_slave(), false));
+        3, ele.id(), ele.owner(), &ele, dttri, numnodetri, nodeids, nodes, ele.is_source(), false));
 
     // fifth integration element
     // containing parent nodes 4,5,6,7
@@ -3688,7 +3688,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodesquad[3] = ele.nodes()[7];
 
     auxele.push_back(std::make_shared<IntElement>(4, ele.id(), ele.owner(), &ele, dtquad,
-        numnodequad, nodeidsquad, nodesquad, ele.is_slave(), false));
+        numnodequad, nodeidsquad, nodesquad, ele.is_source(), false));
   }
 
   // ************************************************************ tri6 ***
@@ -3711,7 +3711,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[5];
 
     auxele.push_back(std::make_shared<IntElement>(
-        0, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        0, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // second integration element
     // containing parent nodes 3,1,4
@@ -3724,7 +3724,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[4];
 
     auxele.push_back(std::make_shared<IntElement>(
-        1, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        1, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // third integration element
     // containing parent nodes 5,4,2
@@ -3737,7 +3737,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[2];
 
     auxele.push_back(std::make_shared<IntElement>(
-        2, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        2, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
 
     // fourth integration element
     // containing parent nodes 4,5,3
@@ -3750,7 +3750,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[3];
 
     auxele.push_back(std::make_shared<IntElement>(
-        3, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_slave(), false));
+        3, ele.id(), ele.owner(), &ele, dt, numnode, nodeids, nodes, ele.is_source(), false));
   }
 
   // *********************************************************** quad4 ***
@@ -3764,7 +3764,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[3] = ele.nodes()[3];
 
     auxele.push_back(std::make_shared<IntElement>(0, ele.id(), ele.owner(), &ele, ele.shape(),
-        ele.num_node(), ele.node_ids(), nodes, ele.is_slave(), false));
+        ele.num_node(), ele.node_ids(), nodes, ele.is_source(), false));
   }
 
   // ************************************************************ tri3 ***
@@ -3777,7 +3777,7 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
     nodes[2] = ele.nodes()[2];
 
     auxele.push_back(std::make_shared<IntElement>(0, ele.id(), ele.owner(), &ele, ele.shape(),
-        ele.num_node(), ele.node_ids(), nodes, ele.is_slave(), false));
+        ele.num_node(), ele.node_ids(), nodes, ele.is_source(), false));
   }
 
   // ************************************************************ nurbs9 ***
@@ -3847,13 +3847,13 @@ bool Mortar::Coupling3dQuadManager::split_int_elements(
       for (int dim = 0; dim < dim_; ++dim)
         for (int n = 0; n < ele.num_node(); ++n)
           xspatial[dim] += sval(n) * dynamic_cast<Mortar::Node*>(ele.nodes()[n])->xspatial()[dim];
-      pseudo_nodes.push_back(Mortar::Node(-1, xspatial, ele.owner(), empty_dofs, ele.is_slave()));
+      pseudo_nodes.push_back(Mortar::Node(-1, xspatial, ele.owner(), empty_dofs, ele.is_source()));
     }
 
     for (int i = 0; i < 4; ++i) pseudo_nodes_ptr.push_back(&(pseudo_nodes[i]));
 
     auxele.push_back(std::make_shared<IntElement>(0, ele.id(), ele.owner(), &ele,
-        Core::FE::CellType::quad4, 4, &(id[0]), pseudo_nodes_ptr, ele.is_slave(), rewind));
+        Core::FE::CellType::quad4, 4, &(id[0]), pseudo_nodes_ptr, ele.is_source(), rewind));
   }
 
   // ********************************************************* invalid ***
@@ -3928,7 +3928,7 @@ bool Mortar::Coupling3dManager::evaluate_coupling(
     std::shared_ptr<Mortar::ParamsInterface> mparams_ptr)
 {
   // check of we need to start the real coupling
-  if (master_elements().size() == 0) return false;
+  if (target_elements().size() == 0) return false;
 
   // decide which type of coupling should be evaluated
   auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
@@ -3963,11 +3963,11 @@ void Mortar::Coupling3dManager::integrate_coupling(
   if (int_type() == Mortar::inttype_segments)
   {
     // loop over all master elements associated with this slave element
-    for (int m = 0; m < (int)master_elements().size(); ++m)
+    for (int m = 0; m < (int)target_elements().size(); ++m)
     {
       // create Coupling3d object and push back
       coupling().push_back(std::make_shared<Coupling3d>(
-          idiscret_, dim_, false, imortar_, slave_element(), master_element(m)));
+          idiscret_, dim_, false, imortar_, source_element(), target_element(m)));
       // do coupling
       coupling()[m]->evaluate_coupling();
     }
@@ -3977,7 +3977,7 @@ void Mortar::Coupling3dManager::integrate_coupling(
     consist_dual_shape();
 
     // integrate cells
-    for (int m = 0; m < (int)master_elements().size(); ++m)
+    for (int m = 0; m < (int)target_elements().size(); ++m)
       coupling()[m]->integrate_cells(mparams_ptr);
   }
   //**********************************************************************
@@ -3985,16 +3985,16 @@ void Mortar::Coupling3dManager::integrate_coupling(
   //**********************************************************************
   else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
-    if ((int)master_elements().size() == 0) return;
+    if ((int)target_elements().size() == 0) return;
 
     if (!quad())
     {
       bool boundary_ele = false;
 
       // integrate D and M -- 2 Cells
-      Mortar::Integrator::impl(slave_element(), master_element(0), imortar_)
+      Mortar::Integrator::impl(source_element(), target_element(0), imortar_)
           ->integrate_ele_based_3d(
-              slave_element(), master_elements(), &boundary_ele, idiscret_.get_comm());
+              source_element(), target_elements(), &boundary_ele, idiscret_.get_comm());
 
       if (int_type() == Mortar::inttype_elements_BS)
       {
@@ -4003,11 +4003,11 @@ void Mortar::Coupling3dManager::integrate_coupling(
           if (lmdualconsistent_ != Mortar::consistent_none)
           {
             // loop over all master elements associated with this slave element
-            for (int m = 0; m < (int)master_elements().size(); ++m)
+            for (int m = 0; m < (int)target_elements().size(); ++m)
             {
               // create Coupling3d object and push back
               coupling().push_back(std::make_shared<Coupling3d>(
-                  idiscret_, dim_, false, imortar_, slave_element(), master_element(m)));
+                  idiscret_, dim_, false, imortar_, source_element(), target_element(m)));
               // do coupling
               coupling()[m]->evaluate_coupling();
 
@@ -4020,11 +4020,11 @@ void Mortar::Coupling3dManager::integrate_coupling(
           else
           {
             // loop over all master elements associated with this slave element
-            for (int m = 0; m < (int)master_elements().size(); ++m)
+            for (int m = 0; m < (int)target_elements().size(); ++m)
             {
               // create Coupling3d object and push back
               coupling().push_back(std::make_shared<Coupling3d>(
-                  idiscret_, dim_, false, imortar_, slave_element(), master_element(m)));
+                  idiscret_, dim_, false, imortar_, source_element(), target_element(m)));
               // do coupling
               coupling()[m]->evaluate_coupling();
             }
@@ -4033,7 +4033,7 @@ void Mortar::Coupling3dManager::integrate_coupling(
             consist_dual_shape();
 
             // integrate cells
-            for (int m = 0; m < (int)master_elements().size(); ++m)
+            for (int m = 0; m < (int)target_elements().size(); ++m)
               coupling()[m]->integrate_cells(mparams_ptr);
           }
         }
@@ -4063,8 +4063,8 @@ void Mortar::Coupling3dManager::integrate_coupling(
   }
 
   // free memory of consistent dual shape function coefficient matrix
-  slave_element().mo_data().reset_dual_shape();
-  slave_element().mo_data().reset_deriv_dual_shape();
+  source_element().mo_data().reset_dual_shape();
+  source_element().mo_data().reset_deriv_dual_shape();
 
   return;
 }
@@ -4086,15 +4086,15 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
     // build linear integration elements from quadratic Mortar::Elements
     std::vector<std::shared_ptr<Mortar::IntElement>> sauxelements;
     std::vector<std::vector<std::shared_ptr<Mortar::IntElement>>> mauxelements(
-        master_elements().size());
-    split_int_elements(slave_element(), sauxelements);
+        target_elements().size());
+    split_int_elements(source_element(), sauxelements);
 
     // loop over all master elements associated with this slave element
-    for (int m = 0; m < (int)master_elements().size(); ++m)
+    for (int m = 0; m < (int)target_elements().size(); ++m)
     {
       // build linear integration elements from quadratic Mortar::Elements
       mauxelements[m].resize(0);
-      split_int_elements(*master_elements()[m], mauxelements[m]);
+      split_int_elements(*target_elements()[m], mauxelements[m]);
 
       // loop over all IntElement pairs for coupling
       for (int i = 0; i < (int)sauxelements.size(); ++i)
@@ -4103,7 +4103,7 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
         {
           // create instance of coupling class
           coupling().push_back(std::make_shared<Coupling3dQuad>(idiscret_, dim_, true, imortar_,
-              slave_element(), *master_elements()[m], *sauxelements[i], *mauxelements[m][j]));
+              source_element(), *target_elements()[m], *sauxelements[i], *mauxelements[m][j]));
 
           // do coupling
           coupling()[coupling().size() - 1]->evaluate_coupling();
@@ -4121,27 +4121,27 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
   //**********************************************************************
   else if (int_type() == Mortar::inttype_elements || int_type() == Mortar::inttype_elements_BS)
   {
-    if ((int)master_elements().size() == 0) return;
+    if ((int)target_elements().size() == 0) return;
 
     bool boundary_ele = false;
 
     // integrate D and M -- 2 Cells
-    Mortar::Integrator::impl(slave_element(), master_element(0), imortar_)
+    Mortar::Integrator::impl(source_element(), target_element(0), imortar_)
         ->integrate_ele_based_3d(
-            slave_element(), master_elements(), &boundary_ele, idiscret_.get_comm());
+            source_element(), target_elements(), &boundary_ele, idiscret_.get_comm());
 
     if (int_type() == Mortar::inttype_elements_BS)
     {
       if (boundary_ele == true)
       {
         // loop over all master elements associated with this slave element
-        for (int m = 0; m < (int)master_elements().size(); ++m)
+        for (int m = 0; m < (int)target_elements().size(); ++m)
         {
           // build linear integration elements from quadratic Mortar::Elements
           std::vector<std::shared_ptr<Mortar::IntElement>> sauxelements;
           std::vector<std::shared_ptr<Mortar::IntElement>> mauxelements;
-          split_int_elements(slave_element(), sauxelements);
-          split_int_elements(*master_elements()[m], mauxelements);
+          split_int_elements(source_element(), sauxelements);
+          split_int_elements(*target_elements()[m], mauxelements);
 
           // loop over all IntElement pairs for coupling
           for (int i = 0; i < (int)sauxelements.size(); ++i)
@@ -4149,8 +4149,8 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
             for (int j = 0; j < (int)mauxelements.size(); ++j)
             {
               // create instance of coupling class
-              Mortar::Coupling3dQuad coup(idiscret_, dim_, true, imortar_, slave_element(),
-                  *master_elements()[m], *sauxelements[i], *mauxelements[j]);
+              Mortar::Coupling3dQuad coup(idiscret_, dim_, true, imortar_, source_element(),
+                  *target_elements()[m], *sauxelements[i], *mauxelements[j]);
               // do coupling
               coup.evaluate_coupling();
 
@@ -4179,8 +4179,8 @@ void Mortar::Coupling3dQuadManager::integrate_coupling(
   }
 
   // free memory of consistent dual shape function coefficient matrix
-  slave_element().mo_data().reset_dual_shape();
-  slave_element().mo_data().reset_deriv_dual_shape();
+  source_element().mo_data().reset_dual_shape();
+  source_element().mo_data().reset_deriv_dual_shape();
 
   return;
 }
@@ -4207,7 +4207,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
     // check if fully projecting
     bool boundary_ele = false;
 
-    Mortar::ElementIntegrator integrator(slave_element().shape());
+    Mortar::ElementIntegrator integrator(source_element().shape());
     for (int gp = 0; gp < integrator.n_gp(); ++gp)
     {
       // coordinates and weight
@@ -4227,7 +4227,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
       bool projectable_gp = false;
 
       // discretization type of master element
-      Core::FE::CellType dt = coupling()[0]->master_element().shape();
+      Core::FE::CellType dt = coupling()[0]->target_element().shape();
 
       //*******************************************************************
       // loop over meles
@@ -4235,9 +4235,9 @@ void Mortar::Coupling3dManager::consist_dual_shape()
       for (int nummaster = 0; nummaster < (int)coupling().size(); ++nummaster)
       {
         // project Gauss point onto master element
-        Mortar::Projector::impl(slave_element(), coupling()[nummaster]->master_element())
+        Mortar::Projector::impl(source_element(), coupling()[nummaster]->target_element())
             ->project_gauss_point_3d(
-                slave_element(), sxi, coupling()[nummaster]->master_element(), mxi, projalpha);
+                source_element(), sxi, coupling()[nummaster]->target_element(), mxi, projalpha);
 
         bool is_on_mele = true;
 
@@ -4273,7 +4273,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
   }
 
   // get number of nodes of present slave element
-  int nnodes = slave_element().num_node();
+  int nnodes = source_element().num_node();
 
   // initialize Jacobian determinant
   double detg = 0.0;
@@ -4283,7 +4283,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
   Core::LinAlg::SerialDenseMatrix de(nnodes, nnodes, true);
 
   // loop over all master elements associated with this slave element
-  for (int m = 0; m < (int)master_elements().size(); ++m)
+  for (int m = 0; m < (int)target_elements().size(); ++m)
   {
     // loop over all integration cells
     for (int c = 0; c < (int)coupling()[m]->cells().size(); ++c)
@@ -4292,15 +4292,16 @@ void Mortar::Coupling3dManager::consist_dual_shape()
 
       // create an integrator for this cell
       for (int gp = 0;
-          gp < Mortar::Integrator::impl(slave_element(), master_element(m), imortar_)->n_gp(); ++gp)
+          gp < Mortar::Integrator::impl(source_element(), target_element(m), imortar_)->n_gp();
+          ++gp)
       {
         // coordinates and weight
-        double eta[2] = {Mortar::Integrator::impl(slave_element(), master_element(m), imortar_)
+        double eta[2] = {Mortar::Integrator::impl(source_element(), target_element(m), imortar_)
                              ->coordinate(gp, 0),
-            Mortar::Integrator::impl(slave_element(), master_element(m), imortar_)
+            Mortar::Integrator::impl(source_element(), target_element(m), imortar_)
                 ->coordinate(gp, 1)};
         double wgt =
-            Mortar::Integrator::impl(slave_element(), master_element(m), imortar_)->weight(gp);
+            Mortar::Integrator::impl(source_element(), target_element(m), imortar_)->weight(gp);
 
         // get global Gauss point coordinates
         double globgp[3] = {0.0, 0.0, 0.0};
@@ -4311,9 +4312,9 @@ void Mortar::Coupling3dManager::consist_dual_shape()
         double sprojalpha = 0.0;
 
         // TODO random?
-        Mortar::Projector::impl(slave_element())
+        Mortar::Projector::impl(source_element())
             ->project_gauss_point_auxn_3d(
-                globgp, coupling()[m]->auxn(), slave_element(), sxi, sprojalpha);
+                globgp, coupling()[m]->auxn(), source_element(), sxi, sprojalpha);
 
         // create vector for shape function evaluation
         Core::LinAlg::SerialDenseVector sval(nnodes);
@@ -4321,10 +4322,10 @@ void Mortar::Coupling3dManager::consist_dual_shape()
 
         // evaluate trace space shape functions at Gauss point
         if (lag_mult_quad() == Mortar::lagmult_lin)
-          slave_element().evaluate_shape_lag_mult_lin(
+          source_element().evaluate_shape_lag_mult_lin(
               Mortar::shape_standard, sxi, sval, sderiv, nnodes);
         else
-          slave_element().evaluate_shape(sxi, sval, sderiv, nnodes);
+          source_element().evaluate_shape(sxi, sval, sderiv, nnodes);
 
         detg = currcell->jacobian();
 
@@ -4362,7 +4363,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
     // declare and initialize to zero inverse of Matrix M_e
     Core::LinAlg::SerialDenseMatrix meinv(nnodes, nnodes, true);
 
-    if (slave_element().shape() == Core::FE::CellType::tri6)
+    if (source_element().shape() == Core::FE::CellType::tri6)
     {
       // reduce me to non-zero nodes before inverting
       Core::LinAlg::Matrix<3, 3> melin;
@@ -4376,8 +4377,8 @@ void Mortar::Coupling3dManager::consist_dual_shape()
       for (int j = 0; j < 3; ++j)
         for (int k = 0; k < 3; ++k) meinv(j, k) = melin(j, k);
     }
-    else if (slave_element().shape() == Core::FE::CellType::quad8 ||
-             slave_element().shape() == Core::FE::CellType::quad9)
+    else if (source_element().shape() == Core::FE::CellType::quad8 ||
+             source_element().shape() == Core::FE::CellType::quad9)
     {
       // reduce me to non-zero nodes before inverting
       Core::LinAlg::Matrix<4, 4> melin;
@@ -4402,7 +4403,7 @@ void Mortar::Coupling3dManager::consist_dual_shape()
     Core::LinAlg::invert_and_multiply_by_cholesky(me, de, ae);
 
   // store ae matrix in slave element data container
-  slave_element().mo_data().dual_shape() = std::make_shared<Core::LinAlg::SerialDenseMatrix>(ae);
+  source_element().mo_data().dual_shape() = std::make_shared<Core::LinAlg::SerialDenseMatrix>(ae);
 
   return;
 }

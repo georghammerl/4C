@@ -354,7 +354,7 @@ void FPSI::FpsiCoupling::evaluate_coupling_matrixes_rhs()
       {
         TEUCHOS_FUNC_TIME_MONITOR("FPSI::Monolithic::transform");
         (*couplingrowtransform2_)(*k_fp_porofluid, 1.0,
-            Coupling::Adapter::CouplingMasterConverter(couppff_fpsi), c_fp_->matrix(0, 1),
+            Coupling::Adapter::CouplingTargetConverter(couppff_fpsi), c_fp_->matrix(0, 1),
             true);  // add
       }
 
@@ -381,7 +381,7 @@ void FPSI::FpsiCoupling::evaluate_coupling_matrixes_rhs()
       {
         TEUCHOS_FUNC_TIME_MONITOR("FPSI::Monolithic::transform");
         (*couplingrowtransform3_)(*k_pfs_, 1.0,
-            Coupling::Adapter::CouplingMasterConverter(couppff_fpsi), c_fp_->matrix(0, 0),
+            Coupling::Adapter::CouplingTargetConverter(couppff_fpsi), c_fp_->matrix(0, 0),
             true);  // add
       }
 

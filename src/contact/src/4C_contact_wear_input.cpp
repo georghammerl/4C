@@ -59,14 +59,14 @@ Core::IO::InputSpec Wear::valid_parameters()
 
           deprecated_selection<WearSide>("WEAR_SIDE",
               {
-                  {"s", wear_slave},
-                  {"slave", wear_slave},
-                  {"Slave", wear_slave},
+                  {"s", wear_source},
+                  {"slave", wear_source},
+                  {"Slave", wear_source},
                   {"both", wear_both},
                   {"slave_master", wear_both},
                   {"sm", wear_both},
               },
-              {.description = "Definition of wear side", .default_value = wear_slave}),
+              {.description = "Definition of wear side", .default_value = wear_source}),
 
           deprecated_selection<WearType>("WEARTYPE",
               {

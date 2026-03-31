@@ -70,8 +70,8 @@ CONTACT::InterfaceDataContainer::InterfaceDataContainer()
       binarytreeself_(nullptr),
       cn_values_(nullptr),
       ct_values_(nullptr),
-      smpairs_(0),
-      smintpairs_(0),
+      source_target_pairs_(0),
+      source_target_int_pairs_(0),
       intcells_(0)
 {
 }
@@ -119,8 +119,8 @@ CONTACT::Interface::Interface(const std::shared_ptr<CONTACT::InterfaceDataContai
       binarytreeself_(interface_data_->binary_tree_self()),
       cnValues_(interface_data_->cn_values()),
       ctValues_(interface_data_->ct_values()),
-      smpairs_(interface_data_->sm_int_pairs()),
-      smintpairs_(interface_data_->sm_int_pairs()),
+      source_target_pairs_(interface_data_->sm_int_pairs()),
+      source_target_int_pairs_(interface_data_->sm_int_pairs()),
       intcells_(interface_data_->int_cells())
 { /* do nothing */
 }
@@ -162,8 +162,8 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
       binarytreeself_(interface_data_->binary_tree_self()),
       cnValues_(interface_data_->cn_values()),
       ctValues_(interface_data_->ct_values()),
-      smpairs_(interface_data_->sm_int_pairs()),
-      smintpairs_(interface_data_->sm_int_pairs()),
+      source_target_pairs_(interface_data_->sm_int_pairs()),
+      source_target_int_pairs_(interface_data_->sm_int_pairs()),
       intcells_(interface_data_->int_cells())
 {
   selfcontact_ = selfcontact;
@@ -171,8 +171,8 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
   two_half_pass_ = icontact.get<bool>("Two_half_pass");
   constr_direction_ =
       Teuchos::getIntegralValue<CONTACT::ConstraintDirection>(icontact, "CONSTRAINT_DIRECTIONS");
-  smpairs_ = 0;
-  smintpairs_ = 0;
+  source_target_pairs_ = 0;
+  source_target_int_pairs_ = 0;
   intcells_ = 0;
 
   // set frictional contact status
@@ -194,7 +194,7 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
   if (icontact.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::ehl)
     set_ehl_flag(true);
 
-  // check for redundant slave storage
+  // check for redundant source storage
   // needed for self contact but not wanted for general contact
   // for self contact this is ensured in BuildInterfaces in contact_strategy_factory.cpp
   // so we only print a warning here, as it is possible to have another contact interface with a
@@ -216,26 +216,26 @@ CONTACT::Interface::Interface(const std::shared_ptr<Mortar::InterfaceDataContain
 }
 
 /*----------------------------------------------------------------------*
- |  update master and slave sets (nodes etc.)                farah 10/16|
+ |  update target and source sets (nodes etc.)                farah 10/16|
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::update_master_slave_sets()
+void CONTACT::Interface::update_target_source_sets()
 {
   // call mortar function
-  Mortar::Interface::update_master_slave_sets();
+  Mortar::Interface::update_target_source_sets();
 
   //********************************************************************
   // DOFS
   //********************************************************************
   // do the same business for dofs
-  // (get row and column maps of slave and master dofs separately)
+  // (get row and column maps of source and target dofs separately)
   if (nonSmoothContact_)
   {
-    std::vector<int> sVc;  // slave column map
-    std::vector<int> sVr;  // slave row map
-    std::vector<int> sEc;  // master column map
-    std::vector<int> sEr;  // master row map
-    std::vector<int> sSc;  // master column map
-    std::vector<int> sSr;  // master row map
+    std::vector<int> sVc;  // source column map
+    std::vector<int> sVr;  // source row map
+    std::vector<int> sEc;  // target column map
+    std::vector<int> sEr;  // target row map
+    std::vector<int> sSc;  // target column map
+    std::vector<int> sSr;  // target row map
 
     for (int i = 0; i < discret().node_col_map()->num_my_elements(); ++i)
     {
@@ -243,10 +243,10 @@ void CONTACT::Interface::update_master_slave_sets()
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       auto* mrtrnode = dynamic_cast<Node*>(node);
-      const bool isslave = mrtrnode->is_slave();
+      const bool issource = mrtrnode->is_source();
       const int numdof = mrtrnode->num_dof();
 
-      if (isslave)
+      if (issource)
       {
         // vertex
         if (mrtrnode->is_on_corner())
@@ -304,20 +304,20 @@ void CONTACT::Interface::set_cn_ct_values(const int& iter)
   const double ct = interface_params().get<double>("SEMI_SMOOTH_CT");
 
   // set all nodal cn-values to the input value
-  get_cn() = std::make_shared<Core::LinAlg::Vector<double>>(*slave_row_nodes(), true);
+  get_cn() = std::make_shared<Core::LinAlg::Vector<double>>(*source_row_nodes(), true);
   get_cn()->put_scalar(cn);
 
   // set all nodal ct-values to the input value
   if (friction_)
   {
-    get_ct() = std::make_shared<Core::LinAlg::Vector<double>>(*slave_row_nodes(), true);
+    get_ct() = std::make_shared<Core::LinAlg::Vector<double>>(*source_row_nodes(), true);
     get_ct()->put_scalar(ct);
   }
 
   // modification for edge/corner nodes
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid {}", gid);
     Node* cnode = dynamic_cast<Node*>(node);
@@ -398,13 +398,13 @@ void CONTACT::Interface::add_node(std::shared_ptr<CONTACT::Node> cnode)
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::add_element(std::shared_ptr<CONTACT::Element> cele)
 {
-  // check for quadratic 2d slave elements to be modified
-  if (cele->is_slave() && (cele->shape() == Core::FE::CellType::line3)) quadslave_ = true;
+  // check for quadratic 2d source elements to be modified
+  if (cele->is_source() && (cele->shape() == Core::FE::CellType::line3)) quadsource_ = true;
 
-  // check for quadratic 3d slave elements to be modified
-  if (cele->is_slave() &&
+  // check for quadratic 3d source elements to be modified
+  if (cele->is_source() &&
       (cele->shape() == Core::FE::CellType::quad8 || cele->shape() == Core::FE::CellType::tri6))
-    quadslave_ = true;
+    quadsource_ = true;
 
   idiscret_->add_element(cele);
 }
@@ -482,15 +482,15 @@ void CONTACT::Interface::fill_complete_new(const bool isFinalParallelDistributio
   // check/init corner/edge modification
   initialize_corner_edge();
 
-  // need row and column maps of slave and master nodes / elements / dofs
+  // need row and column maps of source and target nodes / elements / dofs
   // separately so we can easily address them
-  update_master_slave_sets();
+  update_target_source_sets();
 
   // initialize node and element data container
   initialize_data_container();
 
-  // Communicate quadslave status among ALL processors
-  communicate_quad_slave_status_among_all_procs();
+  // Communicate quadsource status among ALL processors
+  communicate_quad_source_status_among_all_procs();
 }
 
 /*----------------------------------------------------------------------*
@@ -559,19 +559,19 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
 
       break;
     }
-    case Mortar::ExtendGhosting::redundant_master:
+    case Mortar::ExtendGhosting::redundant_target:
     {
-      // to ease our search algorithms we'll afford the luxury to ghost all master
-      // nodes on all processors. To do so, we'll take the master node row map and
+      // to ease our search algorithms we'll afford the luxury to ghost all target
+      // nodes on all processors. To do so, we'll take the target node row map and
       // export it to full overlap. Then we export the discretization to partially
-      // full overlap column map. This way, also all master elements will be fully
+      // full overlap column map. This way, also all target elements will be fully
       // ghosted on all processors.
 
-      // at least for master, we want to do full ghosting on all procs
+      // at least for target, we want to do full ghosting on all procs
       std::vector<int> allproc(Core::Communication::num_mpi_ranks(get_comm()));
       for (int i = 0; i < Core::Communication::num_mpi_ranks(get_comm()); ++i) allproc[i] = i;
 
-      // fill my own master row node ids
+      // fill my own target row node ids
       const Core::LinAlg::Map* noderowmap = discret().node_row_map();
       std::vector<int> sdata;
       for (int i = 0; i < noderowmap->num_my_elements(); ++i)
@@ -580,14 +580,14 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
         Core::Nodes::Node* node = discret().g_node(gid);
         if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
         auto* mrtrnode = dynamic_cast<Mortar::Node*>(node);
-        if (!mrtrnode->is_slave()) sdata.push_back(gid);
+        if (!mrtrnode->is_source()) sdata.push_back(gid);
       }
 
-      // gather all master row node gids redundantly
+      // gather all target row node gids redundantly
       std::vector<int> rdata;
       Core::LinAlg::gather<int>(sdata, rdata, (int)allproc.size(), allproc.data(), get_comm());
 
-      // add my own slave column node ids (non-redundant, standard overlap)
+      // add my own source column node ids (non-redundant, standard overlap)
       const Core::LinAlg::Map* nodecolmap = discret().node_col_map();
       for (int i = 0; i < nodecolmap->num_my_elements(); ++i)
       {
@@ -595,7 +595,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
         Core::Nodes::Node* node = discret().g_node(gid);
         if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
         auto* mrtrnode = dynamic_cast<Mortar::Node*>(node);
-        if (mrtrnode->is_slave()) rdata.push_back(gid);
+        if (mrtrnode->is_source()) rdata.push_back(gid);
       }
 
       // build new node column map (on ALL processors)
@@ -603,7 +603,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
       sdata.clear();
       rdata.clear();
 
-      // fill my own master row element ids
+      // fill my own target row element ids
       const Core::LinAlg::Map* elerowmap = discret().element_row_map();
       sdata.resize(0);
       for (int i = 0; i < elerowmap->num_my_elements(); ++i)
@@ -612,14 +612,14 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
         Core::Elements::Element* ele = discret().g_element(gid);
         if (!ele) FOUR_C_THROW("Cannot find element with gid %", gid);
         auto* mrtrele = dynamic_cast<Mortar::Element*>(ele);
-        if (!mrtrele->is_slave()) sdata.push_back(gid);
+        if (!mrtrele->is_source()) sdata.push_back(gid);
       }
 
       // gather all gids of elements redundantly
       rdata.resize(0);
       Core::LinAlg::gather<int>(sdata, rdata, (int)allproc.size(), allproc.data(), get_comm());
 
-      // add my own slave column node ids (non-redundant, standard overlap)
+      // add my own source column node ids (non-redundant, standard overlap)
       const Core::LinAlg::Map* elecolmap = discret().element_col_map();
       for (int i = 0; i < elecolmap->num_my_elements(); ++i)
       {
@@ -627,7 +627,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
         Core::Elements::Element* ele = discret().g_element(gid);
         if (!ele) FOUR_C_THROW("Cannot find element with gid %", gid);
         auto* mrtrele = dynamic_cast<Mortar::Element*>(ele);
-        if (mrtrele->is_slave()) rdata.push_back(gid);
+        if (mrtrele->is_source()) rdata.push_back(gid);
       }
 
       // build new element column map (on ALL processors)
@@ -637,7 +637,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
       allproc.clear();
 
       // redistribute the discretization of the interface according to the
-      // new node / element column layout (i.e. master = full overlap)
+      // new node / element column layout (i.e. target = full overlap)
       discret().export_column_nodes(newnodecolmap);
       discret().export_column_elements(newelecolmap);
 
@@ -650,7 +650,7 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
     }
     case Mortar::ExtendGhosting::binning:
     {
-      // Extend master column map via binning
+      // Extend target column map via binning
 
       // Create the binning strategy
       auto binningstrategy =
@@ -658,33 +658,33 @@ void CONTACT::Interface::extend_interface_ghosting_safely(const double meanVeloc
               meanVelocity, Global::Problem::instance()->output_control_file(),
               Global::Problem::instance()->spatial_approximation_type());
 
-      // fill master and slave elements into bins
-      std::map<int, std::set<int>> slavebinelemap;
+      // fill target and source elements into bins
+      std::map<int, std::set<int>> sourcebinelemap;
       binningstrategy->distribute_elements_to_bins_using_ele_aabb(discret(),
           std::views::filter(discret().my_col_element_range(), [](auto ele)
-              { return dynamic_cast<const Mortar::Element*>(ele.user_element())->is_slave(); }),
-          slavebinelemap);
+              { return dynamic_cast<const Mortar::Element*>(ele.user_element())->is_source(); }),
+          sourcebinelemap);
 
-      std::map<int, std::set<int>> masterbinelemap;
+      std::map<int, std::set<int>> targetbinelemap;
       binningstrategy->distribute_elements_to_bins_using_ele_aabb(discret(),
           std::views::filter(discret().my_col_element_range(), [](auto ele)
-              { return !dynamic_cast<const Mortar::Element*>(ele.user_element())->is_slave(); }),
-          masterbinelemap);
+              { return !dynamic_cast<const Mortar::Element*>(ele.user_element())->is_source(); }),
+          targetbinelemap);
 
-      // Extend ghosting of the master elements
+      // Extend ghosting of the target elements
       std::map<int, std::set<int>> ext_bin_to_ele_map;
-      auto extendedmastercolmap = binningstrategy->extend_element_col_map(slavebinelemap,
-          masterbinelemap, ext_bin_to_ele_map, nullptr, nullptr, discret().element_col_map());
+      auto extendedtargetcolmap = binningstrategy->extend_element_col_map(sourcebinelemap,
+          targetbinelemap, ext_bin_to_ele_map, nullptr, nullptr, discret().element_col_map());
 
-      discret().export_column_elements(*extendedmastercolmap);
+      discret().export_column_elements(*extendedtargetcolmap);
 
       // get the node ids of the elements that are to be ghosted and create a proper node column
       // map for their export
       std::set<int> nodes;
-      const int numMasterColElements = extendedmastercolmap->num_my_elements();
-      for (int lid = 0; lid < numMasterColElements; ++lid)
+      const int numTargetColElements = extendedtargetcolmap->num_my_elements();
+      for (int lid = 0; lid < numTargetColElements; ++lid)
       {
-        Core::Elements::Element* ele = discret().g_element(extendedmastercolmap->gid(lid));
+        Core::Elements::Element* ele = discret().g_element(extendedtargetcolmap->gid(lid));
         const int* nodeids = ele->node_ids();
         for (int inode = 0; inode < ele->num_node(); ++inode) nodes.insert(nodeids[inode]);
       }
@@ -734,7 +734,7 @@ void CONTACT::Interface::redistribute()
   for (int i = 0; i < numproc; ++i) allproc[i] = i;
 
   //**********************************************************************
-  // (1) SLAVE splitting in close / non-close parts
+  // (1) SOURCE splitting in close / non-close parts
   //**********************************************************************
   // perform contact search (still with non-optimal distribution)
   initialize();
@@ -745,37 +745,37 @@ void CONTACT::Interface::redistribute()
   else
     FOUR_C_THROW("Invalid search algorithm");
 
-  // split slave element row map and build redundant vector of
-  // all close / non-close slave node ids on all procs
+  // split source element row map and build redundant vector of
+  // all close / non-close source node ids on all procs
   std::vector<int> closeele, noncloseele;
   std::vector<int> localcns, localfns;
 
   split_into_far_and_close_sets(closeele, noncloseele, localcns, localfns);
 
   // loop over all elements to reset candidates / search lists
-  // (use standard slave column map)
-  const int numMySlaveColElements = slave_col_elements()->num_my_elements();
-  for (int i = 0; i < numMySlaveColElements; ++i)
+  // (use standard source column map)
+  const int numMySourceColElements = source_col_elements()->num_my_elements();
+  for (int i = 0; i < numMySourceColElements; ++i)
   {
-    int gid = slave_col_elements()->gid(i);
+    int gid = source_col_elements()->gid(i);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-    auto* mele = dynamic_cast<Mortar::Element*>(ele);
+    auto* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-    mele->mo_data().search_elements().resize(0);
+    target_elem->mo_data().search_elements().resize(0);
   }
 
   // we need an arbitrary preliminary element row map
-  Core::LinAlg::Map slaveCloseRowEles(
+  Core::LinAlg::Map sourceCloseRowEles(
       -1, (int)closeele.size(), closeele.data(), 0, Interface::get_comm());
-  Core::LinAlg::Map slaveNonCloseRowEles(
+  Core::LinAlg::Map sourceNonCloseRowEles(
       -1, (int)noncloseele.size(), noncloseele.data(), 0, Interface::get_comm());
-  Core::LinAlg::Map masterRowEles(*master_row_elements());
+  Core::LinAlg::Map targetRowEles(*target_row_elements());
 
   // check for consistency
-  if (slaveCloseRowEles.num_global_elements() == 0 &&
-      slaveNonCloseRowEles.num_global_elements() == 0)
-    FOUR_C_THROW("CONTACT redistribute: Both slave sets (close/non-close) are empty");
+  if (sourceCloseRowEles.num_global_elements() == 0 &&
+      sourceNonCloseRowEles.num_global_elements() == 0)
+    FOUR_C_THROW("CONTACT redistribute: Both source sets (close/non-close) are empty");
 
   //**********************************************************************
   // (2) SPECIAL CASES and output to screen
@@ -783,9 +783,9 @@ void CONTACT::Interface::redistribute()
   // print element overview
   if (!myrank)
   {
-    int cl = slaveCloseRowEles.num_global_elements();
-    int ncl = slaveNonCloseRowEles.num_global_elements();
-    int ma = masterRowEles.num_global_elements();
+    int cl = sourceCloseRowEles.num_global_elements();
+    int ncl = sourceNonCloseRowEles.num_global_elements();
+    int ma = targetRowEles.num_global_elements();
     std::cout << "Element overview: " << cl << " / " << ncl << " / " << ma
               << "  (close-S / non-close-S / M)";
   }
@@ -799,8 +799,8 @@ void CONTACT::Interface::redistribute()
 
   // use simple base class method if there are ONLY close or non-close elements
   // (return value TRUE, because redistribution performed)
-  if (slaveCloseRowEles.num_global_elements() == 0 ||
-      slaveNonCloseRowEles.num_global_elements() == 0)
+  if (sourceCloseRowEles.num_global_elements() == 0 ||
+      sourceNonCloseRowEles.num_global_elements() == 0)
   {
     Mortar::Interface::redistribute();
     return;
@@ -823,12 +823,12 @@ void CONTACT::Interface::redistribute()
   // calculate real number of procs to be used
   if (minele > 0)
   {
-    scproc = static_cast<int>((slaveCloseRowEles.num_global_elements()) / minele);
-    sncproc = static_cast<int>((slaveNonCloseRowEles.num_global_elements()) / minele);
-    mproc = static_cast<int>((masterRowEles.num_global_elements()) / minele);
-    if (slaveCloseRowEles.num_global_elements() < 2 * minele) scproc = 1;
-    if (slaveNonCloseRowEles.num_global_elements() < 2 * minele) sncproc = 1;
-    if (masterRowEles.num_global_elements() < 2 * minele) mproc = 1;
+    scproc = static_cast<int>((sourceCloseRowEles.num_global_elements()) / minele);
+    sncproc = static_cast<int>((sourceNonCloseRowEles.num_global_elements()) / minele);
+    mproc = static_cast<int>((targetRowEles.num_global_elements()) / minele);
+    if (sourceCloseRowEles.num_global_elements() < 2 * minele) scproc = 1;
+    if (sourceNonCloseRowEles.num_global_elements() < 2 * minele) sncproc = 1;
+    if (targetRowEles.num_global_elements() < 2 * minele) mproc = 1;
     if (scproc > numproc) scproc = numproc;
     if (sncproc > numproc) sncproc = numproc;
     if (mproc > numproc) mproc = numproc;
@@ -847,13 +847,13 @@ void CONTACT::Interface::redistribute()
   //**********************************************************************
   // create graph object
   std::shared_ptr<Core::LinAlg::Graph> graph =
-      std::make_shared<Core::LinAlg::Graph>(*slave_row_nodes(), 108);
+      std::make_shared<Core::LinAlg::Graph>(*source_row_nodes(), 108);
 
   // loop over all row nodes to fill graph
-  const int numMySlaveRowNodes = slave_row_nodes()->num_my_elements();
-  for (int slaveRowNode = 0; slaveRowNode < numMySlaveRowNodes; ++slaveRowNode)
+  const int numMySourceRowNodes = source_row_nodes()->num_my_elements();
+  for (int sourceRowNode = 0; sourceRowNode < numMySourceRowNodes; ++sourceRowNode)
   {
-    int gid = slave_row_nodes()->gid(slaveRowNode);
+    int gid = source_row_nodes()->gid(sourceRowNode);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
 
@@ -876,10 +876,10 @@ void CONTACT::Interface::redistribute()
   graph->optimize_storage();
 
   //**********************************************************************
-  // (4) CLOSE SLAVE redistribution
+  // (4) CLOSE SOURCE redistribution
   //**********************************************************************
 
-  // build redundant vector of all close slave node ids on all procs
+  // build redundant vector of all close source node ids on all procs
   // (there must not be any double entries in the node lists, thus
   // transform to sets and then back to vectors)
   std::vector<int> globalcns;
@@ -897,23 +897,23 @@ void CONTACT::Interface::redistribute()
 
   //**********************************************************************
   // call parallel redistribution
-  std::shared_ptr<const Core::LinAlg::Graph> slaveCloseNodeGraph =
-      Core::Rebalance::build_graph(*idiscret_, slaveCloseRowEles);
+  std::shared_ptr<const Core::LinAlg::Graph> sourceCloseNodeGraph =
+      Core::Rebalance::build_graph(*idiscret_, sourceCloseRowEles);
 
-  Teuchos::ParameterList slaveCloseRebalanceParams;
-  slaveCloseRebalanceParams.set("num_global_parts", scproc);
-  slaveCloseRebalanceParams.set("imbalance_tolerance", imbalance_tol);
-  slaveCloseRebalanceParams.set("algorithm", "parmetis");
+  Teuchos::ParameterList sourceCloseRebalanceParams;
+  sourceCloseRebalanceParams.set("num_global_parts", scproc);
+  sourceCloseRebalanceParams.set("imbalance_tolerance", imbalance_tol);
+  sourceCloseRebalanceParams.set("algorithm", "parmetis");
 
-  const auto& [slaveCloseRowNodes, slaveCloseColNodes] =
-      Core::Rebalance::rebalance_node_maps(*slaveCloseNodeGraph, slaveCloseRebalanceParams);
+  const auto& [sourceCloseRowNodes, sourceCloseColNodes] =
+      Core::Rebalance::rebalance_node_maps(*sourceCloseNodeGraph, sourceCloseRebalanceParams);
   //**********************************************************************
 
   //**********************************************************************
-  // (5) NON-CLOSE SLAVE redistribution
+  // (5) NON-CLOSE SOURCE redistribution
   //**********************************************************************
 
-  // build redundant vector of all non-close slave node ids on all procs
+  // build redundant vector of all non-close source node ids on all procs
   // (there must not be any double entries in the node lists, thus
   // transform to sets and then back to vectors)
   std::vector<int> globalfns;
@@ -925,38 +925,38 @@ void CONTACT::Interface::redistribute()
 
   //**********************************************************************
   // call parallel redistribution
-  std::shared_ptr<const Core::LinAlg::Graph> slaveNonCloseNodeGraph =
-      Core::Rebalance::build_graph(*idiscret_, slaveNonCloseRowEles);
+  std::shared_ptr<const Core::LinAlg::Graph> sourceNonCloseNodeGraph =
+      Core::Rebalance::build_graph(*idiscret_, sourceNonCloseRowEles);
 
-  Teuchos::ParameterList slaveNonCloseRebalanceParams;
-  slaveNonCloseRebalanceParams.set("num_global_parts", sncproc);
-  slaveNonCloseRebalanceParams.set("imbalance_tolerance", imbalance_tol);
-  slaveNonCloseRebalanceParams.set("algorithm", "parmetis");
+  Teuchos::ParameterList sourceNonCloseRebalanceParams;
+  sourceNonCloseRebalanceParams.set("num_global_parts", sncproc);
+  sourceNonCloseRebalanceParams.set("imbalance_tolerance", imbalance_tol);
+  sourceNonCloseRebalanceParams.set("algorithm", "parmetis");
 
-  const auto& [slaveNonCloseRowNodes, snccolnodes] =
-      Core::Rebalance::rebalance_node_maps(*slaveNonCloseNodeGraph, slaveNonCloseRebalanceParams);
+  const auto& [sourceNonCloseRowNodes, snccolnodes] =
+      Core::Rebalance::rebalance_node_maps(*sourceNonCloseNodeGraph, sourceNonCloseRebalanceParams);
   //**********************************************************************
 
   //**********************************************************************
-  // (6) MASTER redistribution
+  // (6) TARGET redistribution
   //**********************************************************************
   std::shared_ptr<Core::LinAlg::Map> mrownodes = nullptr;
   std::shared_ptr<Core::LinAlg::Map> mcolnodes = nullptr;
 
-  redistribute_master_side(mrownodes, mcolnodes, masterRowEles, comm, mproc, imbalance_tol);
+  redistribute_target_side(mrownodes, mcolnodes, targetRowEles, comm, mproc, imbalance_tol);
 
   //**********************************************************************
   // (7) Merge global interface node row and column map
   //**********************************************************************
-  // merge slave node row map from close and non-close parts
+  // merge source node row map from close and non-close parts
   std::shared_ptr<Core::LinAlg::Map> srownodes = nullptr;
 
-  //----------------------------------CASE 1: ONE OR BOTH SLAVE SETS EMPTY
-  if (slaveCloseRowNodes == nullptr || slaveNonCloseRowNodes == nullptr)
+  //----------------------------------CASE 1: ONE OR BOTH SOURCE SETS EMPTY
+  if (sourceCloseRowNodes == nullptr || sourceNonCloseRowNodes == nullptr)
   {
-    FOUR_C_THROW("CONTACT redistribute: Both slave sets (close/non-close) are empty");
+    FOUR_C_THROW("CONTACT redistribute: Both source sets (close/non-close) are empty");
   }
-  //-------------------------------------CASE 2: BOTH SLAVE SETS NON-EMPTY
+  //-------------------------------------CASE 2: BOTH SOURCE SETS NON-EMPTY
   else
   {
     // find intersection set of close and non-close nodes
@@ -967,52 +967,52 @@ void CONTACT::Interface::redistribute()
       if (found != setglobalfns.end()) intersec.insert(*found);
     }
 
-    // build slave node row map
-    const int numMySlaveCloseRowNodes = slaveCloseRowNodes->num_my_elements();
-    const int numMySlaveNonCloseRowNodes = slaveNonCloseRowNodes->num_my_elements();
-    std::vector<int> mygids(numMySlaveCloseRowNodes + numMySlaveNonCloseRowNodes);
-    int count = slaveCloseRowNodes->num_my_elements();
+    // build source node row map
+    const int numMySourceCloseRowNodes = sourceCloseRowNodes->num_my_elements();
+    const int numMySourceNonCloseRowNodes = sourceNonCloseRowNodes->num_my_elements();
+    std::vector<int> mygids(numMySourceCloseRowNodes + numMySourceNonCloseRowNodes);
+    int count = sourceCloseRowNodes->num_my_elements();
 
-    // first get GIDs of input slaveCloseRowNodes
-    for (int i = 0; i < count; ++i) mygids[i] = slaveCloseRowNodes->gid(i);
+    // first get GIDs of input sourceCloseRowNodes
+    for (int i = 0; i < count; ++i) mygids[i] = sourceCloseRowNodes->gid(i);
 
-    // then add GIDs of input slaveNonCloseRowNodes (only new ones)
-    for (int i = 0; i < numMySlaveNonCloseRowNodes; ++i)
+    // then add GIDs of input sourceNonCloseRowNodes (only new ones)
+    for (int i = 0; i < numMySourceNonCloseRowNodes; ++i)
     {
       // check for intersection gid
-      // don't do anything for intersection gids (slaveCloseRowNodes dominates!!!)
-      auto found = intersec.find(slaveNonCloseRowNodes->gid(i));
+      // don't do anything for intersection gids (sourceCloseRowNodes dominates!!!)
+      auto found = intersec.find(sourceNonCloseRowNodes->gid(i));
       if (found != intersec.end()) continue;
 
       // check for overlap
-      if (slaveCloseRowNodes->my_gid(slaveNonCloseRowNodes->gid(i)))
+      if (sourceCloseRowNodes->my_gid(sourceNonCloseRowNodes->gid(i)))
         FOUR_C_THROW("Core::LinAlg::merge_map: Result map is overlapping");
 
       // add new GIDs to mygids
-      mygids[count] = slaveNonCloseRowNodes->gid(i);
+      mygids[count] = sourceNonCloseRowNodes->gid(i);
       ++count;
     }
     mygids.resize(count);
     sort(mygids.begin(), mygids.end());
     srownodes = std::make_shared<Core::LinAlg::Map>(
-        -1, (int)mygids.size(), mygids.data(), 0, slaveCloseRowNodes->get_comm());
+        -1, (int)mygids.size(), mygids.data(), 0, sourceCloseRowNodes->get_comm());
   }
 
-  // merge interface node row map from slave and master parts
+  // merge interface node row map from source and target parts
   std::shared_ptr<Core::LinAlg::Map> rownodes =
       Core::LinAlg::merge_map(srownodes, mrownodes, false);
 
   // IMPORTANT NOTE:
-  // While merging from the two different slave parts of the discretization
-  // (close slave, non-close slave) is feasible for the node row map,
+  // While merging from the two different source parts of the discretization
+  // (close source, non-close source) is feasible for the node row map,
   // this is not possible for the node column map. Some necessary
   // information on ghosting at the transition between close and non-close
-  // slave region would always be missed! Thus, we reconstruct a
-  // suitable slave node column map "by hand" here. This is quite simply
+  // source region would always be missed! Thus, we reconstruct a
+  // suitable source node column map "by hand" here. This is quite simply
   // done by exporting the initial node graph to the new distribution
   // and by then asking for its column map.
 
-  // create the output graph (with new slave node row map) and export to it
+  // create the output graph (with new source node row map) and export to it
   std::shared_ptr<Core::LinAlg::Graph> outgraph =
       std::make_shared<Core::LinAlg::Graph>(*srownodes, 108);
   Core::LinAlg::Export exporter(graph->row_map(), *srownodes);
@@ -1025,7 +1025,7 @@ void CONTACT::Interface::redistribute()
   outgraph->fill_complete();
   outgraph->optimize_storage();
 
-  // get column map from the graph -> build slave node column map
+  // get column map from the graph -> build source node column map
   const Core::LinAlg::Map& bcol = outgraph->col_map();
   std::shared_ptr<Core::LinAlg::Map> scolnodes =
       std::make_shared<Core::LinAlg::Map>(bcol.num_global_elements(), bcol.num_my_elements(),
@@ -1034,7 +1034,7 @@ void CONTACT::Interface::redistribute()
   // trash new graph
   outgraph = nullptr;
 
-  // merge interface node column map from slave and master parts
+  // merge interface node column map from source and target parts
   std::shared_ptr<Core::LinAlg::Map> colnodes =
       Core::LinAlg::merge_map(scolnodes, mcolnodes, false);
 
@@ -1061,10 +1061,10 @@ void CONTACT::Interface::split_into_far_and_close_sets(std::vector<int>& closeel
   if (performSplitting)
   {
     // loop over all row elements to gather the local information
-    for (int i = 0; i < slave_row_elements()->num_my_elements(); ++i)
+    for (int i = 0; i < source_row_elements()->num_my_elements(); ++i)
     {
       // get element
-      int gid = slave_row_elements()->gid(i);
+      int gid = source_row_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find element with gid %", gid);
       auto* cele = dynamic_cast<Mortar::Element*>(ele);
@@ -1086,10 +1086,10 @@ void CONTACT::Interface::split_into_far_and_close_sets(std::vector<int>& closeel
   else
   {
     // loop over all row elements to gather the local information
-    for (int i = 0; i < slave_row_elements()->num_my_elements(); ++i)
+    for (int i = 0; i < source_row_elements()->num_my_elements(); ++i)
     {
       // get element
-      int gid = slave_row_elements()->gid(i);
+      int gid = source_row_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find element with gid %", gid);
       auto* cele = dynamic_cast<Mortar::Element*>(ele);
@@ -1106,16 +1106,16 @@ void CONTACT::Interface::split_into_far_and_close_sets(std::vector<int>& closeel
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::collect_distribution_data(int& numColElements, int& numRowElements)
 {
-  // loop over proc's column slave elements of the interface
+  // loop over proc's column source elements of the interface
   for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    auto* slaveElement = dynamic_cast<Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    auto* sourceElement = dynamic_cast<Element*>(ele1);
 
     // bool indicating coupling partners
-    bool add = (slaveElement->mo_data().num_search_elements() > 0);
+    bool add = (sourceElement->mo_data().num_search_elements() > 0);
 
     // Check if this element has any coupling partners.
     // Increment element counter if so.
@@ -1123,7 +1123,7 @@ void CONTACT::Interface::collect_distribution_data(int& numColElements, int& num
 
     // check if - in addition - the active proc owns this element.
     // Increment input variable rowele if so.
-    if (add && slaveElement->owner() == Core::Communication::my_mpi_rank(get_comm()))
+    if (add && sourceElement->owner() == Core::Communication::my_mpi_rank(get_comm()))
       ++numRowElements;
   }
 }
@@ -1177,7 +1177,7 @@ void CONTACT::Interface::create_search_tree()
           break;
         }
         case Mortar::ExtendGhosting::redundant_all:
-        case Mortar::ExtendGhosting::redundant_master:
+        case Mortar::ExtendGhosting::redundant_target:
         {
           melefullmap = Core::LinAlg::allreduce_e_map(*melerowmap_);
           break;
@@ -1221,21 +1221,21 @@ void CONTACT::Interface::initialize_data_container()
 
   // ==================
   // non-smooth contact:
-  // we need this master node data container to create an averaged
-  // nodal normal field on the master side for the smoothed cpp
+  // we need this target node data container to create an averaged
+  // nodal normal field on the target side for the smoothed cpp
   // normal field!
   if (interface_params().get<bool>("CPP_NORMALS") || nonSmoothContact_)
   {
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
-        Core::LinAlg::allreduce_e_map(*(master_row_nodes()));
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
+        Core::LinAlg::allreduce_e_map(*(target_row_nodes()));
 
-    for (int i = 0; i < masternodes->num_my_elements(); ++i)
+    for (int i = 0; i < targetnodes->num_my_elements(); ++i)
     {
-      int gid = masternodes->gid(i);
+      int gid = targetnodes->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid {}", gid);
-      auto* mnode = dynamic_cast<CONTACT::Node*>(node);
-      mnode->initialize_data_container();
+      auto* target_node = dynamic_cast<CONTACT::Node*>(node);
+      target_node->initialize_data_container();
     }
   }
 }
@@ -1258,12 +1258,12 @@ void CONTACT::Interface::initialize()
     node->has_segment() = false;
   }
 
-  // init normal data in master node data container for cpp calculation
+  // init normal data in target node data container for cpp calculation
   if (interface_params().get<bool>("CPP_NORMALS"))
   {
-    for (int i = 0; i < master_col_nodes()->num_my_elements(); ++i)
+    for (int i = 0; i < target_col_nodes()->num_my_elements(); ++i)
     {
-      int gid = master_col_nodes()->gid(i);
+      int gid = target_col_nodes()->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
@@ -1295,11 +1295,11 @@ void CONTACT::Interface::initialize()
     }
   }
 
-  // loop over all slave nodes to reset stuff (standard column map)
-  // (include slave side boundary nodes / crosspoints)
-  for (int i = 0; i < slave_col_nodes_bound()->num_my_elements(); ++i)
+  // loop over all source nodes to reset stuff (standard column map)
+  // (include source side boundary nodes / crosspoints)
+  for (int i = 0; i < source_col_nodes_bound()->num_my_elements(); ++i)
   {
-    int gid = slave_col_nodes_bound()->gid(i);
+    int gid = source_col_nodes_bound()->gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Node* cnode = dynamic_cast<Node*>(node);
@@ -1387,9 +1387,8 @@ void CONTACT::Interface::initialize()
     {
       auto* frinode = dynamic_cast<FriNode*>(cnode);
 
-      // reset SNodes and Mnodes
-      frinode->fri_data().get_s_nodes().clear();
-      frinode->fri_data().get_m_nodes().clear();
+      frinode->fri_data().get_source_nodes().clear();
+      frinode->fri_data().get_target_nodes().clear();
 
       // for gp slip
       if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -1423,9 +1422,9 @@ void CONTACT::Interface::initialize()
 
   //**********************************************************************
   // In general, it is sufficient to reset search candidates only for
-  // all elements in the standard slave column map. However, self contact
+  // all elements in the standard source column map. However, self contact
   // is an exception here, and we need to reset the search candidates of
-  // all slave elements in the fully overlapping column map there. This
+  // all source elements in the fully overlapping column map there. This
   // is due to the fact that self contact search is NOT parallelized.
   //**********************************************************************
   if (self_contact())
@@ -1435,31 +1434,31 @@ void CONTACT::Interface::initialize()
     for (int i = 0; i < idiscret_->num_my_col_elements(); ++i)
     {
       Core::Elements::Element* ele = idiscret_->l_col_element(i);
-      auto* mele = dynamic_cast<Mortar::Element*>(ele);
+      auto* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
 
       // dual shape function coefficient matrix
-      mele->mo_data().reset_dual_shape();
-      mele->mo_data().reset_deriv_dual_shape();
+      target_elem->mo_data().reset_dual_shape();
+      target_elem->mo_data().reset_deriv_dual_shape();
     }
   }
   else
   {
     // loop over all elements to reset candidates / search lists
-    // (use standard slave column map)
-    for (int i = 0; i < slave_col_elements()->num_my_elements(); ++i)
+    // (use standard source column map)
+    for (int i = 0; i < source_col_elements()->num_my_elements(); ++i)
     {
-      int gid = slave_col_elements()->gid(i);
+      int gid = source_col_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-      auto* mele = dynamic_cast<Mortar::Element*>(ele);
+      auto* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
 
       // dual shape function coefficient matrix
-      mele->mo_data().reset_dual_shape();
-      mele->mo_data().reset_deriv_dual_shape();
+      target_elem->mo_data().reset_dual_shape();
+      target_elem->mo_data().reset_deriv_dual_shape();
     }
   }
 
@@ -1476,8 +1475,8 @@ void CONTACT::Interface::initialize()
   }
 
   // reset s/m pairs and intcell counters
-  smpairs_ = 0;
-  smintpairs_ = 0;
+  source_target_pairs_ = 0;
+  source_target_int_pairs_ = 0;
   intcells_ = 0;
 }
 
@@ -1488,9 +1487,9 @@ void CONTACT::Interface::set_element_areas()
 {
   //**********************************************************************
   // In general, it is sufficient to compute element areas only for
-  // all elements in the standard slave column map. However, self contact
+  // all elements in the standard source column map. However, self contact
   // is an exception here, and we need the element areas of all elements
-  // (slave and master) in the fully overlapping column map there. At the
+  // (source and target) in the fully overlapping column map there. At the
   // same time we initialize the element data containers for self contact.
   // This is due to the fact that self contact search is NOT parallelized.
   //**********************************************************************
@@ -1536,15 +1535,15 @@ void CONTACT::Interface::pre_evaluate(const int& step, const int& iter)
   // cpp normals or averaged normal field?
   if (interface_params().get<bool>("CPP_NORMALS"))
   {
-    // evaluate cpp nodal normals on slave side
+    // evaluate cpp nodal normals on source side
     evaluate_cpp_normals();
   }
   else
   {
-    // evaluate averaged nodal normals on slave side
+    // evaluate averaged nodal normals on source side
     evaluate_nodal_normals();
 
-    // export nodal normals to slave node column map
+    // export nodal normals to source node column map
     // this call is very expensive and the computation
     // time scales directly with the proc number !
     export_nodal_normals();
@@ -1561,9 +1560,9 @@ void CONTACT::Interface::pre_evaluate(const int& step, const int& iter)
 void CONTACT::Interface::store_nt_svalues()
 {
   // loop over all possibly non-smooth nodes
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Node* cnode = dynamic_cast<Node*>(node);
@@ -1618,19 +1617,19 @@ void CONTACT::Interface::store_nt_svalues()
       std::map<int, std::map<int, double>>& mntsderiv = cnode->data().get_deriv_mnts();
 
       // get sizes and iterator start
-      int mastersize = (int)mntsderiv.size();
+      int targetsize = (int)mntsderiv.size();
       auto mntscurr = mntsderiv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mntscurr->first;
+        int t_gid = mntscurr->first;
         ++mntscurr;
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderivnts = cnode->data().get_deriv_mnts()[mgid];
-        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_m()[mgid];
+        std::map<int, double>& thismderivnts = cnode->data().get_deriv_mnts()[t_gid];
+        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_m()[t_gid];
 
         int mapsize = (int)(thismderivnts.size());
 
@@ -1658,12 +1657,12 @@ void CONTACT::Interface::store_nt_svalues()
 void CONTACT::Interface::store_lt_svalues()
 {
   // loop over all possibly non-smooth nodes
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
     double msum = 0.0;
     double ssum = 0.0;
 
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Node* cnode = dynamic_cast<Node*>(node);
@@ -1713,19 +1712,19 @@ void CONTACT::Interface::store_lt_svalues()
       std::map<int, std::map<int, double>>& mntsderiv = cnode->data().get_deriv_dlts();
 
       // get sizes and iterator start
-      int mastersize = (int)mntsderiv.size();
+      int targetsize = (int)mntsderiv.size();
       auto mntscurr = mntsderiv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mntscurr->first;
+        int t_gid = mntscurr->first;
         ++mntscurr;
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderivnts = cnode->data().get_deriv_dlts()[mgid];
-        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_d()[mgid];
+        std::map<int, double>& thismderivnts = cnode->data().get_deriv_dlts()[t_gid];
+        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_d()[t_gid];
 
         int mapsize = (int)(thismderivnts.size());
 
@@ -1751,19 +1750,19 @@ void CONTACT::Interface::store_lt_svalues()
       std::map<int, std::map<int, double>>& mntsderiv = cnode->data().get_deriv_mlts();
 
       // get sizes and iterator start
-      int mastersize = (int)mntsderiv.size();
+      int targetsize = (int)mntsderiv.size();
       auto mntscurr = mntsderiv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mntscurr->first;
+        int t_gid = mntscurr->first;
         ++mntscurr;
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderivnts = cnode->data().get_deriv_mlts()[mgid];
-        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_m()[mgid];
+        std::map<int, double>& thismderivnts = cnode->data().get_deriv_mlts()[t_gid];
+        std::map<int, double>& thismderivmortar = cnode->data().get_deriv_m()[t_gid];
 
         int mapsize = (int)(thismderivnts.size());
 
@@ -1783,7 +1782,7 @@ void CONTACT::Interface::store_lt_svalues()
     }
     //    std::cout << "ssum = " << ssum << "  msum = " << msum << "  balance= " << ssum-msum <<
     //    std::endl;
-    if (abs(ssum - msum) > 1e-12) FOUR_C_THROW("no slave master balance!");
+    if (abs(ssum - msum) > 1e-12) FOUR_C_THROW("no source target balance!");
 
   }  // end node loop
 }
@@ -1799,7 +1798,7 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
 
   std::array<double, 3> oldtraction = {0.0, 0.0, 0.0};
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -1822,7 +1821,7 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
   }
 
   // maybe the old traction is here zero (first contact step)
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -1878,14 +1877,14 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value = (p.second) * ftan[dim];
-            const int ltlid = csnode->dofs()[dim];
+            const int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -1904,14 +1903,14 @@ void CONTACT::Interface::add_ltl_forces_friction(Core::LinAlg::FEVector<double>&
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value = -(p.second) * ftan[dim];
-            const int ltlid = csnode->dofs()[dim];
+            const int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -1937,7 +1936,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
 
   std::array<double, 3> oldtraction = {0.0, 0.0, 0.0};
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -1960,7 +1959,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
   }
 
   // maybe the old traction is here zero (first contact step)
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -2088,28 +2087,28 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
       std::map<int, std::map<int, double>>& dderiv = cnode->data().get_deriv_dltl();
 
       // get sizes and iterator start
-      int slavesize = (int)dderiv.size();
-      auto scurr = dderiv.begin();
+      int sourcesize = (int)dderiv.size();
+      auto s_curr = dderiv.begin();
 
       /********************************************** LinDMatrix **********/
-      // loop over all DISP slave nodes in the DerivD-map of the current LM slave node
-      for (int k = 0; k < slavesize; ++k)
+      // loop over all DISP source nodes in the DerivD-map of the current LM source node
+      for (int k = 0; k < sourcesize; ++k)
       {
-        int sgid = scurr->first;
-        ++scurr;
+        int s_gid = s_curr->first;
+        ++s_curr;
 
-        Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
         // Mortar matrix D derivatives
-        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dltl()[sgid];
+        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dltl()[s_gid];
         int mapsize = (int)(thisdderiv.size());
 
         // inner product D_{jk,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = csnode->dofs()[prodj];
+          int row = c_source_node->dofs()[prodj];
           auto scolcurr = thisdderiv.begin();
 
           // loop over all directional derivative entries
@@ -2129,31 +2128,31 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
       }
 
       // Mortar matrix D and M derivatives
-      std::map<int, std::map<int, double>>& mderiv = cnode->data().get_deriv_mltl();
+      std::map<int, std::map<int, double>>& target_deriv = cnode->data().get_deriv_mltl();
 
       // get sizes and iterator start
-      int mastersize = (int)mderiv.size();
-      auto mcurr = mderiv.begin();
+      int targetsize = (int)target_deriv.size();
+      auto t_curr = target_deriv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mcurr->first;
-        ++mcurr;
+        int t_gid = t_curr->first;
+        ++t_curr;
 
-        Core::Nodes::Node* mnode = idiscret_->g_node(mgid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", mgid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        Core::Nodes::Node* target_node = idiscret_->g_node(t_gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", t_gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderiv = cnode->data().get_deriv_mltl()[mgid];
+        std::map<int, double>& thismderiv = cnode->data().get_deriv_mltl()[t_gid];
         int mapsize = (int)(thismderiv.size());
 
         // inner product M_{jl,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = cmnode->dofs()[prodj];
+          int row = c_target_node->dofs()[prodj];
           auto mcolcurr = thismderiv.begin();
 
           // loop over all directional derivative entries
@@ -2186,9 +2185,9 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
@@ -2196,7 +2195,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
                   pp != cnode->data().get_deriv_jumpltl()[dim].end(); ++pp)
               {
                 double value = penaltytan * (p.second) * (pp->second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
               }
             }
           }
@@ -2214,9 +2213,9 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
@@ -2224,7 +2223,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
                   pp != cnode->data().get_deriv_jumpltl()[dim].end(); ++pp)
               {
                 double value = -penaltytan * (p.second) * (pp->second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
               }
             }
           }
@@ -2248,9 +2247,9 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
@@ -2258,7 +2257,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
                   pp != cnode->data().get_deriv_jumpltl()[dim].end(); ++pp)
               {
                 double value = penaltytan * coeff * (p.second) * (pp->second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
               }
             }
           }
@@ -2277,16 +2276,16 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
               for (const auto& pp : coefflin)
               {
                 double value = -penaltytan * ftan[dim] * (p.second) * (pp.second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp.first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp.first);
               }
             }
           }
@@ -2305,9 +2304,9 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
@@ -2315,7 +2314,7 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
                   pp != cnode->data().get_deriv_jumpltl()[dim].end(); ++pp)
               {
                 double value = -penaltytan * coeff * (p.second) * (pp->second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
               }
             }
           }
@@ -2332,16 +2331,16 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
           {
             // node id
             int gid3 = p.first;
-            Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-            if (!snode) FOUR_C_THROW("Cannot find node with gid");
-            Node* csnode = dynamic_cast<Node*>(snode);
+            Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+            if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+            Node* c_source_node = dynamic_cast<Node*>(source_node);
 
             for (int dim = 0; dim < n_dim(); ++dim)
             {
               for (const auto& pp : coefflin)
               {
                 double value = penaltytan * ftan[dim] * (p.second) * (pp.second);
-                kteff.fe_assemble(value, csnode->dofs()[dim], pp.first);
+                kteff.fe_assemble(value, c_source_node->dofs()[dim], pp.first);
               }
             }
           }
@@ -2356,13 +2355,13 @@ void CONTACT::Interface::add_ltl_stiffness_friction(Core::LinAlg::SparseMatrix& 
 }
 
 /*----------------------------------------------------------------------*
- |  Add nts penalty forces master                           farah 11/16 |
+ |  Add nts penalty forces target                           farah 11/16 |
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& feff)
+void CONTACT::Interface::add_nts_forces_target(Core::LinAlg::FEVector<double>& feff)
 {
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < mnoderowmap_->num_my_elements(); ++j)
   {
     int gid = mnoderowmap_->gid(j);
@@ -2385,15 +2384,15 @@ void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& f
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value =
                 penalty * (p.second) * cnode->data().getgnts() * cnode->mo_data().n()[dim];
-            int ltlid = csnode->dofs()[dim];
+            int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2412,15 +2411,15 @@ void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& f
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value =
                 -penalty * (p.second) * cnode->data().getgnts() * cnode->mo_data().n()[dim];
-            int ltlid = csnode->dofs()[dim];
+            int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2434,13 +2433,13 @@ void CONTACT::Interface::add_nts_forces_master(Core::LinAlg::FEVector<double>& f
 }
 
 /*----------------------------------------------------------------------*
- |  Add line to line penalty forces master                  farah 11/16 |
+ |  Add line to line penalty forces target                  farah 11/16 |
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& feff)
+void CONTACT::Interface::add_lts_forces_target(Core::LinAlg::FEVector<double>& feff)
 {
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < mnoderowmap_->num_my_elements(); ++j)
   {
     int gid = mnoderowmap_->gid(j);
@@ -2467,15 +2466,15 @@ void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& f
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value =
                 penaltyLts * (p.second) * cnode->data().getglts() * cnode->mo_data().n()[dim];
-            int ltlid = csnode->dofs()[dim];
+            int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2494,15 +2493,15 @@ void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& f
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value =
                 -penaltyLts * (p.second) * cnode->data().getglts() * cnode->mo_data().n()[dim];
-            int ltlid = csnode->dofs()[dim];
+            int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2521,10 +2520,10 @@ void CONTACT::Interface::add_lts_forces_master(Core::LinAlg::FEVector<double>& f
 void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
 {
   // gap = g_n * n
-  // D/M = sval/mval
+  // D/M = source_val/target_val
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -2545,14 +2544,14 @@ void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value = penalty * (p.second) * cnode->data().getgltl()[dim];
-            int ltlid = csnode->dofs()[dim];
+            int ltlid = c_source_node->dofs()[dim];
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2571,14 +2570,14 @@ void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
             double value = -penalty * (p.second) * cnode->data().getgltl()[dim];
-            int ltlid = {csnode->dofs()[dim]};
+            int ltlid = {c_source_node->dofs()[dim]};
             feff.sum_into_global_values(1, &ltlid, &value);
           }
         }
@@ -2594,11 +2593,11 @@ void CONTACT::Interface::add_ltl_forces(Core::LinAlg::FEVector<double>& feff)
 /*----------------------------------------------------------------------*
  |  Add line to line penalty forces                         farah 11/16 |
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kteff)
+void CONTACT::Interface::add_lts_stiffness_target(Core::LinAlg::SparseMatrix& kteff)
 {
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < mnoderowmap_->num_my_elements(); ++j)
   {
     int gid = mnoderowmap_->gid(j);
@@ -2624,28 +2623,28 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
       std::map<int, std::map<int, double>>& dderiv = cnode->data().get_deriv_dlts();
 
       // get sizes and iterator start
-      int slavesize = (int)dderiv.size();
-      auto scurr = dderiv.begin();
+      int sourcesize = (int)dderiv.size();
+      auto s_curr = dderiv.begin();
 
       /********************************************** LinDMatrix **********/
-      // loop over all DISP slave nodes in the DerivD-map of the current LM slave node
-      for (int k = 0; k < slavesize; ++k)
+      // loop over all DISP source nodes in the DerivD-map of the current LM source node
+      for (int k = 0; k < sourcesize; ++k)
       {
-        int sgid = scurr->first;
-        ++scurr;
+        int s_gid = s_curr->first;
+        ++s_curr;
 
-        Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
         // Mortar matrix D derivatives
-        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dlts()[sgid];
+        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dlts()[s_gid];
         int mapsize = (int)(thisdderiv.size());
 
         // inner product D_{jk,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = csnode->dofs()[prodj];
+          int row = c_source_node->dofs()[prodj];
           auto scolcurr = thisdderiv.begin();
 
           // loop over all directional derivative entries
@@ -2665,31 +2664,31 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
       }
 
       // Mortar matrix D and M derivatives
-      std::map<int, std::map<int, double>>& mderiv = cnode->data().get_deriv_mlts();
+      std::map<int, std::map<int, double>>& target_deriv = cnode->data().get_deriv_mlts();
 
       // get sizes and iterator start
-      int mastersize = (int)mderiv.size();
-      auto mcurr = mderiv.begin();
+      int targetsize = (int)target_deriv.size();
+      auto t_curr = target_deriv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mcurr->first;
-        ++mcurr;
+        int t_gid = t_curr->first;
+        ++t_curr;
 
-        Core::Nodes::Node* mnode = idiscret_->g_node(mgid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", mgid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        Core::Nodes::Node* target_node = idiscret_->g_node(t_gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", t_gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderiv = cnode->data().get_deriv_mlts()[mgid];
+        std::map<int, double>& thismderiv = cnode->data().get_deriv_mlts()[t_gid];
         int mapsize = (int)(thismderiv.size());
 
         // inner product M_{jl,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = cmnode->dofs()[prodj];
+          int row = c_target_node->dofs()[prodj];
           auto mcolcurr = thismderiv.begin();
 
           // loop over all directional derivative entries
@@ -2717,9 +2716,9 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -2728,14 +2727,14 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
                 pp != cnode->data().get_deriv_glts().end(); ++pp)
             {
               double value = -penaltyLts * (p.second) * (pp->second) * cnode->mo_data().n()[dim];
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
             // normal linearization
             for (auto pp = cnode->data().get_deriv_n()[dim].begin();
                 pp != cnode->data().get_deriv_n()[dim].end(); ++pp)
             {
               double value = -penaltyLts * (p.second) * (pp->second) * cnode->data().getglts();
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -2753,9 +2752,9 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -2763,14 +2762,14 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
                 pp != cnode->data().get_deriv_glts().end(); ++pp)
             {
               double value = penaltyLts * (p.second) * (pp->second) * cnode->mo_data().n()[dim];
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
             // normal linearization
             for (auto pp = cnode->data().get_deriv_n()[dim].begin();
                 pp != cnode->data().get_deriv_n()[dim].end(); ++pp)
             {
               double value = penaltyLts * (p.second) * (pp->second) * cnode->data().getglts();
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -2786,11 +2785,11 @@ void CONTACT::Interface::add_lts_stiffness_master(Core::LinAlg::SparseMatrix& kt
 /*----------------------------------------------------------------------*
  |  Add line to line penalty forces                         farah 11/16 |
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kteff)
+void CONTACT::Interface::add_nts_stiffness_target(Core::LinAlg::SparseMatrix& kteff)
 {
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < mnoderowmap_->num_my_elements(); ++j)
   {
     int gid = mnoderowmap_->gid(j);
@@ -2810,31 +2809,31 @@ void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kt
       lm[2] = penalty * cnode->data().getgnts() * cnode->mo_data().n()[2];
 
       // Mortar matrix D and M derivatives
-      std::map<int, std::map<int, double>>& mderiv = cnode->data().get_deriv_mnts();
+      std::map<int, std::map<int, double>>& target_deriv = cnode->data().get_deriv_mnts();
 
       // get sizes and iterator start
-      int mastersize = (int)mderiv.size();
-      auto mcurr = mderiv.begin();
+      int targetsize = (int)target_deriv.size();
+      auto t_curr = target_deriv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mcurr->first;
-        ++mcurr;
+        int t_gid = t_curr->first;
+        ++t_curr;
 
-        Core::Nodes::Node* mnode = idiscret_->g_node(mgid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", mgid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        Core::Nodes::Node* target_node = idiscret_->g_node(t_gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", t_gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderiv = cnode->data().get_deriv_mnts()[mgid];
+        std::map<int, double>& thismderiv = cnode->data().get_deriv_mnts()[t_gid];
         int mapsize = (int)(thismderiv.size());
 
         // inner product M_{jl,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = cmnode->dofs()[prodj];
+          int row = c_target_node->dofs()[prodj];
           auto mcolcurr = thismderiv.begin();
 
           // loop over all directional derivative entries
@@ -2862,9 +2861,9 @@ void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kt
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -2873,14 +2872,14 @@ void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kt
                 pp != cnode->data().get_deriv_gnts().end(); ++pp)
             {
               double value = -penalty * (p.second) * (pp->second) * cnode->mo_data().n()[dim];
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
             // normal linearization
             for (auto pp = cnode->data().get_deriv_n()[dim].begin();
                 pp != cnode->data().get_deriv_n()[dim].end(); ++pp)
             {
               double value = -penalty * (p.second) * (pp->second) * cnode->data().getgnts();
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -2898,9 +2897,9 @@ void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kt
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -2908,14 +2907,14 @@ void CONTACT::Interface::add_nts_stiffness_master(Core::LinAlg::SparseMatrix& kt
                 pp != cnode->data().get_deriv_gnts().end(); ++pp)
             {
               double value = penalty * (p.second) * (pp->second) * cnode->mo_data().n()[dim];
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
             // normal linearization
             for (auto pp = cnode->data().get_deriv_n()[dim].begin();
                 pp != cnode->data().get_deriv_n()[dim].end(); ++pp)
             {
               double value = penalty * (p.second) * (pp->second) * cnode->data().getgnts();
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -2935,7 +2934,7 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
 {
   const double penalty = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int j = 0; j < snoderowmap_->num_my_elements(); ++j)
   {
     int gid = snoderowmap_->gid(j);
@@ -2955,28 +2954,28 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
       std::map<int, std::map<int, double>>& dderiv = cnode->data().get_deriv_dltl();
 
       // get sizes and iterator start
-      int slavesize = (int)dderiv.size();
-      auto scurr = dderiv.begin();
+      int sourcesize = (int)dderiv.size();
+      auto s_curr = dderiv.begin();
 
       /********************************************** LinDMatrix **********/
-      // loop over all DISP slave nodes in the DerivD-map of the current LM slave node
-      for (int k = 0; k < slavesize; ++k)
+      // loop over all DISP source nodes in the DerivD-map of the current LM source node
+      for (int k = 0; k < sourcesize; ++k)
       {
-        int sgid = scurr->first;
-        ++scurr;
+        int s_gid = s_curr->first;
+        ++s_curr;
 
-        Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
         // Mortar matrix D derivatives
-        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dltl()[sgid];
+        std::map<int, double>& thisdderiv = cnode->data().get_deriv_dltl()[s_gid];
         int mapsize = (int)(thisdderiv.size());
 
         // inner product D_{jk,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = csnode->dofs()[prodj];
+          int row = c_source_node->dofs()[prodj];
           auto scolcurr = thisdderiv.begin();
 
           // loop over all directional derivative entries
@@ -2996,31 +2995,31 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
       }
 
       // Mortar matrix D and M derivatives
-      std::map<int, std::map<int, double>>& mderiv = cnode->data().get_deriv_mltl();
+      std::map<int, std::map<int, double>>& target_deriv = cnode->data().get_deriv_mltl();
 
       // get sizes and iterator start
-      int mastersize = (int)mderiv.size();
-      auto mcurr = mderiv.begin();
+      int targetsize = (int)target_deriv.size();
+      auto t_curr = target_deriv.begin();
 
       /********************************************** LinMMatrix **********/
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mcurr->first;
-        ++mcurr;
+        int t_gid = t_curr->first;
+        ++t_curr;
 
-        Core::Nodes::Node* mnode = idiscret_->g_node(mgid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", mgid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        Core::Nodes::Node* target_node = idiscret_->g_node(t_gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", t_gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderiv = cnode->data().get_deriv_mltl()[mgid];
+        std::map<int, double>& thismderiv = cnode->data().get_deriv_mltl()[t_gid];
         int mapsize = (int)(thismderiv.size());
 
         // inner product M_{jl,c} * z_j for index j
         for (int prodj = 0; prodj < n_dim(); ++prodj)
         {
-          int row = cmnode->dofs()[prodj];
+          int row = c_target_node->dofs()[prodj];
           auto mcolcurr = thismderiv.begin();
 
           // loop over all directional derivative entries
@@ -3048,9 +3047,9 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -3058,7 +3057,7 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
                 pp != cnode->data().get_deriv_gltl()[dim].end(); ++pp)
             {
               double value = -penalty * (p.second) * (pp->second);
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -3076,9 +3075,9 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
         {
           // node id
           int gid3 = p.first;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid");
-          Node* csnode = dynamic_cast<Node*>(snode);
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
           for (int dim = 0; dim < n_dim(); ++dim)
           {
@@ -3086,7 +3085,7 @@ void CONTACT::Interface::add_ltl_stiffness(Core::LinAlg::SparseMatrix& kteff)
                 pp != cnode->data().get_deriv_gltl()[dim].end(); ++pp)
             {
               double value = penalty * (p.second) * (pp->second);
-              kteff.fe_assemble(value, csnode->dofs()[dim], pp->first);
+              kteff.fe_assemble(value, c_source_node->dofs()[dim], pp->first);
             }
           }
         }
@@ -3250,7 +3249,7 @@ void CONTACT::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
       }
 
       //********************************************************************
-      // 1) try to project slave nodes onto master elements
+      // 1) try to project source nodes onto target elements
       // 2) evaluate shape functions at projected positions
       // 3) compute directional derivative of M and g and store into nodes
       //********************************************************************
@@ -3278,14 +3277,14 @@ void CONTACT::Interface::evaluate_coupling(const Core::LinAlg::Map& selecolmap,
       evaluate_sts(selecolmap, mparams_ptr);
 
       //********************************************************************
-      // perform LTS steps for master edges
+      // perform LTS steps for target edges
       //********************************************************************
-      //      evaluate_lts_master();
+      //      evaluate_lts_target();
 
       //********************************************************************
-      // perform NTS steps for master edges
+      // perform NTS steps for target edges
       //********************************************************************
-      //      evaluate_nts_master();
+      //      evaluate_nts_target();
 
       //********************************************************************
       // NTN is a special case of NTS and an additional implementation is
@@ -3321,17 +3320,17 @@ void CONTACT::Interface::initialize_corner_edge()
 /*----------------------------------------------------------------------*
  |  cpp to edge + Lin                                       farah 11/16 |
  *----------------------------------------------------------------------*/
-double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode,
-    const Mortar::Element& mele, double* normal,
+double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& source_node,
+    const Mortar::Element& target_elem, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normaltonodelin) const
 {
   // define tolerance
   const double tol = 1e-8;
   double dist = 1e12;
-  int nrow = mele.num_node();
+  int nrow = target_elem.num_node();
 
-  const Node* node1 = dynamic_cast<const Node*>(mele.nodes()[0]);
-  const Node* node2 = dynamic_cast<const Node*>(mele.nodes()[1]);
+  const Node* node1 = dynamic_cast<const Node*>(target_elem.nodes()[0]);
+  const Node* node2 = dynamic_cast<const Node*>(target_elem.nodes()[1]);
 
   double length1 = sqrt(node1->mo_data().edge_tangent()[0] * node1->mo_data().edge_tangent()[0] +
                         node1->mo_data().edge_tangent()[1] * node1->mo_data().edge_tangent()[1] +
@@ -3369,75 +3368,82 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
     //**********************************************
     //  F CALCULATION                             //
     //**********************************************
-    Core::LinAlg::SerialDenseVector sval(nrow);
-    Core::LinAlg::SerialDenseMatrix sderiv(nrow, 1);
-    mele.evaluate_shape(&xi, sval, sderiv, nrow);
+    Core::LinAlg::SerialDenseVector source_val(nrow);
+    Core::LinAlg::SerialDenseMatrix source_deriv(nrow, 1);
+    target_elem.evaluate_shape(&xi, source_val, source_deriv, nrow);
 
     // tangent part
     std::array<double, 3> tangent = {0.0, 0.0, 0.0};
-    tangent[0] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[0];
-    tangent[1] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[1];
-    tangent[2] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[2];
+    tangent[0] += source_val[0] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[0];
+    tangent[1] += source_val[0] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[1];
+    tangent[2] += source_val[0] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[2];
 
-    tangent[0] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[0];
-    tangent[1] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[1];
-    tangent[2] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[2];
+    tangent[0] += source_val[1] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[0];
+    tangent[1] += source_val[1] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[1];
+    tangent[2] += source_val[1] *
+                  dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[2];
 
-    double tangentSlave = 0.0;
-    tangentSlave = tangent[0] * snode.xspatial()[0] + tangent[1] * snode.xspatial()[1] +
-                   tangent[2] * snode.xspatial()[2];
+    double tangentSource = 0.0;
+    tangentSource = tangent[0] * source_node.xspatial()[0] +
+                    tangent[1] * source_node.xspatial()[1] + tangent[2] * source_node.xspatial()[2];
 
-    // master part
-    std::array<double, 3> master = {0.0, 0.0, 0.0};
-    master[0] += sval[0] * node1->xspatial()[0];
-    master[1] += sval[0] * node1->xspatial()[1];
-    master[2] += sval[0] * node1->xspatial()[2];
+    // target part
+    std::array<double, 3> target = {0.0, 0.0, 0.0};
+    target[0] += source_val[0] * node1->xspatial()[0];
+    target[1] += source_val[0] * node1->xspatial()[1];
+    target[2] += source_val[0] * node1->xspatial()[2];
 
-    master[0] += sval[1] * node2->xspatial()[0];
-    master[1] += sval[1] * node2->xspatial()[1];
-    master[2] += sval[1] * node2->xspatial()[2];
+    target[0] += source_val[1] * node2->xspatial()[0];
+    target[1] += source_val[1] * node2->xspatial()[1];
+    target[2] += source_val[1] * node2->xspatial()[2];
 
-    double tangentMaster = 0.0;
-    tangentMaster = tangent[0] * master[0] + tangent[1] * master[1] + tangent[2] * master[2];
+    double tangentTarget = 0.0;
+    tangentTarget = tangent[0] * target[0] + tangent[1] * target[1] + tangent[2] * target[2];
 
-    f = tangentSlave - tangentMaster;
+    f = tangentSource - tangentTarget;
     if (abs(f) <= MORTARCONVTOL) break;
     //**********************************************
     //   F GRADIENT CALCULATION                   //
     //**********************************************
     // lin tangent part
     std::array<double, 3> lintangent = {0.0, 0.0, 0.0};
-    lintangent[0] += sderiv(0, 0) * node1->mo_data().edge_tangent()[0];
-    lintangent[1] += sderiv(0, 0) * node1->mo_data().edge_tangent()[1];
-    lintangent[2] += sderiv(0, 0) * node1->mo_data().edge_tangent()[2];
+    lintangent[0] += source_deriv(0, 0) * node1->mo_data().edge_tangent()[0];
+    lintangent[1] += source_deriv(0, 0) * node1->mo_data().edge_tangent()[1];
+    lintangent[2] += source_deriv(0, 0) * node1->mo_data().edge_tangent()[2];
 
-    lintangent[0] += sderiv(1, 0) * node2->mo_data().edge_tangent()[0];
-    lintangent[1] += sderiv(1, 0) * node2->mo_data().edge_tangent()[1];
-    lintangent[2] += sderiv(1, 0) * node2->mo_data().edge_tangent()[2];
+    lintangent[0] += source_deriv(1, 0) * node2->mo_data().edge_tangent()[0];
+    lintangent[1] += source_deriv(1, 0) * node2->mo_data().edge_tangent()[1];
+    lintangent[2] += source_deriv(1, 0) * node2->mo_data().edge_tangent()[2];
 
-    double lintangentSlave = 0.0;
-    lintangentSlave = lintangent[0] * snode.xspatial()[0] + lintangent[1] * snode.xspatial()[1] +
-                      lintangent[2] * snode.xspatial()[2];
+    double lintangentSource = 0.0;
+    lintangentSource = lintangent[0] * source_node.xspatial()[0] +
+                       lintangent[1] * source_node.xspatial()[1] +
+                       lintangent[2] * source_node.xspatial()[2];
 
-    // lin master part
-    std::array<double, 3> linmaster = {0.0, 0.0, 0.0};
-    linmaster[0] += sderiv(0, 0) * node1->xspatial()[0];
-    linmaster[1] += sderiv(0, 0) * node1->xspatial()[1];
-    linmaster[2] += sderiv(0, 0) * node1->xspatial()[2];
+    // lin target part
+    std::array<double, 3> lintarget = {0.0, 0.0, 0.0};
+    lintarget[0] += source_deriv(0, 0) * node1->xspatial()[0];
+    lintarget[1] += source_deriv(0, 0) * node1->xspatial()[1];
+    lintarget[2] += source_deriv(0, 0) * node1->xspatial()[2];
 
-    linmaster[0] += sderiv(1, 0) * node2->xspatial()[0];
-    linmaster[1] += sderiv(1, 0) * node2->xspatial()[1];
-    linmaster[2] += sderiv(1, 0) * node2->xspatial()[2];
+    lintarget[0] += source_deriv(1, 0) * node2->xspatial()[0];
+    lintarget[1] += source_deriv(1, 0) * node2->xspatial()[1];
+    lintarget[2] += source_deriv(1, 0) * node2->xspatial()[2];
 
-    double lintangentMaster = 0.0;
-    lintangentMaster =
-        lintangent[0] * master[0] + lintangent[1] * master[1] + lintangent[2] * master[2];
+    double lintangentTarget = 0.0;
+    lintangentTarget =
+        lintangent[0] * target[0] + lintangent[1] * target[1] + lintangent[2] * target[2];
 
-    double tangentlinMaster = 0.0;
-    tangentlinMaster =
-        tangent[0] * linmaster[0] + tangent[1] * linmaster[1] + tangent[2] * linmaster[2];
+    double tangentlinTarget = 0.0;
+    tangentlinTarget =
+        tangent[0] * lintarget[0] + tangent[1] * lintarget[1] + tangent[2] * lintarget[2];
 
-    df = lintangentSlave - lintangentMaster - tangentlinMaster;
+    df = lintangentSource - lintangentTarget - tangentlinTarget;
     if (abs(df) < 1e-12) FOUR_C_THROW("df zero");
     xi += -f / df;
   }
@@ -3451,55 +3457,61 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
   //   LINEARIZATION   df                       //
   //**********************************************
 
-  Core::LinAlg::SerialDenseVector sval(nrow);
-  Core::LinAlg::SerialDenseMatrix sderiv(nrow, 1);
-  mele.evaluate_shape(&xi, sval, sderiv, nrow);
+  Core::LinAlg::SerialDenseVector source_val(nrow);
+  Core::LinAlg::SerialDenseMatrix source_deriv(nrow, 1);
+  target_elem.evaluate_shape(&xi, source_val, source_deriv, nrow);
 
   // tangent part
   std::array<double, 3> tangent = {0.0, 0.0, 0.0};
-  tangent[0] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[0];
-  tangent[1] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[1];
-  tangent[2] += sval[0] * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[2];
+  tangent[0] += source_val[0] *
+                dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[0];
+  tangent[1] += source_val[0] *
+                dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[1];
+  tangent[2] += source_val[0] *
+                dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[2];
 
-  tangent[0] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[0];
-  tangent[1] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[1];
-  tangent[2] += sval[1] * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[2];
+  tangent[0] += source_val[1] *
+                dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[0];
+  tangent[1] += source_val[1] *
+                dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[1];
+  tangent[2] += source_val[1] *
+                dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[2];
 
-  // master part
-  std::array<double, 3> master = {0.0, 0.0, 0.0};
-  master[0] += sval[0] * node1->xspatial()[0];
-  master[1] += sval[0] * node1->xspatial()[1];
-  master[2] += sval[0] * node1->xspatial()[2];
+  // target part
+  std::array<double, 3> target = {0.0, 0.0, 0.0};
+  target[0] += source_val[0] * node1->xspatial()[0];
+  target[1] += source_val[0] * node1->xspatial()[1];
+  target[2] += source_val[0] * node1->xspatial()[2];
 
-  master[0] += sval[1] * node2->xspatial()[0];
-  master[1] += sval[1] * node2->xspatial()[1];
-  master[2] += sval[1] * node2->xspatial()[2];
+  target[0] += source_val[1] * node2->xspatial()[0];
+  target[1] += source_val[1] * node2->xspatial()[1];
+  target[2] += source_val[1] * node2->xspatial()[2];
 
   // lin tangent part
   std::array<double, 3> lintangent = {0.0, 0.0, 0.0};
-  lintangent[0] +=
-      sderiv(0, 0) * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[0];
-  lintangent[1] +=
-      sderiv(0, 0) * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[1];
-  lintangent[2] +=
-      sderiv(0, 0) * dynamic_cast<const Node*>(mele.nodes()[0])->mo_data().edge_tangent()[2];
+  lintangent[0] += source_deriv(0, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[0];
+  lintangent[1] += source_deriv(0, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[1];
+  lintangent[2] += source_deriv(0, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[0])->mo_data().edge_tangent()[2];
 
-  lintangent[0] +=
-      sderiv(1, 0) * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[0];
-  lintangent[1] +=
-      sderiv(1, 0) * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[1];
-  lintangent[2] +=
-      sderiv(1, 0) * dynamic_cast<const Node*>(mele.nodes()[1])->mo_data().edge_tangent()[2];
+  lintangent[0] += source_deriv(1, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[0];
+  lintangent[1] += source_deriv(1, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[1];
+  lintangent[2] += source_deriv(1, 0) *
+                   dynamic_cast<const Node*>(target_elem.nodes()[1])->mo_data().edge_tangent()[2];
 
-  // lin master part
-  std::array<double, 3> linmaster = {0.0, 0.0, 0.0};
-  linmaster[0] += sderiv(0, 0) * node1->xspatial()[0];
-  linmaster[1] += sderiv(0, 0) * node1->xspatial()[1];
-  linmaster[2] += sderiv(0, 0) * node1->xspatial()[2];
+  // lin target part
+  std::array<double, 3> lintarget = {0.0, 0.0, 0.0};
+  lintarget[0] += source_deriv(0, 0) * node1->xspatial()[0];
+  lintarget[1] += source_deriv(0, 0) * node1->xspatial()[1];
+  lintarget[2] += source_deriv(0, 0) * node1->xspatial()[2];
 
-  linmaster[0] += sderiv(1, 0) * node2->xspatial()[0];
-  linmaster[1] += sderiv(1, 0) * node2->xspatial()[1];
-  linmaster[2] += sderiv(1, 0) * node2->xspatial()[2];
+  lintarget[0] += source_deriv(1, 0) * node2->xspatial()[0];
+  lintarget[1] += source_deriv(1, 0) * node2->xspatial()[1];
+  lintarget[2] += source_deriv(1, 0) * node2->xspatial()[2];
 
 
   //**********************************************
@@ -3509,56 +3521,56 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
 
   for (const auto& p : node1->data().get_deriv_tangent()[0])
   {
-    linT[0][p.first] += sval[0] * p.second;
+    linT[0][p.first] += source_val[0] * p.second;
   }
   for (const auto& p : node1->data().get_deriv_tangent()[1])
   {
-    linT[1][p.first] += sval[0] * p.second;
+    linT[1][p.first] += source_val[0] * p.second;
   }
   for (const auto& p : node1->data().get_deriv_tangent()[2])
   {
-    linT[2][p.first] += sval[0] * p.second;
+    linT[2][p.first] += source_val[0] * p.second;
   }
 
   for (const auto& p : node2->data().get_deriv_tangent()[0])
   {
-    linT[0][p.first] += sval[1] * p.second;
+    linT[0][p.first] += source_val[1] * p.second;
   }
   for (const auto& p : node2->data().get_deriv_tangent()[1])
   {
-    linT[1][p.first] += sval[1] * p.second;
+    linT[1][p.first] += source_val[1] * p.second;
   }
   for (const auto& p : node2->data().get_deriv_tangent()[2])
   {
-    linT[2][p.first] += sval[1] * p.second;
+    linT[2][p.first] += source_val[1] * p.second;
   }
 
   std::vector<Core::Gen::Pairedvector<int, double>> linXsl(3, 100);  // added all sizes
-  linXsl[0][snode.dofs()[0]] += 1.0;
-  linXsl[1][snode.dofs()[1]] += 1.0;
-  linXsl[2][snode.dofs()[2]] += 1.0;
+  linXsl[0][source_node.dofs()[0]] += 1.0;
+  linXsl[1][source_node.dofs()[1]] += 1.0;
+  linXsl[2][source_node.dofs()[2]] += 1.0;
 
   std::vector<Core::Gen::Pairedvector<int, double>> linXm(3, 100);  // added all sizes
-  linXm[0][node1->dofs()[0]] += sval[0];
-  linXm[1][node1->dofs()[1]] += sval[0];
-  linXm[2][node1->dofs()[2]] += sval[0];
+  linXm[0][node1->dofs()[0]] += source_val[0];
+  linXm[1][node1->dofs()[1]] += source_val[0];
+  linXm[2][node1->dofs()[2]] += source_val[0];
 
-  linXm[0][node2->dofs()[0]] += sval[1];
-  linXm[1][node2->dofs()[1]] += sval[1];
-  linXm[2][node2->dofs()[2]] += sval[1];
+  linXm[0][node2->dofs()[0]] += source_val[1];
+  linXm[1][node2->dofs()[1]] += source_val[1];
+  linXm[2][node2->dofs()[2]] += source_val[1];
 
   Core::Gen::Pairedvector<int, double> linf(100);  // added all sizes
   for (const auto& p : linT[0])
   {
-    linf[p.first] += snode.xspatial()[0] * p.second;
+    linf[p.first] += source_node.xspatial()[0] * p.second;
   }
   for (const auto& p : linT[1])
   {
-    linf[p.first] += snode.xspatial()[1] * p.second;
+    linf[p.first] += source_node.xspatial()[1] * p.second;
   }
   for (const auto& p : linT[2])
   {
-    linf[p.first] += snode.xspatial()[2] * p.second;
+    linf[p.first] += source_node.xspatial()[2] * p.second;
   }
 
   for (const auto& p : linXsl[0])
@@ -3576,15 +3588,15 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
 
   for (const auto& p : linT[0])
   {
-    linf[p.first] -= master[0] * p.second;
+    linf[p.first] -= target[0] * p.second;
   }
   for (const auto& p : linT[1])
   {
-    linf[p.first] -= master[1] * p.second;
+    linf[p.first] -= target[1] * p.second;
   }
   for (const auto& p : linT[2])
   {
-    linf[p.first] -= master[2] * p.second;
+    linf[p.first] -= target[2] * p.second;
   }
 
   for (const auto& p : linXm[0])
@@ -3610,9 +3622,9 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
   //   CALC NORMAL                              //
   //**********************************************
   std::array<double, 3> auxnormal = {0.0, 0.0, 0.0};
-  auxnormal[0] = snode.xspatial()[0] - master[0];
-  auxnormal[1] = snode.xspatial()[1] - master[1];
-  auxnormal[2] = snode.xspatial()[2] - master[2];
+  auxnormal[0] = source_node.xspatial()[0] - target[0];
+  auxnormal[1] = source_node.xspatial()[1] - target[1];
+  auxnormal[2] = source_node.xspatial()[2] - target[2];
 
   // calc distance
   dist =
@@ -3624,20 +3636,20 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
   // Lin:
   std::vector<Core::Gen::Pairedvector<int, double>> auxlin(3, 100);  // added all sizes
 
-  // xslave
-  for (int k = 0; k < 3; ++k) (auxlin[k])[snode.dofs()[k]] += 1.0;
+  // xsource
+  for (int k = 0; k < 3; ++k) (auxlin[k])[source_node.dofs()[k]] += 1.0;
 
-  // xmaster n1
-  for (int k = 0; k < 3; ++k) (auxlin[k])[node1->dofs()[k]] -= sval[0];
-  // xmaster n2
-  for (int k = 0; k < 3; ++k) (auxlin[k])[node2->dofs()[k]] -= sval[1];
+  // xtarget n1
+  for (int k = 0; k < 3; ++k) (auxlin[k])[node1->dofs()[k]] -= source_val[0];
+  // xtarget n2
+  for (int k = 0; k < 3; ++k) (auxlin[k])[node2->dofs()[k]] -= source_val[1];
 
   for (const auto& p : linXi)
   {
     for (int k = 0; k < 3; ++k)
     {
-      (auxlin[k])[p.first] -= sderiv(0, 0) * node1->xspatial()[k] * p.second;
-      (auxlin[k])[p.first] -= sderiv(1, 0) * node2->xspatial()[k] * p.second;
+      (auxlin[k])[p.first] -= source_deriv(0, 0) * node1->xspatial()[k] * p.second;
+      (auxlin[k])[p.first] -= source_deriv(1, 0) * node2->xspatial()[k] * p.second;
     }
   }
 
@@ -3647,8 +3659,8 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
 
   //******************************
   // Orientation check:
-  std::array<double, 3> slavebasednormal = {0.0, 0.0, 0.0};
-  int nseg = snode.num_element();
+  std::array<double, 3> sourcebasednormal = {0.0, 0.0, 0.0};
+  int nseg = source_node.num_element();
 
   // we need to store some stuff here
   //**********************************************************************
@@ -3661,33 +3673,33 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
   //**********************************************************************
   Core::LinAlg::SerialDenseMatrix elens(6, nseg);
   const auto* adjmrtrele =
-      dynamic_cast<const Mortar::Element*>(snode.adjacent_elements()[0].user_element());
+      dynamic_cast<const Mortar::Element*>(source_node.adjacent_elements()[0].user_element());
 
   // build element normal at current node
   // (we have to pass in the index i to be able to store the
   // normal and other information at the right place in elens)
   int i = 0;
-  adjmrtrele->build_normal_at_node(snode.id(), i, elens);
+  adjmrtrele->build_normal_at_node(source_node.id(), i, elens);
 
   // add (weighted) element normal to nodal normal n
-  for (int j = 0; j < 3; ++j) slavebasednormal[j] += elens(j, 0) / elens(4, 0);
+  for (int j = 0; j < 3; ++j) sourcebasednormal[j] += elens(j, 0) / elens(4, 0);
 
   // create unit normal vector
-  const double length =
-      sqrt(slavebasednormal[0] * slavebasednormal[0] + slavebasednormal[1] * slavebasednormal[1] +
-           slavebasednormal[2] * slavebasednormal[2]);
+  const double length = sqrt(sourcebasednormal[0] * sourcebasednormal[0] +
+                             sourcebasednormal[1] * sourcebasednormal[1] +
+                             sourcebasednormal[2] * sourcebasednormal[2]);
   if (abs(length) < 1e-12)
   {
-    FOUR_C_THROW("Nodal normal length 0, node ID {}", snode.id());
+    FOUR_C_THROW("Nodal normal length 0, node ID {}", source_node.id());
   }
   else
   {
-    for (int j = 0; j < 3; ++j) slavebasednormal[j] /= length;
+    for (int j = 0; j < 3; ++j) sourcebasednormal[j] /= length;
   }
 
   const double dotprod =
-      -(normal[0] / dist * slavebasednormal[0] + normal[1] / dist * slavebasednormal[1] +
-          normal[2] / dist * slavebasednormal[2]);
+      -(normal[0] / dist * sourcebasednormal[0] + normal[1] / dist * sourcebasednormal[1] +
+          normal[2] / dist * sourcebasednormal[2]);
 
   if (dotprod < -1e-12)
   {
@@ -3722,8 +3734,8 @@ double CONTACT::Interface::compute_normal_node_to_edge(const Mortar::Node& snode
 /*----------------------------------------------------------------------*
  |  cpp to node + Lin                                       farah 01/16 |
  *----------------------------------------------------------------------*/
-double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode,
-    const Mortar::Node& mnode, double* normal,
+double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& source_node,
+    const Mortar::Node& target_node, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normaltonodelin) const
 {
   const int dim = n_dim();
@@ -3736,13 +3748,13 @@ double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode
   double dist = 1e12;
   std::array<double, 3> auxnormal = {0.0, 0.0, 0.0};
 
-  // loop over found master nodes
+  // loop over found target nodes
   std::vector<Core::Gen::Pairedvector<int, double>> auxlin(3, 1000);
 
   // calc vector
-  auxnormal[0] = snode.xspatial()[0] - mnode.xspatial()[0];
-  auxnormal[1] = snode.xspatial()[1] - mnode.xspatial()[1];
-  auxnormal[2] = snode.xspatial()[2] - mnode.xspatial()[2];
+  auxnormal[0] = source_node.xspatial()[0] - target_node.xspatial()[0];
+  auxnormal[1] = source_node.xspatial()[1] - target_node.xspatial()[1];
+  auxnormal[2] = source_node.xspatial()[2] - target_node.xspatial()[2];
 
   // remove numerical artifacts
   if (abs(auxnormal[0]) < 1e-12) auxnormal[0] = 0.0;
@@ -3753,16 +3765,16 @@ double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode
   dist =
       sqrt(auxnormal[0] * auxnormal[0] + auxnormal[1] * auxnormal[1] + auxnormal[2] * auxnormal[2]);
 
-  // if nodes lying on each other: continue to next master node
+  // if nodes lying on each other: continue to next target node
   if (abs(dist) < 1e-12) return dist;
 
   //*******************************************
   // Lin:
-  // xslave
-  for (int k = 0; k < dim; ++k) (auxlin[k])[snode.dofs()[k]] += 1.0;
+  // xsource
+  for (int k = 0; k < dim; ++k) (auxlin[k])[source_node.dofs()[k]] += 1.0;
 
-  // xmaster
-  for (int k = 0; k < dim; ++k) (auxlin[k])[mnode.dofs()[k]] -= 1.0;
+  // xtarget
+  for (int k = 0; k < dim; ++k) (auxlin[k])[target_node.dofs()[k]] -= 1.0;
 
   // get normal
   gdist = dist;
@@ -3782,8 +3794,8 @@ double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode
 
   //******************************
   // Orientation check:
-  std::array<double, 3> slavebasednormal = {0.0, 0.0, 0.0};
-  int nseg = snode.num_element();
+  std::array<double, 3> sourcebasednormal = {0.0, 0.0, 0.0};
+  int nseg = source_node.num_element();
 
   // we need to store some stuff here
   //**********************************************************************
@@ -3796,32 +3808,32 @@ double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode
   //**********************************************************************
   Core::LinAlg::SerialDenseMatrix elens(6, nseg);
   const auto* adjmrtrele =
-      dynamic_cast<const Mortar::Element*>(snode.adjacent_elements()[0].user_element());
+      dynamic_cast<const Mortar::Element*>(source_node.adjacent_elements()[0].user_element());
 
   // build element normal at current node
   // (we have to pass in the index i to be able to store the
   // normal and other information at the right place in elens)
   int i = 0;
-  adjmrtrele->build_normal_at_node(snode.id(), i, elens);
+  adjmrtrele->build_normal_at_node(source_node.id(), i, elens);
 
   // add (weighted) element normal to nodal normal n
-  for (int j = 0; j < 3; ++j) slavebasednormal[j] += elens(j, 0) / elens(4, 0);
+  for (int j = 0; j < 3; ++j) sourcebasednormal[j] += elens(j, 0) / elens(4, 0);
 
   // create unit normal vector
-  const double length =
-      sqrt(slavebasednormal[0] * slavebasednormal[0] + slavebasednormal[1] * slavebasednormal[1] +
-           slavebasednormal[2] * slavebasednormal[2]);
+  const double length = sqrt(sourcebasednormal[0] * sourcebasednormal[0] +
+                             sourcebasednormal[1] * sourcebasednormal[1] +
+                             sourcebasednormal[2] * sourcebasednormal[2]);
   if (abs(length) < 1e-12)
   {
-    FOUR_C_THROW("Nodal normal length 0, node ID {}", snode.id());
+    FOUR_C_THROW("Nodal normal length 0, node ID {}", source_node.id());
   }
   else
   {
-    for (int j = 0; j < 3; ++j) slavebasednormal[j] /= length;
+    for (int j = 0; j < 3; ++j) sourcebasednormal[j] /= length;
   }
 
-  const double dotprod = -(normal[0] * slavebasednormal[0] + normal[1] * slavebasednormal[1] +
-                           normal[2] * slavebasednormal[2]);
+  const double dotprod = -(normal[0] * sourcebasednormal[0] + normal[1] * sourcebasednormal[1] +
+                           normal[2] * sourcebasednormal[2]);
 
   if (dotprod < -1e-12)
   {
@@ -3852,16 +3864,16 @@ double CONTACT::Interface::compute_normal_node_to_node(const Mortar::Node& snode
 void CONTACT::Interface::evaluate_cpp_normals()
 {
   // Build averaged normal field on physically smooth surface
-  // loop over proc's master nodes of the interface
+  // loop over proc's target nodes of the interface
   // use row map and export to column map later
-  for (int i = 0; i < master_row_nodes()->num_my_elements(); ++i)
+  for (int i = 0; i < target_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = master_row_nodes()->gid(i);
+    int gid = target_row_nodes()->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Node* mrtrnode = dynamic_cast<Node*>(node);
 
-    // build averaged normal at each master node
+    // build averaged normal at each target node
     mrtrnode->build_averaged_normal();
 
     // build tangent
@@ -3869,12 +3881,12 @@ void CONTACT::Interface::evaluate_cpp_normals()
   }
 
   // export nodal normals
-  export_master_nodal_normals();
+  export_target_nodal_normals();
 
-  // loop over slave nodes
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  // loop over source nodes
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     auto* mrtrnode = dynamic_cast<Mortar::Node*>(node);
@@ -3882,15 +3894,15 @@ void CONTACT::Interface::evaluate_cpp_normals()
     if (mrtrnode->owner() != Core::Communication::my_mpi_rank(get_comm()))
       FOUR_C_THROW("Node ownership inconsistency!");
 
-    // vector with possible contacting master eles/nodes
-    std::vector<Mortar::Element*> meles;
-    std::vector<Mortar::Node*> mnodes;
+    // vector with possible contacting target eles/nodes
+    std::vector<Mortar::Element*> target_elems;
+    std::vector<Mortar::Node*> target_nodes;
 
-    // fill vector with possibly contacting meles
-    find_master_elements(*mrtrnode, meles);
+    // fill vector with possibly contacting target_elems
+    find_target_elements(*mrtrnode, target_elems);
 
-    // fallback solution if no mele is available
-    if (meles.size() < 1)  // or !mrtrnode->IsOnCornerEdge())
+    // fallback solution if no target_elem is available
+    if (target_elems.size() < 1)  // or !mrtrnode->IsOnCornerEdge())
     {
       Node* cnode = dynamic_cast<Node*>(mrtrnode);
       cnode->build_averaged_normal();
@@ -3898,13 +3910,13 @@ void CONTACT::Interface::evaluate_cpp_normals()
     }
 
 
-    // Here we have all found master elements for one slave node.
+    // Here we have all found target elements for one source node.
     // distance for cpp
     double normaltoline[3] = {0.0, 0.0, 0.0};
     std::vector<Core::Gen::Pairedvector<int, double>> normaltolineLin(3, 1);  // 1 dummy
 
-    // Now, calculate distance between node and master line
-    double dist = compute_cpp_normal(*mrtrnode, meles, normaltoline, normaltolineLin);
+    // Now, calculate distance between node and target line
+    double dist = compute_cpp_normal(*mrtrnode, target_elems, normaltoline, normaltolineLin);
 
     // if no projection was possible
     if (dist > 1e11)
@@ -3918,15 +3930,15 @@ void CONTACT::Interface::evaluate_cpp_normals()
     set_cpp_normal(*mrtrnode, normaltoline, normaltolineLin);
   }
 
-  // export slave normals
+  // export source normals
   export_nodal_normals();
 }
 
 
 /*----------------------------------------------------------------------*
- |  export master nodal normals (protected)                  farah 08/16|
+ |  export target nodal normals (protected)                  farah 08/16|
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::export_master_nodal_normals() const
+void CONTACT::Interface::export_target_nodal_normals() const
 {
   std::map<int, std::shared_ptr<Core::LinAlg::SerialDenseMatrix>> triad;
 
@@ -3952,7 +3964,7 @@ void CONTACT::Interface::export_master_nodal_normals() const
 
   Core::Gen::Pairedvector<int, double>::iterator iter;
 
-  const std::shared_ptr<Core::LinAlg::Map> masternodes =
+  const std::shared_ptr<Core::LinAlg::Map> targetnodes =
       Core::LinAlg::allreduce_e_map(*(mnoderowmap_));
 
   // build info on row map
@@ -4032,8 +4044,8 @@ void CONTACT::Interface::export_master_nodal_normals() const
     }
   }
 
-  // communicate from master node row to column map
-  Core::Communication::Exporter ex(*mnoderowmap_, *masternodes, get_comm());
+  // communicate from target node row to column map
+  Core::Communication::Exporter ex(*mnoderowmap_, *targetnodes, get_comm());
   ex.do_export(triad);
 
   ex.do_export(n_x_key);
@@ -4058,10 +4070,10 @@ void CONTACT::Interface::export_master_nodal_normals() const
   ex.do_export(teta_z_val);
 
   // extract info on column map
-  for (int i = 0; i < masternodes->num_my_elements(); ++i)
+  for (int i = 0; i < targetnodes->num_my_elements(); ++i)
   {
     // only do something for ghosted nodes
-    int gid = masternodes->gid(i);
+    int gid = targetnodes->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     auto* cnode = dynamic_cast<CONTACT::Node*>(node);
@@ -4164,7 +4176,7 @@ void CONTACT::Interface::export_master_nodal_normals() const
  |  cpp to line based on averaged nodal normal field        farah 08/16 |
  *----------------------------------------------------------------------*/
 double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
-    std::vector<Mortar::Element*> meles, double* normal,
+    std::vector<Mortar::Element*> target_elems, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin) const
 {
   // define tolerance
@@ -4175,7 +4187,7 @@ double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
   double gdist = 1e12;  // distance
   std::array<double, 3> gnormal = {0.0, 0.0, 0.0};
   std::vector<Core::Gen::Pairedvector<int, double>> glin(3, 1);  // 1 dummy
-  std::set<int> donebeforeMasterCorner;
+  std::set<int> donebeforeTargetCorner;
 
   bool nodeOnNode = false;     // flag for node on node (corner on corner) setting
   bool pathdependent = false;  // flag if we have to check path from last converged check
@@ -4217,36 +4229,36 @@ double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
 
     // Compute normal to node:
     // loop over found eles
-    for (auto& mele : meles)
+    for (auto& target_elem : target_elems)
     {
       // get linsize
       int linsize = 0;
-      for (int i = 0; i < mele->num_node(); ++i)
+      for (int i = 0; i < target_elem->num_node(); ++i)
       {
-        Core::Nodes::Node* node = mele->nodes()[i];
-        if (!node) FOUR_C_THROW("Cannot find master node");
-        auto* mnode = dynamic_cast<CONTACT::Node*>(node);
-        linsize += mnode->get_linsize();
+        Core::Nodes::Node* node = target_elem->nodes()[i];
+        if (!node) FOUR_C_THROW("Cannot find target node");
+        auto* target_node = dynamic_cast<CONTACT::Node*>(node);
+        linsize += target_node->get_linsize();
 
-        // if master node is also corner node
-        if (mnode->is_on_corner())
+        // if target node is also corner node
+        if (target_node->is_on_corner())
         {
-          auto iter = donebeforeMasterCorner.find(mnode->id());
+          auto iter = donebeforeTargetCorner.find(target_node->id());
 
           // if not then create ele
-          if (iter != donebeforeMasterCorner.end()) continue;
+          if (iter != donebeforeTargetCorner.end()) continue;
 
-          // set master corner node id
-          donebeforeMasterCorner.insert(mnode->id());
+          // set target corner node id
+          donebeforeTargetCorner.insert(target_node->id());
 
           // aux variables
           double dist = 1e12;
           double auxnormal[3] = {0.0, 0.0, 0.0};
           std::vector<Core::Gen::Pairedvector<int, double>> auxlin(
-              3, linsize + 1 + mele->num_node());
+              3, linsize + 1 + target_elem->num_node());
 
           // compute distance between corners
-          dist = compute_normal_node_to_node(mrtrnode, *mnode, auxnormal, auxlin);
+          dist = compute_normal_node_to_node(mrtrnode, *target_node, auxnormal, auxlin);
 
           // if nodes lying on each other
           if (abs(dist) < 1e-12)
@@ -4281,43 +4293,46 @@ double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
   }
 
   // loop over found eles
-  for (auto& mele : meles)
+  for (auto& target_elem : target_elems)
   {
     bool cornerele = false;
     // get linsize
     int linsize = 0;
-    for (int i = 0; i < mele->num_node(); ++i)
+    for (int i = 0; i < target_elem->num_node(); ++i)
     {
-      Core::Nodes::Node* node = mele->nodes()[i];
-      if (!node) FOUR_C_THROW("Cannot find master node");
-      auto* mnode = dynamic_cast<CONTACT::Node*>(node);
-      linsize += mnode->get_linsize();
+      Core::Nodes::Node* node = target_elem->nodes()[i];
+      if (!node) FOUR_C_THROW("Cannot find target node");
+      auto* target_node = dynamic_cast<CONTACT::Node*>(node);
+      linsize += target_node->get_linsize();
 
-      if (mnode->is_on_corner()) cornerele = true;
+      if (target_node->is_on_corner()) cornerele = true;
     }
 
     double xi[2] = {0.0, 0.0};
     double dist = 1e12;
     double auxnormal[3] = {0.0, 0.0, 0.0};
-    std::vector<Core::Gen::Pairedvector<int, double>> auxlin(3, linsize + 1 + mele->num_node());
+    std::vector<Core::Gen::Pairedvector<int, double>> auxlin(
+        3, linsize + 1 + target_elem->num_node());
 
-    // check for nonsmooth mele
+    // check for nonsmooth target_elem
     if (cornerele and !nodeOnNode)
     {
       // perform CPP to find normals based on element normals
-      Mortar::Projector::impl(*mele)->project_s_node_by_m_normal_lin(
-          mrtrnode, *mele, xi, auxnormal, dist, auxlin);
+      Mortar::Projector::impl(*target_elem)
+          ->project_s_node_by_m_normal_lin(mrtrnode, *target_elem, xi, auxnormal, dist, auxlin);
     }
-    // compute normal with averaged nodal normal field from master surface
+    // compute normal with averaged nodal normal field from target surface
     else
     {
       // perform CPP to find normals based on averaged nodal normal field
-      Mortar::Projector::impl(*mele)->project_s_node_by_m_nodal_normal_lin(
-          mrtrnode, *mele, xi, auxnormal, dist, auxlin);
+      Mortar::Projector::impl(*target_elem)
+          ->project_s_node_by_m_nodal_normal_lin(
+              mrtrnode, *target_elem, xi, auxnormal, dist, auxlin);
     }
 
     // check if found parameter space coordinate is within element domain
-    if (mele->shape() == Core::FE::CellType::line2 or mele->shape() == Core::FE::CellType::line3)
+    if (target_elem->shape() == Core::FE::CellType::line2 or
+        target_elem->shape() == Core::FE::CellType::line3)
     {
       if (-1.0 - tol > xi[0] or xi[0] > 1.0 + tol) continue;
     }
@@ -4346,7 +4361,7 @@ double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
       gnormal[2] = auxnormal[2];
       glin = auxlin;
     }
-  }  // end mele loop
+  }  // end target_elem loop
 
   // get the cpp normal
   normal[0] = gnormal[0];
@@ -4361,7 +4376,7 @@ double CONTACT::Interface::compute_cpp_normal_2d(const Mortar::Node& mrtrnode,
  |  cpp to line based on averaged nodal normal field        farah 08/16 |
  *----------------------------------------------------------------------*/
 double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
-    std::vector<Mortar::Element*> meles, double* normal,
+    std::vector<Mortar::Element*> target_elems, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin)
 {
   // define tolerance
@@ -4410,7 +4425,7 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
   //             COMPUTE NORMAL TO SURFACE
   //******************************************************
   // loop over found eles for all geometrical nodes
-  for (auto& mele : meles)
+  for (auto& target_elem : target_elems)
   {
     double xi[2] = {0.0, 0.0};
     double dist = 1e12;
@@ -4418,20 +4433,23 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
     std::vector<Core::Gen::Pairedvector<int, double>> auxlin(3, 1000);
 
     // perform CPP to find normals
-    bool success = Mortar::Projector::impl(*mele)->project_s_node_by_m_nodal_normal_lin(
-        mrtrnode, *mele, xi, auxnormal, dist, auxlin);
+    bool success = Mortar::Projector::impl(*target_elem)
+                       ->project_s_node_by_m_nodal_normal_lin(
+                           mrtrnode, *target_elem, xi, auxnormal, dist, auxlin);
 
     // newton not converged
     if (!success) continue;
 
     // check if found parameter space coordinate is within element domain
-    if (mele->shape() == Core::FE::CellType::quad4 or mele->shape() == Core::FE::CellType::quad8 or
-        mele->shape() == Core::FE::CellType::quad9)
+    if (target_elem->shape() == Core::FE::CellType::quad4 or
+        target_elem->shape() == Core::FE::CellType::quad8 or
+        target_elem->shape() == Core::FE::CellType::quad9)
     {
       if (-1.0 - tol > xi[0] or xi[0] > 1.0 + tol or -1.0 - tol > xi[1] or xi[1] > 1.0 + tol)
         continue;
     }
-    else if (mele->shape() == Core::FE::CellType::tri3 or mele->shape() == Core::FE::CellType::tri6)
+    else if (target_elem->shape() == Core::FE::CellType::tri3 or
+             target_elem->shape() == Core::FE::CellType::tri6)
     {
       if (xi[0] < 0.0 - tol or xi[1] < 0.0 - tol or xi[0] > 1.0 + tol or xi[1] > 1.0 + tol or
           xi[0] + xi[1] > 1.0 + 2 * tol)
@@ -4463,7 +4481,7 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
       gnormal[2] = auxnormal[2];
       glin = auxlin;
     }
-  }  // end mele loop
+  }  // end target_elem loop
   //******************************************************
   //             COMPUTE NORMAL TO LINE
   //******************************************************
@@ -4473,44 +4491,44 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
     std::set<std::pair<int, int>> donebefore;
 
     // calc
-    for (auto& mele : meles)
+    for (auto& target_elem : target_elems)
     {
-      // loop over master edges -> match node number for quad4
-      for (int j = 0; j < mele->num_node(); ++j)
+      // loop over target edges -> match node number for quad4
+      for (int j = 0; j < target_elem->num_node(); ++j)
       {
         int nodeIds[2] = {0, 0};
         int nodeLIds[2] = {0, 0};
 
-        if (mele->shape() == Core::FE::CellType::quad4)
+        if (target_elem->shape() == Core::FE::CellType::quad4)
         {
           if (j == 0)
           {
-            nodeIds[0] = mele->node_ids()[0];
-            nodeIds[1] = mele->node_ids()[1];
+            nodeIds[0] = target_elem->node_ids()[0];
+            nodeIds[1] = target_elem->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (j == 1)
           {
-            nodeIds[0] = mele->node_ids()[1];
-            nodeIds[1] = mele->node_ids()[2];
+            nodeIds[0] = target_elem->node_ids()[1];
+            nodeIds[1] = target_elem->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (j == 2)
           {
-            nodeIds[0] = mele->node_ids()[2];
-            nodeIds[1] = mele->node_ids()[3];
+            nodeIds[0] = target_elem->node_ids()[2];
+            nodeIds[1] = target_elem->node_ids()[3];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 3;
           }
           else if (j == 3)
           {
-            nodeIds[0] = mele->node_ids()[3];
-            nodeIds[1] = mele->node_ids()[0];
+            nodeIds[0] = target_elem->node_ids()[3];
+            nodeIds[1] = target_elem->node_ids()[0];
 
             nodeLIds[0] = 3;
             nodeLIds[1] = 0;
@@ -4523,9 +4541,9 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
 
         // check if both nodes on edge geometry
         bool node0Edge =
-            dynamic_cast<Mortar::Node*>(mele->nodes()[nodeLIds[0]])->is_on_corner_edge();
+            dynamic_cast<Mortar::Node*>(target_elem->nodes()[nodeLIds[0]])->is_on_corner_edge();
         bool node1Edge =
-            dynamic_cast<Mortar::Node*>(mele->nodes()[nodeLIds[1]])->is_on_corner_edge();
+            dynamic_cast<Mortar::Node*>(target_elem->nodes()[nodeLIds[1]])->is_on_corner_edge();
 
         if (!node0Edge or !node1Edge) continue;
 
@@ -4545,10 +4563,12 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
           donebefore.insert(actIDstw);
 
           // create line ele:
-          Mortar::Element lineEle(j, mele->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+          Mortar::Element lineEle(
+              j, target_elem->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
           // get nodes
-          Core::Nodes::Node* nodes[2] = {mele->nodes()[nodeLIds[0]], mele->nodes()[nodeLIds[1]]};
+          Core::Nodes::Node* nodes[2] = {
+              target_elem->nodes()[nodeLIds[0]], target_elem->nodes()[nodeLIds[1]]};
           lineEle.build_nodal_pointers(nodes);
 
           // init data container for dual shapes
@@ -4558,7 +4578,8 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
 
           double dist = 1e12;
           double auxnormal[3] = {0.0, 0.0, 0.0};
-          std::vector<Core::Gen::Pairedvector<int, double>> auxlin(3, 100 + 1 + mele->num_node());
+          std::vector<Core::Gen::Pairedvector<int, double>> auxlin(
+              3, 100 + 1 + target_elem->num_node());
 
           // compute distance between node and edge
           dist = compute_normal_node_to_edge(mrtrnode, lineEle, auxnormal, auxlin);
@@ -4586,7 +4607,7 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
             glin = auxlin;
           }
         }
-      }  // end mele node loop
+      }  // end target_elem node loop
     }
   }
 
@@ -4595,37 +4616,37 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
   //******************************************************
   if (mrtrnode.is_on_corner())  // only for corner nodes possible
   {
-    std::set<int> donebeforeMasterCorner;
+    std::set<int> donebeforeTargetCorner;
 
-    for (auto& mele : meles)
+    for (auto& target_elem : target_elems)
     {
       // get linsize
       int linsize = 0;
-      for (int i = 0; i < mele->num_node(); ++i)
+      for (int i = 0; i < target_elem->num_node(); ++i)
       {
-        Core::Nodes::Node* node = mele->nodes()[i];
-        if (!node) FOUR_C_THROW("Cannot find master node");
-        auto* mnode = dynamic_cast<CONTACT::Node*>(node);
-        linsize += mnode->get_linsize();
+        Core::Nodes::Node* node = target_elem->nodes()[i];
+        if (!node) FOUR_C_THROW("Cannot find target node");
+        auto* target_node = dynamic_cast<CONTACT::Node*>(node);
+        linsize += target_node->get_linsize();
 
-        // if master node is also corner node
-        if (mnode->is_on_corner())
+        // if target node is also corner node
+        if (target_node->is_on_corner())
         {
-          auto iter = donebeforeMasterCorner.find(mnode->id());
+          auto iter = donebeforeTargetCorner.find(target_node->id());
 
           // if not then create ele
-          if (iter != donebeforeMasterCorner.end()) continue;
+          if (iter != donebeforeTargetCorner.end()) continue;
 
-          // set master corner node id
-          donebeforeMasterCorner.insert(mnode->id());
+          // set target corner node id
+          donebeforeTargetCorner.insert(target_node->id());
 
           double dist = 1e12;
           double auxnormal[3] = {0.0, 0.0, 0.0};
           std::vector<Core::Gen::Pairedvector<int, double>> auxlin(
-              3, linsize + 1 + mele->num_node());
+              3, linsize + 1 + target_elem->num_node());
 
           // compute distance between corners
-          dist = compute_normal_node_to_node(mrtrnode, *mnode, auxnormal, auxlin);
+          dist = compute_normal_node_to_node(mrtrnode, *target_node, auxnormal, auxlin);
 
           // angle between trajectory and normal
           if (pathdependent)
@@ -4663,7 +4684,6 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
   normal[2] = gnormal[2];
   normaltolineLin = glin;
 
-  // bye bye
   return gdist;
 }
 
@@ -4671,7 +4691,7 @@ double CONTACT::Interface::compute_cpp_normal_3d(Mortar::Node& mrtrnode,
  |  cpp to line based on averaged nodal normal field        farah 05/16 |
  *----------------------------------------------------------------------*/
 double CONTACT::Interface::compute_cpp_normal(Mortar::Node& mrtrnode,
-    std::vector<Mortar::Element*> meles, double* normal,
+    std::vector<Mortar::Element*> target_elems, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normaltolineLin)
 {
   // define distance
@@ -4684,7 +4704,7 @@ double CONTACT::Interface::compute_cpp_normal(Mortar::Node& mrtrnode,
   //===================================================================
   if (n_dim() == 2)
   {
-    gdist = compute_cpp_normal_2d(mrtrnode, meles, normal, normaltolineLin);
+    gdist = compute_cpp_normal_2d(mrtrnode, target_elems, normal, normaltolineLin);
   }
   //===================================================================
   //===================================================================
@@ -4693,7 +4713,7 @@ double CONTACT::Interface::compute_cpp_normal(Mortar::Node& mrtrnode,
   //===================================================================
   else if (n_dim() == 3)
   {
-    gdist = compute_cpp_normal_3d(mrtrnode, meles, normal, normaltolineLin);
+    gdist = compute_cpp_normal_3d(mrtrnode, target_elems, normal, normaltolineLin);
   }
   //===================================================================
   //===================================================================
@@ -4712,15 +4732,15 @@ double CONTACT::Interface::compute_cpp_normal(Mortar::Node& mrtrnode,
 /*----------------------------------------------------------------------*
  |  set cpp normal                                           farah 01/16|
  *----------------------------------------------------------------------*/
-void CONTACT::Interface::set_cpp_normal(Mortar::Node& snode, double* normal,
+void CONTACT::Interface::set_cpp_normal(Mortar::Node& source_node, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& normallin)
 {
-  Node& cnode = dynamic_cast<Node&>(snode);
+  Node& cnode = dynamic_cast<Node&>(source_node);
 
   const double length = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   if (length < 1e-12) FOUR_C_THROW("normal length is zero!!!");
 
-  // negative sign because it is a master normal!
+  // negative sign because it is a target normal!
   cnode.mo_data().n()[0] = -normal[0] / length;
   cnode.mo_data().n()[1] = -normal[1] / length;
   cnode.mo_data().n()[2] = -normal[2] / length;
@@ -5154,7 +5174,7 @@ void CONTACT::Interface::export_nodal_normals() const
     }
   }
 
-  // communicate from slave node row to column map
+  // communicate from source node row to column map
   Core::Communication::Exporter& ex = interface_data_->exporter();
   ex.do_export(triad);
   ex.do_export(node_data_collection);
@@ -5266,28 +5286,28 @@ bool CONTACT::Interface::evaluate_search_binarytree()
   // self contact:
   // *********************************************************************
   // We call evaluate_search(), which does both, the bottom-up update (on the whole interface) and
-  // the search. Then the dynamic master/slave assignment routine update_master_slave_sets() is
-  // called and the new slave nodes' data containers are initialized.
+  // the search. Then the dynamic target/source assignment routine update_target_source_sets() is
+  // called and the new source nodes' data containers are initialized.
   // *********************************************************************
   if (self_contact())
   {
     // evaluate search itself
     binarytreeself_->evaluate_search();
 
-    // update master/slave sets of interface
-    update_master_slave_sets();
+    // update target/source sets of interface
+    update_target_source_sets();
 
     // initialize node data container
-    // (include slave side boundary nodes / crosspoints)
-    for (int i = 0; i < slave_col_nodes_bound()->num_my_elements(); ++i)
+    // (include source side boundary nodes / crosspoints)
+    for (int i = 0; i < source_col_nodes_bound()->num_my_elements(); ++i)
     {
-      int gid = slave_col_nodes_bound()->gid(i);
+      int gid = source_col_nodes_bound()->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid {}", gid);
-      auto* mnode = dynamic_cast<Mortar::Node*>(node);
+      auto* target_node = dynamic_cast<Mortar::Node*>(node);
 
       // initialize container if not yet initialized before
-      mnode->initialize_data_container();
+      target_node->initialize_data_container();
     }
 
     // no initialization of element data container as this would
@@ -5311,26 +5331,26 @@ void CONTACT::Interface::evaluate_stl()
   // check
   if (n_dim() == 2) FOUR_C_THROW("LTS algorithm only for 3D simulations!");
 
-  // loop over slave elements
+  // loop over source elements
   for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    auto* selement = dynamic_cast<Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    auto* source_element = dynamic_cast<Element*>(ele1);
 
     // guarantee uniqueness
     std::set<std::pair<int, int>> donebefore;
 
-    // loop over found meles
-    for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+    // loop over found target_elems
+    for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
     {
-      int gid2 = selement->mo_data().search_elements()[j];
+      int gid2 = source_element->mo_data().search_elements()[j];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      auto* melement = dynamic_cast<Element*>(ele2);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      auto* target_element = dynamic_cast<Element*>(ele2);
 
-      if (melement->shape() == Core::FE::CellType::quad4)
+      if (target_element->shape() == Core::FE::CellType::quad4)
       {
         for (int nodeId = 0; nodeId < 4; ++nodeId)
         {
@@ -5339,32 +5359,32 @@ void CONTACT::Interface::evaluate_stl()
 
           if (nodeId == 0)
           {
-            nodeIds[0] = melement->node_ids()[0];
-            nodeIds[1] = melement->node_ids()[1];
+            nodeIds[0] = target_element->node_ids()[0];
+            nodeIds[1] = target_element->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (nodeId == 1)
           {
-            nodeIds[0] = melement->node_ids()[1];
-            nodeIds[1] = melement->node_ids()[2];
+            nodeIds[0] = target_element->node_ids()[1];
+            nodeIds[1] = target_element->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (nodeId == 2)
           {
-            nodeIds[0] = melement->node_ids()[2];
-            nodeIds[1] = melement->node_ids()[3];
+            nodeIds[0] = target_element->node_ids()[2];
+            nodeIds[1] = target_element->node_ids()[3];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 3;
           }
           else if (nodeId == 3)
           {
-            nodeIds[0] = melement->node_ids()[3];
-            nodeIds[1] = melement->node_ids()[0];
+            nodeIds[0] = target_element->node_ids()[3];
+            nodeIds[1] = target_element->node_ids()[0];
 
             nodeLIds[0] = 3;
             nodeLIds[1] = 0;
@@ -5387,22 +5407,22 @@ void CONTACT::Interface::evaluate_stl()
 
             // create line ele:
             std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-                j, melement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+                j, target_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
             // get nodes
             std::array<Core::Nodes::Node*, 2> nodes = {
-                melement->nodes()[nodeLIds[0]], melement->nodes()[nodeLIds[1]]};
+                target_element->nodes()[nodeLIds[0]], target_element->nodes()[nodeLIds[1]]};
             lineEle->build_nodal_pointers(nodes.data());
 
             // init data container for dual shapes
             lineEle->initialize_data_container();
 
             std::vector<Element*> seleElements;
-            seleElements.push_back(selement);
+            seleElements.push_back(source_element);
 
             // create coupling object
-            LineToSurfaceCoupling3d coup(*idiscret_, 3, interface_params(), *melement, lineEle,
-                seleElements, LineToSurfaceCoupling3d::stl);
+            LineToSurfaceCoupling3d coup(*idiscret_, 3, interface_params(), *target_element,
+                lineEle, seleElements, LineToSurfaceCoupling3d::stl);
 
             // perform evaluate!
             coup.evaluate_coupling();
@@ -5414,8 +5434,8 @@ void CONTACT::Interface::evaluate_stl()
         FOUR_C_THROW("LTS only for quad4!");
       }
 
-    }  // end found mele loop
-  }  // end slave ele loop
+    }  // end found target_elem loop
+  }  // end source ele loop
 }
 
 /*----------------------------------------------------------------------*
@@ -5429,28 +5449,28 @@ void CONTACT::Interface::evaluate_lts()
   // guarantee uniqueness
   std::set<std::pair<int, int>> donebefore;
 
-  // loop over slave elements
+  // loop over source elements
   for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    auto* selement = dynamic_cast<Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    auto* source_element = dynamic_cast<Element*>(ele1);
 
     // ele check
-    if (selement->shape() != Core::FE::CellType::quad4 and
-        selement->shape() != Core::FE::CellType::tri3)
+    if (source_element->shape() != Core::FE::CellType::quad4 and
+        source_element->shape() != Core::FE::CellType::tri3)
       FOUR_C_THROW("LTS algorithm only for tri3/quad4!");
 
-    // empty vector of master element pointers
+    // empty vector of target element pointers
     std::vector<std::shared_ptr<Mortar::Element>> lineElements;
     std::vector<Element*> meleElements;
 
-    // compute slave normal
-    double slaveN[3] = {0.0, 0.0, 0.0};
+    // compute source normal
+    double sourceN[3] = {0.0, 0.0, 0.0};
     double loccenter[2] = {0.0, 0.0};
 
-    Core::FE::CellType dt = selement->shape();
+    Core::FE::CellType dt = source_element->shape();
     if (dt == Core::FE::CellType::tri3 || dt == Core::FE::CellType::tri6)
     {
       loccenter[0] = 1.0 / 3.0;
@@ -5468,23 +5488,23 @@ void CONTACT::Interface::evaluate_lts()
     }
 
     // we then compute the unit normal vector at the element center
-    selement->compute_unit_normal_at_xi(loccenter, slaveN);
+    source_element->compute_unit_normal_at_xi(loccenter, sourceN);
 
-    // loop over the candidate master elements of sele_
-    // use slave element's candidate list SearchElements !!!
-    for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+    // loop over the candidate target elements of source_elem_
+    // use source element's candidate list SearchElements !!!
+    for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
     {
-      int gid2 = selement->mo_data().search_elements()[j];
+      int gid2 = source_element->mo_data().search_elements()[j];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      auto* melement = dynamic_cast<Element*>(ele2);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      auto* target_element = dynamic_cast<Element*>(ele2);
 
       // check orientation
-      // compute slave normal
-      double masterN[3] = {0.0, 0.0, 0.0};
+      // compute source normal
+      double targetN[3] = {0.0, 0.0, 0.0};
       double loccenterM[2] = {0.0, 0.0};
 
-      Core::FE::CellType dt = melement->shape();
+      Core::FE::CellType dt = target_element->shape();
       if (dt == Core::FE::CellType::tri3 || dt == Core::FE::CellType::tri6)
       {
         loccenterM[0] = 1.0 / 3.0;
@@ -5502,59 +5522,59 @@ void CONTACT::Interface::evaluate_lts()
       }
 
       // we then compute the unit normal vector at the element center
-      melement->compute_unit_normal_at_xi(loccenterM, masterN);
+      target_element->compute_unit_normal_at_xi(loccenterM, targetN);
 
-      double scaprod = slaveN[0] * masterN[0] + slaveN[1] * masterN[1] + slaveN[2] * masterN[2];
+      double scaprod = sourceN[0] * targetN[0] + sourceN[1] * targetN[1] + sourceN[2] * targetN[2];
 
       // tolerance for line clipping
-      const double sminedge = selement->min_edge_size();
-      const double mminedge = melement->min_edge_size();
+      const double sminedge = source_element->min_edge_size();
+      const double mminedge = target_element->min_edge_size();
       const double tol = 0.001 * std::min(sminedge, mminedge);
       if (abs(scaprod) < tol) continue;
 
       // if orientation is okay
-      meleElements.push_back(melement);
+      meleElements.push_back(target_element);
     }
 
     // no valid maste elements?
     if (meleElements.size() < 1) continue;
 
-    // loop over slave edges -> match node number for tri3/quad4
-    for (int j = 0; j < selement->num_node(); ++j)
+    // loop over source edges -> match node number for tri3/quad4
+    for (int j = 0; j < source_element->num_node(); ++j)
     {
       int nodeIds[2] = {0, 0};
       int nodeLIds[2] = {0, 0};
 
-      if (selement->shape() == Core::FE::CellType::quad4)
+      if (source_element->shape() == Core::FE::CellType::quad4)
       {
         if (j == 0)
         {
-          nodeIds[0] = selement->node_ids()[0];
-          nodeIds[1] = selement->node_ids()[1];
+          nodeIds[0] = source_element->node_ids()[0];
+          nodeIds[1] = source_element->node_ids()[1];
 
           nodeLIds[0] = 0;
           nodeLIds[1] = 1;
         }
         else if (j == 1)
         {
-          nodeIds[0] = selement->node_ids()[1];
-          nodeIds[1] = selement->node_ids()[2];
+          nodeIds[0] = source_element->node_ids()[1];
+          nodeIds[1] = source_element->node_ids()[2];
 
           nodeLIds[0] = 1;
           nodeLIds[1] = 2;
         }
         else if (j == 2)
         {
-          nodeIds[0] = selement->node_ids()[2];
-          nodeIds[1] = selement->node_ids()[3];
+          nodeIds[0] = source_element->node_ids()[2];
+          nodeIds[1] = source_element->node_ids()[3];
 
           nodeLIds[0] = 2;
           nodeLIds[1] = 3;
         }
         else if (j == 3)
         {
-          nodeIds[0] = selement->node_ids()[3];
-          nodeIds[1] = selement->node_ids()[0];
+          nodeIds[0] = source_element->node_ids()[3];
+          nodeIds[1] = source_element->node_ids()[0];
 
           nodeLIds[0] = 3;
           nodeLIds[1] = 0;
@@ -5564,28 +5584,28 @@ void CONTACT::Interface::evaluate_lts()
           FOUR_C_THROW("loop counter and edge number do not match!");
         }
       }
-      else if (selement->shape() == Core::FE::CellType::tri3)
+      else if (source_element->shape() == Core::FE::CellType::tri3)
       {
         if (j == 0)
         {
-          nodeIds[0] = selement->node_ids()[0];
-          nodeIds[1] = selement->node_ids()[1];
+          nodeIds[0] = source_element->node_ids()[0];
+          nodeIds[1] = source_element->node_ids()[1];
 
           nodeLIds[0] = 0;
           nodeLIds[1] = 1;
         }
         else if (j == 1)
         {
-          nodeIds[0] = selement->node_ids()[1];
-          nodeIds[1] = selement->node_ids()[2];
+          nodeIds[0] = source_element->node_ids()[1];
+          nodeIds[1] = source_element->node_ids()[2];
 
           nodeLIds[0] = 1;
           nodeLIds[1] = 2;
         }
         else if (j == 2)
         {
-          nodeIds[0] = selement->node_ids()[2];
-          nodeIds[1] = selement->node_ids()[0];
+          nodeIds[0] = source_element->node_ids()[2];
+          nodeIds[1] = source_element->node_ids()[0];
 
           nodeLIds[0] = 2;
           nodeLIds[1] = 0;
@@ -5597,8 +5617,10 @@ void CONTACT::Interface::evaluate_lts()
       }
 
       // check if both nodes on edge geometry
-      bool node0Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[0]])->is_on_edge();
-      bool node1Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[1]])->is_on_edge();
+      bool node0Edge =
+          dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[0]])->is_on_edge();
+      bool node1Edge =
+          dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[1]])->is_on_edge();
 
       if (nonSmoothContact_ and (!node0Edge or !node1Edge)) continue;
 
@@ -5619,11 +5641,11 @@ void CONTACT::Interface::evaluate_lts()
 
         // create line ele:
         std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-            j, selement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+            j, source_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
         // get nodes
         std::array<Core::Nodes::Node*, 2> nodes = {
-            selement->nodes()[nodeLIds[0]], selement->nodes()[nodeLIds[1]]};
+            source_element->nodes()[nodeLIds[0]], source_element->nodes()[nodeLIds[1]]};
         lineEle->build_nodal_pointers(nodes.data());
 
         // init data container for dual shapes
@@ -5638,13 +5660,13 @@ void CONTACT::Interface::evaluate_lts()
     for (auto& lineElement : lineElements)
     {
       // create coupling object
-      LineToSurfaceCoupling3d coup(*idiscret_, 3, interface_params(), *selement, lineElement,
+      LineToSurfaceCoupling3d coup(*idiscret_, 3, interface_params(), *source_element, lineElement,
           meleElements, LineToSurfaceCoupling3d::lts);
 
       // perform evaluate!
       coup.evaluate_coupling();
     }
-  }  // slave ele loop
+  }  // source ele loop
 }
 
 /*----------------------------------------------------------------------*
@@ -5655,21 +5677,21 @@ void CONTACT::Interface::evaluate_ltl()
   // check
   if (n_dim() == 2) FOUR_C_THROW("LTL algorithm only for 3D simulations!");
 
-  // guarantee uniqueness of slave edges
+  // guarantee uniqueness of source edges
   std::set<std::pair<int, int>> donebeforeS;
 
-  // loop over slave elements
+  // loop over source elements
   for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    auto* selement = dynamic_cast<Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    auto* source_element = dynamic_cast<Element*>(ele1);
 
-    // empty vector of slave element pointers
+    // empty vector of source element pointers
     std::vector<std::shared_ptr<Mortar::Element>> lineElementsS;
 
-    if (selement->shape() == Core::FE::CellType::quad4)
+    if (source_element->shape() == Core::FE::CellType::quad4)
     {
       for (int j = 0; j < 4; ++j)
       {
@@ -5678,40 +5700,42 @@ void CONTACT::Interface::evaluate_ltl()
 
         if (j == 0)
         {
-          nodeIds[0] = selement->node_ids()[0];
-          nodeIds[1] = selement->node_ids()[1];
+          nodeIds[0] = source_element->node_ids()[0];
+          nodeIds[1] = source_element->node_ids()[1];
 
           nodeLIds[0] = 0;
           nodeLIds[1] = 1;
         }
         else if (j == 1)
         {
-          nodeIds[0] = selement->node_ids()[1];
-          nodeIds[1] = selement->node_ids()[2];
+          nodeIds[0] = source_element->node_ids()[1];
+          nodeIds[1] = source_element->node_ids()[2];
 
           nodeLIds[0] = 1;
           nodeLIds[1] = 2;
         }
         else if (j == 2)
         {
-          nodeIds[0] = selement->node_ids()[2];
-          nodeIds[1] = selement->node_ids()[3];
+          nodeIds[0] = source_element->node_ids()[2];
+          nodeIds[1] = source_element->node_ids()[3];
 
           nodeLIds[0] = 2;
           nodeLIds[1] = 3;
         }
         else if (j == 3)
         {
-          nodeIds[0] = selement->node_ids()[3];
-          nodeIds[1] = selement->node_ids()[0];
+          nodeIds[0] = source_element->node_ids()[3];
+          nodeIds[1] = source_element->node_ids()[0];
 
           nodeLIds[0] = 3;
           nodeLIds[1] = 0;
         }
 
         // check if both nodes on edge geometry
-        bool node0Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[0]])->is_on_edge();
-        bool node1Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[1]])->is_on_edge();
+        bool node0Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[0]])->is_on_edge();
+        bool node1Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[1]])->is_on_edge();
 
         if (!node0Edge or !node1Edge) continue;
 
@@ -5732,11 +5756,11 @@ void CONTACT::Interface::evaluate_ltl()
 
           // create line ele:
           std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-              j, selement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+              j, source_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
           // get nodes
           std::array<Core::Nodes::Node*, 2> nodes = {
-              selement->nodes()[nodeLIds[0]], selement->nodes()[nodeLIds[1]]};
+              source_element->nodes()[nodeLIds[0]], source_element->nodes()[nodeLIds[1]]};
           lineEle->build_nodal_pointers(nodes.data());
 
           // init data container for dual shapes
@@ -5747,7 +5771,7 @@ void CONTACT::Interface::evaluate_ltl()
         }
       }  // end edge loop
     }
-    else if (selement->shape() == Core::FE::CellType::tri3)
+    else if (source_element->shape() == Core::FE::CellType::tri3)
     {
       for (int j = 0; j < 3; ++j)
       {
@@ -5756,32 +5780,34 @@ void CONTACT::Interface::evaluate_ltl()
 
         if (j == 0)
         {
-          nodeIds[0] = selement->node_ids()[0];
-          nodeIds[1] = selement->node_ids()[1];
+          nodeIds[0] = source_element->node_ids()[0];
+          nodeIds[1] = source_element->node_ids()[1];
 
           nodeLIds[0] = 0;
           nodeLIds[1] = 1;
         }
         else if (j == 1)
         {
-          nodeIds[0] = selement->node_ids()[1];
-          nodeIds[1] = selement->node_ids()[2];
+          nodeIds[0] = source_element->node_ids()[1];
+          nodeIds[1] = source_element->node_ids()[2];
 
           nodeLIds[0] = 1;
           nodeLIds[1] = 2;
         }
         else if (j == 2)
         {
-          nodeIds[0] = selement->node_ids()[2];
-          nodeIds[1] = selement->node_ids()[0];
+          nodeIds[0] = source_element->node_ids()[2];
+          nodeIds[1] = source_element->node_ids()[0];
 
           nodeLIds[0] = 2;
           nodeLIds[1] = 0;
         }
 
         // check if both nodes on edge geometry
-        bool node0Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[0]])->is_on_edge();
-        bool node1Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[1]])->is_on_edge();
+        bool node0Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[0]])->is_on_edge();
+        bool node1Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[1]])->is_on_edge();
 
         if (!node0Edge or !node1Edge) continue;
 
@@ -5802,11 +5828,11 @@ void CONTACT::Interface::evaluate_ltl()
 
           // create line ele:
           std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-              j, selement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+              j, source_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
           // get nodes
           std::array<Core::Nodes::Node*, 2> nodes = {
-              selement->nodes()[nodeLIds[0]], selement->nodes()[nodeLIds[1]]};
+              source_element->nodes()[nodeLIds[0]], source_element->nodes()[nodeLIds[1]]};
           lineEle->build_nodal_pointers(nodes.data());
 
           // init data container for dual shapes
@@ -5822,22 +5848,22 @@ void CONTACT::Interface::evaluate_ltl()
       FOUR_C_THROW("LTL only for quad4 and tri3!");
     }
 
-    // guarantee uniqueness of master edges
+    // guarantee uniqueness of target edges
     std::set<std::pair<int, int>> donebeforeM;
 
-    // empty vector of slave element pointers
+    // empty vector of source element pointers
     std::vector<std::shared_ptr<Mortar::Element>> lineElementsM;
 
-    // loop over the candidate master elements of sele_
-    // use slave element's candidate list SearchElements !!!
-    for (int k = 0; k < selement->mo_data().num_search_elements(); ++k)
+    // loop over the candidate target elements of source_elem_
+    // use source element's candidate list SearchElements !!!
+    for (int k = 0; k < source_element->mo_data().num_search_elements(); ++k)
     {
-      int gid2 = selement->mo_data().search_elements()[k];
+      int gid2 = source_element->mo_data().search_elements()[k];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      auto* melement = dynamic_cast<Element*>(ele2);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      auto* target_element = dynamic_cast<Element*>(ele2);
 
-      if (melement->shape() == Core::FE::CellType::quad4)
+      if (target_element->shape() == Core::FE::CellType::quad4)
       {
         for (int j = 0; j < 4; ++j)
         {
@@ -5846,32 +5872,32 @@ void CONTACT::Interface::evaluate_ltl()
 
           if (j == 0)
           {
-            nodeIds[0] = melement->node_ids()[0];
-            nodeIds[1] = melement->node_ids()[1];
+            nodeIds[0] = target_element->node_ids()[0];
+            nodeIds[1] = target_element->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (j == 1)
           {
-            nodeIds[0] = melement->node_ids()[1];
-            nodeIds[1] = melement->node_ids()[2];
+            nodeIds[0] = target_element->node_ids()[1];
+            nodeIds[1] = target_element->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (j == 2)
           {
-            nodeIds[0] = melement->node_ids()[2];
-            nodeIds[1] = melement->node_ids()[3];
+            nodeIds[0] = target_element->node_ids()[2];
+            nodeIds[1] = target_element->node_ids()[3];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 3;
           }
           else if (j == 3)
           {
-            nodeIds[0] = melement->node_ids()[3];
-            nodeIds[1] = melement->node_ids()[0];
+            nodeIds[0] = target_element->node_ids()[3];
+            nodeIds[1] = target_element->node_ids()[0];
 
             nodeLIds[0] = 3;
             nodeLIds[1] = 0;
@@ -5879,9 +5905,9 @@ void CONTACT::Interface::evaluate_ltl()
 
           // check if both nodes on edge geometry
           bool node0Edge =
-              dynamic_cast<Mortar::Node*>(melement->nodes()[nodeLIds[0]])->is_on_edge();
+              dynamic_cast<Mortar::Node*>(target_element->nodes()[nodeLIds[0]])->is_on_edge();
           bool node1Edge =
-              dynamic_cast<Mortar::Node*>(melement->nodes()[nodeLIds[1]])->is_on_edge();
+              dynamic_cast<Mortar::Node*>(target_element->nodes()[nodeLIds[1]])->is_on_edge();
 
           if (!node0Edge or !node1Edge) continue;
 
@@ -5902,11 +5928,11 @@ void CONTACT::Interface::evaluate_ltl()
 
             // create line ele:
             std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-                j, melement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+                j, target_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
             // get nodes
             std::array<Core::Nodes::Node*, 2> nodes = {
-                melement->nodes()[nodeLIds[0]], melement->nodes()[nodeLIds[1]]};
+                target_element->nodes()[nodeLIds[0]], target_element->nodes()[nodeLIds[1]]};
             lineEle->build_nodal_pointers(nodes.data());
 
             // init data container for dual shapes
@@ -5917,7 +5943,7 @@ void CONTACT::Interface::evaluate_ltl()
           }
         }  // end edge loop
       }
-      else if (melement->shape() == Core::FE::CellType::tri3)
+      else if (target_element->shape() == Core::FE::CellType::tri3)
       {
         for (int j = 0; j < 3; ++j)
         {
@@ -5926,24 +5952,24 @@ void CONTACT::Interface::evaluate_ltl()
 
           if (j == 0)
           {
-            nodeIds[0] = melement->node_ids()[0];
-            nodeIds[1] = melement->node_ids()[1];
+            nodeIds[0] = target_element->node_ids()[0];
+            nodeIds[1] = target_element->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (j == 1)
           {
-            nodeIds[0] = melement->node_ids()[1];
-            nodeIds[1] = melement->node_ids()[2];
+            nodeIds[0] = target_element->node_ids()[1];
+            nodeIds[1] = target_element->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (j == 2)
           {
-            nodeIds[0] = melement->node_ids()[2];
-            nodeIds[1] = melement->node_ids()[0];
+            nodeIds[0] = target_element->node_ids()[2];
+            nodeIds[1] = target_element->node_ids()[0];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 0;
@@ -5951,9 +5977,9 @@ void CONTACT::Interface::evaluate_ltl()
 
           // check if both nodes on edge geometry
           bool node0Edge =
-              dynamic_cast<Mortar::Node*>(melement->nodes()[nodeLIds[0]])->is_on_edge();
+              dynamic_cast<Mortar::Node*>(target_element->nodes()[nodeLIds[0]])->is_on_edge();
           bool node1Edge =
-              dynamic_cast<Mortar::Node*>(melement->nodes()[nodeLIds[1]])->is_on_edge();
+              dynamic_cast<Mortar::Node*>(target_element->nodes()[nodeLIds[1]])->is_on_edge();
 
           if (!node0Edge or !node1Edge) continue;
 
@@ -5974,11 +6000,11 @@ void CONTACT::Interface::evaluate_ltl()
 
             // create line ele:
             std::shared_ptr<Mortar::Element> lineEle = std::make_shared<Mortar::Element>(
-                j, melement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+                j, target_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
             // get nodes
             std::array<Core::Nodes::Node*, 2> nodes = {
-                melement->nodes()[nodeLIds[0]], melement->nodes()[nodeLIds[1]]};
+                target_element->nodes()[nodeLIds[0]], target_element->nodes()[nodeLIds[1]]};
             lineEle->build_nodal_pointers(nodes.data());
 
             // init data container for dual shapes
@@ -5993,12 +6019,12 @@ void CONTACT::Interface::evaluate_ltl()
       {
         FOUR_C_THROW("LTL only for quad4 and tri3!");
       }
-    }  // end found mele loop
+    }  // end found target_elem loop
 
-    // loop over slave edges
+    // loop over source edges
     for (auto& s : lineElementsS)
     {
-      // loop over master edges
+      // loop over target edges
       for (auto& m : lineElementsM)
       {
         // create coupling object
@@ -6009,7 +6035,7 @@ void CONTACT::Interface::evaluate_ltl()
       }
     }
 
-  }  // end slave loop
+  }  // end source loop
 }
 
 
@@ -6021,7 +6047,7 @@ void CONTACT::Interface::evaluate_nts()
   // create one interpolator instance which is valid for all nodes!
   NTS::Interpolator interpolator(interface_params(), n_dim());
 
-  // loop over slave nodes
+  // loop over source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -6034,40 +6060,41 @@ void CONTACT::Interface::evaluate_nts()
     if (mrtrnode->owner() != Core::Communication::my_mpi_rank(get_comm()))
       FOUR_C_THROW("Node ownership inconsistency!");
 
-    // vector with possible contacting master eles
-    std::vector<Mortar::Element*> meles;
+    // vector with possible contacting target eles
+    std::vector<Mortar::Element*> target_elems;
 
-    // fill vector with possibly contacting meles
-    find_master_elements(*mrtrnode, meles);
+    // fill vector with possibly contacting target_elems
+    find_target_elements(*mrtrnode, target_elems);
 
-    // skip calculation if no meles vector is empty
-    if (meles.size() < 1) continue;
+    // skip calculation if no target_elems vector is empty
+    if (target_elems.size() < 1) continue;
 
     // call interpolation functions
-    interpolator.interpolate(*mrtrnode, meles);
+    interpolator.interpolate(*mrtrnode, target_elems);
   }
 }
 
 
 /*----------------------------------------------------------------------*
- |  Integrate matrix M and gap g on slave/master overlaps     popp 11/08|
+ |  Integrate matrix M and gap g on source/target overlaps     popp 11/08|
  *----------------------------------------------------------------------*/
-bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mortar::Element*> mele,
+bool CONTACT::Interface::mortar_coupling(Mortar::Element* source_elem,
+    std::vector<Mortar::Element*> target_elem,
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
   // do stuff before the actual coupling is going to be evaluated
-  pre_mortar_coupling(sele, mele, mparams_ptr);
+  pre_mortar_coupling(source_elem, target_elem, mparams_ptr);
 
-  // increase counter of slave/master pairs
-  smpairs_ += (int)mele.size();
+  // increase counter of source/target pairs
+  source_target_pairs_ += (int)target_elem.size();
 
   // check if quadratic interpolation is involved
   bool quadratic = false;
-  if (sele->is_quad())
+  if (source_elem->is_quad())
   {
     quadratic = true;
   }
-  for (auto& m : mele)
+  for (auto& m : target_elem)
   {
     if (m->is_quad())
     {
@@ -6077,7 +6104,7 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
 
   // *********************************************************************
   // do interface coupling within a new class
-  // (projection slave and master, overlap detection, integration and
+  // (projection source and target, overlap detection, integration and
   // linearization of the Mortar matrix M)
   // ************************************************************** 2D ***
   if (n_dim() == 2)
@@ -6088,13 +6115,14 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
     // interpolation need any special treatment in the 2d case
 
     // create Coupling2dManager
-    CONTACT::Coupling2dManager coup(discret(), n_dim(), quadratic, interface_params(), sele, mele);
+    CONTACT::Coupling2dManager coup(
+        discret(), n_dim(), quadratic, interface_params(), source_elem, target_elem);
     // evaluate
     coup.evaluate_coupling(mparams_ptr);
 
-    // increase counter of slave/master integration pairs and intcells
-    smintpairs_ += (int)mele.size();
-    intcells_ += (int)mele.size();
+    // increase counter of source/target integration pairs and intcells
+    source_target_int_pairs_ += (int)target_elem.size();
+    intcells_ += (int)target_elem.size();
   }
   // ************************************************************** 3D ***
   else if (n_dim() == 3)
@@ -6104,12 +6132,12 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
     {
       // create Coupling3dManager
       CONTACT::Coupling3dManager coup(
-          discret(), n_dim(), quadratic, interface_params(), sele, mele);
+          discret(), n_dim(), quadratic, interface_params(), source_elem, target_elem);
       // evaluate
       coup.evaluate_coupling(mparams_ptr);
 
-      // increase counter of slave/master integration pairs and intcells
-      smintpairs_ += (int)mele.size();
+      // increase counter of source/target integration pairs and intcells
+      source_target_int_pairs_ += (int)target_elem.size();
       intcells_ += coup.integration_cells();
     }
 
@@ -6118,7 +6146,7 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
     {
       // create Coupling3dQuadManager
       CONTACT::Coupling3dQuadManager coup(
-          discret(), n_dim(), quadratic, interface_params(), sele, mele);
+          discret(), n_dim(), quadratic, interface_params(), source_elem, target_elem);
       // evaluate
       coup.evaluate_coupling(mparams_ptr);
     }  // quadratic
@@ -6130,7 +6158,7 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
   // *********************************************************************
 
   // do stuff after the coupling evaluation
-  post_mortar_coupling(sele, mele, mparams_ptr);
+  post_mortar_coupling(source_elem, target_elem, mparams_ptr);
 
   return true;
 }
@@ -6138,49 +6166,50 @@ bool CONTACT::Interface::mortar_coupling(Mortar::Element* sele, std::vector<Mort
 /*----------------------------------------------------------------------*
  |  Integrate penalty scaling factor kapp (public)            popp 11/09|
  *----------------------------------------------------------------------*/
-bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& sele)
+bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& source_elem)
 {
   // create correct integration limits
-  double sxia[2] = {0.0, 0.0};
-  double sxib[2] = {0.0, 0.0};
-  if (sele.shape() == Core::FE::CellType::tri3 || sele.shape() == Core::FE::CellType::tri6)
+  double source_xi_a[2] = {0.0, 0.0};
+  double source_xi_b[2] = {0.0, 0.0};
+  if (source_elem.shape() == Core::FE::CellType::tri3 ||
+      source_elem.shape() == Core::FE::CellType::tri6)
   {
     // parameter space is [0,1] for triangles
-    sxib[0] = 1.0;
-    sxib[1] = 1.0;
+    source_xi_b[0] = 1.0;
+    source_xi_b[1] = 1.0;
   }
   else
   {
     // parameter space is [-1,1] for quadrilaterals
-    sxia[0] = -1.0;
-    sxia[1] = -1.0;
-    sxib[0] = 1.0;
-    sxib[1] = 1.0;
+    source_xi_a[0] = -1.0;
+    source_xi_a[1] = -1.0;
+    source_xi_b[0] = 1.0;
+    source_xi_b[1] = 1.0;
   }
 
   // ************************************************** quadratic 3D ***
-  if (n_dim() == 3 && sele.is_quad())
+  if (n_dim() == 3 && source_elem.is_quad())
   {
     // get LM interpolation and testing type
     auto lmtype = Teuchos::getIntegralValue<Mortar::LagMultQuad>(interface_params(), "LM_QUAD");
 
     // build linear integration elements from quadratic CElements
     std::vector<std::shared_ptr<Mortar::IntElement>> sauxelements;
-    split_int_elements(sele, sauxelements);
+    split_int_elements(source_elem, sauxelements);
 
     // different options for mortar integration
     if (lmtype == Mortar::lagmult_quad || lmtype == Mortar::lagmult_lin)
     {
       // do the element integration of kappa and store into gap
-      int nrow = sele.num_node();
+      int nrow = source_elem.num_node();
       Core::LinAlg::SerialDenseVector gseg(nrow);
 
       // create a CONTACT integrator instance with correct num_gp and Dim
-      CONTACT::Integrator integrator(imortar_, sele.shape(), get_comm());
-      integrator.integrate_kappa_penalty(sele, sxia, sxib, gseg);
+      CONTACT::Integrator integrator(imortar_, source_elem.shape(), get_comm());
+      integrator.integrate_kappa_penalty(source_elem, source_xi_a, source_xi_b, gseg);
 
-      // do the assembly into the slave nodes
-      integrator.assemble_g(get_comm(), sele, gseg);
+      // do the assembly into the source nodes
+      integrator.assemble_g(get_comm(), source_elem, gseg);
     }
     else if (lmtype == Mortar::lagmult_pwlin)
     {
@@ -6193,9 +6222,10 @@ bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& sele)
 
         // create a CONTACT integrator instance with correct num_gp and Dim
         CONTACT::Integrator integrator(imortar_, sauxelement->shape(), get_comm());
-        integrator.integrate_kappa_penalty(sele, *sauxelement, sxia, sxib, gseg);
+        integrator.integrate_kappa_penalty(
+            source_elem, *sauxelement, source_xi_a, source_xi_b, gseg);
 
-        // do the assembly into the slave nodes
+        // do the assembly into the source nodes
         integrator.assemble_g(get_comm(), *sauxelement, gseg);
       }
     }
@@ -6209,22 +6239,22 @@ bool CONTACT::Interface::integrate_kappa_penalty(CONTACT::Element& sele)
   else
   {
     // do the element integration of kappa and store into gap
-    int nrow = sele.num_node();
+    int nrow = source_elem.num_node();
     Core::LinAlg::SerialDenseVector gseg(nrow);
 
     // create a CONTACT integrator instance with correct num_gp and Dim
-    CONTACT::Integrator integrator(imortar_, sele.shape(), get_comm());
-    integrator.integrate_kappa_penalty(sele, sxia, sxib, gseg);
+    CONTACT::Integrator integrator(imortar_, source_elem.shape(), get_comm());
+    integrator.integrate_kappa_penalty(source_elem, source_xi_a, source_xi_b, gseg);
 
-    // do the assembly into the slave nodes
-    integrator.assemble_g(get_comm(), sele, gseg);
+    // do the assembly into the source nodes
+    integrator.assemble_g(get_comm(), source_elem, gseg);
   }
 
   return true;
 }
 
 /*----------------------------------------------------------------------*
- |  Evaluate relative movement (jump) of a slave node     gitterle 10/09|
+ |  Evaluate relative movement (jump) of a source node     gitterle 10/09|
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::evaluate_relative_movement(
     const std::shared_ptr<Core::LinAlg::Vector<double>> xsmod,
@@ -6241,10 +6271,10 @@ void CONTACT::Interface::evaluate_relative_movement(
   // parameters
   double pp = interface_params().get<double>("PENALTYPARAM");
 
-  // loop over all slave row nodes on the current interface
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  // loop over all source row nodes on the current interface
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     auto* cnode = dynamic_cast<FriNode*>(node);
@@ -6315,40 +6345,40 @@ void CONTACT::Interface::evaluate_relative_movement(
       Core::Gen::Pairedvector<int, double>& dmap = cnode->mo_data().get_d();
       Core::Gen::Pairedvector<int, double>& dmapold = cnode->fri_data().get_d_old();
 
-      std::set<int> snodes = cnode->fri_data().get_s_nodes();
+      std::set<int> source_nodes = cnode->fri_data().get_source_nodes();
 
       // check if there are entries in the old D map
       if (dmapold.size() < 1)
         FOUR_C_THROW("Error in Interface::evaluate_relative_movement(): No old D-Map!");
 
       std::map<int, double>::iterator colcurr;
-      std::set<int>::iterator scurr;
+      std::set<int>::iterator s_curr;
 
-      // loop over all slave nodes with an entry adjacent to this node
-      for (scurr = snodes.begin(); scurr != snodes.end(); scurr++)
+      // loop over all source nodes with an entry adjacent to this node
+      for (s_curr = source_nodes.begin(); s_curr != source_nodes.end(); s_curr++)
       {
-        int gid = *scurr;
-        Core::Nodes::Node* snode = idiscret_->g_node(gid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        int gid = *s_curr;
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
-        double dik = dmap[csnode->id()];
-        double dikold = dmapold[csnode->id()];
+        double dik = dmap[c_source_node->id()];
+        double dikold = dmapold[c_source_node->id()];
 
-        std::map<int, double>::iterator mcurr;
+        std::map<int, double>::iterator t_curr;
 
-        for (int dim = 0; dim < csnode->num_dof(); ++dim)
+        for (int dim = 0; dim < c_source_node->num_dof(); ++dim)
         {
-          int locid = (xsmod->get_map()).lid(csnode->dofs()[dim]);
+          int locid = (xsmod->get_map()).lid(c_source_node->dofs()[dim]);
           jump[dim] -= (dik - dikold) * xsmod->local_values_as_span()[locid];
         }
-      }  //  loop over adjacent slave nodes
+      }  //  loop over adjacent source nodes
 
       std::map<int, double>& mmap = cnode->mo_data().get_m();
       std::map<int, double>& mmapold = cnode->fri_data().get_m_old();
 
-      const std::set<int>& mnodescurrent = cnode->fri_data().get_m_nodes();
-      const std::set<int>& mnodesold = cnode->fri_data().get_m_nodes_old();
+      const std::set<int>& target_nodes_current = cnode->fri_data().get_target_nodes();
+      const std::set<int>& target_nodes_old = cnode->fri_data().get_target_nodes_old();
 
       // check if there are entries in the M map
       if (mmap.size() < 1)
@@ -6362,39 +6392,40 @@ void CONTACT::Interface::evaluate_relative_movement(
         FOUR_C_THROW("Error in Interface::evaluate_relative_movement(): No old M-Map!");
       }
 
-      if (mnodesold.size() < 1)
+      if (target_nodes_old.size() < 1)
       {
         FOUR_C_THROW("Error in Interface::evaluate_relative_movement(): No old M-Set!");
       }
 
-      std::set<int> mnodes;
-      std::set<int>::iterator mcurr;
+      std::set<int> target_nodes;
+      std::set<int>::iterator t_curr;
 
-      for (mcurr = mnodescurrent.begin(); mcurr != mnodescurrent.end(); mcurr++)
+      for (t_curr = target_nodes_current.begin(); t_curr != target_nodes_current.end(); t_curr++)
       {
-        mnodes.insert(*mcurr);
+        target_nodes.insert(*t_curr);
       }
 
-      for (mcurr = mnodesold.begin(); mcurr != mnodesold.end(); mcurr++) mnodes.insert(*mcurr);
+      for (t_curr = target_nodes_old.begin(); t_curr != target_nodes_old.end(); t_curr++)
+        target_nodes.insert(*t_curr);
 
-      // loop over all master nodes (find adjacent ones to this slip node)
-      for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+      // loop over all target nodes (find adjacent ones to this slip node)
+      for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
       {
-        int gid = *mcurr;
-        Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        int gid = *t_curr;
+        Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
-        double mik = mmap[cmnode->id()];
-        double mikold = mmapold[cmnode->id()];
+        double mik = mmap[c_target_node->id()];
+        double mikold = mmapold[c_target_node->id()];
 
-        std::map<int, double>::iterator mcurr;
+        std::map<int, double>::iterator t_curr;
 
         for (int dim = 0; dim < cnode->num_dof(); ++dim)
         {
-          jump[dim] += (mik - mikold) * (cmnode->xspatial()[dim]);
+          jump[dim] += (mik - mikold) * (c_target_node->xspatial()[dim]);
         }
-      }  //  loop over master nodes
+      }  //  loop over target nodes
 
       // write it to nodes
       for (int dim = 0; dim < n_dim(); dim++) cnode->fri_data().jump()[dim] = jump[dim];
@@ -6412,20 +6443,20 @@ void CONTACT::Interface::evaluate_relative_movement(
 
       if (dmatrixmod == nullptr)
       {
-        // loop over according slave nodes
-        for (scurr = snodes.begin(); scurr != snodes.end(); scurr++)
+        // loop over according source nodes
+        for (s_curr = source_nodes.begin(); s_curr != source_nodes.end(); s_curr++)
         {
-          int gid = *scurr;
-          Core::Nodes::Node* snode = idiscret_->g_node(gid);
-          if (!snode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          Node* csnode = dynamic_cast<Node*>(snode);
+          int gid = *s_curr;
+          Core::Nodes::Node* source_node = idiscret_->g_node(gid);
+          if (!source_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          Node* c_source_node = dynamic_cast<Node*>(source_node);
 
-          double dik = dmap[csnode->id()];
-          double dikold = dmapold[csnode->id()];
+          double dik = dmap[c_source_node->id()];
+          double dikold = dmapold[c_source_node->id()];
 
           for (int dimrow = 0; dimrow < cnode->num_dof(); ++dimrow)
           {
-            int col = csnode->dofs()[dimrow];
+            int col = c_source_node->dofs()[dimrow];
             double val = -(dik - dikold);
             if (abs(val) > 1e-14) cnode->add_deriv_jump_value(dimrow, col, val);
           }
@@ -6484,20 +6515,20 @@ void CONTACT::Interface::evaluate_relative_movement(
       }
 
       /*** 02  **********************************************************/
-      // loop over according master nodes
-      for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+      // loop over according target nodes
+      for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
       {
-        int gid = *mcurr;
-        Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        int gid = *t_curr;
+        Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
-        double mik = mmap[cmnode->id()];
-        double mikold = mmapold[cmnode->id()];
+        double mik = mmap[c_target_node->id()];
+        double mikold = mmapold[c_target_node->id()];
 
         for (int dimrow = 0; dimrow < cnode->num_dof(); ++dimrow)
         {
-          int col = cmnode->dofs()[dimrow];
+          int col = c_target_node->dofs()[dimrow];
           double val = (mik - mikold);
           if (abs(val) > 1e-14) cnode->add_deriv_jump_value(dimrow, col, val);
         }
@@ -6508,15 +6539,15 @@ void CONTACT::Interface::evaluate_relative_movement(
       std::map<int, std::map<int, double>>& ddmap = cnode->data().get_deriv_d();
       std::map<int, std::map<int, double>>::iterator dscurr;
 
-      // loop over all slave nodes in the DerivM-map of the stick slave node
+      // loop over all source nodes in the DerivM-map of the stick source node
       for (dscurr = ddmap.begin(); dscurr != ddmap.end(); ++dscurr)
       {
         int gid = dscurr->first;
-        Core::Nodes::Node* snode = idiscret_->g_node(gid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
-        // compute entry of the current stick node / slave node pair
+        // compute entry of the current stick node / source node pair
         std::map<int, double>& thisdmmap = cnode->data().get_deriv_d(gid);
 
         // loop over all entries of the current derivative map
@@ -6527,7 +6558,7 @@ void CONTACT::Interface::evaluate_relative_movement(
           // loop over dimensions
           for (int dim = 0; dim < cnode->num_dof(); ++dim)
           {
-            int locid = (xsmod->get_map()).lid(csnode->dofs()[dim]);
+            int locid = (xsmod->get_map()).lid(c_source_node->dofs()[dim]);
             double val = -colcurr->second * xsmod->local_values_as_span()[locid];
             if (abs(val) > 1e-14) cnode->add_deriv_jump_value(dim, col, val);
           }
@@ -6539,16 +6570,16 @@ void CONTACT::Interface::evaluate_relative_movement(
       std::map<int, std::map<int, double>>& dmmap = cnode->data().get_deriv_m();
       std::map<int, std::map<int, double>>::iterator dmcurr;
 
-      // loop over all master nodes in the DerivM-map of the stick slave node
+      // loop over all target nodes in the DerivM-map of the stick source node
       for (dmcurr = dmmap.begin(); dmcurr != dmmap.end(); ++dmcurr)
       {
         int gid = dmcurr->first;
-        Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
-        double* mxi = cmnode->xspatial();
+        Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
+        double* target_xi = c_target_node->xspatial();
 
-        // compute entry of the current stick node / master node pair
+        // compute entry of the current stick node / target node pair
         std::map<int, double>& thisdmmap = cnode->data().get_deriv_m(gid);
 
         // loop over all entries of the current derivative map
@@ -6559,7 +6590,7 @@ void CONTACT::Interface::evaluate_relative_movement(
           // loop over dimensions
           for (int dimrow = 0; dimrow < cnode->num_dof(); ++dimrow)
           {
-            double val = colcurr->second * mxi[dimrow];
+            double val = colcurr->second * target_xi[dimrow];
             if (abs(val) > 1e-14) cnode->add_deriv_jump_value(dimrow, col, val);
           }
         }
@@ -6578,7 +6609,7 @@ void CONTACT::Interface::evaluate_relative_movement(
       }
 
     }  // active nodes
-  }  // loop over slave nodes
+  }  // loop over source nodes
 }
 
 /*----------------------------------------------------------------------*
@@ -6603,7 +6634,7 @@ void CONTACT::Interface::evaluate_distances(
   // create normals
   pre_evaluate(-1, -1);  // dummy values
 
-  // loop over proc's slave elements of the interface for integration
+  // loop over proc's source elements of the interface for integration
   // use standard column map to include processor's ghosted elements
   Core::Communication::barrier(get_comm());
 
@@ -6611,49 +6642,49 @@ void CONTACT::Interface::evaluate_distances(
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    auto* selement = dynamic_cast<CONTACT::Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    auto* source_element = dynamic_cast<CONTACT::Element*>(ele1);
 
-    if (selement->mo_data().num_search_elements() < 1)
+    if (source_element->mo_data().num_search_elements() < 1)
     {
       std::cout << "WARNING: No elements found!" << '\n';
       continue;
     }
 
-    // skip zero-sized nurbs elements (slave)
-    if (selement->zero_sized()) continue;
+    // skip zero-sized nurbs elements (source)
+    if (source_element->zero_sized()) continue;
 
-    // empty vector of master element pointers
+    // empty vector of target element pointers
     std::vector<CONTACT::Element*> melements;
 
-    // loop over the candidate master elements of sele_
-    // use slave element's candidate list SearchElements !!!
-    for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+    // loop over the candidate target elements of source_elem_
+    // use source element's candidate list SearchElements !!!
+    for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
     {
-      int gid2 = selement->mo_data().search_elements()[j];
+      int gid2 = source_element->mo_data().search_elements()[j];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      auto* melement = dynamic_cast<CONTACT::Element*>(ele2);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      auto* target_element = dynamic_cast<CONTACT::Element*>(ele2);
 
-      // skip zero-sized nurbs elements (master)
-      if (melement->zero_sized()) continue;
+      // skip zero-sized nurbs elements (target)
+      if (target_element->zero_sized()) continue;
 
-      melements.push_back(melement);
+      melements.push_back(target_element);
     }
 
     //**************************************************************
-    //                loop over all Slave nodes
+    //                loop over all Source nodes
     //**************************************************************
-    for (int snodes = 0; snodes < selement->num_node(); ++snodes)
+    for (int source_nodes = 0; source_nodes < source_element->num_node(); ++source_nodes)
     {
-      auto* mynode = dynamic_cast<CONTACT::Node*>(selement->nodes()[snodes]);
+      auto* mynode = dynamic_cast<CONTACT::Node*>(source_element->nodes()[source_nodes]);
 
       // skip this node if already considered
       if (mynode->has_proj()) continue;
 
       //                store node normals
       //**************************************************************
-      //      int gid = snoderowmapbound_->GID(snodes);
+      //      int gid = snoderowmapbound_->GID(source_nodes);
       int gid = mynode->id();
 
       int numdofs = mynode->num_dof();
@@ -6667,95 +6698,95 @@ void CONTACT::Interface::evaluate_distances(
           gid, mynode->data().get_deriv_n()));
 
       //**************************************************************
-      double sxi[2] = {0.0, 0.0};
+      double source_xi[2] = {0.0, 0.0};
 
-      if (selement->shape() == Core::FE::CellType::quad4 or
-          selement->shape() == Core::FE::CellType::quad8 or
-          selement->shape() == Core::FE::CellType::quad9)
+      if (source_element->shape() == Core::FE::CellType::quad4 or
+          source_element->shape() == Core::FE::CellType::quad8 or
+          source_element->shape() == Core::FE::CellType::quad9)
       {
         // TODO (pfaller): switch case
-        if (snodes == 0)
+        if (source_nodes == 0)
         {
-          sxi[0] = -1;
-          sxi[1] = -1;
+          source_xi[0] = -1;
+          source_xi[1] = -1;
         }
-        else if (snodes == 1)
+        else if (source_nodes == 1)
         {
-          sxi[0] = 1;
-          sxi[1] = -1;
+          source_xi[0] = 1;
+          source_xi[1] = -1;
         }
-        else if (snodes == 2)
+        else if (source_nodes == 2)
         {
-          sxi[0] = 1;
-          sxi[1] = 1;
+          source_xi[0] = 1;
+          source_xi[1] = 1;
         }
-        else if (snodes == 3)
+        else if (source_nodes == 3)
         {
-          sxi[0] = -1;
-          sxi[1] = 1;
+          source_xi[0] = -1;
+          source_xi[1] = 1;
         }
-        else if (snodes == 4)
+        else if (source_nodes == 4)
         {
-          sxi[0] = 0;
-          sxi[1] = -1;
+          source_xi[0] = 0;
+          source_xi[1] = -1;
         }
-        else if (snodes == 5)
+        else if (source_nodes == 5)
         {
-          sxi[0] = 1;
-          sxi[1] = 0;
+          source_xi[0] = 1;
+          source_xi[1] = 0;
         }
-        else if (snodes == 6)
+        else if (source_nodes == 6)
         {
-          sxi[0] = 0;
-          sxi[1] = 1;
+          source_xi[0] = 0;
+          source_xi[1] = 1;
         }
-        else if (snodes == 7)
+        else if (source_nodes == 7)
         {
-          sxi[0] = -1;
-          sxi[1] = 0;
+          source_xi[0] = -1;
+          source_xi[1] = 0;
         }
-        else if (snodes == 8)
+        else if (source_nodes == 8)
         {
-          sxi[0] = 0;
-          sxi[1] = 0;
+          source_xi[0] = 0;
+          source_xi[1] = 0;
         }
         else
         {
           FOUR_C_THROW("ERROR: wrong node LID");
         }
       }
-      else if (selement->shape() == Core::FE::CellType::tri3 or
-               selement->shape() == Core::FE::CellType::tri6)
+      else if (source_element->shape() == Core::FE::CellType::tri3 or
+               source_element->shape() == Core::FE::CellType::tri6)
       {
-        if (snodes == 0)
+        if (source_nodes == 0)
         {
-          sxi[0] = 0;
-          sxi[1] = 0;
+          source_xi[0] = 0;
+          source_xi[1] = 0;
         }
-        else if (snodes == 1)
+        else if (source_nodes == 1)
         {
-          sxi[0] = 1;
-          sxi[1] = 0;
+          source_xi[0] = 1;
+          source_xi[1] = 0;
         }
-        else if (snodes == 2)
+        else if (source_nodes == 2)
         {
-          sxi[0] = 0;
-          sxi[1] = 1;
+          source_xi[0] = 0;
+          source_xi[1] = 1;
         }
-        else if (snodes == 3)
+        else if (source_nodes == 3)
         {
-          sxi[0] = 0.5;
-          sxi[1] = 0;
+          source_xi[0] = 0.5;
+          source_xi[1] = 0;
         }
-        else if (snodes == 4)
+        else if (source_nodes == 4)
         {
-          sxi[0] = 0.5;
-          sxi[1] = 0.5;
+          source_xi[0] = 0.5;
+          source_xi[1] = 0.5;
         }
-        else if (snodes == 5)
+        else if (source_nodes == 5)
         {
-          sxi[0] = 0;
-          sxi[1] = 0.5;
+          source_xi[0] = 0;
+          source_xi[1] = 0.5;
         }
         else
         {
@@ -6768,67 +6799,72 @@ void CONTACT::Interface::evaluate_distances(
       }
 
       //**************************************************************
-      //                loop over all Master Elements
+      //                loop over all Target Elements
       //**************************************************************
-      // create vectors to store projection information for several master elements in case
+      // create vectors to store projection information for several target elements in case
       // projection is not unique
       std::vector<double> gap_vec;
       std::vector<std::map<int, double>> dgap_vec;
 
-      for (auto& melement : melements)
+      for (auto& target_element : melements)
       {
-        // project Gauss point onto master element
-        double mxi[2] = {0.0, 0.0};
+        // project Gauss point onto target element
+        double target_xi[2] = {0.0, 0.0};
         double projalpha = 0.0;
-        bool is_projected = Mortar::Projector::impl(*selement, *melement)
-                                ->project_gauss_point_3d(*selement, sxi, *melement, mxi, projalpha);
+        bool is_projected = Mortar::Projector::impl(*source_element, *target_element)
+                                ->project_gauss_point_3d(*source_element, source_xi,
+                                    *target_element, target_xi, projalpha);
 
         bool is_on_mele = true;
 
         // check GP projection
-        Core::FE::CellType dt = melement->shape();
+        Core::FE::CellType dt = target_element->shape();
         const double tol = 1e-8;
         if (dt == Core::FE::CellType::quad4 || dt == Core::FE::CellType::quad8 ||
             dt == Core::FE::CellType::quad9)
         {
-          if (mxi[0] < -1.0 - tol || mxi[1] < -1.0 - tol || mxi[0] > 1.0 + tol ||
-              mxi[1] > 1.0 + tol)
+          if (target_xi[0] < -1.0 - tol || target_xi[1] < -1.0 - tol || target_xi[0] > 1.0 + tol ||
+              target_xi[1] > 1.0 + tol)
           {
             is_on_mele = false;
           }
         }
         else
         {
-          if (mxi[0] < -tol || mxi[1] < -tol || mxi[0] > 1.0 + tol || mxi[1] > 1.0 + tol ||
-              mxi[0] + mxi[1] > 1.0 + 2 * tol)
+          if (target_xi[0] < -tol || target_xi[1] < -tol || target_xi[0] > 1.0 + tol ||
+              target_xi[1] > 1.0 + tol || target_xi[0] + target_xi[1] > 1.0 + 2 * tol)
           {
             is_on_mele = false;
           }
         }
 
-        // node on mele?
+        // node on target_elem?
         if (is_on_mele && is_projected)
         {
           // store information of projection so that this node is not considered again
           mynode->has_proj() = true;
 
           int ndof = 3;
-          int ncol = melement->num_node();
-          Core::LinAlg::SerialDenseVector mval(ncol);
-          Core::LinAlg::SerialDenseMatrix mderiv(ncol, 2);
-          melement->evaluate_shape(mxi, mval, mderiv, ncol, false);
+          int ncol = target_element->num_node();
+          Core::LinAlg::SerialDenseVector target_val(ncol);
+          Core::LinAlg::SerialDenseMatrix target_deriv(ncol, 2);
+          target_element->evaluate_shape(target_xi, target_val, target_deriv, ncol, false);
 
           //          int linsize    = mynode->GetLinsize();
           int linsize = 100;
           double gpn[3] = {0.0, 0.0, 0.0};
           //**************************************************************
 
-          // evaluate the GP slave coordinate derivatives --> no entries
-          std::vector<Core::Gen::Pairedvector<int, double>> dsxi(2, 0);
-          std::vector<Core::Gen::Pairedvector<int, double>> dmxi(2, 4 * linsize + ncol * ndof);
+          // evaluate the GP source coordinate derivatives --> no entries
+          std::vector<Core::Gen::Pairedvector<int, double>> d_source_xi(2, 0);
+          std::vector<Core::Gen::Pairedvector<int, double>> d_target_xi(
+              2, 4 * linsize + ncol * ndof);
 
-          (interpolator).deriv_xi_gp_3d(*selement, *melement, sxi, mxi, dsxi, dmxi, projalpha);
-          (interpolator).nw_gap_3d(*mynode, *melement, mval, mderiv, dmxi, gpn);
+          (interpolator)
+              .deriv_xi_gp_3d(*source_element, *target_element, source_xi, target_xi, d_source_xi,
+                  d_target_xi, projalpha);
+          (interpolator)
+              .nw_gap_3d(*mynode, *target_element, target_val, target_deriv, d_target_xi, gpn);
 
           // store linearization for node
           std::map<int, double> dgap = mynode->data().get_deriv_gnts();  // (dof,value)
@@ -6841,7 +6877,7 @@ void CONTACT::Interface::evaluate_distances(
           mynode->data().getgnts() = 1.0e12;
           (mynode->data().get_deriv_gnts()).clear();
         }  // End hit ele
-      }  // End Loop over all Master Elements
+      }  // End Loop over all Target Elements
 
       if (gap_vec.size() > 0)
       {
@@ -6867,10 +6903,10 @@ void CONTACT::Interface::evaluate_tangent_norm(double& cnormtan)
   // friction coefficient
   double frcoeff = interface_params().get<double>("FRCOEFF");
 
-  // loop over all slave row nodes on the current interface
-  for (int i = 0; i < slave_row_nodes()->num_my_elements(); ++i)
+  // loop over all source row nodes on the current interface
+  for (int i = 0; i < source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = slave_row_nodes()->gid(i);
+    int gid = source_row_nodes()->gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     auto* cnode = dynamic_cast<FriNode*>(node);
@@ -6949,7 +6985,7 @@ void CONTACT::Interface::evaluate_tangent_norm(double& cnormtan)
       jumpnorm = sqrt(jumpnorm);
       cnormtan += (part1 - frcoeff * forcen * jumpnorm) * (part1 - frcoeff * forcen * jumpnorm);
     }
-  }  // loop over slave nodes
+  }  // loop over source nodes
 
   // get cnorm from all procs
   double sumcnormtanallprocs = 0.0;
@@ -6974,10 +7010,10 @@ bool CONTACT::Interface::update_active_set_semi_smooth()
   // assume that active set has converged and check for opposite
   int localcheck = true;
 
-  // loop over all slave nodes on the current interface
-  for (int j = 0; j < slave_row_nodes()->num_my_elements(); ++j)
+  // loop over all source nodes on the current interface
+  for (int j = 0; j < source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_row_nodes()->gid(j);
+    int gid = source_row_nodes()->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
 
@@ -7171,7 +7207,7 @@ bool CONTACT::Interface::update_active_set_semi_smooth()
         }  // if (ftype == CONTACT::FrictionType::coulomb)
       }  // if (nz - cn*wgap <= 0)
     }  // if (cnode->Active()==false)
-  }  // loop over all slave nodes
+  }  // loop over all source nodes
 
   // broadcast convergence status among processors
   int convcheck = 0;
@@ -7184,14 +7220,14 @@ bool CONTACT::Interface::update_active_set_semi_smooth()
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::update_active_set_initial_status() const
 {
-  // List of GIDs of all my slave row nodes
-  int* my_slave_row_node_gids = slave_row_nodes()->my_global_elements();
+  // List of GIDs of all my source row nodes
+  int* my_source_row_node_gids = source_row_nodes()->my_global_elements();
 
-  // loop over all slave nodes on the current interface
-  for (int j = 0; j < slave_row_nodes()->num_my_elements(); ++j)
+  // loop over all source nodes on the current interface
+  for (int j = 0; j < source_row_nodes()->num_my_elements(); ++j)
   {
-    // Grab the current slave node
-    const int gid = my_slave_row_node_gids[j];
+    // Grab the current source node
+    const int gid = my_source_row_node_gids[j];
     Node* cnode = dynamic_cast<Node*>(discret().g_node(gid));
     if (!cnode) FOUR_C_THROW("Cannot find node with gid %", gid);
 
@@ -7214,7 +7250,7 @@ bool CONTACT::Interface::build_active_set(bool init)
   std::vector<int> mymnodegids;
   std::vector<int> mymdofgids;
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -7450,10 +7486,10 @@ const CONTACT::Interface& CONTACT::Interface::get_ma_sharing_ref_interface() con
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::store_to_old(Mortar::StrategyBase::QuantityType type)
 {
-  // loop over all slave row nodes on the current interface
-  for (int j = 0; j < slave_col_nodes()->num_my_elements(); ++j)
+  // loop over all source row nodes on the current interface
+  for (int j = 0; j < source_col_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_col_nodes()->gid(j);
+    int gid = source_col_nodes()->gid(j);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
 
@@ -7504,14 +7540,14 @@ void CONTACT::Interface::update_self_contact_lag_mult_set(
 
   for (int i = 0; i < num_sgids; ++i)
   {
-    const int sgid = sgids[i];
-    const int ref_lid = gref_smmap.lid(sgid);
+    const int s_gid = sgids[i];
+    const int ref_lid = gref_smmap.lid(s_gid);
     if (ref_lid == -1)
     {
       FOUR_C_THROW(
-          "Couldn't find the current slave gid #{} in the reference self "
-          "contact slave master map.",
-          sgid);
+          "Couldn't find the current source gid #{} in the reference self "
+          "contact source target map.",
+          s_gid);
     }
     lmdofs.push_back(ref_lmgids[ref_lid]);
   }
@@ -7585,8 +7621,8 @@ void CONTACT::Interface::postprocess_quantities(const Teuchos::ParameterList& ou
     requiredEntries.emplace_back("time");
     requiredEntries.emplace_back("displacement");
     requiredEntries.emplace_back("interface traction");
-    requiredEntries.emplace_back("slave forces");
-    requiredEntries.emplace_back("master forces");
+    requiredEntries.emplace_back("source forces");
+    requiredEntries.emplace_back("target forces");
 
     check_output_list(outputParams, requiredEntries);
   }
@@ -7662,45 +7698,45 @@ void CONTACT::Interface::postprocess_quantities(const Teuchos::ParameterList& ou
     writer->write_vector("tancontactstress", iTangentialStresses, Core::IO::VectorType::dofvector);
   }
 
-  // Write nodal forces of slave side
+  // Write nodal forces of source side
   {
     // Get nodal forces
-    std::shared_ptr<const Core::LinAlg::Vector<double>> slaveforces =
-        outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("slave forces");
+    std::shared_ptr<const Core::LinAlg::Vector<double>> sourceforces =
+        outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("source forces");
     std::shared_ptr<Core::LinAlg::Vector<double>> forces =
         std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
-    Core::LinAlg::export_to(*slaveforces, *forces);
+    Core::LinAlg::export_to(*sourceforces, *forces);
 
     // Write to output
-    writer->write_vector("slaveforces", forces, Core::IO::VectorType::dofvector);
+    writer->write_vector("sourceforces", forces, Core::IO::VectorType::dofvector);
   }
 
-  // Write nodal forces of master side
+  // Write nodal forces of target side
   {
     // Get nodal forces
-    std::shared_ptr<const Core::LinAlg::Vector<double>> masterforces =
-        outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("master forces");
+    std::shared_ptr<const Core::LinAlg::Vector<double>> targetforces =
+        outputParams.get<std::shared_ptr<const Core::LinAlg::Vector<double>>>("target forces");
     std::shared_ptr<Core::LinAlg::Vector<double>> forces =
         std::make_shared<Core::LinAlg::Vector<double>>(*idiscret_->dof_row_map());
-    Core::LinAlg::export_to(*masterforces, *forces);
+    Core::LinAlg::export_to(*targetforces, *forces);
 
     // Write to output
-    writer->write_vector("masterforces", forces, Core::IO::VectorType::dofvector);
+    writer->write_vector("targetforces", forces, Core::IO::VectorType::dofvector);
   }
 
 
-  // Nodes: node-based vector with '0' at slave nodes and '1' at master nodes
+  // Nodes: node-based vector with '0' at source nodes and '1' at target nodes
   {
-    Core::LinAlg::Vector<double> masterVec(*mnoderowmap_);
-    masterVec.put_scalar(1.0);
+    Core::LinAlg::Vector<double> targetVec(*mnoderowmap_);
+    targetVec.put_scalar(1.0);
 
     std::shared_ptr<const Core::LinAlg::Map> nodeRowMap =
         Core::LinAlg::merge_map(snoderowmap_, mnoderowmap_, false);
-    std::shared_ptr<Core::LinAlg::Vector<double>> masterSlaveVec =
+    std::shared_ptr<Core::LinAlg::Vector<double>> targetSourceVec =
         std::make_shared<Core::LinAlg::Vector<double>>(*nodeRowMap, true);
-    Core::LinAlg::export_to(masterVec, *masterSlaveVec);
+    Core::LinAlg::export_to(targetVec, *targetSourceVec);
 
-    writer->write_vector("slavemasternodes", masterSlaveVec, Core::IO::VectorType::nodevector);
+    writer->write_vector("sourcetargetnodes", targetSourceVec, Core::IO::VectorType::nodevector);
   }
 
   // Write active set
@@ -7726,19 +7762,19 @@ void CONTACT::Interface::postprocess_quantities(const Teuchos::ParameterList& ou
     writer->write_vector("activeset", activesetexp, Core::IO::VectorType::nodevector);
   }
 
-  // Elements: element-based vector with '0' at slave elements and '1' at master elements
+  // Elements: element-based vector with '0' at source elements and '1' at target elements
   {
-    Core::LinAlg::Vector<double> masterVec(*melerowmap_);
-    masterVec.put_scalar(1.0);
+    Core::LinAlg::Vector<double> targetVec(*melerowmap_);
+    targetVec.put_scalar(1.0);
 
     std::shared_ptr<const Core::LinAlg::Map> eleRowMap =
         Core::LinAlg::merge_map(selerowmap_, melerowmap_, false);
-    std::shared_ptr<Core::LinAlg::Vector<double>> masterSlaveVec =
+    std::shared_ptr<Core::LinAlg::Vector<double>> targetSourceVec =
         std::make_shared<Core::LinAlg::Vector<double>>(*eleRowMap, true);
-    Core::LinAlg::export_to(masterVec, *masterSlaveVec);
+    Core::LinAlg::export_to(targetVec, *targetSourceVec);
 
     writer->write_vector(
-        "slavemasterelements", masterSlaveVec, Core::IO::VectorType::elementvector);
+        "sourcetargetelements", targetSourceVec, Core::IO::VectorType::elementvector);
   }
 
   // Write element owners

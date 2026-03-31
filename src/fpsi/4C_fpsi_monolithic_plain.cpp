@@ -411,7 +411,7 @@ void FPSI::MonolithicPlain::setup_system_matrix(Core::LinAlg::BlockSparseMatrixB
       // those two blocks are not condensed since they belong to the columns of the inner ale dofs
       (*couplingcoltransform_)(fluid_field()->block_system_matrix()->full_row_map(),
           fluid_field()->block_system_matrix()->full_col_map(), fluidalematrix_ii, 1.0,
-          Coupling::Adapter::CouplingMasterConverter(
+          Coupling::Adapter::CouplingTargetConverter(
               coupfa),  // row converter: important to use slave converter
           mat.matrix(fluid_block_, ale_i_block_),
           false,  // bool exactmatch = true (default)
@@ -456,7 +456,7 @@ void FPSI::MonolithicPlain::setup_system_matrix(Core::LinAlg::BlockSparseMatrixB
 
         (*fmgitransform_)(fluidalematrix_gi_fsi, (1.0 - stiparam) / (1.0 - ftiparam) * scale,
             Coupling::Adapter::CouplingSlaveConverter(coupsf_fsi),
-            Coupling::Adapter::CouplingMasterConverter(coupfa),
+            Coupling::Adapter::CouplingTargetConverter(coupfa),
             mat.matrix(structure_block_, ale_i_block_), false, true);
       }
     }
@@ -1093,7 +1093,7 @@ void FPSI::MonolithicPlain::recover_lagrange_multiplier()
 
       // extract inner velocity DOFs after calling AleToFluid()
       std::shared_ptr<Core::LinAlg::Map> velothermap = Core::LinAlg::split_map(
-          *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling_fsi().master_dof_map());
+          *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling_fsi().target_dof_map());
       Core::LinAlg::MapExtractor velothermapext =
           Core::LinAlg::MapExtractor(*fluid_field()->velocity_row_map(), velothermap, false);
       auxvec = std::make_shared<Core::LinAlg::Vector<double>>(*velothermap, true);

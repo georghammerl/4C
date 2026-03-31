@@ -43,19 +43,19 @@ Discret::Elements::FluidBoundary::FluidBoundary(int id, int owner, int nnode, co
       distype_(Core::FE::CellType::dis_none),
       numdofpernode_(-1)
 {
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  distype_ = Core::FE::get_shape_of_boundary_element(num_node(), parent_master_element()->shape());
+  distype_ = Core::FE::get_shape_of_boundary_element(num_node(), parent_target_element()->shape());
 
-  numdofpernode_ = parent_master_element()->num_dof_per_node(*FluidBoundary::nodes()[0]);
+  numdofpernode_ = parent_target_element()->num_dof_per_node(*FluidBoundary::nodes()[0]);
   // Safety check if all nodes have the same number of dofs!
   for (int nlid = 1; nlid < num_node(); ++nlid)
   {
-    if (numdofpernode_ != parent_master_element()->num_dof_per_node(*FluidBoundary::nodes()[nlid]))
+    if (numdofpernode_ != parent_target_element()->num_dof_per_node(*FluidBoundary::nodes()[nlid]))
       FOUR_C_THROW(
           "You need different NumDofPerNode for each node on this fluid boundary? ({} != {})",
-          numdofpernode_, parent_master_element()->num_dof_per_node(*FluidBoundary::nodes()[nlid]));
+          numdofpernode_, parent_target_element()->num_dof_per_node(*FluidBoundary::nodes()[nlid]));
   }
   return;
 }

@@ -590,9 +590,9 @@ int CONTACT::SelfBinaryTree::get_ele_specific_num_nodes(Core::Elements::Element*
   // center nodes) in both 2D and 3D as they do not bring in any additional information about
   // connectivity / adjacency
   int numnode = 0;
-  Mortar::Element* mele = dynamic_cast<Mortar::Element*>(element);
+  Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(element);
 
-  switch (mele->shape())
+  switch (target_elem->shape())
   {
     case Core::FE::CellType::line2:
     case Core::FE::CellType::line3:
@@ -1399,27 +1399,27 @@ bool CONTACT::SelfBinaryTree::test_adjacent_3d(
 }
 
 /*----------------------------------------------------------------------*
- | do Master/Self facet sorting (self contact) (public)        popp 06/09|
+ | do Target/Self facet sorting (self contact) (public)        popp 06/09|
  *----------------------------------------------------------------------*/
-void CONTACT::SelfBinaryTree::master_slave_sorting(int eleID, bool isslave)
+void CONTACT::SelfBinaryTree::target_source_sorting(int eleID, bool issource)
 {
   // do as long as there are still contact pairs
   if (contactpairs_.find(eleID) != contactpairs_.end() && !contactpairs_.empty())
   {
-    // set the current element to content of "isslave"
+    // set the current element to content of "issource"
     Core::Elements::Element* element = discret().g_element(eleID);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
-    celement->set_slave() = isslave;
+    celement->set_source() = issource;
 
-    // if the element is a slave, set its node to slave (otherwise the nodes
-    // are master-nodes already and nodes between a master and a slave element
-    // should be slave nodes)
-    if (celement->is_slave())
+    // if the element is a source, set its node to source (otherwise the nodes
+    // are target-nodes already and nodes between a target and a source element
+    // should be source nodes)
+    if (celement->is_source())
       for (int i = 0; i < (int)element->num_node(); i++)
       {
         Core::Nodes::Node* node = element->nodes()[i];
         CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
-        cnode->set_slave() = isslave;
+        cnode->set_source() = issource;
       }
 
     // get the ID of elements in contact with current one
@@ -1431,18 +1431,18 @@ void CONTACT::SelfBinaryTree::master_slave_sorting(int eleID, bool isslave)
     // loop over all contact partners of current element
     for (int i = 0; i < (int)contacteleID.size(); i++)
     {
-      // add to list of search candidates if current element is slave
-      if (celement->is_slave()) celement->add_search_elements(contacteleID[i]);
+      // add to list of search candidates if current element is source
+      if (celement->is_source()) celement->add_search_elements(contacteleID[i]);
 
       // recursively call this function again
       if (contactpairs_.find(contacteleID[i]) != contactpairs_.end())
-        master_slave_sorting(contacteleID[i], !isslave);
+        target_source_sorting(contacteleID[i], !issource);
     }
   }
 }
 
 /*----------------------------------------------------------------------*
- | Update, contact search and master/slave sorting            popp 01/11|
+ | Update, contact search and target/source sorting            popp 01/11|
  *----------------------------------------------------------------------*/
 void CONTACT::SelfBinaryTree::search_contact()
 {
@@ -1498,30 +1498,30 @@ void CONTACT::SelfBinaryTree::search_contact()
       search_root_contact(roots_[myroots[k]], roots_[m]);
 
   //**********************************************************************
-  // STEP 5: slave and master facet sorting
+  // STEP 5: source and target facet sorting
   //**********************************************************************
   std::map<int, std::shared_ptr<SelfBinaryTreeNode>>::iterator leafiterNew = leafsmap_.begin();
   std::map<int, std::shared_ptr<SelfBinaryTreeNode>>::iterator leafiter = leafsmap_.begin();
   std::map<int, std::shared_ptr<SelfBinaryTreeNode>>::iterator leafiter_end = leafsmap_.end();
 
-  // first (re)set all contact elements and nodes to master
+  // first (re)set all contact elements and nodes to target
   while (leafiter != leafiter_end)
   {
     int gid = leafiter->first;
     Core::Elements::Element* element = discret().g_element(gid);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
 
-    if (celement->is_slave() == true)
+    if (celement->is_source() == true)
     {
-      // reset element to master
-      celement->set_slave() = false;
+      // reset element to target
+      celement->set_source() = false;
 
-      // reset nodes to master
+      // reset nodes to target
       for (int i = 0; i < (int)element->num_node(); ++i)
       {
         Core::Nodes::Node* node = element->nodes()[i];
         CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
-        cnode->set_slave() = false;
+        cnode->set_source() = false;
       }
     }
 
@@ -1529,22 +1529,22 @@ void CONTACT::SelfBinaryTree::search_contact()
     ++leafiter;
   }
 
-  // set all non-smooth entities to slave
+  // set all non-smooth entities to source
   while (leafiterNew != leafiter_end)
   {
     int gid = leafiterNew->first;
     Core::Elements::Element* element = discret().g_element(gid);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
 
-    // reset nodes to master
+    // reset nodes to target
     for (int i = 0; i < (int)element->num_node(); ++i)
     {
       Core::Nodes::Node* node = element->nodes()[i];
       CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
       if (cnode->is_on_corner_edge())
       {
-        cnode->set_slave() = true;
-        celement->set_slave() = true;
+        cnode->set_source() = true;
+        celement->set_source() = true;
       }
     }
 
@@ -1564,16 +1564,16 @@ void CONTACT::SelfBinaryTree::search_contact()
   Core::Communication::Exporter ex(mymap, *redmap, get_comm());
   ex.do_export(contactpairs_);
 
-  // now do new slave and master sorting
+  // now do new source and target sorting
   while (!contactpairs_.empty())
   {
     Core::Elements::Element* element = discret().g_element(contactpairs_.begin()->first);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
-    master_slave_sorting(contactpairs_.begin()->first, celement->is_slave());
+    target_source_sorting(contactpairs_.begin()->first, celement->is_source());
   }
 
   //**********************************************************************
-  // STEP 6: check consistency of slave and master facet sorting
+  // STEP 6: check consistency of source and target facet sorting
   //**********************************************************************
   for (int i = 0; i < elements_->num_my_elements(); ++i)
   {
@@ -1582,8 +1582,8 @@ void CONTACT::SelfBinaryTree::search_contact()
     if (!ele1) FOUR_C_THROW("Cannot find element with gid %", gid1);
     Mortar::Element* element1 = dynamic_cast<Mortar::Element*>(ele1);
 
-    // only slave elements store search candidates
-    if (!element1->is_slave()) continue;
+    // only source elements store search candidates
+    if (!element1->is_source()) continue;
 
     // loop over the search candidates of elements1
     for (int j = 0; j < element1->mo_data().num_search_elements(); ++j)
@@ -1593,9 +1593,9 @@ void CONTACT::SelfBinaryTree::search_contact()
       if (!ele2) FOUR_C_THROW("Cannot find element with gid %", gid2);
       Mortar::Element* element2 = dynamic_cast<Mortar::Element*>(ele2);
 
-      // error if this is a slave element (this happens if individual self contact patches are
+      // error if this is a source element (this happens if individual self contact patches are
       // connected, because our sorting algorithm still fails in that case)
-      if (element2->is_slave()) FOUR_C_THROW("Slave / master inconsistency in self contact");
+      if (element2->is_source()) FOUR_C_THROW("Source / target inconsistency in self contact");
     }
   }
 }

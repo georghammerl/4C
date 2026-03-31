@@ -24,7 +24,7 @@ Discret::Elements::Ale2Line::Ale2Line(int id, int owner, int nnode, const int* n
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lline);
+  set_parent_target_element(parent, lline);
   return;
 }
 

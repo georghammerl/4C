@@ -1227,7 +1227,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_normal_3d(const Mortar:
   mele.compute_unit_normal_at_xi(eta, normal);
   dist = alpha;
 
-  // bye bye
   return true;
 }
 
@@ -1390,7 +1389,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_normal_3d_lin(const Mor
   mele.compute_unit_normal_at_xi(eta, normal);
   dist = alpha;
 
-  // bye bye
   return true;
 }
 
@@ -1708,7 +1706,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_nodal_normal_3d_lin(
       (normaltolineLin[j])[p->first] += (p->second);
   }
 
-  // bye bye
   return true;
 }
 
@@ -1998,7 +1995,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_nodal_normal_2d_lin(
       (normaltolineLin[j])[p->first] += (p->second);
   }
 
-  // bye bye
   return true;
 }
 
@@ -2150,7 +2146,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_normal_2d(const Mortar:
   mele.compute_unit_normal_at_xi(eta, normal);
   dist = alpha;
 
-  // bye bye
   return true;
 }
 
@@ -2479,7 +2474,6 @@ bool Mortar::ProjectorCalc<distype>::project_s_node_by_m_normal_2d_lin(const Mor
       (normaltolineLin[j])[p->first] += (p->second) * Wfinal(j, 2);
   }
 
-  // bye bye
   return true;
 }
 

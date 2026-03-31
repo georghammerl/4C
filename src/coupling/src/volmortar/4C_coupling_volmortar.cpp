@@ -914,24 +914,24 @@ void Coupling::VolMortar::VolMortarCoupl::evaluate_segments_2d(
     Core::Elements::Element& Aele, Core::Elements::Element& Bele)
 {
   // define polygon vertices
-  static std::vector<Mortar::Vertex> slave_vertices;
-  static std::vector<Mortar::Vertex> master_vertices;
+  static std::vector<Mortar::Vertex> source_vertices;
+  static std::vector<Mortar::Vertex> target_vertices;
   static std::vector<Mortar::Vertex> ClippedPolygon;
   static std::vector<std::shared_ptr<Mortar::IntCell>> cells;
 
   // clear old polygons
-  slave_vertices.clear();
-  master_vertices.clear();
+  source_vertices.clear();
+  target_vertices.clear();
   ClippedPolygon.clear();
   cells.clear();
   cells.resize(0);
 
   // build new polygons
-  define_vertices_master(Bele, master_vertices);
-  define_vertices_slave(Aele, slave_vertices);
+  define_vertices_master(Bele, target_vertices);
+  define_vertices_slave(Aele, source_vertices);
 
   double tol = 1e-12;
-  polygon_clipping_convex_hull(slave_vertices, master_vertices, ClippedPolygon, Aele, Bele, tol);
+  polygon_clipping_convex_hull(source_vertices, target_vertices, ClippedPolygon, Aele, Bele, tol);
   int clipsize = (int)(ClippedPolygon.size());
 
   // proceed only if clipping polygon is at least a triangle
@@ -3743,7 +3743,7 @@ void Coupling::VolMortar::VolMortarCoupl::create_projection_operator()
  |  Define polygon of mortar vertices                        farah 01/14|
  *----------------------------------------------------------------------*/
 void Coupling::VolMortar::VolMortarCoupl::define_vertices_slave(
-    Core::Elements::Element& ele, std::vector<Mortar::Vertex>& slave_vertices)
+    Core::Elements::Element& ele, std::vector<Mortar::Vertex>& source_vertices)
 {
   // project slave nodes onto auxiliary plane
   int nnodes = ele.num_node();
@@ -3764,8 +3764,8 @@ void Coupling::VolMortar::VolMortarCoupl::define_vertices_slave(
     snodeids[0] = mynodes[i]->id();
 
     // store into vertex data structure
-    slave_vertices.push_back(Mortar::Vertex(
-        vertices, Mortar::Vertex::slave, snodeids, nullptr, nullptr, false, false, nullptr, -1.0));
+    source_vertices.push_back(Mortar::Vertex(
+        vertices, Mortar::Vertex::source, snodeids, nullptr, nullptr, false, false, nullptr, -1.0));
   }
   return;
 }
@@ -3774,7 +3774,7 @@ void Coupling::VolMortar::VolMortarCoupl::define_vertices_slave(
  |  Define polygon of mortar vertices                        farah 01/14|
  *----------------------------------------------------------------------*/
 void Coupling::VolMortar::VolMortarCoupl::define_vertices_master(
-    Core::Elements::Element& ele, std::vector<Mortar::Vertex>& slave_vertices)
+    Core::Elements::Element& ele, std::vector<Mortar::Vertex>& source_vertices)
 {
   // project slave nodes onto auxiliary plane
   int nnodes = ele.num_node();
@@ -3795,8 +3795,8 @@ void Coupling::VolMortar::VolMortarCoupl::define_vertices_master(
     snodeids[0] = mynodes[i]->id();
 
     // store into vertex data structure
-    slave_vertices.push_back(Mortar::Vertex(vertices, Mortar::Vertex::projmaster, snodeids, nullptr,
-        nullptr, false, false, nullptr, -1.0));
+    source_vertices.push_back(Mortar::Vertex(vertices, Mortar::Vertex::projtarget, snodeids,
+        nullptr, nullptr, false, false, nullptr, -1.0));
   }
   return;
 }
@@ -4389,7 +4389,7 @@ bool Coupling::VolMortar::VolMortarCoupl::polygon_clipping_convex_hull(
     bool close = false;
 
     // do not collapse poly1 (slave) points
-    if (convexhull[i].v_type() == Mortar::Vertex::slave)
+    if (convexhull[i].v_type() == Mortar::Vertex::source)
     {
       collconvexhull.push_back(convexhull[i]);
       continue;
@@ -4399,7 +4399,7 @@ bool Coupling::VolMortar::VolMortarCoupl::polygon_clipping_convex_hull(
     for (int j = 0; j < (int)convexhull.size(); ++j)
     {
       // only collapse with poly1 (slave) points
-      if (convexhull[j].v_type() != Mortar::Vertex::slave) continue;
+      if (convexhull[j].v_type() != Mortar::Vertex::source) continue;
 
       // distance vector
       std::array<double, 3> diff = {0.0, 0.0, 0.0};
@@ -4415,7 +4415,7 @@ bool Coupling::VolMortar::VolMortarCoupl::polygon_clipping_convex_hull(
     }
 
     // do not check poly2 (master) points
-    if (convexhull[i].v_type() == Mortar::Vertex::projmaster)
+    if (convexhull[i].v_type() == Mortar::Vertex::projtarget)
     {
       if (!close) collconvexhull.push_back(convexhull[i]);
       continue;
@@ -4427,7 +4427,7 @@ bool Coupling::VolMortar::VolMortarCoupl::polygon_clipping_convex_hull(
       for (int j = 0; j < (int)convexhull.size(); ++j)
       {
         // only collapse with poly2 (master) points
-        if (convexhull[j].v_type() != Mortar::Vertex::projmaster) continue;
+        if (convexhull[j].v_type() != Mortar::Vertex::projtarget) continue;
 
         // distance vector
         std::array<double, 3> diff = {0.0, 0.0, 0.0};

@@ -1231,7 +1231,7 @@ void ScaTra::MeshtyingStrategyS2IElchSCL::setup_meshtying()
 
     switch (s2imeshtying_condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE"))
     {
-      case Inpar::S2I::side_slave:
+      case Inpar::S2I::side_source:
       {
         Core::Communication::add_owned_node_gid_from_list(*scatratimint_->discretization(),
             *s2imeshtying_condition->get_nodes(), islavenodegidset);

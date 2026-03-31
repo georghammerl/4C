@@ -40,18 +40,18 @@ CONTACT::MtAbstractStrategy::MtAbstractStrategy(const Core::LinAlg::Map* dof_row
     : Mortar::StrategyBase(std::make_shared<Mortar::StrategyDataContainer>(), dof_row_map,
           NodeRowMap, params, spatialDim, comm, alphaf, maxdof),
       interface_(interface),
-      dualquadslavetrafo_(false)
+      dualquadsourcetrafo_(false)
 {
   // call setup method with flag redistributed=FALSE
   setup(false);
 
   // store interface maps with parallel distribution of underlying
   // problem discretization (i.e. interface maps before parallel
-  // redistribution of slave and master sides)
+  // redistribution of source and target sides)
   non_redist_glmdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*glmdofrowmap_);
   non_redist_gsdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*gsdofrowmap_);
-  non_redist_gmdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*gmdofrowmap_);
-  non_redist_gsmdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*gsmdofrowmap_);
+  non_redist_gtdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*gtdofrowmap_);
+  non_redist_gstdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*gstdofrowmap_);
 
   // build the NOX::Nln::CONSTRAINT::Interface::Required object
   noxinterface_ptr_ = std::make_shared<CONTACT::MtNoxInterface>();
@@ -136,12 +136,12 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
   // make sure to remove all existing maps first
   // (do NOT remove map of non-interface dofs after redistribution)
   gsdofrowmap_ = nullptr;
-  gmdofrowmap_ = nullptr;
-  gsmdofrowmap_ = nullptr;
+  gtdofrowmap_ = nullptr;
+  gstdofrowmap_ = nullptr;
   glmdofrowmap_ = nullptr;
   gdisprowmap_ = nullptr;
   gsnoderowmap_ = nullptr;
-  gmnoderowmap_ = nullptr;
+  gtnoderowmap_ = nullptr;
   if (!redistributed) gndofrowmap_ = nullptr;
 
   // element col. map for binning
@@ -164,30 +164,30 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
     offset_if = glmdofrowmap_->num_global_elements();
     if (offset_if < 0) offset_if = 0;
 
-    // merge interface master, slave maps to global master, slave map
-    gsdofrowmap_ = Core::LinAlg::merge_map(gsdofrowmap_, interface_[i]->slave_row_dofs());
-    gmdofrowmap_ = Core::LinAlg::merge_map(gmdofrowmap_, interface_[i]->master_row_dofs());
-    gsnoderowmap_ = Core::LinAlg::merge_map(gsnoderowmap_, interface_[i]->slave_row_nodes());
-    gmnoderowmap_ = Core::LinAlg::merge_map(gmnoderowmap_, interface_[i]->master_row_nodes());
+    // merge interface target, source maps to global target, source map
+    gsdofrowmap_ = Core::LinAlg::merge_map(gsdofrowmap_, interface_[i]->source_row_dofs());
+    gtdofrowmap_ = Core::LinAlg::merge_map(gtdofrowmap_, interface_[i]->target_row_dofs());
+    gsnoderowmap_ = Core::LinAlg::merge_map(gsnoderowmap_, interface_[i]->source_row_nodes());
+    gtnoderowmap_ = Core::LinAlg::merge_map(gtnoderowmap_, interface_[i]->target_row_nodes());
 
     // store initial element col map for binning strategy
     initial_elecolmap_.push_back(
         std::make_shared<Core::LinAlg::Map>(*interface_[i]->discret().element_col_map()));
   }
 
-  // setup global non-slave-or-master dof map
+  // setup global non-source-or-target dof map
   // (this is done by splitting from the discretization dof map)
   // (no need to rebuild this map after redistribution)
   if (!redistributed)
   {
     gndofrowmap_ = Core::LinAlg::split_map(*problem_dofs(), *gsdofrowmap_);
-    gndofrowmap_ = Core::LinAlg::split_map(*gndofrowmap_, *gmdofrowmap_);
+    gndofrowmap_ = Core::LinAlg::split_map(*gndofrowmap_, *gtdofrowmap_);
   }
 
-  // setup combined global slave and master dof map
+  // setup combined global source and target dof map
   // setup global displacement dof map
-  gsmdofrowmap_ = Core::LinAlg::merge_map(*gsdofrowmap_, *gmdofrowmap_, false);
-  gdisprowmap_ = Core::LinAlg::merge_map(*gndofrowmap_, *gsmdofrowmap_, false);
+  gstdofrowmap_ = Core::LinAlg::merge_map(*gsdofrowmap_, *gtdofrowmap_, false);
+  gdisprowmap_ = Core::LinAlg::merge_map(*gndofrowmap_, *gstdofrowmap_, false);
 
   // ------------------------------------------------------------------------
   // setup global accessible vectors and matrices
@@ -203,9 +203,9 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
   constrrhs_ = nullptr;  // only for saddle point problem formulation
 
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
-  // These matrices need to be applied to the slave displacements
+  // These matrices need to be applied to the source displacements
   // in the cases of dual LM interpolation for tet10/hex20 meshes
   // in 3D or for locally linear Lagrange multipliers for line3 meshes
   // in 2D. Here, the displacement basis functions have been modified
@@ -220,19 +220,19 @@ void CONTACT::MtAbstractStrategy::setup(bool redistributed)
   if (shapefcn == Mortar::shape_dual &&
       (n_dim() == 3 || (n_dim() == 2 && lagmultquad == Mortar::lagmult_lin)))
     for (int i = 0; i < (int)interface_.size(); ++i)
-      dualquadslavetrafo_ += (interface_[i]->quadslave() && !(interface_[i]->is_nurbs()));
+      dualquadsourcetrafo_ += (interface_[i]->quadsource() && !(interface_[i]->is_nurbs()));
 
   //----------------------------------------------------------------------
   // COMPUTE TRAFO MATRIX AND ITS INVERSE
   //----------------------------------------------------------------------
-  if (dualquadslavetrafo())
+  if (dualquadsourcetrafo())
   {
-    // for locally linear Lagrange multipliers, consider both slave and master DOFs,
-    // and otherwise, only consider slave DOFs
+    // for locally linear Lagrange multipliers, consider both source and target DOFs,
+    // and otherwise, only consider source DOFs
     if (lagmultquad == Mortar::lagmult_lin)
     {
-      trafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
-      invtrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gsmdofrowmap_, 10);
+      trafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstdofrowmap_, 10);
+      invtrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*gstdofrowmap_, 10);
     }
     else
     {
@@ -337,15 +337,15 @@ void CONTACT::MtAbstractStrategy::mortar_coupling(
 
   // fill_complete() global Mortar matrices
   dmatrix_->complete();
-  mmatrix_->complete(*gmdofrowmap_, *gsdofrowmap_);
+  mmatrix_->complete(*gtdofrowmap_, *gsdofrowmap_);
 
   // compute g-vector at global level
   std::shared_ptr<Core::LinAlg::Vector<double>> xs =
       std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
-  assemble_coords("slave", true, *xs);
-  assemble_coords("master", true, *xm);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
+  assemble_coords("source", true, *xs);
+  assemble_coords("target", true, *xm);
   Core::LinAlg::Vector<double> Dxs(*gsdofrowmap_);
   dmatrix_->multiply(false, *xs, Dxs);
   Core::LinAlg::Vector<double> Mxm(*gsdofrowmap_);
@@ -357,18 +357,18 @@ void CONTACT::MtAbstractStrategy::mortar_coupling(
 }
 
 /*----------------------------------------------------------------------*
- |  restrict slave boundary to actual meshtying zone          popp 08/10|
+ |  restrict source boundary to actual meshtying zone          popp 08/10|
  *----------------------------------------------------------------------*/
 void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
 {
-  // Step 1: detect tied slave nodes on all interfaces
+  // Step 1: detect tied source nodes on all interfaces
   int localfounduntied = 0;
   int globalfounduntied = 0;
   for (int i = 0; i < (int)interface_.size(); ++i)
-    interface_[i]->detect_tied_slave_nodes(localfounduntied);
+    interface_[i]->detect_tied_source_nodes(localfounduntied);
   globalfounduntied = Core::Communication::sum_all(localfounduntied, get_comm());
 
-  // get out of here if the whole slave surface is tied
+  // get out of here if the whole source surface is tied
   if (globalfounduntied == 0) return;
 
   // print message
@@ -380,19 +380,19 @@ void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
 
   //**********************************************************************
   // check for infeasible discretization types and LM types     popp 05/11
-  // (currently RMZ only for 1st order slave elements and standard LM)
+  // (currently RMZ only for 1st order source elements and standard LM)
   //**********************************************************************
   // Currently, we need strictly positive LM shape functions for RMZ
   // to work properly. This is only satisfied for 1st order interpolation
   // with standard Lagrange multipliers. As soon as we have implemented
-  // the modified biorthogonality (only defined on projecting slave part),
+  // the modified biorthogonality (only defined on projecting source part),
   // the 1st order interpolation case with dual Lagrange multiplier will
   // work, too. All 2nd order interpolation cases are difficult, since
   // we would require strictly positive displacement shape functions, which
   // is only possible via a proper basis transformation.
   //**********************************************************************
   bool quadratic = false;
-  for (int i = 0; i < (int)interface_.size(); ++i) quadratic += interface_[i]->quadslave();
+  for (int i = 0; i < (int)interface_.size(); ++i) quadratic += interface_[i]->quadsource();
   if (quadratic) FOUR_C_THROW("restrict_meshtying_zone only implemented for first-order elements");
 
   auto shapefcn = Teuchos::getIntegralValue<Mortar::ShapeFcn>(params(), "LM_SHAPEFCN");
@@ -403,39 +403,39 @@ void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
         "ERROR: restrict_meshtying_zone for dual shape functions "
         "only implemented in combination with consistent boundary modification");
 
-  // Step 2: restrict slave node/dof sets of all interfaces
-  for (int i = 0; i < (int)interface_.size(); ++i) interface_[i]->restrict_slave_sets();
+  // Step 2: restrict source node/dof sets of all interfaces
+  for (int i = 0; i < (int)interface_.size(); ++i) interface_[i]->restrict_source_sets();
 
   // Step 3: re-setup global maps and vectors with flag redistributed=FALSE
-  // (this flag must be FALSE here, because the slave set has been reduced and
+  // (this flag must be FALSE here, because the source set has been reduced and
   // thus the non-interface set N needs to be updated / re-setup as well)
   setup(false);
 
-  // Step 4: re-setup slave dof row map with parallel distribution of
-  // underlying problem discretization (i.e. slave dof row maps before
+  // Step 4: re-setup source dof row map with parallel distribution of
+  // underlying problem discretization (i.e. source dof row maps before
   // parallel redistribution) -> introduce restriction!
   if (par_redist())
   {
-    // allreduce restricted slave dof row map in new distribution
+    // allreduce restricted source dof row map in new distribution
     std::shared_ptr<Core::LinAlg::Map> fullsdofs = Core::LinAlg::allreduce_e_map(*gsdofrowmap_);
 
     // map data to be filled
     std::vector<int> data;
 
     // loop over all entries of allreduced map
-    const int numMyFullSlaveDofs = fullsdofs->num_my_elements();
-    for (int k = 0; k < numMyFullSlaveDofs; ++k)
+    const int numMyFullSourceDofs = fullsdofs->num_my_elements();
+    for (int k = 0; k < numMyFullSourceDofs; ++k)
     {
       // get global ID of current dof
       int gid = fullsdofs->gid(k);
 
-      /* Check if this GID is stored on this processor in the slave dof row map based on the old
+      /* Check if this GID is stored on this processor in the source dof row map based on the old
        * distribution and add to data vector if so.
        */
       if (non_redist_gsdofrowmap_->my_gid(gid)) data.push_back(gid);
     }
 
-    // re-setup old slave dof row map (with restriction now)
+    // re-setup old source dof row map (with restriction now)
     non_redist_gsdofrowmap_ =
         std::make_shared<Core::LinAlg::Map>(-1, (int)data.size(), data.data(), 0, get_comm());
   }
@@ -443,19 +443,19 @@ void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
   // Step 5: re-setup internal dof row map (non-interface dofs)
   // (this one has been re-computed in setup() above, but is possibly
   // incorrect due to parallel redistribution of the interfaces)
-  // --> recompute based on splitting with slave and master dof row maps
+  // --> recompute based on splitting with source and target dof row maps
   // before parallel redistribution!
   if (par_redist())
   {
     gndofrowmap_ = Core::LinAlg::split_map(*problem_dofs(), *non_redist_gsdofrowmap_);
-    gndofrowmap_ = Core::LinAlg::split_map(*gndofrowmap_, *non_redist_gmdofrowmap_);
+    gndofrowmap_ = Core::LinAlg::split_map(*gndofrowmap_, *non_redist_gtdofrowmap_);
   }
 
   // Step 6: re-setup displacement dof row map with current parallel
   // distribution (possibly wrong, same argument as above)
   if (par_redist())
   {
-    gdisprowmap_ = Core::LinAlg::merge_map(*gndofrowmap_, *gsmdofrowmap_, false);
+    gdisprowmap_ = Core::LinAlg::merge_map(*gndofrowmap_, *gstdofrowmap_, false);
   }
 
   return;
@@ -465,7 +465,7 @@ void CONTACT::MtAbstractStrategy::restrict_meshtying_zone()
  |  mesh initialization for rotational invariance              popp 12/09|
  *----------------------------------------------------------------------*/
 void CONTACT::MtAbstractStrategy::mesh_initialization(
-    std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod)
+    std::shared_ptr<Core::LinAlg::Vector<double>> Xsourcemod)
 {
   //**********************************************************************
   // (1) perform mesh initialization node by node
@@ -475,7 +475,7 @@ void CONTACT::MtAbstractStrategy::mesh_initialization(
   // relocate! Basically, every processor needs to know about relocation
   // of all its column nodes in the standard column map with overlap=1,
   // because all these nodes participate in the processor's element
-  // evaluation! Thus, the modified slave positions are first exported
+  // evaluation! Thus, the modified source positions are first exported
   // to the column map of the respective interface and the modification
   // loop is then also done with respect to this node column map!
   // A second concern is that we are dealing with a special interface
@@ -493,15 +493,15 @@ void CONTACT::MtAbstractStrategy::mesh_initialization(
   // loop over all interfaces
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
-    // export Xslavemod to column map for current interface
-    Core::LinAlg::Vector<double> Xslavemodcol(*(interface_[i]->slave_col_dofs()), false);
-    Core::LinAlg::export_to(*Xslavemod, Xslavemodcol);
+    // export Xsourcemod to column map for current interface
+    Core::LinAlg::Vector<double> Xsourcemodcol(*(interface_[i]->source_col_dofs()), false);
+    Core::LinAlg::export_to(*Xsourcemod, Xsourcemodcol);
 
-    // loop over all slave column nodes on the current interface
-    for (int j = 0; j < interface_[i]->slave_col_nodes()->num_my_elements(); ++j)
+    // loop over all source column nodes on the current interface
+    for (int j = 0; j < interface_[i]->source_col_nodes()->num_my_elements(); ++j)
     {
       // get global ID of current node
-      int gid = interface_[i]->slave_col_nodes()->gid(j);
+      int gid = interface_[i]->source_col_nodes()->gid(j);
 
       // get the mortar node
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
@@ -514,18 +514,18 @@ void CONTACT::MtAbstractStrategy::mesh_initialization(
       //******************************************************************
       // compute new nodal position
       //******************************************************************
-      // get corresponding entries from Xslavemodcol
+      // get corresponding entries from Xsourcemodcol
       int numdof = mtnode->num_dof();
       if (n_dim() != numdof) FOUR_C_THROW("Inconsistency Dim <-> NumDof");
 
-      // find DOFs of current node in Xslavemodcol and extract this node's position
+      // find DOFs of current node in Xsourcemodcol and extract this node's position
       std::vector<int> locindex(numdof);
 
       for (int dof = 0; dof < numdof; ++dof)
       {
-        locindex[dof] = (Xslavemodcol.get_map()).lid(mtnode->dofs()[dof]);
+        locindex[dof] = (Xsourcemodcol.get_map()).lid(mtnode->dofs()[dof]);
         if (locindex[dof] < 0) FOUR_C_THROW("Did not find dof in map");
-        Xnew[dof] = Xslavemodcol.local_values_as_span()[locindex[dof]];
+        Xnew[dof] = Xsourcemodcol.local_values_as_span()[locindex[dof]];
       }
 
       // check is mesh distortion is still OK
@@ -574,9 +574,9 @@ void CONTACT::MtAbstractStrategy::mesh_initialization(
   std::shared_ptr<Core::LinAlg::Vector<double>> xs =
       std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> xm =
-      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
-  assemble_coords("slave", true, *xs);
-  assemble_coords("master", true, *xm);
+      std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
+  assemble_coords("source", true, *xs);
+  assemble_coords("target", true, *xm);
   Core::LinAlg::Vector<double> Dxs(*gsdofrowmap_);
   dmatrix_->multiply(false, *xs, Dxs);
   Core::LinAlg::Vector<double> Mxm(*gsdofrowmap_);
@@ -636,8 +636,8 @@ void CONTACT::MtAbstractStrategy::store_nodal_quantities(Mortar::StrategyBase::Q
       }
     }  // switch
 
-    // export global quantity to current interface slave dof row map
-    std::shared_ptr<const Core::LinAlg::Map> sdofrowmap = interface_[i]->slave_row_dofs();
+    // export global quantity to current interface source dof row map
+    std::shared_ptr<const Core::LinAlg::Map> sdofrowmap = interface_[i]->source_row_dofs();
     Core::LinAlg::Vector<double> vectorinterface(*sdofrowmap);
 
     if (vectorglobal != nullptr)
@@ -645,10 +645,10 @@ void CONTACT::MtAbstractStrategy::store_nodal_quantities(Mortar::StrategyBase::Q
     else
       FOUR_C_THROW("store_nodal_quantities: Null vector handed in!");
 
-    // loop over all slave row nodes on the current interface
-    for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+    // loop over all source row nodes on the current interface
+    for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->slave_row_nodes()->gid(j);
+      int gid = interface_[i]->source_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Mortar::Node* mtnode = dynamic_cast<Mortar::Node*>(node);
@@ -690,7 +690,7 @@ void CONTACT::MtAbstractStrategy::store_nodal_quantities(Mortar::StrategyBase::Q
             // throw a FOUR_C_THROW if node is Active and DBC
             if (mtnode->is_dbc())
               FOUR_C_THROW(
-                  "Slave Node {} is active and at the same time carries D.B.C.s!", mtnode->id());
+                  "Source Node {} is active and at the same time carries D.B.C.s!", mtnode->id());
 
             // store updated LM into node
             mtnode->mo_data().lm()[dof] = (vectorinterface).local_values_as_span()[locindex[dof]];
@@ -718,10 +718,10 @@ void CONTACT::MtAbstractStrategy::store_dirichlet_status(
   // loop over all interfaces
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
-    // loop over all slave row nodes on the current interface
-    for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+    // loop over all source row nodes on the current interface
+    for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->slave_row_nodes()->gid(j);
+      int gid = interface_[i]->source_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Mortar::Node* mtnode = dynamic_cast<Mortar::Node*>(node);
@@ -842,12 +842,12 @@ void CONTACT::MtAbstractStrategy::assemble_coords(
   // twice. The solution would be to overwrite the corresponding
   // entries in the Core::LinAlg::Vector<double> instead of using Assemble().
 
-  // decide which side (slave or master)
+  // decide which side (source or target)
   std::shared_ptr<Core::LinAlg::Map> sidemap = nullptr;
-  if (sidename == "slave")
+  if (sidename == "source")
     sidemap = gsnoderowmap_;
-  else if (sidename == "master")
-    sidemap = gmnoderowmap_;
+  else if (sidename == "target")
+    sidemap = gtnoderowmap_;
   else
     FOUR_C_THROW("Unknown sidename");
 
@@ -897,14 +897,14 @@ void CONTACT::MtAbstractStrategy::assemble_coords(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 void CONTACT::MtAbstractStrategy::collect_maps_for_preconditioner(
-    std::shared_ptr<Core::LinAlg::Map>& MasterDofMap,
-    std::shared_ptr<Core::LinAlg::Map>& SlaveDofMap,
+    std::shared_ptr<Core::LinAlg::Map>& TargetDofMap,
+    std::shared_ptr<Core::LinAlg::Map>& SourceDofMap,
     std::shared_ptr<Core::LinAlg::Map>& InnerDofMap,
     std::shared_ptr<Core::LinAlg::Map>& ActiveDofMap) const
 {
   InnerDofMap = gndofrowmap_;  // global internal dof row map
 
-  // global active slave dof row map (all slave dofs are active  in meshtying)
+  // global active source dof row map (all source dofs are active  in meshtying)
   if (non_redist_gsdofrowmap_ != nullptr)
     ActiveDofMap = non_redist_gsdofrowmap_;
   else
@@ -912,15 +912,15 @@ void CONTACT::MtAbstractStrategy::collect_maps_for_preconditioner(
 
   // check if parallel redistribution is used
   // if parallel redistribution is activated, then use (original) maps before redistribution
-  // otherwise we use just the standard master/slave maps
+  // otherwise we use just the standard target/source maps
   if (non_redist_gsdofrowmap_ != nullptr)
-    SlaveDofMap = non_redist_gsdofrowmap_;
+    SourceDofMap = non_redist_gsdofrowmap_;
   else
-    SlaveDofMap = gsdofrowmap_;
-  if (non_redist_gmdofrowmap_ != nullptr)
-    MasterDofMap = non_redist_gmdofrowmap_;
+    SourceDofMap = gsdofrowmap_;
+  if (non_redist_gtdofrowmap_ != nullptr)
+    TargetDofMap = non_redist_gtdofrowmap_;
   else
-    MasterDofMap = gmdofrowmap_;
+    TargetDofMap = gtdofrowmap_;
 
   return;
 }
@@ -955,15 +955,15 @@ void CONTACT::MtAbstractStrategy::fill_maps_for_preconditioner(
   if (maps.size() != 4) FOUR_C_THROW("The vector size has to be 4!");
   /* check if parallel redistribution is used
    * if parallel redistribution is activated, then use (original) maps
-   * before redistribution otherwise we use just the standard master/slave
+   * before redistribution otherwise we use just the standard target/source
    * maps */
-  // (0) masterDofMap
-  if (non_redist_gmdofrowmap_ != nullptr)
-    maps[0] = Teuchos::rcp(non_redist_gmdofrowmap_);
+  // (0) targetDofMap
+  if (non_redist_gtdofrowmap_ != nullptr)
+    maps[0] = Teuchos::rcp(non_redist_gtdofrowmap_);
   else
-    maps[0] = Teuchos::rcp(gmdofrowmap_);
-  // (1) slaveDofMap
-  // (3) activeDofMap (all slave nodes are active!)
+    maps[0] = Teuchos::rcp(gtdofrowmap_);
+  // (1) sourceDofMap
+  // (3) activeDofMap (all source nodes are active!)
   if (non_redist_gsdofrowmap_ != nullptr)
   {
     maps[1] = Teuchos::rcp(non_redist_gsdofrowmap_);
@@ -985,19 +985,19 @@ void CONTACT::MtAbstractStrategy::fill_maps_for_preconditioner(
 void CONTACT::MtAbstractStrategy::postprocess_quantities_per_interface(
     std::shared_ptr<Teuchos::ParameterList> outputParams) const
 {
-  // Evaluate slave and master forces
-  auto fcslave = std::make_shared<Core::LinAlg::Vector<double>>(d_matrix()->row_map());
-  auto fcmaster = std::make_shared<Core::LinAlg::Vector<double>>(m_matrix()->domain_map());
-  d_matrix()->multiply(true, *zold_, *fcslave);
-  m_matrix()->multiply(true, *zold_, *fcmaster);
+  // Evaluate source and target forces
+  auto fcsource = std::make_shared<Core::LinAlg::Vector<double>>(d_matrix()->row_map());
+  auto fctarget = std::make_shared<Core::LinAlg::Vector<double>>(m_matrix()->domain_map());
+  d_matrix()->multiply(true, *zold_, *fcsource);
+  m_matrix()->multiply(true, *zold_, *fctarget);
 
   // Append data to parameter list
   outputParams->set(
       "interface traction", std::const_pointer_cast<const Core::LinAlg::Vector<double>>(zold_));
   outputParams->set(
-      "slave forces", std::const_pointer_cast<const Core::LinAlg::Vector<double>>(fcslave));
+      "source forces", std::const_pointer_cast<const Core::LinAlg::Vector<double>>(fcsource));
   outputParams->set(
-      "master forces", std::const_pointer_cast<const Core::LinAlg::Vector<double>>(fcmaster));
+      "target forces", std::const_pointer_cast<const Core::LinAlg::Vector<double>>(fctarget));
 
   for (std::vector<std::shared_ptr<Mortar::Interface>>::const_iterator it = interface_.begin();
       it < interface_.end(); ++it)

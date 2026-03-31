@@ -70,13 +70,13 @@ namespace Mortar
      \brief Get coupling slave element
 
      */
-    virtual Mortar::Element& slave_element() const { return sele_; }
+    virtual Mortar::Element& source_element() const { return sele_; }
 
     /*!
      \brief Get coupling master element
 
      */
-    virtual Mortar::Element& master_element() const { return mele_; }
+    virtual Mortar::Element& target_element() const { return mele_; }
 
     /*!
      \brief Get problem dimension (here: 2D)
@@ -238,19 +238,19 @@ namespace Mortar
      \brief Get coupling slave element
 
      */
-    virtual Mortar::Element& slave_element() const { return *sele_; }
+    virtual Mortar::Element& source_element() const { return *sele_; }
 
     /*!
      \brief Get one specific coupling master element
 
      */
-    virtual Mortar::Element& master_element(int k) const { return *(mele_[k]); }
+    virtual Mortar::Element& target_element(int k) const { return *(mele_[k]); }
 
     /*!
      \brief Get all coupling master elements
 
      */
-    virtual std::vector<Mortar::Element*> master_elements() const { return mele_; }
+    virtual std::vector<Mortar::Element*> target_elements() const { return mele_; }
 
     /*!
      \brief Get coupling pairs

@@ -109,16 +109,16 @@ void XFEM::CouplingCommManager::insert_vector(const int idxA,
       if (idxA < idxB)  // this Coupling Object is directly stored
       {
         if (!add)
-          *vecB = *get_coupling(idxA, idxB)->master_to_slave(*vecA);
+          *vecB = *get_coupling(idxA, idxB)->target_to_source(*vecA);
         else
-          vecB->update(scale, *get_coupling(idxA, idxB)->master_to_slave(*vecA), 1.0);
+          vecB->update(scale, *get_coupling(idxA, idxB)->target_to_source(*vecA), 1.0);
       }
       else if (idxA > idxB)  // just the inverse Coupling Object is stored
       {
         if (!add)
-          *vecB = *get_coupling(idxB, idxA)->slave_to_master(*vecA);
+          *vecB = *get_coupling(idxB, idxA)->source_to_target(*vecA);
         else
-          vecB->update(scale, *get_coupling(idxB, idxA)->slave_to_master(*vecA), 1.0);
+          vecB->update(scale, *get_coupling(idxB, idxA)->source_to_target(*vecA), 1.0);
       }
       else
       {
@@ -257,14 +257,14 @@ void XFEM::CouplingCommManager::setup_full_map_extractors(
     if (static_cast<std::size_t>(dit->first) < dis.size() - 1)
     {
       std::shared_ptr<Coupling::Adapter::Coupling> coup = get_coupling(dit->first, dit->first + 1);
-      me->setup(*dit->second->dof_row_map(), coup->master_dof_map(),
-          Core::LinAlg::split_map(*dit->second->dof_row_map(), *coup->master_dof_map()));
+      me->setup(*dit->second->dof_row_map(), coup->target_dof_map(),
+          Core::LinAlg::split_map(*dit->second->dof_row_map(), *coup->target_dof_map()));
     }
     else
     {
       std::shared_ptr<Coupling::Adapter::Coupling> coup = get_coupling(dit->first - 1, dit->first);
-      me->setup(*dit->second->dof_row_map(), coup->slave_dof_map(),
-          Core::LinAlg::split_map(*dit->second->dof_row_map(), *coup->slave_dof_map()));
+      me->setup(*dit->second->dof_row_map(), coup->source_dof_map(),
+          Core::LinAlg::split_map(*dit->second->dof_row_map(), *coup->source_dof_map()));
     }
     mme_[dit->first] = me;
   }
@@ -370,7 +370,7 @@ XFEM::CouplingCommManager::get_coupling_converter(int idxA, int idxB)
 {
   if (idxA < idxB)
   {
-    return std::make_shared<Coupling::Adapter::CouplingMasterConverter>(*get_coupling(idxA, idxB));
+    return std::make_shared<Coupling::Adapter::CouplingTargetConverter>(*get_coupling(idxA, idxB));
   }
   else if (idxA > idxB)
   {

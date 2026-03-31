@@ -838,7 +838,7 @@ namespace Discret
       /// separately.
       int num_dof_per_node(const Core::Nodes::Node& node) const override
       {
-        return parent_master_element()->num_dof_per_node(node);
+        return parent_target_element()->num_dof_per_node(node);
       }
 
       /// Get number of degrees of freedom per element

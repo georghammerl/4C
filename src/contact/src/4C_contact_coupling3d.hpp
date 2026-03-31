@@ -23,14 +23,14 @@ namespace CONTACT
 
   /*!
    \brief A class representing the framework for mortar coupling of ONE
-   slave element and ONE master element of a mortar interface in
+   source element and ONE target element of a mortar interface in
    3D. Concretely, this class controls projection, overlap detection
    and finally integration of the mortar coupling matrices D and M
    and possibly the weighted gap vector g~.
    Note that 3D Coupling can EITHER be done in physical space (this is
-   the case when an auxiliary plane is used) or in the slave element
+   the case when an auxiliary plane is used) or in the source element
    parameter space (this is the case when everything is done directly
-   on the slave surface without any auxiliary plane). The boolean class
+   on the source surface without any auxiliary plane). The boolean class
    variable auxplane_ decides about this (true = auxiliary plane).
 
    This is a derived class from Mortar::Coupling3d which does the
@@ -49,18 +49,18 @@ namespace CONTACT
 
      */
     Coupling3d(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element& sele, Mortar::Element& mele);
+        Teuchos::ParameterList& params, Mortar::Element& source_elem, Mortar::Element& target_elem);
 
     //! @name Evlauation methods
 
     /*!
-     \brief Build auxiliary plane from slave element (3D)
+     \brief Build auxiliary plane from source element (3D)
 
      Derived version, also doing normal linearization.
 
      This method builds an auxiliary plane based on the possibly
-     warped slave element of this coupling class. This plane is
-     defined by the slave normal at the slave element center.
+     warped source element of this coupling class. This plane is
+     defined by the source normal at the source element center.
 
      */
     bool auxiliary_plane() override;
@@ -73,11 +73,11 @@ namespace CONTACT
      does integration of the mortar quantity linearizations
 
      This method creates an integrator object for the cell triangles,
-     then projects the Gauss points back onto slave and master elements
-     (1st case, aux. plane) or only back onto the master element (2nd case)
+     then projects the Gauss points back onto source and target elements
+     (1st case, aux. plane) or only back onto the target element (2nd case)
      in order to evaluate the respective shape function there. Then
      entries of the mortar matrix M and the weighted gap g are integrated
-     and assembled into the slave element nodes.
+     and assembled into the source element nodes.
 
      */
     bool integrate_cells(const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr) override;
@@ -91,9 +91,9 @@ namespace CONTACT
 
      This method computes and returns full linearizations of all
      clip polygon vertices. We distinguish three possible cases here,
-     namely the vertex being a slave node, a projected master node in
-     slave element parameter space or a line-clipping intersection in
-     slave element parameter space. NOT implemented for AuxPlane case!
+     namely the vertex being a source node, a projected target node in
+     source element parameter space or a line-clipping intersection in
+     source element parameter space. NOT implemented for AuxPlane case!
 
      */
     bool vertex_linearization(
@@ -103,36 +103,37 @@ namespace CONTACT
     /*!
      \brief Linearization of clip vertex coordinates (3D)
 
-     Sub-method of VertexLinearization for slave linearization.
+     Sub-method of VertexLinearization for source linearization.
      ONLY necessary for AuxPlane case!
 
      */
-    virtual bool slave_vertex_linearization(
+    virtual bool source_vertex_linearization(
         std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& currlin) const;
 
     /*!
      \brief Linearization of clip vertex coordinates (3D)
 
-     Sub-method of VertexLinearization for master linearization.
+     Sub-method of VertexLinearization for target linearization.
 
      */
-    virtual bool master_vertex_linearization(
+    virtual bool target_vertex_linearization(
         std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& currlin) const;
 
     /*!
      \brief Linearization of clip vertex coordinates (3D)
 
      Sub-method of VertexLinearization for lineclip linearization.
-     Note that we just combine the correct slave and master vertex
+     Note that we just combine the correct source and target vertex
      linearizations here, which were already computed earlier in
      VertexLinearization3D!
 
      */
     virtual bool lineclip_vertex_linearization(const Mortar::Vertex& currv,
-        std::vector<Core::Gen::Pairedvector<int, double>>& currlin, const Mortar::Vertex* sv1,
-        const Mortar::Vertex* sv2, const Mortar::Vertex* mv1, const Mortar::Vertex* mv2,
-        std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& linsnodes,
-        std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& linmnodes) const;
+        std::vector<Core::Gen::Pairedvector<int, double>>& currlin,
+        const Mortar::Vertex* source_vertex_1, const Mortar::Vertex* source_vertex_2,
+        const Mortar::Vertex* target_vertex_1, const Mortar::Vertex* target_vertex_2,
+        std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& lin_source_nodes,
+        std::vector<std::vector<Core::Gen::Pairedvector<int, double>>>& lin_target_nodes) const;
 
     /*!
      \brief Linearization of clip vertex coordinates (3D)
@@ -171,7 +172,7 @@ namespace CONTACT
 
   /*!
    \brief A class representing the framework for mortar coupling of ONE
-   slave element and ONE master element of a mortar interface in
+   source element and ONE target element of a mortar interface in
    3D. Concretely, this class controls projection, overlap
    detection and finally integration of the mortar coupling matrices
    D and M and possibly the weighted gap vector g~.
@@ -201,23 +202,23 @@ namespace CONTACT
 
      */
     Coupling3dQuad(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element& sele, Mortar::Element& mele,
+        Teuchos::ParameterList& params, Mortar::Element& source_elem, Mortar::Element& target_elem,
         Mortar::IntElement& sintele, Mortar::IntElement& mintele);
 
 
     //! @name Access methods
 
     /*!
-     \brief Get coupling slave integration element
+     \brief Get coupling source integration element
 
      */
-    Mortar::IntElement& slave_int_element() const override { return sintele_; }
+    Mortar::IntElement& source_int_element() const override { return source_int_ele_; }
 
     /*!
-     \brief Get coupling master integration element
+     \brief Get coupling target integration element
 
      */
-    Mortar::IntElement& master_int_element() const override { return mintele_; }
+    Mortar::IntElement& target_int_element() const override { return target_int_ele_; }
 
     /*!
      \brief Return the Lagrange multiplier interpolation and testing type
@@ -235,14 +236,14 @@ namespace CONTACT
     Coupling3dQuad operator=(const Coupling3dQuad& old) = delete;
     Coupling3dQuad(const Coupling3dQuad& old) = delete;
 
-    Mortar::IntElement& sintele_;  // slave sub-integration element
-    Mortar::IntElement& mintele_;  // slave sub-integration element
+    Mortar::IntElement& source_int_ele_;  // source sub-integration element
+    Mortar::IntElement& target_int_ele_;  // target sub-integration element
   };
   // class Coupling3dQuad
 
   /*!
    \brief A class representing the framework for mortar coupling of ONE
-   slave element and SEVERAL master elements of a contact interface in
+   source element and SEVERAL target elements of a contact interface in
    3D. Concretely, this class simply stores several Coupling3d objects.
 
    */
@@ -264,7 +265,8 @@ namespace CONTACT
 
      */
     Coupling3dManager(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element* sele, std::vector<Mortar::Element*> mele);
+        Teuchos::ParameterList& params, Mortar::Element* source_elem,
+        std::vector<Mortar::Element*> target_elem);
 
     /*!
      \brief Destructor
@@ -272,22 +274,22 @@ namespace CONTACT
      */
     virtual ~Coupling3dManager() = default;
     /*!
-     \brief Get coupling slave element
+     \brief Get coupling source element
 
      */
-    virtual Mortar::Element& slave_element() const { return *sele_; }
+    virtual Mortar::Element& source_element() const { return *source_elem_; }
 
     /*!
-     \brief Get one specific coupling master element
+     \brief Get one specific coupling target element
 
      */
-    virtual Mortar::Element& master_element(int k) const { return *(mele_[k]); }
+    virtual Mortar::Element& target_element(int k) const { return *(target_elem_[k]); }
 
     /*!
-     \brief Get all coupling master elements
+     \brief Get all coupling target elements
 
      */
-    virtual std::vector<Mortar::Element*> master_elements() const { return mele_; }
+    virtual std::vector<Mortar::Element*> target_elements() const { return target_elem_; }
 
     /*!
      \brief Get coupling pairs
@@ -363,27 +365,27 @@ namespace CONTACT
 
     //@}
    private:
-    /*! \brief Take the found master elements and select the feasible ones
+    /*! \brief Take the found target elements and select the feasible ones
      *
-     * Orientation check of the considered master and slave element couplings
+     * Orientation check of the considered target and source element couplings
      * This is inherent in the segment based integration but was ignored in the
      * element based case.
      *
 
      * */
-    void find_feasible_master_elements(std::vector<Mortar::Element*>& feasible_ma_eles) const;
+    void find_feasible_target_elements(std::vector<Mortar::Element*>& feasible_ma_eles) const;
 
    protected:
     // don't want = operator and cctor
     Coupling3dManager operator=(const Coupling3dManager& old) = delete;
     Coupling3dManager(const Coupling3dManager& old) = delete;
 
-    Core::FE::Discretization& idiscret_;  // discretization of the contact interface
-    int dim_;                             // problem dimension (here: 3D)
-    bool quad_;                           // flag indicating coupling type (true = quadratic)
-    Teuchos::ParameterList& imortar_;     // containing contact input parameters
-    Mortar::Element* sele_;               // slave element
-    std::vector<Mortar::Element*> mele_;  // master elements
+    Core::FE::Discretization& idiscret_;         // discretization of the contact interface
+    int dim_;                                    // problem dimension (here: 3D)
+    bool quad_;                                  // flag indicating coupling type (true = quadratic)
+    Teuchos::ParameterList& imortar_;            // containing contact input parameters
+    Mortar::Element* source_elem_;               // source element
+    std::vector<Mortar::Element*> target_elem_;  // target elements
     std::vector<std::shared_ptr<Coupling3d>> coup_;  // coupling pairs
     int ncells_;                                     // total number of integration cells
     CONTACT::SolvingStrategy stype_;                 // solving strategy
@@ -398,9 +400,9 @@ namespace CONTACT
     using Mortar::Coupling3dQuadManager::get_comm;
     using Mortar::Coupling3dQuadManager::int_type;
     using Mortar::Coupling3dQuadManager::lag_mult_quad;
-    using Mortar::Coupling3dQuadManager::master_elements;
     using Mortar::Coupling3dQuadManager::shape_fcn;
-    using Mortar::Coupling3dQuadManager::slave_element;
+    using Mortar::Coupling3dQuadManager::source_element;
+    using Mortar::Coupling3dQuadManager::target_elements;
 
 
 
@@ -410,14 +412,15 @@ namespace CONTACT
 
      */
     Coupling3dQuadManager(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element* sele, std::vector<Mortar::Element*> mele);
+        Teuchos::ParameterList& params, Mortar::Element* source_elem,
+        std::vector<Mortar::Element*> target_elem);
 
 
     /*!
-     \brief Get number of slave / master integration pairs of this interface (proc local)
+     \brief Get number of source / target integration pairs of this interface (proc local)
 
      */
-    virtual const int& slave_master_int_pairs() { return smintpairs_; }
+    virtual const int& source_target_int_pairs() { return source_target_int_pairs_; }
 
     /*!
      \brief Get number of integration cells of this interface (proc local)
@@ -468,8 +471,8 @@ namespace CONTACT
     Coupling3dQuadManager(const Coupling3dQuadManager& old) = delete;
 
     // new variables as compared to the base class:
-    int smintpairs_;  // proc local number of slave/master integration pairs
-    int intcells_;    // proc local number of integration cells
+    int source_target_int_pairs_;  // proc local number of source/target integration pairs
+    int intcells_;                 // proc local number of integration cells
   };
 
 }  // namespace CONTACT

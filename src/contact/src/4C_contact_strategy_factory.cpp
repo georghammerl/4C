@@ -221,7 +221,7 @@ void CONTACT::STRATEGY::Factory::read_and_check_input(Teuchos::ParameterList& pa
       std::cout << ("Warning: Contact search called without inflation of bounding volumes\n")
                 << std::endl;
 
-    if (Teuchos::getIntegralValue<Wear::WearSide>(wearlist, "WEAR_SIDE") != Wear::wear_slave)
+    if (Teuchos::getIntegralValue<Wear::WearSide>(wearlist, "WEAR_SIDE") != Wear::wear_source)
       std::cout << ("\n \n Warning: Contact with both-sided wear is still experimental !")
                 << std::endl;
   }
@@ -660,8 +660,8 @@ void CONTACT::STRATEGY::Factory::read_and_check_input(Teuchos::ParameterList& pa
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& params,
-    std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces, bool& poroslave,
-    bool& poromaster) const
+    std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces, bool& porosource,
+    bool& porotarget) const
 {
   // start building interfaces
   if (Core::Communication::my_mpi_rank(get_comm()) == 0)
@@ -696,11 +696,11 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
   // only for poro
   bool isporo = (params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::poroelast) ||
                 (params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::poroscatra);
-  bool structmaster = false;
-  bool structslave = false;
+  bool structtarget = false;
+  bool structsource = false;
   bool isanyselfcontact = false;
-  Mortar::Element::PhysicalType slavetype = Mortar::Element::other;
-  Mortar::Element::PhysicalType mastertype = Mortar::Element::other;
+  Mortar::Element::PhysicalType sourcetype = Mortar::Element::other;
+  Mortar::Element::PhysicalType targettype = Mortar::Element::other;
 
   // loop over all contact condition groups
   for (auto& currentgroup : ccond_grps)
@@ -745,10 +745,10 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
       }
     }
 
-    // find out which sides are Master and Slave
-    std::vector<bool> isslave;
+    // find out which sides are Target and Source
+    std::vector<bool> issource;
     std::vector<bool> isself;
-    CONTACT::Utils::get_master_slave_side_info(isslave, isself, currentgroup);
+    CONTACT::Utils::get_target_source_side_info(issource, isself, currentgroup);
     for (const bool is : isself)
     {
       if (is)
@@ -765,7 +765,7 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
     bool Searchele_AllProc(false);
 
     CONTACT::Utils::get_initialization_info(Two_half_pass, Check_nonsmooth_selfcontactsurface,
-        Searchele_AllProc, isactive, isslave, isself, currentgroup);
+        Searchele_AllProc, isactive, issource, isself, currentgroup);
 
     // create interface local parameter list (copy)
     Teuchos::ParameterList icparams = params;
@@ -834,12 +834,12 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
 
     set_parameters_for_contact_condition(groupid1, icparams);
 
-    // for structural contact we currently choose redundant master storage
-    // the only exception is self contact where a redundant slave is needed, too
+    // for structural contact we currently choose redundant target storage
+    // the only exception is self contact where a redundant source is needed, too
     auto redundant = Teuchos::getIntegralValue<Mortar::ExtendGhosting>(
         icparams.sublist("PARALLEL REDISTRIBUTION"), "GHOSTING_STRATEGY");
     if (isanyselfcontact && redundant != Mortar::ExtendGhosting::redundant_all)
-      FOUR_C_THROW("Self contact requires fully redundant slave and master storage");
+      FOUR_C_THROW("Self contact requires fully redundant source and target storage");
 
     // ------------------------------------------------------------------------
     // create the desired interface object
@@ -922,7 +922,7 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
         {
           std::shared_ptr<CONTACT::FriNode> cnode =
               std::make_shared<CONTACT::FriNode>(node->id(), node->x(), node->owner(),
-                  discret().dof(0, node), isslave[j], isactive[j] + foundinitialactive, friplus);
+                  discret().dof(0, node), issource[j], isactive[j] + foundinitialactive, friplus);
           //-------------------
           // get nurbs weight!
           if (nurbs)
@@ -985,14 +985,14 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
           if (mircolaw == true)
           {
             cnode = std::make_shared<CONTACT::RoughNode>(node->id(), node->x(), node->owner(),
-                discret().dof(0, node), isslave[j], isactive[j] + foundinitialactive,
+                discret().dof(0, node), issource[j], isactive[j] + foundinitialactive,
                 hurstexponentfunction, initialtopologystddeviationfunction, resolution,
                 randomtopologyflag, randomseedflag, randomgeneratorseed);
           }
           else
           {
             cnode = std::make_shared<CONTACT::Node>(node->id(), node->x(), node->owner(),
-                discret().dof(0, node), isslave[j], isactive[j] + foundinitialactive);
+                discret().dof(0, node), issource[j], isactive[j] + foundinitialactive);
           }
 
           //-------------------
@@ -1096,7 +1096,7 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
         if (Core::FE::is_nurbs_celltype(ele->shape()) != nurbs)
         {
           FOUR_C_THROW(
-              "All elements of one interface side (i.e. slave or master) "
+              "All elements of one interface side (i.e. source or target) "
               "must be NURBS or LAGRANGE elements. A mixed NURBS/Lagrange "
               "discretizations on one side of the interface is currently "
               "unsupported.");
@@ -1104,9 +1104,9 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
 
         std::shared_ptr<CONTACT::Element> cele =
             std::make_shared<CONTACT::Element>(ele->id() + ggsize, ele->owner(), ele->shape(),
-                ele->num_node(), ele->node_ids(), isslave[j], nurbs);
+                ele->num_node(), ele->node_ids(), issource[j], nurbs);
 
-        if (isporo) set_poro_parent_element(slavetype, mastertype, *cele, ele, discret());
+        if (isporo) set_poro_parent_element(sourcetype, targettype, *cele, ele, discret());
 
         if (algo == Mortar::algorithm_gpts)
         {
@@ -1116,7 +1116,7 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
           if (faceele->parent_element() == nullptr) FOUR_C_THROW("face parent does not exist");
           if (discret().element_col_map()->lid(faceele->parent_element()->id()) == -1)
             FOUR_C_THROW("vol dis does not have parent ele");
-          cele->set_parent_master_element(faceele->parent_element(), faceele->face_parent_number());
+          cele->set_parent_target_element(faceele->parent_element(), faceele->face_parent_number());
         }
 
         //------------------------------------------------------------------
@@ -1140,7 +1140,7 @@ void CONTACT::STRATEGY::Factory::build_interfaces(const Teuchos::ParameterList& 
 
     if (isporo)
       find_poro_interface_types(
-          poromaster, poroslave, structmaster, structslave, slavetype, mastertype);
+          porotarget, porosource, structtarget, structsource, sourcetype, targettype);
 
   }  // for (int i=0; i<(int)contactconditions.size(); ++i)
 
@@ -1160,23 +1160,23 @@ void CONTACT::STRATEGY::Factory::fully_overlapping_interfaces(
   {
     Interface& interface = **it;
 
-    const Core::LinAlg::Map& srownodes_i = *interface.slave_row_nodes();
-    const Core::LinAlg::Map& mrownodes_i = *interface.master_row_nodes();
+    const Core::LinAlg::Map& srownodes_i = *interface.source_row_nodes();
+    const Core::LinAlg::Map& mrownodes_i = *interface.target_row_nodes();
 
     for (auto it2 = (it + 1); it2 != interfaces.end(); ++it2)
     {
       Interface& iinterface = **it2;
 
-      const Core::LinAlg::Map& srownodes_ii = *iinterface.slave_row_nodes();
-      const Core::LinAlg::Map& mrownodes_ii = *iinterface.master_row_nodes();
+      const Core::LinAlg::Map& srownodes_ii = *iinterface.source_row_nodes();
+      const Core::LinAlg::Map& mrownodes_ii = *iinterface.target_row_nodes();
 
       const int sl_fullsubset_id = identify_full_subset(srownodes_i, srownodes_ii);
       if (sl_fullsubset_id != -1)
-        FOUR_C_THROW("Currently the slave element maps are not allowed to overlap!");
+        FOUR_C_THROW("Currently the source element maps are not allowed to overlap!");
 
       const int ma_fullsubset_id = identify_full_subset(mrownodes_i, mrownodes_ii);
 
-      // handle fully overlapping master interfaces
+      // handle fully overlapping target interfaces
       if (ma_fullsubset_id == 0)
         interface.add_ma_sharing_ref_interface(&iinterface);
       else if (ma_fullsubset_id == 1)
@@ -1188,8 +1188,8 @@ void CONTACT::STRATEGY::Factory::fully_overlapping_interfaces(
   {
     if (inter->has_ma_sharing_ref_interface())
     {
-      Core::IO::cout << "master side of mortar interface #" << inter->id()
-                     << " is fully overlapping with the master side of interface #"
+      Core::IO::cout << "target side of mortar interface #" << inter->id()
+                     << " is fully overlapping with the target side of interface #"
                      << inter->get_ma_sharing_ref_interface().id() << Core::IO::endl;
     }
   }
@@ -1338,19 +1338,19 @@ std::shared_ptr<CONTACT::Interface> CONTACT::STRATEGY::Factory::create_interface
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void CONTACT::STRATEGY::Factory::set_poro_parent_element(Mortar::Element::PhysicalType& slavetype,
-    Mortar::Element::PhysicalType& mastertype, CONTACT::Element& cele,
+void CONTACT::STRATEGY::Factory::set_poro_parent_element(Mortar::Element::PhysicalType& sourcetype,
+    Mortar::Element::PhysicalType& targettype, CONTACT::Element& cele,
     std::shared_ptr<Core::Elements::Element>& ele, const Core::FE::Discretization& discret) const
 {
   // ints to communicate decision over poro bools between processors on every interface
-  // safety check - because there may not be mixed interfaces and structural slave elements
+  // safety check - because there may not be mixed interfaces and structural source elements
   std::shared_ptr<Core::Elements::FaceElement> faceele =
       std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
   if (faceele == nullptr) FOUR_C_THROW("Cast to FaceElement failed!");
   cele.phys_type() = Mortar::Element::other;
   std::vector<const Core::Conditions::Condition*> poroCondVec;
   discret.get_condition("PoroCoupling", poroCondVec);
-  if (!cele.is_slave())  // treat an element as a master element if it is no slave element
+  if (!cele.is_source())  // treat an element as a target element if it is no source element
   {
     for (auto& poroCond : poroCondVec)
     {
@@ -1360,30 +1360,30 @@ void CONTACT::STRATEGY::Factory::set_poro_parent_element(Mortar::Element::Physic
       {
         if (faceele->parent_element()->id() == eleitergeometry->second->id())
         {
-          if (mastertype == Mortar::Element::structure)
+          if (targettype == Mortar::Element::structure)
           {
             FOUR_C_THROW(
-                "struct and poro master elements on the same processor - no mixed interface "
+                "struct and poro target elements on the same processor - no mixed interface "
                 "supported");
           }
           cele.phys_type() = Mortar::Element::poro;
-          mastertype = Mortar::Element::poro;
+          targettype = Mortar::Element::poro;
           break;
         }
       }
     }
     if (cele.phys_type() == Mortar::Element::other)
     {
-      if (mastertype == Mortar::Element::poro)
+      if (targettype == Mortar::Element::poro)
       {
         FOUR_C_THROW(
-            "struct and poro master elements on the same processor - no mixed interface supported");
+            "struct and poro target elements on the same processor - no mixed interface supported");
       }
       cele.phys_type() = Mortar::Element::structure;
-      mastertype = Mortar::Element::structure;
+      targettype = Mortar::Element::structure;
     }
   }
-  else if (cele.is_slave())  // treat an element as slave element if it is one
+  else if (cele.is_source())  // treat an element as source element if it is one
   {
     for (auto& poroCond : poroCondVec)
     {
@@ -1393,89 +1393,89 @@ void CONTACT::STRATEGY::Factory::set_poro_parent_element(Mortar::Element::Physic
       {
         if (faceele->parent_element()->id() == eleitergeometry->second->id())
         {
-          if (slavetype == Mortar::Element::structure)
+          if (sourcetype == Mortar::Element::structure)
           {
             FOUR_C_THROW(
-                "struct and poro master elements on the same processor - no mixed interface "
+                "struct and poro target elements on the same processor - no mixed interface "
                 "supported");
           }
           cele.phys_type() = Mortar::Element::poro;
-          slavetype = Mortar::Element::poro;
+          sourcetype = Mortar::Element::poro;
           break;
         }
       }
     }
     if (cele.phys_type() == Mortar::Element::other)
     {
-      if (slavetype == Mortar::Element::poro)
+      if (sourcetype == Mortar::Element::poro)
         FOUR_C_THROW(
-            "struct and poro master elements on the same processor - no mixed interface supported");
+            "struct and poro target elements on the same processor - no mixed interface supported");
       cele.phys_type() = Mortar::Element::structure;
-      slavetype = Mortar::Element::structure;
+      sourcetype = Mortar::Element::structure;
     }
   }
   // store information about parent for porous contact (required for calculation of deformation
   // gradient!) in every contact element although only really needed for phystype poro
-  cele.set_parent_master_element(faceele->parent_element(), faceele->face_parent_number());
+  cele.set_parent_target_element(faceele->parent_element(), faceele->face_parent_number());
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void CONTACT::STRATEGY::Factory::find_poro_interface_types(bool& poromaster, bool& poroslave,
-    bool& structmaster, bool& structslave, Mortar::Element::PhysicalType& slavetype,
-    Mortar::Element::PhysicalType& mastertype) const
+void CONTACT::STRATEGY::Factory::find_poro_interface_types(bool& porotarget, bool& porosource,
+    bool& structtarget, bool& structsource, Mortar::Element::PhysicalType& sourcetype,
+    Mortar::Element::PhysicalType& targettype) const
 {
   // find poro and structure elements when a poro coupling condition is applied on an element
   // and restrict to pure poroelastic or pure structural interfaces' sides.
-  //(only poro slave elements AND (only poro master elements or only structure master elements)
+  //(only poro source elements AND (only poro target elements or only structure target elements)
   // Tell the contact element which physical type it is to extract PhysType in contact integrator
   // bools to decide which side is structural and which side is poroelastic to manage all 4
   // constellations
   // s-s, p-s, s-p, p-p
-  // wait for all processors to determine if they have poro or structural master or slave elements
+  // wait for all processors to determine if they have poro or structural target or source elements
   Core::Communication::barrier(get_comm());
   /* FixMe Should become possible for scoped enumeration with C++11,
    * till then we use the shown workaround.
-   *  enum Mortar::Element::PhysicalType slaveTypeList[Comm().NumProc()];
-   *  enum Mortar::Element::PhysicalType masterTypeList[Comm().NumProc()];
-   *  Comm().gather_all(static_cast<int*>(&slavetype),static_cast<int*>(slaveTypeList.data()),1);
-   *  Comm().gather_all(static_cast<int*>(&mastertype),static_cast<int*>(masterTypeList.data()),1);
+   *  enum Mortar::Element::PhysicalType sourceTypeList[Comm().NumProc()];
+   *  enum Mortar::Element::PhysicalType targetTypeList[Comm().NumProc()];
+   *  Comm().gather_all(static_cast<int*>(&sourcetype),static_cast<int*>(sourceTypeList.data()),1);
+   *  Comm().gather_all(static_cast<int*>(&targettype),static_cast<int*>(targetTypeList.data()),1);
    */
-  std::vector<int> slaveTypeList(Core::Communication::num_mpi_ranks(get_comm()));
-  std::vector<int> masterTypeList(Core::Communication::num_mpi_ranks(get_comm()));
-  int int_slavetype = static_cast<int>(slavetype);
-  int int_mastertype = static_cast<int>(mastertype);
-  Core::Communication::gather_all(&int_slavetype, slaveTypeList.data(), 1, get_comm());
-  Core::Communication::gather_all(&int_mastertype, masterTypeList.data(), 1, get_comm());
+  std::vector<int> sourceTypeList(Core::Communication::num_mpi_ranks(get_comm()));
+  std::vector<int> targetTypeList(Core::Communication::num_mpi_ranks(get_comm()));
+  int int_sourcetype = static_cast<int>(sourcetype);
+  int int_targettype = static_cast<int>(targettype);
+  Core::Communication::gather_all(&int_sourcetype, sourceTypeList.data(), 1, get_comm());
+  Core::Communication::gather_all(&int_targettype, targetTypeList.data(), 1, get_comm());
   Core::Communication::barrier(get_comm());
 
   for (int i = 0; i < Core::Communication::num_mpi_ranks(get_comm()); ++i)
   {
-    switch (slaveTypeList[i])
+    switch (sourceTypeList[i])
     {
       case static_cast<int>(Mortar::Element::other):
         break;
       case static_cast<int>(Mortar::Element::poro):
       {
-        if (structslave)
+        if (structsource)
         {
           FOUR_C_THROW(
-              "struct and poro slave elements in the same problem - no mixed interface "
+              "struct and poro source elements in the same problem - no mixed interface "
               "constellations supported");
         }
         // adjust FOUR_C_THROW text, when more than one interface is supported
-        poroslave = true;
+        porosource = true;
         break;
       }
       case static_cast<int>(Mortar::Element::structure):
       {
-        if (poroslave)
+        if (porosource)
         {
           FOUR_C_THROW(
-              "struct and poro slave elements in the same problem - no mixed interface "
+              "struct and poro source elements in the same problem - no mixed interface "
               "constellations supported");
         }
-        structslave = true;
+        structsource = true;
         break;
       }
       default:
@@ -1488,31 +1488,31 @@ void CONTACT::STRATEGY::Factory::find_poro_interface_types(bool& poromaster, boo
 
   for (int i = 0; i < Core::Communication::num_mpi_ranks(get_comm()); ++i)
   {
-    switch (masterTypeList[i])
+    switch (targetTypeList[i])
     {
       case static_cast<int>(Mortar::Element::other):
         break;
       case static_cast<int>(Mortar::Element::poro):
       {
-        if (structmaster)
+        if (structtarget)
         {
           FOUR_C_THROW(
-              "struct and poro master elements in the same problem - no mixed interface "
+              "struct and poro target elements in the same problem - no mixed interface "
               "constellations supported");
         }
         // adjust FOUR_C_THROW text, when more than one interface is supported
-        poromaster = true;
+        porotarget = true;
         break;
       }
       case static_cast<int>(Mortar::Element::structure):
       {
-        if (poromaster)
+        if (porotarget)
         {
           FOUR_C_THROW(
-              "struct and poro master elements in the same problem - no mixed interface "
+              "struct and poro target elements in the same problem - no mixed interface "
               "constellations supported");
         }
-        structmaster = true;
+        structtarget = true;
         break;
       }
       default:
@@ -1527,14 +1527,14 @@ void CONTACT::STRATEGY::Factory::find_poro_interface_types(bool& poromaster, boo
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::AbstractStrategy> CONTACT::STRATEGY::Factory::build_strategy(
-    const Teuchos::ParameterList& params, const bool& poroslave, const bool& poromaster,
+    const Teuchos::ParameterList& params, const bool& porosource, const bool& porotarget,
     const int& dof_offset, std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces,
     CONTACT::ParamsInterface* cparams_interface) const
 {
   const auto stype = Teuchos::getIntegralValue<enum CONTACT::SolvingStrategy>(params, "STRATEGY");
   std::shared_ptr<CONTACT::AbstractStrategyDataContainer> data_ptr = nullptr;
 
-  return build_strategy(stype, params, poroslave, poromaster, dof_offset, interfaces,
+  return build_strategy(stype, params, porosource, porotarget, dof_offset, interfaces,
       discret().dof_row_map(), discret().node_row_map(), n_dim(), get_comm(), data_ptr,
       cparams_interface);
 }
@@ -1543,7 +1543,7 @@ std::shared_ptr<CONTACT::AbstractStrategy> CONTACT::STRATEGY::Factory::build_str
  *----------------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::AbstractStrategy> CONTACT::STRATEGY::Factory::build_strategy(
     const CONTACT::SolvingStrategy stype, const Teuchos::ParameterList& params,
-    const bool& poroslave, const bool& poromaster, const int& dof_offset,
+    const bool& porosource, const bool& porotarget, const int& dof_offset,
     std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces,
     const Core::LinAlg::Map* dof_row_map, const Core::LinAlg::Map* node_row_map, const int dim,
     const MPI_Comm& comm_ptr, std::shared_ptr<CONTACT::AbstractStrategyDataContainer> data_ptr,
@@ -1588,8 +1588,8 @@ std::shared_ptr<CONTACT::AbstractStrategy> CONTACT::STRATEGY::Factory::build_str
       //          dim,
       //          comm_ptr,
       //          maxdof,
-      //          poroslave,
-      //          poromaster));
+      //          porosource,
+      //          porotarget));
     }
     else if (params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::tsi)
     {
@@ -1930,16 +1930,16 @@ void CONTACT::STRATEGY::Factory::set_parameters_for_contact_condition(
     auto& s2icouplingparameters = contactinterfaceparameters.sublist("ContactS2ICoupling");
 
     // loop over all s2i conditions and get the one with the same condition id (that they have to
-    // match is assured within the setup of the SSI framework) at the slave-side, as only this
+    // match is assured within the setup of the SSI framework) at the source-side, as only this
     // stores all the information
     for (const auto& s2ikinetics_cond : s2ikinetics_conditions)
     {
       // only add to parameters if condition ID's match
       if (s2ikinetics_cond->parameters().get<int>("ConditionID") == conditiongroupid)
       {
-        // only the slave-side stores the parameters
+        // only the source-side stores the parameters
         if (s2ikinetics_cond->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-            Inpar::S2I::side_slave)
+            Inpar::S2I::side_source)
         {
           // fill the parameters from the s2i condition
           ScaTra::MeshtyingStrategyS2I::

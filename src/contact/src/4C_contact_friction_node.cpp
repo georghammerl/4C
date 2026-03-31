@@ -78,7 +78,7 @@ void CONTACT::FriNodeDataContainer::pack(Core::Communication::PackBuffer& data) 
     add_to_pack(data, dentries);
     add_to_pack(data, drowsold_);
     add_to_pack(data, mrowsold_);
-    add_to_pack(data, mnodesold_);
+    add_to_pack(data, target_nodes_old_);
   }
 
   int hasdata2 = drowsoldLTL_.size();
@@ -133,7 +133,7 @@ void CONTACT::FriNodeDataContainer::unpack(Core::Communication::UnpackBuffer& bu
     drowsold_.resize(dentries);
     extract_from_pack(buffer, drowsold_);
     extract_from_pack(buffer, mrowsold_);
-    extract_from_pack(buffer, mnodesold_);
+    extract_from_pack(buffer, target_nodes_old_);
   }
 
   // drowsold_,mrowsold_,mnodesold_
@@ -224,8 +224,8 @@ void CONTACT::FriNodeWearDataContainer::unpack(Core::Communication::UnpackBuffer
  |  ctor (public)                                             mgit 02/10|
  *----------------------------------------------------------------------*/
 CONTACT::FriNode::FriNode(int id, std::span<const double> coords, const int owner,
-    const std::vector<int>& dofs, const bool isslave, const bool initactive, const bool friplus)
-    : CONTACT::Node(id, coords, owner, dofs, isslave, initactive), wear_(friplus)
+    const std::vector<int>& dofs, const bool issource, const bool initactive, const bool friplus)
+    : CONTACT::Node(id, coords, owner, dofs, issource, initactive), wear_(friplus)
 {
 }
 
@@ -265,7 +265,7 @@ void CONTACT::FriNode::print(std::ostream& os) const
   // Print id and coordinates
   os << "Contact ";
   CONTACT::Node::print(os);
-  if (is_slave())
+  if (is_source())
     if (is_init_active()) os << " InitActive ";
 }
 
@@ -341,7 +341,7 @@ double CONTACT::FriNode::fr_coeff(const double frcoeff_in) const
   // in TSI case, the friction coefficient is temperature dependent
   else
   {
-    double maxT = std::max(tsi_data().temp(), tsi_data().temp_master());
+    double maxT = std::max(tsi_data().temp(), tsi_data().temp_target());
     return frcoeff_in * (maxT - cTSIdata_->temp_dam()) * (maxT - cTSIdata_->temp_dam()) /
            ((cTSIdata_->temp_dam() - cTSIdata_->temp_ref()) *
                (cTSIdata_->temp_dam() - cTSIdata_->temp_ref()));
@@ -362,7 +362,7 @@ void CONTACT::FriNode::deriv_fr_coeff_temp(
 
   double T_dam = cTSIdata_->temp_dam();
   double T_ref = cTSIdata_->temp_ref();
-  if (cTSIdata_->temp() > cTSIdata_->temp_master())
+  if (cTSIdata_->temp() > cTSIdata_->temp_target())
   {
     double maxT = tsi_data().temp();
     derivT[dofs()[0]] += 2. * frcoeff_in * (maxT - T_dam) / ((T_dam - T_ref) * (T_dam - T_ref));
@@ -370,35 +370,29 @@ void CONTACT::FriNode::deriv_fr_coeff_temp(
   }
   else
   {
-    double maxT = tsi_data().temp_master();
-    for (std::map<int, double>::const_iterator i = tsi_data().deriv_temp_master_temp().begin();
-        i != tsi_data().deriv_temp_master_temp().end(); ++i)
+    double maxT = tsi_data().temp_target();
+    for (std::map<int, double>::const_iterator i = tsi_data().deriv_temp_target_temp().begin();
+        i != tsi_data().deriv_temp_target_temp().end(); ++i)
       derivT[i->first] +=
           2. * frcoeff_in * (maxT - T_dam) / ((T_dam - T_ref) * (T_dam - T_ref)) * i->second;
-    for (std::map<int, double>::const_iterator i = tsi_data().deriv_temp_master_disp().begin();
-        i != tsi_data().deriv_temp_master_disp().end(); ++i)
+    for (std::map<int, double>::const_iterator i = tsi_data().deriv_temp_target_disp().begin();
+        i != tsi_data().deriv_temp_target_disp().end(); ++i)
       derivDisp[i->first] +=
           2. * frcoeff_in * (maxT - T_dam) / ((T_dam - T_ref) * (T_dam - T_ref)) * i->second;
   }
 }
 
-/*----------------------------------------------------------------------*
- |  Add a value to the 'SNodes' set                        gitterle 11/09|
- *----------------------------------------------------------------------*/
-void CONTACT::FriNode::add_s_node(int node) { fri_data().get_s_nodes().insert(node); }
+void CONTACT::FriNode::add_source_node(int node) { fri_data().get_source_nodes().insert(node); }
 
-/*----------------------------------------------------------------------*
- |  Add a value to the 'MNodes' set                        gitterle 11/09|
- *----------------------------------------------------------------------*/
-void CONTACT::FriNode::add_m_node(int node) { fri_data().get_m_nodes().insert(node); }
+void CONTACT::FriNode::add_target_node(int node) { fri_data().get_target_nodes().insert(node); }
 
 /*----------------------------------------------------------------------*
  |  Add a value to the 'D2' map                              farah 06/13|
  *----------------------------------------------------------------------*/
 void CONTACT::FriNode::add_d2_value(int row, int col, double val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == true) FOUR_C_THROW("AddD2Value: function called for slave node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == true) FOUR_C_THROW("AddD2Value: function called for source node {}", id());
 
   // check if this has been called before
   if ((int)wear_data().get_d2().size() == 0) wear_data().get_d2().resize(num_dof());
@@ -417,8 +411,8 @@ void CONTACT::FriNode::add_d2_value(int row, int col, double val)
  *----------------------------------------------------------------------*/
 void CONTACT::FriNode::add_deriv_jump_value(int row, int col, double val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("AddJumpValue: function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("AddJumpValue: function called for target node {}", id());
   if (is_on_bound() == true)
     FOUR_C_THROW("AddJumpValue: function called for boundary node {}", id());
 
@@ -439,8 +433,8 @@ void CONTACT::FriNode::add_deriv_jump_value(int row, int col, double val)
 *----------------------------------------------------------------------*/
 void CONTACT::FriNode::add_jump_value(double val, int k)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("AddJumpValue: function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("AddJumpValue: function called for target node {}", id());
   if (is_on_bound() == true)
     FOUR_C_THROW("AddJumpValue: function called for boundary node {}", id());
 
@@ -452,9 +446,9 @@ void CONTACT::FriNode::add_jump_value(double val, int k)
  *----------------------------------------------------------------------*/
 void CONTACT::FriNode::add_t_value(int row, int col, double val)
 {
-  // check if this is a master node or slave boundary node
-  //  if (IsSlave()==false)
-  //     FOUR_C_THROW("AddTValue: function called for master node {}", Id());
+  // check if this is a target node or source boundary node
+  //  if (IsSource()==false)
+  //     FOUR_C_THROW("AddTValue: function called for target node {}", Id());
 
   // check if this has been called before
   if ((int)wear_data().get_t().size() == 0) wear_data().get_t().resize(num_dof());
@@ -473,9 +467,9 @@ void CONTACT::FriNode::add_t_value(int row, int col, double val)
  *----------------------------------------------------------------------*/
 void CONTACT::FriNode::add_e_value(int row, int col, double val)
 {
-  // check if this is a master node or slave boundary node
-  //  if (IsSlave()==false)
-  //     FOUR_C_THROW("AddEValue: function called for master node {}", Id());
+  // check if this is a target node or source boundary node
+  //  if (IsSource()==false)
+  //     FOUR_C_THROW("AddEValue: function called for target node {}", Id());
 
   // check if this has been called before
   if ((int)wear_data().get_e().size() == 0) wear_data().get_e().resize(num_dof());
@@ -508,9 +502,9 @@ void CONTACT::FriNode::store_dm_old()
   fri_data().get_d_old_ltl() = mo_data().get_dltl();
   fri_data().get_m_old_ltl() = mo_data().get_mltl();
 
-  // also vectors containing the according master nodes
-  fri_data().get_m_nodes_old().clear();
-  fri_data().get_m_nodes_old() = fri_data().get_m_nodes();
+  // also vectors containing the according target nodes
+  fri_data().get_target_nodes_old().clear();
+  fri_data().get_target_nodes_old() = fri_data().get_target_nodes();
 }
 
 /*----------------------------------------------------------------------*

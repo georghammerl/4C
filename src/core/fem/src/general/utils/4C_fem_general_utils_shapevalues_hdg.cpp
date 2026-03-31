@@ -271,7 +271,7 @@ void Core::FE::ShapeValuesFace<distype>::adjust_face_orientation(
   // it. The local trafo map of the face element holds that information for the slave
   // side, whereas the master side always uses the correct mapping. Thus, we need not
   // do anything in that case.
-  if (ele.faces()[face]->parent_master_element() == &ele)
+  if (ele.faces()[face]->parent_target_element() == &ele)
   {
     for (unsigned int q = 0; q < nqpoints_; ++q)
       for (unsigned int i = 0; i < nfdofs_; ++i) shfunct(i, q) = shfunctNoPermute(i, q);
@@ -487,7 +487,7 @@ void Core::FE::ShapeValuesFace<distype>::compute_face_reference_system(
 
   Core::LinAlg::SerialDenseVector norm(nsd_ - 1);
 
-  if (ele.faces()[face]->parent_master_element() != &ele)
+  if (ele.faces()[face]->parent_target_element() != &ele)
   {
     // This is the same that is done before for the face element but we do it from the master side
     // get face position array from element position array

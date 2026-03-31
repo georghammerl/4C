@@ -32,12 +32,13 @@ namespace CONTACT
        * */
       std::shared_ptr<CONTACT::Integrator> build_integrator(
           const CONTACT::SolvingStrategy& sol_type, Teuchos::ParameterList& mortar_params,
-          const Core::FE::CellType& slave_type, MPI_Comm comm) const;
+          const Core::FE::CellType& source_type, MPI_Comm comm) const;
     };  // class Factory
 
     // non-member function, please call this one from outside!
     std::shared_ptr<CONTACT::Integrator> build_integrator(const CONTACT::SolvingStrategy& sol_type,
-        Teuchos::ParameterList& mortar_params, const Core::FE::CellType& slave_type, MPI_Comm comm);
+        Teuchos::ParameterList& mortar_params, const Core::FE::CellType& source_type,
+        MPI_Comm comm);
   }  // namespace INTEGRATOR
 }  // namespace CONTACT
 

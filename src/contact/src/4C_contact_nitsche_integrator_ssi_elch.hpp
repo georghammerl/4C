@@ -36,7 +36,7 @@ namespace CONTACT
      * Core::FE::IntegrationPoints structs to get Gauss points and corresponding weights.
      *
      * @param[in] params   interface contact parameter list
-     * @param[in] eletype  shape of integration cell for segment based integration or slave side
+     * @param[in] eletype  shape of integration cell for segment based integration or source side
      *                     mortar contact element for element based integration
      * @param[in] comm     contact interface communicator
      */
@@ -49,39 +49,40 @@ namespace CONTACT
     struct ElementDataBundle;
 
     /*!
-     * @brief Checks which element (master- or slave-side) is the electrode-side and bundle the data
+     * @brief Checks which element (target- or source-side) is the electrode-side and bundle the
+     * data
      *
      * @tparam dim                    dimension of the problem
-     * @param[in] slave_ele           slave side mortar element
-     * @param[in] slave_xi            slave side coordinates in parameter space at current Gauss
+     * @param[in] source_ele           source side mortar element
+     * @param[in] source_xi            source side coordinates in parameter space at current Gauss
      *                                point
-     * @param[in] slave_shape         slave side shape function evaluated at current Gauss point
-     * @param[in] slave_shape_deriv   slave side shape function derivative at current Gauss point
-     * @param[in] slave_normal        slave side normal at current Gauss point
-     * @param[in] d_slave_xi_dd       directional derivative of slave side Gauss point coordinates
-     * @param[in] master_ele          master side mortar element
-     * @param[in] master_xi           master side coordinates in parameter space at current Gauss
+     * @param[in] source_shape         source side shape function evaluated at current Gauss point
+     * @param[in] source_shape_deriv   source side shape function derivative at current Gauss point
+     * @param[in] source_normal        source side normal at current Gauss point
+     * @param[in] d_source_xi_dd       directional derivative of source side Gauss point coordinates
+     * @param[in] target_ele          target side mortar element
+     * @param[in] target_xi           target side coordinates in parameter space at current Gauss
      *                                point
-     * @param[in] master_shape        master side shape function evaluated at current Gauss point
-     * @param[in] master_shape_deriv  master side shape function derivative at current Gauss point
-     * @param[in] master_normal       master side normal at current Gauss point
-     * @param[in] d_master_xi_dd      directional derivative of master side Gauss point coordinates
-     * @param[out] slave_is_electrode  flag indicating if slave-side is electrode-side
+     * @param[in] target_shape        target side shape function evaluated at current Gauss point
+     * @param[in] target_shape_deriv  target side shape function derivative at current Gauss point
+     * @param[in] target_normal       target side normal at current Gauss point
+     * @param[in] d_target_xi_dd      directional derivative of target side Gauss point coordinates
+     * @param[out] source_is_electrode  flag indicating if source-side is electrode-side
      * @param[out] electrode_data      data bundle of the electrode-side element
      * @param[out] electrolyte_data    data bundle of the electrolyte-side element
      */
     template <int dim>
-    void assign_electrode_and_electrolyte_quantities(Mortar::Element& slave_ele, double* slave_xi,
-        const Core::LinAlg::SerialDenseVector& slave_shape,
-        const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-        const Core::LinAlg::Matrix<dim, 1>& slave_normal,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-        Mortar::Element& master_ele, double* master_xi,
-        const Core::LinAlg::SerialDenseVector& master_shape,
-        const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-        const Core::LinAlg::Matrix<dim, 1>& master_normal,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd,
-        bool& slave_is_electrode, ElementDataBundle<dim>& electrode_quantities,
+    void assign_electrode_and_electrolyte_quantities(Mortar::Element& source_ele, double* source_xi,
+        const Core::LinAlg::SerialDenseVector& source_shape,
+        const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+        const Core::LinAlg::Matrix<dim, 1>& source_normal,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+        Mortar::Element& target_ele, double* target_xi,
+        const Core::LinAlg::SerialDenseVector& target_shape,
+        const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+        const Core::LinAlg::Matrix<dim, 1>& target_normal,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd,
+        bool& source_is_electrode, ElementDataBundle<dim>& electrode_quantities,
         ElementDataBundle<dim>& electrolyte_quantities);
 
     /*!
@@ -130,14 +131,14 @@ namespace CONTACT
      * @brief evaluate gauss point to segment forces and linearization at this gp
      *
      * @tparam dim  dimension of the problem
-     * @param[in] slave_ele           slave side mortar element
-     * @param[in] master_ele          master side mortar element
-     * @param[in] slave_shape         slave side shape function evaluated at current Gauss point
-     * @param[in] slave_shape_deriv   slave side shape function derivative at current Gauss point
-     * @param[in] d_slave_xi_dd       directional derivative of slave side Gauss point coordinates
-     * @param[in] master_shape        master side shape function evaluated at current Gauss point
-     * @param[in] master_shape_deriv  master side shape function derivative at current Gauss point
-     * @param[in] d_master_xi_dd      directional derivative of master side Gauss point coordinates
+     * @param[in] source_ele           source side mortar element
+     * @param[in] target_ele          target side mortar element
+     * @param[in] source_shape         source side shape function evaluated at current Gauss point
+     * @param[in] source_shape_deriv   source side shape function derivative at current Gauss point
+     * @param[in] d_source_xi_dd       directional derivative of source side Gauss point coordinates
+     * @param[in] target_shape        target side shape function evaluated at current Gauss point
+     * @param[in] target_shape_deriv  target side shape function derivative at current Gauss point
+     * @param[in] d_target_xi_dd      directional derivative of target side Gauss point coordinates
      * @param[in] jac                 Jacobian determinant of integration cell
      * @param[in] d_jac_dd            directional derivative of cell Jacobian
      * @param[in] gp_wgt              Gauss point weight
@@ -145,27 +146,27 @@ namespace CONTACT
      * @param[in] d_gap_dd            directional derivative of gap
      * @param[in] gp_normal           Gauss point normal
      * @param[in] d_gp_normal_dd      directional derivative of Gauss point normal
-     * @param[in] slave_xi            slave side Gauss point coordinates
-     * @param[in] master_xi           master side Gauss point coordinates
+     * @param[in] source_xi            source side Gauss point coordinates
+     * @param[in] target_xi           target side Gauss point coordinates
      */
     template <int dim>
-    void gpts_forces(Mortar::Element& slave_ele, Mortar::Element& master_ele,
-        const Core::LinAlg::SerialDenseVector& slave_shape,
-        const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-        const Core::LinAlg::SerialDenseVector& master_shape,
-        const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd, double jac,
+    void gpts_forces(Mortar::Element& source_ele, Mortar::Element& target_ele,
+        const Core::LinAlg::SerialDenseVector& source_shape,
+        const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+        const Core::LinAlg::SerialDenseVector& target_shape,
+        const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd, double jac,
         const Core::Gen::Pairedvector<int, double>& d_jac_dd, double gp_wgt, double gap,
         const Core::Gen::Pairedvector<int, double>& d_gap_dd, const double* gp_normal,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* slave_xi,
-        double* master_xi);
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* source_xi,
+        double* target_xi);
 
     /*!
      * @brief integrate the electrochemistry residual and linearizations
      *
      * @tparam dim     dimension of the problem
-     * @param[in] fac  pre-factor to correct sign dependent on integration of master or slave side
+     * @param[in] fac  pre-factor to correct sign dependent on integration of target or source side
      *                 terms
      * @param[in] ele_data_bundle  data bundle of current element
      * @param[in] jac              Jacobian determinant of integration cell
@@ -181,22 +182,22 @@ namespace CONTACT
         const Core::Gen::Pairedvector<int, double>& d_test_val_dd,
         const Core::Gen::Pairedvector<int, double>& d_test_val_ds);
 
-    void integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_3d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
      * @brief integrate the scatra-structure interaction interface condition
      *
      * @tparam dim                    dimension of the problem
-     * @param[in] slave_is_electrode  flag indicating if slave side is electrode side
+     * @param[in] source_is_electrode  flag indicating if source side is electrode side
      * @param[in] jac                 Jacobian determinant of integration cell
      * @param[in] d_jac_dd            directional derivative of cell Jacobian
      * @param[in] wgt                 Gauss point weight
@@ -204,7 +205,7 @@ namespace CONTACT
      * @param[in] electrolyte_quantities  electrolyte element data bundle
      */
     template <int dim>
-    void integrate_ssi_interface_condition(bool slave_is_electrode, double jac,
+    void integrate_ssi_interface_condition(bool source_is_electrode, double jac,
         const Core::Gen::Pairedvector<int, double>& d_jac_dd, double wgt,
         const ElementDataBundle<dim>& electrode_quantities,
         const ElementDataBundle<dim>& electrolyte_quantities);
@@ -213,7 +214,7 @@ namespace CONTACT
      * @brief  integrate the structure residual and linearizations
      *
      * @tparam dim     dimension of the problem
-     * @param[in] fac  pre-factor to correct sign dependent on integration of master or slave side
+     * @param[in] fac  pre-factor to correct sign dependent on integration of target or source side
      *                 terms
      * @param[in] ele  mortar contact element or integration cell mortar element
      * @param[in] shape          shape function evaluated at current Gauss point

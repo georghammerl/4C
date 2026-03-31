@@ -86,7 +86,7 @@ void Wear::WearInterface::assemble_te(
     considerednodes = slipnodes_;
   }
 
-  // loop over proc's slave nodes of the interface for assembly
+  // loop over proc's source nodes of the interface for assembly
   // use standard row map to assemble each node only once
   for (int i = 0; i < considerednodes->num_my_elements(); ++i)
   {
@@ -171,38 +171,38 @@ void Wear::WearInterface::assemble_te(
 }
 
 /*----------------------------------------------------------------------*
- |  Assemble Mortar wear matrices (for master side)          farah 11/13|
+ |  Assemble Mortar wear matrices (for target side)          farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_te_master(
+void Wear::WearInterface::assemble_te_target(
     Core::LinAlg::SparseMatrix& tglobal, Core::LinAlg::SparseMatrix& eglobal)
 {
   /************************************************
    *  This function is only for discrete Wear !!! *
    ************************************************/
 
-  if (!(wearboth_ and wearpv_)) FOUR_C_THROW("AssembleTE_Master only for discr both-sided wear!");
+  if (!(wearboth_ and wearpv_)) FOUR_C_THROW("AssembleTE_Target only for discr both-sided wear!");
 
   //*******************************************************
   // assemble second D matrix for both-sided wear :
   // Loop over allreduced map, so that any proc join
   // the loop. Do non-local assembly by FEAssemble to
   // allow owned and ghosted nodes assembly. In integrator
-  // only the nodes associated to the owned slave element
+  // only the nodes associated to the owned source element
   // are filled with entries. Therefore, the integrated
   // entries are unique on nodes!
   //*******************************************************
 
   // nothing to do if no active nodes
-  if (slipmasternodes_ == nullptr) return;
+  if (sliptargetnodes_ == nullptr) return;
 
-  const std::shared_ptr<Core::LinAlg::Map> slmasternodes =
-      Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetnodes =
+      Core::LinAlg::allreduce_e_map(*(sliptargetnodes_));
 
-  // loop over proc's slave nodes of the interface for assembly
+  // loop over proc's source nodes of the interface for assembly
   // use standard row map to assemble each node only once
-  for (int i = 0; i < slmasternodes->num_my_elements(); ++i)
+  for (int i = 0; i < sltargetnodes->num_my_elements(); ++i)
   {
-    int gid = slmasternodes->gid(i);
+    int gid = sltargetnodes->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -305,9 +305,9 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
   }
 
   /**********************************************************************/
-  // we have: T_wj,c with j = Lagrange multiplier slave dof
-  //                 with w = wear slave dof
-  //                 with c = Displacement slave or master dof
+  // we have: T_wj,c with j = Lagrange multiplier source dof
+  //                 with w = wear source dof
+  //                 with c = Displacement source or target dof
   // we compute (LinT)_kc = T_wj,c * z_j
   /**********************************************************************/
 
@@ -322,34 +322,34 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
     std::map<int, std::map<int, double>>& tderiv = fnode->wear_data().get_deriv_tw();
 
     // get sizes and iterator start
-    int slavesize = (int)tderiv.size();  // column size
-    std::map<int, std::map<int, double>>::iterator scurr = tderiv.begin();
+    int sourcesize = (int)tderiv.size();  // column size
+    std::map<int, std::map<int, double>>::iterator s_curr = tderiv.begin();
 
     /********************************************** LinTMatrix **********/
-    // loop over all DISP slave nodes in the DerivT-map of the current LM slave node
-    for (int k = 0; k < slavesize; ++k)
+    // loop over all DISP source nodes in the DerivT-map of the current LM source node
+    for (int k = 0; k < sourcesize; ++k)
     {
-      int sgid = scurr->first;
-      ++scurr;
+      int s_gid = s_curr->first;
+      ++s_curr;
 
-      Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-      if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-      CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+      Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+      if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+      CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
       // current Lagrange multipliers
       double lmn = 0.0;
       if (n_dim() == 2)
-        lmn = (csnode->mo_data().lm()[0]) * (csnode->mo_data().n()[0]) +
-              (csnode->mo_data().lm()[1]) * (csnode->mo_data().n()[1]);
+        lmn = (c_source_node->mo_data().lm()[0]) * (c_source_node->mo_data().n()[0]) +
+              (c_source_node->mo_data().lm()[1]) * (c_source_node->mo_data().n()[1]);
       else if (n_dim() == 3)
-        lmn = (csnode->mo_data().lm()[0]) * (csnode->mo_data().n()[0]) +
-              (csnode->mo_data().lm()[1]) * (csnode->mo_data().n()[1]) +
-              (csnode->mo_data().lm()[2]) * (csnode->mo_data().n()[2]);
+        lmn = (c_source_node->mo_data().lm()[0]) * (c_source_node->mo_data().n()[0]) +
+              (c_source_node->mo_data().lm()[1]) * (c_source_node->mo_data().n()[1]) +
+              (c_source_node->mo_data().lm()[2]) * (c_source_node->mo_data().n()[2]);
       else
         FOUR_C_THROW("False Dimension!");
 
       // Mortar matrix T derivatives
-      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_tw()[sgid];
+      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_tw()[s_gid];
       int mapsize = (int)(thisdderive.size());
 
       // we choose the first node dof as wear dof
@@ -363,8 +363,8 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
         double val = lmn * (scolcurr->second);
         ++scolcurr;
 
-        // owner of LM slave node can do the assembly, although it actually
-        // might not own the corresponding rows in lindglobal (DISP slave node)
+        // owner of LM source node can do the assembly, although it actually
+        // might not own the corresponding rows in lindglobal (DISP source node)
         // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
         // std::cout << "Assemble LinE: " << row << " " << col << " " << val << std::endl;
         if (abs(val) > 1.0e-12) lintglobal.fe_assemble(val, row, col);
@@ -374,16 +374,16 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
       if (scolcurr != thisdderive.end())
         FOUR_C_THROW("AssembleLinE_D: Not all derivative entries of DerivE considered!");
     }
-    // check for completeness of DerivD-Slave-iteration
-    if (scurr != tderiv.end())
-      FOUR_C_THROW("AssembleLinE_D: Not all DISP slave entries of DerivE considered!");
+    // check for completeness of DerivD-Source-iteration
+    if (s_curr != tderiv.end())
+      FOUR_C_THROW("AssembleLinE_D: Not all DISP source entries of DerivE considered!");
     /******************************** Finished with LinTmatrix for delta T **********/
   }
 
   // *******************************************************************************
   //            Considering linearization of nodal normal vectors                 //
   // *******************************************************************************
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < considerednodes->num_my_elements(); ++j)
   {
     int gid = considerednodes->gid(j);
@@ -403,14 +403,14 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
       {
         // std::cout << "t-irst= " << z->first << std::endl;
         int gid3 = (int)((z->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         for (int u = 0; u < n_dim(); ++u)
         {
-          Core::Gen::Pairedvector<int, double>& numap = csnode->data().get_deriv_n()[u];
-          double lmu = csnode->mo_data().lm()[u];
+          Core::Gen::Pairedvector<int, double>& numap = c_source_node->data().get_deriv_n()[u];
+          double lmu = c_source_node->mo_data().lm()[u];
 
           // multiply T-column entry with lin n*lambda
           for (auto b = numap.begin(); b != numap.end(); ++b)
@@ -418,8 +418,8 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
             int row = fnode->dofs()[0];
             int col = (b->first);
             double val = (z->second) * (b->second) * lmu;
-            // owner of LM slave node can do the assembly, although it actually
-            // might not own the corresponding rows in lindglobal (DISP slave node)
+            // owner of LM source node can do the assembly, although it actually
+            // might not own the corresponding rows in lindglobal (DISP source node)
             // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
             // std::cout << "Assemble LinT N: " << row << " " << col << " " << val << std::endl;
             if (abs(val) > 1.0e-12) lintglobal.fe_assemble(val, row, col);
@@ -435,27 +435,27 @@ void Wear::WearInterface::assemble_lin_t_d(Core::LinAlg::SparseMatrix& lintgloba
 /*----------------------------------------------------------------------*
  |  Assemble matrix LinT containing disp derivatives         farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& lintglobal)
+void Wear::WearInterface::assemble_lin_t_d_target(Core::LinAlg::SparseMatrix& lintglobal)
 {
   /************************************************
    *  This function is only for discrete Wear !!! *
    ************************************************/
 
   // nothing to do if no active nodes
-  if (slipmasternodes_ == nullptr) return;
+  if (sliptargetnodes_ == nullptr) return;
 
   /**********************************************************************/
-  // we have: T_wj,c with j = Lagrange multiplier slave dof
-  //                 with w = wear slave dof
-  //                 with c = Displacement slave or master dof
+  // we have: T_wj,c with j = Lagrange multiplier source dof
+  //                 with w = wear source dof
+  //                 with c = Displacement source or target dof
   // we compute (LinT)_kc = T_wj,c * z_j
   /**********************************************************************/
-  const std::shared_ptr<Core::LinAlg::Map> slmasternodes =
-      Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetnodes =
+      Core::LinAlg::allreduce_e_map(*(sliptargetnodes_));
 
-  for (int j = 0; j < slmasternodes->num_my_elements(); ++j)
+  for (int j = 0; j < sltargetnodes->num_my_elements(); ++j)
   {
-    int gid = slmasternodes->gid(j);
+    int gid = sltargetnodes->gid(j);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -464,34 +464,34 @@ void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& li
     std::map<int, std::map<int, double>>& tderiv = fnode->wear_data().get_deriv_tw();
 
     // get sizes and iterator start
-    int slavesize = (int)tderiv.size();  // column size
-    std::map<int, std::map<int, double>>::iterator scurr = tderiv.begin();
+    int sourcesize = (int)tderiv.size();  // column size
+    std::map<int, std::map<int, double>>::iterator s_curr = tderiv.begin();
 
     /********************************************** LinTMatrix **********/
-    // loop over all DISP slave nodes in the DerivT-map of the current LM slave node
-    for (int k = 0; k < slavesize; ++k)
+    // loop over all DISP source nodes in the DerivT-map of the current LM source node
+    for (int k = 0; k < sourcesize; ++k)
     {
-      int sgid = scurr->first;
-      ++scurr;
+      int s_gid = s_curr->first;
+      ++s_curr;
 
-      Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-      if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-      CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+      Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+      if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+      CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
       // current Lagrange multipliers
       double lmn = 0.0;
       if (n_dim() == 2)
-        lmn = (csnode->mo_data().lm()[0]) * (csnode->mo_data().n()[0]) +
-              (csnode->mo_data().lm()[1]) * (csnode->mo_data().n()[1]);
+        lmn = (c_source_node->mo_data().lm()[0]) * (c_source_node->mo_data().n()[0]) +
+              (c_source_node->mo_data().lm()[1]) * (c_source_node->mo_data().n()[1]);
       else if (n_dim() == 3)
-        lmn = (csnode->mo_data().lm()[0]) * (csnode->mo_data().n()[0]) +
-              (csnode->mo_data().lm()[1]) * (csnode->mo_data().n()[1]) +
-              (csnode->mo_data().lm()[2]) * (csnode->mo_data().n()[2]);
+        lmn = (c_source_node->mo_data().lm()[0]) * (c_source_node->mo_data().n()[0]) +
+              (c_source_node->mo_data().lm()[1]) * (c_source_node->mo_data().n()[1]) +
+              (c_source_node->mo_data().lm()[2]) * (c_source_node->mo_data().n()[2]);
       else
         FOUR_C_THROW("False Dimension!");
 
       // Mortar matrix T derivatives
-      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_tw()[sgid];
+      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_tw()[s_gid];
       int mapsize = (int)(thisdderive.size());
 
       // we choose the first node dof as wear dof
@@ -505,8 +505,8 @@ void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& li
         double val = lmn * (scolcurr->second);
         ++scolcurr;
 
-        // owner of LM slave node can do the assembly, although it actually
-        // might not own the corresponding rows in lindglobal (DISP slave node)
+        // owner of LM source node can do the assembly, although it actually
+        // might not own the corresponding rows in lindglobal (DISP source node)
         // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
         // std::cout << "Assemble LinE: " << row << " " << col << " " << val << std::endl;
         if (abs(val) > 1.0e-12) lintglobal.fe_assemble(val, row, col);
@@ -516,19 +516,19 @@ void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& li
       if (scolcurr != thisdderive.end())
         FOUR_C_THROW("AssembleLinE_D: Not all derivative entries of DerivE considered!");
     }
-    // check for completeness of DerivD-Slave-iteration
-    if (scurr != tderiv.end())
-      FOUR_C_THROW("AssembleLinE_D: Not all DISP slave entries of DerivE considered!");
+    // check for completeness of DerivD-Source-iteration
+    if (s_curr != tderiv.end())
+      FOUR_C_THROW("AssembleLinE_D: Not all DISP source entries of DerivE considered!");
     /******************************** Finished with LinTmatrix for delta T **********/
   }
 
   // *******************************************************************************
   //            Considering linearization of nodal normal vectors                 //
   // *******************************************************************************
-  // loop over all LM slave nodes (row map)
-  for (int j = 0; j < slmasternodes->num_my_elements(); ++j)
+  // loop over all LM source nodes (row map)
+  for (int j = 0; j < sltargetnodes->num_my_elements(); ++j)
   {
-    int gid = slmasternodes->gid(j);
+    int gid = sltargetnodes->gid(j);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -545,14 +545,14 @@ void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& li
       {
         // std::cout << "t-irst= " << z->first << std::endl;
         int gid3 = (int)((z->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         for (int u = 0; u < n_dim(); ++u)
         {
-          Core::Gen::Pairedvector<int, double>& numap = csnode->data().get_deriv_n()[u];
-          double lmu = csnode->mo_data().lm()[u];
+          Core::Gen::Pairedvector<int, double>& numap = c_source_node->data().get_deriv_n()[u];
+          double lmu = c_source_node->mo_data().lm()[u];
 
           // multiply T-column entry with lin n*lambda
           for (auto b = numap.begin(); b != numap.end(); ++b)
@@ -560,8 +560,8 @@ void Wear::WearInterface::assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& li
             int row = fnode->dofs()[0];
             int col = (b->first);
             double val = (z->second) * (b->second) * lmu;
-            // owner of LM slave node can do the assembly, although it actually
-            // might not own the corresponding rows in lindglobal (DISP slave node)
+            // owner of LM source node can do the assembly, although it actually
+            // might not own the corresponding rows in lindglobal (DISP source node)
             // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
             // std::cout << "Assemble LinT N: " << row << " " << col << " " << val << std::endl;
             if (abs(val) > 1.0e-12) lintglobal.fe_assemble(val, row, col);
@@ -600,13 +600,13 @@ void Wear::WearInterface::assemble_lin_e_d(Core::LinAlg::SparseMatrix& linegloba
 
 
   /**********************************************************************/
-  // we have: E_wj,c with j = Lagrange multiplier slave dof
-  //                 with w = wear slave dof
-  //                 with c = Displacement slave or master dof
+  // we have: E_wj,c with j = Lagrange multiplier source dof
+  //                 with w = wear source dof
+  //                 with c = Displacement source or target dof
   // we compute (LinE)_kc = T_wj,c * z_j
   /**********************************************************************/
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < considerednodes->num_my_elements(); ++j)
   {
     int gid = considerednodes->gid(j);
@@ -618,30 +618,30 @@ void Wear::WearInterface::assemble_lin_e_d(Core::LinAlg::SparseMatrix& linegloba
     std::map<int, std::map<int, double>>& ederiv = fnode->wear_data().get_deriv_e();
 
     // get sizes and iterator start
-    int slavesize = (int)ederiv.size();  // column size
-    std::map<int, std::map<int, double>>::iterator scurr = ederiv.begin();
+    int sourcesize = (int)ederiv.size();  // column size
+    std::map<int, std::map<int, double>>::iterator s_curr = ederiv.begin();
 
     /********************************************** LinTMatrix **********/
-    // loop over all DISP slave nodes in the DerivT-map of the current LM slave node
-    for (int k = 0; k < slavesize; ++k)
+    // loop over all DISP source nodes in the DerivT-map of the current LM source node
+    for (int k = 0; k < sourcesize; ++k)
     {
-      int sgid = scurr->first;
-      ++scurr;
+      int s_gid = s_curr->first;
+      ++s_curr;
 
-      Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-      if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-      CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+      Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+      if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+      CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
       // current wear - wear from last converged iteration step (partitioned scheme)
       double w = 0.0;
-      w = (csnode->wear_data().wcurr()[0] + csnode->wear_data().wold()[0]);
+      w = (c_source_node->wear_data().wcurr()[0] + c_source_node->wear_data().wold()[0]);
 
       // Mortar matrix T derivatives
-      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_e()[sgid];
+      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_e()[s_gid];
       int mapsize = (int)(thisdderive.size());
 
       // we choose the first node dof as wear dof
-      int row = fnode->dofs()[0];  // csnode->Dofs()[0];
+      int row = fnode->dofs()[0];  // c_source_node->Dofs()[0];
       std::map<int, double>::iterator scolcurr = thisdderive.begin();
 
       // loop over all directional derivative entries
@@ -651,8 +651,8 @@ void Wear::WearInterface::assemble_lin_e_d(Core::LinAlg::SparseMatrix& linegloba
         double val = w * (scolcurr->second);
         ++scolcurr;
 
-        // owner of LM slave node can do the assembly, although it actually
-        // might not own the corresponding rows in lindglobal (DISP slave node)
+        // owner of LM source node can do the assembly, although it actually
+        // might not own the corresponding rows in lindglobal (DISP source node)
         // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
         // std::cout << "Assemble LinE: " << row << " " << col << " " << val << std::endl;
         if (abs(val) > 1.0e-15) lineglobal.fe_assemble(val, row, col);
@@ -662,9 +662,9 @@ void Wear::WearInterface::assemble_lin_e_d(Core::LinAlg::SparseMatrix& linegloba
       if (scolcurr != thisdderive.end())
         FOUR_C_THROW("AssembleLinE_D: Not all derivative entries of DerivE considered!");
     }
-    // check for completeness of DerivD-Slave-iteration
-    if (scurr != ederiv.end())
-      FOUR_C_THROW("AssembleLinE_D: Not all DISP slave entries of DerivE considered!");
+    // check for completeness of DerivD-Source-iteration
+    if (s_curr != ederiv.end())
+      FOUR_C_THROW("AssembleLinE_D: Not all DISP source entries of DerivE considered!");
     /******************************** Finished with LinTmatrix for delta T **********/
   }
 
@@ -675,28 +675,28 @@ void Wear::WearInterface::assemble_lin_e_d(Core::LinAlg::SparseMatrix& linegloba
 /*----------------------------------------------------------------------*
  |  Assemble matrix LinE containing disp derivatives         farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_lin_e_d_master(Core::LinAlg::SparseMatrix& lineglobal)
+void Wear::WearInterface::assemble_lin_e_d_target(Core::LinAlg::SparseMatrix& lineglobal)
 {
   /************************************************
    *  This function is only for discrete Wear !!! *
    ************************************************/
 
   // nothing to do if no slip nodes
-  if (slipmasternodes_->num_global_elements() == 0) return;
+  if (sliptargetnodes_->num_global_elements() == 0) return;
 
   /**********************************************************************/
-  // we have: E_wj,c with j = Lagrange multiplier slave dof
-  //                 with w = wear slave dof
-  //                 with c = Displacement slave or master dof
+  // we have: E_wj,c with j = Lagrange multiplier source dof
+  //                 with w = wear source dof
+  //                 with c = Displacement source or target dof
   // we compute (LinE)_kc = T_wj,c * z_j
   /**********************************************************************/
-  const std::shared_ptr<Core::LinAlg::Map> slmasternodes =
-      Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetnodes =
+      Core::LinAlg::allreduce_e_map(*(sliptargetnodes_));
 
-  // loop over all LM slave nodes (row map)
-  for (int j = 0; j < slmasternodes->num_my_elements(); ++j)
+  // loop over all LM source nodes (row map)
+  for (int j = 0; j < sltargetnodes->num_my_elements(); ++j)
   {
-    int gid = slmasternodes->gid(j);
+    int gid = sltargetnodes->gid(j);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -705,30 +705,30 @@ void Wear::WearInterface::assemble_lin_e_d_master(Core::LinAlg::SparseMatrix& li
     std::map<int, std::map<int, double>>& ederiv = fnode->wear_data().get_deriv_e();
 
     // get sizes and iterator start
-    int slavesize = (int)ederiv.size();  // column size
-    std::map<int, std::map<int, double>>::iterator scurr = ederiv.begin();
+    int sourcesize = (int)ederiv.size();  // column size
+    std::map<int, std::map<int, double>>::iterator s_curr = ederiv.begin();
 
     /********************************************** LinTMatrix **********/
-    // loop over all DISP slave nodes in the DerivT-map of the current LM slave node
-    for (int k = 0; k < slavesize; ++k)
+    // loop over all DISP source nodes in the DerivT-map of the current LM source node
+    for (int k = 0; k < sourcesize; ++k)
     {
-      int sgid = scurr->first;
-      ++scurr;
+      int s_gid = s_curr->first;
+      ++s_curr;
 
-      Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-      if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-      CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+      Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+      if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+      CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
       // current wear - wear from last converged iteration step (partitioned scheme)
       double w = 0.0;
-      w = (csnode->wear_data().wcurr()[0] + csnode->wear_data().wold()[0]);
+      w = (c_source_node->wear_data().wcurr()[0] + c_source_node->wear_data().wold()[0]);
 
       // Mortar matrix T derivatives
-      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_e()[sgid];
+      std::map<int, double>& thisdderive = fnode->wear_data().get_deriv_e()[s_gid];
       int mapsize = (int)(thisdderive.size());
 
       // we choose the first node dof as wear dof
-      int row = fnode->dofs()[0];  // csnode->Dofs()[0];
+      int row = fnode->dofs()[0];  // c_source_node->Dofs()[0];
       std::map<int, double>::iterator scolcurr = thisdderive.begin();
 
       // loop over all directional derivative entries
@@ -738,8 +738,8 @@ void Wear::WearInterface::assemble_lin_e_d_master(Core::LinAlg::SparseMatrix& li
         double val = w * (scolcurr->second);
         ++scolcurr;
 
-        // owner of LM slave node can do the assembly, although it actually
-        // might not own the corresponding rows in lindglobal (DISP slave node)
+        // owner of LM source node can do the assembly, although it actually
+        // might not own the corresponding rows in lindglobal (DISP source node)
         // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
         // std::cout << "Assemble LinE: " << row << " " << col << " " << val << std::endl;
         if (abs(val) > 1.0e-12) lineglobal.fe_assemble(val, row, col);
@@ -749,9 +749,9 @@ void Wear::WearInterface::assemble_lin_e_d_master(Core::LinAlg::SparseMatrix& li
       if (scolcurr != thisdderive.end())
         FOUR_C_THROW("AssembleLinE_D: Not all derivative entries of DerivE considered!");
     }
-    // check for completeness of DerivD-Slave-iteration
-    if (scurr != ederiv.end())
-      FOUR_C_THROW("AssembleLinE_D: Not all DISP slave entries of DerivE considered!");
+    // check for completeness of DerivD-Source-iteration
+    if (s_curr != ederiv.end())
+      FOUR_C_THROW("AssembleLinE_D: Not all DISP source entries of DerivE considered!");
     /******************************** Finished with LinTmatrix for delta T **********/
   }
 
@@ -784,7 +784,7 @@ void Wear::WearInterface::assemble_lin_t_lm(Core::LinAlg::SparseMatrix& lintglob
     considerednodes = slipnodes_;
   }
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < considerednodes->num_my_elements(); ++j)
   {
     int gid = considerednodes->gid(j);
@@ -827,23 +827,23 @@ void Wear::WearInterface::assemble_lin_t_lm(Core::LinAlg::SparseMatrix& lintglob
 /*----------------------------------------------------------------------*
  |  Assemble matrix LinT containing lm derivatives           farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_lin_t_lm_master(Core::LinAlg::SparseMatrix& lintglobal)
+void Wear::WearInterface::assemble_lin_t_lm_target(Core::LinAlg::SparseMatrix& lintglobal)
 {
   /************************************************
    *  This function is only for discrete Wear !!! *
    ************************************************/
 
   // nothing to do if no active nodes
-  if (slipmasternodes_ == nullptr) return;
+  if (sliptargetnodes_ == nullptr) return;
 
-  const std::shared_ptr<Core::LinAlg::Map> slmasternodes =
-      Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetnodes =
+      Core::LinAlg::allreduce_e_map(*(sliptargetnodes_));
 
 
-  // loop over all LM slave nodes (row map)
-  for (int j = 0; j < slmasternodes->num_my_elements(); ++j)
+  // loop over all LM source nodes (row map)
+  for (int j = 0; j < sltargetnodes->num_my_elements(); ++j)
   {
-    int gid = slmasternodes->gid(j);
+    int gid = sltargetnodes->gid(j);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -899,7 +899,7 @@ void Wear::WearInterface::evaluate_nodal_normals() const
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Mortar::Node* mrtrnode = dynamic_cast<Mortar::Node*>(node);
 
-      // build averaged normal at each master node
+      // build averaged normal at each target node
       mrtrnode->build_averaged_normal();
     }
   }
@@ -941,11 +941,11 @@ void Wear::WearInterface::export_nodal_normals() const
   Core::Gen::Pairedvector<int, double>::iterator iter;
 
   // --------------------------------------------------------------------------------------
-  // for both-sided discrete wear we need the same normal information on the master side:
+  // for both-sided discrete wear we need the same normal information on the target side:
   // --------------------------------------------------------------------------------------
   if (wearboth_ and wearpv_)
   {
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
         Core::LinAlg::allreduce_e_map(*(mnoderowmap_));
 
     // build info on row map
@@ -1025,8 +1025,8 @@ void Wear::WearInterface::export_nodal_normals() const
       }
     }
 
-    // communicate from master node row to column map
-    Core::Communication::Exporter ex(*mnoderowmap_, *masternodes, get_comm());
+    // communicate from target node row to column map
+    Core::Communication::Exporter ex(*mnoderowmap_, *targetnodes, get_comm());
     ex.do_export(triad);
 
     ex.do_export(n_x_key);
@@ -1051,10 +1051,10 @@ void Wear::WearInterface::export_nodal_normals() const
     ex.do_export(teta_z_val);
 
     // extract info on column map
-    for (int i = 0; i < masternodes->num_my_elements(); ++i)
+    for (int i = 0; i < targetnodes->num_my_elements(); ++i)
     {
       // only do something for ghosted nodes
-      int gid = masternodes->gid(i);
+      int gid = targetnodes->gid(i);
       Core::Nodes::Node* node = idiscret_->g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
@@ -1161,7 +1161,7 @@ void Wear::WearInterface::assemble_s(Core::LinAlg::SparseMatrix& sglobal)
   // nothing to do if no active nodes
   if (activenodes_ == nullptr) return;
 
-  // loop over all active slave nodes of the interface
+  // loop over all active source nodes of the interface
   for (int i = 0; i < activenodes_->num_my_elements(); ++i)
   {
     int gid = activenodes_->gid(i);
@@ -1207,7 +1207,7 @@ void Wear::WearInterface::assemble_lin_g_w(Core::LinAlg::SparseMatrix& sglobal)
   // nothing to do if no active nodes
   if (activenodes_ == nullptr) return;
 
-  // loop over all active slave nodes of the interface
+  // loop over all active source nodes of the interface
   for (int i = 0; i < activenodes_->num_my_elements(); ++i)
   {
     int gid = activenodes_->gid(i);
@@ -2743,7 +2743,7 @@ void Wear::WearInterface::assemble_lin_w_lm(Core::LinAlg::SparseMatrix& sglobal)
   // nothing to do if no active nodes
   if (activenodes_ == nullptr) return;
 
-  // loop over all active slave nodes of the interface
+  // loop over all active source nodes of the interface
   for (int i = 0; i < activenodes_->num_my_elements();
       ++i)  //(int i=0;i<activenodes_->NumMyElements();++i)
   {
@@ -2799,7 +2799,7 @@ void Wear::WearInterface::assemble_lin_w_lm_st(Core::LinAlg::SparseMatrix& sglob
   double frcoeff = interface_params().get<double>("FRCOEFF");
 
 
-  // loop over all stick slave nodes of the interface
+  // loop over all stick source nodes of the interface
   for (int i = 0; i < sticknodes->num_my_elements(); ++i)
   {
     int gid = sticknodes->gid(i);
@@ -2884,7 +2884,7 @@ void Wear::WearInterface::assemble_lin_w_lm_sl(Core::LinAlg::SparseMatrix& sglob
   double cn = interface_params().get<double>("SEMI_SMOOTH_CN");
   double frcoeff = interface_params().get<double>("FRCOEFF");
 
-  // loop over all active slave nodes of the interface
+  // loop over all active source nodes of the interface
   for (int i = 0; i < slipnodes_->num_my_elements(); ++i)
   {
     int gid = slipnodes_->gid(i);
@@ -2988,7 +2988,7 @@ void Wear::WearInterface::assemble_lin_w_lm_sl(Core::LinAlg::SparseMatrix& sglob
  *----------------------------------------------------------------------*/
 void Wear::WearInterface::assemble_wear(Core::LinAlg::Vector<double>& wglobal)
 {
-  // loop over proc's slave nodes of the interface for assembly
+  // loop over proc's source nodes of the interface for assembly
   // use standard row map to assemble each node only once
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
@@ -3024,7 +3024,7 @@ void Wear::WearInterface::assemble_d2(Core::LinAlg::SparseMatrix& dglobal)
 {
   /**************************************************************
    *  This function is only for wear mapping by enforcing weak  *
-   *  dirichlet bound. cond on master side !!! *                *
+   *  dirichlet bound. cond on target side !!! *                *
    **************************************************************/
 
   //*******************************************************
@@ -3032,16 +3032,16 @@ void Wear::WearInterface::assemble_d2(Core::LinAlg::SparseMatrix& dglobal)
   // Loop over allreduced map, so that any proc join
   // the loop. Do non-local assembly by FEAssemble to
   // allow owned and ghosted nodes assembly. In integrator
-  // only the nodes associated to the owned slave element
+  // only the nodes associated to the owned source element
   // are filled with entries. Therefore, the integrated
   // entries are unique on nodes!
   //*******************************************************
-  const std::shared_ptr<Core::LinAlg::Map> masternodes =
+  const std::shared_ptr<Core::LinAlg::Map> targetnodes =
       Core::LinAlg::allreduce_e_map(*(mnoderowmap_));
 
-  for (int i = 0; i < masternodes->num_my_elements(); ++i)  // mnoderowmap_
+  for (int i = 0; i < targetnodes->num_my_elements(); ++i)  // mnoderowmap_
   {
-    int gid = masternodes->gid(i);
+    int gid = targetnodes->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* cnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -3090,9 +3090,9 @@ void Wear::WearInterface::assemble_d2(Core::LinAlg::SparseMatrix& dglobal)
 
 
 /*----------------------------------------------------------------------*
- |  build active set (nodes / dofs) for Master               farah 11/13|
+ |  build active set (nodes / dofs) for Target               farah 11/13|
  *----------------------------------------------------------------------*/
-bool Wear::WearInterface::build_active_set_master()
+bool Wear::WearInterface::build_active_set_target()
 {
   //****************************************
   // for both-sided discr wear
@@ -3101,10 +3101,10 @@ bool Wear::WearInterface::build_active_set_master()
   // spread active and slip information to all procs
   std::vector<int> a;
   std::vector<int> sl;
-  // loop over all slave nodes on the current interface
-  for (int j = 0; j < slave_row_nodes()->num_my_elements(); ++j)
+  // loop over all source nodes on the current interface
+  for (int j = 0; j < source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_row_nodes()->gid(j);
+    int gid = source_row_nodes()->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* frinode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -3119,9 +3119,9 @@ bool Wear::WearInterface::build_active_set_master()
   const std::shared_ptr<Core::LinAlg::Map> ara = Core::LinAlg::allreduce_e_map((auxa));
   const std::shared_ptr<Core::LinAlg::Map> arsl = Core::LinAlg::allreduce_e_map((auxsl));
 
-  for (int j = 0; j < slave_col_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < source_col_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_col_nodes()->gid(j);
+    int gid = source_col_nodes()->gid(j);
 
     if (ara->lid(gid) == -1) continue;
 
@@ -3134,9 +3134,9 @@ bool Wear::WearInterface::build_active_set_master()
       frinode->active() = true;
     }
   }
-  for (int j = 0; j < slave_col_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < source_col_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_col_nodes()->gid(j);
+    int gid = source_col_nodes()->gid(j);
 
     if (arsl->lid(gid) == -1) continue;
 
@@ -3150,7 +3150,7 @@ bool Wear::WearInterface::build_active_set_master()
 
   // spread info for attached status...
   const std::shared_ptr<Core::LinAlg::Map> meleall =
-      Core::LinAlg::allreduce_e_map(*(master_row_elements()));
+      Core::LinAlg::allreduce_e_map(*(target_row_elements()));
   std::vector<int> eleatt;
 
   for (int j = 0; j < meleall->num_my_elements(); ++j)
@@ -3184,18 +3184,18 @@ bool Wear::WearInterface::build_active_set_master()
   std::vector<int> wad;
   std::vector<int> wsln;
 
-  // loop over all slave nodes on the current interface
-  for (int j = 0; j < slave_row_nodes()->num_my_elements(); ++j)
+  // loop over all source nodes on the current interface
+  for (int j = 0; j < source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_row_nodes()->gid(j);
+    int gid = source_row_nodes()->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* frinode = dynamic_cast<CONTACT::FriNode*>(node);
 
-    // get elements from node (SLAVE)
+    // get elements from node (SOURCE)
     for (int u = 0; u < (int)frinode->num_element(); ++u)
     {
-      // all found MASTER elements:
+      // all found TARGET elements:
       for (int k = 0;
           k < (int)dynamic_cast<Mortar::Element*>(frinode->adjacent_elements()[u].user_element())
                   ->mo_data()
@@ -3206,26 +3206,26 @@ bool Wear::WearInterface::build_active_set_master()
                        ->mo_data()
                        .search_elements()[k];
         Core::Elements::Element* ele2 = discret().g_element(gid2);
-        if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
+        if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
         Mortar::Element* celement = dynamic_cast<Mortar::Element*>(ele2);
 
-        // nodes cor. to this master element
+        // nodes cor. to this target element
         if (celement->is_attached() == true)
         {
           for (int p = 0; p < celement->num_node(); ++p)
           {
-            CONTACT::FriNode* mnode = dynamic_cast<CONTACT::FriNode*>(celement->nodes()[p]);
+            CONTACT::FriNode* target_node = dynamic_cast<CONTACT::FriNode*>(celement->nodes()[p]);
 
-            if (mnode->is_detected() == false)
+            if (target_node->is_detected() == false)
             {
-              // active master nodes!
+              // active target nodes!
               if (frinode->active())
               {
                 wa.push_back(celement->nodes()[p]->id());
                 wad.push_back(dynamic_cast<Mortar::Node*>(celement->nodes()[p])->dofs()[0]);
               }
 
-              // slip master nodes!
+              // slip target nodes!
               if (frinode->fri_data().slip())
               {
                 wsl.push_back(celement->nodes()[p]->id());
@@ -3234,7 +3234,7 @@ bool Wear::WearInterface::build_active_set_master()
 
               // set detection status
               //              if(frinode->Active() || frinode->FriData().Slip())
-              //                mnode->SetDetected()=true;
+              //                target_node->SetDetected()=true;
             }
           }
         }
@@ -3243,29 +3243,29 @@ bool Wear::WearInterface::build_active_set_master()
   }  // node loop
 
   // reset nodes
-  // loop over all master nodes on the current interface
-  const std::shared_ptr<Core::LinAlg::Map> masternodes =
+  // loop over all target nodes on the current interface
+  const std::shared_ptr<Core::LinAlg::Map> targetnodes =
       Core::LinAlg::allreduce_e_map(*(mnoderowmap_));
-  const std::shared_ptr<Core::LinAlg::Map> mastereles =
+  const std::shared_ptr<Core::LinAlg::Map> targeteles =
       Core::LinAlg::allreduce_e_map(*(melerowmap_));
 
-  for (int j = 0; j < masternodes->num_my_elements(); ++j)
+  for (int j = 0; j < targetnodes->num_my_elements(); ++j)
   {
-    int gid = masternodes->gid(j);
+    int gid = targetnodes->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
-    CONTACT::FriNode* mnode = dynamic_cast<CONTACT::FriNode*>(node);
+    CONTACT::FriNode* target_node = dynamic_cast<CONTACT::FriNode*>(node);
 
-    mnode->set_detected() = false;
+    target_node->set_detected() = false;
   }
-  for (int j = 0; j < mastereles->num_my_elements(); ++j)
+  for (int j = 0; j < targeteles->num_my_elements(); ++j)
   {
-    int gid = mastereles->gid(j);
+    int gid = targeteles->gid(j);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find element with gid %", gid);
-    Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+    Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-    mele->set_attached() = false;
+    target_elem->set_attached() = false;
   }
 
   Core::LinAlg::Map actmn(-1, (int)wa.size(), wa.data(), 0, get_comm());
@@ -3286,16 +3286,16 @@ bool Wear::WearInterface::build_active_set_master()
     int gid = ARactmn->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
-    CONTACT::FriNode* mnode = dynamic_cast<CONTACT::FriNode*>(node);
+    CONTACT::FriNode* target_node = dynamic_cast<CONTACT::FriNode*>(node);
 
-    if (mnode->owner() == Core::Communication::my_mpi_rank(get_comm()))
+    if (target_node->owner() == Core::Communication::my_mpi_rank(get_comm()))
     {
       bool isin = false;
       for (int k = 0; k < (int)ga.size(); ++k)
       {
-        if (ga[k] == mnode->id()) isin = true;
+        if (ga[k] == target_node->id()) isin = true;
       }
-      if (!isin) ga.push_back(mnode->id());
+      if (!isin) ga.push_back(target_node->id());
     }
   }
 
@@ -3305,32 +3305,32 @@ bool Wear::WearInterface::build_active_set_master()
     int gid = ARslimn->gid(j);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
-    CONTACT::FriNode* mnode = dynamic_cast<CONTACT::FriNode*>(node);
+    CONTACT::FriNode* target_node = dynamic_cast<CONTACT::FriNode*>(node);
 
-    if (mnode->owner() == Core::Communication::my_mpi_rank(get_comm()))
+    if (target_node->owner() == Core::Communication::my_mpi_rank(get_comm()))
     {
       bool isin = false;
       for (int k = 0; k < (int)gs.size(); ++k)
       {
-        if (gs[k] == mnode->id()) isin = true;
+        if (gs[k] == target_node->id()) isin = true;
       }
       if (!isin)
       {
-        gs.push_back(mnode->id());
-        gsd.push_back(mnode->dofs()[0]);
+        gs.push_back(target_node->id());
+        gsd.push_back(target_node->dofs()[0]);
       }
     }
   }
 
-  activmasternodes_ =
+  activtargetnodes_ =
       std::make_shared<Core::LinAlg::Map>(-1, (int)ga.size(), ga.data(), 0, get_comm());
-  slipmasternodes_ =
+  sliptargetnodes_ =
       std::make_shared<Core::LinAlg::Map>(-1, (int)gs.size(), gs.data(), 0, get_comm());
   slipmn_ = std::make_shared<Core::LinAlg::Map>(-1, (int)gsd.size(), gsd.data(), 0, get_comm());
 
-  for (int j = 0; j < slave_col_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < source_col_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_col_nodes()->gid(j);
+    int gid = source_col_nodes()->gid(j);
 
     if (ara->lid(gid) == -1) continue;
 
@@ -3340,9 +3340,9 @@ bool Wear::WearInterface::build_active_set_master()
 
     if (frinode->owner() != Core::Communication::my_mpi_rank(get_comm())) frinode->active() = false;
   }
-  for (int j = 0; j < slave_col_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < source_col_nodes()->num_my_elements(); ++j)
   {
-    int gid = slave_col_nodes()->gid(j);
+    int gid = source_col_nodes()->gid(j);
 
     if (arsl->lid(gid) == -1) continue;
 
@@ -3375,22 +3375,22 @@ bool Wear::WearInterface::build_active_set(bool init)
   std::vector<int> mymdofgids;
 
   // *******************************************************
-  // loop over all master nodes - both-sided wear specific
+  // loop over all target nodes - both-sided wear specific
   if (wearboth_ and !wearpv_)
   {
-    // The node and dof map of involved master nodes for both-sided wear should have an
-    // analog distribution as the master node row map. Therefore, we loop over
+    // The node and dof map of involved target nodes for both-sided wear should have an
+    // analog distribution as the target node row map. Therefore, we loop over
     // allreduced map (all procs involved). If a node has the corresponding bool
     // "InvolvedM()" then this information will be communicated to all other procs.
     // Note, this node could be ghosted! At the end, the owning proc will take the
     // information to build the map.
 
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
         Core::LinAlg::allreduce_e_map(*(mnoderowmap_));
 
-    for (int k = 0; k < masternodes->num_my_elements(); ++k)  // mnoderowmap_
+    for (int k = 0; k < targetnodes->num_my_elements(); ++k)  // mnoderowmap_
     {
-      int gid = masternodes->gid(k);
+      int gid = targetnodes->gid(k);
       Core::Nodes::Node* node = idiscret_->g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
@@ -3417,7 +3417,7 @@ bool Wear::WearInterface::build_active_set(bool init)
       cnode->involved_m() = false;
     }
 
-    // create map for all involved master nodes -- both-sided wear specific
+    // create map for all involved target nodes -- both-sided wear specific
     involvednodes_ = std::make_shared<Core::LinAlg::Map>(
         -1, (int)mymnodegids.size(), mymnodegids.data(), 0, get_comm());
     involveddofs_ = std::make_shared<Core::LinAlg::Map>(
@@ -3438,20 +3438,20 @@ void Wear::WearInterface::initialize_data_container()
 
   //***********************************************************
   // both-sided wear
-  // here we need a datacontainer for the masternodes too
+  // here we need a datacontainer for the targetnodes too
   // they have to know their involved nodes/dofs
   //***********************************************************
   if (wearboth_)
   {
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
-        Core::LinAlg::allreduce_e_map(*(master_row_nodes()));
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
+        Core::LinAlg::allreduce_e_map(*(target_row_nodes()));
 
-    for (int i = 0; i < masternodes->num_my_elements(); ++i)  // MasterRowNodes()
+    for (int i = 0; i < targetnodes->num_my_elements(); ++i)  // TargetRowNodes()
     {
-      int gid = masternodes->gid(i);
+      int gid = targetnodes->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid {}", gid);
-      Mortar::Node* mnode = dynamic_cast<Mortar::Node*>(node);
+      Mortar::Node* target_node = dynamic_cast<Mortar::Node*>(node);
 
       //********************************************************
       // NOTE: depending on which kind of node this really is,
@@ -3461,7 +3461,7 @@ void Wear::WearInterface::initialize_data_container()
       //********************************************************
 
       // initialize container if not yet initialized before
-      mnode->initialize_data_container();
+      target_node->initialize_data_container();
     }
   }
 
@@ -3536,7 +3536,7 @@ void Wear::WearInterface::assemble_inactive_wear_rhs(Core::LinAlg::Vector<double
 /*----------------------------------------------------------------------*
  |  Assemble inactive wear right hand side                   farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_inactive_wear_rhs_master(
+void Wear::WearInterface::assemble_inactive_wear_rhs_target(
     Core::LinAlg::FEVector<double>& inactiverhs)
 {
   /************************************************
@@ -3544,7 +3544,7 @@ void Wear::WearInterface::assemble_inactive_wear_rhs_master(
    ************************************************/
 
   std::shared_ptr<Core::LinAlg::Map> inactivenodes =
-      Core::LinAlg::split_map(*mnoderowmap_, *slipmasternodes_);
+      Core::LinAlg::split_map(*mnoderowmap_, *sliptargetnodes_);
   std::shared_ptr<Core::LinAlg::Map> inactivedofs = Core::LinAlg::split_map(*(mn_dofs()), *slipmn_);
 
 
@@ -3652,9 +3652,9 @@ void Wear::WearInterface::assemble_wear_cond_rhs(Core::LinAlg::Vector<double>& r
       for (CI p = emap.begin(); p != emap.end(); ++p)
       {
         int gid3 = (int)((p->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         std::vector<int> w_gid(1);
         std::vector<int> w_owner(1);
@@ -3663,7 +3663,8 @@ void Wear::WearInterface::assemble_wear_cond_rhs(Core::LinAlg::Vector<double>& r
 
         w_owner[0] = fnode->owner();
         w_i[0] =
-            (-(csnode->wear_data().wold()[0]) - (csnode->wear_data().wcurr()[0])) * (p->second);
+            (-(c_source_node->wear_data().wold()[0]) - (c_source_node->wear_data().wcurr()[0])) *
+            (p->second);
         w_gid[0] = fnode->dofs()[0];
 
         if (abs(w_i[0]) > 1e-15) Core::LinAlg::assemble(rhs, w_i, w_gid, w_owner);
@@ -3680,13 +3681,13 @@ void Wear::WearInterface::assemble_wear_cond_rhs(Core::LinAlg::Vector<double>& r
       for (CI p = tmap.begin(); p != tmap.end(); ++p)
       {
         int gid3 = (int)((p->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         double lmn = 0.0;
         for (int u = 0; u < n_dim(); ++u)
-          lmn += (csnode->mo_data().n()[u]) * (csnode->mo_data().lm()[u]);
+          lmn += (c_source_node->mo_data().n()[u]) * (c_source_node->mo_data().lm()[u]);
 
         std::vector<int> w_gid(1);
         std::vector<int> w_owner(1);
@@ -3709,14 +3710,14 @@ void Wear::WearInterface::assemble_wear_cond_rhs(Core::LinAlg::Vector<double>& r
 /*----------------------------------------------------------------------*
  |  Assemble wear-cond. right hand side (discr)              farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<double>& RHS)
+void Wear::WearInterface::assemble_wear_cond_rhs_target(Core::LinAlg::FEVector<double>& RHS)
 {
   /************************************************
    *  This function is only for discrete Wear !!! *
    ************************************************/
 
   // nothing to do if no active nodes
-  if (slipmasternodes_ == nullptr) return;
+  if (sliptargetnodes_ == nullptr) return;
 
   auto systype = Teuchos::getIntegralValue<CONTACT::SystemType>(interface_params(), "SYSTEM");
 
@@ -3724,16 +3725,16 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
 
   using CI = std::map<int, double>::const_iterator;
 
-  const std::shared_ptr<Core::LinAlg::Map> slmasternodes =
-      Core::LinAlg::allreduce_e_map(*(slipmasternodes_));
-  const std::shared_ptr<Core::LinAlg::Map> slmastern = Core::LinAlg::allreduce_e_map(*(slipmn_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetnodes =
+      Core::LinAlg::allreduce_e_map(*(sliptargetnodes_));
+  const std::shared_ptr<Core::LinAlg::Map> sltargetn = Core::LinAlg::allreduce_e_map(*(slipmn_));
 
   std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
-      std::make_shared<Core::LinAlg::Vector<double>>(*slmastern, true);
+      std::make_shared<Core::LinAlg::Vector<double>>(*sltargetn, true);
 
-  for (int i = 0; i < slmasternodes->num_my_elements(); ++i)
+  for (int i = 0; i < sltargetnodes->num_my_elements(); ++i)
   {
-    int gid = slmasternodes->gid(i);
+    int gid = sltargetnodes->gid(i);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::FriNode* fnode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -3746,9 +3747,9 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
       for (CI p = emap.begin(); p != emap.end(); ++p)
       {
         int gid3 = (int)((p->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         std::vector<int> w_gid(1);
         std::vector<int> w_owner(1);
@@ -3757,7 +3758,8 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
 
         w_owner[0] = Core::Communication::my_mpi_rank(get_comm());  // fnode->Owner();
         w_i[0] =
-            (-(csnode->wear_data().wold()[0]) - (csnode->wear_data().wcurr()[0])) * (p->second);
+            (-(c_source_node->wear_data().wold()[0]) - (c_source_node->wear_data().wcurr()[0])) *
+            (p->second);
         w_gid[0] = fnode->dofs()[0];
 
         if (abs(w_i[0]) > 1e-15) Core::LinAlg::assemble(*rhs, w_i, w_gid, w_owner);
@@ -3774,13 +3776,13 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
       for (CI p = tmap.begin(); p != tmap.end(); ++p)
       {
         int gid3 = (int)((p->first) / n_dim());
-        Core::Nodes::Node* snode = idiscret_->g_node(gid3);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid");
-        CONTACT::FriNode* csnode = dynamic_cast<CONTACT::FriNode*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(gid3);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid");
+        CONTACT::FriNode* c_source_node = dynamic_cast<CONTACT::FriNode*>(source_node);
 
         double lmn = 0.0;
         for (int u = 0; u < n_dim(); ++u)
-          lmn += (csnode->mo_data().n()[u]) * (csnode->mo_data().lm()[u]);
+          lmn += (c_source_node->mo_data().n()[u]) * (c_source_node->mo_data().lm()[u]);
 
         std::vector<int> w_gid(1);
         std::vector<int> w_owner(1);
@@ -3796,7 +3798,7 @@ void Wear::WearInterface::assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<d
     }
   }
 
-  Core::LinAlg::Export exp(*slmastern, *slipmn_);
+  Core::LinAlg::Export exp(*sltargetn, *slipmn_);
   RHS.export_to(*rhs, exp, Core::LinAlg::CombineMode::add);
 
   return;
@@ -3825,18 +3827,18 @@ void Wear::WearInterface::initialize()
   //**************************************************
   if (wearboth_ and !wearpv_)
   {
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
-        Core::LinAlg::allreduce_e_map(*(master_row_nodes()));
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
+        Core::LinAlg::allreduce_e_map(*(target_row_nodes()));
 
-    for (int i = 0; i < masternodes->num_my_elements();
-        ++i)  // for (int i=0;i<MasterRowNodes()->NumMyElements();++i)
+    for (int i = 0; i < targetnodes->num_my_elements();
+        ++i)  // for (int i=0;i<TargetRowNodes()->NumMyElements();++i)
     {
-      int gid = masternodes->gid(i);
+      int gid = targetnodes->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       CONTACT::FriNode* cnode = dynamic_cast<CONTACT::FriNode*>(node);
 
-      if (cnode->is_slave() == false)
+      if (cnode->is_source() == false)
       {
         // reset nodal Mortar maps
         for (int j = 0; j < (int)((cnode->wear_data().get_d2()).size()); ++j)
@@ -3847,11 +3849,11 @@ void Wear::WearInterface::initialize()
     }
   }
 
-  // loop over all slave nodes to reset stuff (standard column map)
-  // (include slave side boundary nodes / crosspoints)
-  for (int i = 0; i < slave_col_nodes_bound()->num_my_elements(); ++i)
+  // loop over all source nodes to reset stuff (standard column map)
+  // (include source side boundary nodes / crosspoints)
+  for (int i = 0; i < source_col_nodes_bound()->num_my_elements(); ++i)
   {
-    int gid = slave_col_nodes_bound()->gid(i);
+    int gid = source_col_nodes_bound()->gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
@@ -3894,9 +3896,8 @@ void Wear::WearInterface::initialize()
     {
       CONTACT::FriNode* frinode = dynamic_cast<CONTACT::FriNode*>(cnode);
 
-      // reset SNodes and Mnodes
-      frinode->fri_data().get_s_nodes().clear();
-      frinode->fri_data().get_m_nodes().clear();
+      frinode->fri_data().get_source_nodes().clear();
+      frinode->fri_data().get_target_nodes().clear();
 
       // for gp slip
       if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -3955,13 +3956,13 @@ void Wear::WearInterface::initialize()
   // for both-sided wear with discrete wear
   if (wearboth_ and wearpv_)
   {
-    const std::shared_ptr<Core::LinAlg::Map> masternodes =
-        Core::LinAlg::allreduce_e_map(*(master_row_nodes()));
+    const std::shared_ptr<Core::LinAlg::Map> targetnodes =
+        Core::LinAlg::allreduce_e_map(*(target_row_nodes()));
 
-    for (int i = 0; i < masternodes->num_my_elements();
-        ++i)  // for (int i=0;i<MasterRowNodes()->NumMyElements();++i)
+    for (int i = 0; i < targetnodes->num_my_elements();
+        ++i)  // for (int i=0;i<TargetRowNodes()->NumMyElements();++i)
     {
-      int gid = masternodes->gid(i);
+      int gid = targetnodes->gid(i);
       Core::Nodes::Node* node = discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       CONTACT::FriNode* frinode = dynamic_cast<CONTACT::FriNode*>(node);
@@ -3982,9 +3983,9 @@ void Wear::WearInterface::initialize()
 
   //**********************************************************************
   // In general, it is sufficient to reset search candidates only for
-  // all elements in the standard slave column map. However, self contact
+  // all elements in the standard source column map. However, self contact
   // is an exception here and we need to reset the search candidates of
-  // all slave elements in the fully overlapping column map there. This
+  // all source elements in the fully overlapping column map there. This
   // is due to the fact that self contact search is NOT parallelized.
   //**********************************************************************
   if (self_contact())
@@ -3994,37 +3995,37 @@ void Wear::WearInterface::initialize()
     for (int i = 0; i < idiscret_->num_my_col_elements(); ++i)
     {
       Core::Elements::Element* ele = idiscret_->l_col_element(i);
-      Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+      Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
 
       // dual shape function coefficient matrix
-      mele->mo_data().reset_dual_shape();
-      mele->mo_data().reset_deriv_dual_shape();
+      target_elem->mo_data().reset_dual_shape();
+      target_elem->mo_data().reset_deriv_dual_shape();
     }
   }
   else
   {
     // loop over all elements to reset candidates / search lists
-    // (use standard slave column map)
-    for (int i = 0; i < slave_col_elements()->num_my_elements(); ++i)
+    // (use standard source column map)
+    for (int i = 0; i < source_col_elements()->num_my_elements(); ++i)
     {
-      int gid = slave_col_elements()->gid(i);
+      int gid = source_col_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-      Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+      Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
 
       // dual shape function coefficient matrix
-      mele->mo_data().reset_dual_shape();
-      mele->mo_data().reset_deriv_dual_shape();
+      target_elem->mo_data().reset_dual_shape();
+      target_elem->mo_data().reset_deriv_dual_shape();
     }
   }
 
   // reset s/m pairs and intcell counters
-  smpairs_ = 0;
-  smintpairs_ = 0;
+  source_target_pairs_ = 0;
+  source_target_int_pairs_ = 0;
   intcells_ = 0;
 
   return;
@@ -4032,9 +4033,9 @@ void Wear::WearInterface::initialize()
 
 
 /*----------------------------------------------------------------------*
- |  create snode n_                                          farah 09/13|
+ |  create source_node n_                                          farah 09/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::split_slave_dofs()
+void Wear::WearInterface::split_source_dofs()
 {
   // get out of here if active set is empty
   if (snoderowmap_ == nullptr)
@@ -4055,9 +4056,9 @@ void Wear::WearInterface::split_slave_dofs()
 
   // dimension check
   double dimcheck = (sdofrowmap_->num_global_elements()) / (snoderowmap_->num_global_elements());
-  if (dimcheck != n_dim()) FOUR_C_THROW("SplitSlaveDofs: Nodes <-> Dofs dimension mismatch!");
+  if (dimcheck != n_dim()) FOUR_C_THROW("SplitSourceDofs: Nodes <-> Dofs dimension mismatch!");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -4079,7 +4080,7 @@ void Wear::WearInterface::split_slave_dofs()
 
   // check global dimensions
   if ((gcountN) != snoderowmap_->num_global_elements())
-    FOUR_C_THROW("SplitSlaveDofs: Splitting went wrong!");
+    FOUR_C_THROW("SplitSourceDofs: Splitting went wrong!");
 
   // create Nmap and Tmap objects
   sndofmap_ = std::make_shared<Core::LinAlg::Map>(gcountN, countN, myNgids.data(), 0, get_comm());
@@ -4089,9 +4090,9 @@ void Wear::WearInterface::split_slave_dofs()
 
 
 /*----------------------------------------------------------------------*
- |  create mnode n_                                          farah 11/13|
+ |  create target_node n_                                          farah 11/13|
  *----------------------------------------------------------------------*/
-void Wear::WearInterface::split_master_dofs()
+void Wear::WearInterface::split_target_dofs()
 {
   // get out of here if active set is empty
   if (mnoderowmap_ == nullptr)
@@ -4112,9 +4113,9 @@ void Wear::WearInterface::split_master_dofs()
 
   // dimension check
   double dimcheck = (mdofrowmap_->num_global_elements()) / (mnoderowmap_->num_global_elements());
-  if (dimcheck != n_dim()) FOUR_C_THROW("SplitMasterDofs: Nodes <-> Dofs dimension mismatch!");
+  if (dimcheck != n_dim()) FOUR_C_THROW("SplitTargetDofs: Nodes <-> Dofs dimension mismatch!");
 
-  // loop over all slave nodes
+  // loop over all source nodes
   for (int i = 0; i < mnoderowmap_->num_my_elements(); ++i)
   {
     int gid = mnoderowmap_->gid(i);
@@ -4136,7 +4137,7 @@ void Wear::WearInterface::split_master_dofs()
 
   // check global dimensions
   if ((gcountN) != mnoderowmap_->num_global_elements())
-    FOUR_C_THROW("SplitSlaveDofs: Splitting went wrong!");
+    FOUR_C_THROW("SplitSourceDofs: Splitting went wrong!");
 
   // create Nmap and Tmap objects
   mndofmap_ = std::make_shared<Core::LinAlg::Map>(gcountN, countN, myNgids.data(), 0, get_comm());
@@ -4152,9 +4153,9 @@ void Wear::WearInterface::set_element_areas()
 {
   //**********************************************************************
   // In general, it is sufficient to compute element areas only for
-  // all elements in the standard slave column map. However, self contact
+  // all elements in the standard source column map. However, self contact
   // is an exception here and we need the element areas of all elements
-  // (slave and master) in the fully overlapping column map there. At the
+  // (source and target) in the fully overlapping column map there. At the
   // same time we initialize the element data containers for self contact.
   // This is due to the fact that self contact search is NOT parallelized.
   //**********************************************************************
@@ -4204,7 +4205,7 @@ void Wear::WearInterface::update_w_sets(int offset_if, int maxdofwear, bool both
   for (int k = 0; k < Core::Communication::my_mpi_rank(get_comm()); ++k)
     offset += globalnumlmdof[k];
 
-  // loop over all slave dofs and initialize LM dofs
+  // loop over all source dofs and initialize LM dofs
   for (int i = 0; i < (int)((sdofrowmap_->num_my_elements()) / n_dim()); ++i)
     wdof.push_back(maxdofwear + 1 + offset_if + offset + i);
 
@@ -4236,7 +4237,7 @@ void Wear::WearInterface::update_w_sets(int offset_if, int maxdofwear, bool both
     for (int k = 0; k < Core::Communication::my_mpi_rank(get_comm()); ++k)
       offset += globalnumlmdof[k];
 
-    // loop over all slave dofs and initialize LM dofs
+    // loop over all source dofs and initialize LM dofs
     for (int i = 0; i < (int)((mdofrowmap_->num_my_elements()) / n_dim()); ++i)
       wmdof.push_back(maxdofwear + 1 + offset_if + offset + i);
 

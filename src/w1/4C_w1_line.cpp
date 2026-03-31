@@ -26,7 +26,7 @@ Discret::Elements::Wall1Line::Wall1Line(int id, int owner, int nnode, const int*
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lline);
+  set_parent_target_element(parent, lline);
   return;
 }
 
@@ -57,7 +57,7 @@ Core::FE::CellType Discret::Elements::Wall1Line::shape() const
 {
   Core::FE::CellType distype_line = Core::FE::CellType::dis_none;
 
-  switch (parent_master_element()->shape())
+  switch (parent_target_element()->shape())
   {
     case Core::FE::CellType::tri3:
     {

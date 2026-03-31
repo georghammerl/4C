@@ -502,7 +502,7 @@ void Mortar::Utils::create_volume_ghosting(const Core::FE::Discretization& dis_s
       Core::Elements::Element* vele = voldis[0]->g_element(volgid);
       if (!vele) FOUR_C_THROW("Cannot find element with gid %", volgid);
 
-      faceele->set_parent_master_element(vele, faceele->face_parent_number());
+      faceele->set_parent_target_element(vele, faceele->face_parent_number());
 
       if (voldis.size() == 2)
       {
@@ -566,7 +566,7 @@ void Mortar::Utils::prepare_nurbs_element(Core::FE::Discretization& discret,
   std::shared_ptr<Core::Elements::FaceElement> faceele =
       std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
   bool zero_size = knots->get_boundary_ele_and_parent_knots(parentknots, mortarknots, normalfac,
-      faceele->parent_master_element()->id(), faceele->face_master_number());
+      faceele->parent_target_element()->id(), faceele->face_master_number());
 
   // store nurbs specific data to node
   cele.zero_sized() = zero_size;

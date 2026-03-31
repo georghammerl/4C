@@ -41,33 +41,33 @@ namespace Coupling::Adapter
     //!@{
 
     /// transfer a dof vector from master to slave
-    virtual std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
+    virtual std::shared_ptr<Core::LinAlg::Vector<double>> target_to_source(
         const Core::LinAlg::Vector<double>& mv  ///< master vector (to be transferred)
     ) const = 0;
 
     /// transfer a dof vector from slave to master
-    virtual std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
+    virtual std::shared_ptr<Core::LinAlg::Vector<double>> source_to_target(
         const Core::LinAlg::Vector<double>& sv  ///< slave vector (to be transferred)
     ) const = 0;
 
     /// transfer a dof vector from master to slave
-    virtual std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
+    virtual std::shared_ptr<Core::LinAlg::MultiVector<double>> target_to_source(
         const Core::LinAlg::MultiVector<double>& mv  ///< master vector (to be transferred)
     ) const = 0;
 
     /// transfer a dof vector from slave to master
-    virtual std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
+    virtual std::shared_ptr<Core::LinAlg::MultiVector<double>> source_to_target(
         const Core::LinAlg::MultiVector<double>& sv  ///< slave vector (to be transferred)
     ) const = 0;
 
     /// transfer a dof vector from master to slave
-    virtual void master_to_slave(
+    virtual void target_to_source(
         const Core::LinAlg::MultiVector<double>& mv,  ///< master vector (to be transferred)
         Core::LinAlg::MultiVector<double>& sv         ///< slave vector (containing result)
     ) const = 0;
 
     /// transfer a dof vector from slave to master
-    virtual void slave_to_master(
+    virtual void source_to_target(
         const Core::LinAlg::MultiVector<double>& sv,  ///< slave vector (to be transferred)
         Core::LinAlg::MultiVector<double>& mv         ///< master vector (containing result)
     ) const = 0;
@@ -78,10 +78,10 @@ namespace Coupling::Adapter
     //!@{
 
     /// the interface dof map of the master side
-    virtual std::shared_ptr<const Core::LinAlg::Map> master_dof_map() const = 0;
+    virtual std::shared_ptr<const Core::LinAlg::Map> target_dof_map() const = 0;
 
     /// the interface dof map of the slave side
-    virtual std::shared_ptr<const Core::LinAlg::Map> slave_dof_map() const = 0;
+    virtual std::shared_ptr<const Core::LinAlg::Map> source_dof_map() const = 0;
 
     //!@}
   };

@@ -85,12 +85,12 @@ namespace CONTACT
     //! @name Access methods
 
     /*!
-     \brief Return current nodal tangent t_xi (only for slave side!) (length 3)
+     \brief Return current nodal tangent t_xi (only for source side!) (length 3)
      */
     virtual double* txi() { return txi_; }
 
     /*!
-     \brief Return current nodal tangent t_eta (only for slave side!) (length 3)
+     \brief Return current nodal tangent t_eta (only for source side!) (length 3)
      */
     virtual double* teta() { return teta_; }
 
@@ -129,7 +129,7 @@ namespace CONTACT
      \brief Return the 'DerivN' map (vector) of this node
 
      These maps contain the directional derivatives of the node's
-     averaged normal vector with respect to the slave displacements.
+     averaged normal vector with respect to the source displacements.
      A vector is used because the normal itself is a vector (2 or 3 components).
 
      */
@@ -148,7 +148,7 @@ namespace CONTACT
      \brief Return the 'DerivTxi' map (vector) of this node
 
      These maps contain the directional derivatives of the node's
-     unit tangent vector t_xi with respect to the slave displacements.
+     unit tangent vector t_xi with respect to the source displacements.
      A vector is used because the tangent itself is a vector (2 or 3 components).
 
      */
@@ -158,7 +158,7 @@ namespace CONTACT
      \brief Return the 'DerivTeta' map (vector) of this node
 
      These maps contain the directional derivatives of the node's
-     unit tangent vector t_eta with respect to the slave displacements.
+     unit tangent vector t_eta with respect to the source displacements.
      A vector is used because the tangent itself is a vector (2 or 3 components).
 
      */
@@ -170,8 +170,8 @@ namespace CONTACT
     /*!
      \brief Return the 'DerivD' map of this node
 
-     D-matrix entries with respect to the slave/master displacements.
-     It is a "map of maps", with the outer map containing all master
+     D-matrix entries with respect to the source/target displacements.
+     It is a "map of maps", with the outer map containing all target
      node indices k adjacent to this node i and the inner map containing
      all directional derivatives l existing for D_ik.
 
@@ -188,8 +188,8 @@ namespace CONTACT
      \brief Return the 'DerivM' map of maps of this node
 
      This map contains the directional derivatives of the node's
-     M-matrix entries with respect to the slave/master displacements.
-     It is a "map of maps", with the outer map containing all master
+     M-matrix entries with respect to the source/target displacements.
+     It is a "map of maps", with the outer map containing all target
      node indices k adjacent to this node i and the inner map containing
      all directional derivatives l existing for M_ik.
 
@@ -233,7 +233,7 @@ namespace CONTACT
      \brief Return the 'DerivG' map of this node
 
      This map contains the directional derivatives of the node's
-     weighted gap entry g~ with respect to the slave/master displacements.
+     weighted gap entry g~ with respect to the source/target displacements.
 
      */
     virtual std::map<int, double>& get_deriv_g() { return derivg_; }
@@ -252,7 +252,7 @@ namespace CONTACT
      \brief Return the 'DerivW' map of this node
 
      This map contains the directional derivatives of the node's
-     weighted wear increment entry w~ with respect to the slave/master displacements.
+     weighted wear increment entry w~ with respect to the source/target displacements.
 
      */
     virtual std::map<int, double>& get_deriv_w() { return derivw_; }
@@ -278,7 +278,7 @@ namespace CONTACT
      \brief Return the 'DerivZ map of this node
 
      This map contains the directional derivatives of the node's
-     lagrange multiplier entries with respect to the slave/master displacements.
+     lagrange multiplier entries with respect to the source/target displacements.
 
      Note: This is only calculated when performing a penalty strategy
 
@@ -460,7 +460,7 @@ namespace CONTACT
     \brief Return the 'DerivnCoup' map of this node
 
     This map contains the directional derivatives of the node's
-    normal coupling condition with respect to the slave/master displacements.
+    normal coupling condition with respect to the source/target displacements.
 
     */
     virtual std::map<int, double>& get_derivn_coup() { return derivncoup_; }
@@ -469,7 +469,7 @@ namespace CONTACT
     \brief Return the 'VelDerivnCoup' map of this node
 
     This map contains the derivatives of the node's
-    normal coupling condition with respect to the velocities. (for one sided contact just slave!)
+    normal coupling condition with respect to the velocities. (for one sided contact just source!)
 
     */
     virtual std::map<int, double>& get_vel_derivn_coup() { return velderivncoup_; }
@@ -478,7 +478,7 @@ namespace CONTACT
     \brief Return the 'PresDerivnCoup' map of this node
 
     This map contains the derivatives of the node's
-    normal coupling condition with respect to the pressures. (for one sided contact just slave!)
+    normal coupling condition with respect to the pressures. (for one sided contact just source!)
     //h.Willmann
     */
     virtual std::map<int, double>& get_pres_derivn_coup() { return presderivncoup_; }
@@ -576,10 +576,10 @@ namespace CONTACT
     //! @name Access methods
 
     /*!
-    \brief Return max (Temp_slave , Temp_master)
+    \brief Return max (Temp_source , Temp_target)
     */
-    double& temp_master() { return temp_master_; }
-    double temp_master() const { return temp_master_; }
+    double& temp_target() { return temp_target_; }
+    double temp_target() const { return temp_target_; }
 
     /*!
     \brief Return temperature
@@ -604,10 +604,10 @@ namespace CONTACT
     */
     double& thermo_lm() { return thermo_lm_; }
 
-    std::map<int, double>& deriv_temp_master_disp() { return derivTempMasterDisp_; }
-    const std::map<int, double>& deriv_temp_master_disp() const { return derivTempMasterDisp_; }
-    std::map<int, double>& deriv_temp_master_temp() { return derivTempMasterTemp_; }
-    const std::map<int, double>& deriv_temp_master_temp() const { return derivTempMasterTemp_; }
+    std::map<int, double>& deriv_temp_target_disp() { return derivTempTargetDisp_; }
+    const std::map<int, double>& deriv_temp_target_disp() const { return derivTempTargetDisp_; }
+    std::map<int, double>& deriv_temp_target_temp() { return derivTempTargetTemp_; }
+    const std::map<int, double>& deriv_temp_target_temp() const { return derivTempTargetTemp_; }
 
     void clear();
 
@@ -622,9 +622,9 @@ namespace CONTACT
     double t_dam_;
     double thermo_lm_;
 
-    double temp_master_;
-    std::map<int, double> derivTempMasterDisp_;
-    std::map<int, double> derivTempMasterTemp_;
+    double temp_target_;
+    std::map<int, double> derivTempTargetDisp_;
+    std::map<int, double> derivTempTargetTemp_;
 
   };  // class NodeTSIDataContainer
 
@@ -729,12 +729,12 @@ namespace CONTACT
      \param coords (in): span of nodal coordinates, length 3
      \param owner  (in): Owner of this node.
      \param dofs   (in): list of global degrees of freedom
-     \param isslave(in): flag indicating whether node is slave or master
+     \param issource(in): flag indicating whether node is source or target
      \param initactive (in): flag indicating whether initially set to active
 
      */
     Node(int id, std::span<const double> coords, const int owner, const std::vector<int>& dofs,
-        const bool isslave, const bool initactive);
+        const bool issource, const bool initactive);
 
     /*!
      \brief Copy Constructor
@@ -789,16 +789,16 @@ namespace CONTACT
     void print(std::ostream& os) const override;
 
     /*!
-     \brief Is Node initialized as active node (only slave nodes)
+     \brief Is Node initialized as active node (only source nodes)
      */
     virtual bool is_init_active() const
     {
-      if (!is_slave()) FOUR_C_THROW("InitActive requested for Master node");
+      if (!is_source()) FOUR_C_THROW("InitActive requested for Target node");
       return initactive_;
     }
 
     /*!
-     \brief Modify initial active status of slave node
+     \brief Modify initial active status of source node
 
      This belated modification is necessary to be able to use
      the binary search tree for contact initialization in the
@@ -808,7 +808,7 @@ namespace CONTACT
      */
     virtual bool& set_init_active()
     {
-      if (!is_slave()) FOUR_C_THROW("InitActive requested for Master node");
+      if (!is_source()) FOUR_C_THROW("InitActive requested for Target node");
       return initactive_;
     }
 
@@ -932,7 +932,7 @@ namespace CONTACT
     \brief Initializes the poro data container of the node
 
     With this function, the container with contact specific quantities/information
-    is initialized. --- Used to initialize PoroDataContainer for master nodes!
+    is initialized. --- Used to initialize PoroDataContainer for target nodes!
 
     */
     void initialize_poro_data_container() override;
@@ -975,8 +975,8 @@ namespace CONTACT
      * defined as empty here in the general mortar node. They can be called whenever you like.
      */
 
-    virtual void add_s_node(int node) {}
-    virtual void add_m_node(int node) {}
+    virtual void add_source_node(int node) {}
+    virtual void add_target_node(int node) {}
 
     //! @}
 
@@ -1013,7 +1013,7 @@ namespace CONTACT
     //! true if node is initialized as active node
     bool initactive_;
 
-    //! cnode is an master node for which the mortar integration is performed (both-sided wear)
+    //! cnode is an target node for which the mortar integration is performed (both-sided wear)
     bool involvedm_;
 
     //! number of lin entries per direction vector

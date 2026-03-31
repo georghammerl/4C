@@ -15,7 +15,7 @@ FOUR_C_NAMESPACE_OPEN
  *----------------------------------------------------------------------*/
 template <Core::FE::CellType parent_distype>
 template <int num_dof_per_node>
-void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* mele,
+void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* target_elem,
     const Core::LinAlg::Matrix<Core::FE::num_nodes(parent_distype) * num_dof_per_node, 1>& rhs,
     std::vector<int>& dofs, std::shared_ptr<Core::LinAlg::FEVector<double>> fc) const
 {
@@ -36,7 +36,7 @@ void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* m
  *----------------------------------------------------------------------*/
 template <Core::FE::CellType parent_distype>
 template <int num_dof_per_node>
-void Mortar::ElementNitscheData<parent_distype>::assemble_matrix(Mortar::Element* mele,
+void Mortar::ElementNitscheData<parent_distype>::assemble_matrix(Mortar::Element* target_elem,
     const std::unordered_map<int,
         Core::LinAlg::Matrix<Core::FE::num_nodes(parent_distype) * num_dof_per_node, 1>>& k,
     std::vector<int>& dofs, std::shared_ptr<Core::LinAlg::SparseMatrix> kc) const
@@ -63,30 +63,36 @@ void Mortar::ElementNitscheData<parent_distype>::assemble_matrix(Mortar::Element
 
 
 template <Core::FE::CellType parent_distype>
-void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* mele,
+void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* target_elem,
     CONTACT::VecBlockType row, std::shared_ptr<Core::LinAlg::FEVector<double>> fc) const
 {
   switch (row)
   {
     case CONTACT::VecBlockType::displ:
-      assemble_rhs<Core::FE::dim<parent_distype>>(mele, rhs_, mele->mo_data().parent_dof(), fc);
+      assemble_rhs<Core::FE::dim<parent_distype>>(
+          target_elem, rhs_, target_elem->mo_data().parent_dof(), fc);
       break;
     case CONTACT::VecBlockType::temp:
-      if (mele->mo_data().parent_temp_dof().size())
-        assemble_rhs<1>(mele, tsi_data_.rhs_t_, mele->mo_data().parent_temp_dof(), fc);
+      if (target_elem->mo_data().parent_temp_dof().size())
+        assemble_rhs<1>(
+            target_elem, tsi_data_.rhs_t_, target_elem->mo_data().parent_temp_dof(), fc);
       break;
     case CONTACT::VecBlockType::porofluid:
-      if (mele->mo_data().parent_pf_dof().size())  // not if the parent is an impermeable element
+      if (target_elem->mo_data()
+              .parent_pf_dof()
+              .size())  // not if the parent is an impermeable element
         assemble_rhs<Core::FE::dim<parent_distype> + 1>(
-            mele, poro_data_.rhs_p_, mele->mo_data().parent_pf_dof(), fc);
+            target_elem, poro_data_.rhs_p_, target_elem->mo_data().parent_pf_dof(), fc);
       break;
     case CONTACT::VecBlockType::scatra:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_rhs<1>(mele, ssi_data_.rhs_s_, mele->mo_data().parent_scalar_dof(), fc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_rhs<1>(
+            target_elem, ssi_data_.rhs_s_, target_elem->mo_data().parent_scalar_dof(), fc);
       break;
     case CONTACT::VecBlockType::elch:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_rhs<2>(mele, ssi_elch_data_.rhs_e_, mele->mo_data().parent_scalar_dof(), fc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_rhs<2>(
+            target_elem, ssi_elch_data_.rhs_e_, target_elem->mo_data().parent_scalar_dof(), fc);
       break;
     default:
       FOUR_C_THROW("unknown row");
@@ -94,63 +100,74 @@ void Mortar::ElementNitscheData<parent_distype>::assemble_rhs(Mortar::Element* m
 }
 
 template <Core::FE::CellType parent_distype>
-void Mortar::ElementNitscheData<parent_distype>::assemble_matrix(Mortar::Element* mele,
+void Mortar::ElementNitscheData<parent_distype>::assemble_matrix(Mortar::Element* target_elem,
     CONTACT::MatBlockType block, std::shared_ptr<Core::LinAlg::SparseMatrix> kc) const
 {
   switch (block)
   {
     case CONTACT::MatBlockType::displ_displ:
-      assemble_matrix<Core::FE::dim<parent_distype>>(mele, k_, mele->mo_data().parent_dof(), kc);
+      assemble_matrix<Core::FE::dim<parent_distype>>(
+          target_elem, k_, target_elem->mo_data().parent_dof(), kc);
       break;
     case CONTACT::MatBlockType::displ_temp:
       assemble_matrix<Core::FE::dim<parent_distype>>(
-          mele, tsi_data_.k_dt_, mele->mo_data().parent_dof(), kc);
+          target_elem, tsi_data_.k_dt_, target_elem->mo_data().parent_dof(), kc);
       break;
     case CONTACT::MatBlockType::temp_displ:
-      if (mele->mo_data().parent_temp_dof().size())
-        assemble_matrix<1>(mele, tsi_data_.k_td_, mele->mo_data().parent_temp_dof(), kc);
+      if (target_elem->mo_data().parent_temp_dof().size())
+        assemble_matrix<1>(
+            target_elem, tsi_data_.k_td_, target_elem->mo_data().parent_temp_dof(), kc);
       break;
     case CONTACT::MatBlockType::temp_temp:
-      if (mele->mo_data().parent_temp_dof().size())
-        assemble_matrix<1>(mele, tsi_data_.k_tt_, mele->mo_data().parent_temp_dof(), kc);
+      if (target_elem->mo_data().parent_temp_dof().size())
+        assemble_matrix<1>(
+            target_elem, tsi_data_.k_tt_, target_elem->mo_data().parent_temp_dof(), kc);
       break;
     case CONTACT::MatBlockType::displ_porofluid:
       assemble_matrix<Core::FE::dim<parent_distype>>(
-          mele, poro_data_.k_dp_, mele->mo_data().parent_dof(), kc);
+          target_elem, poro_data_.k_dp_, target_elem->mo_data().parent_dof(), kc);
       break;
     case CONTACT::MatBlockType::porofluid_displ:
-      if (mele->mo_data().parent_pf_dof().size())  // not if the parent is an impermeable element
+      if (target_elem->mo_data()
+              .parent_pf_dof()
+              .size())  // not if the parent is an impermeable element
         assemble_matrix<Core::FE::dim<parent_distype> + 1>(
-            mele, poro_data_.k_pd_, mele->mo_data().parent_pf_dof(), kc);
+            target_elem, poro_data_.k_pd_, target_elem->mo_data().parent_pf_dof(), kc);
       break;
     case CONTACT::MatBlockType::porofluid_porofluid:
-      if (mele->mo_data().parent_pf_dof().size())  // not if the parent is an impermeable element
+      if (target_elem->mo_data()
+              .parent_pf_dof()
+              .size())  // not if the parent is an impermeable element
         assemble_matrix<Core::FE::dim<parent_distype> + 1>(
-            mele, poro_data_.k_pp_, mele->mo_data().parent_pf_dof(), kc);
+            target_elem, poro_data_.k_pp_, target_elem->mo_data().parent_pf_dof(), kc);
       break;
     case CONTACT::MatBlockType::displ_scatra:
       assemble_matrix<Core::FE::dim<parent_distype>>(
-          mele, ssi_data_.k_ds_, mele->mo_data().parent_dof(), kc);
+          target_elem, ssi_data_.k_ds_, target_elem->mo_data().parent_dof(), kc);
       break;
     case CONTACT::MatBlockType::scatra_displ:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_matrix<1>(mele, ssi_data_.k_sd_, mele->mo_data().parent_scalar_dof(), kc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_matrix<1>(
+            target_elem, ssi_data_.k_sd_, target_elem->mo_data().parent_scalar_dof(), kc);
       break;
     case CONTACT::MatBlockType::scatra_scatra:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_matrix<1>(mele, ssi_data_.k_ss_, mele->mo_data().parent_scalar_dof(), kc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_matrix<1>(
+            target_elem, ssi_data_.k_ss_, target_elem->mo_data().parent_scalar_dof(), kc);
       break;
     case CONTACT::MatBlockType::displ_elch:
       assemble_matrix<Core::FE::dim<parent_distype>>(
-          mele, ssi_elch_data_.k_de_, mele->mo_data().parent_dof(), kc);
+          target_elem, ssi_elch_data_.k_de_, target_elem->mo_data().parent_dof(), kc);
       break;
     case CONTACT::MatBlockType::elch_displ:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_matrix<2>(mele, ssi_elch_data_.k_ed_, mele->mo_data().parent_scalar_dof(), kc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_matrix<2>(
+            target_elem, ssi_elch_data_.k_ed_, target_elem->mo_data().parent_scalar_dof(), kc);
       break;
     case CONTACT::MatBlockType::elch_elch:
-      if (mele->mo_data().parent_scalar_dof().size())
-        assemble_matrix<2>(mele, ssi_elch_data_.k_ee_, mele->mo_data().parent_scalar_dof(), kc);
+      if (target_elem->mo_data().parent_scalar_dof().size())
+        assemble_matrix<2>(
+            target_elem, ssi_elch_data_.k_ee_, target_elem->mo_data().parent_scalar_dof(), kc);
       break;
     default:
       FOUR_C_THROW("unknown matrix block");

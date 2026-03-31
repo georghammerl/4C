@@ -80,13 +80,13 @@ int Core::FE::DiscretizationHDG::fill_complete(OptionsFillComplete options)
     }
 
     // check master/slave relation of current face in terms of the local trafo map
-    FOUR_C_ASSERT(f->second->parent_master_element() != nullptr,
+    FOUR_C_ASSERT(f->second->parent_target_element() != nullptr,
         "Unexpected topology between face and parent");
-    const int* nodeIdsMaster = f->second->parent_master_element()->node_ids();
+    const int* nodeIdsMaster = f->second->parent_target_element()->node_ids();
     const int* nodeIds = f->second->node_ids();
 
     std::vector<std::vector<int>> faceNodeOrder =
-        Core::FE::get_ele_node_numbering_faces(f->second->parent_master_element()->shape());
+        Core::FE::get_ele_node_numbering_faces(f->second->parent_target_element()->shape());
 
     bool exchangeMasterAndSlave = false;
     for (int i = 0; i < f->second->num_node(); ++i)
@@ -98,11 +98,11 @@ int Core::FE::DiscretizationHDG::fill_complete(OptionsFillComplete options)
     }
     if (exchangeMasterAndSlave)
     {
-      Core::Elements::Element* faceMaster = f->second->parent_master_element();
+      Core::Elements::Element* faceMaster = f->second->parent_target_element();
       const int faceMasterNo = f->second->face_master_number();
       // new master element might be nullptr on MPI computations
-      f->second->set_parent_master_element(f->second->parent_slave_element(),
-          f->second->parent_slave_element() != nullptr ? f->second->face_slave_number() : -1);
+      f->second->set_parent_target_element(f->second->parent_source_element(),
+          f->second->parent_source_element() != nullptr ? f->second->face_slave_number() : -1);
       f->second->set_parent_slave_element(faceMaster, faceMasterNo);
     }
   }
@@ -323,9 +323,9 @@ void Core::FE::DbcHDG::read_dirichlet_condition(const Teuchos::ParameterList& pa
       const Core::Elements::FaceElement* faceele =
           dynamic_cast<const Core::Elements::FaceElement*>(discret.l_row_face(i));
       const unsigned int dofperface =
-          faceele->parent_master_element()->num_dof_per_face(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_face(faceele->face_master_number());
       const unsigned int dofpercomponent =
-          faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_component(faceele->face_master_number());
 
       // do only faces where all nodes are present in the node list
       bool faceRelevant = true;
@@ -474,9 +474,9 @@ void Core::FE::DbcHDG::do_dirichlet_condition(const Teuchos::ParameterList& para
       const Core::Elements::FaceElement* faceele =
           dynamic_cast<const Core::Elements::FaceElement*>(discret.l_row_face(i));
       const unsigned int dofperface =
-          faceele->parent_master_element()->num_dof_per_face(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_face(faceele->face_master_number());
       const unsigned int dofpercomponent =
-          faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_component(faceele->face_master_number());
       const unsigned int component = dofperface / dofpercomponent;
 
       int nummynodes = discret.l_row_face(i)->num_node();
@@ -506,7 +506,7 @@ void Core::FE::DbcHDG::do_dirichlet_condition(const Teuchos::ParameterList& para
         // cast the const qualifier away, thus the Evaluate routine can be called.
         Core::FE::DiscretizationFaces& non_const_dis =
             const_cast<Core::FE::DiscretizationFaces&>(discret);
-        faceele->parent_master_element()->evaluate(
+        faceele->parent_target_element()->evaluate(
             initParams, non_const_dis, dummy, elemat1, elemat2, elevec1, elevec2, elevec3);
       }
       else

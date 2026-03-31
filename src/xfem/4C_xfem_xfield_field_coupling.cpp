@@ -34,94 +34,94 @@ void XFEM::XFieldField::Coupling::init(const MinDofDiscretization& min_dof_dis)
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::master_to_slave(
+std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::target_to_source(
     const Core::LinAlg::Vector<double>& mv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> sv = nullptr;
   switch (map_type)
   {
     case XFEM::map_dofs:
-      return ::FourC::Coupling::Adapter::Coupling::master_to_slave(mv);
+      return ::FourC::Coupling::Adapter::Coupling::target_to_source(mv);
       break;
     case XFEM::map_nodes:
       sv = std::make_shared<Core::LinAlg::Vector<double>>(*slavenodemap_);
       break;
   }
 
-  master_to_slave(mv.as_multi_vector(), map_type, sv->as_multi_vector());
+  target_to_source(mv.as_multi_vector(), map_type, sv->as_multi_vector());
   return sv;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::slave_to_master(
+std::shared_ptr<Core::LinAlg::Vector<double>> XFEM::XFieldField::Coupling::source_to_target(
     const Core::LinAlg::Vector<double>& sv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> mv = nullptr;
   switch (map_type)
   {
     case XFEM::map_dofs:
-      return ::FourC::Coupling::Adapter::Coupling::slave_to_master(sv);
+      return ::FourC::Coupling::Adapter::Coupling::source_to_target(sv);
       break;
     case XFEM::map_nodes:
       mv = std::make_shared<Core::LinAlg::Vector<double>>(*masternodemap_);
       break;
   }
 
-  slave_to_master(sv.as_multi_vector(), map_type, mv->as_multi_vector());
+  source_to_target(sv.as_multi_vector(), map_type, mv->as_multi_vector());
   return mv;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::master_to_slave(
+std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv = nullptr;
   switch (map_type)
   {
     case XFEM::map_dofs:
-      return ::FourC::Coupling::Adapter::Coupling::master_to_slave(mv);
+      return ::FourC::Coupling::Adapter::Coupling::target_to_source(mv);
       break;
     case XFEM::map_nodes:
       sv = std::make_shared<Core::LinAlg::MultiVector<double>>(*slavenodemap_, mv.num_vectors());
       break;
   }
 
-  master_to_slave(mv, map_type, *sv);
+  target_to_source(mv, map_type, *sv);
   return sv;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::slave_to_master(
+std::shared_ptr<Core::LinAlg::MultiVector<double>> XFEM::XFieldField::Coupling::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv, const XFEM::MapType& map_type) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv = nullptr;
   switch (map_type)
   {
     case XFEM::map_dofs:
-      return ::FourC::Coupling::Adapter::Coupling::slave_to_master(sv);
+      return ::FourC::Coupling::Adapter::Coupling::source_to_target(sv);
       break;
     case XFEM::map_nodes:
       mv = std::make_shared<Core::LinAlg::MultiVector<double>>(*masternodemap_, sv.num_vectors());
       break;
   }
 
-  slave_to_master(sv, map_type, *mv);
+  source_to_target(sv, map_type, *mv);
   return mv;
 }
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVector<double>& mv,
+void XFEM::XFieldField::Coupling::target_to_source(const Core::LinAlg::MultiVector<double>& mv,
     const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& sv) const
 {
   switch (map_type)
   {
     case XFEM::map_dofs:
     {
-      return ::FourC::Coupling::Adapter::Coupling::master_to_slave(mv, sv);
+      return ::FourC::Coupling::Adapter::Coupling::target_to_source(mv, sv);
       break;
     }
     case XFEM::map_nodes:
@@ -146,14 +146,14 @@ void XFEM::XFieldField::Coupling::master_to_slave(const Core::LinAlg::MultiVecto
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void XFEM::XFieldField::Coupling::slave_to_master(const Core::LinAlg::MultiVector<double>& sv,
+void XFEM::XFieldField::Coupling::source_to_target(const Core::LinAlg::MultiVector<double>& sv,
     const XFEM::MapType& map_type, Core::LinAlg::MultiVector<double>& mv) const
 {
   switch (map_type)
   {
     case XFEM::map_dofs:
     {
-      return ::FourC::Coupling::Adapter::Coupling::slave_to_master(sv, mv);
+      return ::FourC::Coupling::Adapter::Coupling::source_to_target(sv, mv);
       break;
     }
     case XFEM::map_nodes:

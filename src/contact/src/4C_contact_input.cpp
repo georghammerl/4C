@@ -46,7 +46,7 @@ Core::IO::InputSpec CONTACT::valid_parameters()
                   .default_value = CONTACT::FrictionType::none}),
 
           parameter<bool>("FRLESS_FIRST",
-              {.description = "If chosen the first time step of a newly in contact slave "
+              {.description = "If chosen the first time step of a newly in contact source "
                               "node is regarded as frictionless",
                   .default_value = false}),
 

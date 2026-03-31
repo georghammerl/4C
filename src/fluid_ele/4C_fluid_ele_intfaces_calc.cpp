@@ -139,8 +139,8 @@ void Discret::Elements::FluidIntFaceImpl<distype>::assemble_internal_faces_using
 
   //----------------------- create patchlm -----------------
 
-  const int numnode_master = intface->parent_master_element()->num_node();
-  const int numnode_slave = intface->parent_slave_element()->num_node();
+  const int numnode_master = intface->parent_target_element()->num_node();
+  const int numnode_slave = intface->parent_source_element()->num_node();
   const int numnode_face = intface->num_node();
 
   const int numnodeinpatch = numnode_master + numnode_slave - numnode_face;

@@ -127,7 +127,7 @@ namespace Wear
     \warning In case of weighted wear, this is only implemented for dual/Petrov-Galerkin shape
     functions.
 
-    \note This requires to solve for the real wear where we need to invert the slave side mortar
+    \note This requires to solve for the real wear where we need to invert the source side mortar
     matrix. Since we restrict ourselves to dual/Petrov-Galerkin shape functions, we can exploit
     the diagonality of the #dmatrix_. Hence, instead of solving we just divide by the diagonal
     elements of #dmatrix_.
@@ -163,7 +163,7 @@ namespace Wear
     \brief Update active set and check for convergence
 
     In this function we loop over all interfaces and then over all
-    slave nodes to check, whether the assumption of them being active
+    source nodes to check, whether the assumption of them being active
     or inactive respectively has been correct. If a single node changes
     state, the active set is adapted accordingly and the convergence
     flag is kept on false.
@@ -213,12 +213,12 @@ namespace Wear
     std::shared_ptr<const Core::LinAlg::Vector<double>> contact_wear() const override
     {
       return wearoutput_;
-    }  // for slave side
+    }  // for source side
 
     std::shared_ptr<const Core::LinAlg::Vector<double>> contact_wear2() const
     {
       return wearoutput2_;
-    }  // for master side
+    }  // for target side
 
     /*!
     \brief Return wear interfaces
@@ -227,19 +227,19 @@ namespace Wear
     std::vector<std::shared_ptr<Wear::WearInterface>> wear_interfaces() { return interface_; }
 
     /*!
-    \brief Return master map for both sided wear (slip), mapped from slave side
+    \brief Return target map for both sided wear (slip), mapped from source side
 
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_slip_nodes() const override
+    std::shared_ptr<const Core::LinAlg::Map> target_slip_nodes() const override
     {
       return gmslipnodes_;
     };
 
     /*!
-    \brief Return master map for both sided wear (active), mapped from slave side
+    \brief Return target map for both sided wear (active), mapped from source side
 
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_active_nodes() const override
+    std::shared_ptr<const Core::LinAlg::Map> target_active_nodes() const override
     {
       return gmactivenodes_;
     };
@@ -251,7 +251,7 @@ namespace Wear
     std::shared_ptr<const Core::LinAlg::Vector<double>> wear_var() const { return w_; }
 
     /*!
-     \brief Return discrete wear vector (t_n+1) Master
+     \brief Return discrete wear vector (t_n+1) Target
 
      */
     std::shared_ptr<const Core::LinAlg::Vector<double>> wear_var_m() const { return wm_; }
@@ -266,7 +266,7 @@ namespace Wear
     }
 
     /*!
-     \brief Return wear-master rhs vector (only in saddle-point formulation
+     \brief Return wear-target rhs vector (only in saddle-point formulation
 
      */
     std::shared_ptr<const Core::LinAlg::Vector<double>> wear_m_rhs() const override
@@ -284,7 +284,7 @@ namespace Wear
     }
 
     /*!
-     \brief Returns increment of W-master solution vector in SaddlePointSolve routine
+     \brief Returns increment of W-target solution vector in SaddlePointSolve routine
 
      */
     std::shared_ptr<const Core::LinAlg::Vector<double>> wm_solve_incr() const override
@@ -316,7 +316,7 @@ namespace Wear
     \brief Initialize and evaluate Mortar stuff for the next Newton step
 
     This method first checks if we are dealing with self contact and updates
-    the interface slave and master sets if so. Then it resets the global
+    the interface source and target sets if so. Then it resets the global
     Mortar matrices D and M and the global gap vector g accordingly.
 
     The nodal quantities computed in initialize_and_evaluate_interface() are then assembled
@@ -368,14 +368,15 @@ namespace Wear
     // basic data
     bool weightedwear_;  // flag for contact with wear (is) --> weighted wear
     bool wbothpv_;       // flag for both sided wear discrete
-    std::shared_ptr<Core::LinAlg::Vector<double>> w_;  // current vector of pv wear at t_n+1 (slave)
+    std::shared_ptr<Core::LinAlg::Vector<double>>
+        w_;  // current vector of pv wear at t_n+1 (source)
     std::shared_ptr<Core::LinAlg::Vector<double>>
         wincr_;  // Wear variables vector increment within SaddlePointSolve (this is NOT the
                  // increment of w_ between t_{n+1} and t_{n}!)
     std::shared_ptr<Core::LinAlg::Vector<double>> wearrhs_;
 
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        wm_;  // current vector of pv wear at t_n+1 (master)
+        wm_;  // current vector of pv wear at t_n+1 (target)
     std::shared_ptr<Core::LinAlg::Vector<double>>
         wmincr_;  // Wear variables vector increment within SaddlePointSolve (this is NOT the
                   // increment of w_ between t_{n+1} and t_{n}!)
@@ -393,9 +394,9 @@ namespace Wear
     std::shared_ptr<Core::LinAlg::SparseMatrix> d2matrix_;  // global Mortar matrix D2
 
     std::shared_ptr<Core::LinAlg::Map>
-        gminvolvednodes_;  // global involved master node row map (of all interfaces)
+        gminvolvednodes_;  // global involved target node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>
-        gminvolveddofs_;  // global involved master dof row map (of all interfaces)
+        gminvolveddofs_;  // global involved target dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>
         gslipn_;  // global row map of matrix N for slip dofs (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>
@@ -406,23 +407,23 @@ namespace Wear
         gwminact_;  // global row map of matrix N for slip dofs (of all interfaces)
 
     std::shared_ptr<Core::LinAlg::Map>
-        gwmdofrowmap_;  // global master wear dof row map (of all interfaces) -active
+        gwmdofrowmap_;  // global target wear dof row map (of all interfaces) -active
     std::shared_ptr<Core::LinAlg::Map>
-        gwdofrowmap_;  // global slave wear dof row map (of all interfaces) -active
+        gwdofrowmap_;  // global source wear dof row map (of all interfaces) -active
     std::shared_ptr<Core::LinAlg::Map>
-        gsdofnrowmap_;  // global slave wear dof row map (of all interfaces)
+        gsdofnrowmap_;  // global source wear dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>
-        gmdofnrowmap_;  // global master wear dof row map (of all interfaces)
+        gmdofnrowmap_;  // global target wear dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map>
-        galldofnrowmap_;  // global master wear dof row map (of all interfaces)
+        galldofnrowmap_;  // global target wear dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gwalldofrowmap_;  // all
-    std::shared_ptr<Core::LinAlg::Map> gmslipnodes_;     // global master slip nodes
-    std::shared_ptr<Core::LinAlg::Map> gmactivenodes_;   // global master active nodes
+    std::shared_ptr<Core::LinAlg::Map> gmslipnodes_;     // global target slip nodes
+    std::shared_ptr<Core::LinAlg::Map> gmactivenodes_;   // global target active nodes
 
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        wearoutput_;  // vector of unweighted wear at t_n+1  -- slave
+        wearoutput_;  // vector of unweighted wear at t_n+1  -- source
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        wearoutput2_;  // vector of unweighted wear at t_n+1  -- master
+        wearoutput2_;  // vector of unweighted wear at t_n+1  -- target
     std::shared_ptr<Core::LinAlg::Vector<double>> wearvector_;  // global weighted wear vector w
 
     int maxdofwear_;  // highest dof number in problem discretization
@@ -433,7 +434,7 @@ namespace Wear
     bool weartimescales_;  // bool for different time scales
     bool sswear_;          // bool steady state wear
 
-    // discrete wear algorithm (SLAVE)
+    // discrete wear algorithm (SOURCE)
     std::shared_ptr<Core::LinAlg::SparseMatrix> twmatrix_;  // global Mortar wear matrix T
     std::shared_ptr<Core::LinAlg::SparseMatrix> ematrix_;   // global Mortar wear matrix E
     std::shared_ptr<Core::LinAlg::SparseMatrix> eref_;      // global Mortar wear matrix E
@@ -446,7 +447,7 @@ namespace Wear
     std::shared_ptr<Core::LinAlg::Vector<double>>
         wear_cond_rhs_;  // rhs wear condition: -E*w_i + k*T*n*lm_i
 
-    // discrete wear algorithm (MASTER)
+    // discrete wear algorithm (TARGET)
     std::shared_ptr<Core::LinAlg::SparseMatrix> twmatrix_m_;  // global Mortar wear matrix T
     std::shared_ptr<Core::LinAlg::SparseMatrix> ematrix_m_;   // global Mortar wear matrix E
     std::shared_ptr<Core::LinAlg::SparseMatrix> lintdis_m_;   // Lin T w.r.t. displ: Lin(T*n*lm)

@@ -266,7 +266,7 @@ void FSI::MortarMonolithicStructureSplit::setup_system()
     coupfa.setup_coupling(*fluid_field()->discretization(), *ale_field()->discretization(),
         *fluidnodemap, *alenodemap, ndim);
 
-    fluid_field()->set_mesh_map(coupfa.master_dof_map());
+    fluid_field()->set_mesh_map(coupfa.target_dof_map());
 
     // create combined map
     create_combined_dof_row_map();
@@ -306,9 +306,9 @@ void FSI::MortarMonolithicStructureSplit::setup_system()
           fluid_field()->discretization(), *coupsfm_, false, aleproj_);
 
       iprojdisp_ =
-          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->master_dof_map(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->target_dof_map(), true);
       iprojdispinc_ =
-          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->master_dof_map(), true);
+          std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->target_dof_map(), true);
     }
     notsetup_ = false;
   }
@@ -817,10 +817,10 @@ void FSI::MortarMonolithicStructureSplit::setup_system_matrix(
     const Coupling::Adapter::Coupling& coupfa = fluid_ale_coupling();
 
     (*fmgitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmgi, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), mat.matrix(1, 2), false, false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), mat.matrix(1, 2), false, false);
 
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmii, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), mat.matrix(1, 2), false, true);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), mat.matrix(1, 2), false, true);
   }
 
   // done. make sure all blocks are filled.
@@ -850,7 +850,7 @@ void FSI::MortarMonolithicStructureSplit::update()
   // update history variables for sliding ale
   if (aleproj_ != FSI::ALEprojection_none)
   {
-    iprojdisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->master_dof_map(), true);
+    iprojdisp_ = std::make_shared<Core::LinAlg::Vector<double>>(*coupsfm_->target_dof_map(), true);
     std::shared_ptr<Core::LinAlg::Vector<double>> idispale = ale_to_fluid_interface(
         ale_field()->interface()->extract_fsi_cond_vector(*ale_field()->dispnp()));
 

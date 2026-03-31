@@ -418,8 +418,8 @@ void ALE::Meshtying::adapter_mortar(std::vector<int> coupleddof)
 /*-------------------------------------------------------*/
 void ALE::Meshtying::compare_num_dof()
 {
-  int numdofmaster = (adaptermeshtying_->master_dof_map())->num_global_elements();
-  int numdofslave = (adaptermeshtying_->slave_dof_map())->num_global_elements();
+  int numdofmaster = (adaptermeshtying_->target_dof_map())->num_global_elements();
+  int numdofslave = (adaptermeshtying_->source_dof_map())->num_global_elements();
 
   std::cout << std::endl << "number of master dof's:   " << numdofmaster << std::endl;
   std::cout << "number of slave dof's:   " << numdofslave << std::endl << std::endl;
@@ -437,10 +437,10 @@ void ALE::Meshtying::compare_num_dof()
 void ALE::Meshtying::dof_row_maps()
 {
   // slave dof rowmap
-  gsdofrowmap_ = adaptermeshtying_->slave_dof_map();
+  gsdofrowmap_ = adaptermeshtying_->source_dof_map();
 
   // master dof rowmap
-  gmdofrowmap_ = adaptermeshtying_->master_dof_map();
+  gmdofrowmap_ = adaptermeshtying_->target_dof_map();
 }
 
 /*-------------------------------------------------------*/

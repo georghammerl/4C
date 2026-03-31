@@ -107,16 +107,16 @@ Discret::Elements::SolidSurface::SolidSurface(int id, int owner, int nnode, cons
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
 
-  numdofpernode_ = parent_master_element()->num_dof_per_node(*SolidSurface::nodes()[0]);
+  numdofpernode_ = parent_target_element()->num_dof_per_node(*SolidSurface::nodes()[0]);
   // Safety check if all nodes have the same number of dofs!
   for (int nlid = 1; nlid < num_node(); ++nlid)
   {
-    if (numdofpernode_ != parent_master_element()->num_dof_per_node(*SolidSurface::nodes()[nlid]))
+    if (numdofpernode_ != parent_target_element()->num_dof_per_node(*SolidSurface::nodes()[nlid]))
       FOUR_C_THROW(
           "You need different NumDofPerNode for each node on this structural surface? ({} != {})",
-          numdofpernode_, parent_master_element()->num_dof_per_node(*SolidSurface::nodes()[nlid]));
+          numdofpernode_, parent_target_element()->num_dof_per_node(*SolidSurface::nodes()[nlid]));
   }
 
   distype_ = detect_celltype(parent_element()->shape(), *this);

@@ -812,7 +812,7 @@ void Solid::TimInt::apply_mesh_initialization(
 
   // create fully overlapping slave node map
   std::shared_ptr<const Core::LinAlg::Map> slavemap =
-      cmtbridge_->mt_manager()->get_strategy().slave_row_nodes_ptr();
+      cmtbridge_->mt_manager()->get_strategy().source_row_nodes_ptr();
   std::shared_ptr<Core::LinAlg::Map> allreduceslavemap = Core::LinAlg::allreduce_e_map(*slavemap);
 
   // export modified node positions to column map of problem discretization
@@ -1197,11 +1197,11 @@ void Solid::TimInt::update_step_contact_vum()
       std::shared_ptr<Core::LinAlg::Map> activenodemap =
           std::make_shared<Core::LinAlg::Map>(*cmtbridge_->get_strategy().active_row_nodes());
       std::shared_ptr<const Core::LinAlg::Map> slavenodemap =
-          cmtbridge_->get_strategy().slave_row_nodes_ptr();
+          cmtbridge_->get_strategy().source_row_nodes_ptr();
       std::shared_ptr<const Core::LinAlg::Map> notredistslavedofmap =
-          cmtbridge_->get_strategy().non_redist_slave_row_dofs();
+          cmtbridge_->get_strategy().non_redist_source_row_dofs();
       std::shared_ptr<const Core::LinAlg::Map> notredistmasterdofmap =
-          cmtbridge_->get_strategy().non_redist_master_row_dofs();
+          cmtbridge_->get_strategy().non_redist_target_row_dofs();
       std::shared_ptr<Core::LinAlg::Map> notactivenodemap =
           Core::LinAlg::split_map(*slavenodemap, *activenodemap);
 

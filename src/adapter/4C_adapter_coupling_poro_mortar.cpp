@@ -136,7 +136,7 @@ void Adapter::CouplingPoroMortar::add_mortar_elements(
       mastertype_ = 0;
     }
 
-    cele->set_parent_master_element(faceele->parent_element(), faceele->face_parent_number());
+    cele->set_parent_target_element(faceele->parent_element(), faceele->face_parent_number());
 
     if (isnurbs)
     {
@@ -151,7 +151,7 @@ void Adapter::CouplingPoroMortar::add_mortar_elements(
           std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
       double normalfac = 0.0;
       bool zero_size = knots->get_boundary_ele_and_parent_knots(parentknots, mortarknots, normalfac,
-          faceele->parent_master_element()->id(), faceele->face_master_number());
+          faceele->parent_target_element()->id(), faceele->face_master_number());
 
       // store nurbs specific data to node
       cele->zero_sized() = zero_size;
@@ -204,7 +204,7 @@ void Adapter::CouplingPoroMortar::add_mortar_elements(
       cele->phys_type() = Mortar::Element::structure;
       slavetype_ = 0;
     }
-    cele->set_parent_master_element(faceele->parent_element(), faceele->face_parent_number());
+    cele->set_parent_target_element(faceele->parent_element(), faceele->face_parent_number());
 
     if (isnurbs)
     {
@@ -219,7 +219,7 @@ void Adapter::CouplingPoroMortar::add_mortar_elements(
           std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
       double normalfac = 0.0;
       bool zero_size = knots->get_boundary_ele_and_parent_knots(parentknots, mortarknots, normalfac,
-          faceele->parent_master_element()->id(), faceele->face_master_number());
+          faceele->parent_target_element()->id(), faceele->face_master_number());
 
       // store nurbs specific data to node
       cele->zero_sized() = zero_size;
@@ -359,9 +359,9 @@ void Adapter::CouplingPoroMortar::complete_interface(
   // interface->create_volume_ghosting(*masterdis);
 
   // store old row maps (before parallel redistribution)
-  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_dofs());
-  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->master_row_dofs());
-  slavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_nodes());
+  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_dofs());
+  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->target_row_dofs());
+  slavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_nodes());
 
   // print parallel distribution
   interface->print_parallel_distribution();

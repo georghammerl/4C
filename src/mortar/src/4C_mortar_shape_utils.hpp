@@ -423,7 +423,7 @@ namespace Mortar
         Mortar::Element& ele, const int& valdim)
     {
       if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult_lin called with xi=nullptr");
-      if (!ele.is_slave()) FOUR_C_THROW("evaluate_shape_lag_mult_lin called for master element");
+      if (!ele.is_source()) FOUR_C_THROW("evaluate_shape_lag_mult_lin called for master element");
 
       // check for feasible element types (line3,tri6, quad8 or quad9)
       if (ele.shape() != Core::FE::CellType::line3 && ele.shape() != Core::FE::CellType::tri6 &&

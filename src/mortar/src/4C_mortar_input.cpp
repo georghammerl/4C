@@ -174,12 +174,12 @@ std::vector<Core::IO::InputSpec> Mortar::valid_parameters()
           deprecated_selection<ExtendGhosting>("GHOSTING_STRATEGY",
               {
                   {"redundant_all", ExtendGhosting::redundant_all},
-                  {"redundant_master", ExtendGhosting::redundant_master},
+                  {"redundant_master", ExtendGhosting::redundant_target},
                   {"round_robin", ExtendGhosting::roundrobin},
                   {"binning", ExtendGhosting::binning},
               },
               {.description = "Type of interface ghosting and ghosting extension algorithm",
-                  .default_value = ExtendGhosting::redundant_master}),
+                  .default_value = ExtendGhosting::redundant_target}),
 
           parameter<double>("IMBALANCE_TOL",
               {.description = "Max. relative imbalance of subdomain size after redistribution",

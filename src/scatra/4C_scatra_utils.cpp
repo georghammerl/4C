@@ -133,7 +133,7 @@ void ScaTra::ScaTraUtils::check_consistency_with_s2_i_kinetics_condition(
     // check the interface side
     switch (conditionToBeTested->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE"))
     {
-      case Inpar::S2I::side_slave:
+      case Inpar::S2I::side_source:
       {
         isslave = true;
         break;
@@ -161,7 +161,7 @@ void ScaTra::ScaTraUtils::check_consistency_with_s2_i_kinetics_condition(
       // check the interface side
       switch (s2ikinetics_cond->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE"))
       {
-        case Inpar::S2I::side_slave:
+        case Inpar::S2I::side_source:
         {
           if (isslave) assert_same_nodes(conditionToBeTested, s2ikinetics_cond);
 

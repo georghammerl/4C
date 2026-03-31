@@ -29,7 +29,7 @@ namespace CONTACT
     LagrangeStrategyPoro(const std::shared_ptr<CONTACT::AbstractStrategyDataContainer>& data_ptr,
         const Core::LinAlg::Map* dof_row_map, const Core::LinAlg::Map* NodeRowMap,
         Teuchos::ParameterList params, std::vector<std::shared_ptr<CONTACT::Interface>> interface,
-        int dim, MPI_Comm comm, double alphaf, int maxdof, bool poroslave, bool poromaster);
+        int dim, MPI_Comm comm, double alphaf, int maxdof, bool porosource, bool porotarget);
 
 
     //! @name Access methods
@@ -171,7 +171,7 @@ namespace CONTACT
     std::shared_ptr<Core::LinAlg::Vector<double>>& lambda_no_pen() { return lambda_; }
     std::shared_ptr<const Core::LinAlg::Vector<double>> lambda_no_pen() const { return lambda_; }
 
-    // Return all active fluid slave dofs
+    // Return all active fluid source dofs
     std::shared_ptr<Core::LinAlg::Map>& fluid_active_n_dof_map() { return fgactiven_; };
     std::shared_ptr<const Core::LinAlg::Map> fluid_active_n_dof_map() const { return fgactiven_; };
 
@@ -212,7 +212,7 @@ namespace CONTACT
         fss_;  // poro fluid stiffness block F_ss (needed for no pen LM)
 
     std::map<int, std::shared_ptr<Core::LinAlg::SparseOperator>>
-        cfx_s_;  // offdiagonal coupling stiffness blocks on slave side!
+        cfx_s_;  // offdiagonal coupling stiffness blocks on source side!
 
     // Matrices transformed to the fluid dofs!!!
     std::shared_ptr<Core::LinAlg::SparseMatrix> fdhat_;
@@ -226,11 +226,11 @@ namespace CONTACT
         fmoldtransp_;  // global transposed Mortar matrix M (last end-point t_n)
 
 
-    std::shared_ptr<Core::LinAlg::Map> fgsdofrowmap_;   // fluid slave dofs
-    std::shared_ptr<Core::LinAlg::Map> fgmdofrowmap_;   // fluid master dofs
-    std::shared_ptr<Core::LinAlg::Map> fgsmdofrowmap_;  // fluid slave + master dofs
+    std::shared_ptr<Core::LinAlg::Map> fgsdofrowmap_;   // fluid source dofs
+    std::shared_ptr<Core::LinAlg::Map> fgtdofrowmap_;   // fluid target dofs
+    std::shared_ptr<Core::LinAlg::Map> fgstdofrowmap_;  // fluid source + target dofs
     std::shared_ptr<Core::LinAlg::Map> fgndofrowmap_;   // fluid other dofs
-    std::shared_ptr<Core::LinAlg::Map> fgactivedofs_;   // fluid active slave dofs
+    std::shared_ptr<Core::LinAlg::Map> fgactivedofs_;   // fluid active source dofs
     std::shared_ptr<Core::LinAlg::Map> falldofrowmap_;  // all fluid dofs
     std::shared_ptr<Core::LinAlg::Map> fgactiven_;      // active normal fluid dofs
     std::shared_ptr<Core::LinAlg::Map> fgactivet_;      // active tangential fluid dofs
@@ -291,23 +291,23 @@ namespace CONTACT
         flinTangentiallambda_;  ///< linearized tangential times lambda -- transformed to fluid dofs
 
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        porolindmatrix_;  // global Matrix LinD containing slave fc derivatives (with lm from poro
+        porolindmatrix_;  // global Matrix LinD containing source fc derivatives (with lm from poro
                           // no penetration)
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        porolinmmatrix_;  // global Matrix LinM containing master fc derivatives (with lm from poro
+        porolinmmatrix_;  // global Matrix LinM containing target fc derivatives (with lm from poro
                           // no penetration)
 
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        fporolindmatrix_;  // global Matrix LinD containing slave fc derivatives (with lm from poro
+        fporolindmatrix_;  // global Matrix LinD containing source fc derivatives (with lm from poro
                            // no penetration) -- transformed to fluid dofs
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        fporolinmmatrix_;  // global Matrix LinM containing master fc derivatives (with lm from poro
+        fporolinmmatrix_;  // global Matrix LinM containing target fc derivatives (with lm from poro
                            // no penetration) -- transformed to fluid dofs
 
-    bool poroslave_;   // true if interface slave side is purely poroelastic
-    bool poromaster_;  // true if interface master sided is purely poroelastic
+    bool porosource_;  // true if interface source side is purely poroelastic
+    bool porotarget_;  // true if interface target sided is purely poroelastic
     // it must be assured that these two are previously set correctly and that there is no mixed
-    // master or slave interface with both structural and poroelastic elements
+    // target or source interface with both structural and poroelastic elements
   };  // class POROLagrangeStrategy
 }  // namespace CONTACT
 

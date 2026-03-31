@@ -298,7 +298,7 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
       // do nothing if the node is the master in all of the applied conditions
       // do something for second, third, ... (slave) node
       // also if the node is a master in one condition, but a slave in another
-      bool is_slave = false;
+      bool is_source = false;
       for (auto condition_id : applied_condition)
       {
         if (condition_id == -1) continue;
@@ -306,10 +306,10 @@ int Core::DOFSets::DofSet::assign_degrees_of_freedom(
         if (numdofcond[condition_id] != num_dof_rownodes.get_local_values()[i])
           FOUR_C_THROW("ERROR: Number of DoFs in coupling condition {} does not match node {}",
               numdofcond[condition_id], num_dof_rownodes.get_local_values()[i]);
-        if (masterIds[condition_id] != gid) is_slave = true;
+        if (masterIds[condition_id] != gid) is_source = true;
       }
 
-      if (is_slave)
+      if (is_source)
       {  // in case it is a slave node (in some dof): the dof is cancelled, replaced by the master
          // dof
         int numdf = num_dof_rownodes.get_local_values()[i];

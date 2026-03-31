@@ -281,7 +281,7 @@ Coupling::Adapter::MortarVolCoupl::apply_matrix_mapping21(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl::master_to_slave(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl::target_to_source(
     const Core::LinAlg::Vector<double>& mv) const
 {
   // safety check
@@ -292,14 +292,14 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl:
   std::shared_ptr<Core::LinAlg::Vector<double>> sv =
       std::make_shared<Core::LinAlg::Vector<double>>(p21_->row_map(), true);
   // project
-  master_to_slave(mv, *sv);
+  target_to_source(mv, *sv);
 
   return sv;
 }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::MortarVolCoupl::master_to_slave(
+void Coupling::Adapter::MortarVolCoupl::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv, Core::LinAlg::MultiVector<double>& sv) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -332,7 +332,7 @@ void Coupling::Adapter::MortarVolCoupl::master_to_slave(
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
-Coupling::Adapter::MortarVolCoupl::master_to_slave(
+Coupling::Adapter::MortarVolCoupl::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv) const
 {
   // safety check
@@ -343,14 +343,14 @@ Coupling::Adapter::MortarVolCoupl::master_to_slave(
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(p21_->row_map(), mv.num_vectors());
   // project
-  master_to_slave(mv, *sv);
+  target_to_source(mv, *sv);
 
   return sv;
 }
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl::slave_to_master(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl::source_to_target(
     const Core::LinAlg::Vector<double>& sv) const
 {
   // safety check
@@ -361,7 +361,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl:
   std::shared_ptr<Core::LinAlg::Vector<double>> mv =
       std::make_shared<Core::LinAlg::Vector<double>>(p12_->row_map(), true);
   // project
-  slave_to_master(sv, *mv);
+  source_to_target(sv, *mv);
 
   return mv;
 }
@@ -370,7 +370,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::MortarVolCoupl:
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
-Coupling::Adapter::MortarVolCoupl::slave_to_master(
+Coupling::Adapter::MortarVolCoupl::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv) const
 {
   // safety check
@@ -381,7 +381,7 @@ Coupling::Adapter::MortarVolCoupl::slave_to_master(
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(p12_->row_map(), sv.num_vectors());
   // project
-  slave_to_master(sv, *mv);
+  source_to_target(sv, *mv);
 
   return mv;
 }
@@ -389,7 +389,7 @@ Coupling::Adapter::MortarVolCoupl::slave_to_master(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::MortarVolCoupl::slave_to_master(
+void Coupling::Adapter::MortarVolCoupl::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv, Core::LinAlg::MultiVector<double>& mv) const
 {
   // #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -420,7 +420,7 @@ void Coupling::Adapter::MortarVolCoupl::slave_to_master(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<const Core::LinAlg::Map> Coupling::Adapter::MortarVolCoupl::master_dof_map() const
+std::shared_ptr<const Core::LinAlg::Map> Coupling::Adapter::MortarVolCoupl::target_dof_map() const
 {
   // safety check
   check_setup();
@@ -432,7 +432,7 @@ std::shared_ptr<const Core::LinAlg::Map> Coupling::Adapter::MortarVolCoupl::mast
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<const Core::LinAlg::Map> Coupling::Adapter::MortarVolCoupl::slave_dof_map() const
+std::shared_ptr<const Core::LinAlg::Map> Coupling::Adapter::MortarVolCoupl::source_dof_map() const
 {
   // safety check
   check_setup();

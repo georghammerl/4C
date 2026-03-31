@@ -355,11 +355,11 @@ namespace Mortar
     //! @name Enums and Friends
     enum VType  // vertex types recognized by Vertex
     {
-      slave,       // slave node
-      projmaster,  // projected master node
+      source,      // source node
+      projtarget,  // projected target node
       lineclip,    // clipping point of two lines
-      master,      // master node (LTS)
-      projslave    // projected slave node (LTS)
+      target,      // target node (LTS)
+      projsource   // projected source node (LTS)
     };
 
     //@}
@@ -413,11 +413,7 @@ namespace Mortar
     \brief Assign pointer to next vertex on polygon
 
     */
-    virtual void assign_next(Vertex* assign)
-    {
-      next_ = assign;
-      return;
-    }
+    virtual void assign_next(Vertex* assign) { next_ = assign; }
 
     /*!
     \brief Return pointer to previous vertex on polygon
@@ -429,11 +425,7 @@ namespace Mortar
     \brief Assign pointer to previous vertex on polygon
 
     */
-    virtual void assign_prev(Vertex* assign)
-    {
-      prev_ = assign;
-      return;
-    }
+    virtual void assign_prev(Vertex* assign) { prev_ = assign; }
 
     /*!
     \brief Return intersection status of this vertex
@@ -476,7 +468,6 @@ namespace Mortar
     {
       if (!intersect_) FOUR_C_THROW("Neighbor only for intersections");
       neighbor_ = assign;
-      return;
     }
 
     /*!

@@ -37,47 +37,43 @@ CONTACT::IntegratorNitschePoro::IntegratorNitschePoro(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorNitschePoro::integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorNitschePoro::integrate_gp_3d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
-  // TEUCHOS_FUNC_TIME_MONITOR("CONTACT::IntegratorNitsche::integrate_gp_3d");
-  // We use the consistent element normal for poro contact!
-  // if (nit_normal_==CONTACT::NitNor_ele)
-  {
-    double n[3];
-    sele.compute_unit_normal_at_xi(sxi, n);
-    std::vector<Core::Gen::Pairedvector<int, double>> dn(3, sele.num_node() * 3);
-    dynamic_cast<CONTACT::Element&>(sele).deriv_unit_normal_at_xi(sxi, dn);
+  double n[3];
+  source_elem.compute_unit_normal_at_xi(source_xi, n);
+  std::vector<Core::Gen::Pairedvector<int, double>> dn(3, source_elem.num_node() * 3);
+  dynamic_cast<CONTACT::Element&>(source_elem).deriv_unit_normal_at_xi(source_xi, dn);
 
-    gpts_forces<3>(sele, mele, sval, sderiv, derivsxi, mval, mderiv, derivmxi, jac, derivjac, wgt,
-        gap, deriv_gap, n, dn, sxi, mxi);
-  }
-  //  else if (nit_normal_==CONTACT::NitNor_sm)
-  //    FOUR_C_THROW("Want to use the element normal!");
+  gpts_forces<3>(source_elem, target_elem, source_val, source_deriv, source_derivs_xi, target_val,
+      target_deriv, target_derivs_xi, jac, derivjac, wgt, gap, deriv_gap, n, dn, source_xi,
+      target_xi);
 }
 
 
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorNitschePoro::integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorNitschePoro::integrate_gp_2d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
   FOUR_C_THROW("2D is not implemented!");
 }
@@ -86,53 +82,60 @@ void CONTACT::IntegratorNitschePoro::integrate_gp_2d(Mortar::Element& sele, Mort
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int dim>
-void CONTACT::IntegratorNitschePoro::gpts_forces(Mortar::Element& sele, Mortar::Element& mele,
-    const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& dsxi,
-    const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& mderiv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& dmxi, const double jac,
+void CONTACT::IntegratorNitschePoro::gpts_forces(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, const Core::LinAlg::SerialDenseVector& source_val,
+    const Core::LinAlg::SerialDenseMatrix& source_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi,
+    const Core::LinAlg::SerialDenseVector& target_val,
+    const Core::LinAlg::SerialDenseMatrix& target_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi, const double jac,
     const Core::Gen::Pairedvector<int, double>& jacintcellmap, const double wgt, const double gap,
     const Core::Gen::Pairedvector<int, double>& dgapgp, const double* gpn,
-    std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* sxi, double* mxi)
+    std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* source_xi,
+    double* target_xi)
 {
-  if (sele.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
+  if (source_elem.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
 
   static const bool do_fast_checks = true;
   // first rough check
   if (do_fast_checks)
-    if (abs(theta_) < 1.e-12 && gap > std::max(sele.max_edge_size(), mele.max_edge_size())) return;
+    if (abs(theta_) < 1.e-12 &&
+        gap > std::max(source_elem.max_edge_size(), target_elem.max_edge_size()))
+      return;
 
   const Core::LinAlg::Matrix<dim, 1> normal(gpn, true);
 
   if (dim != n_dim()) FOUR_C_THROW("dimension inconsistency");
 
-  Core::LinAlg::Matrix<dim, 1> slave_normal, master_normal;
-  std::vector<Core::Gen::Pairedvector<int, double>> deriv_slave_normal;
-  std::vector<Core::Gen::Pairedvector<int, double>> deriv_master_normal;
-  sele.compute_unit_normal_at_xi(sxi, slave_normal.data());
-  mele.compute_unit_normal_at_xi(mxi, master_normal.data());
-  sele.deriv_unit_normal_at_xi(sxi, deriv_slave_normal);
-  mele.deriv_unit_normal_at_xi(mxi, deriv_master_normal);
+  Core::LinAlg::Matrix<dim, 1> source_normal, target_normal;
+  std::vector<Core::Gen::Pairedvector<int, double>> deriv_source_normal;
+  std::vector<Core::Gen::Pairedvector<int, double>> deriv_target_normal;
+  source_elem.compute_unit_normal_at_xi(source_xi, source_normal.data());
+  target_elem.compute_unit_normal_at_xi(target_xi, target_normal.data());
+  source_elem.deriv_unit_normal_at_xi(source_xi, deriv_source_normal);
+  target_elem.deriv_unit_normal_at_xi(target_xi, deriv_target_normal);
 
   double pen = ppn_;
   double pet = ppt_;
 
-  double ws = 0.;
-  double wm = 0.;
-  CONTACT::Utils::nitsche_weights_and_scaling(sele, mele, nit_wgt_, dt_, ws, wm, pen, pet);
+  double w_source = 0.;
+  double w_target = 0.;
+  CONTACT::Utils::nitsche_weights_and_scaling(
+      source_elem, target_elem, nit_wgt_, dt_, w_source, w_target, pen, pet);
 
   double cauchy_nn_weighted_average = 0.;
   Core::Gen::Pairedvector<int, double> cauchy_nn_weighted_average_deriv_d(
-      sele.num_node() * 3 * 12 + sele.mo_data().parent_disp().size() +
-      mele.mo_data().parent_disp().size());
+      source_elem.num_node() * 3 * 12 + source_elem.mo_data().parent_disp().size() +
+      target_elem.mo_data().parent_disp().size());
   Core::Gen::Pairedvector<int, double> cauchy_nn_weighted_average_deriv_p(
-      sele.mo_data().parent_pf_pres().size() + mele.mo_data().parent_pf_pres().size());
+      source_elem.mo_data().parent_pf_pres().size() +
+      target_elem.mo_data().parent_pf_pres().size());
 
-  so_ele_cauchy<dim>(sele, sxi, dsxi, wgt, slave_normal, deriv_slave_normal, normal, dnmap_unit, ws,
-      cauchy_nn_weighted_average, cauchy_nn_weighted_average_deriv_d,
+  so_ele_cauchy<dim>(source_elem, source_xi, d_source_xi, wgt, source_normal, deriv_source_normal,
+      normal, dnmap_unit, w_source, cauchy_nn_weighted_average, cauchy_nn_weighted_average_deriv_d,
       cauchy_nn_weighted_average_deriv_p);
-  so_ele_cauchy<dim>(mele, mxi, dmxi, wgt, master_normal, deriv_master_normal, normal, dnmap_unit,
-      -wm, cauchy_nn_weighted_average, cauchy_nn_weighted_average_deriv_d,
+  so_ele_cauchy<dim>(target_elem, target_xi, d_target_xi, wgt, target_normal, deriv_target_normal,
+      normal, dnmap_unit, -w_target, cauchy_nn_weighted_average, cauchy_nn_weighted_average_deriv_d,
       cauchy_nn_weighted_average_deriv_p);
 
   const double snn_av_pen_gap = cauchy_nn_weighted_average + pen * gap;
@@ -144,15 +147,17 @@ void CONTACT::IntegratorNitschePoro::gpts_forces(Mortar::Element& sele, Mortar::
   if (snn_av_pen_gap < 0.)
   {
     // test in normal contact direction
-    integrate_test<dim>(-1., sele, sval, sderiv, dsxi, jac, jacintcellmap, wgt, snn_av_pen_gap,
-        d_snn_av_pen_gap, cauchy_nn_weighted_average_deriv_p, normal, dnmap_unit);
-    integrate_test<dim>(+1., mele, mval, mderiv, dmxi, jac, jacintcellmap, wgt, snn_av_pen_gap,
-        d_snn_av_pen_gap, cauchy_nn_weighted_average_deriv_p, normal, dnmap_unit);
+    integrate_test<dim>(-1., source_elem, source_val, source_deriv, d_source_xi, jac, jacintcellmap,
+        wgt, snn_av_pen_gap, d_snn_av_pen_gap, cauchy_nn_weighted_average_deriv_p, normal,
+        dnmap_unit);
+    integrate_test<dim>(+1., target_elem, target_val, target_deriv, d_target_xi, jac, jacintcellmap,
+        wgt, snn_av_pen_gap, d_snn_av_pen_gap, cauchy_nn_weighted_average_deriv_p, normal,
+        dnmap_unit);
 
-    integrate_poro_no_out_flow<dim>(
-        -1, sele, sxi, sval, sderiv, jac, jacintcellmap, wgt, normal, dnmap_unit, mele, mval);
-    integrate_poro_no_out_flow<dim>(
-        +1, mele, mxi, mval, mderiv, jac, jacintcellmap, wgt, normal, dnmap_unit, sele, sval);
+    integrate_poro_no_out_flow<dim>(-1, source_elem, source_xi, source_val, source_deriv, jac,
+        jacintcellmap, wgt, normal, dnmap_unit, target_elem, target_val);
+    integrate_poro_no_out_flow<dim>(+1, target_elem, target_xi, target_val, target_deriv, jac,
+        jacintcellmap, wgt, normal, dnmap_unit, source_elem, source_val);
   }
 }
 
@@ -168,8 +173,8 @@ void CONTACT::IntegratorNitschePoro::so_ele_cauchy(Mortar::Element& moEle, doubl
     Core::Gen::Pairedvector<int, double>& deriv_sigma_nt_p)
 {
   Core::LinAlg::Matrix<dim, 1> pxsi(Core::LinAlg::Initialization::zero);
-  Core::LinAlg::Matrix<dim, dim> derivtravo_slave;
-  CONTACT::Utils::map_gp_to_parent<dim>(moEle, boundary_gpcoord, gp_wgt, pxsi, derivtravo_slave);
+  Core::LinAlg::Matrix<dim, dim> derivtravo_source;
+  CONTACT::Utils::map_gp_to_parent<dim>(moEle, boundary_gpcoord, gp_wgt, pxsi, derivtravo_source);
 
   double sigma_nt;
   Core::LinAlg::SerialDenseMatrix dsntdd, dsntdp;

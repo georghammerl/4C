@@ -512,7 +512,7 @@ Discret::Elements::ScaTraHDGBoundary::ScaTraHDGBoundary(int id, int owner, int n
     const int lsurface)
     : Core::Elements::FaceElement(id, owner)
 {
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
   return;
@@ -548,7 +548,7 @@ Core::Elements::Element* Discret::Elements::ScaTraHDGBoundary::clone() const
  *----------------------------------------------------------------------*/
 Core::FE::CellType Discret::Elements::ScaTraHDGBoundary::shape() const
 {
-  return Core::FE::get_shape_of_boundary_element(num_node(), parent_master_element()->shape());
+  return Core::FE::get_shape_of_boundary_element(num_node(), parent_target_element()->shape());
 }
 
 
@@ -664,7 +664,7 @@ void Discret::Elements::ScaTraHDGBoundary::location_vector(const Core::FE::Discr
     Teuchos::ParameterList& params) const
 {
   // we have to do it this way
-  parent_master_element()->location_vector(dis, la);
+  parent_target_element()->location_vector(dis, la);
   return;
 }
 
@@ -676,7 +676,7 @@ void Discret::Elements::ScaTraHDGBoundary::location_vector(const Core::FE::Discr
     std::vector<int>& lm, std::vector<int>& lmowner, std::vector<int>& lmstride) const
 {
   // we have to do it this way
-  parent_master_element()->location_vector(dis, lm, lmowner, lmstride);
+  parent_target_element()->location_vector(dis, lm, lmowner, lmstride);
   return;
 }
 
@@ -707,7 +707,7 @@ Discret::Elements::ScaTraHDGIntFace::ScaTraHDGIntFace(int id,  ///< element id
     )
     : Core::Elements::FaceElement(id, owner), degree_(0), degree_old_(0)
 {
-  set_parent_master_element(parent_master, lsurface_master);
+  set_parent_target_element(parent_master, lsurface_master);
   set_parent_slave_element(parent_slave, lsurface_slave);
 
   if (parent_slave != nullptr)
@@ -755,7 +755,7 @@ Core::Elements::Element* Discret::Elements::ScaTraHDGIntFace::clone() const
 Core::FE::CellType Discret::Elements::ScaTraHDGIntFace::shape() const
 {
   // could be called for master parent or slave parent element, doesn't matter
-  return Core::FE::get_shape_of_boundary_element(num_node(), parent_master_element()->shape());
+  return Core::FE::get_shape_of_boundary_element(num_node(), parent_target_element()->shape());
 }
 
 /*----------------------------------------------------------------------*
@@ -802,8 +802,8 @@ void Discret::Elements::ScaTraHDGIntFace::patch_location_vector(
   // *this ScaTraHDGIntFace element only once (no duplicates)
 
   //-----------------------------------------------------------------------
-  const int m_numnode = parent_master_element()->num_node();
-  Core::Nodes::Node** m_nodes = parent_master_element()->nodes();
+  const int m_numnode = parent_target_element()->num_node();
+  Core::Nodes::Node** m_nodes = parent_target_element()->nodes();
 
   if (m_numnode != static_cast<int>(nds_master.size()))
   {
@@ -811,8 +811,8 @@ void Discret::Elements::ScaTraHDGIntFace::patch_location_vector(
   }
 
   //-----------------------------------------------------------------------
-  const int s_numnode = parent_slave_element()->num_node();
-  Core::Nodes::Node** s_nodes = parent_slave_element()->nodes();
+  const int s_numnode = parent_source_element()->num_node();
+  Core::Nodes::Node** s_nodes = parent_source_element()->nodes();
 
   if (s_numnode != static_cast<int>(nds_slave.size()))
   {

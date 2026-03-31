@@ -281,7 +281,7 @@ void PoroElast::Utils::set_slave_and_master(const Core::FE::Discretization& vold
 
   Core::Elements::Element* vele = voldiscret.g_element(volgid);
   if (!vele) FOUR_C_THROW("ERROR: Cannot find element with gid %", volgid);
-  faceele->set_parent_master_element(vele, faceele->face_parent_number());
+  faceele->set_parent_target_element(vele, faceele->face_parent_number());
 
   if (voldiscret2)
   {

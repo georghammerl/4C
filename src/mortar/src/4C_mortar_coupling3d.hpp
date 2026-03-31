@@ -94,13 +94,13 @@ namespace Mortar
      \brief Get coupling slave element
 
      */
-    virtual Mortar::Element& slave_element() const { return sele_; }
+    virtual Mortar::Element& source_element() const { return sele_; }
 
     /*!
      \brief Get coupling master element
 
      */
-    virtual Mortar::Element& master_element() const { return mele_; }
+    virtual Mortar::Element& target_element() const { return mele_; }
 
     /*!
      \brief Get coupling slave integration element
@@ -111,7 +111,7 @@ namespace Mortar
      method is overloaded by the derived class Mortar::Coupling3dQuad!
 
      */
-    virtual Mortar::Element& slave_int_element() const { return sele_; }
+    virtual Mortar::Element& source_int_element() const { return sele_; }
 
     /*!
      \brief Get coupling master integration element
@@ -122,7 +122,7 @@ namespace Mortar
      method is overloaded by the derived class Mortar::Coupling3dQuad!
 
      */
-    virtual Mortar::Element& master_int_element() const { return mele_; }
+    virtual Mortar::Element& target_int_element() const { return mele_; }
 
     /*!
      \brief Return center of auxiliary plane
@@ -148,15 +148,15 @@ namespace Mortar
      \brief Return vector of (projected) slave node vertex objects
 
      */
-    virtual std::vector<Vertex>& slave_vertices() { return svertices_; }
-    const std::vector<Vertex>& slave_vertices() const { return svertices_; }
+    virtual std::vector<Vertex>& source_vertices() { return svertices_; }
+    const std::vector<Vertex>& source_vertices() const { return svertices_; }
 
     /*!
      \brief Return vector of projected master node vertex objects
 
      */
-    virtual std::vector<Vertex>& master_vertices() { return mvertices_; }
-    const std::vector<Vertex>& master_vertices() const { return mvertices_; }
+    virtual std::vector<Vertex>& target_vertices() { return mvertices_; }
+    const std::vector<Vertex>& target_vertices() const { return mvertices_; }
 
     /*!
      \brief Return vector of clip polygon vertex objects
@@ -443,7 +443,7 @@ namespace Mortar
      in the auxiliary plane or in the slave parameter space.
 
      */
-    virtual double slave_element_area() const;
+    virtual double source_element_area() const;
 
     // don't want = operator and cctor
     Coupling3d operator=(const Coupling3d& old);
@@ -511,13 +511,13 @@ namespace Mortar
      \brief Get coupling slave integration element
 
      */
-    Mortar::IntElement& slave_int_element() const override { return sintele_; }
+    Mortar::IntElement& source_int_element() const override { return sintele_; }
 
     /*!
      \brief Get coupling master integration element
 
      */
-    Mortar::IntElement& master_int_element() const override { return mintele_; }
+    Mortar::IntElement& target_int_element() const override { return mintele_; }
 
    protected:
     // don't want = operator and cctor
@@ -559,19 +559,19 @@ namespace Mortar
      \brief Get coupling slave element
 
      */
-    virtual Mortar::Element& slave_element() const { return *sele_; }
+    virtual Mortar::Element& source_element() const { return *sele_; }
 
     /*!
      \brief Get one specific coupling master element
 
      */
-    virtual Mortar::Element& master_element(int k) const { return *(mele_[k]); }
+    virtual Mortar::Element& target_element(int k) const { return *(mele_[k]); }
 
     /*!
      \brief Get all coupling master elements
 
      */
-    virtual std::vector<Mortar::Element*> master_elements() const { return mele_; }
+    virtual std::vector<Mortar::Element*> target_elements() const { return mele_; }
 
     /*!
      \brief Get coupling pairs
@@ -680,19 +680,19 @@ namespace Mortar
      \brief Get coupling slave element
 
      */
-    Mortar::Element& slave_element() const override { return *sele_; }
+    Mortar::Element& source_element() const override { return *sele_; }
 
     /*!
      \brief Get one specific coupling master element
 
      */
-    Mortar::Element& master_element(int k) const override { return *(mele_[k]); }
+    Mortar::Element& target_element(int k) const override { return *(mele_[k]); }
 
     /*!
      \brief Get all coupling master elements
 
      */
-    std::vector<Mortar::Element*> master_elements() const override { return mele_; }
+    std::vector<Mortar::Element*> target_elements() const override { return mele_; }
 
     /*!
      \brief Get integration type

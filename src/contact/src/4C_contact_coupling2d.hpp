@@ -20,7 +20,7 @@ namespace CONTACT
 {
   /*!
   \brief A class representing the framework for mortar coupling of ONE
-         slave element and ONE master element of a contact interface in
+         source element and ONE target element of a contact interface in
          2D. This is a derived class from Mortar::Coupling2d which does
          the contact-specific stuff for 2d mortar coupling.
 
@@ -37,19 +37,19 @@ namespace CONTACT
 
     */
     Coupling2d(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element& sele, Mortar::Element& mele);
+        Teuchos::ParameterList& params, Mortar::Element& source_elem, Mortar::Element& target_elem);
 
     //! @name Evlauation methods
 
     /*!
-    \brief Integrate overlap of slave / master pair (2D)
+    \brief Integrate overlap of source / target pair (2D)
 
     Derived version! Most importantly, in this derived version
     a CONTACT::Integrator instance is created, which also
     does integration of the mortar quantity linearizations
 
     This method integrates the overlap of the current Mortar::Element
-    pair sele_ / mele_ based on the integration limits (xiproj). The
+    pair source_elem_ / target_elem_ based on the integration limits (xiproj). The
     integration includes the Mortar matrices D/M and the gap g.
 
     */
@@ -87,7 +87,7 @@ namespace CONTACT
 
   /*!
   \brief A class representing the framework for mortar coupling of ONE
-         slave element and SEVERAL master elements of a mortar interface in
+         source element and SEVERAL target elements of a mortar interface in
          2D. Concretely, this class simply stores several Coupling2d objects.
 
   */
@@ -103,7 +103,8 @@ namespace CONTACT
 
     */
     Coupling2dManager(Core::FE::Discretization& idiscret, int dim, bool quad,
-        Teuchos::ParameterList& params, Mortar::Element* sele, std::vector<Mortar::Element*> mele);
+        Teuchos::ParameterList& params, Mortar::Element* source_elem,
+        std::vector<Mortar::Element*> target_elem);
 
 
     /*!

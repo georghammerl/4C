@@ -56,13 +56,13 @@ SSI::ManifoldScaTraCoupling::ManifoldScaTraCoupling(
   coupling_adapter_.setup_coupling(scatra_discretization, manifold_discretization,
       inodegidvec_scatra, inodegidvec_manifold, ndof_per_node, true, 1.0e-8);
   master_converter_ =
-      std::make_shared<Coupling::Adapter::CouplingMasterConverter>(coupling_adapter_);
+      std::make_shared<Coupling::Adapter::CouplingTargetConverter>(coupling_adapter_);
 
   scatra_map_extractor_ = std::make_shared<Core::LinAlg::MapExtractor>(
-      *scatra_discretization.dof_row_map(), coupling_adapter_.master_dof_map(), true);
+      *scatra_discretization.dof_row_map(), coupling_adapter_.target_dof_map(), true);
 
   manifold_map_extractor_ = std::make_shared<Core::LinAlg::MapExtractor>(
-      *manifold_discretization.dof_row_map(), coupling_adapter_.slave_dof_map(), true);
+      *manifold_discretization.dof_row_map(), coupling_adapter_.source_dof_map(), true);
 
   // initially, the matrices are empty
   size_matrix_graph_.insert(std::make_pair(BlockMatrixType::ManifoldScaTra, 0));
@@ -452,7 +452,7 @@ void SSI::ScaTraManifoldScaTraFluxEvaluator::evaluate_bulk_side(
             Coupling::Adapter::CouplingSlaveConverter(*slave_slave_transformation);
 
         // old slave dofs from input
-        auto slave_map = slave_slave_transformation->slave_dof_map();
+        auto slave_map = slave_slave_transformation->source_dof_map();
 
         Coupling::Adapter::MatrixLogicalSplitAndTransform()(
             *matrix_scatra_structure_cond_slave_side_disp_evaluate, *full_map_scatra_, *slave_map,
@@ -469,7 +469,7 @@ void SSI::ScaTraManifoldScaTraFluxEvaluator::evaluate_bulk_side(
       // Add master side disp. contributions
       for (const auto& meshtying : ssi_structure_meshtying_->mesh_tying_handlers())
       {
-        auto cond_slave_dof_map = meshtying->slave_master_coupling()->slave_dof_map();
+        auto cond_slave_dof_map = meshtying->slave_master_coupling()->source_dof_map();
         auto converter = meshtying->slave_side_converter();
 
         // assemble derivatives of x w.r.t. structure slave dofs
@@ -494,7 +494,7 @@ void SSI::ScaTraManifoldScaTraFluxEvaluator::copy_scatra_scatra_manifold_side(
         scatra_manifold_coupling.scatra_map_extractor()->extract_cond_vector(*rhs_scatra_cond_);
 
     const auto rhs_manifold_cond_extract =
-        scatra_manifold_coupling.coupling_adapter().master_to_slave(*rhs_scatra_cond_extract);
+        scatra_manifold_coupling.coupling_adapter().target_to_source(*rhs_scatra_cond_extract);
 
     scatra_manifold_coupling.manifold_map_extractor()->add_cond_vector(
         *rhs_manifold_cond_extract, *rhs_manifold_cond_);
@@ -836,22 +836,22 @@ SSI::ManifoldMeshTyingStrategyBase::ManifoldMeshTyingStrategyBase(
     }
 
     // merge slave dof maps from all mesh tying conditions
-    std::shared_ptr<Core::LinAlg::Map> slave_dof_map = nullptr;
+    std::shared_ptr<Core::LinAlg::Map> source_dof_map = nullptr;
     for (const auto& meshtying : ssi_meshtying_->mesh_tying_handlers())
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
-      if (slave_dof_map == nullptr)
-        slave_dof_map = std::make_shared<Core::LinAlg::Map>(*coupling_adapter->slave_dof_map());
+      if (source_dof_map == nullptr)
+        source_dof_map = std::make_shared<Core::LinAlg::Map>(*coupling_adapter->source_dof_map());
       else
       {
-        auto slave_dof_map_old = std::make_shared<Core::LinAlg::Map>(*slave_dof_map);
-        slave_dof_map =
-            Core::LinAlg::merge_map(slave_dof_map_old, coupling_adapter->slave_dof_map());
+        auto slave_dof_map_old = std::make_shared<Core::LinAlg::Map>(*source_dof_map);
+        source_dof_map =
+            Core::LinAlg::merge_map(slave_dof_map_old, coupling_adapter->source_dof_map());
       }
     }
     // exclusive interior and master dofs across all slave conditions
     condensed_dof_map_ =
-        Core::LinAlg::split_map(*ssi_maps_->scatra_manifold_dof_row_map(), *slave_dof_map);
+        Core::LinAlg::split_map(*ssi_maps_->scatra_manifold_dof_row_map(), *source_dof_map);
   }
   else
   {
@@ -893,9 +893,9 @@ SSI::ManifoldMeshTyingStrategyBlock::ManifoldMeshTyingStrategyBlock(
     for (const auto& meshtying : ssi_mesh_tying()->mesh_tying_handlers())
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
-      auto slave_dof_map = coupling_adapter->slave_dof_map();
-      auto perm_slave_dof_map = coupling_adapter->perm_slave_dof_map();
-      auto master_dof_map = coupling_adapter->master_dof_map();
+      auto source_dof_map = coupling_adapter->source_dof_map();
+      auto perm_source_dof_map = coupling_adapter->perm_source_dof_map();
+      auto target_dof_map = coupling_adapter->target_dof_map();
       auto perm_master_dof_map = coupling_adapter->perm_master_dof_map();
 
       // split maps according to split of matrix blocks, i.e. block maps
@@ -905,11 +905,11 @@ SSI::ManifoldMeshTyingStrategyBlock::ManifoldMeshTyingStrategyBlock(
       {
         auto [slave_block_map, perm_master_block_map] =
             intersect_coupling_maps_block_map(*ssi_maps_->block_map_scatra_manifold()->map(i),
-                *slave_dof_map, *perm_master_dof_map, scatra_manifold_dis.get_comm());
+                *source_dof_map, *perm_master_dof_map, scatra_manifold_dis.get_comm());
 
         auto [master_block_map, perm_slave_block_map] =
             intersect_coupling_maps_block_map(*ssi_maps_->block_map_scatra_manifold()->map(i),
-                *master_dof_map, *perm_slave_dof_map, scatra_manifold_dis.get_comm());
+                *target_dof_map, *perm_source_dof_map, scatra_manifold_dis.get_comm());
 
         auto coupling_adapter_block = std::make_shared<Coupling::Adapter::Coupling>();
         coupling_adapter_block->setup_coupling(
@@ -966,7 +966,7 @@ void SSI::ManifoldMeshTyingStrategyBase::apply_mesh_tying_to_manifold_rhs(
       auto multimap = meshtying->slave_master_extractor();
 
       auto slave_dofs = multimap->extract_vector(rhs_manifold, 1);
-      auto slave_to_master_dofs = coupling_adapter->slave_to_master(*slave_dofs);
+      auto slave_to_master_dofs = coupling_adapter->source_to_target(*slave_dofs);
       multimap->add_vector(*slave_to_master_dofs, 2, rhs_manifold);
       multimap->put_scalar(rhs_manifold, 1, 0.0);
     }
@@ -994,7 +994,7 @@ void SSI::ManifoldMeshTyingStrategySparse::apply_meshtying_to_manifold_matrix(
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
 
-      auto cond_slave_dof_map = coupling_adapter->slave_dof_map();
+      auto cond_slave_dof_map = coupling_adapter->source_dof_map();
       auto converter = Coupling::Adapter::CouplingSlaveConverter(*coupling_adapter);
 
       // add derivs. of slave dofs. w.r.t. slave dofs
@@ -1014,11 +1014,11 @@ void SSI::ManifoldMeshTyingStrategySparse::apply_meshtying_to_manifold_matrix(
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
 
-      auto slave_dof_map = coupling_adapter->slave_dof_map();
-      for (int doflid_slave = 0; doflid_slave < slave_dof_map->num_my_elements(); ++doflid_slave)
+      auto source_dof_map = coupling_adapter->source_dof_map();
+      for (int doflid_slave = 0; doflid_slave < source_dof_map->num_my_elements(); ++doflid_slave)
       {
         // extract global ID of current slave-side row
-        const int dofgid_slave = slave_dof_map->gid(doflid_slave);
+        const int dofgid_slave = source_dof_map->gid(doflid_slave);
         if (dofgid_slave < 0) FOUR_C_THROW("Local ID not found!");
 
         // apply pseudo Dirichlet conditions to filled matrix, i.e., to local row and column indices
@@ -1090,12 +1090,12 @@ void SSI::ManifoldMeshTyingStrategyBlock::apply_meshtying_to_manifold_matrix(
           for (const auto& block_meshtying : mesh_tying_block_handler())
           {
             const auto coupling_adapter = block_meshtying.first[row];
-            const auto slave_dof_map = coupling_adapter->slave_dof_map();
-            for (int doflid_slave = 0; doflid_slave < slave_dof_map->num_my_elements();
+            const auto source_dof_map = coupling_adapter->source_dof_map();
+            for (int doflid_slave = 0; doflid_slave < source_dof_map->num_my_elements();
                 ++doflid_slave)
             {
               // extract global ID of current slave-side row
-              const int dofgid_slave = slave_dof_map->gid(doflid_slave);
+              const int dofgid_slave = source_dof_map->gid(doflid_slave);
               if (dofgid_slave < 0) FOUR_C_THROW("Local ID not found!");
 
               // apply pseudo Dirichlet conditions to filled matrix, i.e., to local row and column
@@ -1146,7 +1146,7 @@ void SSI::ManifoldMeshTyingStrategySparse::apply_meshtying_to_manifold_scatra_ma
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
 
-      auto cond_slave_dof_map = coupling_adapter->slave_dof_map();
+      auto cond_slave_dof_map = coupling_adapter->source_dof_map();
       auto converter = Coupling::Adapter::CouplingSlaveConverter(*coupling_adapter);
 
       // add derivs. of slave dofs w.r.t. scatra dofs
@@ -1226,7 +1226,7 @@ void SSI::ManifoldMeshTyingStrategySparse::apply_meshtying_to_manifold_structure
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
 
-      auto cond_slave_dof_map = coupling_adapter->slave_dof_map();
+      auto cond_slave_dof_map = coupling_adapter->source_dof_map();
       auto converter = Coupling::Adapter::CouplingSlaveConverter(*coupling_adapter);
 
       // add derivs. of slave dofs w.r.t. structure dofs
@@ -1327,7 +1327,7 @@ void SSI::ManifoldMeshTyingStrategySparse::apply_meshtying_to_scatra_manifold_ma
     {
       auto coupling_adapter = meshtying->slave_master_coupling();
 
-      auto cond_slave_dof_map = coupling_adapter->slave_dof_map();
+      auto cond_slave_dof_map = coupling_adapter->source_dof_map();
       auto converter = Coupling::Adapter::CouplingSlaveConverter(*coupling_adapter);
 
       // add derivs. of scatra w.r.t. slave dofs

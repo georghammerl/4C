@@ -438,7 +438,7 @@ void XFEM::MeshVolCoupling::redistribute_embedded_discretization()
       Core::Elements::Element* ele = cond_dis_->g_element(fele->parent_element_id());
       if (!ele) FOUR_C_THROW("Couldn't get Parent Element!");
 
-      fele->set_parent_master_element(ele, fele->face_parent_number());
+      fele->set_parent_target_element(ele, fele->face_parent_number());
     }
   }
 }
@@ -2421,7 +2421,7 @@ void XFEM::MeshCouplingFSI::estimate_nitsche_trace_max_eigenvalue(Core::Elements
   auto* solidfaceele = dynamic_cast<Discret::Elements::SolidSurface*>(ele);
   FOUR_C_ASSERT(solidfaceele != nullptr, "Cast to SolidSurface failed!");
 
-  solidfaceele->set_parent_master_element(
+  solidfaceele->set_parent_target_element(
       coupl_dis_->g_element(solidfaceele->parent_element_id()), solidfaceele->face_parent_number());
 
   Core::Elements::LocationArray la(1);

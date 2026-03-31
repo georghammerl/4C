@@ -353,9 +353,9 @@ std::shared_ptr<Core::LinAlg::Vector<double>> PoroElast::PoroBase::structure_to_
   if (matchinggrid_)
   {
     if (submeshes_)
-      return coupling_fluid_structure_->master_to_slave(*psi_extractor_->extract_cond_vector(iv));
+      return coupling_fluid_structure_->target_to_source(*psi_extractor_->extract_cond_vector(iv));
     else
-      return coupling_fluid_structure_->master_to_slave(iv);
+      return coupling_fluid_structure_->target_to_source(iv);
   }
   else
   {
@@ -490,11 +490,11 @@ void PoroElast::PoroBase::setup_coupling()
           *structdis, *fluiddis, *structnoderowmap, *fluidnoderowmap, *fluidnoderowmap, ndof);
     }
 
-    fluid_field()->set_mesh_map(coupling_fluid_structure_->slave_dof_map());
+    fluid_field()->set_mesh_map(coupling_fluid_structure_->source_dof_map());
 
     if (submeshes_)
       psi_extractor_ = std::make_shared<Core::LinAlg::MapExtractor>(
-          *structure_field()->dof_row_map(), coupling_fluid_structure_->master_dof_map());
+          *structure_field()->dof_row_map(), coupling_fluid_structure_->target_dof_map());
   }
   else
   {

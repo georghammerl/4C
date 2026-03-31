@@ -26,7 +26,7 @@ namespace Inpar::S2I
   enum InterfaceSides
   {
     side_undefined,
-    side_slave,
+    side_source,
     side_master
   };
 

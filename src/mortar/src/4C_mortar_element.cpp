@@ -1599,7 +1599,7 @@ void Mortar::Element::reset_data_container()
 bool Mortar::Element::add_search_elements(const int& gid)
 {
   // check calling element type
-  if (!is_slave()) FOUR_C_THROW("AddSearchElements called for infeasible Mortar::Element!");
+  if (!is_source()) FOUR_C_THROW("AddSearchElements called for infeasible Mortar::Element!");
 
   // add new gid to vector of search candidates
   mo_data().search_elements().push_back(gid);
@@ -1613,7 +1613,7 @@ bool Mortar::Element::add_search_elements(const int& gid)
 void Mortar::Element::delete_search_elements()
 {
   // check calling element type
-  if (!is_slave()) FOUR_C_THROW("delete_search_elements called for infeasible Mortar::Element!");
+  if (!is_source()) FOUR_C_THROW("delete_search_elements called for infeasible Mortar::Element!");
 
   // add new gid to vector of search candidates
   mo_data().search_elements().clear();

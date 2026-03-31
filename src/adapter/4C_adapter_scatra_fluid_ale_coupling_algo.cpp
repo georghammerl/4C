@@ -67,7 +67,7 @@ void Adapter::ScaTraFluidAleCouplingAlgorithm::setup()
   coupfa_->setup_coupling(*fluid_field()->discretization(), *ale_field()->discretization(),
       *fluidnodemap, *alenodemap, ndim);
 
-  fluid_field()->set_mesh_map(coupfa_->master_dof_map());
+  fluid_field()->set_mesh_map(coupfa_->target_dof_map());
 
   // the ale matrix might be build just once!
   ale_field()->create_system_matrix(ale_field()->interface());
@@ -119,7 +119,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 Adapter::ScaTraFluidAleCouplingAlgorithm::ale_to_fluid_field(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 
@@ -129,7 +129,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 Adapter::ScaTraFluidAleCouplingAlgorithm::ale_to_fluid_field(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 
@@ -139,7 +139,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 Adapter::ScaTraFluidAleCouplingAlgorithm::fluid_to_ale(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 
@@ -149,7 +149,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 Adapter::ScaTraFluidAleCouplingAlgorithm::fluid_to_ale(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 FOUR_C_NAMESPACE_CLOSE

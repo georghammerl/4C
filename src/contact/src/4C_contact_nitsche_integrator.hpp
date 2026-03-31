@@ -40,7 +40,7 @@ namespace CONTACT
      * Core::FE::IntegrationPoints structs to get Gauss points and corresponding weights.
      *
      * @param [in] params  interface contact parameter list
-     * @param [in] eletype shape of integration cell for segment based integration or slave side
+     * @param [in] eletype shape of integration cell for segment based integration or source side
      *                     mortar contact element for element based integration
      * @param [in] comm    contact interface communicator
      */
@@ -61,27 +61,27 @@ namespace CONTACT
     }
 
    protected:
-    void integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_2d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
-    void integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_3d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
      * @brief Evaluate cauchy stress component and its derivatives
@@ -125,14 +125,14 @@ namespace CONTACT
      * @brief evaluate GPTS forces and linearization at this gp
      *
      * @tparam dim  dimension of the problem
-     * @param[in] sele  slave side mortar element
-     * @param[in] mele  master side mortar element
-     * @param[in] sval  slave side shape function evaluated at current Gauss point
-     * @param[in] sderiv  slave side shape function derivative at current Gauss point
-     * @param[in] dsxi    directional derivative of slave side Gauss point coordinates
-     * @param[in] mval    master side shape function evaluated at current Gauss point
-     * @param[in] mderiv  master side shape function derivative at current Gauss point
-     * @param[in] dmxi    directional derivative of master side Gauss point coordinates
+     * @param[in] source_elem  source side mortar element
+     * @param[in] target_elem  target side mortar element
+     * @param[in] source_val  source side shape function evaluated at current Gauss point
+     * @param[in] source_deriv  source side shape function derivative at current Gauss point
+     * @param[in] d_source_xi    directional derivative of source side Gauss point coordinates
+     * @param[in] target_val    target side shape function evaluated at current Gauss point
+     * @param[in] target_deriv  target side shape function derivative at current Gauss point
+     * @param[in] d_target_xi    directional derivative of target side Gauss point coordinates
      * @param[in] jac            Jacobian determinant of integration cell
      * @param[in] jacintcellmap  directional derivative of cell Jacobian
      * @param[in] wgt     Gauss point weight
@@ -140,19 +140,21 @@ namespace CONTACT
      * @param[in] dgapgp  directional derivative of gap
      * @param[in] gpn         Gauss point normal
      * @param[in] dnmap_unit  directional derivative of Gauss point normal
-     * @param[in] sxi         slave side Gauss point coordinates
-     * @param[in] mxi         master side Gauss point coordinates
+     * @param[in] source_xi         source side Gauss point coordinates
+     * @param[in] target_xi         target side Gauss point coordinates
      */
     template <int dim>
-    void gpts_forces(Mortar::Element& sele, Mortar::Element& mele,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dsxi,
-        const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& mderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dmxi, double jac,
+    void gpts_forces(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi,
+        const Core::LinAlg::SerialDenseVector& target_val,
+        const Core::LinAlg::SerialDenseMatrix& target_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi, double jac,
         const Core::Gen::Pairedvector<int, double>& jacintcellmap, double wgt, double gap,
         const Core::Gen::Pairedvector<int, double>& dgapgp, const double* gpn,
-        std::vector<Core::Gen::Pairedvector<int, double>>& deriv_contact_normal, double* sxi,
-        double* mxi);
+        std::vector<Core::Gen::Pairedvector<int, double>>& deriv_contact_normal, double* source_xi,
+        double* target_xi);
 
    protected:
     template <int dim>
@@ -163,7 +165,7 @@ namespace CONTACT
         const Core::LinAlg::SerialDenseMatrix& d2sntDdDt,
         const Core::LinAlg::SerialDenseMatrix& d2sntDdDpxi,
         const std::vector<Core::Gen::Pairedvector<int, double>>& boundary_gpcoord_lin,
-        Core::LinAlg::Matrix<dim, dim> derivtravo_slave,
+        Core::LinAlg::Matrix<dim, dim> derivtravo_source,
         const std::vector<Core::Gen::Pairedvector<int, double>>& normal_deriv,
         const std::vector<Core::Gen::Pairedvector<int, double>>& direction_deriv,
         Core::LinAlg::SerialDenseVector& adjoint_test,
@@ -212,23 +214,24 @@ namespace CONTACT
     //! map local surface coordinate to local parent coordinate
     template <int dim>
     void map_gp_to_parent(Mortar::Element& moEle, double* boundary_gpcoord, double wgt,
-        Core::LinAlg::Matrix<dim, 1>& pxsi, Core::LinAlg::Matrix<dim, dim>& derivtravo_slave);
+        Core::LinAlg::Matrix<dim, 1>& pxsi, Core::LinAlg::Matrix<dim, dim>& derivtravo_source);
 
     //! templated version of MapGPtoParent
     template <Core::FE::CellType parentdistype, int dim>
-    void inline so_ele_gp(Mortar::Element& sele, double wgt, const double* gpcoord,
+    void inline so_ele_gp(Mortar::Element& source_elem, double wgt, const double* gpcoord,
         Core::LinAlg::Matrix<dim, 1>& pxsi, Core::LinAlg::Matrix<dim, dim>& derivtrafo);
 
     //! actually not the velocity but the displacement increment
     template <int dim>
-    void rel_vel_invariant(Mortar::Element& sele, const double* sxi,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-        Mortar::Element& mele, const double* mxi,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi,
-        const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& mderiv,
-        const double& gap, const Core::Gen::Pairedvector<int, double>& deriv_gap,
-        Core::LinAlg::Matrix<dim, 1>& relVel,
+    void rel_vel_invariant(Mortar::Element& source_elem, const double* source_xi,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv, Mortar::Element& target_elem,
+        const double* target_xi,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi,
+        const Core::LinAlg::SerialDenseVector& target_val,
+        const Core::LinAlg::SerialDenseMatrix& target_deriv, const double& gap,
+        const Core::Gen::Pairedvector<int, double>& deriv_gap, Core::LinAlg::Matrix<dim, 1>& relVel,
         std::vector<Core::Gen::Pairedvector<int, double>>& relVel_deriv, double fac = 1.0);
 
     template <int dim>
@@ -257,26 +260,26 @@ namespace CONTACT
         std::vector<Core::Gen::Pairedvector<int, double>>& dt2);
 
     /*!
-     * @brief determine weights (harmonic/slave/master) and scale penalty
+     * @brief determine weights (harmonic/source/target) and scale penalty
      *
-     * @param[in] sele     slave-side nitsche weight
-     * @param[in] mele     master-side nitsche weight
+     * @param[in] source_elem     source-side nitsche weight
+     * @param[in] target_elem     target-side nitsche weight
      * @param[in] nit_wgt  weighting methood for nitsche contact
      * @param[in] dt       time step size
-     * @param[out] ws      slave-side nitsche weight
-     * @param[out] wm      master-side nitsche weight
+     * @param[out] w_source      source-side nitsche weight
+     * @param[out] w_target      target-side nitsche weight
      * @param[out] pen     scaled nitsche penalty parameter in normal direction
      * @param[out] pet     scaled nitsche penalty parameter in tangential direction
      */
-    void nitsche_weights_and_scaling(Mortar::Element& sele, Mortar::Element& mele,
-        CONTACT::NitscheWeighting nit_wgt, double dt, double& ws, double& wm, double& pen,
-        double& pet);
+    void nitsche_weights_and_scaling(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        CONTACT::NitscheWeighting nit_wgt, double dt, double& w_source, double& w_target,
+        double& pen, double& pet);
 
 
     // --- template and inline functions --- //
 
     template <Core::FE::CellType parentdistype, int dim>
-    void inline so_ele_gp(Mortar::Element& sele, const double wgt, const double* gpcoord,
+    void inline so_ele_gp(Mortar::Element& source_elem, const double wgt, const double* gpcoord,
         Core::LinAlg::Matrix<dim, 1>& pxsi, Core::LinAlg::Matrix<dim, dim>& derivtrafo)
     {
       Core::FE::CollectedGaussPoints intpoints =
@@ -288,7 +291,8 @@ namespace CONTACT
       derivtrafo.clear();
 
       Core::FE::boundary_gp_to_parent_gp<dim>(pqxg, derivtrafo, intpoints,
-          sele.parent_element()->shape(), sele.shape(), sele.face_parent_number());
+          source_elem.parent_element()->shape(), source_elem.shape(),
+          source_elem.face_parent_number());
 
       // coordinates of the current integration point in parent coordinate system
       for (int idim = 0; idim < dim; idim++) pxsi(idim) = pqxg(0, idim);

@@ -510,11 +510,11 @@ void Solid::ModelEvaluator::Contact::runtime_output_step_state() const
 
   if (strategy().wear_both_discrete())
   {
-    Core::LinAlg::Vector<double> mactiveset(*strategy().master_active_nodes(), true);
+    Core::LinAlg::Vector<double> mactiveset(*strategy().target_active_nodes(), true);
     mactiveset.put_scalar(1.0);
-    Core::LinAlg::Vector<double> slipset(*strategy().master_slip_nodes(), true);
+    Core::LinAlg::Vector<double> slipset(*strategy().target_slip_nodes(), true);
     slipset.put_scalar(1.0);
-    Core::LinAlg::Vector<double> slipsetexp(*strategy().master_active_nodes(), true);
+    Core::LinAlg::Vector<double> slipsetexp(*strategy().target_active_nodes(), true);
     Core::LinAlg::export_to(slipset, slipsetexp);
     mactiveset.update(1.0, slipsetexp, 1.0);
 

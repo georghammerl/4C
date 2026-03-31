@@ -396,7 +396,7 @@ void TSI::Algorithm::apply_thermo_coupling_state(
   {
     if (contact_strategy_lagrange_ != nullptr)
       contact_strategy_lagrange_->set_state(
-          Mortar::state_temperature, *coupST_->slave_to_master(*thermo_field()->tempnp()));
+          Mortar::state_temperature, *coupST_->source_to_target(*thermo_field()->tempnp()));
   }
 }  // apply_thermo_coupling_state()
 

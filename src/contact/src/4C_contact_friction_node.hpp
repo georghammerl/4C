@@ -81,12 +81,12 @@ namespace CONTACT
     //! @name Access methods
 
     /*!
-     \brief Return jump per time step (only for slave side!) (length 3)
+     \brief Return jump per time step (only for source side!) (length 3)
      */
     virtual inline double* jump() { return jump_; }
 
     /*!
-     \brief Return jump per time step (only for slave side!) (max length 2)
+     \brief Return jump per time step (only for source side!) (max length 2)
      */
     virtual inline double* jump_var() { return jumpvar_; }
 
@@ -116,19 +116,19 @@ namespace CONTACT
     virtual inline std::map<int, double>& get_m_old_ltl() { return mrowsoldLTL_; }
 
     /*!
-     \brief Return the map with according slave nodes
+     \brief Return the map with according source nodes
      */
-    virtual inline std::set<int>& get_s_nodes() { return snodes_; }
+    virtual inline std::set<int>& get_source_nodes() { return source_nodes_; }
 
     /*!
-     \brief Return the map with according master nodes
+     \brief Return the map with according target nodes
      */
-    virtual inline std::set<int>& get_m_nodes() { return mnodes_; }
+    virtual inline std::set<int>& get_target_nodes() { return target_nodes_; }
 
     /*!
-     \brief Return the old map with according master nodes
+     \brief Return the old map with according target nodes
      */
-    virtual inline std::set<int>& get_m_nodes_old() { return mnodesold_; }
+    virtual inline std::set<int>& get_target_nodes_old() { return target_nodes_old_; }
 
     /*!
      \brief Return the 'DerivJump' map (vector) of this node
@@ -214,14 +214,14 @@ namespace CONTACT
     //! Nodal rows of old M matrix for line-to-line contact
     std::map<int, double> mrowsoldLTL_;
 
-    //! Nodal set of according slave nodes
-    std::set<int> snodes_;
+    //! Nodal set of according source nodes
+    std::set<int> source_nodes_;
 
-    //! Nodal set of according master nodes
-    std::set<int> mnodes_;
+    //! Nodal set of according target nodes
+    std::set<int> target_nodes_;
 
-    //! nodal set of old according master nodes
-    std::set<int> mnodesold_;
+    //! nodal set of old according target nodes
+    std::set<int> target_nodes_old_;
 
     //! Directional derivative of nodal weighted jump vector
     std::vector<std::map<int, double>> derivjump_;
@@ -313,17 +313,17 @@ namespace CONTACT
     virtual std::vector<std::map<int, double>>& get_d2() { return d2rows_; }
 
     /*!
-     \brief Return current discrete wear in step n+1 (only for slave side!) (length 1)
+     \brief Return current discrete wear in step n+1 (only for source side!) (length 1)
      */
     virtual double* wcurr() { return wcurr_; }
 
     /*!
-     \brief Return accumulated wear for different time scales (only for slave side!) (length 1)
+     \brief Return accumulated wear for different time scales (only for source side!) (length 1)
      */
     virtual double* waccu() { return waccu_; }
 
     /*!
-     \brief Return old discrete wear in time step i (only for slave side!) (length 1)
+     \brief Return old discrete wear in time step i (only for source side!) (length 1)
      */
     virtual double* wold() { return wold_; }
     //@}
@@ -359,7 +359,7 @@ namespace CONTACT
     //! Nodal rows of E matrix
     std::vector<std::map<int, double>> erows_;
 
-    //! Nodal rows of master sided D matrix
+    //! Nodal rows of target sided D matrix
     std::vector<std::map<int, double>> d2rows_;
 
     //! Directional derivative of nodal Tw-matrix values
@@ -397,13 +397,13 @@ namespace CONTACT
      \param coords (in): span of nodal coordinates, length 3
      \param owner  (in): Owner of this node.
      \param dofs   (in): list of global degrees of freedom
-     \param isslave(in): flag indicating whether node is slave or master
+     \param issource(in): flag indicating whether node is source or target
      \param initactive (in): flag indicating whether initially set to active
      \param friplus (in): ?? (looks like its related to wear)
 
      */
     FriNode(int id, std::span<const double> coords, const int owner, const std::vector<int>& dofs,
-        const bool isslave, const bool initactive, const bool friplus);
+        const bool issource, const bool initactive, const bool friplus);
 
     /*!
      \brief Copy Constructor
@@ -478,8 +478,8 @@ namespace CONTACT
     /*!
      \brief calculate the apparent coefficient of friction
 
-     in a TSI problem, this is dependent on the slave and master
-     temperatures. Since the master temperature is displacement
+     in a TSI problem, this is dependent on the source and target
+     temperatures. Since the target temperature is displacement
      dependent (due to the involved projections), it requires
      a consistent linearization (see function below).
      */
@@ -488,8 +488,8 @@ namespace CONTACT
     /*!
      \brief calculate the derivative of apparent coefficient of friction
 
-     in a TSI problem, this is dependent on the slave and master
-     temperatures. Since the master temperature is displacement
+     in a TSI problem, this is dependent on the source and target
+     temperatures. Since the target temperature is displacement
      dependent (due to the involved projections), it requires
      a consistent linearization (see function below).
      */
@@ -504,7 +504,7 @@ namespace CONTACT
      \brief Add a value to the SNode set of this node
 
      */
-    void add_s_node(int node) override;
+    void add_source_node(int node) override;
 
     /*!
      \brief Add a value to the 'T' map of this node
@@ -548,7 +548,7 @@ namespace CONTACT
      \brief Add a value to the MNode set of this node
 
      */
-    void add_m_node(int node) override;
+    void add_target_node(int node) override;
 
     /*!
      \brief Add a value to the map of Jump derivatives of this node

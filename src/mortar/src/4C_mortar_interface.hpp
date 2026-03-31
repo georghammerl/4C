@@ -193,9 +193,9 @@ namespace Mortar
 
     inline Mortar::ShapeFcn shape_fcn() const { return shapefcn_; }
 
-    inline bool& is_quad_slave() { return quadslave_; }
+    inline bool& is_quad_slave() { return quadsource_; }
 
-    inline bool is_quad_slave() const { return quadslave_; }
+    inline bool is_quad_slave() const { return quadsource_; }
 
     inline const Mortar::ExtendGhosting& get_extend_ghosting() const { return extendghosting_; }
 
@@ -505,7 +505,7 @@ namespace Mortar
     Mortar::ShapeFcn shapefcn_;
 
     //! flag indicating quadratic 2d/3d slave elements
-    bool quadslave_;
+    bool quadsource_;
 
     //! employed type of redundancy in storage of interface
     Mortar::ExtendGhosting extendghosting_;
@@ -750,7 +750,7 @@ namespace Mortar
 
     Returns TRUE if at least one higher-order 2d/3d slave element in interface.
     */
-    bool quadslave() const { return quadslave_; };
+    bool quadsource() const { return quadsource_; };
 
     /*!
     \brief Get flag indicating nurbs shape functions
@@ -797,7 +797,7 @@ namespace Mortar
     /*!
     \brief Get row map of slave nodes (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_row_nodes() const
+    std::shared_ptr<const Core::LinAlg::Map> source_row_nodes() const
     {
       if (filled())
         return snoderowmap_;
@@ -820,7 +820,7 @@ namespace Mortar
     /*!
     \brief Get row map of master nodes (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_row_nodes() const
+    std::shared_ptr<const Core::LinAlg::Map> target_row_nodes() const
     {
       if (filled())
         return mnoderowmap_;
@@ -843,7 +843,7 @@ namespace Mortar
     /*!
     \brief Get column map of slave nodes (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_col_nodes() const
+    std::shared_ptr<const Core::LinAlg::Map> source_col_nodes() const
     {
       if (filled())
         return snodecolmap_;
@@ -854,7 +854,7 @@ namespace Mortar
     /*!
     \brief Get column map of master nodes (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_col_nodes() const
+    std::shared_ptr<const Core::LinAlg::Map> target_col_nodes() const
     {
       if (filled())
         return mnodecolmap_;
@@ -876,7 +876,7 @@ namespace Mortar
     /*!
     \brief Get column map of slave nodes + boundary nodes (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_col_nodes_bound() const
+    std::shared_ptr<const Core::LinAlg::Map> source_col_nodes_bound() const
     {
       if (filled())
         return snodecolmapbound_;
@@ -909,7 +909,7 @@ namespace Mortar
     /*!
     \brief Get row map of slave elements (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_row_elements() const
+    std::shared_ptr<const Core::LinAlg::Map> source_row_elements() const
     {
       if (filled())
         return selerowmap_;
@@ -920,7 +920,7 @@ namespace Mortar
     /*!
     \brief Get row map of master elements (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_row_elements() const
+    std::shared_ptr<const Core::LinAlg::Map> target_row_elements() const
     {
       if (filled())
         return melerowmap_;
@@ -931,7 +931,7 @@ namespace Mortar
     /*!
     \brief Get column map of slave elements (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_col_elements() const
+    std::shared_ptr<const Core::LinAlg::Map> source_col_elements() const
     {
       if (filled())
         return selecolmap_;
@@ -942,7 +942,7 @@ namespace Mortar
     /*!
     \brief Get column map of master elements (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_col_elements() const
+    std::shared_ptr<const Core::LinAlg::Map> target_col_elements() const
     {
       if (filled())
         return melecolmap_;
@@ -953,7 +953,7 @@ namespace Mortar
     /*!
     \brief Get row map of slave dofs (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_row_dofs() const
+    std::shared_ptr<const Core::LinAlg::Map> source_row_dofs() const
     {
       if (filled())
         return sdofrowmap_;
@@ -964,7 +964,7 @@ namespace Mortar
     /*!
     \brief Get column map of slave dofs (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> slave_col_dofs() const
+    std::shared_ptr<const Core::LinAlg::Map> source_col_dofs() const
     {
       if (filled())
         return sdofcolmap_;
@@ -977,7 +977,7 @@ namespace Mortar
 
     \note This is the slave dof map before any parallel redistribution took place.
     */
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_slave_row_dofs() const
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_source_row_dofs() const
     {
       if (not filled()) FOUR_C_THROW("Mortar::Interface::fill_complete was not called");
 
@@ -987,7 +987,7 @@ namespace Mortar
     /*!
     \brief Get row map of master dofs (Filled()==true is prerequisite)
     */
-    std::shared_ptr<const Core::LinAlg::Map> master_row_dofs() const
+    std::shared_ptr<const Core::LinAlg::Map> target_row_dofs() const
     {
       if (filled())
         return mdofrowmap_;
@@ -1011,7 +1011,7 @@ namespace Mortar
 
     \note This is the master dof map before any parallel redistribution took place.
     */
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_master_row_dofs() const
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_target_row_dofs() const
     {
       if (not filled()) FOUR_C_THROW("Mortar::Interface::fill_complete was not called");
 
@@ -1158,7 +1158,7 @@ namespace Mortar
       to the actual meshtying zone for the whole simulation.
 
       */
-    void restrict_slave_sets();
+    void restrict_source_sets();
 
     /*!
     \brief Update interface Lagrange multiplier sets
@@ -1346,7 +1346,7 @@ namespace Mortar
     /*!
     \brief Detect actual meshtying zone (node by node)
     */
-    void detect_tied_slave_nodes(int& founduntied);
+    void detect_tied_source_nodes(int& founduntied);
 
     /*!
     \brief Ghost underlying volume elements
@@ -1369,7 +1369,7 @@ namespace Mortar
     /*!
     \brief find meles for one snode
     */
-    void find_master_elements(const Node& mrtrnode, std::vector<Mortar::Element*>& meles) const;
+    void find_target_elements(const Node& mrtrnode, std::vector<Mortar::Element*>& meles) const;
 
     /*!
     \brief return integration time for current interface
@@ -1457,7 +1457,7 @@ namespace Mortar
     \param[in] parts Number of desired subdomains after redistribution
     \param[in] imbalance Max. relative imbalance of subdomain size
     */
-    void redistribute_master_side(std::shared_ptr<Core::LinAlg::Map>& rownodes,
+    void redistribute_target_side(std::shared_ptr<Core::LinAlg::Map>& rownodes,
         std::shared_ptr<Core::LinAlg::Map>& colnodes, Core::LinAlg::Map& roweles, MPI_Comm comm,
         const int parts, const double imbalance) const;
 
@@ -1613,7 +1613,7 @@ namespace Mortar
     slave/master status is assigned dynamically.
 
     */
-    virtual void update_master_slave_sets();
+    virtual void update_target_source_sets();
 
    private:
     //! @name Parallel distribution and ghosting
@@ -1788,10 +1788,10 @@ namespace Mortar
     void initialize_lag_mult_const();
 
     /*!
-    \brief Communicate the quadslave status among all processes
+    \brief Communicate the quadsource status among all processes
 
     */
-    void communicate_quad_slave_status_among_all_procs();
+    void communicate_quad_source_status_among_all_procs();
 
    public:
     /*!
@@ -1838,7 +1838,7 @@ namespace Mortar
     int& dim_;                         ///< ref. to dimension of problem (2D or 3D)
     Teuchos::ParameterList& imortar_;  ///< ref. to containing contact input parameters of interface
     Mortar::ShapeFcn& shapefcn_;       ///< ref. to employed type of shape function set
-    bool& quadslave_;                  ///< ref. to flag indicating quadratic 2d/3d slave elements
+    bool& quadsource_;                 ///< ref. to flag indicating quadratic 2d/3d slave elements
 
     std::shared_ptr<Core::LinAlg::Map>&
         oldnodecolmap_;  ///< ref. to column map of all interface nodes (overlap=1)

@@ -27,8 +27,8 @@ FOUR_C_NAMESPACE_OPEN
  |  ctor (public)                                             popp 06/09|
  *----------------------------------------------------------------------*/
 CONTACT::Coupling2d::Coupling2d(Core::FE::Discretization& idiscret, int dim, bool quad,
-    Teuchos::ParameterList& params, Mortar::Element& sele, Mortar::Element& mele)
-    : Mortar::Coupling2d(idiscret, dim, quad, params, sele, mele),
+    Teuchos::ParameterList& params, Mortar::Element& source_elem, Mortar::Element& target_elem)
+    : Mortar::Coupling2d(idiscret, dim, quad, params, source_elem, target_elem),
       stype_(Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(params, "STRATEGY"))
 {
   // empty constructor
@@ -38,7 +38,7 @@ CONTACT::Coupling2d::Coupling2d(Core::FE::Discretization& idiscret, int dim, boo
 
 
 /*----------------------------------------------------------------------*
- |  Integrate slave / master overlap (public)                 popp 04/08|
+ |  Integrate source / target overlap (public)                 popp 04/08|
  *----------------------------------------------------------------------*/
 bool CONTACT::Coupling2d::integrate_overlap(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
@@ -57,11 +57,11 @@ bool CONTACT::Coupling2d::integrate_overlap(
   // no integration if no overlap
   if (!overlap_) return false;
 
-  // set segmentation status of all slave nodes
-  // (hassegment_ of a slave node is true if ANY segment/cell
-  // is integrated that contributes to this slave node)
-  int nnodes = slave_element().num_node();
-  Core::Nodes::Node** mynodes = slave_element().nodes();
+  // set segmentation status of all source nodes
+  // (hassegment_ of a source node is true if ANY segment/cell
+  // is integrated that contributes to this source node)
+  int nnodes = source_element().num_node();
+  Core::Nodes::Node** mynodes = source_element().nodes();
   if (!mynodes) FOUR_C_THROW("Null pointer!");
   for (int k = 0; k < nnodes; ++k)
   {
@@ -71,14 +71,14 @@ bool CONTACT::Coupling2d::integrate_overlap(
   }
 
   // local working copies of input variables
-  double sxia = xiproj_[0];
-  double sxib = xiproj_[1];
-  double mxia = xiproj_[2];
-  double mxib = xiproj_[3];
+  double source_xi_a = xiproj_[0];
+  double source_xi_b = xiproj_[1];
+  double target_xi_a = xiproj_[2];
+  double target_xi_b = xiproj_[3];
 
   // create a CONTACT integrator instance with correct num_gp and Dim
   std::shared_ptr<CONTACT::Integrator> integrator =
-      CONTACT::INTEGRATOR::build_integrator(stype_, imortar_, slave_element().shape(), get_comm());
+      CONTACT::INTEGRATOR::build_integrator(stype_, imortar_, source_element().shape(), get_comm());
   // *******************************************************************
   // different options for mortar integration
   // *******************************************************************
@@ -98,8 +98,8 @@ bool CONTACT::Coupling2d::integrate_overlap(
     // ***********************************************************
     //                   Integrate stuff !!!                    //
     // ***********************************************************
-    integrator->integrate_deriv_segment_2d(
-        slave_element(), sxia, sxib, master_element(), mxia, mxib, get_comm(), mparams_ptr);
+    integrator->integrate_deriv_segment_2d(source_element(), source_xi_a, source_xi_b,
+        target_element(), target_xi_a, target_xi_b, get_comm(), mparams_ptr);
     // ***********************************************************
     //                   END INTEGRATION !!!                    //
     // ***********************************************************
@@ -140,9 +140,9 @@ bool CONTACT::Coupling2d::integrate_overlap(
  |  ctor (public)                                             popp 06/09|
  *----------------------------------------------------------------------*/
 CONTACT::Coupling2dManager::Coupling2dManager(Core::FE::Discretization& idiscret, int dim,
-    bool quad, Teuchos::ParameterList& params, Mortar::Element* sele,
-    std::vector<Mortar::Element*> mele)
-    : Mortar::Coupling2dManager(idiscret, dim, quad, params, sele, mele),
+    bool quad, Teuchos::ParameterList& params, Mortar::Element* source_elem,
+    std::vector<Mortar::Element*> target_elem)
+    : Mortar::Coupling2dManager(idiscret, dim, quad, params, source_elem, target_elem),
       stype_(Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(params, "STRATEGY"))
 {
   // empty constructor
@@ -161,7 +161,7 @@ MPI_Comm CONTACT::Coupling2dManager::get_comm() const { return idiscret_.get_com
 bool CONTACT::Coupling2dManager::evaluate_coupling(
     const std::shared_ptr<Mortar::ParamsInterface>& mparams_ptr)
 {
-  if (master_elements().size() == 0) return false;
+  if (target_elements().size() == 0) return false;
 
   // decide which type of coupling should be evaluated
   auto algo = Teuchos::getIntegralValue<Mortar::AlgorithmType>(imortar_, "ALGORITHM");
@@ -193,41 +193,41 @@ void CONTACT::Coupling2dManager::integrate_coupling(
   //**********************************************************************
   if (int_type() == Mortar::inttype_segments)
   {
-    // loop over all master elements associated with this slave element
-    for (int m = 0; m < (int)master_elements().size(); ++m)
+    // loop over all target elements associated with this source element
+    for (int it = 0; it < (int)target_elements().size(); ++it)
     {
       // create Coupling2d object and push back
       coupling().push_back(std::make_shared<Coupling2d>(
-          idiscret_, dim_, quad_, imortar_, slave_element(), master_element(m)));
+          idiscret_, dim_, quad_, imortar_, source_element(), target_element(it)));
 
       // project the element pair
-      coupling()[m]->project();
+      coupling()[it]->project();
 
       // check for element overlap
-      coupling()[m]->detect_overlap();
+      coupling()[it]->detect_overlap();
     }
 
     // calculate consistent dual shape functions for this element
     consistent_dual_shape();
 
     // do mortar integration
-    for (int m = 0; m < (int)master_elements().size(); ++m)
-      coupling()[m]->integrate_overlap(mparams_ptr);
+    for (int it = 0; it < (int)target_elements().size(); ++it)
+      coupling()[it]->integrate_overlap(mparams_ptr);
 
     // free memory of consistent dual shape function coefficient matrix
-    slave_element().mo_data().reset_dual_shape();
-    slave_element().mo_data().reset_deriv_dual_shape();
+    source_element().mo_data().reset_dual_shape();
+    source_element().mo_data().reset_deriv_dual_shape();
   }
   //**********************************************************************
   // FAST INTEGRATION (ELEMENTS)
   //**********************************************************************
   else if (int_type() == Mortar::inttype_elements or int_type() == Mortar::inttype_elements_BS)
   {
-    if ((int)master_elements().size() == 0) return;
+    if ((int)target_elements().size() == 0) return;
 
     // create an integrator instance with correct num_gp and Dim
     std::shared_ptr<CONTACT::Integrator> integrator = CONTACT::INTEGRATOR::build_integrator(
-        stype_, imortar_, slave_element().shape(), get_comm());
+        stype_, imortar_, source_element().shape(), get_comm());
 
     // *******************************************************************
     // different options for mortar integration
@@ -245,17 +245,17 @@ void CONTACT::Coupling2dManager::integrate_coupling(
     if (!quad() || (quad() && lmtype == Mortar::lagmult_quad) ||
         (quad() && lmtype == Mortar::lagmult_lin))
     {
-      // Test whether projection from slave to master surface is feasible -->
+      // Test whether projection from source to target surface is feasible -->
       // important for dual LM Fnc.
       // Contact_interface.cpp --> AssembleG
-      for (unsigned m = 0; m < master_elements().size(); ++m)
+      for (unsigned it = 0; it < target_elements().size(); ++it)
       {
         // create Coupling2d object and push back
         coupling().push_back(std::make_shared<Coupling2d>(
-            idiscret_, dim_, quad_, imortar_, slave_element(), master_element(m)));
+            idiscret_, dim_, quad_, imortar_, source_element(), target_element(it)));
 
         // project the element pair
-        coupling()[m]->project();
+        coupling()[it]->project();
       }
 
       // Bool for identification of boundary elements
@@ -265,7 +265,7 @@ void CONTACT::Coupling2dManager::integrate_coupling(
       //                  START INTEGRATION !!!                   //
       // ***********************************************************
       integrator->integrate_deriv_ele_2d(
-          slave_element(), master_elements(), &boundary_ele, mparams_ptr);
+          source_element(), target_elements(), &boundary_ele, mparams_ptr);
       // ***********************************************************
       //                   END INTEGRATION !!!                    //
       // ***********************************************************
@@ -278,50 +278,50 @@ void CONTACT::Coupling2dManager::integrate_coupling(
             shape_fcn() != Mortar::shape_standard  // so for petrov-Galerkin and dual
         )
         {
-          // loop over all master elements associated with this slave element
-          for (int m = 0; m < (int)master_elements().size(); ++m)
+          // loop over all target elements associated with this source element
+          for (int it = 0; it < (int)target_elements().size(); ++it)
           {
             // create Coupling2d object and push back
             coupling().push_back(std::make_shared<Coupling2d>(
-                idiscret_, dim_, quad_, imortar_, slave_element(), master_element(m)));
+                idiscret_, dim_, quad_, imortar_, source_element(), target_element(it)));
 
             // project the element pair
-            coupling()[m]->project();
+            coupling()[it]->project();
 
             // check for element overlap
-            coupling()[m]->detect_overlap();
+            coupling()[it]->detect_overlap();
           }
 
           // calculate consistent dual shape functions for this element
           consistent_dual_shape();
 
           // do mortar integration
-          for (int m = 0; m < (int)master_elements().size(); ++m)
-            coupling()[m]->integrate_overlap(mparams_ptr);
+          for (int it = 0; it < (int)target_elements().size(); ++it)
+            coupling()[it]->integrate_overlap(mparams_ptr);
 
           // free memory of consistent dual shape function coefficient matrix
-          slave_element().mo_data().reset_dual_shape();
-          slave_element().mo_data().reset_deriv_dual_shape();
+          source_element().mo_data().reset_dual_shape();
+          source_element().mo_data().reset_deriv_dual_shape();
         }
 
         // segment-based integration for boundary elements
         else
         {
-          // loop over all master elements associated with this slave element
-          for (int m = 0; m < (int)master_elements().size(); ++m)
+          // loop over all target elements associated with this source element
+          for (int it = 0; it < (int)target_elements().size(); ++it)
           {
             // create Coupling2d object and push back
             coupling().push_back(std::make_shared<Coupling2d>(
-                idiscret_, dim_, quad_, imortar_, slave_element(), master_element(m)));
+                idiscret_, dim_, quad_, imortar_, source_element(), target_element(it)));
 
             // project the element pair
-            coupling()[m]->project();
+            coupling()[it]->project();
 
             // check for element overlap
-            coupling()[m]->detect_overlap();
+            coupling()[it]->detect_overlap();
 
             // integrate the element overlap
-            coupling()[m]->integrate_overlap(mparams_ptr);
+            coupling()[it]->integrate_overlap(mparams_ptr);
           }
         }
       }
@@ -386,70 +386,71 @@ void CONTACT::Coupling2dManager::consistent_dual_shape()
   // do nothing if there are no coupling pairs
   if (coupling().size() == 0) return;
 
-  const int nnodes = slave_element().num_node();
+  const int nnodes = source_element().num_node();
   const int ndof = 2;
 
   int linsize = 0;
   for (int i = 0; i < nnodes; ++i)
   {
-    Node* cnode = dynamic_cast<Node*>(slave_element().nodes()[i]);
+    Node* cnode = dynamic_cast<Node*>(source_element().nodes()[i]);
     linsize += cnode->get_linsize();
   }
 
-  int mnodes = 0;
-  for (int m = 0; m < (int)coupling().size(); ++m) mnodes += master_elements()[m]->num_node();
+  int target_nodes = 0;
+  for (int it = 0; it < (int)coupling().size(); ++it)
+    target_nodes += target_elements()[it]->num_node();
 
   // detect entire overlap
   double ximin = 1.0;
   double ximax = -1.0;
-  Core::Gen::Pairedvector<int, double> dximin(linsize + ndof * mnodes);
-  Core::Gen::Pairedvector<int, double> dximax(linsize + ndof * mnodes);
+  Core::Gen::Pairedvector<int, double> dximin(linsize + ndof * target_nodes);
+  Core::Gen::Pairedvector<int, double> dximax(linsize + ndof * target_nodes);
 
-  // loop over all master elements associated with this slave element
-  for (int m = 0; m < (int)coupling().size(); ++m)
+  // loop over all target elements associated with this source element
+  for (int it = 0; it < (int)coupling().size(); ++it)
   {
-    double sxia = coupling()[m]->xi_proj()[0];
-    double sxib = coupling()[m]->xi_proj()[1];
-    double mxia = coupling()[m]->xi_proj()[2];
-    double mxib = coupling()[m]->xi_proj()[3];
+    double source_xi_a = coupling()[it]->xi_proj()[0];
+    double source_xi_b = coupling()[it]->xi_proj()[1];
+    double target_xi_a = coupling()[it]->xi_proj()[2];
+    double target_xi_b = coupling()[it]->xi_proj()[3];
 
-    // no overlap for this slave-master pair --> continue with next pair
-    if (sxia == 0.0 && sxib == 0.0) continue;
+    // no overlap for this source-target pair --> continue with next pair
+    if (source_xi_a == 0.0 && source_xi_b == 0.0) continue;
 
     // for contact we need the derivatives as well
-    bool startslave = false;
-    bool endslave = false;
+    bool startsource = false;
+    bool endsource = false;
 
-    if (sxia == -1.0)
-      startslave = true;
+    if (source_xi_a == -1.0)
+      startsource = true;
     else
-      startslave = false;
-    if (sxib == 1.0)
-      endslave = true;
+      startsource = false;
+    if (source_xi_b == 1.0)
+      endsource = true;
     else
-      endslave = false;
+      endsource = false;
 
     // create an integrator for this segment
-    CONTACT::Integrator integrator(imortar_, slave_element().shape(), get_comm());
+    CONTACT::Integrator integrator(imortar_, source_element().shape(), get_comm());
 
-    std::vector<Core::Gen::Pairedvector<int, double>> ximaps(4, linsize + ndof * mnodes);
-    // get directional derivatives of sxia, sxib, mxia, mxib
-    integrator.deriv_xi_a_b_2d(slave_element(), sxia, sxib, master_element(m), mxia, mxib, ximaps,
-        startslave, endslave, linsize);
+    std::vector<Core::Gen::Pairedvector<int, double>> ximaps(4, linsize + ndof * target_nodes);
+    // get directional derivatives of source_xi_a, source_xi_b, target_xi_a, target_xi_b
+    integrator.deriv_xi_a_b_2d(source_element(), source_xi_a, source_xi_b, target_element(it),
+        target_xi_a, target_xi_b, ximaps, startsource, endsource, linsize);
 
     // get element contact integration area
     // and for contact derivatives of beginning and end
-    if ((sxia != 0.0 || sxib != 0.0) && (sxia >= -1.0 && sxia <= 1.0) &&
-        (sxib >= -1.0 && sxib <= 1.0))
+    if ((source_xi_a != 0.0 || source_xi_b != 0.0) && (source_xi_a >= -1.0 && source_xi_a <= 1.0) &&
+        (source_xi_b >= -1.0 && source_xi_b <= 1.0))
     {
-      if (sxia < ximin && sxia >= -1. && sxia <= 1.)
+      if (source_xi_a < ximin && source_xi_a >= -1. && source_xi_a <= 1.)
       {
-        ximin = sxia;
+        ximin = source_xi_a;
         dximin = ximaps[0];
       }
-      if (sxib > ximax && sxib >= -1. && sxib <= 1.)
+      if (source_xi_b > ximax && source_xi_b >= -1. && source_xi_b <= 1.)
       {
-        ximax = sxib;
+        ximax = source_xi_b;
         dximax = ximaps[1];
       }
     }
@@ -468,26 +469,26 @@ void CONTACT::Coupling2dManager::consistent_dual_shape()
   // Consistent treatment of boundaries with mortar contact formulations, CMAME 2010
 
   // store derivae into element
-  slave_element().mo_data().deriv_dual_shape() =
+  source_element().mo_data().deriv_dual_shape() =
       std::make_shared<Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>>(
-          linsize + 2 * ndof * mnodes, 0, Core::LinAlg::SerialDenseMatrix(nnodes, nnodes));
+          linsize + 2 * ndof * target_nodes, 0, Core::LinAlg::SerialDenseMatrix(nnodes, nnodes));
   Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& derivae =
-      *(slave_element().mo_data().deriv_dual_shape());
+      *(source_element().mo_data().deriv_dual_shape());
 
   // compute entries to bi-ortho matrices me/de with Gauss quadrature
-  Mortar::ElementIntegrator integrator(slave_element().shape());
+  Mortar::ElementIntegrator integrator(source_element().shape());
 
   // prepare for calculation of dual shape functions
   Core::LinAlg::SerialDenseMatrix me(nnodes, nnodes, true);
   Core::LinAlg::SerialDenseMatrix de(nnodes, nnodes, true);
   // two-dim arrays of maps for linearization of me/de
   std::vector<std::vector<Core::Gen::Pairedvector<int, double>>> derivme(nnodes,
-      std::vector<Core::Gen::Pairedvector<int, double>>(nnodes, linsize + 2 * ndof * mnodes));
+      std::vector<Core::Gen::Pairedvector<int, double>>(nnodes, linsize + 2 * ndof * target_nodes));
   std::vector<std::vector<Core::Gen::Pairedvector<int, double>>> derivde(nnodes,
-      std::vector<Core::Gen::Pairedvector<int, double>>(nnodes, linsize + 2 * ndof * mnodes));
+      std::vector<Core::Gen::Pairedvector<int, double>>(nnodes, linsize + 2 * ndof * target_nodes));
 
-  Core::LinAlg::SerialDenseVector sval(nnodes);
-  Core::LinAlg::SerialDenseMatrix sderiv(nnodes, 1, true);
+  Core::LinAlg::SerialDenseVector source_val(nnodes);
+  Core::LinAlg::SerialDenseMatrix source_deriv(nnodes, 1, true);
   Core::LinAlg::SerialDenseMatrix ssecderiv(nnodes, 1);
 
   for (int gp = 0; gp < integrator.n_gp(); ++gp)
@@ -496,98 +497,98 @@ void CONTACT::Coupling2dManager::consistent_dual_shape()
     std::array<double, 2> eta = {integrator.coordinate(gp, 0), 0.0};
     double wgt = integrator.weight(gp);
 
-    // coordinate transformation sxi->eta (slave Mortar::Element->Overlap)
-    double sxi[2] = {0.0, 0.0};
-    sxi[0] = 0.5 * (1.0 - eta[0]) * ximin + 0.5 * (1.0 + eta[0]) * ximax;
+    // coordinate transformation source_xi->eta (source Mortar::Element->Overlap)
+    double source_xi[2] = {0.0, 0.0};
+    source_xi[0] = 0.5 * (1.0 - eta[0]) * ximin + 0.5 * (1.0 + eta[0]) * ximax;
 
     // evaluate trace space shape functions
     if (lag_mult_quad() == Mortar::lagmult_lin)
-      slave_element().evaluate_shape_lag_mult_lin(
-          Mortar::shape_standard, sxi, sval, sderiv, nnodes);
+      source_element().evaluate_shape_lag_mult_lin(
+          Mortar::shape_standard, source_xi, source_val, source_deriv, nnodes);
     else
-      slave_element().evaluate_shape(sxi, sval, sderiv, nnodes);
-    slave_element().evaluate2nd_deriv_shape(sxi, ssecderiv, nnodes);
+      source_element().evaluate_shape(source_xi, source_val, source_deriv, nnodes);
+    source_element().evaluate2nd_deriv_shape(source_xi, ssecderiv, nnodes);
 
-    // evaluate the two slave side Jacobians
-    double dxdsxi = slave_element().jacobian(sxi);
+    // evaluate the two source side Jacobians
+    double dxdsxi = source_element().jacobian(source_xi);
     double dsxideta = -0.5 * ximin + 0.5 * ximax;
 
     // evaluate linearizations *******************************************
     // evaluate the derivative dxdsxidsxi = Jac,xi
     double djacdxi[2] = {0.0, 0.0};
-    dynamic_cast<CONTACT::Element&>(slave_element()).d_jac_d_xi(djacdxi, sxi, ssecderiv);
+    dynamic_cast<CONTACT::Element&>(source_element()).d_jac_d_xi(djacdxi, source_xi, ssecderiv);
     double dxdsxidsxi = djacdxi[0];  // only 2D here
 
-    // evaluate the GP slave coordinate derivatives
-    Core::Gen::Pairedvector<int, double> dsxigp(linsize + ndof * mnodes);
+    // evaluate the GP source coordinate derivatives
+    Core::Gen::Pairedvector<int, double> d_source_xi_gp(linsize + ndof * target_nodes);
     for (CI p = dximin.begin(); p != dximin.end(); ++p)
-      dsxigp[p->first] += 0.5 * (1 - eta[0]) * (p->second);
+      d_source_xi_gp[p->first] += 0.5 * (1 - eta[0]) * (p->second);
     for (CI p = dximax.begin(); p != dximax.end(); ++p)
-      dsxigp[p->first] += 0.5 * (1 + eta[0]) * (p->second);
+      d_source_xi_gp[p->first] += 0.5 * (1 + eta[0]) * (p->second);
 
     // evaluate the Jacobian derivative
-    Core::Gen::Pairedvector<int, double> derivjac(slave_element().num_node() * n_dim());
-    slave_element().deriv_jacobian(sxi, derivjac);
+    Core::Gen::Pairedvector<int, double> derivjac(source_element().num_node() * n_dim());
+    source_element().deriv_jacobian(source_xi, derivjac);
 
     // integrate dual shape matrices de, me and their linearizations
     for (int j = 0; j < nnodes; ++j)
     {
       double fac;
       // de and linearization
-      de(j, j) += wgt * sval[j] * dxdsxi * dsxideta;
+      de(j, j) += wgt * source_val[j] * dxdsxi * dsxideta;
 
-      // (1) linearization of slave gp coordinates in ansatz function j for derivative of de
-      fac = wgt * sderiv(j, 0) * dxdsxi * dsxideta;
-      for (CI p = dsxigp.begin(); p != dsxigp.end(); ++p)
+      // (1) linearization of source gp coordinates in ansatz function j for derivative of de
+      fac = wgt * source_deriv(j, 0) * dxdsxi * dsxideta;
+      for (CI p = d_source_xi_gp.begin(); p != d_source_xi_gp.end(); ++p)
         derivde[j][j][p->first] += fac * (p->second);
 
       // (2) linearization dsxideta - segment end coordinates
-      fac = 0.5 * wgt * sval[j] * dxdsxi;
+      fac = 0.5 * wgt * source_val[j] * dxdsxi;
       for (CI p = dximin.begin(); p != dximin.end(); ++p)
         derivde[j][j][p->first] -= fac * (p->second);
-      fac = 0.5 * wgt * sval[j] * dxdsxi;
+      fac = 0.5 * wgt * source_val[j] * dxdsxi;
       for (CI p = dximax.begin(); p != dximax.end(); ++p)
         derivde[j][j][p->first] += fac * (p->second);
 
-      // (3) linearization dxdsxi - slave GP jacobian
-      fac = wgt * sval[j] * dsxideta;
+      // (3) linearization dxdsxi - source GP jacobian
+      fac = wgt * source_val[j] * dsxideta;
       for (CI p = derivjac.begin(); p != derivjac.end(); ++p)
         derivde[j][j][p->first] += fac * (p->second);
 
-      // (4) linearization dxdsxi - slave GP coordinates
-      fac = wgt * sval[j] * dsxideta * dxdsxidsxi;
-      for (CI p = dsxigp.begin(); p != dsxigp.end(); ++p)
+      // (4) linearization dxdsxi - source GP coordinates
+      fac = wgt * source_val[j] * dsxideta * dxdsxidsxi;
+      for (CI p = d_source_xi_gp.begin(); p != d_source_xi_gp.end(); ++p)
         derivde[j][j][p->first] += fac * (p->second);
 
       // me and linearization
       for (int k = 0; k < nnodes; ++k)
       {
-        me(j, k) += wgt * sval[j] * sval[k] * dxdsxi * dsxideta;
+        me(j, k) += wgt * source_val[j] * source_val[k] * dxdsxi * dsxideta;
 
-        // (1) linearization of slave gp coordinates in ansatz function for derivative of me
-        fac = wgt * sval[k] * dxdsxi * dsxideta * sderiv(j, 0);
-        for (CI p = dsxigp.begin(); p != dsxigp.end(); ++p)
+        // (1) linearization of source gp coordinates in ansatz function for derivative of me
+        fac = wgt * source_val[k] * dxdsxi * dsxideta * source_deriv(j, 0);
+        for (CI p = d_source_xi_gp.begin(); p != d_source_xi_gp.end(); ++p)
         {
           derivme[j][k][p->first] += fac * (p->second);
           derivme[k][j][p->first] += fac * (p->second);
         }
 
         // (2) linearization dsxideta - segment end coordinates
-        fac = 0.5 * wgt * sval[j] * sval[k] * dxdsxi;
+        fac = 0.5 * wgt * source_val[j] * source_val[k] * dxdsxi;
         for (CI p = dximin.begin(); p != dximin.end(); ++p)
           derivme[j][k][p->first] -= fac * (p->second);
-        fac = 0.5 * wgt * sval[j] * sval[k] * dxdsxi;
+        fac = 0.5 * wgt * source_val[j] * source_val[k] * dxdsxi;
         for (CI p = dximax.begin(); p != dximax.end(); ++p)
           derivme[j][k][p->first] += fac * (p->second);
 
-        // (3) linearization dxdsxi - slave GP jacobian
-        fac = wgt * sval[j] * sval[k] * dsxideta;
+        // (3) linearization dxdsxi - source GP jacobian
+        fac = wgt * source_val[j] * source_val[k] * dsxideta;
         for (CI p = derivjac.begin(); p != derivjac.end(); ++p)
           derivme[j][k][p->first] += fac * (p->second);
 
-        // (4) linearization dxdsxi - slave GP coordinates
-        fac = wgt * sval[j] * sval[k] * dsxideta * dxdsxidsxi;
-        for (CI p = dsxigp.begin(); p != dsxigp.end(); ++p)
+        // (4) linearization dxdsxi - source GP coordinates
+        fac = wgt * source_val[j] * source_val[k] * dsxideta * dxdsxidsxi;
+        for (CI p = d_source_xi_gp.begin(); p != d_source_xi_gp.end(); ++p)
           derivme[j][k][p->first] += fac * (p->second);
       }
     }
@@ -649,8 +650,8 @@ void CONTACT::Coupling2dManager::consistent_dual_shape()
     }
   }
 
-  // store ae matrix in slave element data container
-  slave_element().mo_data().dual_shape() = std::make_shared<Core::LinAlg::SerialDenseMatrix>(ae);
+  // store ae matrix in source element data container
+  source_element().mo_data().dual_shape() = std::make_shared<Core::LinAlg::SerialDenseMatrix>(ae);
 
   return;
 }

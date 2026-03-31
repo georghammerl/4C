@@ -1429,7 +1429,7 @@ void Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_force()
       "Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_force");
 
   // transform force vector to problem discret layout/distribution
-  force_beaminteraction_ = coupsia_->master_to_slave(*ia_force_beaminteraction_);
+  force_beaminteraction_ = coupsia_->target_to_source(*ia_force_beaminteraction_);
 }
 
 /*-----------------------------------------------------------------------------*
@@ -1444,7 +1444,7 @@ void Solid::ModelEvaluator::BeamInteractionModelEvaluator::transform_stiff()
   stiff_beaminteraction_->un_complete();
   // transform stiffness matrix to problem discret layout/distribution
   (*siatransform_)(*ia_state_ptr_->get_stiff(), 1.0,
-      Coupling::Adapter::CouplingMasterConverter(*coupsia_), *stiff_beaminteraction_, false);
+      Coupling::Adapter::CouplingTargetConverter(*coupsia_), *stiff_beaminteraction_, false);
 }
 
 /*-----------------------------------------------------------------------------*

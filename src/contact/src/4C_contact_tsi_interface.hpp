@@ -53,7 +53,7 @@ namespace CONTACT
 
     This method builds an algebraic form of the FULL linearization
     of the tangential slip condition. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal tangents and of the Mortar matrices D  and M.
 
     */

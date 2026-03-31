@@ -101,14 +101,14 @@ std::shared_ptr<Core::LinAlg::Vector<double>>
 PoroElast::MonolithicSplit::structure_to_fluid_at_interface(
     const Core::LinAlg::Vector<double>& iv) const
 {
-  return icoupfs_->master_to_slave(iv);
+  return icoupfs_->target_to_source(iv);
 }
 
 std::shared_ptr<Core::LinAlg::Vector<double>>
 PoroElast::MonolithicSplit::fluid_to_structure_at_interface(
     const Core::LinAlg::Vector<double>& iv) const
 {
-  return icoupfs_->slave_to_master(iv);
+  return icoupfs_->source_to_target(iv);
 }
 
 std::shared_ptr<Core::LinAlg::Map> PoroElast::MonolithicSplit::fsidbc_map()

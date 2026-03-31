@@ -108,7 +108,7 @@ Adapter::FluidAle::FluidAle(const Teuchos::ParameterList& prbdyn, std::string co
   if (Teuchos::getIntegralValue<ALE::InitialDisp>(problem->ale_dynamic_params(), "INITIALDISP") !=
       ALE::initdisp_zero_disp)
   {
-    fluid_field()->set_mesh_map(coupfa_->master_dof_map(), nds_master);
+    fluid_field()->set_mesh_map(coupfa_->target_dof_map(), nds_master);
     std::shared_ptr<Core::LinAlg::Vector<double>> initfluiddisp =
         ale_to_fluid_field(ale_field()->dispn());
     fluid_field()->apply_initial_mesh_displacement(initfluiddisp);
@@ -162,7 +162,7 @@ Adapter::FluidAle::FluidAle(const Teuchos::ParameterList& prbdyn, std::string co
       ale_field()->interface()->au_cond_map(), "ALEUPDATECoupling", ndim, true, nds_master,
       nds_slave);
 
-  fluid_field()->set_mesh_map(coupfa_->master_dof_map(), nds_master);
+  fluid_field()->set_mesh_map(coupfa_->target_dof_map(), nds_master);
 
   // the ale matrix might be build just once
   ale_field()->create_system_matrix();
@@ -256,7 +256,7 @@ void Adapter::FluidAle::nonlinear_solve(std::shared_ptr<Core::LinAlg::Vector<dou
     std::shared_ptr<const Core::LinAlg::Vector<double>> dispnp = fluid_field()->dispnp();
     std::shared_ptr<Core::LinAlg::Vector<double>> audispnp =
         fluid_field()->interface()->extract_au_cond_vector(*dispnp);
-    ale_field()->apply_ale_update_displacements(aucoupfa_->master_to_slave(*audispnp));
+    ale_field()->apply_ale_update_displacements(aucoupfa_->target_to_source(*audispnp));
   }
 
   // Note: We do not look for moving ale boundaries (outside the coupling
@@ -292,7 +292,7 @@ void Adapter::FluidAle::nonlinear_solve_vol_coupl(
     std::shared_ptr<const Core::LinAlg::Vector<double>> dispnp = fluid_field()->dispnp();
     std::shared_ptr<Core::LinAlg::Vector<double>> audispnp =
         fluid_field()->interface()->extract_au_cond_vector(*dispnp);
-    ale_field()->apply_ale_update_displacements(aucoupfa_->master_to_slave(*audispnp));
+    ale_field()->apply_ale_update_displacements(aucoupfa_->target_to_source(*audispnp));
   }
 
   // Note: We do not look for moving ale boundaries (outside the coupling
@@ -401,7 +401,7 @@ std::shared_ptr<Core::Utils::ResultTest> Adapter::FluidAle::create_field_test()
 std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::ale_to_fluid_field(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 
@@ -410,7 +410,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::ale_to_fluid_fi
 std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::ale_to_fluid_field(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 
@@ -419,7 +419,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::ale_to_fluid_fi
 std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::fluid_to_ale(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 
@@ -428,7 +428,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::fluid_to_ale(
 std::shared_ptr<Core::LinAlg::Vector<double>> Adapter::FluidAle::fluid_to_ale(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 FOUR_C_NAMESPACE_CLOSE

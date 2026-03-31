@@ -178,13 +178,13 @@ FSI::Utils::SlideAleUtils::SlideAleUtils(std::shared_ptr<Core::FE::Discretizatio
   // useful displacement vectors
   if (structcoupmaster_)
   {
-    structdofrowmap_ = coupsf.master_dof_map();
-    fluiddofrowmap_ = coupsf.slave_dof_map();
+    structdofrowmap_ = coupsf.target_dof_map();
+    fluiddofrowmap_ = coupsf.source_dof_map();
   }
   else
   {
-    structdofrowmap_ = coupsf.slave_dof_map();
-    fluiddofrowmap_ = coupsf.master_dof_map();
+    structdofrowmap_ = coupsf.source_dof_map();
+    fluiddofrowmap_ = coupsf.target_dof_map();
   }
 
   std::shared_ptr<Core::LinAlg::Map> dofrowmap =
@@ -293,7 +293,7 @@ void FSI::Utils::SlideAleUtils::evaluate_fluid_mortar(
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Utils::SlideAleUtils::interpolate_fluid(
     const Core::LinAlg::Vector<double>& uold)
 {
-  std::shared_ptr<Core::LinAlg::Vector<double>> unew = coupff_->master_to_slave(uold);
+  std::shared_ptr<Core::LinAlg::Vector<double>> unew = coupff_->target_to_source(uold);
   unew->replace_map(uold.get_map());
 
   return unew;
@@ -579,19 +579,19 @@ void FSI::Utils::SlideAleUtils::redundant_elements(
   int foffset = 0;
   if (structcoupmaster_)
   {
-    structfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->master_row_dofs()));
-    structfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->master_row_elements()));
-    fluidfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->slave_row_dofs()));
-    fluidfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->slave_row_elements()));
+    structfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->target_row_dofs()));
+    structfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->target_row_elements()));
+    fluidfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->source_row_dofs()));
+    fluidfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->source_row_elements()));
     soffset = 0;
     foffset = fluidfullelemap_->min_my_gid();
   }
   else
   {
-    fluidfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->master_row_dofs()));
-    fluidfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->master_row_elements()));
-    structfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->slave_row_dofs()));
-    structfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->slave_row_elements()));
+    fluidfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->target_row_dofs()));
+    fluidfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->target_row_elements()));
+    structfullnodemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->source_row_dofs()));
+    structfullelemap_ = Core::LinAlg::allreduce_e_map(*(coupsf.interface()->source_row_elements()));
     soffset = structfullelemap_->min_my_gid();
     foffset = 0;
   }

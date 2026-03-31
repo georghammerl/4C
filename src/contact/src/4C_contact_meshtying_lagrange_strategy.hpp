@@ -78,7 +78,7 @@ namespace CONTACT
 
     For a Lagrangian strategy this involves heavy modification to the initial kteff and feff.
     Hence, they are in fact build from scratch here. The application of modifications to
-    groups of dofs (slave, master, etc.) results in some matrix and vector splitting and a
+    groups of dofs (source, target, etc.) results in some matrix and vector splitting and a
     lot of matrix-vector calculation in here!
 
     \param kteff (in/out): effective stiffness matrix (without -> with contact)
@@ -248,7 +248,7 @@ namespace CONTACT
     //! Mortar projection matrix \f$P = D^{-1} M\f$
     std::shared_ptr<Core::LinAlg::SparseMatrix> mhatmatrix_;
 
-    //! Slave side effective forces (needed for Lagrange multipliers)
+    //! Source side effective forces (needed for Lagrange multipliers)
     std::shared_ptr<Core::LinAlg::Vector<double>> fs_;
 
     //! Inverse \f$D^{-1}\f$ of Mortar matrix \f$D\f$ (needed for Lagrange multipliers)
@@ -257,8 +257,8 @@ namespace CONTACT
     /*! @name Blocks for Jacobian matrix
      *
      * Subscripts are defined as follows
-     * - s: slave
-     * - m: master
+     * - s: source
+     * - m: target
      * - n: non-mortar nodes (i.e. all non-interface nodes in all subdomains)
      */
     //!@{

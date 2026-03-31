@@ -15,74 +15,78 @@ FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorEhl::integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorEhl::integrate_gp_3d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
   // check bound
   bool bound = false;
-  for (int i = 0; i < sele.num_node(); ++i)
-    if (dynamic_cast<CONTACT::Node*>(sele.nodes()[i])->is_on_boundor_ce())
+  for (int i = 0; i < source_elem.num_node(); ++i)
+    if (dynamic_cast<CONTACT::Node*>(source_elem.nodes()[i])->is_on_boundor_ce())
       FOUR_C_THROW("no boundary modification for EHL implemented");
 
   // is quadratic case?
-  bool quad = sele.is_quad();
+  bool quad = source_elem.is_quad();
 
   // weighted gap
-  gp_3d_w_gap(sele, sval, lmval, &gap, jac, wgt, quad);
-  for (int j = 0; j < sele.num_node(); ++j)
-    gp_g_lin(j, sele, mele, sval, mval, lmval, sderiv, lmderiv, gap, normal, jac, wgt, deriv_gap,
-        derivjac, derivsxi, dualmap);
+  gp_3d_w_gap(source_elem, source_val, lm_val, &gap, jac, wgt, quad);
+  for (int j = 0; j < source_elem.num_node(); ++j)
+    gp_g_lin(j, source_elem, target_elem, source_val, target_val, lm_val, source_deriv, lm_deriv,
+        gap, normal, jac, wgt, deriv_gap, derivjac, source_derivs_xi, dualmap);
 
   // integrate D and M matrix
-  gp_dm(sele, mele, lmval, sval, mval, jac, wgt, bound);
-  gp_3d_dm_lin(sele, mele, sval, mval, lmval, sderiv, mderiv, lmderiv, wgt, jac, derivsxi, derivmxi,
-      derivjac, dualmap);
+  gp_dm(source_elem, target_elem, lm_val, source_val, target_val, jac, wgt, bound);
+  gp_3d_dm_lin(source_elem, target_elem, source_val, target_val, lm_val, source_deriv, target_deriv,
+      lm_deriv, wgt, jac, source_derivs_xi, target_derivs_xi, derivjac, dualmap);
 
   // get second derivative of shape function
-  Core::LinAlg::SerialDenseMatrix ssecderiv(sele.num_node(), 3);
-  sele.evaluate2nd_deriv_shape(sxi, ssecderiv, sele.num_node());
+  Core::LinAlg::SerialDenseMatrix ssecderiv(source_elem.num_node(), 3);
+  source_elem.evaluate2nd_deriv_shape(source_xi, ssecderiv, source_elem.num_node());
 
   // weighted surface gradient
-  gp_weighted_surf_grad_and_deriv(
-      sele, sxi, derivsxi, lmval, lmderiv, dualmap, sval, sderiv, ssecderiv, wgt, jac, derivjac);
+  gp_weighted_surf_grad_and_deriv(source_elem, source_xi, source_derivs_xi, lm_val, lm_deriv,
+      dualmap, source_val, source_deriv, ssecderiv, wgt, jac, derivjac);
 
   //  // weighted tangential velocity (average and relative)
-  gp_weighted_av_rel_vel(sele, mele, sval, lmval, mval, sderiv, mderiv, lmderiv, dualmap, wgt, jac,
-      derivjac, normal, dnmap_unit, gap, deriv_gap, sxi, mxi, derivsxi, derivmxi);
+  gp_weighted_av_rel_vel(source_elem, target_elem, source_val, lm_val, target_val, source_deriv,
+      target_deriv, lm_deriv, dualmap, wgt, jac, derivjac, normal, dnmap_unit, gap, deriv_gap,
+      source_xi, target_xi, source_derivs_xi, target_derivs_xi);
 }
 
 
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorEhl::integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorEhl::integrate_gp_2d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
   FOUR_C_THROW("2D EHL integration not supported");
 }
 
 
-void CONTACT::IntegratorEhl::gp_weighted_surf_grad_and_deriv(Mortar::Element& sele,
-    const double* xi, const std::vector<Core::Gen::Pairedvector<int, double>>& dsxigp,
-    const Core::LinAlg::SerialDenseVector& lmval, const Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorEhl::gp_weighted_surf_grad_and_deriv(Mortar::Element& source_elem,
+    const double* xi, const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_gp,
+    const Core::LinAlg::SerialDenseVector& lm_val, const Core::LinAlg::SerialDenseMatrix& lm_deriv,
     const Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap,
-    const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
+    const Core::LinAlg::SerialDenseVector& source_val,
+    const Core::LinAlg::SerialDenseMatrix& source_deriv,
     const Core::LinAlg::SerialDenseMatrix& sderiv2, const double& wgt, const double& jac,
     const Core::Gen::Pairedvector<int, double>& jacintcellmap)
 {
@@ -90,7 +94,7 @@ void CONTACT::IntegratorEhl::gp_weighted_surf_grad_and_deriv(Mortar::Element& se
   std::vector<std::vector<double>> gxi(2, std::vector<double>(3, 0));
 
   // metrics routine gives local basis vectors
-  sele.metrics(xi, gxi.at(0).data(), gxi.at(1).data());
+  source_elem.metrics(xi, gxi.at(0).data(), gxi.at(1).data());
 
   if (n_dim() == 2)
   {
@@ -117,67 +121,71 @@ void CONTACT::IntegratorEhl::gp_weighted_surf_grad_and_deriv(Mortar::Element& se
   for (int i = 0; i < n_dim() - 1; ++i)
     for (int d = 0; d < n_dim(); ++d) gxi_contra.at(i).at(d) = contravariant_metric(i, d);
 
-  for (int a = 0; a < sele.num_node(); ++a)
+  for (int a = 0; a < source_elem.num_node(); ++a)
   {
-    Core::Nodes::Node* node = sele.nodes()[a];
+    Core::Nodes::Node* node = source_elem.nodes()[a];
     CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
     if (!cnode) FOUR_C_THROW("this is not a contact node");
 
-    for (int c = 0; c < sele.num_node(); ++c)
+    for (int c = 0; c < source_elem.num_node(); ++c)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data()
-              .get_surf_grad()[dynamic_cast<CONTACT::Node*>(sele.nodes()[c])->dofs()[0]];
+              .get_surf_grad()[dynamic_cast<CONTACT::Node*>(source_elem.nodes()[c])->dofs()[0]];
       for (int d = 0; d < n_dim(); ++d)
         for (int al = 0; al < n_dim() - 1; ++al)
-          tmp(d) += wgt * jac * lmval(a) * sderiv(c, al) * gxi_contra.at(al).at(d);
+          tmp(d) += wgt * jac * lm_val(a) * source_deriv(c, al) * gxi_contra.at(al).at(d);
     }
 
-    for (int c = 0; c < sele.num_node(); ++c)
+    for (int c = 0; c < source_elem.num_node(); ++c)
     {
       for (auto p = jacintcellmap.begin(); p != jacintcellmap.end(); ++p)
       {
         Core::LinAlg::Matrix<3, 1>& tmp = cnode->ehl_data().get_surf_grad_deriv()[p
-                ->first][dynamic_cast<CONTACT::Node*>(sele.nodes()[c])->dofs()[0]];
+                ->first][dynamic_cast<CONTACT::Node*>(source_elem.nodes()[c])->dofs()[0]];
         for (int d = 0; d < n_dim(); ++d)
           for (int al = 0; al < n_dim() - 1; ++al)
-            tmp(d) += wgt * p->second * lmval(a) * sderiv(c, al) * gxi_contra.at(al).at(d);
+            tmp(d) += wgt * p->second * lm_val(a) * source_deriv(c, al) * gxi_contra.at(al).at(d);
       }
       for (int e = 0; e < n_dim() - 1; ++e)
-        for (auto p = dsxigp.at(e).begin(); p != dsxigp.at(e).end(); ++p)
+        for (auto p = d_source_xi_gp.at(e).begin(); p != d_source_xi_gp.at(e).end(); ++p)
         {
           Core::LinAlg::Matrix<3, 1>& tmp = cnode->ehl_data().get_surf_grad_deriv()[p
-                  ->first][dynamic_cast<CONTACT::Node*>(sele.nodes()[c])->dofs()[0]];
+                  ->first][dynamic_cast<CONTACT::Node*>(source_elem.nodes()[c])->dofs()[0]];
           for (int d = 0; d < n_dim(); ++d)
             for (int al = 0; al < n_dim() - 1; ++al)
-              tmp(d) +=
-                  wgt * jac * lmderiv(a, e) * p->second * sderiv(c, al) * gxi_contra.at(al).at(d);
+              tmp(d) += wgt * jac * lm_deriv(a, e) * p->second * source_deriv(c, al) *
+                        gxi_contra.at(al).at(d);
         }
 
       for (auto p = dualmap.begin(); p != dualmap.end(); ++p)
       {
         Core::LinAlg::Matrix<3, 1>& tmp = cnode->ehl_data().get_surf_grad_deriv()[p
-                ->first][dynamic_cast<CONTACT::Node*>(sele.nodes()[c])->dofs()[0]];
+                ->first][dynamic_cast<CONTACT::Node*>(source_elem.nodes()[c])->dofs()[0]];
         for (int d = 0; d < n_dim(); ++d)
           for (int al = 0; al < n_dim() - 1; ++al)
-            for (int m = 0; m < sele.num_node(); ++m)
-              tmp(d) +=
-                  wgt * jac * p->second(a, m) * sval(m) * sderiv(c, al) * gxi_contra.at(al).at(d);
+            for (int m = 0; m < source_elem.num_node(); ++m)
+              tmp(d) += wgt * jac * p->second(a, m) * source_val(m) * source_deriv(c, al) *
+                        gxi_contra.at(al).at(d);
       }
     }
   }
 }
 
-void CONTACT::IntegratorEhl::gp_weighted_av_rel_vel(Mortar::Element& sele, Mortar::Element& mele,
-    const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseVector& lmval,
-    const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-    const Core::LinAlg::SerialDenseMatrix& mderiv, const Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorEhl::gp_weighted_av_rel_vel(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, const Core::LinAlg::SerialDenseVector& source_val,
+    const Core::LinAlg::SerialDenseVector& lm_val,
+    const Core::LinAlg::SerialDenseVector& target_val,
+    const Core::LinAlg::SerialDenseMatrix& source_deriv,
+    const Core::LinAlg::SerialDenseMatrix& target_deriv,
+    const Core::LinAlg::SerialDenseMatrix& lm_deriv,
     const Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, const double& wgt,
     const double& jac, const Core::Gen::Pairedvector<int, double>& derivjac, const double* normal,
     const std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, const double& gap,
-    const Core::Gen::Pairedvector<int, double>& deriv_gap, const double* sxi, const double* mxi,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    const Core::Gen::Pairedvector<int, double>& deriv_gap, const double* source_xi,
+    const double* target_xi,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
   constexpr int dim = 3;
   if (IntegratorEhl::n_dim() != 3)
@@ -187,40 +195,42 @@ void CONTACT::IntegratorEhl::gp_weighted_av_rel_vel(Mortar::Element& sele, Morta
   std::vector<Core::Gen::Pairedvector<int, double>> dt1, dt2;
   Core::LinAlg::Matrix<dim, 1> relVel;
   std::vector<Core::Gen::Pairedvector<int, double>> relVel_deriv(
-      dim, sele.num_node() * dim + mele.num_node() * dim + derivsxi[0].size() + derivmxi[0].size());
+      dim, source_elem.num_node() * dim + target_elem.num_node() * dim +
+               source_derivs_xi[0].size() + target_derivs_xi[0].size());
   double vt1, vt2;
   Core::Gen::Pairedvector<int, double> dvt1(0);
   Core::Gen::Pairedvector<int, double> dvt2(0);
 
   CONTACT::Utils::build_tangent_vectors<dim>(normal, dnmap_unit, t1.data(), dt1, t2.data(), dt2);
-  CONTACT::Utils::rel_vel_invariant<dim>(sele, sxi, derivsxi, sval, sderiv, mele, mxi, derivmxi,
-      mval, mderiv, gap, deriv_gap, relVel, relVel_deriv, -.5);
+  CONTACT::Utils::rel_vel_invariant<dim>(source_elem, source_xi, source_derivs_xi, source_val,
+      source_deriv, target_elem, target_xi, target_derivs_xi, target_val, target_deriv, gap,
+      deriv_gap, relVel, relVel_deriv, -.5);
 
   CONTACT::Utils::vector_scalar_product<dim>(t1, dt1, relVel, relVel_deriv, vt1, dvt1);
   CONTACT::Utils::vector_scalar_product<dim>(t2, dt2, relVel, relVel_deriv, vt2, dvt2);
 
-  for (int i = 0; i < sele.num_node(); ++i)
+  for (int i = 0; i < source_elem.num_node(); ++i)
   {
-    CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(sele.nodes()[i]);
+    CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(source_elem.nodes()[i]);
     for (int d = 0; d < dim; ++d)
       cnode->ehl_data().get_weighted_rel_tang_vel()(d) +=
-          jac * wgt * lmval(i) * (vt1 * t1(d) + vt2 * t2(d));
+          jac * wgt * lm_val(i) * (vt1 * t1(d) + vt2 * t2(d));
 
     for (auto p = derivjac.begin(); p != derivjac.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first];
       for (int d = 0; d < dim; ++d)
-        tmp(d) += p->second * wgt * lmval(i) * (vt1 * t1(d) + vt2 * t2(d));
+        tmp(d) += p->second * wgt * lm_val(i) * (vt1 * t1(d) + vt2 * t2(d));
     }
 
     for (int e = 0; e < dim - 1; ++e)
-      for (auto p = derivsxi.at(e).begin(); p != derivsxi.at(e).end(); ++p)
+      for (auto p = source_derivs_xi.at(e).begin(); p != source_derivs_xi.at(e).end(); ++p)
       {
         Core::LinAlg::Matrix<3, 1>& tmp =
             cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first];
         for (int d = 0; d < dim; ++d)
-          tmp(d) += jac * wgt * lmderiv(i, e) * p->second * (vt1 * t1(d) + vt2 * t2(d));
+          tmp(d) += jac * wgt * lm_deriv(i, e) * p->second * (vt1 * t1(d) + vt2 * t2(d));
       }
 
     for (auto p = dualmap.begin(); p != dualmap.end(); ++p)
@@ -228,61 +238,62 @@ void CONTACT::IntegratorEhl::gp_weighted_av_rel_vel(Mortar::Element& sele, Morta
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first];
       for (int d = 0; d < dim; ++d)
-        for (int m = 0; m < sele.num_node(); ++m)
-          tmp(d) += jac * wgt * p->second(i, m) * sval(m) * (vt1 * t1(d) + vt2 * t2(d));
+        for (int m = 0; m < source_elem.num_node(); ++m)
+          tmp(d) += jac * wgt * p->second(i, m) * source_val(m) * (vt1 * t1(d) + vt2 * t2(d));
     }
 
     for (auto p = dvt1.begin(); p != dvt1.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first];
-      for (int d = 0; d < dim; ++d) tmp(d) += jac * wgt * lmval(i) * p->second * t1(d);
+      for (int d = 0; d < dim; ++d) tmp(d) += jac * wgt * lm_val(i) * p->second * t1(d);
     }
 
     for (int d = 0; d < dim; ++d)
       for (auto p = dt1.at(d).begin(); p != dt1.at(d).end(); ++p)
         cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first](d) +=
-            jac * wgt * lmval(i) * vt1 * p->second;
+            jac * wgt * lm_val(i) * vt1 * p->second;
 
     for (auto p = dvt2.begin(); p != dvt2.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first];
-      for (int d = 0; d < dim; ++d) tmp(d) += jac * wgt * lmval(i) * p->second * t2(d);
+      for (int d = 0; d < dim; ++d) tmp(d) += jac * wgt * lm_val(i) * p->second * t2(d);
     }
 
     for (int d = 0; d < dim; ++d)
       for (auto p = dt2.at(d).begin(); p != dt2.at(d).end(); ++p)
         cnode->ehl_data().get_weighted_rel_tang_vel_deriv()[p->first](d) +=
-            jac * wgt * lmval(i) * vt2 * p->second;
+            jac * wgt * lm_val(i) * vt2 * p->second;
   }
 
-  CONTACT::Utils::rel_vel<dim>(sele, sval, sderiv, derivsxi, -1., relVel, relVel_deriv);
+  CONTACT::Utils::rel_vel<dim>(
+      source_elem, source_val, source_deriv, source_derivs_xi, -1., relVel, relVel_deriv);
   CONTACT::Utils::vector_scalar_product<dim>(t1, dt1, relVel, relVel_deriv, vt1, dvt1);
   CONTACT::Utils::vector_scalar_product<dim>(t2, dt2, relVel, relVel_deriv, vt2, dvt2);
 
-  for (int i = 0; i < sele.num_node(); ++i)
+  for (int i = 0; i < source_elem.num_node(); ++i)
   {
-    CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(sele.nodes()[i]);
+    CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(source_elem.nodes()[i]);
     for (int d = 0; d < dim; ++d)
       cnode->ehl_data().get_weighted_av_tang_vel()(d) -=
-          jac * wgt * lmval(i) * (vt1 * t1(d) + vt2 * t2(d));
+          jac * wgt * lm_val(i) * (vt1 * t1(d) + vt2 * t2(d));
 
     for (auto p = derivjac.begin(); p != derivjac.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first];
       for (int d = 0; d < dim; ++d)
-        tmp(d) -= p->second * wgt * lmval(i) * (vt1 * t1(d) + vt2 * t2(d));
+        tmp(d) -= p->second * wgt * lm_val(i) * (vt1 * t1(d) + vt2 * t2(d));
     }
 
     for (int e = 0; e < dim - 1; ++e)
-      for (auto p = derivsxi.at(e).begin(); p != derivsxi.at(e).end(); ++p)
+      for (auto p = source_derivs_xi.at(e).begin(); p != source_derivs_xi.at(e).end(); ++p)
       {
         Core::LinAlg::Matrix<3, 1>& tmp =
             cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first];
         for (int d = 0; d < dim; ++d)
-          tmp(d) -= jac * wgt * lmderiv(i, e) * p->second * (vt1 * t1(d) + vt2 * t2(d));
+          tmp(d) -= jac * wgt * lm_deriv(i, e) * p->second * (vt1 * t1(d) + vt2 * t2(d));
       }
 
     for (auto p = dualmap.begin(); p != dualmap.end(); ++p)
@@ -290,33 +301,33 @@ void CONTACT::IntegratorEhl::gp_weighted_av_rel_vel(Mortar::Element& sele, Morta
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first];
       for (int d = 0; d < dim; ++d)
-        for (int m = 0; m < sele.num_node(); ++m)
-          tmp(d) -= jac * wgt * p->second(i, m) * sval(m) * (vt1 * t1(d) + vt2 * t2(d));
+        for (int m = 0; m < source_elem.num_node(); ++m)
+          tmp(d) -= jac * wgt * p->second(i, m) * source_val(m) * (vt1 * t1(d) + vt2 * t2(d));
     }
 
     for (auto p = dvt1.begin(); p != dvt1.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first];
-      for (int d = 0; d < dim; ++d) tmp(d) -= jac * wgt * lmval(i) * p->second * t1(d);
+      for (int d = 0; d < dim; ++d) tmp(d) -= jac * wgt * lm_val(i) * p->second * t1(d);
     }
 
     for (int d = 0; d < dim; ++d)
       for (auto p = dt1.at(d).begin(); p != dt1.at(d).end(); ++p)
         cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first](d) -=
-            jac * wgt * lmval(i) * vt1 * p->second;
+            jac * wgt * lm_val(i) * vt1 * p->second;
 
     for (auto p = dvt2.begin(); p != dvt2.end(); ++p)
     {
       Core::LinAlg::Matrix<3, 1>& tmp =
           cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first];
-      for (int d = 0; d < dim; ++d) tmp(d) -= jac * wgt * lmval(i) * p->second * t2(d);
+      for (int d = 0; d < dim; ++d) tmp(d) -= jac * wgt * lm_val(i) * p->second * t2(d);
     }
 
     for (int d = 0; d < dim; ++d)
       for (auto p = dt2.at(d).begin(); p != dt2.at(d).end(); ++p)
         cnode->ehl_data().get_weighted_av_tang_vel_deriv()[p->first](d) -=
-            jac * wgt * lmval(i) * vt2 * p->second;
+            jac * wgt * lm_val(i) * vt2 * p->second;
   }
 }
 

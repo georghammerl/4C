@@ -198,7 +198,7 @@ void FS3I::BiofilmFSI::setup()
       *structurenodemap, *structalenodemap, ndim);
 
   /// do we need this? What's for???
-  fsi_->fluid_field()->set_mesh_map(coupfa_->master_dof_map());
+  fsi_->fluid_field()->set_mesh_map(coupfa_->target_dof_map());
 
   idispn_ = fsi_->fluid_field()->extract_interface_veln();
   idispnp_ = fsi_->fluid_field()->extract_interface_veln();
@@ -841,7 +841,7 @@ void FS3I::BiofilmFSI::struct_ale_solve()
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::fluid_to_ale(
     Core::LinAlg::Vector<double>& iv) const
 {
-  return icoupfa_->master_to_slave(iv);
+  return icoupfa_->target_to_source(iv);
 }
 
 
@@ -850,7 +850,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::fluid_to_ale(
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_fluid_field(
     Core::LinAlg::Vector<double>& iv) const
 {
-  return coupfa_->slave_to_master(iv);
+  return coupfa_->source_to_target(iv);
 }
 
 /*----------------------------------------------------------------------*/
@@ -858,7 +858,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_fluid_fie
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_struct_field(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->slave_to_master(*iv);
+  return coupsa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------*/
@@ -866,7 +866,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_struct_fi
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_struct_field(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->slave_to_master(*iv);
+  return coupsa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------*/
@@ -874,7 +874,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::ale_to_struct_fi
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::struct_to_ale(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupsa_->master_to_slave(*iv);
+  return icoupsa_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------*/
@@ -882,7 +882,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::struct_to_ale(
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::BiofilmFSI::struct_to_ale(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupsa_->master_to_slave(*iv);
+  return icoupsa_->target_to_source(*iv);
 }
 
 

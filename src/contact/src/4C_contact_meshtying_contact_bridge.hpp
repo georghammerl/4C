@@ -138,7 +138,7 @@ namespace CONTACT
         std::shared_ptr<Core::LinAlg::Vector<double>> dis,
         std::shared_ptr<Core::LinAlg::Vector<double>> zero);
     /*!
-    \brief recover lagr. mult. for contact/meshtying and slave displ for mesht.
+    \brief recover lagr. mult. for contact/meshtying and source displ for mesht.
 
     */
     void recover(std::shared_ptr<Core::LinAlg::Vector<double>> disi);

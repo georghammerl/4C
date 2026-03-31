@@ -321,7 +321,7 @@ Thermo::FaceElement::FaceElement(int id, int owner, int nnode, const int* nodeid
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
   return;
 }  // ctor
 

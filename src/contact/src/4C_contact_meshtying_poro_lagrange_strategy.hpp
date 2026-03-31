@@ -50,7 +50,7 @@ namespace CONTACT
 
     void recover_coupling_matrix_partof_lmp(Core::LinAlg::Vector<double>& veli);
 
-    std::shared_ptr<Core::LinAlg::SparseMatrix> cs_;  // slave matrix block row (needed for LM)
+    std::shared_ptr<Core::LinAlg::SparseMatrix> cs_;  // source matrix block row (needed for LM)
 
     std::shared_ptr<Core::LinAlg::Map> fvelrow_;  // fluid row map (needed for splitting)
 

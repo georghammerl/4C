@@ -38,10 +38,10 @@ void CONTACT::NitscheStrategyPoro::apply_force_stiff_cmt(
   //    {
   //      for (int e=0;e<interface_[i]->discret().ElementColMap()->NumMyElements();++e)
   //      {
-  //        Mortar::Element* mele
+  //        Mortar::Element* target_elem
   //        =dynamic_cast<Mortar::Element*>(interface_[i]->discret().gElement(
   //            interface_[i]->discret().ElementColMap()->GID(e)));
-  //        mele->get_nitsche_container().ClearAll();
+  //        target_elem->get_nitsche_container().ClearAll();
   //      }
   //    }
 }
@@ -94,17 +94,17 @@ void CONTACT::NitscheStrategyPoro::set_parent_state(const Mortar::StateType& sta
         std::vector<int> lmowner;
         std::vector<int> lmstride;
 
-        if (ele->parent_slave_element())  // if this pointer is nullptr, this parent is impermeable
+        if (ele->parent_source_element())  // if this pointer is nullptr, this parent is impermeable
         {
           // this gets values in local order
-          ele->parent_slave_element()->location_vector(dis, lm, lmowner, lmstride);
+          ele->parent_source_element()->location_vector(dis, lm, lmowner, lmstride);
 
           std::vector<double> myval = Core::FE::extract_values(global, lm);
 
           std::vector<double> vel;
           std::vector<double> pres;
 
-          for (int n = 0; n < ele->parent_slave_element()->num_node(); ++n)
+          for (int n = 0; n < ele->parent_source_element()->num_node(); ++n)
           {
             for (unsigned dim = 0; dim < 3; ++dim)
             {
