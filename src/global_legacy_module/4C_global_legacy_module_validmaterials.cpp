@@ -2777,6 +2777,27 @@ std::unordered_map<Core::Materials::MaterialType, Core::IO::InputSpec> Global::v
 
   /*----------------------------------------------------------------------*/
   {
+    using namespace Core::IO::InputSpecBuilders::Validators;
+
+    known_materials[Core::Materials::mfi_time_funct_aniso] = group(
+        "MAT_InelasticDefgradTimeFunctAniso",
+        {
+            parameter<int>("FUNCT_NUM", {.description = "Time-dependent function used to calculate "
+                                                        "the inelastic deformation gradient"}),
+            parameter<int>(
+                "NUMSPACEDIM", {.description = "Number of space dimension (only 3 valid)",
+                                   .validator = positive<int>()}),
+            parameter<std::vector<double>>(
+                "GrowthDirection", {.description = "vector that defines the growth direction",
+                                       .size = from_parameter<int>("NUMSPACEDIM")}),
+        },
+        {.description = "Time-dependent anisotropic growth law; growth in direction as given "
+                        "in input-file. Determinant of volume change dependent on "
+                        "(1 + time function value) defined by 'FUNCT_NUM'"});
+  }
+
+  /*----------------------------------------------------------------------*/
+  {
     known_materials[Core::Materials::mfi_time_funct_iso] = group("MAT_InelasticDefgradTimeFunctIso",
         {
             parameter<int>("FUNCT_NUM", {.description = "Time-dependent function used to calculate "

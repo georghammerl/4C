@@ -709,6 +709,11 @@ std::shared_ptr<Mat::InelasticDefgradFactors> Mat::InelasticDefgradFactors::fact
       auto* params = dynamic_cast<Mat::PAR::InelasticDefgradLinTempIso*>(curmat);
       return std::make_shared<InelasticDefgradLinTempIso>(params);
     }
+    case Core::Materials::mfi_time_funct_aniso:
+    {
+      auto* params = dynamic_cast<Mat::PAR::InelasticDefgradTimeFunctAniso*>(curmat);
+      return std::make_shared<InelasticDefgradTimeFunctAniso>(params);
+    }
     case Core::Materials::mfi_time_funct_iso:
     {
       auto* params = dynamic_cast<Mat::PAR::InelasticDefgradTimeFunct*>(curmat);
@@ -1588,6 +1593,47 @@ void Mat::InelasticDefgradTimeFunct::pre_evaluate(const Teuchos::ParameterList& 
   FOUR_C_ASSERT(context.total_time, "Time not given in evaluation context.");
   const double time = *context.total_time;
   funct_value_ = funct.evaluate(time);
+}
+
+/*--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*/
+Mat::PAR::InelasticDefgradTimeFunctAniso::InelasticDefgradTimeFunctAniso(
+    const Core::Mat::PAR::Parameter::Data& matdata)
+    : InelasticDefgradTimeFunct(matdata),
+      growth_dir_(std::make_shared<InelasticDeformationDirection>(
+          matdata.parameters.get<std::vector<double>>("GrowthDirection")))
+{
+}
+
+/*--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*/
+Mat::PAR::InelasticSource Mat::InelasticDefgradTimeFunctAniso::get_inelastic_source()
+{
+  return PAR::InelasticSource::none;
+}
+
+/*--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*/
+Mat::InelasticDefgradTimeFunctAniso::InelasticDefgradTimeFunctAniso(
+    Core::Mat::PAR::Parameter* params)
+    : InelasticDefgradTimeFunct(params),
+      identity_(Core::LinAlg::TensorGenerators::identity<double, 3, 3>)
+{
+}
+
+/*--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*/
+void Mat::InelasticDefgradTimeFunctAniso::evaluate_inverse_inelastic_def_grad(
+    const Core::LinAlg::Matrix<3, 3>* defgrad, const Core::LinAlg::Matrix<3, 3>& iFin_other,
+    Core::LinAlg::Matrix<3, 3>& iFinM)
+{
+  Core::LinAlg::Matrix<3, 3> FinM(Core::LinAlg::Initialization::zero);
+  Core::LinAlg::TensorView<double, 3, 3> Fin = Core::LinAlg::make_tensor_view(FinM);
+
+  Fin += Core::LinAlg::get_full(identity_);
+  Fin += funct_value() * Core::LinAlg::get_full(parameter()->growth_dir_tensor());
+
+  iFinM.invert(FinM);
 }
 
 /*--------------------------------------------------------------------*
