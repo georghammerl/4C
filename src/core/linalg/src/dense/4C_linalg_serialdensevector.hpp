@@ -11,8 +11,11 @@
 
 #include "4C_config.hpp"
 
+#include <Teuchos_DataAccess.hpp>
+#include <Teuchos_SerialDenseMatrix.hpp>
 #include <Teuchos_SerialDenseVector.hpp>
 
+#include <ostream>
 #include <span>
 
 FOUR_C_NAMESPACE_OPEN
@@ -20,40 +23,83 @@ FOUR_C_NAMESPACE_OPEN
 namespace Core::LinAlg
 {
   /*!
- \brief A class that wraps Teuchos::SerialDenseVector
-
-      This is done in favor of typedef to allow forward declaration
- */
-  class SerialDenseVector : public Teuchos::SerialDenseVector<int, double>
+   * \brief A wrapper around Teuchos::SerialDenseVector
+   */
+  class SerialDenseVector
   {
    public:
-    /// Base type definition
-    using Base = Teuchos::SerialDenseVector<int, double>;
+    using ordinalType = int;
+    using scalarType = double;
+    using Base = Teuchos::SerialDenseVector<ordinalType, scalarType>;
 
-    /// Using the base class constructor
-    using Base::SerialDenseVector;
+    // --- constructors ---
+    SerialDenseVector() = default;
+    SerialDenseVector(int length);
+    SerialDenseVector(int length, bool zeroOut);
+    SerialDenseVector(Teuchos::DataAccess cv, double* values, int length);
+    SerialDenseVector(const Base& source, Teuchos::ETransp trans = Teuchos::NO_TRANS);
 
-    //! Return number of rows. Use our case style to better facilitate generic code.
-    [[nodiscard]] int num_rows() const { return this->numRows(); }
+    // NOLINTBEGIN(readability-identifier-naming)
 
-    //! Return number of columns. Use our case style to better facilitate generic code.
-    //!
-    //! @note This function exists because of a design decision in Trilinos where a vector is
-    //! implemented as a matrix with one column.
-    [[nodiscard]] int num_cols() const { return this->numCols(); }
+    // --- size queries ---
+    [[nodiscard]] int length() const;
+    [[nodiscard]] int num_rows() const;
+    [[nodiscard]] int numRows() const;
+    [[nodiscard]] double normInf() const;
+    [[nodiscard]] double normOne() const;
+    [[nodiscard]] double normFrobenius() const;
+    [[nodiscard]] bool empty() const;
+
+    // --- element access ---
+    double& operator()(int i) { return vec_(i); }
+    const double& operator()(int i) const { return vec_(i); }
+    double& operator[](int i) { return vec_[i]; }
+    const double& operator[](int i) const { return vec_[i]; }
+
+    // --- data access ---
+    //! Returns a pointer to the raw data.
+    double* values() const;
+    //! Returns a pointer to the raw data.
+    double* data() const;
+
+    // --- modifiers ---
+    int size(int length);
+    int Size(int length);
+    int resize(int length);
+    int scale(double alpha);
+    int put_scalar(double val = 0.0);
+    int putScalar(double val = 0.0);
+    void assign(const SerialDenseVector& source);
+
+    // --- algebraic operations ---
+    SerialDenseVector& operator+=(const SerialDenseVector& other);
+    double dot(const SerialDenseVector& other) const;
+    int multiply(Teuchos::ETransp transa, Teuchos::ETransp transb, double alpha,
+        const Teuchos::SerialDenseMatrix<ordinalType, scalarType>& A,
+        const Teuchos::SerialDenseMatrix<ordinalType, scalarType>& B, double beta);
+    int multiply(Teuchos::ETransp transa, Teuchos::ETransp transb, double alpha,
+        const Teuchos::SerialDenseMatrix<ordinalType, scalarType>& A, const SerialDenseVector& B,
+        double beta);
+    void print(std::ostream& out) const;
+
+    // NOLINTEND(readability-identifier-naming)
+
+    // --- access to underlying Trilinos object ---
+    Base& base();
+    const Base& base() const;
 
     /**
      * Get the vector as a std::span.
      */
-    [[nodiscard]] std::span<const double> as_span() const
-    {
-      return std::span(this->values(), this->length());
-    }
+    [[nodiscard]] std::span<const double> as_span() const { return std::span(values(), length()); }
 
     /**
      * Get the vector as a std::span.
      */
-    [[nodiscard]] std::span<double> as_span() { return std::span(this->values(), this->length()); }
+    [[nodiscard]] std::span<double> as_span() { return std::span(values(), length()); }
+
+   private:
+    Base vec_;
   };
 
   // type definition for serial integer vector

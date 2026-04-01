@@ -1992,7 +1992,7 @@ namespace Core::LinAlg
     different, though. See the appropriate functions for details.
 
     There is no operator[]. It behaves differently in
-    Core::LinAlg::SerialDenseMatrix and Core::LinAlg::SerialDenseVector::Base, and is not
+    Core::LinAlg::SerialDenseMatrix and Core::LinAlg::SerialDenseVector, and is not
     needed in either of them.
    */
   template <unsigned int rows, unsigned int cols, class ValueType = double>

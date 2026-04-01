@@ -236,9 +236,9 @@ std::vector<std::complex<double>> Core::LinAlg::generalized_eigen(
   // QZ-transformation
   //--------------------------------------------------------
   // vectors which contain the eigenvalues of the problem
-  Core::LinAlg::SerialDenseVector::Base L1;
-  Core::LinAlg::SerialDenseVector::Base L2;
-  Core::LinAlg::SerialDenseVector::Base L3;
+  Core::LinAlg::SerialDenseVector L1;
+  Core::LinAlg::SerialDenseVector L2;
+  Core::LinAlg::SerialDenseVector L3;
   L1.size(N);
   L2.size(N);
   L3.size(N);

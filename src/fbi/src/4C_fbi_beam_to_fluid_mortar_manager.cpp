@@ -452,12 +452,12 @@ void BeamInteraction::BeamToFluidMortarManager::evaluate_global_dm(
       }
 
       // Save check the matrix sizes.
-      if (local_D_elementDOFs.numRows() != (int)lambda_row.size() &&
+      if (local_D_elementDOFs.numRows() != (int)lambda_row.size() ||
           local_D_elementDOFs.numCols() != (int)beam_row.size())
         FOUR_C_THROW("Size of local D matrix does not match the GID vectors!");
-      if (local_M.numRows() != (int)lambda_row.size() && local_M.numCols() != (int)fluid_row.size())
+      if (local_M.numRows() != (int)lambda_row.size() || local_M.numCols() != (int)fluid_row.size())
         FOUR_C_THROW("Size of local M matrix does not match the GID vectors!");
-      if (local_kappa.numRows() != (int)lambda_row.size() && local_kappa.numCols() != 1)
+      if (local_kappa.numRows() != (int)lambda_row.size())
         FOUR_C_THROW("Size of local kappa vector does not match the GID vector!");
 
       // Assemble into the global matrices.

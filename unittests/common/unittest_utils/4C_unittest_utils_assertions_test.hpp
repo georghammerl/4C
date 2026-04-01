@@ -14,6 +14,7 @@
 
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
+#include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_tensor.hpp"
 #include "4C_linalg_tensor_internals.hpp"
 
@@ -237,6 +238,45 @@ namespace TESTING::INTERNAL
   }
 
   /**
+   * Compare two Core::LinAlg::SerialDenseVector objects for double equality up to a tolerance. The
+   * signature is mandated by GoogleTest's EXPECT_PRED_FORMAT3 macro.
+   *
+   * @note This function is not intended to be used directly. Use FOUR_C_EXPECT_NEAR.
+   */
+  inline ::testing::AssertionResult assert_near(const char* vec1Expr,
+      const char* vec2Expr,  // NOLINT
+      const char* toleranceExpr, const Core::LinAlg::SerialDenseVector& vec1,
+      const Core::LinAlg::SerialDenseVector& vec2, double tolerance)
+  {
+    // argument is required for the EXPECT_PRED_FORMAT3 macro of GoogleTest for pretty printing
+    (void)toleranceExpr;
+
+    if (vec1.length() != vec2.length())
+    {
+      return ::testing::AssertionFailure()
+             << "dimension mismatch: " << vec1Expr << " has length " << vec1.length() << " but "
+             << vec2Expr << " has length " << vec2.length() << std::endl;
+    }
+
+    const std::string nonMatchingEntries = std::invoke(
+        [&]()
+        {
+          std::stringstream ss;
+          ss << std::fixed << std::setprecision(precision_for_printing(tolerance));
+          for (int i = 0; i < vec1.length(); ++i)
+          {
+            if (std::fabs(vec1(i) - vec2(i)) > tolerance)
+            {
+              ss << "[" << i << "]: " << vec1(i) << " vs. " << vec2(i) << std::endl;
+            }
+          }
+          return ss.str();
+        });
+
+    return result_based_on_non_matching_entries(nonMatchingEntries, tolerance, vec1Expr, vec2Expr);
+  }
+
+  /**
    * Compare two Core::LinAlg::Tensor objects for double equality up to a tolerance. The signature
    * is mandated by GoogleTest's EXPECT_PRED_FORMAT3 macro.
    *
@@ -306,6 +346,7 @@ namespace TESTING::INTERNAL
  * - std::vector<T>
  * - Core::LinAlg::Matrix
  * - Core::LinAlg::SerialDenseMatrix
+ * - Core::LinAlg::SerialDenseVector
  *
  * @note Implementation details: this and similar macros are defined to avoid writing asserts in the
  * unexpressive EXPECT_PRED_FORMATn syntax by gtest. They are all prefixed with `FOUR_C_` to easily

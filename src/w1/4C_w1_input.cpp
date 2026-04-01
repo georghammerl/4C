@@ -114,7 +114,7 @@ bool Discret::Elements::Wall1::read_element(const std::string& eletype, Core::FE
       // save EAS data into element container easdata_
       easdata_.alpha = alpha;
       easdata_.alphao = alphao;
-      easdata_.feas = feas;
+      easdata_.feas = Core::LinAlg::SerialDenseMatrix(feas.base());
       easdata_.invKaa = invKaa;
       easdata_.Kda = Kda;
       easdata_.Kad = Kad;  // ONLY NEEDED FOR GENERALISED ENERGY-MOMENTUM METHOD

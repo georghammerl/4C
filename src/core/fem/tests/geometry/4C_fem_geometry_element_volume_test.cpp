@@ -68,7 +68,7 @@ namespace
     xyz(2, 1) = 2.0;  // node 2
 
     std::vector<Core::LinAlg::SerialDenseVector> knots(1);
-    knots[0].reshape(4, 1);
+    knots[0].resize(4);
     knots[0][0] = 0;
     knots[0][1] = 0;
     knots[0][2] = 1;
@@ -100,7 +100,7 @@ namespace
       xyz(2, 2) = 2.0;  // node 3
 
       std::vector<Core::LinAlg::SerialDenseVector> knots(1);
-      knots[0].reshape(6, 1);
+      knots[0].resize(6);
       knots[0][0] = 0;
       knots[0][1] = 0;
       knots[0][2] = 0;
@@ -133,7 +133,7 @@ namespace
       xyz(2, 2) = 1.0;  // node 3
 
       std::vector<Core::LinAlg::SerialDenseVector> knots(1);
-      knots[0].reshape(6, 1);
+      knots[0].resize(6);
       knots[0][0] = 0;
       knots[0][1] = 0;
       knots[0][2] = 0;
@@ -312,12 +312,12 @@ namespace
     xyz(2, 3) = 0.0;  // node 4
 
     std::vector<Core::LinAlg::SerialDenseVector> knots(2);
-    knots[0].reshape(4, 1);
+    knots[0].resize(4);
     knots[0][0] = 0;
     knots[0][1] = 0;
     knots[0][2] = 1;
     knots[0][3] = 1;
-    knots[1].reshape(4, 1);
+    knots[1].resize(4);
     knots[1][0] = 0;
     knots[1][1] = 0;
     knots[1][2] = 1;
@@ -369,14 +369,14 @@ namespace
       xyz(2, 8) = 0.0;  // node 9
 
       std::vector<Core::LinAlg::SerialDenseVector> knots(2);
-      knots[0].reshape(6, 1);
+      knots[0].resize(6);
       knots[0][0] = 0;
       knots[0][1] = 0;
       knots[0][2] = 0;
       knots[0][3] = 1;
       knots[0][4] = 1;
       knots[0][5] = 1;
-      knots[1].reshape(6, 1);
+      knots[1].resize(6);
       knots[1][0] = 0;
       knots[1][1] = 0;
       knots[1][2] = 0;
@@ -433,14 +433,14 @@ namespace
       xyz(2, 8) = 1.0;  // node 9
 
       std::vector<Core::LinAlg::SerialDenseVector> knots(2);
-      knots[0].reshape(6, 1);
+      knots[0].resize(6);
       knots[0][0] = 0;
       knots[0][1] = 0;
       knots[0][2] = 0;
       knots[0][3] = 1;
       knots[0][4] = 1;
       knots[0][5] = 1;
-      knots[1].reshape(6, 1);
+      knots[1].resize(6);
       knots[1][0] = 0;
       knots[1][1] = 0;
       knots[1][2] = 0;
@@ -766,17 +766,17 @@ namespace
     xyz(2, 7) = 1.0;  // node 8
 
     std::vector<Core::LinAlg::SerialDenseVector> knots(3);
-    knots[0].reshape(4, 1);
+    knots[0].resize(4);
     knots[0][0] = 0;
     knots[0][1] = 0;
     knots[0][2] = 1;
     knots[0][3] = 1;
-    knots[1].reshape(4, 1);
+    knots[1].resize(4);
     knots[1][0] = 0;
     knots[1][1] = 0;
     knots[1][2] = 1;
     knots[1][3] = 1;
-    knots[2].reshape(4, 1);
+    knots[2].resize(4);
     knots[2][0] = 0;
     knots[2][1] = 0;
     knots[2][2] = 1;
@@ -888,7 +888,7 @@ namespace
       std::vector<Core::LinAlg::SerialDenseVector> knots(3);
       for (int idir = 0; idir < 3; ++idir)
       {
-        knots[idir].reshape(6, 1);
+        knots[idir].resize(6);
         knots[idir][0] = 0.0;
         knots[idir][1] = 0.0;
         knots[idir][2] = 0.0;
@@ -994,7 +994,7 @@ namespace
       std::vector<Core::LinAlg::SerialDenseVector> knots(3);
       for (int idir = 0; idir < 3; ++idir)
       {
-        knots[idir].reshape(6, 1);
+        knots[idir].resize(6);
         knots[idir][0] = 0.0;
         knots[idir][1] = 0.0;
         knots[idir][2] = 0.0;
