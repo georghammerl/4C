@@ -64,27 +64,29 @@ namespace Core::LinAlg::Internal
   }
 
   template <typename VectorOrMatrix>
-  inline int get_num_rows(const VectorOrMatrix& mat)
+  inline int get_num_rows(const VectorOrMatrix& obj)
   {
-    return mat.numRows();
+    return obj.numRows();
   }
 
   template <typename VectorOrMatrix>
-  inline int get_num_cols(const VectorOrMatrix& mat)
+  inline int get_num_cols(const VectorOrMatrix& obj)
   {
-    return mat.numCols();
+    return obj.numCols();
   }
 
   template <>
   inline int get_num_rows<Core::LinAlg::SerialDenseVector>(
-      const Core::LinAlg::SerialDenseVector& vec)
+      const Core::LinAlg::SerialDenseVector& obj)
   {
-    return vec.length();
+    return obj.length();
   }
 
   template <>
-  inline int get_num_cols<Core::LinAlg::SerialDenseVector>(const Core::LinAlg::SerialDenseVector&)
+  inline int get_num_cols<Core::LinAlg::SerialDenseVector>(
+      const Core::LinAlg::SerialDenseVector& obj)
   {
+    static_cast<void>(obj);
     return 1;
   }
 
