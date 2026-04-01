@@ -120,15 +120,15 @@ namespace Mat
 
     /*----------------------------------------------------------------------
      *----------------------------------------------------------------------*/
-    /*! \class InelasticDefgradTimeFunctIso
+    /*! \class InelasticDefgradTimeFunct
      *
-     * This is a parameter class holding parameters for evaluation of an isotropic inelastic
-     * deformation induced by a given time-dependent function.
+     * This is a parameter class holding parameters for evaluation of an inelastic deformation
+     * induced by a given time-dependent function.
      */
-    class InelasticDefgradTimeFunctIso : public Core::Mat::PAR::Parameter
+    class InelasticDefgradTimeFunct : public Core::Mat::PAR::Parameter
     {
      public:
-      explicit InelasticDefgradTimeFunctIso(const Core::Mat::PAR::Parameter::Data& matdata);
+      explicit InelasticDefgradTimeFunct(const Core::Mat::PAR::Parameter::Data& matdata);
 
       std::shared_ptr<Core::Mat::Material> create_material() override { return nullptr; }
 
@@ -742,6 +742,64 @@ namespace Mat
   };
 
   /*--------------------------------------------------------------------*/
+  /*! \class InelasticDefgradTimeFunct
+   *
+   * This class provides the functionality for evaluating the time dependent function that controls
+   * the magnitude of the inelastic part of the deformation gradient used in the
+   * InelasticDefgradTimeFunctIso and InelasticDefgradTimeFunctAniso classes.
+   */
+  class InelasticDefgradTimeFunct : public InelasticDefgradFactors
+  {
+   public:
+    explicit InelasticDefgradTimeFunct(Core::Mat::PAR::Parameter* params);
+
+    void evaluate_additional_cmat(const Core::LinAlg::Matrix<3, 3>* defgrad,
+        const Core::LinAlg::Matrix<3, 3>& iFin_other, const Core::LinAlg::Matrix<3, 3>& iFinjM,
+        const Core::LinAlg::Matrix<6, 1>& iCV, const Core::LinAlg::Matrix<6, 9>& dSdiFinj,
+        Core::LinAlg::Matrix<6, 6>& cmatadd) override = 0;
+
+    void evaluate_inelastic_def_grad_derivative(
+        double detjacobian, Core::LinAlg::Tensor<double, 3, 3>& dFindx) override = 0;
+
+    void evaluate_inverse_inelastic_def_grad(const Core::LinAlg::Matrix<3, 3>* defgrad,
+        const Core::LinAlg::Matrix<3, 3>& iFin_other,
+        Core::LinAlg::Matrix<3, 3>& iFinM) override = 0;
+
+    void evaluate_od_stiff_mat(const Core::LinAlg::Matrix<3, 3>* defgrad,
+        const Core::LinAlg::Matrix<3, 3>& iFinjM, const Core::LinAlg::Matrix<6, 9>& dSdiFinj,
+        Core::LinAlg::Matrix<6, 1>& dstressdx) override = 0;
+
+    PAR::InelasticSource get_inelastic_source() override = 0;
+
+    Core::Materials::MaterialType material_type() const override = 0;
+
+    Mat::PAR::InelasticDefgradTimeFunct* parameter() const override
+    {
+      return dynamic_cast<Mat::PAR::InelasticDefgradTimeFunct*>(
+          Mat::InelasticDefgradFactors::parameter());
+    }
+
+    void pre_evaluate(const Teuchos::ParameterList& params, const EvaluationContext<3>& context,
+        int gp, int eleGID) override;
+
+    void update() override = 0;
+
+    void setup(const int numgp, const Discret::Elements::Fibers& fibers,
+        const std::optional<Discret::Elements::CoordinateSystem>& coord_system) override = 0;
+
+    void pack_inelastic(Core::Communication::PackBuffer& data) const override = 0;
+
+    void unpack_inelastic(Core::Communication::UnpackBuffer& data) override = 0;
+
+   protected:
+    [[nodiscard]] double funct_value() const { return funct_value_; }
+
+   private:
+    //! evaluated function value. Gets filled in pre_evaluate()
+    double funct_value_;
+  };
+
+  /*--------------------------------------------------------------------*/
   /*! \class InelasticDefgradTimeFunctIso
    *
    * This class models materials in combination with the multiplicative split material that feature
@@ -749,7 +807,7 @@ namespace Mat
    * of the inelastic part of the deformation gradient such that the determinant of the inelastic
    * part evaluates to (1 + time function value).
    */
-  class InelasticDefgradTimeFunctIso : public InelasticDefgradFactors
+  class InelasticDefgradTimeFunctIso : public InelasticDefgradTimeFunct
   {
    public:
     explicit InelasticDefgradTimeFunctIso(Core::Mat::PAR::Parameter* params);
@@ -776,15 +834,6 @@ namespace Mat
       return Core::Materials::mfi_time_funct_iso;
     }
 
-    Mat::PAR::InelasticDefgradTimeFunctIso* parameter() const override
-    {
-      return dynamic_cast<Mat::PAR::InelasticDefgradTimeFunctIso*>(
-          Mat::InelasticDefgradFactors::parameter());
-    }
-
-    void pre_evaluate(const Teuchos::ParameterList& params, const EvaluationContext<3>& context,
-        int gp, int eleGID) override;
-
     void update() override {};
 
     void setup(const int numgp, const Discret::Elements::Fibers& fibers,
@@ -795,11 +844,8 @@ namespace Mat
     void unpack_inelastic(Core::Communication::UnpackBuffer& data) override {};
 
    private:
-    //! evaluated function value. Gets filled in pre_evaluate()
-    double funct_value_;
-
     //! identity tensor
-    Core::LinAlg::Matrix<3, 3> identity_;
+    Core::LinAlg::SymmetricTensor<double, 3, 3> identity_;
   };
 
   class InelasticDefgradScalar : public InelasticDefgradFactors

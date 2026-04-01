@@ -599,7 +599,7 @@ std::unique_ptr<Core::Mat::PAR::Parameter> Mat::make_parameter(
     }
     case Core::Materials::mfi_time_funct_iso:
     {
-      return make_parameter_impl<Mat::PAR::InelasticDefgradTimeFunctIso>(id, type, input_data);
+      return make_parameter_impl<Mat::PAR::InelasticDefgradTimeFunct>(id, type, input_data);
     }
     case Core::Materials::mfi_transv_isotrop_elast_viscoplast:
     {
