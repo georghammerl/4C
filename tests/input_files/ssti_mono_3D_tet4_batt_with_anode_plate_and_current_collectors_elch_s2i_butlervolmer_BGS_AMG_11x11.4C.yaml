@@ -201,7 +201,6 @@ MATERIALS:
       SCALAR1: 1
       SCALAR1_MolarGrowthFac: 1.3e-05
       SCALAR1_RefConc: 1
-      NUMSPACEDIM: 3
       GrowthDirection: [1, 0, 0]
   - MAT: 19
     MAT_InelasticDefgradLinTempIso:
@@ -358,91 +357,91 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 4
       QUANTITY: "phi1"
-      VALUE: 3.65054010958037054e+01
+      VALUE: 3.65054117665196287e+01
       TOLERANCE: 3.7e-07
   - SCATRA:
       DIS: "scatra"
       NODE: 4
       QUANTITY: "phi2"
-      VALUE: 6.85349116701834682e-03
+      VALUE: 6.85349389904629791e-03
       TOLERANCE: 6.9e-11
   - STRUCTURE:
       DIS: "structure"
       NODE: 4
       QUANTITY: "dispx"
-      VALUE: -3.06912608171346663e-08
+      VALUE: -3.06912700676419866e-08
       TOLERANCE: 3.1e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 4
       QUANTITY: "dispy"
-      VALUE: -1.99929965096122679e-10
+      VALUE: -1.99930025794690803e-10
       TOLERANCE: 1.0e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 4
       QUANTITY: "dispz"
-      VALUE: 5.21229116790241414e-10
+      VALUE: 5.21229276159177456e-10
       TOLERANCE: 1.0e-16
   - SCATRA:
       DIS: "thermo"
       NODE: 4
       QUANTITY: "phi"
-      VALUE: 2.99915297782958476e+02
+      VALUE: 2.99915297696379184e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       NODE: 634
       QUANTITY: "phi1"
-      VALUE: 4.55219882601298232e+04
+      VALUE: 4.55219882458209686e+04
       TOLERANCE: 4.6e-04
   - SCATRA:
       DIS: "scatra"
       NODE: 634
       QUANTITY: "phi2"
-      VALUE: 3.50901267621366975e+00
+      VALUE: 3.50901268514186837e+00
       TOLERANCE: 3.5e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 634
       QUANTITY: "dispx"
-      VALUE: -5.85806484066342936e-08
+      VALUE: -5.85806660629739876e-08
       TOLERANCE: 5.9e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 634
       QUANTITY: "dispy"
-      VALUE: -1.83181395785904628e-10
+      VALUE: -1.83181460945558324e-10
       TOLERANCE: 1.0e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 634
       QUANTITY: "dispz"
-      VALUE: 2.58915870289603303e-10
+      VALUE: 2.58915958902941803e-10
       TOLERANCE: 1.0e-16
   - SCATRA:
       DIS: "thermo"
       NODE: 634
       QUANTITY: "phi"
-      VALUE: 3.00010941352381792e+02
+      VALUE: 3.00010941363558629e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       NODE: 767
       QUANTITY: "phi1"
-      VALUE: 4.52339848113204789e+04
+      VALUE: 4.52339844731180710e+04
       TOLERANCE: 4.5e-04
   - SCATRA:
       DIS: "scatra"
       NODE: 767
       QUANTITY: "phi2"
-      VALUE: 3.53934657999949565e+00
+      VALUE: 3.53934661232620096e+00
       TOLERANCE: 3.5e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 767
       QUANTITY: "dispx"
-      VALUE: -7.83726231520099078e-09
+      VALUE: -7.83726482374832164e-09
       TOLERANCE: 1.0e-16
   - STRUCTURE:
       DIS: "structure"
@@ -454,25 +453,25 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 767
       QUANTITY: "dispz"
-      VALUE: -2.02428394051246211e-09
+      VALUE: -2.02428470436371461e-09
       TOLERANCE: 1.0e-16
   - SCATRA:
       DIS: "thermo"
       NODE: 767
       QUANTITY: "phi"
-      VALUE: 3.00043730195995636e+02
+      VALUE: 3.00043730244926849e+02
       TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "scatra"
       SPECIAL: true
       QUANTITY: "soc1"
-      VALUE: 5.58744074417275634e-04
+      VALUE: 5.58744241914892106e-04
       TOLERANCE: 5.6e-12
   - SCATRA:
       DIS: "scatra"
       SPECIAL: true
       QUANTITY: "cellvoltage"
-      VALUE: 3.54036624321118776e+00
+      VALUE: 3.54036626863872694e+00
       TOLERANCE: 3.5e-08
   - SSTI:
       SPECIAL: true
