@@ -30,7 +30,11 @@ Inpar::ScaTra::ImplType PoroElastScaTra::Utils::PoroScatraCloneStrategy::get_imp
   const std::string& eletypename = ele->element_type().name();
 
   // Solidporo
-  if (eletypename == "SolidPoroPressureBasedType<3>")
+  if (eletypename == "SolidPoroPressureBasedType<2>")
+  {
+    return (dynamic_cast<Discret::Elements::SolidPoroPressureBased<2>*>(ele))->get_impl_type();
+  }
+  else if (eletypename == "SolidPoroPressureBasedType<3>")
   {
     return (dynamic_cast<Discret::Elements::SolidPoroPressureBased<3>*>(ele))->get_impl_type();
   }

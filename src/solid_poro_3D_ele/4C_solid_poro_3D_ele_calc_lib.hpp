@@ -1083,31 +1083,6 @@ namespace Discret::Elements
     return press;
   }
 
-
-  /*!
-   * @brief Update the internal force vector with poroelasticity contribution of one Gauss point
-   *
-   * @tparam celltype: Cell type
-   * @param detJ_w (in) : integration factor (Gauss point weight times the determinant of
-   * the jacobian)
-   * @param solidpressure (in) : solid pressure
-   * @param det_defgrd (in) : determinant of deformation gradient
-   * * @param bopCinv (in) : B^T . C^-1
-   * @param force_vector (in/out) : Force vector where the local contribution is added to
-   */
-  template <Core::FE::CellType celltype>
-  inline void update_internal_forcevector_with_fluidstressterm(const double detJ_w,
-      const double solidpressure, const double det_defgrd,
-      const Core::LinAlg::Matrix<Internal::num_dof_per_ele<celltype>, 1>& bopCinv,
-      Core::LinAlg::Matrix<Internal::num_dim<celltype> * Internal::num_nodes<celltype>, 1>&
-          force_vector)
-  {
-    // additional fluid stress- stiffness term RHS -(B^T .  C^-1  * J * p^f * detJ * w(gp))
-    double factor = -detJ_w * solidpressure * det_defgrd;
-    force_vector.update(factor, bopCinv, 1.0);
-  }
-
-
   /*!
    * @brief Compute the anisotropic permeability coefficients at the Gauss point
    *
@@ -2296,73 +2271,6 @@ namespace Discret::Elements
 
     return cauchygreen;
   }
-
-  /*!
-   * @brief Evaluates the derivative of the inverse right Cauchy-Green deformation tensor w.r.t. the
-   * displacements
-   *
-   * @tparam celltype: Cell type
-   * @param cauchygreen (in) : An object holding the right Cauchy-Green deformation tensor and its
-   * inverse
-   * @param jacobian_mapping (in) : n object holding quantities of the jacobian mapping
-   * (inverse Jacobian, determinant, derivatives of the shape functions w.r.t. XYZ)
-   * @param: spatial_material_mapping (in): An object holding quantities of the spatial material
-   * mapping (deformation_gradient, inverse_deformation_gradient,
-   * determinant_deformation_gradient)
-   * @return dInverseCauchyGreen_dDisp : derivative of the inverse right Cauchy-Green deformation
-   * tensor w.r.t. the displacements
-   */
-  template <Core::FE::CellType celltype>
-  Core::LinAlg::Matrix<Internal::num_str<celltype>,
-      Internal::num_dim<celltype> * Internal::num_nodes<celltype>>
-  evaluate_inverse_cauchy_green_linearization(const CauchyGreenAndInverse<celltype>& cauchygreen,
-      const JacobianMapping<celltype>& jacobian_mapping,
-      const SpatialMaterialMapping<celltype>& spatial_material_mapping)
-    requires(Internal::num_dim<celltype> == 3)
-  {
-    // dC^-1/dDisp
-    Core::LinAlg::Matrix<Internal::num_str<celltype>,
-        Internal::num_dim<celltype> * Internal::num_nodes<celltype>>
-        dInverseCauchyGreen_dDisp(Core::LinAlg::Initialization::zero);
-
-    for (int n = 0; n < Internal::num_nodes<celltype>; ++n)
-    {
-      for (int k = 0; k < Internal::num_dim<celltype>; ++k)
-      {
-        const int gid = n * Internal::num_dim<celltype> + k;
-        for (int i = 0; i < Internal::num_dim<celltype>; ++i)
-        {
-          dInverseCauchyGreen_dDisp(0, gid) +=
-              -2 * cauchygreen.inverse_right_cauchy_green_(0, i) * jacobian_mapping.N_XYZ[n](i) *
-              spatial_material_mapping.inverse_deformation_gradient_(0, k);
-          dInverseCauchyGreen_dDisp(1, gid) +=
-              -2 * cauchygreen.inverse_right_cauchy_green_(1, i) * jacobian_mapping.N_XYZ[n](i) *
-              spatial_material_mapping.inverse_deformation_gradient_(1, k);
-          dInverseCauchyGreen_dDisp(2, gid) +=
-              -2 * cauchygreen.inverse_right_cauchy_green_(2, i) * jacobian_mapping.N_XYZ[n](i) *
-              spatial_material_mapping.inverse_deformation_gradient_(2, k);
-          /* ~~~ */
-          dInverseCauchyGreen_dDisp(3, gid) +=
-              -cauchygreen.inverse_right_cauchy_green_(0, i) * jacobian_mapping.N_XYZ[n](i) *
-                  spatial_material_mapping.inverse_deformation_gradient_(1, k) -
-              spatial_material_mapping.inverse_deformation_gradient_(0, k) *
-                  jacobian_mapping.N_XYZ[n](i) * cauchygreen.inverse_right_cauchy_green_(1, i);
-          dInverseCauchyGreen_dDisp(4, gid) +=
-              -cauchygreen.inverse_right_cauchy_green_(1, i) * jacobian_mapping.N_XYZ[n](i) *
-                  spatial_material_mapping.inverse_deformation_gradient_(2, k) -
-              spatial_material_mapping.inverse_deformation_gradient_(1, k) *
-                  jacobian_mapping.N_XYZ[n](i) * cauchygreen.inverse_right_cauchy_green_(2, i);
-          dInverseCauchyGreen_dDisp(5, gid) +=
-              -cauchygreen.inverse_right_cauchy_green_(2, i) * jacobian_mapping.N_XYZ[n](i) *
-                  spatial_material_mapping.inverse_deformation_gradient_(0, k) -
-              spatial_material_mapping.inverse_deformation_gradient_(2, k) *
-                  jacobian_mapping.N_XYZ[n](i) * cauchygreen.inverse_right_cauchy_green_(0, i);
-        }
-      }
-    }
-    return dInverseCauchyGreen_dDisp;
-  }
-
 
 }  // namespace Discret::Elements
 
