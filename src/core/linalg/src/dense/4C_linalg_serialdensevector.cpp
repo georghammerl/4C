@@ -40,6 +40,7 @@ namespace Core::LinAlg
   int SerialDenseVector::numRows() const { return vec_.numRows(); }
   double SerialDenseVector::normInf() const { return vec_.normInf(); }
   double SerialDenseVector::normOne() const { return vec_.normOne(); }
+  double SerialDenseVector::norm2() const { return vec_.normFrobenius(); }
   double SerialDenseVector::normFrobenius() const { return vec_.normFrobenius(); }
   bool SerialDenseVector::empty() const { return vec_.length() == 0; }
 
@@ -94,7 +95,7 @@ namespace Core::LinAlg
 /*----------------------------------------------------------------------*
  |  Compute vector 2-norm                                               |
  *----------------------------------------------------------------------*/
-double Core::LinAlg::norm2(const Core::LinAlg::SerialDenseVector& v) { return v.normFrobenius(); }
+double Core::LinAlg::norm2(const Core::LinAlg::SerialDenseVector& v) { return v.norm2(); }
 
 /*----------------------------------------------------------------------*
  |  b = alpha*a + beta*b                                                |

@@ -163,8 +163,12 @@ namespace Core::LinAlg
         const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
         const std::vector<int>& lmrowowner, const std::vector<int>& lmcol) = 0;
 
-    /// assemble method for a local vector (interpreted as column matrix)
-    /// lmcol must match the column count of the generated view (typically 1).
+    /*!
+      \brief Assemble a local vector by interpreting it as a column matrix.
+
+      \note The size of \p lmcol must match the generated view column count
+      (typically 1).
+    */
     void assemble(int eid, const std::vector<int>& lmstride,
         const Core::LinAlg::SerialDenseVector& Vele, const std::vector<int>& lmrow,
         const std::vector<int>& lmrowowner, const std::vector<int>& lmcol)
