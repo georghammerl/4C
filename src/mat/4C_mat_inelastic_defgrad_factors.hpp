@@ -120,15 +120,15 @@ namespace Mat
 
     /*----------------------------------------------------------------------
      *----------------------------------------------------------------------*/
-    /*! \class InelasticDefgradTimeFunct
+    /*! \class InelasticDefgradTimeFunctIso
      *
-     * This is a parameter class holding parameters for evaluation of inelastic deformation induced
-     * by a given time-dependent function.
+     * This is a parameter class holding parameters for evaluation of an isotropic inelastic
+     * deformation induced by a given time-dependent function.
      */
-    class InelasticDefgradTimeFunct : public Core::Mat::PAR::Parameter
+    class InelasticDefgradTimeFunctIso : public Core::Mat::PAR::Parameter
     {
      public:
-      explicit InelasticDefgradTimeFunct(const Core::Mat::PAR::Parameter::Data& matdata);
+      explicit InelasticDefgradTimeFunctIso(const Core::Mat::PAR::Parameter::Data& matdata);
 
       std::shared_ptr<Core::Mat::Material> create_material() override { return nullptr; }
 
@@ -742,16 +742,17 @@ namespace Mat
   };
 
   /*--------------------------------------------------------------------*/
-  /*! \class InelasticDefgradTimeFunct
-
-  This class models materials in combination with the multiplicative split material that feature
-  isotropic volume changes based on a given time-dependent function for the determinant of the
-  inelastic part.
-  */
-  class InelasticDefgradTimeFunct : public InelasticDefgradFactors
+  /*! \class InelasticDefgradTimeFunctIso
+   *
+   * This class models materials in combination with the multiplicative split material that feature
+   * isotropic volume changes based on a given time-dependent function that controls the magnitude
+   * of the inelastic part of the deformation gradient such that the determinant of the inelastic
+   * part evaluates to (1 + time function value).
+   */
+  class InelasticDefgradTimeFunctIso : public InelasticDefgradFactors
   {
    public:
-    explicit InelasticDefgradTimeFunct(Core::Mat::PAR::Parameter* params);
+    explicit InelasticDefgradTimeFunctIso(Core::Mat::PAR::Parameter* params);
 
     void evaluate_additional_cmat(const Core::LinAlg::Matrix<3, 3>* defgrad,
         const Core::LinAlg::Matrix<3, 3>& iFin_other, const Core::LinAlg::Matrix<3, 3>& iFinjM,
@@ -772,12 +773,12 @@ namespace Mat
 
     Core::Materials::MaterialType material_type() const override
     {
-      return Core::Materials::mfi_time_funct;
+      return Core::Materials::mfi_time_funct_iso;
     }
 
-    Mat::PAR::InelasticDefgradTimeFunct* parameter() const override
+    Mat::PAR::InelasticDefgradTimeFunctIso* parameter() const override
     {
-      return dynamic_cast<Mat::PAR::InelasticDefgradTimeFunct*>(
+      return dynamic_cast<Mat::PAR::InelasticDefgradTimeFunctIso*>(
           Mat::InelasticDefgradFactors::parameter());
     }
 

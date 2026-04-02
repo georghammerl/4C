@@ -576,7 +576,7 @@ Mat::PAR::InelasticDefgradLinTempIso::InelasticDefgradLinTempIso(
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-Mat::PAR::InelasticDefgradTimeFunct::InelasticDefgradTimeFunct(
+Mat::PAR::InelasticDefgradTimeFunctIso::InelasticDefgradTimeFunctIso(
     const Core::Mat::PAR::Parameter::Data& matdata)
     : Parameter(matdata), funct_num_(matdata.parameters.get<int>("FUNCT_NUM"))
 {
@@ -717,10 +717,10 @@ std::shared_ptr<Mat::InelasticDefgradFactors> Mat::InelasticDefgradFactors::fact
       auto* params = dynamic_cast<Mat::PAR::InelasticDefgradLinTempIso*>(curmat);
       return std::make_shared<InelasticDefgradLinTempIso>(params);
     }
-    case Core::Materials::mfi_time_funct:
+    case Core::Materials::mfi_time_funct_iso:
     {
-      auto* params = dynamic_cast<Mat::PAR::InelasticDefgradTimeFunct*>(curmat);
-      return std::make_shared<InelasticDefgradTimeFunct>(params);
+      auto* params = dynamic_cast<Mat::PAR::InelasticDefgradTimeFunctIso*>(curmat);
+      return std::make_shared<InelasticDefgradTimeFunctIso>(params);
     }
     case Core::Materials::mfi_transv_isotrop_elast_viscoplast:
     {
@@ -1573,24 +1573,24 @@ void Mat::InelasticDefgradNoGrowth::pre_evaluate(const Teuchos::ParameterList& p
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradTimeFunct::evaluate_inverse_inelastic_def_grad(
+void Mat::InelasticDefgradTimeFunctIso::evaluate_inverse_inelastic_def_grad(
     const Core::LinAlg::Matrix<3, 3>* defgrad, const Core::LinAlg::Matrix<3, 3>& iFin_other,
     Core::LinAlg::Matrix<3, 3>& iFinM)
 {
-  const double idetFin = std::pow(funct_value_, -1.0 / 3.0);
+  const double idetFin = std::pow(1.0 + funct_value_, -1.0 / 3.0);
   iFinM.update(idetFin, identity_, 0.0);
 }
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-Mat::PAR::InelasticSource Mat::InelasticDefgradTimeFunct::get_inelastic_source()
+Mat::PAR::InelasticSource Mat::InelasticDefgradTimeFunctIso::get_inelastic_source()
 {
   return PAR::InelasticSource::none;
 }
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-Mat::InelasticDefgradTimeFunct::InelasticDefgradTimeFunct(Core::Mat::PAR::Parameter* params)
+Mat::InelasticDefgradTimeFunctIso::InelasticDefgradTimeFunctIso(Core::Mat::PAR::Parameter* params)
     : InelasticDefgradFactors(params),
       funct_value_(0.0),
       identity_(Core::LinAlg::Initialization::zero)
@@ -1601,7 +1601,7 @@ Mat::InelasticDefgradTimeFunct::InelasticDefgradTimeFunct(Core::Mat::PAR::Parame
 
 /*--------------------------------------------------------------------*
  *--------------------------------------------------------------------*/
-void Mat::InelasticDefgradTimeFunct::pre_evaluate(const Teuchos::ParameterList& params,
+void Mat::InelasticDefgradTimeFunctIso::pre_evaluate(const Teuchos::ParameterList& params,
     const EvaluationContext<3>& context, const int gp, const int eleGID)
 {
   // evaluate function value for current time step.

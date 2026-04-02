@@ -1124,7 +1124,7 @@ void Mat::InelasticFactorsHandler::assign_to_source(
           (materialtype != Core::Materials::mfi_lin_scalar_iso) and
           (materialtype != Core::Materials::mfi_lin_temp_iso) and
           (materialtype != Core::Materials::mfi_no_growth) and
-          (materialtype != Core::Materials::mfi_time_funct) and
+          (materialtype != Core::Materials::mfi_time_funct_iso) and
           (materialtype != Core::Materials::mfi_poly_intercal_frac_aniso) and
           (materialtype != Core::Materials::mfi_poly_intercal_frac_iso) and
           (materialtype != Core::Materials::mfi_transv_isotrop_elast_viscoplast))
