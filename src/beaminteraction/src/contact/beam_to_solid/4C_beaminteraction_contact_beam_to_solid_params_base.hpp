@@ -173,7 +173,19 @@ namespace BeamInteraction
     //! Penalty parameter.
     double penalty_parameter_;
 
-    //! Augmentation scaling parameters
+    /*! \brief Augmentation scaling parameters for beam-solid coupling.
+     *
+     * These parameters scale the penalty contributions in the augmented Lagrangian formulation
+     * used for beam-solid coupling.
+     *
+     * augmentation_scaling_parameter_beam_: Scaling factor applied to the beam-side contribution.
+     * augmentation_scaling_parameter_solid_: Scaling factor applied to the solid-side contribution.
+     *
+     * Using separate scaling parameters allows balancing the influence of beam and
+     * solid discretizations, which may differ significantly in stiffness and dimensionality.
+     * Proper tuning improves numerical conditioning, convergence behavior, and robustness
+     * of the coupling algorithm.
+     */
     double augmentation_scaling_parameter_beam_;
     double augmentation_scaling_parameter_solid_;
 

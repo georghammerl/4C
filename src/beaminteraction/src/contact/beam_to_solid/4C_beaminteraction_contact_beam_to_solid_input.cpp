@@ -92,12 +92,14 @@ std::vector<Core::IO::InputSpec> BeamToSolid::valid_parameters()
               .default_value = 0.0}),
 
       parameter<double>("AUGMENTATION_SCALING_PARAMETER_BEAM",
-          {.description = "Augmentation scaling parameter for the beam row",
+          {.description = "For the augmented Lagrange formulation, this parameter scales all "
+                          "penalty terms in the beam equations.",
               .default_value = 1.0,
               .validator = Validators::positive<double>()}),
 
       parameter<double>("AUGMENTATION_SCALING_PARAMETER_SOLID",
-          {.description = "Augmentation scaling parameter for the solid row",
+          {.description = "For the augmented Lagrange formulation, this parameter scales all "
+                          "penalty terms in the solid equations.",
               .default_value = 1.0,
               .validator = Validators::positive<double>()}),
 
