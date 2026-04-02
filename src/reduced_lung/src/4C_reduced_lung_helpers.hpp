@@ -316,12 +316,10 @@ namespace ReducedLung
       ReducedLungParameters::LungTree::Airways::WallModelType wall_model_type);
 
   /*!
-   * @brief Add a terminal unit element with the appropriate template instantiation based on model
-   * types.
+   * @brief Add a terminal unit element using the registered terminal-unit model factories.
    *
-   * This helper function encapsulates the template instantiation logic for adding terminal unit
-   * elements based on the rheological model (KelvinVoigt/FourElementMaxwell) and elasticity model
-   * (Linear/Ogden) types.
+   * The implementation resolves a (rheological model, elasticity model) key in the terminal-unit
+   * registry and invokes the matching factory callback.
    *
    * @param terminal_units Container for all terminal unit models.
    * @param global_element_id Unique global identifier of the element.

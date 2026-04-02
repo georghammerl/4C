@@ -701,58 +701,6 @@ namespace ReducedLung
     }
   }
 
-  void add_terminal_unit_with_model_selection(TerminalUnitContainer& terminal_units,
-      int global_element_id, int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType
-          rheological_model_type,
-      ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType
-          elasticity_model_type)
-  {
-    using RheologicalModelType =
-        ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType;
-    using ElasticityModelType =
-        ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType;
-
-    if (rheological_model_type == RheologicalModelType::KelvinVoigt)
-    {
-      if (elasticity_model_type == ElasticityModelType::Linear)
-      {
-        add_terminal_unit_ele<KelvinVoigt, LinearElasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else if (elasticity_model_type == ElasticityModelType::Ogden)
-      {
-        add_terminal_unit_ele<KelvinVoigt, OgdenHyperelasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Elasticity model not implemented.");
-      }
-    }
-    else if (rheological_model_type == RheologicalModelType::FourElementMaxwell)
-    {
-      if (elasticity_model_type == ElasticityModelType::Linear)
-      {
-        add_terminal_unit_ele<FourElementMaxwell, LinearElasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else if (elasticity_model_type == ElasticityModelType::Ogden)
-      {
-        add_terminal_unit_ele<FourElementMaxwell, OgdenHyperelasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Elasticity model not implemented.");
-      }
-    }
-    else
-    {
-      FOUR_C_THROW("Rheological model not implemented.");
-    }
-  }
-
   void collect_runtime_output_data(
       Core::IO::DiscretizationVisualizationWriterMesh& visualization_writer,
       const AirwayContainer& airways, const TerminalUnitContainer& terminal_units,
