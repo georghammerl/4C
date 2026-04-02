@@ -23,8 +23,8 @@
 #include "4C_reduced_lung_airways.hpp"
 #include "4C_reduced_lung_input.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
+#include "4C_reduced_lung_terminal_unit_model_registry.hpp"
 #include "4C_utils_exceptions.hpp"
-#include "terminal_units/4C_reduced_lung_terminal_unit_model_registry.hpp"
 
 #include <algorithm>
 #include <array>
