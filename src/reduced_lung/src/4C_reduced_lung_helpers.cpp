@@ -24,6 +24,7 @@
 #include "4C_reduced_lung_input.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
 #include "4C_utils_exceptions.hpp"
+#include "terminal_units/4C_reduced_lung_terminal_unit_model_registry.hpp"
 
 #include <algorithm>
 #include <array>
@@ -329,8 +330,9 @@ namespace ReducedLung
             parameters.lung_tree.terminal_units.elasticity_model.elasticity_model_type.at(
                 global_element_id, "elasticity_model_type");
 
-        add_terminal_unit_with_model_selection(terminal_units, global_element_id, local_element_id,
-            parameters, rheological_model_name, elasticity_model_name);
+        TerminalUnits::ModelRegistry::add_terminal_unit_with_model_selection(terminal_units,
+            global_element_id, local_element_id, parameters, rheological_model_name,
+            elasticity_model_name);
 
         dof_per_ele[global_element_id] = 3;
         n_terminal_units++;

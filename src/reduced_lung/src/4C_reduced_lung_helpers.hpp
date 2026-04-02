@@ -315,26 +315,6 @@ namespace ReducedLung
       ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType flow_model_type,
       ReducedLungParameters::LungTree::Airways::WallModelType wall_model_type);
 
-  /*!
-   * @brief Add a terminal unit element using the registered terminal-unit model factories.
-   *
-   * The implementation resolves a (rheological model, elasticity model) key in the terminal-unit
-   * registry and invokes the matching factory callback.
-   *
-   * @param terminal_units Container for all terminal unit models.
-   * @param global_element_id Unique global identifier of the element.
-   * @param local_element_id Local element id for the row map.
-   * @param parameters Terminal unit parameters containing model information.
-   * @param rheological_model_type The rheological model type.
-   * @param elasticity_model_type The elasticity model type.
-   */
-  void add_terminal_unit_with_model_selection(TerminalUnits::TerminalUnitContainer& terminal_units,
-      int global_element_id, int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType
-          rheological_model_type,
-      ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType
-          elasticity_model_type);
-
   void collect_runtime_output_data(
       Core::IO::DiscretizationVisualizationWriterMesh& visualization_writer,
       const Airways::AirwayContainer& airways,
