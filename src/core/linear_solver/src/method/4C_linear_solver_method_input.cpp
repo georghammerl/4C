@@ -59,15 +59,6 @@ namespace Core::LinearSolver
                                                    "decide about successful convergence",
                                        .default_value = 1e-8}),
 
-        deprecated_selection<Belos::ScaleType>("AZCONV",
-            {
-                {"AZ_r0", Belos::ScaleType::NormOfInitRes},
-                {"AZ_noscaled", Belos::ScaleType::None},
-            },
-            {.description = "The implicit residual norm scaling type to use for terminating the "
-                            "iterative solver.",
-                .default_value = Belos::ScaleType::NormOfInitRes}),
-
         parameter<int>(
             "AZOUTPUT", {.description = "The number of iterations between each output of the "
                                         "solver's progress is written to "

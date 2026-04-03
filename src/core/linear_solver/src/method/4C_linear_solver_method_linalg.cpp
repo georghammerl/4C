@@ -336,8 +336,7 @@ Teuchos::ParameterList translate_four_c_to_belos(const Teuchos::ParameterList& i
     beloslist.set("Maximum Iterations", inparams.get<int>("AZITER"));
     beloslist.set("Convergence Tolerance", inparams.get<double>("AZTOL"));
     beloslist.set("Implicit Residual Scaling",
-        Belos::convertScaleTypeToString(
-            Teuchos::getIntegralValue<Belos::ScaleType>(inparams, "AZCONV")));
+        Belos::convertScaleTypeToString(Belos::ScaleType::NormOfInitRes));
 
     // set type of solver
     switch (Teuchos::getIntegralValue<Core::LinearSolver::IterativeSolverType>(inparams, "AZSOLVE"))
