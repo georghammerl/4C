@@ -13,10 +13,12 @@
 
 #include <stack>
 
+#ifdef FOUR_C_WITH_QHULL
 extern "C"
 {
 #include <libqhull/qhull_a.h>
 }
+#endif
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -332,6 +334,7 @@ void Cut::TetMesh::init()
 void Cut::TetMesh::call_q_hull(
     const std::vector<Point*>& points, std::vector<std::vector<int>>& tets, bool project)
 {
+#ifdef FOUR_C_WITH_QHULL
   const int dim = 3;
   const int n = points.size();
 
@@ -537,6 +540,11 @@ void Cut::TetMesh::call_q_hull(
 #endif
 
   FOUR_C_THROW("qhull failed: Maybe the wrong version is used. Check your installation.");
+#else
+  FOUR_C_THROW(
+      "Function can only be used with Qhull. To use it, enable Qhull during the configure "
+      "process.");
+#endif
 }
 
 /* First check if all the points of a tet share a cut-side, i.e. does the tet lie on a cut-side?
