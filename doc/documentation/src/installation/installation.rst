@@ -43,18 +43,22 @@ Graph and domain partitioner:
 
 Miscellaneous:
 
-- :ref:`ArborX <arborx>` (optional)
 - Backtrace
 - Boost
 - CLN
-- dealii (optional)
-- FFTW
 - HDF5
 - magic_enum
-- :ref:`MIRCO <mirco>` (optional)
-- Qhull
 - ryml
 - zlib
+
+Optional:
+
+- :ref:`ArborX <arborx>`
+- dealii
+- FFTW
+- :ref:`MIRCO <mirco>`
+- :ref:`Qhull <qhull>`
+
 
 Build information
 ~~~~~~~~~~~~~~~~~
@@ -107,6 +111,18 @@ MIRCO can be used as optional dependency inside |FOURC| to be used for linear el
 See the `MIRCO repository <https://github.com/imcs-compsim/MIRCO>`_ for details and downloads.
 
 Building |FOURC| with MIRCO enabled automatically fetches the repository during the configure stage and later builds the library as dependency.
+
+.. _qhull:
+
+**Qhull**
+
+Qhull can be used as optional dependency inside |FOURC| to calculate the convex hull of a set of points. This is mainly used for finite element procedures using cut operations.
+See the `Qhull repository <https://github.com/qhull/qhull>`_ for details and downloads.
+
+Building |FOURC| with Qhull enabled assumes that a version is already pre-installed.
+
+On Linux based systems the package can be installed using ``sudo apt install libqhull-dev``.
+
 
 .. _4Cinstallation:
 
