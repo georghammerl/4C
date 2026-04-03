@@ -83,21 +83,21 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZTOL: 0.0001
   AZOUTPUT: 1000
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Ale_Solver"
 SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZTOL: 0.0001
   AZOUTPUT: 1000
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Struct_Solver"
 SOLVER 3:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZTOL: 0.0001
   AZREUSE: 10
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
   NAME: "Fluid_Solver"
 DESIGN LINE DIRICH CONDITIONS:
   - E: 3

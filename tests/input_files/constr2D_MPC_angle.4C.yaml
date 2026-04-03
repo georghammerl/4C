@@ -12,7 +12,7 @@ PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZSUB: 300
 STRUCTURAL DYNAMIC:
   INT_STRATEGY: Old

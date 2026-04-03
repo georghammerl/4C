@@ -38,7 +38,7 @@ MORTAR COUPLING/PARALLEL REDISTRIBUTION:
   PARALLEL_REDIST: "None"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-10
   AZOUTPUT: 10
   NAME: "Structure_Solver"
@@ -47,7 +47,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-10
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/contact.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/contact.xml"
   NAME: "Contact_Solver"
 MATERIALS:
   - MAT: 1

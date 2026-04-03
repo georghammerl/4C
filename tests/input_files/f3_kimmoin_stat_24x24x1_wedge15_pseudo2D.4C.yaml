@@ -29,7 +29,7 @@ XFEM GENERAL:
   GMSH_CUT_OUT: true
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-13
   AZOUTPUT: 50
   AZREUSE: 1

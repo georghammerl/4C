@@ -54,7 +54,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZREUSE: 10
   SOLVER_XML_FILE: "xml/linear_solver/iterative_gmres_template.xml"
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_solid_ale.xml"
   NAME: "Fsi_Solver"
 MATERIALS:
   - MAT: 1

@@ -69,7 +69,7 @@ SOLVER 1:
   SOLVER: "Superlu"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-09
 MATERIALS:
   - MAT: 1

@@ -123,4 +123,4 @@ SOLVER 2:
   AZPREC: "MueLu"
   AZREUSE: 10
   SOLVER_XML_FILE: "iterative_gmres_template.xml"
-  MUELU_XML_FILE: "fluid_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "fluid_solid_ale.xml"

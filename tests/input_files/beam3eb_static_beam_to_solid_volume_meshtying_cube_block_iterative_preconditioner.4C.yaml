@@ -20,7 +20,7 @@ SOLVER 1:
   AZTOL: 1e-08
   AZOUTPUT: 5
   AZREUSE: 0
-  TEKO_XML_FILE: "xml/block_preconditioner/beam_solid_iterative.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/beam_solid_iterative.xml"
   NAME: "Structure_Solver"
 BEAM INTERACTION:
   REPARTITIONSTRATEGY: "Everydt"

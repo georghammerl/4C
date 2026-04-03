@@ -55,7 +55,7 @@ SOLVER 1:
   SOLVER: "UMFPACK"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-05
   AZREUSE: 2
 FLUID ELEMENTS:

@@ -84,7 +84,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-07
   AZOUTPUT: 1
-  TEKO_XML_FILE: "xml/block_preconditioner/scatra_scatra.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/scatra_scatra.xml"
   NAME: "COUPLED_FS3I_SOLVER"
 SOLVER 3:
   SOLVER: "Belos"
@@ -92,7 +92,7 @@ SOLVER 3:
   AZTOL: 1e-10
   AZOUTPUT: 5
   AZREUSE: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_solid_ale.xml"
 CLONING MATERIAL MAP:
   - SRC_FIELD: "fluid"
     SRC_MAT: 1

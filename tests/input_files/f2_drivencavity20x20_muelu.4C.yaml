@@ -33,7 +33,7 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZTOL: 0.0001
   AZOUTPUT: 1
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
   NAME: "Fluid_Solver"
 DESIGN POINT DIRICH CONDITIONS:
   - E: 1

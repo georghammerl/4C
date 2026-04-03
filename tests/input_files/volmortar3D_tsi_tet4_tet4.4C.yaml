@@ -34,7 +34,7 @@ SOLVER 1:
   NAME: "TSI_MONOLITHIC_SOLVER"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   NAME: "THERMAL_SOLVER"
 SOLVER 3:
   SOLVER: "UMFPACK"

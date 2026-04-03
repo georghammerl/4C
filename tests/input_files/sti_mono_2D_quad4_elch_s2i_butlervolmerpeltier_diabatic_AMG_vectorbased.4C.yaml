@@ -48,7 +48,7 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZSUB: 100
   THROW_IF_UNCONVERGED: false
-  MUELU_XML_FILE: "xml/multigrid/sti_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/sti_template.xml"
 SOLVER 2:
   SOLVER: MUMPS
 MATERIALS:

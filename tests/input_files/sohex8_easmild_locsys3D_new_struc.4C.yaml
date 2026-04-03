@@ -30,7 +30,7 @@ STRUCT NOX/Printing:
 SOLVER 1:
   SOLVER: "UMFPACK"
   AZSOLVE: "CG"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZCONV: "AZ_noscaled"
   AZSUB: 40
   NAME: "Structure_Solver"

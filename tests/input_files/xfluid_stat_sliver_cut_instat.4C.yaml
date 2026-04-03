@@ -35,7 +35,7 @@ XFLUID DYNAMIC/STABILIZATION:
   GHOST_PENALTY_FAC: 0.001
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-12
   AZOUTPUT: 1
   AZREUSE: 4

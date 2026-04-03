@@ -33,7 +33,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-10
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/contact.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/contact.xml"
   NAME: "Meshtying_Solver"
 MATERIALS:
   - MAT: 1

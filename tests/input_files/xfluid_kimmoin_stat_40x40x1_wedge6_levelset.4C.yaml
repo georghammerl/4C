@@ -40,7 +40,7 @@ XFLUID DYNAMIC/STABILIZATION:
   IS_PSEUDO_2D: true
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xff_kimmoin_ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xff_kimmoin_ifpack.xml"
   AZTOL: 1e-13
   AZOUTPUT: 50
   AZREUSE: 1

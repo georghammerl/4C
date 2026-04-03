@@ -27,7 +27,7 @@ STRUCTURAL DYNAMIC:
   LINEAR_SOLVER: 1
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   NAME: "Struct_Solver"
 XFEM GENERAL:
   GMSH_DEBUG_OUT: true

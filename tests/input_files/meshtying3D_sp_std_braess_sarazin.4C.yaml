@@ -32,7 +32,7 @@ SOLVER 1:
 SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "meshtying3D_sp_braess_sarazin.xml"
+  PRECONDITIONER_XML_FILE: "meshtying3D_sp_braess_sarazin.xml"
   NAME: "Meshtying_Solver"
 MATERIALS:
   - MAT: 1

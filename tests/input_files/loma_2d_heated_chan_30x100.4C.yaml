@@ -77,7 +77,7 @@ SOLVER 1:
   AZTOL: 0.0001
   AZOUTPUT: 10
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/fluid_loma_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_loma_template.xml"
   NAME: "Fluid_Solver"
 SOLVER 2:
   SOLVER: "Belos"
@@ -85,7 +85,7 @@ SOLVER 2:
   AZTOL: 0.0001
   AZOUTPUT: 10
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
   NAME: "Sca_Tra_Solver"
 DESIGN LINE DIRICH CONDITIONS:
   - E: 1

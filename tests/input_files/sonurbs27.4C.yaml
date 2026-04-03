@@ -9,7 +9,7 @@ PROBLEM TYPE:
   SHAPEFCT: "Nurbs"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
 NURBS:
   DO_LS_DBC_PROJECTION: true
   SOLVER_LS_DBC_PROJECTION: 1

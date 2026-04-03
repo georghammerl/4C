@@ -27,7 +27,7 @@ SCALAR TRANSPORT DYNAMIC/S2I COUPLING:
 SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "scatra_2D_quad4_s2i_constperm_AMG.xml"
+  PRECONDITIONER_XML_FILE: "scatra_2D_quad4_s2i_constperm_AMG.xml"
 MATERIALS:
   - MAT: 1
     MAT_scatra:

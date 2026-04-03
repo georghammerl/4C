@@ -42,7 +42,7 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZTOL: 1e-10
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
   NAME: "Sca_Tra_Solver"
 MATERIALS:
   - MAT: 1

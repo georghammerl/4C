@@ -69,7 +69,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZREUSE: 10
   SOLVER_XML_FILE: "xml/linear_solver/iterative_gmres_template.xml"
-  TEKO_XML_FILE: "xml/block_preconditioner/thermo_solid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/thermo_solid.xml"
   NAME: "Thermo_Structure_Interaction_Solver"
 MATERIALS:
   - MAT: 1

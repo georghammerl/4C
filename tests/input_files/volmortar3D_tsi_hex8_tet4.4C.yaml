@@ -37,7 +37,7 @@ SOLVER 2:
   AZTOL: 1e-10
   AZREUSE: 10
   THROW_IF_UNCONVERGED: false
-  TEKO_XML_FILE: "xml/block_preconditioner/thermo_solid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/thermo_solid.xml"
   NAME: "Thermo_Structure_Interaction_Solver"
 MATERIALS:
   - MAT: 1

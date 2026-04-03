@@ -40,7 +40,7 @@ ELCH CONTROL/DIFFCOND:
   MAT_NEWMAN_CONST_A: 1
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 500
   AZTOL: 1e-10
   AZREUSE: 20

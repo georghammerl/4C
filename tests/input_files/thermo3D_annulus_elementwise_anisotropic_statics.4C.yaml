@@ -28,7 +28,7 @@ SOLVER 1:
   AZSOLVE: "CG"
   AZOUTPUT: 1
   AZREUSE: 10
-  MUELU_XML_FILE: "xml/multigrid/thermo.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/thermo.xml"
 MATERIALS:
   - MAT: 1
     MAT_Fourier:

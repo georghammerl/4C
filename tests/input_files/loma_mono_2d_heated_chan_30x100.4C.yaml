@@ -78,7 +78,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZREUSE: 10
   SOLVER_XML_FILE: "xml/linear_solver/iterative_gmres_template.xml"
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_scatra.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_scatra.xml"
   NAME: "Fluid_Scatra_Interaction_Solver"
 DESIGN LINE DIRICH CONDITIONS:
   - E: 1

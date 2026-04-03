@@ -42,7 +42,7 @@ SOLVER 2:
   AZREUSE: 2
   AZSOLVE: "GMRES"
   AZTOL: 1.0e-10
-  MUELU_XML_FILE: "meshtying3D_sp_simple_nbinterfaceagg.xml"
+  PRECONDITIONER_XML_FILE: "meshtying3D_sp_simple_nbinterfaceagg.xml"
   NAME: "Meshtying_Solver"
 MATERIALS:
   - MAT: 1

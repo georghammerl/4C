@@ -69,7 +69,7 @@ SOLVER 2:
   AZTOL: 1e-07
   AZOUTPUT: 10
   AZREUSE: 10
-  MUELU_XML_FILE: "xml/multigrid/fluid_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_solid_ale.xml"
   NAME: "Fsi_Solver"
 MATERIALS:
   - MAT: 1

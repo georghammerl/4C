@@ -38,7 +38,7 @@ SOLVER 1:
   AZOUTPUT: 10
   AZREUSE: 5
   THROW_IF_UNCONVERGED: false
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
   NAME: "Fluid_Solver"
 MATERIALS:
   - MAT: 1

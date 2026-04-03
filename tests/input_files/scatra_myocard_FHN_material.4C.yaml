@@ -30,7 +30,7 @@ SCALAR TRANSPORT DYNAMIC/STABILIZATION:
   EVALUATION_TAU: "integration_point"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   NAME: "Sca_Tra_Solver"
 MATERIALS:
   - MAT: 1
