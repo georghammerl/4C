@@ -241,8 +241,8 @@ Teuchos::ParameterList translate_four_c_to_ifpack(const Teuchos::ParameterList& 
 {
   Teuchos::ParameterList ifpacklist;
 
-  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("IFPACK_XML_FILE");
-  if (xmlfile) ifpacklist.set("IFPACK_XML_FILE", xmlfile->string());
+  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("PRECONDITIONER_XML_FILE");
+  if (xmlfile) ifpacklist.set("PRECONDITIONER_XML_FILE", xmlfile->string());
 
   return ifpacklist;
 }
@@ -254,8 +254,8 @@ Teuchos::ParameterList translate_four_c_to_muelu(
 {
   Teuchos::ParameterList muelulist;
 
-  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("MUELU_XML_FILE");
-  if (xmlfile) muelulist.set("MUELU_XML_FILE", xmlfile->string());
+  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("PRECONDITIONER_XML_FILE");
+  if (xmlfile) muelulist.set("PRECONDITIONER_XML_FILE", xmlfile->string());
 
   return muelulist;
 }
@@ -267,8 +267,8 @@ Teuchos::ParameterList translate_four_c_to_teko(
 {
   Teuchos::ParameterList tekolist;
 
-  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("TEKO_XML_FILE");
-  if (xmlfile) tekolist.set("TEKO_XML_FILE", xmlfile->string());
+  auto xmlfile = inparams.get<std::optional<std::filesystem::path>>("PRECONDITIONER_XML_FILE");
+  if (xmlfile) tekolist.set("PRECONDITIONER_XML_FILE", xmlfile->string());
 
   return tekolist;
 }
@@ -386,8 +386,8 @@ Teuchos::ParameterList translate_four_c_to_belos(const Teuchos::ParameterList& i
   if (azprectype == Core::LinearSolver::PreconditionerType::multigrid_nxn)
   {
     Teuchos::ParameterList& amgnxnlist = outparams.sublist("AMGnxn Parameters");
-    auto amgnxn_xml = inparams.get<std::optional<std::filesystem::path>>("AMGNXN_XML_FILE");
-    amgnxnlist.set("AMGNXN_XML_FILE", amgnxn_xml);
+    auto amgnxn_xml = inparams.get<std::optional<std::filesystem::path>>("PRECONDITIONER_XML_FILE");
+    amgnxnlist.set("PRECONDITIONER_XML_FILE", amgnxn_xml);
     std::string amgnxn_type = inparams.get<std::string>("AMGNXN_TYPE");
     amgnxnlist.set<std::string>("AMGNXN_TYPE", amgnxn_type);
   }

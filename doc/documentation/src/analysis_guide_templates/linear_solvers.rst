@@ -170,7 +170,7 @@ e.g., again for the SSI problem:
       SOLVER_XML_FILE: "gmres_template.xml"
       AZPREC: "AMGnxn"
       AMGNXN_TYPE: "XML"
-      AMGNXN_XML_FILE: "ssi_mono_3D_27hex8_scatra_BGS-AMG_2x2.xml"
+      PRECONDITIONER_XML_FILE: "ssi_mono_3D_27hex8_scatra_BGS-AMG_2x2.xml"
 
 Here, we have used the same solver type (a direct solver) for each physics (structure and scalar transport), and for the coupling we used an iterative solver (Belos).
 The situation is similar, when fluid-structure or thermo-structure coupling is employed.
@@ -320,21 +320,21 @@ The solver sections appear in the following way:
       SOLVER: "Belos"
       SOLVER_XML_FILE: "gmres_template.xml"
       AZPREC: "ILU"
-      IFPACK_XML_FILE: "<path/to/your/ifpack_parameters.xml>"
+      PRECONDITIONER_XML_FILE: "<path/to/your/ifpack_parameters.xml>"
       # template file is located in <source-root>/tests/input-files/xml/preconditioner/ifpack.xml
     SOLVER 2:
       NAME: "iterative_solver_with_algebraic_multigrid_preconditioner"
       SOLVER: "Belos"
       SOLVER_XML_FILE: "gmres_template.xml"
       AZPREC: "MueLu"
-      MUELU_XML_FILE: "<path/to/your/muelu_parameters.xml>"
+      PRECONDITIONER_XML_FILE: "<path/to/your/muelu_parameters.xml>"
       # template files for various problems are located in <source-root>/tests/input-files/xml/multigrid/*.xml
     SOLVER 3:
       NAME: "iterative_solver_with_block_preconditioner"
       SOLVER: "Belos"
       SOLVER_XML_FILE: "gmres_template.xml"
       AZPREC: "Teko"
-      TEKO_XML_FILE: "<path/to/your/teko_parameters.xml>"
+      PRECONDITIONER_XML_FILE: "<path/to/your/teko_parameters.xml>"
       # template files for various problems are located in <source-root>/tests/input-files/xml/block_preconditioner/*.xml
     SOLVER 4:
       SOLVER: "Belos"
@@ -342,7 +342,7 @@ The solver sections appear in the following way:
       SOLVER_XML_FILE: "gmres_template.xml"
       NAME: "iterative_solver_with_AMGnxn_preconditioner"
       AMGNXN_TYPE: "XML"
-      AMGNXN_XML_FILE: "<path/to/your/amgnxn_parameters.xml>"
+      PRECONDITIONER_XML_FILE: "<path/to/your/amgnxn_parameters.xml>"
       # template files for various problems are located in <source-root>/tests/input-files/*AMG*.xml
 
 The xml template files (see the comments in the respective solver sections) are named after problem types for which they are most suited.
