@@ -29,12 +29,12 @@ The following list shows the most important ones:
 External solver and linear algebra:
 
 - :ref:`Trilinos <trilinos>` (supported versions are listed in ``dependencies/supported_version/Trilinos.txt``, currently only supported version: 16.2.0)
-- :ref:`SuiteSparse <suitesparse>`
-- :ref:`SuperLUDist <superludist>` (recommended version: 9.2.1)
+- :ref:`SuiteSparse <suitesparse>` (optional)
+- :ref:`SuperLUDist <superludist>` (optional, recommended version: 9.2.1)
+- MUMPS (optional)
+- ScaLAPACK (as a dependency of MUMPS)
 - BLAS
 - LAPACK
-- Mumps
-- ScaLAPACK (as a dependency of Mumps)
 
 Graph and domain partitioner:
 
