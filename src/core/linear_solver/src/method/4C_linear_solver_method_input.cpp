@@ -35,21 +35,6 @@ namespace Core::LinearSolver
             {.description = "Type of linear solver algorithm to use.",
                 .default_value = Core::LinearSolver::IterativeSolverType::gmres}),
 
-        // Preconditioner options
-        deprecated_selection<Core::LinearSolver::PreconditionerType>("AZPREC",
-            {
-                {"ILU", Core::LinearSolver::PreconditionerType::ilu},
-                {"MueLu", Core::LinearSolver::PreconditionerType::multigrid_muelu},
-                {"AMGnxn", Core::LinearSolver::PreconditionerType::multigrid_nxn},
-                {"Teko", Core::LinearSolver::PreconditionerType::block_teko},
-            },
-            {.description =
-                    "Type of internal preconditioner to use.\nNote! this preconditioner will "
-                    "only be used if the input operator\nsupports the Trilinos "
-                    "interface and the client does not pass\nin an external preconditioner!",
-                .default_value = Core::LinearSolver::PreconditionerType::ilu}),
-
-        // Iterative solver options
         parameter<int>(
             "AZITER", {.description = "The maximum number of iterations the underlying iterative "
                                       "solver is allowed to perform",
@@ -95,6 +80,20 @@ namespace Core::LinearSolver
         // user-given name of solver block (just for beauty)
         parameter<std::string>("NAME",
             {.description = "User specified name for solver block", .default_value = "No_name"}),
+
+        // Preconditioner options
+        deprecated_selection<Core::LinearSolver::PreconditionerType>("AZPREC",
+            {
+                {"ILU", Core::LinearSolver::PreconditionerType::ilu},
+                {"MueLu", Core::LinearSolver::PreconditionerType::multigrid_muelu},
+                {"AMGnxn", Core::LinearSolver::PreconditionerType::multigrid_nxn},
+                {"Teko", Core::LinearSolver::PreconditionerType::block_teko},
+            },
+            {.description =
+                    "Type of internal preconditioner to use.\nNote! this preconditioner will "
+                    "only be used if the input operator\nsupports the Trilinos "
+                    "interface and the client does not pass\nin an external preconditioner!",
+                .default_value = Core::LinearSolver::PreconditionerType::ilu}),
 
         Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
             "PRECONDITIONER_XML_FILE",
