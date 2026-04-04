@@ -109,7 +109,7 @@ check_trilinos_tpl(Amesos2_ENABLE_SuperLUDist SuperLUDist FOUR_C_WITH_TRILINOS_S
 check_trilinos_tpl(Amesos2_ENABLE_UMFPACK UMFPACK FOUR_C_WITH_TRILINOS_UMFPACK)
 check_trilinos_tpl(Amesos2_ENABLE_MUMPS MUMPS FOUR_C_WITH_TRILINOS_MUMPS)
 # Set optional dependency on Zoltan2, for partitioning and rebalancing
-check_trilinos_tpl(Zoltan2_ENABLE_ParMETIS ParMETIS FOUR_C_WITH_TRILINOS_ParMETIS)
+check_trilinos_tpl(Zoltan2Core_ENABLE_ParMETIS ParMETIS FOUR_C_WITH_TRILINOS_ParMETIS)
 
 # These variables should also be emitted into the generated config.h by
 # four_c_configure_dependency().
