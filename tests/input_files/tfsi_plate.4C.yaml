@@ -110,7 +110,7 @@ SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "Teko"
   AZTOL: 1e-07
-  TEKO_XML_FILE: "xml/block_preconditioner/scatra_scatra.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/scatra_scatra.xml"
   NAME: "COUPLED_FS3I_SOLVER"
 MATERIALS:
   - MAT: 1

@@ -35,7 +35,7 @@ FLUID DYNAMIC/RESIDUAL-BASED STABILIZATION:
   CHARELELENGTH_PC: "root_of_volume"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-07
   AZSUB: 25
   THROW_IF_UNCONVERGED: false

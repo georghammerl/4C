@@ -89,14 +89,14 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-12
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/artery.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/artery.xml"
   NAME: "iterative_solver_porofluid_artery_coupl"
 SOLVER 3:
   SOLVER: "UMFPACK"
   AZPREC: "Teko"
   AZTOL: 1e-12
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/artery.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/artery.xml"
   NAME: "iterative_solver_scatra_artery_scatra_coupl"
 MATERIALS:
   - MAT: 1

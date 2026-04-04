@@ -51,7 +51,7 @@ SOLVER 2:
   SOLVER: Belos
   SOLVER_XML_FILE: iterative_gmres_template.xml
   AZPREC: MueLu
-  MUELU_XML_FILE: elasticity_template.xml
+  PRECONDITIONER_XML_FILE: elasticity_template.xml
   NAME: iterative_solver
 DESIGN SURF DIRICH CONDITIONS:
   - E: 1

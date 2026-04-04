@@ -80,11 +80,11 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZTOL: 1e-12
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
   NAME: "Sca_Tra_Solver"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-12
   AZREUSE: 5
   NAME: "Fluid_Solver"

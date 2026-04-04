@@ -49,7 +49,7 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZOUTPUT: 10
   AZREUSE: 1
-  MUELU_XML_FILE: "xml/multigrid/xfluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/xfluid_template.xml"
   NAME: "Fluid_Solver"
 MATERIALS:
   - MAT: 1

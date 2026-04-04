@@ -58,7 +58,7 @@ SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "Teko"
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/poromultifluid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/poromultifluid.xml"
   NAME: "iterative_poromultiphasescatra_solver"
 MATERIALS:
   - MAT: 2

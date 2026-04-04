@@ -34,7 +34,7 @@ SOLVER 2:
   AZPREC: "MueLu"
   AZOUTPUT: 10
   AZREUSE: 2
-  MUELU_XML_FILE: "meshtying3D_sp_simple.xml"
+  PRECONDITIONER_XML_FILE: "meshtying3D_sp_simple.xml"
   NAME: "Meshtying_Solver"
 MATERIALS:
   - MAT: 1

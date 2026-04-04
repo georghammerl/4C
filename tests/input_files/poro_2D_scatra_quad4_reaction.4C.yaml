@@ -39,7 +39,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZREUSE: 10
   SOLVER_XML_FILE: "xml/linear_solver/iterative_gmres_template.xml"
-  TEKO_XML_FILE: "xml/block_preconditioner/porofluid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/porofluid.xml"
   NAME: "Poro_Interaction_Solver"
 SOLVER 3:
   SOLVER: "Belos"

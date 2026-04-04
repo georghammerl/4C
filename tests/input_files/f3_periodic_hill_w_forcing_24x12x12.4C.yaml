@@ -34,7 +34,7 @@ FLUID DYNAMIC/TURBULENCE MODEL:
   HOMDIR: "xz"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-20
   AZREUSE: 8
   AZSUB: 40

@@ -32,7 +32,7 @@ FLUID DYNAMIC/NONLINEAR SOLVER TOLERANCES:
 SOLVER 1:
   SOLVER: "Belos"
   AZSOLVE: "BiCGSTAB"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 2500
   AZTOL: 0.0001
   NAME: "Fluid_Solver"

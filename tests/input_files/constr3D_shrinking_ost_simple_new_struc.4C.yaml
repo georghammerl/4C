@@ -45,13 +45,13 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZOUTPUT: 10
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Structure_Solver"
 SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "Teko"
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/contact.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/contact.xml"
   NAME: "Contact LINEAR solver (used for constraint simpler)"
 MATERIALS:
   - MAT: 1

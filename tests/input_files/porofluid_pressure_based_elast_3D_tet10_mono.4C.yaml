@@ -40,7 +40,7 @@ SOLVER 2:
   AZTOL: 1e-06
   AZOUTPUT: 10
   AZREUSE: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/poromultifluid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/poromultifluid.xml"
   NAME: "iterative_poromultiphase_solver"
 MATERIALS:
   - MAT: 1

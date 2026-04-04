@@ -50,7 +50,7 @@ SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZTOL: 1e-06
-  MUELU_XML_FILE: "xml/multigrid/thermo_solid.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/thermo_solid.xml"
   NAME: "Thermo_Structure_Interaction_Solver"
 MATERIALS:
   - MAT: 1

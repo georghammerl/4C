@@ -29,7 +29,7 @@ SOLVER 1:
   AZPREC: "Teko"
   AZTOL: 0.0001
   AZREUSE: 8
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid.xml"
   NAME: "Fluid_Solver"
 DESIGN POINT DIRICH CONDITIONS:
   - E: 1

@@ -66,14 +66,14 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "Teko"
   AZREUSE: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_solid.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_solid.xml"
   NAME: "XFSI_SOLVER"
 SOLVER 2:
   SOLVER: "UMFPACK"
 SOLVER 3:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "structure_predict"
 XFEM GENERAL:
   VOLUME_GAUSS_POINTS_BY: "DirectDivergence"

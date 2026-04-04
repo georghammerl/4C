@@ -43,7 +43,7 @@ SOLVER 1:
   NAME: "Sca_Tra_Solver"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 100
   AZTOL: 1e-10
   AZOUTPUT: 20

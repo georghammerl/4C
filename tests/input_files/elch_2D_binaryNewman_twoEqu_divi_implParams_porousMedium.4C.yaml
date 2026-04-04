@@ -46,7 +46,7 @@ SOLVER 1:
   AZOUTPUT: 1000
   AZREUSE: 5
   AZSUB: 100
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Sca_Tra_Solver"
 MATERIALS:
   - MAT: 1

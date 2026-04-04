@@ -80,7 +80,7 @@ SOLVER 1:
   AZTOL: 1e-12
   AZOUTPUT: 10
   THROW_IF_UNCONVERGED: false
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
 SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "MueLu"
@@ -89,7 +89,7 @@ SOLVER 2:
   AZOUTPUT: 10
   AZREUSE: 5
   THROW_IF_UNCONVERGED: false
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
 MATERIALS:
   - MAT: 1
     MAT_fluid:

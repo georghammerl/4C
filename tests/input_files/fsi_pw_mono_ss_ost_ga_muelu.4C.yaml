@@ -45,7 +45,7 @@ SOLVER 2:
   AZTOL: 0.001
   AZOUTPUT: 5
   AZREUSE: 10
-  MUELU_XML_FILE: "xml/multigrid/fluid_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_solid_ale.xml"
   NAME: "Fsi_Solver"
 DESIGN POINT DIRICH CONDITIONS:
   - E: 13

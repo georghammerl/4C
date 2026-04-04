@@ -64,7 +64,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-09
   AZOUTPUT: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_poro_solid_ale.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_poro_solid_ale.xml"
   NAME: "FPSI_Solver"
 MATERIALS:
   - MAT: 1

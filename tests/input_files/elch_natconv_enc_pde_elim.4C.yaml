@@ -56,13 +56,13 @@ ELCH CONTROL:
   EQUPOT: "ENC_PDE_ELIM"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-10
   AZSUB: 25
   NAME: "Sca_Tra_Solver"
 SOLVER 2:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-10
   AZSUB: 25
   NAME: "Fluid_Solver"

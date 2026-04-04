@@ -44,9 +44,10 @@ void Core::LinearSolver::TekoPreconditioner::setup(
   using EpetraMultiVector = Xpetra::EpetraMultiVectorT<GlobalOrdinal, Node>;
   using XpetraMultiVector = Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
 
-  if (!tekolist_.sublist("Teko Parameters").isParameter("TEKO_XML_FILE"))
-    FOUR_C_THROW("TEKO_XML_FILE parameter not set!");
-  auto xmlFileName = tekolist_.sublist("Teko Parameters").get<std::string>("TEKO_XML_FILE");
+  if (!tekolist_.sublist("Teko Parameters").isParameter("PRECONDITIONER_XML_FILE"))
+    FOUR_C_THROW("PRECONDITIONER_XML_FILE parameter not set!");
+  auto xmlFileName =
+      tekolist_.sublist("Teko Parameters").get<std::string>("PRECONDITIONER_XML_FILE");
 
   Teuchos::ParameterList tekoParams;
   auto comm = Core::Communication::to_teuchos_comm<int>(matrix.get_comm());

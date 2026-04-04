@@ -32,7 +32,7 @@ STRUCTURAL DYNAMIC:
   LINEAR_SOLVER: 1
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZSUB: 300
   NAME: "Structure_Solver"
 MATERIALS:

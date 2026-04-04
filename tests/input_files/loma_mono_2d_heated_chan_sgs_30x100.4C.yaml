@@ -90,7 +90,7 @@ SOLVER 2:
   AZPREC: "Teko"
   AZTOL: 1e-12
   AZREUSE: 10
-  TEKO_XML_FILE: "xml/block_preconditioner/fluid_scatra.xml"
+  PRECONDITIONER_XML_FILE: "xml/block_preconditioner/fluid_scatra.xml"
   NAME: "Fluid_Scatra_Interaction_Solver"
 MATERIALS:
   - MAT: 1

@@ -29,7 +29,7 @@ FLUID DYNAMIC/NONLINEAR SOLVER TOLERANCES:
   TOL_PRES_INC: 0.0001
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 200
   AZTOL: 0.001
   AZOUTPUT: 1

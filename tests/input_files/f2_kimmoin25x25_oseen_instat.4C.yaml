@@ -26,7 +26,7 @@ FLUID DYNAMIC/RESIDUAL-BASED STABILIZATION:
   DEFINITION_TAU: "Taylor_Hughes_Zarins_Whiting_Jansen"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-14
   AZOUTPUT: 50
   AZREUSE: 1

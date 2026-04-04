@@ -36,7 +36,7 @@ FLUID DYNAMIC/WALL MODEL:
   GP_Wall_Parallel: 2
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 2000
   AZTOL: 1e-18
   AZREUSE: 8

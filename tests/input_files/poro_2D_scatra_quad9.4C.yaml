@@ -39,7 +39,7 @@ SOLVER 3:
   SOLVER: "UMFPACK"
 SOLVER 4:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-11
   NAME: "Sca_Tra_Solver"
 STRUCTURAL DYNAMIC:

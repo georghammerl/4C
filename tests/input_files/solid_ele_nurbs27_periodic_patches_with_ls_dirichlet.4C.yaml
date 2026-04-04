@@ -15,7 +15,7 @@ PROBLEM TYPE:
   SHAPEFCT: "Nurbs"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
 SOLVER 2:
   SOLVER: "Belos"
   SOLVER_XML_FILE: "xml/linear_solver/iterative_gmres_template.xml"

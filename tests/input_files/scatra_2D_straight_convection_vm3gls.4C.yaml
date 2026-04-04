@@ -23,7 +23,7 @@ SCALAR TRANSPORT DYNAMIC:
 SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
   NAME: "Sca_Tra_Solver"
 DESIGN LINE DIRICH CONDITIONS:
   - E: 1

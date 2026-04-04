@@ -86,7 +86,7 @@ SOLVER 2:
   AZTOL: 1e-05
   AZOUTPUT: 10
   AZREUSE: 10
-  TEKO_XML_FILE: "fsci_simp_salz_syst_preconditioner.xml"
+  PRECONDITIONER_XML_FILE: "fsci_simp_salz_syst_preconditioner.xml"
 MATERIALS:
   - MAT: 1
     MAT_herschelbulkley:

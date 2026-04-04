@@ -14,7 +14,7 @@ PROBLEM SIZE:
   NUMDF: 4
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-07
   AZREUSE: 5
   AZSUB: 100

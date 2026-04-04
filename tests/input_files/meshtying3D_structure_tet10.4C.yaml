@@ -23,7 +23,7 @@ MORTAR COUPLING:
   LM_QUAD: "quad"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   NAME: "Meshtying_Solver"
 MATERIALS:
   - MAT: 1

@@ -37,7 +37,7 @@ SOLVER 2:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZOUTPUT: 10
-  MUELU_XML_FILE: "contact3D_sp_simple.xml"
+  PRECONDITIONER_XML_FILE: "contact3D_sp_simple.xml"
   NAME: "Contact_Solver"
 MATERIALS:
   - MAT: 1

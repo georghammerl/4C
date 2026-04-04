@@ -115,7 +115,7 @@ Core::LinearSolver::AmGnxnInterface::AmGnxnInterface(Teuchos::ParameterList& par
   //    <Parameter name="AMGNXN_TYPE"          type="string"  value="AMG(BGS)"/>
   //    <!-- or -->
   //    <Parameter name="AMGNXN_TYPE"          type="string"  value="XML"/>
-  //    <Parameter name="AMGNXN_XML_FILE"      type="string"  value=" ... .xml"/>
+  //    <Parameter name="PRECONDITIONER_XML_FILE"      type="string"  value=" ... .xml"/>
   //  </ParameterList>
   //
   //  <ParameterList name="Inverse1">
@@ -129,7 +129,7 @@ Core::LinearSolver::AmGnxnInterface::AmGnxnInterface(Teuchos::ParameterList& par
   //
   //
   //
-  // The xml file given in AMGNXN_XML_FILE should have the following format
+  // The xml file given in PRECONDITIONER_XML_FILE should have the following format
   //<ParameterList name="dummy list which wraps everything">
   //
   //  <!-- Here we select which preconditioner we are going to use -->
@@ -166,8 +166,8 @@ Core::LinearSolver::AmGnxnInterface::AmGnxnInterface(Teuchos::ParameterList& par
   if (amgnxn_type == "XML")
   {
     // Parse the whole file
-    auto amgnxn_xml = amglist.get<std::optional<std::filesystem::path>>("AMGNXN_XML_FILE");
-    if (!amgnxn_xml) FOUR_C_THROW("The input parameter AMGNXN_XML_FILE is 'none'.");
+    auto amgnxn_xml = amglist.get<std::optional<std::filesystem::path>>("PRECONDITIONER_XML_FILE");
+    if (!amgnxn_xml) FOUR_C_THROW("The input parameter PRECONDITIONER_XML_FILE is 'none'.");
     {
       Teuchos::updateParametersFromXmlFile(
           amgnxn_xml->string(), Teuchos::Ptr<Teuchos::ParameterList>(&smoo_params_));

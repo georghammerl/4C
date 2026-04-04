@@ -51,9 +51,10 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
 {
   using EpetraMultiVector = Xpetra::EpetraMultiVectorT<GO, NO>;
 
-  if (!muelulist_.sublist("MueLu Parameters").isParameter("MUELU_XML_FILE"))
-    FOUR_C_THROW("MUELU_XML_FILE parameter not set!");
-  auto xmlFileName = muelulist_.sublist("MueLu Parameters").get<std::string>("MUELU_XML_FILE");
+  if (!muelulist_.sublist("MueLu Parameters").isParameter("PRECONDITIONER_XML_FILE"))
+    FOUR_C_THROW("PRECONDITIONER_XML_FILE parameter not set!");
+  auto xmlFileName =
+      muelulist_.sublist("MueLu Parameters").get<std::string>("PRECONDITIONER_XML_FILE");
 
   Teuchos::ParameterList muelu_params;
   auto comm = Core::Communication::to_teuchos_comm<int>(matrix.get_comm());

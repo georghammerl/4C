@@ -89,7 +89,7 @@ LOMA CONTROL:
   CONSTHERMPRESS: "No_mass"
 SOLVER 1:
   SOLVER: "Belos"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-10
   AZOUTPUT: 10
   AZREUSE: 5
@@ -100,7 +100,7 @@ SOLVER 2:
   AZTOL: 1e-10
   AZOUTPUT: 10
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/scatra_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/scatra_template.xml"
   NAME: "Sca_Tra_Solver"
 MATERIALS:
   - MAT: 1

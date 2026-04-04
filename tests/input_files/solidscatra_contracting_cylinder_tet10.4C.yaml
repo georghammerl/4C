@@ -16,7 +16,7 @@ SOLVER 1:
   AZPREC: "MueLu"
   AZTOL: 1e-06
   AZREUSE: 5
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
 STRUCTURAL DYNAMIC:
   RESTARTEVERY: 50
   TIMESTEP: 0.01

@@ -39,7 +39,7 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "AMGnxn"
   AMGNXN_TYPE: "XML"
-  AMGNXN_XML_FILE: "elch_3D_tet4_s2i_butlervolmer_BGS-AMG_4x4.xml"
+  PRECONDITIONER_XML_FILE: "elch_3D_tet4_s2i_butlervolmer_BGS-AMG_4x4.xml"
 MATERIALS:
   - MAT: 1
     MAT_electrode:

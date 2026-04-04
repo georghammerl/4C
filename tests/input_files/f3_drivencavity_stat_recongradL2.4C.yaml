@@ -36,7 +36,7 @@ FLUID DYNAMIC/RESIDUAL-BASED STABILIZATION:
   Reconstruct_Sec_Der: true
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 1500
   AZTOL: 1e-17
   AZOUTPUT: 50

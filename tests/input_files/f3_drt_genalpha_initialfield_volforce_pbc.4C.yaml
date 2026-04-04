@@ -39,7 +39,7 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZTOL: 1e-11
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
   NAME: "Fluid_Solver"
 DESIGN VOL MODE FOR KRYLOV SPACE PROJECTION:
   - E: 1

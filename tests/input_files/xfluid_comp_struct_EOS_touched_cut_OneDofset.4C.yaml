@@ -26,7 +26,7 @@ FLUID DYNAMIC/EDGE-BASED STABILIZATION:
   EOS_CONV_STREAM: "xfem_gp"
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-13
   AZOUTPUT: 50
   AZREUSE: 5

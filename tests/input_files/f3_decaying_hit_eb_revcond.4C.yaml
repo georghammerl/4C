@@ -59,7 +59,7 @@ FLUID DYNAMIC/MULTIFRACTAL SUBGRID SCALES:
 SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "xml/multigrid/fluid_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/fluid_template.xml"
   NAME: "Fluid_Solver"
 MATERIALS:
   - MAT: 1

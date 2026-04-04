@@ -51,7 +51,7 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZOUTPUT: 1000
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Structure_Solver"
 DESIGN SURF NEUMANN CONDITIONS:
   - E: 6

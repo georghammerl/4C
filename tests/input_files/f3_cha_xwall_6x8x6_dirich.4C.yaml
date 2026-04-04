@@ -44,7 +44,7 @@ FLUID DYNAMIC/WALL MODEL:
   PROJECTION_SOLVER: 9
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZITER: 2000
   AZTOL: 1e-12
   AZREUSE: 8
@@ -53,7 +53,7 @@ SOLVER 1:
 SOLVER 9:
   SOLVER: "Belos"
   AZSOLVE: "CG"
-  IFPACK_XML_FILE: "xml/preconditioner/ifpack.xml"
+  PRECONDITIONER_XML_FILE: "xml/preconditioner/ifpack.xml"
   AZTOL: 1e-12
   AZREUSE: 5
   AZSUB: 40

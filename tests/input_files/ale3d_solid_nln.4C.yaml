@@ -12,7 +12,7 @@ SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
   AZOUTPUT: 5
-  MUELU_XML_FILE: "xml/multigrid/elasticity_template.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/elasticity_template.xml"
   NAME: "Solver_Ale"
 ALE DYNAMIC:
   NUMSTEP: 10

@@ -49,7 +49,7 @@ FLUID DYNAMIC/TURBULENT INFLOW:
   INFLOW_DUMPING_PERIOD: 0
 SOLVER 1:
   SOLVER: "UMFPACK"
-  IFPACK_XML_FILE: "f3_fbs_xfluid_ifpack1.xml"
+  PRECONDITIONER_XML_FILE: "f3_fbs_xfluid_ifpack1.xml"
   AZTOL: 1e-12
   AZREUSE: 10
   AZSUB: 40
@@ -57,7 +57,7 @@ SOLVER 1:
 SOLVER 9:
   SOLVER: "Belos"
   AZSOLVE: "CG"
-  IFPACK_XML_FILE: "f3_fbs_xfluid_ifpack2.xml"
+  PRECONDITIONER_XML_FILE: "f3_fbs_xfluid_ifpack2.xml"
   AZTOL: 1e-12
   AZREUSE: 5
   AZSUB: 40

@@ -42,10 +42,10 @@ void Core::LinearSolver::IFPACKPreconditioner::setup(
 
   Teuchos::ParameterList ifpack_params;
 
-  if (ifpacklist_.sublist("IFPACK Parameters").isParameter("IFPACK_XML_FILE"))
+  if (ifpacklist_.sublist("IFPACK Parameters").isParameter("PRECONDITIONER_XML_FILE"))
   {
     const std::string xmlFileName =
-        ifpacklist_.sublist("IFPACK Parameters").get<std::string>("IFPACK_XML_FILE");
+        ifpacklist_.sublist("IFPACK Parameters").get<std::string>("PRECONDITIONER_XML_FILE");
 
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         xmlFileName, Teuchos::Ptr(&ifpack_params), *comm);

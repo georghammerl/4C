@@ -27,7 +27,7 @@ SOLVER 1:
   AZTOL: 1e-10
   AZOUTPUT: 1
   AZREUSE: 10
-  MUELU_XML_FILE: "xml/multigrid/thermo.xml"
+  PRECONDITIONER_XML_FILE: "xml/multigrid/thermo.xml"
   NAME: "Thermal_Solver"
 MATERIALS:
   - MAT: 1

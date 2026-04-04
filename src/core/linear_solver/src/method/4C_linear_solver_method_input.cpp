@@ -49,15 +49,6 @@ namespace Core::LinearSolver
                     "interface and the client does not pass\nin an external preconditioner!",
                 .default_value = Core::LinearSolver::PreconditionerType::ilu}),
 
-        // Ifpack options
-        Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
-            "IFPACK_XML_FILE",
-            {.description = "This parameter describes the absolute or relative path to an xml file "
-                            "containing the configuration of a Trilinos/Ifpack preconditioner. The "
-                            "content of this xml file needs to follow Ifpack guidelines. Consult "
-                            "the Trilinos/Ifpack documentation and user guide for more information "
-                            "on valid Ifpack parameters.."}),
-
         // Iterative solver options
         parameter<int>(
             "AZITER", {.description = "The maximum number of iterations the underlying iterative "
@@ -110,27 +101,24 @@ namespace Core::LinearSolver
         parameter<std::optional<std::filesystem::path>>(
             "SOLVER_XML_FILE", {.description = "xml file defining any iterative solver"}),
 
-
-        // MueLu options
-        Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
-            "MUELU_XML_FILE", {.description = "xml file defining any MueLu preconditioner"}),
-
-        // Teko options
-        Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
-            "TEKO_XML_FILE", {.description = "xml file defining any Teko preconditioner"}),
-
         // user-given name of solver block (just for beauty)
         parameter<std::string>("NAME",
             {.description = "User specified name for solver block", .default_value = "No_name"}),
+
+        Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
+            "PRECONDITIONER_XML_FILE",
+            {.description =
+                    "This parameter describes the absolute or relative path to an xml file "
+                    "containing the configuration of a Trilinos preconditioner. The "
+                    "content of this xml file needs to follow the Stratimikos guidelines. Consult "
+                    "the Trilinos/Stratimikos documentation and user guide for more information "
+                    "on valid parameters."}),
 
         // Parameters for AMGnxn Preconditioner
         parameter<std::string>("AMGNXN_TYPE",
             {.description = "Name of the pre-built preconditioner to be used. If set "
                             "to\"XML\" the preconditioner is defined using a xml file",
                 .default_value = "AMG(BGS)"}),
-
-        Core::IO::InputSpecBuilders::parameter<std::optional<std::filesystem::path>>(
-            "AMGNXN_XML_FILE", {.description = "xml file defining the AMGnxn preconditioner"}),
     });
   }
 

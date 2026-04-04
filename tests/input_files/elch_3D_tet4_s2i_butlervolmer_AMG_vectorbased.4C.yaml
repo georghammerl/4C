@@ -31,7 +31,7 @@ SCALAR TRANSPORT DYNAMIC/S2I COUPLING:
 SOLVER 1:
   SOLVER: "Belos"
   AZPREC: "MueLu"
-  MUELU_XML_FILE: "elch_3D_tet4_s2i_butlervolmer_AMG_vectorbased.xml"
+  PRECONDITIONER_XML_FILE: "elch_3D_tet4_s2i_butlervolmer_AMG_vectorbased.xml"
 MATERIALS:
   - MAT: 1
     MAT_electrode:
