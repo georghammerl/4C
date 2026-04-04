@@ -17,7 +17,6 @@
 
 #include <Stratimikos_DefaultLinearSolverBuilder.hpp>
 #include <Stratimikos_MueLuHelpers.hpp>
-#include <Teko_EpetraInverseOpWrapper.hpp>
 #include <Teko_InverseLibrary.hpp>
 #include <Teko_LU2x2PreconditionerFactory.hpp>
 #include <Teko_StratimikosFactory.hpp>
@@ -157,7 +156,7 @@ void Core::LinearSolver::TekoPreconditioner::setup(
       Thyra::prec<double>(*precFactory, pmatrix_);
   Teko::LinearOp inverseOp = prec->getUnspecifiedPrecOp();
 
-  p_ = std::make_shared<Teko::Epetra::EpetraInverseOpWrapper>(inverseOp);
+  p_ = Utils::get_epetra_inverse_operator_from_thyra(inverseOp);
 }
 
 //----------------------------------------------------------------------------------

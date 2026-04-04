@@ -32,6 +32,9 @@ namespace Core::LinearSolver::Utils
   Teuchos::RCP<const Thyra::LinearOpBase<double>> create_thyra_linear_op(
       const LinAlg::BlockSparseMatrixBase& matrix, LinAlg::DataAccess access);
 
+  std::shared_ptr<Epetra_Operator> get_epetra_inverse_operator_from_thyra(
+      const Teuchos::RCP<const Thyra::LinearOpBase<double>>);
+
   Teuchos::RCP<Epetra_Vector> get_epetra_vector_from_thyra(
       const Core::LinAlg::Map& map, const Teuchos::RCP<::Thyra::VectorBase<double>>& thyra_vector);
 

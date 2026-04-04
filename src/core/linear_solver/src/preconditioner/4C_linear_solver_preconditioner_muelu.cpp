@@ -19,7 +19,6 @@
 #include <MueLu_ParameterListInterpreter.hpp>
 #include <MueLu_UseDefaultTypes.hpp>
 #include <Stratimikos_MueLuHelpers.hpp>
-#include <Teko_EpetraInverseOpWrapper.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_RCPStdSharedPtrConversions.hpp>
 #include <Xpetra_EpetraCrsMatrix.hpp>
@@ -118,7 +117,7 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
         Thyra::prec<double>(*precFactory, pmatrix_);
     auto inverseOp = prec->getUnspecifiedPrecOp();
 
-    p_ = std::make_shared<Teko::Epetra::EpetraInverseOpWrapper>(inverseOp);
+    p_ = Utils::get_epetra_inverse_operator_from_thyra(inverseOp);
   }
   else
   {
