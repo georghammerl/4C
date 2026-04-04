@@ -283,6 +283,19 @@ function(four_c_configure_dependency _package_name)
 
     string(APPEND _configuration_string "#define FOUR_C_WITH_${_package_name_sanitized}\n")
 
+    # Allow package-specific configure scripts to export additional feature
+    # flags into the global config.h. For a _package_name, this reads the
+    # variable ${_package_name}_additional_configuration.
+    if(DEFINED ${_package_name}_additional_configuration)
+      foreach(_additional_define IN LISTS ${_package_name}_additional_configuration)
+        if(DEFINED ${_additional_define} AND ${${_additional_define}})
+          string(APPEND _configuration_string "#define ${_additional_define}\n")
+        else()
+          string(APPEND _configuration_string "/* #undef ${_additional_define} */\n")
+        endif()
+      endforeach()
+    endif()
+
     # Now check if the configure script has set the hash variable.
     if(DEFINED FOUR_C_${_package_name}_GIT_HASH)
       four_c_check_dependency_version(
