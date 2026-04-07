@@ -1091,60 +1091,6 @@ namespace Discret::Elements
     }
   }
 
-
-
-  /*!
-   * @brief Add the contribution of a pure pressure term to the stiffness matrix
-   *
-   * @tparam celltype
-   * @param jacobian_mapping (in) : Jacobian mapping of the element at the Gauss point
-   * @param spatial_material_mapping (in) : An object holding quantities of the spatial material
-   * mapping
-   * @param pressure (in) : pressure value at the Gauss point
-   * @param dp_dJ (in) : derivative of the pressure w.r.t. the determinant of the deformation
-   * gradient at the Gauss point
-   * @param integration_fac (in) : Integration factor (Gauss point weight times the determinant of
-   * the jacobian)
-   * @param stiffness_matrix (in/out) : stiffness matrix where the local contribution is added to
-   */
-  template <Core::FE::CellType celltype>
-  void add_pressure_stiffness_matrix(const JacobianMapping<celltype>& jacobian_mapping,
-      const SpatialMaterialMapping<celltype>& spatial_material_mapping, const double pressure,
-      const double dp_dJ, const double integration_fac,
-      Core::LinAlg::Matrix<Internal::num_dim<celltype> * Internal::num_nodes<celltype>,
-          Internal::num_dim<celltype> * Internal::num_nodes<celltype>>& stiffness_matrix)
-  {
-    constexpr std::size_t dim = Core::FE::dim<celltype>;
-
-    const double K_bulk = dp_dJ * spatial_material_mapping.determinant_deformation_gradient_;
-    const double volume_factor =
-        spatial_material_mapping.determinant_deformation_gradient_ * integration_fac;
-
-    std::array<Core::LinAlg::Tensor<double, dim>, Core::FE::num_nodes(celltype)> gis;
-    std::transform(jacobian_mapping.N_XYZ.begin(), jacobian_mapping.N_XYZ.end(), gis.begin(),
-        [&](const auto& g)
-        {
-          return Core::LinAlg::transpose(spatial_material_mapping.inverse_deformation_gradient_) *
-                 g;
-        });
-
-    for (std::size_t i = 0; i < Core::FE::num_nodes(celltype); ++i)
-    {
-      for (std::size_t j = 0; j < Core::FE::num_nodes(celltype); ++j)
-      {
-        const auto gij = Core::LinAlg::dyadic(gis[i], gis[j]);
-
-        // stiffness contribution
-        // Note: Despite we add a nonsymmetric term (gij^T - gij), the resulting stiffness matrix is
-        // symmetric.
-        add_nodal_contribution<celltype>(i, j,
-            volume_factor * K_bulk * gij +
-                volume_factor * pressure * (Core::LinAlg::transpose(gij) - gij),
-            stiffness_matrix);
-      }
-    }
-  }
-
   /*!
    * @brief Add elastic stiffness matrix contribution of one Gauss point
    *

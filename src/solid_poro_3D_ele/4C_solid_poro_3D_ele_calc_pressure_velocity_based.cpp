@@ -441,6 +441,12 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
             porostructmat, params, solid_variables, shape_functions, fluid_press, gp, volchange,
             dPorosity_ddetJ);
 
+        const double J = spatial_material_mapping.determinant_deformation_gradient_;
+        const auto& C_inv = cauchygreen.inverse_right_cauchy_green_;
+
+        Stress<celltype> stress{};
+        stress.pk2_ = -fluid_press * J * C_inv;
+
         // update internal force vector
         if (matrix_views.force_vector.has_value())
         {
@@ -450,11 +456,8 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
               fluid_velocity, FinvGradp, *matrix_views.force_vector);
 
           // Add fluid stress term to internal force vector
-          const auto pk2_pressure = -fluid_press *
-                                    spatial_material_mapping.determinant_deformation_gradient_ *
-                                    cauchygreen.inverse_right_cauchy_green_;
           add_internal_force_vector(jacobian_mapping,
-              spatial_material_mapping.deformation_gradient_, pk2_pressure, integration_factor,
+              spatial_material_mapping.deformation_gradient_, stress.pk2_, integration_factor,
               *matrix_views.force_vector);
         }
 
@@ -484,6 +487,11 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
         // update stiffness matrix
         if (matrix_views.K_displacement_displacement.has_value())
         {
+          stress.cmat_ = fluid_press * J *
+                         ((Core::LinAlg::einsum_sym<"ik", "jl">(C_inv, C_inv) +
+                              Core::LinAlg::einsum_sym<"il", "jk">(C_inv, C_inv)) -
+                             Core::LinAlg::dyadic(C_inv, C_inv));
+
           // initialize element matrizes and vectors
           Core::LinAlg::Matrix<num_dof_per_ele_, num_dof_per_ele_> erea_v(
               Core::LinAlg::Initialization::zero);
@@ -495,8 +503,8 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
               dPorosity_ddetJ, dInverseDeformationGradientTransposed_dDisp, erea_v,
               *matrix_views.K_displacement_displacement);
 
-          add_pressure_stiffness_matrix(jacobian_mapping, spatial_material_mapping, fluid_press,
-              0.0, integration_factor, *matrix_views.K_displacement_displacement);
+          add_stiffness_matrix(jacobian_mapping, spatial_material_mapping.deformation_gradient_,
+              stress, integration_factor, *matrix_views.K_displacement_displacement);
 
           if (react_matrix.has_value())
           {

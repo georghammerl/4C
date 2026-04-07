@@ -181,23 +181,32 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<celltype>::
           }
         }
 
+        const double J = spatial_material_mapping.determinant_deformation_gradient_;
+        const auto& C_inv = cauchygreen.inverse_right_cauchy_green_;
+
+        Stress<celltype> stress{};
+        stress.pk2_ = -solidpressure * J * C_inv;
+
         // update internal force vector
         if (force.has_value())
         {
           // Add fluid stress term to internal force vector
-          const auto pk2_pressure = -solidpressure *
-                                    spatial_material_mapping.determinant_deformation_gradient_ *
-                                    cauchygreen.inverse_right_cauchy_green_;
           add_internal_force_vector(jacobian_mapping,
-              spatial_material_mapping.deformation_gradient_, pk2_pressure, integration_factor,
+              spatial_material_mapping.deformation_gradient_, stress.pk2_, integration_factor,
               *force);
         }
 
         // update stiffness matrix
         if (stiff.has_value())
         {
-          add_pressure_stiffness_matrix(jacobian_mapping, spatial_material_mapping, solidpressure,
-              dSolidpressure_ddetJ, integration_factor, *stiff);
+          stress.cmat_ =
+              -(dSolidpressure_ddetJ * J + solidpressure) * J * Core::LinAlg::dyadic(C_inv, C_inv) +
+              solidpressure * J *
+                  (Core::LinAlg::einsum_sym<"ik", "jl">(C_inv, C_inv) +
+                      Core::LinAlg::einsum_sym<"il", "jk">(C_inv, C_inv));
+
+          add_stiffness_matrix(jacobian_mapping, spatial_material_mapping.deformation_gradient_,
+              stress, integration_factor, *stiff);
         }
       });
 }
