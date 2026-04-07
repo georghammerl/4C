@@ -23,6 +23,7 @@
 #include "4C_reduced_lung_airways.hpp"
 #include "4C_reduced_lung_input.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
+#include "4C_reduced_lung_terminal_unit_model_registry.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <algorithm>
@@ -329,8 +330,9 @@ namespace ReducedLung
             parameters.lung_tree.terminal_units.elasticity_model.elasticity_model_type.at(
                 global_element_id, "elasticity_model_type");
 
-        add_terminal_unit_with_model_selection(terminal_units, global_element_id, local_element_id,
-            parameters, rheological_model_name, elasticity_model_name);
+        TerminalUnits::ModelRegistry::add_terminal_unit_with_model_selection(terminal_units,
+            global_element_id, local_element_id, parameters, rheological_model_name,
+            elasticity_model_name);
 
         dof_per_ele[global_element_id] = 3;
         n_terminal_units++;
@@ -698,58 +700,6 @@ namespace ReducedLung
     else
     {
       FOUR_C_THROW("Flow model not implemented.");
-    }
-  }
-
-  void add_terminal_unit_with_model_selection(TerminalUnitContainer& terminal_units,
-      int global_element_id, int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType
-          rheological_model_type,
-      ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType
-          elasticity_model_type)
-  {
-    using RheologicalModelType =
-        ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType;
-    using ElasticityModelType =
-        ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType;
-
-    if (rheological_model_type == RheologicalModelType::KelvinVoigt)
-    {
-      if (elasticity_model_type == ElasticityModelType::Linear)
-      {
-        add_terminal_unit_ele<KelvinVoigt, LinearElasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else if (elasticity_model_type == ElasticityModelType::Ogden)
-      {
-        add_terminal_unit_ele<KelvinVoigt, OgdenHyperelasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Elasticity model not implemented.");
-      }
-    }
-    else if (rheological_model_type == RheologicalModelType::FourElementMaxwell)
-    {
-      if (elasticity_model_type == ElasticityModelType::Linear)
-      {
-        add_terminal_unit_ele<FourElementMaxwell, LinearElasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else if (elasticity_model_type == ElasticityModelType::Ogden)
-      {
-        add_terminal_unit_ele<FourElementMaxwell, OgdenHyperelasticity>(
-            terminal_units, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Elasticity model not implemented.");
-      }
-    }
-    else
-    {
-      FOUR_C_THROW("Rheological model not implemented.");
     }
   }
 

@@ -315,28 +315,6 @@ namespace ReducedLung
       ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType flow_model_type,
       ReducedLungParameters::LungTree::Airways::WallModelType wall_model_type);
 
-  /*!
-   * @brief Add a terminal unit element with the appropriate template instantiation based on model
-   * types.
-   *
-   * This helper function encapsulates the template instantiation logic for adding terminal unit
-   * elements based on the rheological model (KelvinVoigt/FourElementMaxwell) and elasticity model
-   * (Linear/Ogden) types.
-   *
-   * @param terminal_units Container for all terminal unit models.
-   * @param global_element_id Unique global identifier of the element.
-   * @param local_element_id Local element id for the row map.
-   * @param parameters Terminal unit parameters containing model information.
-   * @param rheological_model_type The rheological model type.
-   * @param elasticity_model_type The elasticity model type.
-   */
-  void add_terminal_unit_with_model_selection(TerminalUnits::TerminalUnitContainer& terminal_units,
-      int global_element_id, int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::TerminalUnits::RheologicalModel::RheologicalModelType
-          rheological_model_type,
-      ReducedLungParameters::LungTree::TerminalUnits::ElasticityModel::ElasticityModelType
-          elasticity_model_type);
-
   void collect_runtime_output_data(
       Core::IO::DiscretizationVisualizationWriterMesh& visualization_writer,
       const Airways::AirwayContainer& airways,
