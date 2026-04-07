@@ -7,6 +7,7 @@
 
 #include "4C_linear_solver_thyra_utils.hpp"
 
+#include <Teko_EpetraInverseOpWrapper.hpp>
 #include <Thyra_EpetraLinearOp.hpp>
 #include <Thyra_EpetraThyraWrappers.hpp>
 #include <Thyra_PhysicallyBlockedLinearOpBase.hpp>
@@ -83,6 +84,15 @@ Teuchos::RCP<const Thyra::LinearOpBase<double>> Core::LinearSolver::Utils::creat
   block_matrix->endBlockFill();
 
   return block_matrix;
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+std::shared_ptr<Epetra_Operator> Core::LinearSolver::Utils::get_epetra_inverse_operator_from_thyra(
+    const Teuchos::RCP<const Thyra::LinearOpBase<double>> thyra_linear_op)
+{
+  return std::make_shared<Teko::Epetra::EpetraInverseOpWrapper>(thyra_linear_op);
 }
 
 

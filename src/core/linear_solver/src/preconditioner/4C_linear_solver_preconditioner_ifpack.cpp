@@ -13,7 +13,6 @@
 #include "4C_utils_exceptions.hpp"
 
 #include <Stratimikos_LinearSolverBuilder_decl.hpp>
-#include <Teko_EpetraInverseOpWrapper.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
 
 FOUR_C_NAMESPACE_OPEN
@@ -73,7 +72,7 @@ void Core::LinearSolver::IFPACKPreconditioner::setup(
       Thyra::prec<double>(*precFactory, pmatrix_);
   auto inverseOp = prec->getUnspecifiedPrecOp();
 
-  p_ = std::make_shared<Teko::Epetra::EpetraInverseOpWrapper>(inverseOp);
+  p_ = Utils::get_epetra_inverse_operator_from_thyra(inverseOp);
 }
 
 FOUR_C_NAMESPACE_CLOSE
