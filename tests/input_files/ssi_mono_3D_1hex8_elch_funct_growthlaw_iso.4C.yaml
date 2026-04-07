@@ -4,7 +4,7 @@ TITLE:
   - "- cubic domain discretized by 1 hex8 element"
   - "- constant transported scalar"
   - "- structure and scatra fields are coupled via MAT_MultiplicativeSplitDefgradElastHyper using:"
-  - "- MAT_InelasticDefgradTimeFunct: isotropic strain dependending on a given function"
+  - "- MAT_InelasticDefgradTimeFunctIso: isotropic strain depending on a given function"
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure_Scalar_Interaction"
 IO:
@@ -72,7 +72,7 @@ MATERIALS:
       YOUNG: 10000
       NUE: 0.3
   - MAT: 4
-    MAT_InelasticDefgradTimeFunct:
+    MAT_InelasticDefgradTimeFunctIso:
       FUNCT_NUM: 2
 CLONING MATERIAL MAP:
   - SRC_FIELD: "structure"
@@ -85,7 +85,7 @@ FUNCT1:
   - COMPONENT: 1
     SYMBOLIC_FUNCTION_OF_SPACE_TIME: "3.6"
 FUNCT2:
-  - SYMBOLIC_FUNCTION_OF_TIME: "t+1"
+  - SYMBOLIC_FUNCTION_OF_TIME: "t"
 FUNCT3:
   - FASTPOLYNOMIAL:
       NUMCOEFF: 1

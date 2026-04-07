@@ -597,7 +597,11 @@ std::unique_ptr<Core::Mat::PAR::Parameter> Mat::make_parameter(
     {
       return make_parameter_impl<Mat::PAR::InelasticDefgradLinTempIso>(id, type, input_data);
     }
-    case Core::Materials::mfi_time_funct:
+    case Core::Materials::mfi_time_funct_aniso:
+    {
+      return make_parameter_impl<Mat::PAR::InelasticDefgradTimeFunctAniso>(id, type, input_data);
+    }
+    case Core::Materials::mfi_time_funct_iso:
     {
       return make_parameter_impl<Mat::PAR::InelasticDefgradTimeFunct>(id, type, input_data);
     }

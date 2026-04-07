@@ -248,9 +248,12 @@ namespace Core::Materials
                            ///< causes the volume change
     mfi_lin_temp_iso,      ///< volume change due to isotropic inelastic deformation gradient is a
                            ///< linear function of the temperature
-    mfi_no_growth,   ///< material with no volume change, i.e. inelastic deformation gradient is an
-                     ///< identity tensor
-    mfi_time_funct,  ///< growth evaluated by a function
+    mfi_no_growth,  ///< material with no volume change, i.e. inelastic deformation gradient is an
+                    ///< identity tensor
+    mfi_time_funct_aniso,  ///< volume change due to anisotropic inelastic deformation gradient is a
+                           ///< function of time
+    mfi_time_funct_iso,    ///< volume change due to isotropic inelastic deformation gradient is a
+                           ///< function of time
     mfi_poly_intercal_frac_aniso,  ///< volume change due to (anisotropic) inelastic deformation
                                    ///< gradient is a polynomial function of the intercalation
                                    ///< fraction that causes the volume change
