@@ -17,6 +17,7 @@
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_linalg_symmetric_tensor_eigen.hpp"
 #include "4C_linalg_tensor_generators.hpp"
+#include "4C_solid_3D_ele_calc_lib.hpp"
 #include "4C_solid_3D_ele_properties.hpp"
 
 #include <cmath>
@@ -36,12 +37,18 @@ namespace Solid::Utils
    * @param defgrd (in) : Deformation gradient
    * @return Cauchy stress tensor
    */
-  template <std::size_t dim>
+  template <std::size_t dim, Core::FE::CellType celltype>
   Core::LinAlg::SymmetricTensor<double, dim, dim> pk2_to_cauchy(
+      const Discret::Elements::ElementProperties<celltype>& element_properties,
       const Core::LinAlg::SymmetricTensor<double, dim, dim>& pk2,
       const Core::LinAlg::Tensor<double, dim, dim>& defgrd)
   {
-    FOUR_C_ASSERT_ALWAYS(dim == 3, "Converting stress measures is only available in 3D");
+    if constexpr (dim == 2)
+    {
+      FOUR_C_ASSERT_ALWAYS(
+          element_properties.plane_assumption == Discret::Elements::PlaneAssumption::plane_strain,
+          "Cauchy stress output for 2D continua is only available for plane strain elements!");
+    }
     return Core::LinAlg::assume_symmetry(defgrd * pk2 * Core::LinAlg::transpose(defgrd)) /
            Core::LinAlg::det(defgrd);
   }
@@ -53,12 +60,19 @@ namespace Solid::Utils
    * @param gl (in) : Green Lagrange strain tensor
    * @return Core::LinAlg::Matrix<6, 1> : Euler-Almansi strain tensor
    */
-  template <std::size_t dim>
+  template <std::size_t dim, Core::FE::CellType celltype>
   Core::LinAlg::SymmetricTensor<double, dim, dim> green_lagrange_to_euler_almansi(
+      const Discret::Elements::ElementProperties<celltype>& element_properties,
       const Core::LinAlg::SymmetricTensor<double, dim, dim>& gl,
       const Core::LinAlg::Tensor<double, dim, dim>& defgrd)
   {
-    FOUR_C_ASSERT_ALWAYS(dim == 3, "Converting strain measures is only available in 3D");
+    if constexpr (dim == 2)
+    {
+      FOUR_C_ASSERT_ALWAYS(
+          element_properties.plane_assumption == Discret::Elements::PlaneAssumption::plane_strain,
+          "Euler Almansi strain output for 2D continua is only available for plane strain "
+          "elements!");
+    }
     Core::LinAlg::Tensor<double, dim, dim> invdefgrd = Core::LinAlg::inv(defgrd);
 
     return Core::LinAlg::assume_symmetry(Core::LinAlg::transpose(invdefgrd) * gl * invdefgrd);
@@ -71,11 +85,18 @@ namespace Solid::Utils
    * @param gl (in) : Green Lagrange strain tensor
    * @return Core::LinAlg::Matrix<6, 1> : Logarithmic strain tensor
    */
-  template <std::size_t dim>
+  template <std::size_t dim, Core::FE::CellType celltype>
   Core::LinAlg::SymmetricTensor<double, dim, dim> green_lagrange_to_log_strain(
+      const Discret::Elements::ElementProperties<celltype>& element_properties,
       const Core::LinAlg::SymmetricTensor<double, dim, dim>& gl)
   {
-    FOUR_C_ASSERT_ALWAYS(dim == 3, "Converting strain measures is only available in 3D");
+    if constexpr (dim == 2)
+    {
+      FOUR_C_ASSERT_ALWAYS(
+          element_properties.plane_assumption == Discret::Elements::PlaneAssumption::plane_strain,
+          "Logarithmic strain output for 2D continua is only available for plane strain "
+          "elements!");
+    }
     auto [eigenvalues, eigenvectors] = Core::LinAlg::eig(gl);
 
     // compute principal logarithmic strains
