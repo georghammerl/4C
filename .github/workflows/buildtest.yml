@@ -248,6 +248,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    outputs:
+      test-chunks: ${{ steps.set-matrix.outputs.chunk-array }}
     steps:
       - uses: actions/checkout@v6
       - name: Check docker hash
@@ -264,16 +266,28 @@ jobs:
           directory: ${{ github.workspace }}/build
           retention-days: 1
           name: gcc13_no_optional_dependencies_build
+      - uses: ./.github/actions/chunk_test_suite
+        id: set-matrix
+        with:
+          build-directory: ${{ github.workspace }}/build
+          source-directory: ${{ github.workspace }}
+          number-of-chunks: 15
+          junit-report-artifact-name: gcc13_no_optional_dependencies_test_report.xml
 
   gcc13_no_optional_dependencies_test:
     needs: gcc13_no_optional_dependencies_build
     runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
     container:
       image: ghcr.io/4c-multiphysics/4c-dependencies-ubuntu24.04:24b228a5
       options: --user root --env OMPI_ALLOW_RUN_AS_ROOT=1 --env OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
     defaults:
       run:
         shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        test-chunk: ${{fromJson(needs.gcc13_no_optional_dependencies_build.outputs.test-chunks)}}
     steps:
       - uses: actions/checkout@v6
       - name: Check docker hash
@@ -289,7 +303,30 @@ jobs:
       - name: Test
         run: |
           cd $GITHUB_WORKSPACE/build
-          ctest -L minimal -j `nproc` --output-on-failure
+          ctest -I $TEST_CHUNK -j `nproc` --output-on-failure --output-junit $GITHUB_WORKSPACE/gcc13_no_optional_dependencies_test_report-$TEST_CHUNK.xml
+        env:
+          TEST_CHUNK: ${{ matrix.test-chunk }}
+      - name: Upload test report
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gcc13_no_optional_dependencies_test_report-${{ matrix.test-chunk }}.xml
+          path: |
+            ${{ github.workspace }}/gcc13_no_optional_dependencies_test_report-${{ matrix.test-chunk }}.xml
+          retention-days: 1
+
+  gcc13_no_optional_dependencies_test_report:
+    needs: gcc13_no_optional_dependencies_test
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && (success() || failure())
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/merge_junit_report_artifacts
+        with:
+          junit-report-base-name: gcc13_no_optional_dependencies_test_report
+          retention-days: 1
 
   ensure_all_tests_pass:
     needs:
@@ -302,6 +339,7 @@ jobs:
       - clang18_verify_schema
       - gcc13_no_optional_dependencies_build
       - gcc13_no_optional_dependencies_test
+      - gcc13_no_optional_dependencies_test_report
     runs-on: ubuntu-latest
     if: always() && github.ref != 'refs/heads/main'
     steps:
