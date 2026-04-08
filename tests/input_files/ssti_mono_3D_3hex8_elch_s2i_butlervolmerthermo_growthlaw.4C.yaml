@@ -171,7 +171,6 @@ MATERIALS:
       SCALAR1: 1
       SCALAR1_MolarGrowthFac: 1.3e-05
       SCALAR1_RefConc: 1
-      NUMSPACEDIM: 3
       GrowthDirection: [1, 0, 0]
   - MAT: 19
     MAT_InelasticDefgradLinTempIso:
@@ -243,62 +242,62 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 6
       QUANTITY: "dispx"
-      VALUE: -4.39579203207457928e-05
+      VALUE: -4.39579203207459215e-05
       TOLERANCE: 4.4e-12
   - STRUCTURE:
       DIS: "structure"
       NODE: 16
       QUANTITY: "dispx"
-      VALUE: -9.62602557242097420e-05
+      VALUE: -9.62602557242097826e-05
       TOLERANCE: 9.6e-12
   - STRUCTURE:
       DIS: "structure"
       NODE: 16
       QUANTITY: "dispy"
-      VALUE: 8.18215400782441623e-06
+      VALUE: 8.18215400782436710e-06
       TOLERANCE: 8.2e-13
   - STRUCTURE:
       DIS: "structure"
       NODE: 16
       QUANTITY: "dispz"
-      VALUE: 8.18215526679789522e-06
+      VALUE: 8.18215526679759875e-06
       TOLERANCE: 8.2e-13
   - STRUCTURE:
       DIS: "structure"
       NODE: 18
       QUANTITY: "dispx"
-      VALUE: -9.62602562138705576e-05
+      VALUE: -9.62602562138705170e-05
       TOLERANCE: 9.6e-12
   - SCATRA:
       DIS: "scatra"
       NODE: 5
       QUANTITY: "phi1"
-      VALUE: 5.16807465477049721e+00
+      VALUE: 5.16807465477049810e+00
       TOLERANCE: 5.2e-07
   - SCATRA:
       DIS: "scatra"
       NODE: 5
       QUANTITY: "phi2"
-      VALUE: 9.10839711957962242e-05
+      VALUE: 9.10839711957960616e-05
       TOLERANCE: 9.1e-12
   - SCATRA:
       DIS: "scatra"
       NODE: 15
       QUANTITY: "phi1"
-      VALUE: 1200
-      TOLERANCE: 0.00012
+      VALUE: 1.2e3
+      TOLERANCE: 1.2e-4
   - SCATRA:
       DIS: "scatra"
       NODE: 15
       QUANTITY: "phi2"
-      VALUE: 1.16530703590220663e-01
+      VALUE: 1.16530703590220636e-01
       TOLERANCE: 1.2e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 24
       QUANTITY: "phi1"
-      VALUE: 1.02891622210407550e+04
-      TOLERANCE: 0.001
+      VALUE: 1.02891622210407731e+04
+      TOLERANCE: 1.0e-3
   - SCATRA:
       DIS: "scatra"
       NODE: 24
@@ -309,25 +308,25 @@ RESULT DESCRIPTION:
       DIS: "thermo"
       NODE: 8
       QUANTITY: "phi"
-      VALUE: 2.55083219509554368e+02
+      VALUE: 2.55083219509553913e+02
       TOLERANCE: 2.6e-05
   - SCATRA:
       DIS: "thermo"
       NODE: 16
       QUANTITY: "phi"
-      VALUE: 2.88428612135808464e+02
+      VALUE: 2.88428612135809090e+02
       TOLERANCE: 2.9e-05
   - SCATRA:
       DIS: "thermo"
       NODE: 20
       QUANTITY: "phi"
-      VALUE: 2.99306738008738819e+02
-      TOLERANCE: 3e-05
+      VALUE: 2.99306738008739387e+02
+      TOLERANCE: 3.0e-05
   - SSTI:
       SPECIAL: true
       QUANTITY: "numiterlastnonlinearsolve"
       VALUE: 5
-      TOLERANCE: 1e-16
+      TOLERANCE: 1.0e-16
 DESIGN SURF TRANSPORT NEUMANN CONDITIONS:
   - E: 6
     NUMDOF: 2

@@ -79,60 +79,60 @@ RESULT DESCRIPTION:
       NODE: 7
       QUANTITY: "phi"
       VALUE: 10
-      TOLERANCE: 1e-07
+      TOLERANCE: 1.0e-07
   - STRUCTURE:
       DIS: "structure"
       NODE: 9
       QUANTITY: "dispx"
-      VALUE: -1.1545077352305724
+      VALUE: -1.15450773523057637e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 9
       QUANTITY: "dispy"
-      VALUE: -1.1545077352305684
+      VALUE: -1.15450773523057859e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 9
       QUANTITY: "dispz"
-      VALUE: -1.154507735230581
+      VALUE: -1.15450773523057770e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 14
       QUANTITY: "dispx"
-      VALUE: -1.1545077352305744
+      VALUE: -1.15450773523058281e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 14
       QUANTITY: "dispy"
-      VALUE: 1.1545077352305801
+      VALUE: 1.15450773523058547e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 14
       QUANTITY: "dispz"
-      VALUE: 1.1545077352305804
+      VALUE: 1.15450773523058459e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 26
       QUANTITY: "dispx"
-      VALUE: 1.1545077352305786
+      VALUE: 1.15450773523059236e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 26
       QUANTITY: "dispy"
-      VALUE: 1.154507735230571
+      VALUE: 1.15450773523057371e+00
       TOLERANCE: 1.2e-08
   - STRUCTURE:
       DIS: "structure"
       NODE: 26
       QUANTITY: "dispz"
-      VALUE: 1.1545077352305766
+      VALUE: 1.15450773523058325e+00
       TOLERANCE: 1.2e-08
 DESIGN VOL TRANSPORT DIRICH CONDITIONS:
   - E: 1

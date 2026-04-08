@@ -246,78 +246,78 @@ RESULT DESCRIPTION:
       DIS: "structure"
       NODE: 10
       QUANTITY: "dispx"
-      VALUE: 1.01362930429360462e-06
-      TOLERANCE: 1e-14
+      VALUE: 1.01303231015246654e-06
+      TOLERANCE: 1.0e-14
   - STRUCTURE:
       DIS: "structure"
       NODE: 20
       QUANTITY: "dispx"
-      VALUE: 1.30963434976330911e-05
+      VALUE: 1.30957032071774273e-05
       TOLERANCE: 1.3e-13
   - STRUCTURE:
       DIS: "structure"
       NODE: 20
       QUANTITY: "dispy"
-      VALUE: 0
-      TOLERANCE: 1e-16
+      VALUE: 0.0
+      TOLERANCE: 1.0e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 20
       QUANTITY: "dispz"
-      VALUE: 0
-      TOLERANCE: 1e-16
+      VALUE: 0.0
+      TOLERANCE: 1.0e-16
   - STRUCTURE:
       DIS: "structure"
       NODE: 30
       QUANTITY: "dispx"
-      VALUE: 4.93352623311586145e-05
+      VALUE: 4.93345085092466317e-05
       TOLERANCE: 4.9e-13
   - SCATRA:
       DIS: "scatra"
       NODE: 5
       QUANTITY: "phi1"
-      VALUE: 16.5719622495137955
+      VALUE: 1.65719669005023249e+01
       TOLERANCE: 1.7e-07
   - SCATRA:
       DIS: "scatra"
       NODE: 15
       QUANTITY: "phi2"
-      VALUE: -0.08527921100853328
+      VALUE: -8.52792108702992990e-02
       TOLERANCE: 8.5e-10
   - SCATRA:
       DIS: "scatra"
       NODE: 25
       QUANTITY: "phi1"
-      VALUE: 9659.36993172946131
+      VALUE: 9.65937134193079328e+03
       TOLERANCE: 9.7e-05
   - SCATRA:
       DIS: "thermo"
       NODE: 8
       QUANTITY: "phi"
-      VALUE: 299.856570322356276
-      TOLERANCE: 3e-06
+      VALUE: 2.99856564401106311e+02
+      TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "thermo"
       NODE: 18
       QUANTITY: "phi"
-      VALUE: 300.24311588834274
-      TOLERANCE: 3e-06
+      VALUE: 3.00243113572498714e+02
+      TOLERANCE: 3.0e-06
   - SCATRA:
       DIS: "thermo"
       NODE: 28
       QUANTITY: "phi"
-      VALUE: 300.49306257200664
-      TOLERANCE: 3e-06
+      VALUE: 3.00493062553071240e+02
+      TOLERANCE: 3.0e-06
   - SSTI:
       SPECIAL: true
       QUANTITY: "numiterlastnonlinearsolve"
       VALUE: 5
-      TOLERANCE: 1e-16
+      TOLERANCE: 1.0e-16
   - SSTI:
       SPECIAL: true
       QUANTITY: "numstep"
       VALUE: 64
-      TOLERANCE: 1e-16
+      TOLERANCE: 1.0e-16
 DESIGN CCCV CELL CYCLING SURF CONDITIONS:
   - E: 6
     NUMBER_OF_HALF_CYCLES: 2
