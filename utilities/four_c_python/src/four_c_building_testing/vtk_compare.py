@@ -14,6 +14,7 @@ from vtk import vtkXMLPPolyDataReader
 from vtk import vtkXMLPUnstructuredGridReader
 from vtk import vtkXMLGenericDataObjectReader
 from vtk.util import numpy_support as VN
+import argparse
 
 # Import pure vtk data comparison.
 from four_c_building_testing.vtk_data_compare import compare_vtk_data
@@ -231,27 +232,33 @@ def compare_vtk(path1, path2, points_in_time, tol_float=1e-8, raise_error=True):
 
 
 def cli():
+    parser = argparse.ArgumentParser(
+        description="Compare two .pvd files and their linked .pvtk files. Only given points in time are compared. If no points in time are given, all are compared."
+    )
+    parser.add_argument(
+        "vtk_result", help="Path to .pvd file of the result to be compared."
+    )
+    parser.add_argument(
+        "vtk_reference",
+        help="Path to .pvd file of the reference to be compared against.",
+    )
+    parser.add_argument(
+        "tolerance", help="Tolerance for data comparison, e.g. 1e-8.", type=float
+    )
+    parser.add_argument(
+        "--points_in_time",
+        nargs="*",
+        help="List of points in time to be compared (If empty, all timesteps are compared).",
+        type=float,
+        default=[],
+    )
+
+    args = parser.parse_args()
     # Read arguments.
-    file_comp = sys.argv[1]
-    file_ref = sys.argv[2]
-    try:
-        tolerance = float(sys.argv[3])
-    except ValueError:
-        print("Given tolerance is no float! Check your arguments!")
-    tolerance = float(sys.argv[3])
-
-    points_in_time = []
-    # if timesteps are not given and variable remains empty, all timesteps are used
-
-    if len(sys.argv) > 4:
-        num_timesteps = int(sys.argv[4])
-        if len(sys.argv) - 5 != num_timesteps:
-            raise ValueError(
-                "You did not list as many timesteps as you specified! Check your arguments!"
-            )
-        # if 0 is given as number of files this should still work
-        if num_timesteps != 0:
-            points_in_time = np.array(sys.argv[5 : 5 + num_timesteps], dtype=float)
+    file_comp = args.vtk_result
+    file_ref = args.vtk_reference
+    tolerance = args.tolerance
+    points_in_time = args.points_in_time
     compare_vtk(
         path1=file_comp,
         path2=file_ref,
