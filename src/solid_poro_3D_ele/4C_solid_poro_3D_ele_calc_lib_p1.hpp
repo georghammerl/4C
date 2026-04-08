@@ -67,7 +67,7 @@ namespace Discret::Elements
     }
   };
 
-  template <SolidPoroDofType row_type, SolidPoroDofType col_type, int dim = 3>
+  template <SolidPoroDofType row_type, SolidPoroDofType col_type, int dim>
   void assemble_mixed_displacement_porosity_matrix(
       Core::LinAlg::SerialDenseMatrix& target, const Core::LinAlg::SerialDenseMatrix& source)
   {

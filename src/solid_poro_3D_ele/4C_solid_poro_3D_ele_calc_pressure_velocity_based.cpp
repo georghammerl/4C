@@ -233,7 +233,6 @@ namespace
       const Discret::Elements::JacobianMapping<celltype>& jacobian_mapping,
       const Discret::Elements::SpatialMaterialMapping<celltype>& spatial_material_mapping,
       const Inpar::Solid::KinemType& kinematictype = Inpar::Solid::KinemType::nonlinearTotLag)
-    requires(Discret::Elements::Internal::num_dim<celltype> == 3)
   {
     Core::LinAlg::Matrix<Discret::Elements::Internal::num_dim<celltype> *
                              Discret::Elements::Internal::num_dim<celltype>,
@@ -288,7 +287,6 @@ namespace
           d_inverse_deformationgradient_transposed_ddisp,
       const Core::LinAlg::Matrix<Discret::Elements::Internal::num_dim<celltype>, 1>& Gradp,
       const Inpar::Solid::KinemType& kinematictype = Inpar::Solid::KinemType::nonlinearTotLag)
-    requires(Discret::Elements::Internal::num_dim<celltype> == 3)
   {
     // dF^-T/dus * Grad p
     Core::LinAlg::Matrix<Discret::Elements::Internal::num_dim<celltype> *
@@ -321,8 +319,21 @@ namespace
 template <Core::FE::CellType celltype, Discret::Elements::PorosityFormulation porosity_formulation>
 Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
     porosity_formulation>::SolidPoroPressureVelocityBasedEleCalc()
+  requires(Core::FE::dim<celltype> == 3)
     : gauss_integration_(Core::FE::create_gauss_integration<celltype>(
           get_gauss_rule_stiffness_matrix_poro<celltype>()))
+{
+}
+
+template <Core::FE::CellType celltype, Discret::Elements::PorosityFormulation porosity_formulation>
+Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
+    porosity_formulation>::SolidPoroPressureVelocityBasedEleCalc(const double reference_thickness,
+    const Discret::Elements::PlaneAssumption plane_assumption)
+  requires(Core::FE::dim<celltype> == 2)
+    : gauss_integration_(Core::FE::create_gauss_integration<celltype>(
+          get_gauss_rule_stiffness_matrix_poro<celltype>())),
+      element_properties_(
+          {.reference_thickness = reference_thickness, .plane_assumption = plane_assumption})
 {
 }
 
@@ -369,13 +380,13 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
 
   // get nodal coordinates current and reference
   const ElementNodes<celltype> nodal_coordinates =
-      evaluate_element_nodes<celltype>(ele, primary_variables.solid_displacements);
+      evaluate_element_nodes<celltype>(discretization, ele, primary_variables.solid_displacements);
 
   // Check for negative Jacobian determinants
   ensure_positive_jacobian_determinant_at_element_nodes(nodal_coordinates);
 
   // Loop over all Gauss points
-  for_each_gauss_point(nodal_coordinates, {}, gauss_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, gauss_integration_,
       [&](const Core::LinAlg::Tensor<double, num_dim_>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -572,7 +583,7 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
               const double fac = integration_factor * shape_functions.shapefunctions_(k);
               for (int i = 0; i < Core::FE::dim<celltype> * Core::FE::num_nodes(celltype); i++)
               {
-                (*matrix_views.K_porosity_displacement)(k, i) += fac * dW_dJ * dDetDefGrad_dDisp(i);
+                (*matrix_views.K_porosity_displacement)(k, i) += fac * dW_dJ * dVolchange_dDisp(i);
               }
             }
           }
@@ -622,10 +633,10 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
 
   // get nodal coordinates current and reference
   const ElementNodes<celltype> nodal_coordinates =
-      evaluate_element_nodes<celltype>(ele, primary_variables.solid_displacements);
+      evaluate_element_nodes<celltype>(discretization, ele, primary_variables.solid_displacements);
 
   // Loop over all Gauss points
-  for_each_gauss_point(nodal_coordinates, {}, gauss_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, gauss_integration_,
       [&](const Core::LinAlg::Tensor<double, num_dim_>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -737,6 +748,21 @@ void Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<celltype,
 }
 
 // template classes
+// 2D
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad4,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad8,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad9,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::nurbs9,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::tri3,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::tri6,
+    Discret::Elements::PorosityFormulation::from_material_law>;
+
+// 3D
 template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::hex8,
     Discret::Elements::PorosityFormulation::from_material_law>;
 template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::hex27,
@@ -746,6 +772,22 @@ template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE
 template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::tet10,
     Discret::Elements::PorosityFormulation::from_material_law>;
 
+// p1-formulation
+// 2D
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad4,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad8,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::quad9,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::nurbs9,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::tri3,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::tri6,
+    Discret::Elements::PorosityFormulation::as_primary_variable>;
+
+// 3D
 template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::hex8,
     Discret::Elements::PorosityFormulation::as_primary_variable>;
 template class Discret::Elements::SolidPoroPressureVelocityBasedEleCalc<Core::FE::CellType::hex27,

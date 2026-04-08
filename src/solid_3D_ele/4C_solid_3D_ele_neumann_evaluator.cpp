@@ -103,10 +103,16 @@ void Discret::Elements::evaluate_neumann(Core::Elements::Element& element,
 
             for (auto nodeid = 0; nodeid < numnod; ++nodeid)
             {
+              int num_dof_per_node = element.num_dof_per_node(*element.nodes()[nodeid]);
               // Evaluates the Neumann boundary condition: f_{x,y,z}^i=\sum_j N^i(xi^j) * value(t) *
               // integration_factor_j
-              // assembles the element force vector [f_x^1, f_y^1, f_z^1, ..., f_x^n, f_y^n, f_z^n]
-              element_force_vector[nodeid * dim + i] +=
+              // assembles the element force vector [f_x^1, f_y^1, f_z^1, [potential_extra_dof_1^1,
+              // potential_extra_dofs_2^1, ...],
+              // ..., f_x^n, f_y^n, f_z^n, [potential_extra_dof_1^n,
+              // potential_extra_dofs_2^n, ...]]
+              // Note, we only assemble on the first dim entries per node. There might be some extra
+              // dofs per node (e.g., for solid-poro-p1 elements).
+              element_force_vector[nodeid * num_dof_per_node + i] +=
                   shape_functions.values(nodeid) * value_times_integration_factor;
             }
           }

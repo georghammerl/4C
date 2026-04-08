@@ -34,6 +34,10 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
 {
   FOUR_C_ASSERT(solid_calc_variant_.has_value(),
       "The solid calculation interface is not initialized for element id {}.", id());
+  FOUR_C_ASSERT(solidporo_press_vel_based_calc_variant_.has_value(),
+      "The solidporo calculation interface is not initialized for element id {}. The element needs "
+      "to be fully setup before packing.",
+      id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface)
@@ -110,7 +114,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
                   this->kinematic_type(), discretization, primary_variables, params,
                   diagonal_block_matrices, &reaction_matrix);
             },
-            solidporo_press_vel_based_calc_variant_);
+            *solidporo_press_vel_based_calc_variant_);
 
 
         assemble_mixed_displacement_porosity_vector<SolidPoroDofType::porosity, dim>(
@@ -168,7 +172,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
                   this->kinematic_type(), discretization, primary_variables, params,
                   diagonal_block_matrices, nullptr);
             },
-            solidporo_press_vel_based_calc_variant_);
+            *solidporo_press_vel_based_calc_variant_);
 
         assemble_mixed_displacement_porosity_vector<SolidPoroDofType::porosity, dim>(
             elevec1, force_p);
@@ -224,7 +228,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
                   this->kinematic_type(), discretization, primary_variables, params,
                   diagonal_block_matrices, nullptr);
             },
-            solidporo_press_vel_based_calc_variant_);
+            *solidporo_press_vel_based_calc_variant_);
 
         assemble_mixed_displacement_porosity_vector<SolidPoroDofType::porosity, dim>(
             elevec1, force_p);
@@ -275,7 +279,7 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
                 this->kinematic_type(), discretization, primary_variables, params,
                 off_diagonal_block_matrices);
           },
-          solidporo_press_vel_based_calc_variant_);
+          *solidporo_press_vel_based_calc_variant_);
 
       assemble_mixed_displacement_porosity_matrix<SolidPoroDofType::displacement,
           SolidPoroDofType::none, dim>(elemat1, K_displ_fluid);
@@ -376,6 +380,16 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate_neumann(
       "implementation.");
 }
 
+
+template int Discret::Elements::SolidPoroPressureVelocityBasedP1<2>::evaluate(
+    Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+    Core::Elements::LocationArray& la, Core::LinAlg::SerialDenseMatrix& elemat1,
+    Core::LinAlg::SerialDenseMatrix& elemat2, Core::LinAlg::SerialDenseVector& elevec1,
+    Core::LinAlg::SerialDenseVector& elevec2, Core::LinAlg::SerialDenseVector& elevec3);
+template int Discret::Elements::SolidPoroPressureVelocityBasedP1<2>::evaluate_neumann(
+    Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+    const Core::Conditions::Condition& condition, std::vector<int>& lm,
+    Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseMatrix* elemat1);
 
 template int Discret::Elements::SolidPoroPressureVelocityBasedP1<3>::evaluate(
     Teuchos::ParameterList& params, Core::FE::Discretization& discretization,

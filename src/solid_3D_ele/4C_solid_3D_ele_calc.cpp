@@ -593,6 +593,10 @@ Discret::Elements::SolidEleCalc<celltype, ElementFormulation>::get_normal_cauchy
         "dimension different than 3. The element formulation is {}.",
         Core::Utils::get_type_name<ElementFormulation>().c_str());
   }
+  else if constexpr (Core::FE::is_nurbs<celltype>)
+  {
+    FOUR_C_THROW("Cannot evaluate the Cauchy stress at xi for NURBS elements.");
+  }
   else
   {
     ElementNodes<celltype> element_nodes = evaluate_element_nodes<celltype>(ele, disp);

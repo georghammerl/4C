@@ -110,7 +110,7 @@ namespace Discret::Elements
 
     [[nodiscard]] int num_dof_per_node(const Core::Nodes::Node& node) const override
     {
-      return 4;  // solid-poro-p1 has 4 dofs
+      return dim + 1;  // solid-poro-p1 has dim+1 dofs
     }
 
     [[nodiscard]] int num_dof_per_element() const override { return 0; }
@@ -234,7 +234,8 @@ namespace Discret::Elements
     std::optional<SolidCalcVariant<dim>> solid_calc_variant_;
 
     //! poro element calculation holding one of the implemented variants
-    SolidPoroPressureVelocityBasedP1CalcVariant solidporo_press_vel_based_calc_variant_;
+    std::optional<SolidPoroPressureVelocityBasedP1CalcVariant<dim>>
+        solidporo_press_vel_based_calc_variant_;
 
     //! flag, whether the post setup of materials is already called
     bool material_post_setup_ = false;

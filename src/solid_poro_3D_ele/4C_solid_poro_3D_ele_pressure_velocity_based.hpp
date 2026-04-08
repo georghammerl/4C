@@ -223,7 +223,8 @@ namespace Discret::Elements
         const std::optional<std::vector<double>>& pressures,
         const Core::LinAlg::Tensor<double, 3>& xi, const Core::LinAlg::Tensor<double, 3>& n,
         const Core::LinAlg::Tensor<double, 3>& dir,
-        SolidPoroCauchyNDirLinearizations<3>& linearizations);
+        SolidPoroCauchyNDirLinearizations<3>& linearizations)
+      requires(dim == 3);
 
     void vis_names(std::map<std::string, int>& names) override;
 
@@ -251,10 +252,11 @@ namespace Discret::Elements
     std::shared_ptr<FourC::Solid::Elements::ParamsInterface> solid_interface_ptr_;
 
     //! element calculation holding one of the implemented variants
-    std::optional<SolidAndSolidScatraCalcVariant<3>> solid_calc_variant_;
+    std::optional<SolidAndSolidScatraCalcVariant<dim>> solid_calc_variant_;
 
     //! poro element calculation holding one of the implemented variants
-    SolidPoroPressureVelocityBasedCalcVariant solidporo_press_vel_based_calc_variant_;
+    std::optional<SolidPoroPressureVelocityBasedCalcVariant<dim>>
+        solidporo_press_vel_based_calc_variant_;
 
     //! flag, whether the post setup of materials is already called
     bool material_post_setup_ = false;

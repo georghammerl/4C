@@ -152,12 +152,57 @@ namespace Discret::Elements
    * @brief Evaluate element node information given the element and a displacement vector
    *
    * @tparam celltype
+   * @param discretization (in) : Discretization of the problem, required for NURBS elements to
+   * obtain the knot span and weights
    * @param ele (in): Element
    * @param disp (in) : Vector of nodal displacements of the element
    * @return ElementNodes<celltype>
    */
   template <Core::FE::CellType celltype, std::ranges::contiguous_range R>
-    requires std::ranges::sized_range<R>
+    requires(std::ranges::sized_range<R>)
+  ElementNodes<celltype> evaluate_element_nodes(const Core::FE::Discretization& discretization,
+      const Core::Elements::Element& ele, const R& disp)
+  {
+    Discret::Elements::ElementNodes<celltype> element_nodes;
+    for (int i = 0; i < Internal::num_nodes<celltype>; ++i)
+    {
+      for (int d = 0; d < Internal::num_dim<celltype>; ++d)
+      {
+        element_nodes.reference_coordinates(d, i) = ele.nodes()[i]->x()[d];
+      }
+    }
+    element_nodes.displacements =
+        Core::FE::get_element_dof_matrix<celltype, Core::FE::dim<celltype>>(disp);
+
+    element_nodes.current_coordinates = element_nodes.reference_coordinates;
+    element_nodes.current_coordinates.update(1.0, element_nodes.displacements, 1.0);
+
+    if constexpr (Core::FE::is_nurbs<celltype>)
+    {
+      // Obtain the information required for a NURBS element
+      bool zero_size = Core::FE::Nurbs::get_my_nurbs_knots_and_weights(
+          discretization, &ele, element_nodes.knots, element_nodes.weights);
+      if (zero_size)
+        FOUR_C_THROW("get_my_nurbs_knots_and_weights has to return a non zero size NURBS element.");
+    }
+
+    return element_nodes;
+  }
+
+
+
+  /*!
+   * @brief Evaluate element node information given the element and a displacement vector
+   *
+   * @tparam celltype
+   * @param ele (in): Element
+   * @param disp (in) : Vector of nodal displacements of the element
+   * @return ElementNodes<celltype>
+   *
+   * @note Not possible for NURBS elements
+   */
+  template <Core::FE::CellType celltype, std::ranges::contiguous_range R>
+    requires(std::ranges::sized_range<R> && Core::FE::use_lagrange_shapefnct<celltype>)
   ElementNodes<celltype> evaluate_element_nodes(const Core::Elements::Element& ele, const R& disp)
   {
     Discret::Elements::ElementNodes<celltype> element_nodes;
@@ -195,16 +240,7 @@ namespace Discret::Elements
         Core::FE::extract_values_as_array<num_dofs>(displacements, lm);
 
     Discret::Elements::ElementNodes<celltype> element_nodes =
-        evaluate_element_nodes<celltype>(ele, mydisp);
-
-    if constexpr (Core::FE::is_nurbs<celltype>)
-    {
-      // Obtain the information required for a NURBS element
-      bool zero_size = Core::FE::Nurbs::get_my_nurbs_knots_and_weights(
-          discretization, &ele, element_nodes.knots, element_nodes.weights);
-      if (zero_size)
-        FOUR_C_THROW("get_my_nurbs_knots_and_weights has to return a non zero size NURBS element.");
-    }
+        evaluate_element_nodes<celltype>(discretization, ele, mydisp);
 
     return element_nodes;
   }
