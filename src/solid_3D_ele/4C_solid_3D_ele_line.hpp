@@ -68,6 +68,8 @@ namespace Discret::Elements
     SolidLine(int id, int owner, int nnode, const int* nodeids, Core::Nodes::Node** nodes,
         Core::Elements::Element* parent, const int lline);
 
+    explicit SolidLine(const SolidLine<dim>& old) noexcept;
+
     [[nodiscard]] Core::Elements::Element* clone() const override;
 
     [[nodiscard]] inline int unique_par_object_id() const override
@@ -75,15 +77,15 @@ namespace Discret::Elements
       return SolidLineType<dim>::instance().unique_par_object_id();
     }
 
-    void pack(Core::Communication::PackBuffer& data) const override {};
+    void pack(Core::Communication::PackBuffer& data) const override;
 
-    void unpack(Core::Communication::UnpackBuffer& buffer) override {};
+    void unpack(Core::Communication::UnpackBuffer& buffer) override;
 
     [[nodiscard]] Core::FE::CellType shape() const override;
 
     [[nodiscard]] inline int num_dof_per_node(const Core::Nodes::Node& node) const override
     {
-      return dim;
+      return num_dof_per_node_;
     }
 
     [[nodiscard]] inline int num_dof_per_element() const override { return 0; }
@@ -99,6 +101,9 @@ namespace Discret::Elements
         const Core::Conditions::Condition& condition, std::vector<int>& lm,
         Core::LinAlg::SerialDenseVector& elevec1,
         Core::LinAlg::SerialDenseMatrix* elemat1 = nullptr) override;
+
+   private:
+    int num_dof_per_node_ = 0;
   };
 }  // namespace Discret::Elements
 

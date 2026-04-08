@@ -35,6 +35,13 @@ std::shared_ptr<Core::Elements::Element> Discret::Elements::SolidLineType<dim>::
   return nullptr;
 }
 
+
+template <unsigned dim>
+Discret::Elements::SolidLine<dim>::SolidLine(const Discret::Elements::SolidLine<dim>& old) noexcept
+    : Core::Elements::FaceElement(old), num_dof_per_node_(old.num_dof_per_node_)
+{
+}
+
 template <unsigned dim>
 Discret::Elements::SolidLine<dim>::SolidLine(int id, int owner, int nnode, const int* nodeids,
     Core::Nodes::Node** nodes, Core::Elements::Element* parent, const int lline)
@@ -43,6 +50,15 @@ Discret::Elements::SolidLine<dim>::SolidLine(int id, int owner, int nnode, const
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
   set_parent_master_element(parent, lline);
+
+  num_dof_per_node_ = parent_element()->num_dof_per_node(*SolidLine::nodes()[0]);
+  // Safety check if all nodes have the same number of dofs!
+  for (int nlid = 1; nlid < num_node(); ++nlid)
+  {
+    if (num_dof_per_node_ != parent_master_element()->num_dof_per_node(*SolidLine::nodes()[nlid]))
+      FOUR_C_THROW("You need different NumDofPerNode for each node on this solid line? ({} != {})",
+          num_dof_per_node_, parent_master_element()->num_dof_per_node(*SolidLine::nodes()[nlid]));
+  }
 }
 
 template <unsigned dim>
@@ -70,6 +86,18 @@ Core::FE::CellType Discret::Elements::SolidLine<dim>::shape() const
             FOUR_C_THROW("unexpected number of nodes {}", num_node());
         }
       });
+}
+
+template <unsigned dim>
+void Discret::Elements::SolidLine<dim>::pack(Core::Communication::PackBuffer& data) const
+{
+  data.add_to_pack(num_dof_per_node_);
+}
+
+template <unsigned dim>
+void Discret::Elements::SolidLine<dim>::unpack(Core::Communication::UnpackBuffer& buffer)
+{
+  buffer.extract_from_pack(num_dof_per_node_);
 }
 
 template <unsigned dim>
