@@ -118,6 +118,22 @@ namespace BeamInteraction
     inline double get_penalty_parameter() const { return penalty_parameter_; }
 
     /**
+     * \brief Returns the augmentation scaling parameter for the beam DOFs.
+     */
+    [[nodiscard]] inline double get_augmentation_scaling_parameter_beam() const
+    {
+      return augmentation_scaling_parameter_beam_;
+    }
+
+    /**
+     * \brief Returns the augmentation scaling parameter for the solid DOFs.
+     */
+    [[nodiscard]] inline double get_augmentation_scaling_parameter_solid() const
+    {
+      return augmentation_scaling_parameter_solid_;
+    }
+
+    /**
      * \brief Returns the Gauss rule.
      * @return gauss rule.
      */
@@ -156,6 +172,22 @@ namespace BeamInteraction
 
     //! Penalty parameter.
     double penalty_parameter_;
+
+    /*! \brief Augmentation scaling parameters for beam-solid coupling.
+     *
+     * These parameters scale the penalty contributions in the augmented Lagrangian formulation
+     * used for beam-solid coupling.
+     *
+     * augmentation_scaling_parameter_beam_: Scaling factor applied to the beam-side contribution.
+     * augmentation_scaling_parameter_solid_: Scaling factor applied to the solid-side contribution.
+     *
+     * Using separate scaling parameters allows balancing the influence of beam and
+     * solid discretizations, which may differ significantly in stiffness and dimensionality.
+     * Proper tuning improves numerical conditioning, convergence behavior, and robustness
+     * of the coupling algorithm.
+     */
+    double augmentation_scaling_parameter_beam_;
+    double augmentation_scaling_parameter_solid_;
 
     //! Gauss rule to be used.
     Core::FE::GaussRule1D gauss_rule_;
