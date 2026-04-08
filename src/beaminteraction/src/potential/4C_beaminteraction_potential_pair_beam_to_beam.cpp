@@ -144,6 +144,12 @@ bool BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::eval
   if (stiffmat21 != nullptr) stiffmat21->shape(dim2, dim1);
   if (stiffmat22 != nullptr) stiffmat22->shape(dim2, dim2);
 
+  if (params()->strategy !=
+          BeamInteraction::Potential::Strategy::single_length_specific_small_separations_simple &&
+      params()->two_half_pass)
+    FOUR_C_THROW(
+        "The two-halfway approach is only available for the "
+        "single_length_specific_small_separations_simple strategy!");
 
   // compute the values for element residual vectors ('force') and linearizations ('stiff')
   switch (params()->strategy)
@@ -167,6 +173,23 @@ bool BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::eval
     {
       evaluate_fpotand_stiffpot_single_length_specific_small_sep_approx(
           force_pot1, force_pot2, stiffmat11, stiffmat12, stiffmat21, stiffmat22);
+
+
+      if (params()->two_half_pass)
+      {
+        exchange_master_slave_allocation_for_two_half_pass();
+
+        // evaluate switched pair contribution a second time for two-half-pass approach
+        // interaction potential is averaged
+        // Note: the residual vectors and stiffness matrices need to be switched to correctly
+        // account for the changed master/slave role
+        evaluate_fpotand_stiffpot_single_length_specific_small_sep_approx(
+            force_pot2, force_pot1, stiffmat22, stiffmat21, stiffmat12, stiffmat11);
+
+        // revert to original master/slave allocation (necessary for next evaluation within same
+        // time step)
+        exchange_master_slave_allocation_for_two_half_pass();
+      }
       break;
     }
 
@@ -1147,7 +1170,6 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
   int numgp_persegment = gausspoints.nquad;
   int numgp_total = n_integration_segments * numgp_persegment;
 
-  int igp_total = 0;
   double xi_GP_tilde = 0.0;
   double xi_GP = 0.0;
 
@@ -1274,20 +1296,20 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
   }
 
   // store for visualization
+  // Note: the visualization for the two half way approach does not need special treatment
+  // since the interaction potential is halved and the resulting GPs are not coincident, i.e. two
+  // distributed forces/moments are written per beam pair. This could be improved in the future by
+  // merging the two resulting force/moment contributions per beam pair (this necessitates a new
+  // algorithm for the visulaziation which would no longer be based on GPs)
   double prefactor_visualization_data = -1.0 * prefactor * rho1 * rho2;
 
   // prepare data storage for visualization
-  centerline_coords_gp_1_.resize(numgp_total);
-  centerline_coords_gp_2_.resize(numgp_total);
-  forces_pot_gp_1_.resize(
-      numgp_total, Core::LinAlg::Matrix<3, 1, double>(Core::LinAlg::Initialization::zero));
-  forces_pot_gp_2_.resize(
-      numgp_total, Core::LinAlg::Matrix<3, 1, double>(Core::LinAlg::Initialization::zero));
-  moments_pot_gp_1_.resize(
-      numgp_total, Core::LinAlg::Matrix<3, 1, double>(Core::LinAlg::Initialization::zero));
-  moments_pot_gp_2_.resize(
-      numgp_total, Core::LinAlg::Matrix<3, 1, double>(Core::LinAlg::Initialization::zero));
-
+  centerline_coords_gp_1_.reserve(numgp_total);
+  centerline_coords_gp_2_.reserve(numgp_total);
+  forces_pot_gp_1_.reserve(numgp_total);
+  forces_pot_gp_2_.reserve(numgp_total);
+  moments_pot_gp_1_.reserve(numgp_total);
+  moments_pot_gp_2_.reserve(numgp_total);
 
   for (unsigned int isegment = 0; isegment < n_integration_segments; ++isegment)
   {
@@ -1309,7 +1331,14 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
     // so far, element 1 is always treated as the slave element!
     for (int igp = 0; igp < numgp_persegment; ++igp)
     {
-      igp_total = isegment * numgp_persegment + igp;
+      // add zero-initialized visualization data for this Gauss point
+      // coordinates will be updated as they are computed, forces/moments at the end if contributing
+      centerline_coords_gp_1_.emplace_back(Core::LinAlg::Initialization::zero);
+      centerline_coords_gp_2_.emplace_back(Core::LinAlg::Initialization::zero);
+      forces_pot_gp_1_.emplace_back(Core::LinAlg::Initialization::zero);
+      forces_pot_gp_2_.emplace_back(Core::LinAlg::Initialization::zero);
+      moments_pot_gp_1_.emplace_back(Core::LinAlg::Initialization::zero);
+      moments_pot_gp_2_.emplace_back(Core::LinAlg::Initialization::zero);
 
       // Get location of GP in element parameter space xi \in [-1;1]
       xi_GP_tilde = gausspoints.qxg[igp][0];
@@ -1329,7 +1358,7 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
       t_slave.update(1.0 / norm_r_xi_slave, r_xi_slave);
 
       // store for visualization
-      centerline_coords_gp_1_[igp_total] = Core::FADUtils::cast_to_double<T, 3, 1>(r_slave);
+      centerline_coords_gp_1_.back() = Core::FADUtils::cast_to_double<T, 3, 1>(r_slave);
 
       rho1rho2_JacFac_GaussWeight = rho1 * rho2 * jacobifactor_segment *
                                     beam_element1()->get_jacobi_fac_at_xi(xi_GP) *
@@ -1386,7 +1415,7 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
       t_master.update(1.0 / norm_r_xi_master, r_xi_master);
 
       // store for visualization
-      centerline_coords_gp_2_[igp_total] = Core::FADUtils::cast_to_double<T, 3, 1>(r_master);
+      centerline_coords_gp_2_.back() = Core::FADUtils::cast_to_double<T, 3, 1>(r_master);
 
       // distance vector between unilateral closest points
       dist_ul.update(1.0, r_slave, -1.0, r_master);
@@ -1441,10 +1470,9 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
                 force_pot_master_GP, r_slave, r_xi_slave, t_slave, r_master, r_xi_master,
                 r_xixi_master, t_master, alpha, cos_alpha, dist_ul, xi_master_partial_r_slave,
                 xi_master_partial_r_master, xi_master_partial_r_xi_master,
-                prefactor_visualization_data, forces_pot_gp_1_[igp_total],
-                forces_pot_gp_2_[igp_total], moments_pot_gp_1_[igp_total],
-                moments_pot_gp_2_[igp_total], rho1rho2_JacFac_GaussWeight, N_i_slave[igp],
-                N_i_xi_slave[igp], N_i_master, N_i_xi_master))
+                prefactor_visualization_data, forces_pot_gp_1_.back(), forces_pot_gp_2_.back(),
+                moments_pot_gp_1_.back(), moments_pot_gp_2_.back(), rho1rho2_JacFac_GaussWeight,
+                N_i_slave[igp], N_i_xi_slave[igp], N_i_master, N_i_xi_master))
           continue;
       }
       // reduced, simpler variant of the disk-cylinder interaction potential
@@ -1458,10 +1486,9 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::
                 potential_reduction_length, length_prior_right, length_prior_left,
                 interaction_potential_GP, N_i_slave[igp], N_i_xi_slave[igp], N_i_master,
                 N_i_xi_master, N_i_xixi_master, force_pot_slave_GP, force_pot_master_GP,
-                prefactor_visualization_data, rho1rho2_JacFac_GaussWeight,
-                forces_pot_gp_1_[igp_total], forces_pot_gp_2_[igp_total],
-                moments_pot_gp_1_[igp_total], moments_pot_gp_2_[igp_total], stiffmat11, stiffmat12,
-                stiffmat21, stiffmat22))
+                prefactor_visualization_data, rho1rho2_JacFac_GaussWeight, forces_pot_gp_1_.back(),
+                forces_pot_gp_2_.back(), moments_pot_gp_1_.back(), moments_pot_gp_2_.back(),
+                stiffmat11, stiffmat12, stiffmat21, stiffmat22))
           continue;
       }
 
@@ -3273,6 +3300,9 @@ bool BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues,
   // interaction potential
   interaction_potential_GP = std::pow(4 * gap_ul_regularized, -m_ + 4.5) / Core::FADUtils::sqrt(a);
 
+  // for two-half-pass approach the interaction potential is halved
+  if (params()->two_half_pass) interaction_potential_GP *= 0.5;
+
 
   // compute derivatives of the interaction potential w.r.t. gap_ul and cos(alpha)
   pot_ia_deriv_gap_ul = (-m_ + 4.5) / gap_ul_regularized * interaction_potential_GP;
@@ -3867,10 +3897,13 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::rese
   // reset interaction potential as well as interaction forces and moments of this pair
   interaction_potential_ = 0.0;
 
-  for (auto& forcevec : forces_pot_gp_1_) forcevec.clear();
-  for (auto& forcevec : forces_pot_gp_2_) forcevec.clear();
-  for (auto& momentvec : moments_pot_gp_1_) momentvec.clear();
-  for (auto& momentvec : moments_pot_gp_2_) momentvec.clear();
+  // clear visualization data vectors (not just their elements) to avoid accumulation across passes
+  centerline_coords_gp_1_.clear();
+  centerline_coords_gp_2_.clear();
+  forces_pot_gp_1_.clear();
+  forces_pot_gp_2_.clear();
+  moments_pot_gp_1_.clear();
+  moments_pot_gp_2_.clear();
 }
 
 /*-----------------------------------------------------------------------------------------------*
@@ -3978,6 +4011,32 @@ bool BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues,
 
   return (
       estimated_minimal_centerline_separation > safety_factor * params()->cutoff_radius.value());
+}
+
+template <unsigned int numnodes, unsigned int numnodalvalues, typename T>
+void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues,
+    T>::exchange_master_slave_allocation_for_two_half_pass()
+{
+  // interchange elements (also swap base class pointers!)
+  Core::Elements::Element const* tmp_ele = element1();
+  set_element1(element2());
+  set_element2(tmp_ele);
+
+  beam_element1_ = dynamic_cast<const Discret::Elements::Beam3Base*>(element1());
+  beam_element2_ = dynamic_cast<const Discret::Elements::Beam3Base*>(element2());
+
+  // swap geometric data
+  std::swap(ele1length_, ele2length_);
+  std::swap(radius1_, radius2_);
+  std::swap(ele1pos_, ele2pos_);
+
+  // swap line charge conditions
+  std::swap(linechargeconds_[0], linechargeconds_[1]);
+
+  // swap visualization output storage
+  std::swap(centerline_coords_gp_1_, centerline_coords_gp_2_);
+  std::swap(forces_pot_gp_1_, forces_pot_gp_2_);
+  std::swap(moments_pot_gp_1_, moments_pot_gp_2_);
 }
 
 // explicit template instantiations

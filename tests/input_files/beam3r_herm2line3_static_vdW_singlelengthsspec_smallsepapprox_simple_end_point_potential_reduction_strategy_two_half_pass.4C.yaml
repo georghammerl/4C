@@ -1,0 +1,128 @@
+TITLE: "Two straight rigid fibers pulled apart with the two half pass approach"
+PROBLEM TYPE:
+  PROBLEMTYPE: "Structure"
+beam_potential:
+  two_half_pass: true
+  type: "volume"
+  strategy: "single_length_specific_small_separations_simple"
+  potential_law_prefactors: [-1]
+  potential_law_exponents: [6.0]
+  cutoff_radius: 10.0
+  n_integration_segments: 1
+  n_gauss_points: 50
+  potential_reduction_length: 15.0
+  runtime_output:
+    interval_steps: 5
+    force: true
+    moment: true
+BINNING STRATEGY:
+  BIN_SIZE_LOWER_BOUND: 10.0
+  DOMAINBOUNDINGBOX: "-100.0 -10.0 -10.0 100.0 10.0 10.0"
+IO:
+  STDOUTEVERY: 5
+IO/MONITOR STRUCTURE DBC:
+  FILE_TYPE: "csv"
+  PRECISION_SCREEN: 5
+  INTERVAL_STEPS: 1
+IO/RUNTIME VTK OUTPUT:
+  EVERY_ITERATION: false
+  OUTPUT_DATA_FORMAT: "ascii"
+  INTERVAL_STEPS: 5
+IO/RUNTIME VTK OUTPUT/BEAMS:
+  OUTPUT_BEAMS: true
+SOLVER 1:
+  NAME: "Structure_Solver"
+  SOLVER: "UMFPACK"
+STRUCTURAL DYNAMIC:
+  DYNAMICTYPE: "Statics"
+  INT_STRATEGY: "Standard"
+  LINEAR_SOLVER: 1
+  MAXITER: 15
+  NLNSOL: "fullnewton"
+  NORM_DISP: "Abs"
+  NORM_RESF: "Abs"
+  NORMCOMBI_RESFDISP: "And"
+  PREDICT: "ConstDis"
+  TOLDISP: 1e-08
+  TOLRES: 1e-06
+  RESULTSEVERY: 5
+  RESEVERYERGY: 1
+  TIMESTEP: 1e-04
+  NUMSTEP: 5
+  MAXTIME: 0.0005
+MATERIALS:
+  - MAT: 1
+    MAT_BeamReissnerElastHyper_ByModes:
+      EA: 10.602875205865551
+      GA2: 3.058521693999678
+      GA3: 3.058521693999678
+      GI_T: 1.1469456352498792
+      EI2: 1.4910293258248434e-08
+      EI3: 1.4910293258248434e-08
+      RhoA: 1.767145867644259e-18
+      MASSMOMINPOL: 4.970097752749478e-19
+      MASSMOMIN2: 2.485048876374739e-19
+      MASSMOMIN3: 2.485048876374739e-19
+      INTERACTIONRADIUS: 0.75
+DESIGN LINE BEAM POTENTIAL CHARGE CONDITIONS:
+  - E: 1
+    POTLAW: 1
+    VAL: 1e2
+    FUNCT: null
+  - E: 2
+    POTLAW: 1
+    VAL: 1e2
+    FUNCT: null
+DESIGN POINT DIRICH CONDITIONS:
+  - E: 1
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+    VAL: [-1.0, 0, 0, 0, 0, 0, 0, 0, 0]
+    FUNCT: [1, 1, 1, null, null, null, null, null, null]
+    TAG: "monitor_reaction"
+  - E: 2
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+    VAL: [1.0, 0, 0, 0, 0, 0, 0, 0, 0]
+    FUNCT: [1, 1, 1, null, null, null, null, null, null]
+    TAG: "monitor_reaction"
+FUNCT1:
+  - COMPONENT: 0
+    SYMBOLIC_FUNCTION_OF_SPACE_TIME: "50000.0*t"
+STRUCTURE ELEMENTS:
+  - "1 BEAM3R LINE3 1 3 2 HERMITE_CENTERLINE true MAT 1 TRIADS 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
+  - "2 BEAM3R LINE3 3 5 4 HERMITE_CENTERLINE true MAT 1 TRIADS 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
+  - "3 BEAM3R LINE3 6 8 7 HERMITE_CENTERLINE true MAT 1 TRIADS 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
+NODE COORDS:
+  - "NODE 1 COORD -50.0 0.0 0.0"
+  - "NODE 2 COORD -25.0 0.0 0.0"
+  - "NODE 3 COORD 0.0 0.0 0.0"
+  - "NODE 4 COORD 25.0 0.0 0.0"
+  - "NODE 5 COORD 50.0 0.0 0.0"
+  - "NODE 6 COORD -50.0 3.0 0.0"
+  - "NODE 7 COORD 0.0 3.0 0.0"
+  - "NODE 8 COORD 50.0 3.0 0.0"
+DNODE-NODE TOPOLOGY:
+  - "NODE 1 DNODE 1"
+  - "NODE 2 DNODE 1"
+  - "NODE 3 DNODE 1"
+  - "NODE 4 DNODE 1"
+  - "NODE 5 DNODE 1"
+  - "NODE 6 DNODE 2"
+  - "NODE 7 DNODE 2"
+  - "NODE 8 DNODE 2"
+DLINE-NODE TOPOLOGY:
+  - "NODE 1 DLINE 1"
+  - "NODE 2 DLINE 1"
+  - "NODE 3 DLINE 1"
+  - "NODE 4 DLINE 1"
+  - "NODE 5 DLINE 1"
+  - "NODE 6 DLINE 2"
+  - "NODE 7 DLINE 2"
+  - "NODE 8 DLINE 2"
+RESULT DESCRIPTION:
+  - STRUCTURE:
+      SPECIAL: true
+      QUANTITY: "beam_interaction_potential"
+      VALUE: -8.23913298159429396e+04
+      TOLERANCE: 1e-10

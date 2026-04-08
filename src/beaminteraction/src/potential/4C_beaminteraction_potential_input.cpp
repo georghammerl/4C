@@ -43,6 +43,12 @@ Core::IO::InputSpec BeamInteraction::Potential::valid_parameters()
                               "small/large separation approximation, ...",
                   .store = in_struct(&BeamPotentialParameters::strategy)}),
 
+          parameter<bool>("two_half_pass",
+              {.description = "Symmetrize SBIP approach via two exchanged pair evaluations which "
+                              "get averaged",
+                  .default_value = false,
+                  .store = in_struct(&BeamPotentialParameters::two_half_pass)}),
+
           parameter<std::optional<double>>(
               "cutoff_radius", {.description = "Neglect all potential contributions at separation "
                                                "larger than this cutoff radius",
