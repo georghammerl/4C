@@ -542,13 +542,15 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Core::FE::compute_superconver
       const int mastergid = slavemasterpair->second;
       const int masterlid = noderowmap.lid(mastergid);
       for (int j = 0; j < numvec; ++j)
-        fullnodevec->replace_local_value(i, j, ((*(nodevec)(j))[masterlid]));
+        fullnodevec->replace_local_value(
+            i, j, nodevec.as_multi_vector().get_vector(j).get_values()[masterlid]);
     }
     else
     {
       const int lid = noderowmap.lid(nodeid);
       for (int j = 0; j < numvec; ++j)
-        fullnodevec->replace_local_value(i, j, ((*(nodevec)(j))[lid]));
+        fullnodevec->replace_local_value(
+            i, j, nodevec.as_multi_vector().get_vector(j).get_values()[lid]);
     }
   }
 
