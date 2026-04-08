@@ -113,7 +113,7 @@ namespace Discret::Elements
    * @param row (in) : Matrix row
    */
   template <Core::FE::CellType celltype>
-  void assemble_strain_type_to_matrix_row(
+  void assemble_strain_type_to_matrix_row(const ElementProperties<celltype>& element_properties,
       const Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>&
           gl_strain,
       const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>& defgrd,
@@ -131,7 +131,8 @@ namespace Discret::Elements
       {
         const Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>,
             Core::FE::dim<celltype>>
-            ea = Solid::Utils::green_lagrange_to_euler_almansi(gl_strain, defgrd);
+            ea = Solid::Utils::green_lagrange_to_euler_almansi(
+                element_properties, gl_strain, defgrd);
         Internal::assemble_symmetric_tensor_to_matrix_row(ea, data, row);
         return;
       }
@@ -139,7 +140,7 @@ namespace Discret::Elements
       {
         const Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>,
             Core::FE::dim<celltype>>
-            log_strain = Solid::Utils::green_lagrange_to_log_strain(gl_strain);
+            log_strain = Solid::Utils::green_lagrange_to_log_strain(element_properties, gl_strain);
         Internal::assemble_symmetric_tensor_to_matrix_row(log_strain, data, row);
         return;
       }
@@ -163,7 +164,7 @@ namespace Discret::Elements
    * @param row (in) : Matrix row
    */
   template <Core::FE::CellType celltype>
-  void assemble_stress_type_to_matrix_row(
+  void assemble_stress_type_to_matrix_row(const ElementProperties<celltype>& element_properties,
       const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>& defgrd,
       const Stress<celltype>& stress, const Inpar::Solid::StressType stress_type,
       Core::LinAlg::SerialDenseMatrix& data, const int row)
@@ -178,7 +179,7 @@ namespace Discret::Elements
       case Inpar::Solid::stress_cauchy:
       {
         Core::LinAlg::SymmetricTensor<double, Core::FE::dim<celltype>, Core::FE::dim<celltype>>
-            cauchy = Solid::Utils::pk2_to_cauchy(stress.pk2_, defgrd);
+            cauchy = Solid::Utils::pk2_to_cauchy(element_properties, stress.pk2_, defgrd);
         Internal::assemble_symmetric_tensor_to_matrix_row(cauchy, data, row);
         return;
       }

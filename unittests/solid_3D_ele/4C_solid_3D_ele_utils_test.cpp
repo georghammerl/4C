@@ -9,6 +9,7 @@
 
 #include "4C_solid_3D_ele_utils.hpp"
 
+#include "4C_fem_general_cell_type.hpp"
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_unittest_utils_assertions_test.hpp"
 
@@ -37,7 +38,9 @@ namespace
         }});
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> euler_almansi_strain =
-        Solid::Utils::green_lagrange_to_euler_almansi(green_lagrange_strain, get_f());
+        Solid::Utils::green_lagrange_to_euler_almansi(
+            Discret::Elements::ElementProperties<Core::FE::CellType::hex8>{}, green_lagrange_strain,
+            get_f());
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> euler_almansi_strain_ref =
         Core::LinAlg::assume_symmetry(Core::LinAlg::Tensor<double, 3, 3>{
@@ -58,7 +61,9 @@ namespace
         }});
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> log_strain =
-        Solid::Utils::green_lagrange_to_log_strain(green_lagrange_strain);
+        Solid::Utils::green_lagrange_to_log_strain(
+            Discret::Elements::ElementProperties<Core::FE::CellType::hex8>{},
+            green_lagrange_strain);
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> log_strain_ref = Core::LinAlg::assume_symmetry(
         Core::LinAlg::Tensor<double, 3, 3>{{{0.039139830823291, 0.10941610441855, 0.20047008079560},
@@ -76,7 +81,8 @@ namespace
                 {142.72731871521245, 195.86721709838096, 182.86374040756576},
                 {278.020938548381, 182.86374040756576, 202.01904686970775}}});
 
-    Core::LinAlg::SymmetricTensor<double, 3, 3> cauchy = Solid::Utils::pk2_to_cauchy(pk2, get_f());
+    Core::LinAlg::SymmetricTensor<double, 3, 3> cauchy = Solid::Utils::pk2_to_cauchy(
+        Discret::Elements::ElementProperties<Core::FE::CellType::hex8>{}, pk2, get_f());
 
     Core::LinAlg::SymmetricTensor<double, 3, 3> cauchy_ref =
         Core::LinAlg::assume_symmetry(Core::LinAlg::Tensor<double, 3, 3>{

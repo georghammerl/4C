@@ -359,7 +359,7 @@ void Discret::Elements::SolidScatraEleCalc<celltype,
       params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
   const double* time_step_size =
       params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
-  for_each_gauss_point(nodal_coordinates, {}, stiffness_matrix_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -383,8 +383,9 @@ void Discret::Elements::SolidScatraEleCalc<celltype,
                   .time_step_size = time_step_size,
                   .xi = &xi,
                   .ref_coords = &gp_ref_coord};
-              const Stress<celltype> stress = evaluate_material_stress<celltype>(solid_material, {},
-                  deformation_gradient, gl_strain, params, context, gp, ele.id());
+              const Stress<celltype> stress =
+                  evaluate_material_stress<celltype>(solid_material, element_properties_,
+                      deformation_gradient, gl_strain, params, context, gp, ele.id());
 
               if constexpr (has_condensed_contribution<SolidFormulation>)
               {
@@ -443,7 +444,7 @@ void Discret::Elements::SolidScatraEleCalc<celltype,
   {
     // integrate mass matrix
     FOUR_C_ASSERT(element_mass > 0, "It looks like the element mass is 0.0");
-    for_each_gauss_point<celltype>(nodal_coordinates, {}, mass_matrix_integration_,
+    for_each_gauss_point<celltype>(nodal_coordinates, element_properties_, mass_matrix_integration_,
         [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
             const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
             const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -496,7 +497,7 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::evaluate
       params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
   const double* time_step_size =
       params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
-  for_each_gauss_point(nodal_coordinates, {}, stiffness_matrix_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -610,7 +611,8 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::update(
       params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
   const double* time_step_size =
       params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
-  Discret::Elements::for_each_gauss_point(nodal_coordinates, {}, stiffness_matrix_integration_,
+  Discret::Elements::for_each_gauss_point(nodal_coordinates, element_properties_,
+      stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -672,7 +674,8 @@ double Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calcul
       params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
   const double* time_step_size =
       params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
-  Discret::Elements::for_each_gauss_point(nodal_coordinates, {}, stiffness_matrix_integration_,
+  Discret::Elements::for_each_gauss_point(nodal_coordinates, element_properties_,
+      stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -738,7 +741,8 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calculat
       params.isParameter("total time") ? &params.get<double>("total time") : nullptr;
   const double* time_step_size =
       params.isParameter("delta time") ? &params.get<double>("delta time") : nullptr;
-  Discret::Elements::for_each_gauss_point(nodal_coordinates, {}, stiffness_matrix_integration_,
+  Discret::Elements::for_each_gauss_point(nodal_coordinates, element_properties_,
+      stiffness_matrix_integration_,
       [&](const Core::LinAlg::Tensor<double, Core::FE::dim<celltype>>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -762,13 +766,14 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calculat
                   .time_step_size = time_step_size,
                   .xi = &xi,
                   .ref_coords = &gp_ref_coord};
-              const Stress<celltype> stress = evaluate_material_stress<celltype>(solid_material, {},
-                  deformation_gradient, gl_strain, params, context, gp, ele.id());
+              const Stress<celltype> stress =
+                  evaluate_material_stress<celltype>(solid_material, element_properties_,
+                      deformation_gradient, gl_strain, params, context, gp, ele.id());
 
-              assemble_strain_type_to_matrix_row<celltype>(
-                  gl_strain, deformation_gradient, strainIO.type, strain_data, gp);
-              assemble_stress_type_to_matrix_row(
-                  deformation_gradient, stress, stressIO.type, stress_data, gp);
+              assemble_strain_type_to_matrix_row<celltype>(element_properties_, gl_strain,
+                  deformation_gradient, strainIO.type, strain_data, gp);
+              assemble_stress_type_to_matrix_row(element_properties_, deformation_gradient, stress,
+                  stressIO.type, stress_data, gp);
             });
       });
 

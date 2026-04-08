@@ -461,10 +461,10 @@ void Discret::Elements::SolidEleCalc<celltype, ElementFormulation>::calculate_st
                   evaluate_material_stress<celltype>(solid_material, element_properties_,
                       deformation_gradient, gl_strain, params, context, gp, ele.id());
 
-              assemble_strain_type_to_matrix_row<celltype>(
-                  gl_strain, deformation_gradient, strainIO.type, strain_data, gp);
-              assemble_stress_type_to_matrix_row(
-                  deformation_gradient, stress, stressIO.type, stress_data, gp);
+              assemble_strain_type_to_matrix_row<celltype>(element_properties_, gl_strain,
+                  deformation_gradient, strainIO.type, strain_data, gp);
+              assemble_stress_type_to_matrix_row(element_properties_, deformation_gradient, stress,
+                  stressIO.type, stress_data, gp);
             });
       });
 
