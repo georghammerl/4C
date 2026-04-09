@@ -396,7 +396,7 @@ endfunction()
 #   LABELS:                  Add labels to the test
 #   REQUIRED_DEPENDENCIES:   Any required external dependencies. The test will be skipped if the dependencies are not met.
 #   RETURN_AS:               A variable name that allows to add further dependent tests based on this test.
-function(four_c_test_restart)
+function(__four_c_test_restart)
   set(options SAME_FILE)
   set(oneValueArgs
       BASED_ON
@@ -568,7 +568,7 @@ endfunction()
 #   LABELS:                add labels to the test
 #   REQUIRED_DEPENDENCIES: any required external dependencies. The test will be skipped if the dependencies are not met.
 #
-function(four_c_test_add_csv_yaml_comparison)
+function(__four_c_test_add_csv_yaml_comparison)
   set(options "")
   set(oneValueArgs
       BASED_ON
@@ -945,7 +945,7 @@ endfunction()
 #                                 The supported version constraint operators are: >=, <=, >, <, ==
 #                                 If multiple dependencies are provided, all must be met for the test to run.
 #                                 Note that the version is the _internal_ version that 4C assigns to the dependency.
-function(four_c_test_vtk)
+function(__four_c_test_vtk)
   set(options "")
   set(oneValueArgs
       BASED_ON
