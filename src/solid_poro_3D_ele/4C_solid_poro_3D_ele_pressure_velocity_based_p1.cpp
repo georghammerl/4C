@@ -312,6 +312,15 @@ bool Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::read_element(
   solid_ele_property_ =
       FourC::Solid::Utils::ReadElement::read_solid_element_properties<dim>(container);
 
+
+  if constexpr (dim == 2)
+  {
+    // For 2D solid-poro, only plane-strain makes physical sense
+    FOUR_C_ASSERT_ALWAYS(
+        solid_ele_property_.plane_assumption == Discret::Elements::PlaneAssumption::plane_strain,
+        "For 2D solid-poro elements, only plane strain assumption makes physical sense.");
+  }
+
   // read scalar transport implementation type
   poro_ele_property_.impltype = container.get<Inpar::ScaTra::ImplType>("TYPE");
 
