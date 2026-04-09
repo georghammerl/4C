@@ -55,6 +55,7 @@ RUN apt-get update && apt-get install -y \
       libparmetis-dev \
       libmetis-dev \
       libsuitesparse-dev \
+      libqhull-dev \
       ninja-build \
       libyaml-dev \
       clang \
@@ -78,9 +79,6 @@ RUN /dependencies/current/cmake/install.sh /usr/local
 
 # Install superLU_dist 7.2.0
 RUN /dependencies/current/superlu_dist/install.sh ${INSTALL_DIR}
-
-# Install qhull 2012.1
-RUN /dependencies/current/qhull/install.sh ${INSTALL_DIR}
 
 # Install Trilinos
 RUN /dependencies/trilinos_develop/trilinos/install.sh ${INSTALL_DIR} ${TRILINOS_VERSION}
