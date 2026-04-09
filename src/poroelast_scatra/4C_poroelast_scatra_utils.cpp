@@ -33,7 +33,8 @@ FOUR_C_NAMESPACE_OPEN
 bool PoroElastScaTra::Utils::is_poro_scatra_element(const Core::Elements::Element* actele)
 {
   // checks if element is a poro scatra element (new elements need to be listed here)
-  return actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<3>::instance() or
+  return actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<2>::instance() or
+         actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<3>::instance() or
          actele->element_type() ==
              Discret::Elements::SolidPoroPressureVelocityBasedType<3>::instance() or
          actele->element_type() == Discret::Elements::WallTri3PoroScatraType::instance() or

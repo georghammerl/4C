@@ -36,7 +36,8 @@ FOUR_C_NAMESPACE_OPEN
 bool PoroElast::Utils::is_poro_element(const Core::Elements::Element* actele)
 {
   // all poro elements need to be listed here
-  return actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<3>::instance() or
+  return actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<2>::instance() or
+         actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<3>::instance() or
          actele->element_type() ==
              Discret::Elements::SolidPoroPressureVelocityBasedType<3>::instance() or
          actele->element_type() == Discret::Elements::WallTri3PoroType::instance() or

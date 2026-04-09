@@ -7,7 +7,7 @@ TITLE:
   - "(DOFs 1 and 2) on the same three DOFs"
   - "In addition there is a small uncoupled artery line with 10 elements,"
   - "which has equivalent setup with test case"
-  - "\"one_d_3_artery_network_stationary_scatra_ost.4C.yaml\"."
+  - '"one_d_3_artery_network_stationary_scatra_ost.4C.yaml".'
   - "Equivalent results are obtained"
   - "Test of monolithic algorithm."
 PROBLEM SIZE:
@@ -546,14 +546,14 @@ NODE COORDS:
   - "NODE 28 COORD -25.0 0.9 0.0"
   - "NODE 29 COORD -25.0 1.0 0.0"
 STRUCTURE ELEMENTS:
-  - "1 WALLQ4POROSCATRA QUAD4 1 2 3 4 MAT 2 KINEM nonlinear EAS none THICK 1 STRESS_STRAIN plane_strain
-    GP 2 2 TYPE PoroMultiReac"
-  - "2 WALLQ4POROSCATRA QUAD4 4 3 5 6 MAT 2 KINEM nonlinear EAS none THICK 1 STRESS_STRAIN plane_strain
-    GP 2 2 TYPE PoroMultiReac"
-  - "3 WALLQ4POROSCATRA QUAD4 2 7 8 3 MAT 2 KINEM nonlinear EAS none THICK 1 STRESS_STRAIN plane_strain
-    GP 2 2 TYPE PoroMultiReac"
-  - "4 WALLQ4POROSCATRA QUAD4 3 8 9 5 MAT 2 KINEM nonlinear EAS none THICK 1 STRESS_STRAIN plane_strain
-    GP 2 2 TYPE PoroMultiReac"
+  - "1 SOLIDPORO_PRESSURE_BASED QUAD4 1 2 3 4 MAT 2 KINEM nonlinear THICKNESS 1 PLANE_ASSUMPTION plane_strain
+    TYPE PoroMultiReac"
+  - "2 SOLIDPORO_PRESSURE_BASED QUAD4 4 3 5 6 MAT 2 KINEM nonlinear THICKNESS 1 PLANE_ASSUMPTION plane_strain
+    TYPE PoroMultiReac"
+  - "3 SOLIDPORO_PRESSURE_BASED QUAD4 2 7 8 3 MAT 2 KINEM nonlinear THICKNESS 1 PLANE_ASSUMPTION plane_strain
+    TYPE PoroMultiReac"
+  - "4 SOLIDPORO_PRESSURE_BASED QUAD4 3 8 9 5 MAT 2 KINEM nonlinear THICKNESS 1 PLANE_ASSUMPTION plane_strain
+    TYPE PoroMultiReac"
 ARTERY ELEMENTS:
   - "1 ART LINE2 10 11 MAT 3 GP 3 TYPE PressureBased DIAM 24.0"
   - "2 ART LINE2 11 12 MAT 3 GP 3 TYPE PressureBased DIAM 24.0"

@@ -37,6 +37,7 @@ namespace Discret::Elements::SolidPoroPressureBasedInternal
   namespace
   {
     template <Core::FE::CellType celltype>
+      requires(Core::FE::dim<celltype> == 3)
     auto get_default_input_spec()
     {
       return all_of({
@@ -54,6 +55,36 @@ namespace Discret::Elements::SolidPoroPressureBasedInternal
               Discret::Elements::get_impltype_inpar_map(),
               {.description = "Scalar transport implementation type",
                   .default_value = Inpar::ScaTra::ImplType::impltype_undefined}),
+      });
+    }
+
+
+    template <Core::FE::CellType celltype>
+      requires(Core::FE::dim<celltype> == 2)
+    auto get_default_input_spec()
+    {
+      return all_of({
+          parameter<int>("MAT"),
+          deprecated_selection<Inpar::Solid::KinemType>("KINEM",
+              {
+                  {kinem_type_string(Inpar::Solid::KinemType::linear),
+                      Inpar::Solid::KinemType::linear},
+                  {kinem_type_string(Inpar::Solid::KinemType::nonlinearTotLag),
+                      Inpar::Solid::KinemType::nonlinearTotLag},
+              },
+              {.description = "Whether to use linear kinematics (small displacements) or nonlinear "
+                              "kinematics (large displacements)"}),
+          deprecated_selection<Inpar::ScaTra::ImplType>("TYPE",
+              Discret::Elements::get_impltype_inpar_map(),
+              {.description = "Scalar transport implementation type",
+                  .default_value = Inpar::ScaTra::ImplType::impltype_undefined}),
+          parameter<double>(
+              "THICKNESS", {.description = "Reference thickness of the 2D solid element"}),
+          parameter<Discret::Elements::PlaneAssumption>("PLANE_ASSUMPTION",
+              {.description = "Plane assumption for the 2D solid element (Note: In solid-poro, "
+                              "only plane strain makes physical sense)",
+                  .validator = Validators::in_set(std::set<Discret::Elements::PlaneAssumption>{
+                      Discret::Elements::PlaneAssumption::plane_strain})}),
       });
     }
   }  // namespace
@@ -75,23 +106,48 @@ void Discret::Elements::SolidPoroPressureBasedType<dim>::setup_element_definitio
     std::map<std::string, std::map<Core::FE::CellType, Core::IO::InputSpec>>& definitions)
 {
   auto& defsgeneral = definitions["SOLIDPORO_PRESSURE_BASED"];
+  if constexpr (dim == 2)
+  {
+    defsgeneral[Core::FE::CellType::quad4] =
+        all_of({Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::quad4>()});
 
-  defsgeneral[Core::FE::CellType::hex8] =
-      all_of({Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
-          Core::FE::CellType::hex8>()});
-
-  defsgeneral[Core::FE::CellType::hex27] =
-      Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
-          Core::FE::CellType::hex27>();
+    defsgeneral[Core::FE::CellType::quad8] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::quad8>();
 
 
-  defsgeneral[Core::FE::CellType::tet4] =
-      Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
-          Core::FE::CellType::tet4>();
+    defsgeneral[Core::FE::CellType::quad9] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::quad9>();
 
-  defsgeneral[Core::FE::CellType::tet10] =
-      Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
-          Core::FE::CellType::tet10>();
+    defsgeneral[Core::FE::CellType::tri3] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::tri3>();
+
+    defsgeneral[Core::FE::CellType::tri6] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::tri6>();
+  }
+  else
+  {
+    defsgeneral[Core::FE::CellType::hex8] =
+        all_of({Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::hex8>()});
+
+    defsgeneral[Core::FE::CellType::hex27] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::hex27>();
+
+
+    defsgeneral[Core::FE::CellType::tet4] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::tet4>();
+
+    defsgeneral[Core::FE::CellType::tet10] =
+        Discret::Elements::SolidPoroPressureBasedInternal::get_default_input_spec<
+            Core::FE::CellType::tet10>();
+  }
 }
 
 template <unsigned dim>
@@ -213,8 +269,9 @@ bool Discret::Elements::SolidPoroPressureBased<dim>::read_element(const std::str
   // read number of material model
   set_material(0, Mat::factory(Solid::Utils::ReadElement::read_element_material(container)));
 
-  // read kinematic type
-  solid_ele_property_.kintype = container.get<Inpar::Solid::KinemType>("KINEM");
+  // read solid element properties
+  solid_ele_property_ =
+      FourC::Solid::Utils::ReadElement::read_solid_element_properties<dim>(container);
 
   // read scalar transport implementation type
   poro_ele_property_.impltype = container.get<Inpar::ScaTra::ImplType>("TYPE");
@@ -229,7 +286,7 @@ bool Discret::Elements::SolidPoroPressureBased<dim>::read_element(const std::str
           { return make_default_solid_integration_rules<celltype_t()>(); });
   solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_based_calc_variant_ =
-      create_solid_poro_pressure_based_calculation_interface(celltype_);
+      create_solid_poro_pressure_based_calculation_interface<dim>(solid_ele_property_, celltype_);
 
   // setup solid material
   std::visit(
@@ -238,7 +295,7 @@ bool Discret::Elements::SolidPoroPressureBased<dim>::read_element(const std::str
   // setup poro material
   std::visit([&](auto& solidporopressurebased)
       { solidporopressurebased->poro_setup(struct_poro_material(), container); },
-      solidporo_press_based_calc_variant_);
+      *solidporo_press_based_calc_variant_);
 
   return true;
 }
@@ -275,7 +332,11 @@ void Discret::Elements::SolidPoroPressureBased<dim>::pack(
       "be fully setup before packing.",
       id());
   Discret::Elements::pack(*solid_calc_variant_, data);
-  Discret::Elements::pack(solidporo_press_based_calc_variant_, data);
+  FOUR_C_ASSERT(solidporo_press_based_calc_variant_.has_value(),
+      "The solidporo calculation interface is not initialized for element id {}. The element needs "
+      "to be fully setup before packing.",
+      id());
+  Discret::Elements::pack(*solidporo_press_based_calc_variant_, data);
 }
 
 template <unsigned dim>
@@ -304,10 +365,10 @@ void Discret::Elements::SolidPoroPressureBased<dim>::unpack(
           { return make_default_solid_integration_rules<celltype_t()>(); });
   solid_calc_variant_ = create_solid_calculation_interface(celltype_, solid_ele_property_, rules);
   solidporo_press_based_calc_variant_ =
-      create_solid_poro_pressure_based_calculation_interface(celltype_);
+      create_solid_poro_pressure_based_calculation_interface<dim>(solid_ele_property_, celltype_);
 
   Discret::Elements::unpack(*solid_calc_variant_, buffer);
-  Discret::Elements::unpack(solidporo_press_based_calc_variant_, buffer);
+  Discret::Elements::unpack(*solidporo_press_based_calc_variant_, buffer);
 }
 
 template <unsigned dim>
@@ -402,6 +463,8 @@ Discret::Elements::SolidPoroPressureBased<dim>::get_bodyforce_contribution_from_
   }
 }
 
+template class Discret::Elements::SolidPoroPressureBasedType<2>;
+template class Discret::Elements::SolidPoroPressureBased<2>;
 template class Discret::Elements::SolidPoroPressureBasedType<3>;
 template class Discret::Elements::SolidPoroPressureBased<3>;
 

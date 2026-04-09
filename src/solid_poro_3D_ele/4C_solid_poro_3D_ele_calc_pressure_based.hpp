@@ -15,6 +15,7 @@
 #include "4C_fem_general_utils_gausspoints.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_linalg_tensor.hpp"
+#include "4C_solid_3D_ele_calc_lib.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 
@@ -37,7 +38,11 @@ namespace Discret
     class SolidPoroPressureBasedEleCalc
     {
      public:
-      SolidPoroPressureBasedEleCalc();
+      SolidPoroPressureBasedEleCalc()
+        requires(Core::FE::dim<celltype> == 3);
+      SolidPoroPressureBasedEleCalc(
+          double reference_thickness, Discret::Elements::PlaneAssumption plane_assumption)
+        requires(Core::FE::dim<celltype> == 2);
 
       /*!
        * @brief This method adds the solid pressure contribution to the nonlinear force vector and
@@ -79,6 +84,8 @@ namespace Discret
       static constexpr int num_str_ = num_dim_ * (num_dim_ + 1) / 2;
 
       Core::FE::GaussIntegration gauss_integration_;
+
+      ElementProperties<celltype> element_properties_;
     };
   }  // namespace Elements
 }  // namespace Discret

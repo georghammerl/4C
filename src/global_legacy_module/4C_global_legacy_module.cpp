@@ -200,6 +200,7 @@ namespace
       << Discret::Elements::Vele3Type::instance().name() << " "
       << Discret::Elements::SolidType<2>::instance().name() << " "
       << Discret::Elements::SolidType<3>::instance().name() << " "
+      << Discret::Elements::SolidPoroPressureBasedType<2>::instance().name() << " "
       << Discret::Elements::SolidPoroPressureBasedType<3>::instance().name() << " "
       << Discret::Elements::SolidPoroPressureVelocityBasedType<3>::instance().name() << " "
       << Discret::Elements::SolidPoroPressureVelocityBasedP1Type<3>::instance().name() << " "

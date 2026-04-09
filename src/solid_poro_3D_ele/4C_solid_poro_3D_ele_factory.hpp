@@ -28,18 +28,20 @@ namespace Discret::Elements
 
   namespace Internal
   {
-    using ImplementedSolidPoroCellTypes = Core::FE::CelltypeSequence<Core::FE::CellType::hex8,
-        Core::FE::CellType::hex27, Core::FE::CellType::tet4, Core::FE::CellType::tet10>;
+    template <unsigned dim>
+    using ImplementedSolidPoroCellTypes = std::conditional_t<dim == 3,
+        Core::FE::CelltypeSequence<Core::FE::CellType::hex8, Core::FE::CellType::hex27,
+            Core::FE::CellType::tet4, Core::FE::CellType::tet10>,
+        Core::FE::CelltypeSequence<Core::FE::CellType::quad4, Core::FE::CellType::quad8,
+            Core::FE::CellType::quad9, Core::FE::CellType::tri3, Core::FE::CellType::tri6>>;
 
+    template <unsigned dim>
     using PoroPressureBasedEvaluators =
         Core::FE::apply_celltype_sequence<Discret::Elements::SolidPoroPressureBasedEleCalc,
-            ImplementedSolidPoroCellTypes>;
+            ImplementedSolidPoroCellTypes<dim>>;
 
-    using SolidPoroPressureBasedEvaluators = Core::FE::Join<PoroPressureBasedEvaluators>;
-
-    using ImplementedSolidPoroPressureVelocityBasedCellTypes =
-        Core::FE::CelltypeSequence<Core::FE::CellType::hex8, Core::FE::CellType::hex27,
-            Core::FE::CellType::tet4, Core::FE::CellType::tet10>;
+    template <unsigned dim>
+    using SolidPoroPressureBasedEvaluators = Core::FE::Join<PoroPressureBasedEvaluators<dim>>;
 
     template <Core::FE::CellType celltype>
     using SolidPoroDefaultPressureVelocityBasedEleCalc =
@@ -48,7 +50,7 @@ namespace Discret::Elements
 
     using PoroPressureVelocityBasedEvaluators =
         Core::FE::apply_celltype_sequence<SolidPoroDefaultPressureVelocityBasedEleCalc,
-            ImplementedSolidPoroPressureVelocityBasedCellTypes>;
+            ImplementedSolidPoroCellTypes<3>>;
 
 
     template <Core::FE::CellType celltype>
@@ -57,7 +59,7 @@ namespace Discret::Elements
 
     using PoroPressureVelocityBasedP1Evaluators =
         Core::FE::apply_celltype_sequence<SolidPoroPressureVelocityBasedP1EleCalc,
-            ImplementedSolidPoroPressureVelocityBasedCellTypes>;
+            ImplementedSolidPoroCellTypes<3>>;
 
 
     using SolidPoroPressureVelocityBasedEvaluators =
@@ -78,38 +80,44 @@ namespace Discret::Elements
     };
   }  // namespace Internal
 
-
+  template <unsigned dim>
   using SolidAndSolidScatraCalcVariant =
-      Internal::VariantUnionHelper<SolidCalcVariant<3>, SolidScatraCalcVariant<3>>::type;
+      Internal::VariantUnionHelper<SolidCalcVariant<dim>, SolidScatraCalcVariant<dim>>::type;
 
-  inline SolidAndSolidScatraCalcVariant create_solid_or_solid_scatra_calculation_interface(
+  template <unsigned dim>
+  inline SolidAndSolidScatraCalcVariant<dim> create_solid_or_solid_scatra_calculation_interface(
       Core::FE::CellType celltype,
-      const Discret::Elements::SolidElementProperties<3>& element_properties, bool with_scatra,
-      SolidIntegrationRules<3> integration_rules)
+      const Discret::Elements::SolidElementProperties<dim>& element_properties, bool with_scatra,
+      SolidIntegrationRules<dim> integration_rules)
   {
     if (with_scatra)
     {
-      SolidScatraCalcVariant<3> solid_scatra_item =
+      SolidScatraCalcVariant<dim> solid_scatra_item =
           create_solid_scatra_calculation_interface(celltype, element_properties);
-      return std::visit([](auto& interface) -> SolidAndSolidScatraCalcVariant { return interface; },
-          solid_scatra_item);
+      return std::visit([](auto& interface) -> SolidAndSolidScatraCalcVariant<dim>
+          { return interface; }, solid_scatra_item);
     }
 
 
-    SolidCalcVariant<3> solid_item =
+    SolidCalcVariant<dim> solid_item =
         create_solid_calculation_interface(celltype, element_properties, integration_rules);
-    return std::visit(
-        [](auto& interface) -> SolidAndSolidScatraCalcVariant { return interface; }, solid_item);
+    return std::visit([](auto& interface) -> SolidAndSolidScatraCalcVariant<dim>
+        { return interface; }, solid_item);
   };
 
+  template <unsigned dim>
   using SolidPoroPressureBasedCalcVariant =
-      CreateVariantType<Internal::SolidPoroPressureBasedEvaluators>;
+      CreateVariantType<Internal::SolidPoroPressureBasedEvaluators<dim>>;
 
-  SolidPoroPressureBasedCalcVariant create_solid_poro_pressure_based_calculation_interface(
+  template <unsigned dim>
+  SolidPoroPressureBasedCalcVariant<dim> create_solid_poro_pressure_based_calculation_interface(
+      const Discret::Elements::SolidElementProperties<dim>& element_properties,
       Core::FE::CellType celltype);
 
   template <Core::FE::CellType celltype>
-  SolidPoroPressureBasedCalcVariant create_solid_poro_pressure_based_calculation_interface();
+  SolidPoroPressureBasedCalcVariant<Core::FE::dim<celltype>>
+  create_solid_poro_pressure_based_calculation_interface(
+      const Discret::Elements::SolidElementProperties<Core::FE::dim<celltype>>& element_properties);
 
   using SolidPoroPressureVelocityBasedCalcVariant =
       CreateVariantType<Internal::SolidPoroPressureVelocityBasedEvaluators>;

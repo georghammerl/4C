@@ -22,8 +22,22 @@ FOUR_C_NAMESPACE_OPEN
 
 template <Core::FE::CellType celltype>
 Discret::Elements::SolidPoroPressureBasedEleCalc<celltype>::SolidPoroPressureBasedEleCalc()
+  requires(Core::FE::dim<celltype> == 3)
     : gauss_integration_(Core::FE::create_gauss_integration<celltype>(
           get_gauss_rule_stiffness_matrix_poro<celltype>()))
+
+{
+}
+
+template <Core::FE::CellType celltype>
+Discret::Elements::SolidPoroPressureBasedEleCalc<celltype>::SolidPoroPressureBasedEleCalc(
+    const double reference_thickness, const Discret::Elements::PlaneAssumption plane_assumption)
+  requires(Core::FE::dim<celltype> == 2)
+    : gauss_integration_(Core::FE::create_gauss_integration<celltype>(
+          get_gauss_rule_stiffness_matrix_poro<celltype>())),
+      element_properties_(
+          {.reference_thickness = reference_thickness, .plane_assumption = plane_assumption})
+
 {
 }
 
@@ -93,7 +107,7 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<celltype>::
   ensure_positive_jacobian_determinant_at_element_nodes(nodal_coordinates);
 
   // Loop over all Gauss points
-  for_each_gauss_point(nodal_coordinates, {}, gauss_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, gauss_integration_,
       [&](const Core::LinAlg::Tensor<double, num_dim_>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -263,7 +277,7 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<celltype>::
   ensure_positive_jacobian_determinant_at_element_nodes(nodal_coordinates);
 
   // Loop over all Gauss points
-  for_each_gauss_point(nodal_coordinates, {}, gauss_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, gauss_integration_,
       [&](const Core::LinAlg::Tensor<double, num_dim_>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp)
@@ -462,7 +476,7 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<
       evaluate_element_nodes<celltype>(ele, discretization, la[0].lm_);
 
   // Loop over all Gauss points
-  for_each_gauss_point(nodal_coordinates, {}, gauss_integration_,
+  for_each_gauss_point(nodal_coordinates, element_properties_, gauss_integration_,
       [&](const Core::LinAlg::Tensor<double, num_dim_>& xi,
           const ShapeFunctionsAndDerivatives<celltype>& shape_functions,
           const JacobianMapping<celltype>& jacobian_mapping, double integration_factor, int gp
@@ -543,6 +557,14 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<
 
 
 // template classes
+// 2D
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad4>;
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad8>;
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad9>;
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::tri3>;
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::tri6>;
+
+// 3D
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::hex8>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::hex27>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::tet4>;

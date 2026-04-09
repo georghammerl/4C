@@ -215,7 +215,7 @@ namespace Discret::Elements
     std::optional<SolidCalcVariant<dim>> solid_calc_variant_;
 
     //! poro element calculation holding one of the implemented variants
-    SolidPoroPressureBasedCalcVariant solidporo_press_based_calc_variant_;
+    std::optional<SolidPoroPressureBasedCalcVariant<dim>> solidporo_press_based_calc_variant_;
 
     //! flag, whether the post setup of materials is already called
     bool material_post_setup_ = false;

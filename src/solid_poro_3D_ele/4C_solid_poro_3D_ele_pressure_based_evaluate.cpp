@@ -21,6 +21,10 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
 {
   FOUR_C_ASSERT(solid_calc_variant_.has_value(),
       "The solid calculation interface is not initialized for element id {}.", id());
+  FOUR_C_ASSERT(solidporo_press_based_calc_variant_.has_value(),
+      "The solidporo calculation interface is not initialized for element id {}. The element needs "
+      "to be fully setup before evaluation.",
+      id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface)
@@ -63,7 +67,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                     this->struct_poro_material(), this->fluid_poro_material(),
                     this->get_ele_kinematic_type(), discretization, la, params, &elevec1, &elemat1);
               },
-              solidporo_press_based_calc_variant_);
+              *solidporo_press_based_calc_variant_);
           if (this->get_possible_bodyforce_contribution().has_value())
           {
             std::visit(
@@ -75,7 +79,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                       this->get_possible_bodyforce_contribution().value(), discretization, la,
                       params, &elevec1, &elemat1);
                 },
-                solidporo_press_based_calc_variant_);
+                *solidporo_press_based_calc_variant_);
           }
         }
       }
@@ -102,7 +106,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                     this->struct_poro_material(), this->fluid_poro_material(),
                     this->get_ele_kinematic_type(), discretization, la, params, &elevec1, nullptr);
               },
-              solidporo_press_based_calc_variant_);
+              *solidporo_press_based_calc_variant_);
           if (this->get_possible_bodyforce_contribution().has_value())
           {
             std::visit(
@@ -114,7 +118,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                       this->get_possible_bodyforce_contribution().value(), discretization, la,
                       params, &elevec1, &elemat1);
                 },
-                solidporo_press_based_calc_variant_);
+                *solidporo_press_based_calc_variant_);
           }
         }
       }
@@ -146,7 +150,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                     this->struct_poro_material(), this->fluid_poro_material(),
                     this->get_ele_kinematic_type(), discretization, la, params, &elevec1, &elemat1);
               },
-              solidporo_press_based_calc_variant_);
+              *solidporo_press_based_calc_variant_);
           if (this->get_possible_bodyforce_contribution().has_value())
           {
             std::visit(
@@ -158,7 +162,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                       this->get_possible_bodyforce_contribution().value(), discretization, la,
                       params, &elevec1, &elemat1);
                 },
-                solidporo_press_based_calc_variant_);
+                *solidporo_press_based_calc_variant_);
           }
         }
       }
@@ -194,7 +198,7 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate(Teuchos::ParameterL
                     this->struct_poro_material(), this->fluid_poro_material(),
                     this->get_ele_kinematic_type(), discretization, la, params, elemat1);
               },
-              solidporo_press_based_calc_variant_);
+              *solidporo_press_based_calc_variant_);
         }
       }
       return 0;
@@ -269,6 +273,17 @@ int Discret::Elements::SolidPoroPressureBased<dim>::evaluate_neumann(Teuchos::Pa
   FOUR_C_THROW("not implemented");
   return 1;
 }
+
+
+template int Discret::Elements::SolidPoroPressureBased<2>::evaluate(Teuchos::ParameterList& params,
+    Core::FE::Discretization& discretization, Core::Elements::LocationArray& la,
+    Core::LinAlg::SerialDenseMatrix& elemat1, Core::LinAlg::SerialDenseMatrix& elemat2,
+    Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseVector& elevec2,
+    Core::LinAlg::SerialDenseVector& elevec3);
+template int Discret::Elements::SolidPoroPressureBased<2>::evaluate_neumann(
+    Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+    const Core::Conditions::Condition& condition, std::vector<int>& lm,
+    Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseMatrix* elemat1);
 
 template int Discret::Elements::SolidPoroPressureBased<3>::evaluate(Teuchos::ParameterList& params,
     Core::FE::Discretization& discretization, Core::Elements::LocationArray& la,
