@@ -68,6 +68,19 @@ function(skip_test name_of_test message)
   set_tests_properties(${name_of_test} PROPERTIES SKIP_RETURN_CODE 42)
 endfunction()
 
+# Extract all required dependencies from the
+# previous test and add it to the required dependencies list
+function(append_required_dependencies_from previous_test list_of_dependencies)
+  get_test_property(${previous_test} _internal_REQUIRED_DEPENDENCIES previous_dependencies)
+  if(previous_dependencies AND NOT previous_dependencies STREQUAL "NOTFOUND")
+    list(APPEND ${list_of_dependencies} ${previous_dependencies})
+    set(${list_of_dependencies}
+        "${${list_of_dependencies}}"
+        PARENT_SCOPE
+        )
+  endif()
+endfunction()
+
 # Check that required dependencies are met. If not, a skip message is built up and returned in
 # the variable 'result'. If the skip message is not empty after calling this function, the test
 # should be skipped.
@@ -201,6 +214,12 @@ function(_add_test_with_options)
     set(_parsed_LABELS "")
   endif()
 
+  # add all required dependencies from the additional fixture, if specified
+  if(NOT _parsed_ADDITIONAL_FIXTURE STREQUAL "")
+    append_required_dependencies_from(${_parsed_ADDITIONAL_FIXTURE} _parsed_REQUIRED_DEPENDENCIES)
+  endif()
+
+  # check if all required dependencies are present
   check_required_dependencies(skip_message "${_parsed_REQUIRED_DEPENDENCIES}")
 
   if(NOT skip_message STREQUAL "")
@@ -236,6 +255,11 @@ function(_add_test_with_options)
       ${_parsed_NAME_OF_TEST} PROPERTIES _internal_OUTPUT_DIR ${_parsed_OUTPUT_DIR}
       )
   endif()
+  set_tests_properties(
+    ${_parsed_NAME_OF_TEST}
+    PROPERTIES _internal_REQUIRED_DEPENDENCIES "${_parsed_REQUIRED_DEPENDENCIES}"
+    )
+
 endfunction()
 
 ##
@@ -601,36 +625,100 @@ endfunction()
 
 ###------------------------------------------------------------------ Nested Parallelism
 # Usage in tests/lists_of_tests.cmake: "four_c_test_nested_parallelism(<name_of_input_file_1> <name_of_input_file_2> <restart_step>)"
-# <name_of_input_file_1>: must equal the name of an input file in directory tests/input_files for the first test; This test will be executed using 1 process.
-# <name_of_input_file_2>: must equal the name of an input file in directory tests/input_files for the second test; This test will be executed using 2 processes.
-# <restart_step>: number of restart step; <""> indicates no restart
-function(four_c_test_nested_parallelism name_of_input_file_1 name_of_input_file_2 restart_step)
-  set(test_directory ${PROJECT_BINARY_DIR}/framework_test_output/${name_of_input_file_1})
-
-  add_test(
-    NAME ${name_of_input_file_1}-nestedPar
-    COMMAND
-      bash -c
-      "mkdir -p ${test_directory} &&  ${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np 3 $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> --ngroup=2 --glayout=1,2 --nptype=separateInputFiles ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_input_file_1} ${test_directory}/xxx ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_input_file_2} ${test_directory}/xxxAdditional"
+# required parameters:
+#   TEST_FILE1:                    must equal the name of an input file in directory tests/input_files
+#   TEST_FILE2:                    must equal the name of an input file in directory tests/input_files
+#
+# optional parameters:
+#   RESTART_STEP:                 Restart step if restart should be tested.
+#   TIMEOUT:                      Manually defined duration for test timeout; defaults to global timeout if not specified
+#   LABELS:                       Add labels to the test
+#   REQUIRED_DEPENDENCIES:        Any required external dependencies. The test will be skipped if the dependencies are not met.
+#                                 Either a dependency, e.g. "Trilinos", or a dependency with a version constraint, e.g. "Trilinos>=2025.2".
+#                                 The supported version constraint operators are: >=, <=, >, <, ==
+#                                 If multiple dependencies are provided, all must be met for the test to run.
+#                                 Note that the version is the _internal_ version that 4C assigns to the dependency.
+function(four_c_test_nested_parallelism)
+  set(options "")
+  set(oneValueArgs TEST_FILE1 TEST_FILE2 RESTART_STEP TIMEOUT)
+  set(multiValueArgs LABELS REQUIRED_DEPENDENCIES)
+  cmake_parse_arguments(
+    _parsed
+    "${options}"
+    "${oneValueArgs}"
+    "${multiValueArgs}"
+    ${ARGN}
     )
 
-  require_fixture(${name_of_input_file_1}-nestedPar test_cleanup)
-  set_processors(${name_of_input_file_1}-nestedPar 3)
-  define_setup_fixture(${name_of_input_file_1}-nestedPar ${name_of_input_file_1}-nestedPar-p3)
-  set_timeout(${name_of_input_file_1}-nestedPar)
+  # validate input arguments
+  if(DEFINED _parsed_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "There are unparsed arguments: ${_parsed_UNPARSED_ARGUMENTS}!")
+  endif()
 
-  if(${restart_step})
-    add_test(
-      NAME ${name_of_input_file_1}-nestedPar-restart
-      COMMAND
-        bash -c
-        "${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np 3 $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> --ngroup=2 --glayout=1,2 --nptype=separateInputFiles ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_input_file_1} ${test_directory}/xxx ${PROJECT_SOURCE_DIR}/tests/input_files/${name_of_input_file_2} ${test_directory}/xxxAdditional --restart=${restart_step},${restart_step}"
+  assert_required_arguments(_parsed TEST_FILE1 TEST_FILE2)
+
+  # check if source files exist
+  set(test_file_full_path1 "${PROJECT_SOURCE_DIR}/tests/input_files/${_parsed_TEST_FILE1}")
+  set(test_file_full_path2 "${PROJECT_SOURCE_DIR}/tests/input_files/${_parsed_TEST_FILE2}")
+
+  if(NOT EXISTS ${test_file_full_path1})
+    message(FATAL_ERROR "Test source file ${_parsed_TEST_FILE1} does not exist!")
+  endif()
+
+  if(NOT EXISTS ${test_file_full_path2})
+    message(FATAL_ERROR "Test source file ${_parsed_TEST_FILE2} does not exist!")
+  endif()
+
+  set(test_directory ${PROJECT_BINARY_DIR}/framework_test_output/${_parsed_TEST_FILE1})
+
+  set(name_of_test ${_parsed_TEST_FILE1}-nestedPar)
+  set(test_command
+      "mkdir -p ${test_directory} &&  ${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np 3 $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> --ngroup=2 --glayout=1,2 --nptype=separateInputFiles ${test_file_full_path1} ${test_directory}/xxx ${test_file_full_path2} ${test_directory}/xxxAdditional"
       )
 
-    require_fixture(
-      ${name_of_input_file_1}-nestedPar-restart "${name_of_input_file_1}-nestedPar-p3;test_cleanup"
+  _add_test_with_options(
+    NAME_OF_TEST
+    ${name_of_test}
+    TEST_COMMAND
+    ${test_command}
+    TOTAL_PROCS
+    3
+    TIMEOUT
+    "${_parsed_TIMEOUT}"
+    LABELS
+    "${_parsed_LABELS}"
+    INPUT_FILE
+    "${test_file_full_path1}"
+    OUTPUT_DIR
+    "${test_directory}"
+    REQUIRED_DEPENDENCIES
+    "${_parsed_REQUIRED_DEPENDENCIES}"
+    )
+
+  if(DEFINED _parsed_RESTART_STEP)
+    set(name_of_restart_test ${_parsed_TEST_FILE1}-nestedPar-restart)
+    set(restart_test_command
+        "mkdir -p ${test_directory} &&  ${MPIEXEC_EXECUTABLE} ${_mpiexec_all_args_for_testing} -np 3 $<TARGET_FILE:${FOUR_C_EXECUTABLE_NAME}> --ngroup=2 --glayout=1,2 --nptype=separateInputFiles ${test_file_full_path1} ${test_directory}/xxx ${test_file_full_path2} ${test_directory}/xxxAdditional --restart=${_parsed_RESTART_STEP},${_parsed_RESTART_STEP}"
+        )
+
+    _add_test_with_options(
+      NAME_OF_TEST
+      ${name_of_restart_test}
+      TEST_COMMAND
+      ${restart_test_command}
+      TOTAL_PROCS
+      3
+      TIMEOUT
+      "${_parsed_TIMEOUT}"
+      LABELS
+      "${_parsed_LABELS}"
+      INPUT_FILE
+      "${test_file_full_path1}"
+      OUTPUT_DIR
+      "${test_directory}"
+      REQUIRED_DEPENDENCIES
+      "${_parsed_REQUIRED_DEPENDENCIES}"
       )
-    set_processors(${name_of_input_file_1}-nestedPar-restart 3)
   endif()
 endfunction()
 
@@ -839,62 +927,90 @@ function(
 endfunction()
 
 ###------------------------------------------------------------------ Compare VTK
-# Compare XML formatted .vtk result data set referenced by .pvd files to corresponding reference files
-# CAUTION: This tests bases on results of a previous simulation/test
-# Implementation can be found in '/tests/output_test/vtk_compare.py'
-# Usage in tests/lists_of_tests.cmake: "four_c_test_vtk(<name_of_input_file> <num_proc> <filetag> <pvd_referencefilename> <tolerance> <optional: time_steps>)"
-# <name_of_test>: name of this test
-# <name_of_input_file>: must equal the name of an input file from a previous test
-# <num_proc_base_run>: number of processors of precursor base run
-# <pvd_referencefilename>: file to compare with
-# <tolerance>: difference the values may have
-# <optional: time_steps>: time steps when to compare
-function(
-  four_c_test_vtk
-  name_of_test
-  name_of_input_file
-  num_proc_base_run
-  pvd_resultfilename
-  pvd_referencefilename
-  tolerance
-  )
-  set(test_directory
-      ${PROJECT_BINARY_DIR}/framework_test_output/${name_of_input_file}-p${num_proc_base_run}/${pvd_resultfilename}
+# Central function to define a vtk test based on an a previous input file test
+#
+# required parameters:
+#   BASED_ON:                     Reference to previous test
+#   PVD_RESULT:                   name of the .pvd file in the output directory of the previous test that references the .vtk files to compare
+#   PVD_REFERENCE:                name of the .pvd file in tests/input_files that
+#                                 references the .vtk files to compare against
+#   TOLERANCE:                    difference the values may have
+#
+# optional parameters:
+#   TIME_STEPS:                   Timesteps to compare
+#   TIMEOUT:                      Manually defined duration for test timeout; defaults to global timeout if not specified
+#   LABELS:                       Add labels to the test
+#   REQUIRED_DEPENDENCIES:        Any required external dependencies. The test will be skipped if the dependencies are not met.
+#                                 Either a dependency, e.g. "Trilinos", or a dependency with a version constraint, e.g. "Trilinos>=2025.2".
+#                                 The supported version constraint operators are: >=, <=, >, <, ==
+#                                 If multiple dependencies are provided, all must be met for the test to run.
+#                                 Note that the version is the _internal_ version that 4C assigns to the dependency.
+function(four_c_test_vtk)
+  set(options "")
+  set(oneValueArgs
+      BASED_ON
+      PVD_RESULT
+      PVD_REFERENCE
+      TOLERANCE
+      TIMEOUT
       )
-
-  # this test takes a list of times as extra arguments to check results at those timesteps
-  # if no extra arguments are given test checks every timestep
-  set(extra_macro_args ${ARGN})
-
-  # Did we get any optional args?
-  list(LENGTH extra_macro_args num_extra_args)
-
-  if(${num_extra_args} GREATER 0)
-    list(GET extra_macro_args 0 optional_arg)
-  endif()
-
-  if(FOUR_C_WITH_PYTHON)
-    # add test to testing framework
-    add_test(
-      NAME "${name_of_test}-p${num_proc_base_run}"
-      COMMAND
-        ${FOUR_C_PYTHON_VENV_BUILD}/bin/vtk-compare ${test_directory}
-        ${PROJECT_SOURCE_DIR}/tests/input_files/${pvd_referencefilename} ${tolerance}
-        ${num_extra_args} ${extra_macro_args}
-      )
-  else()
-    skip_test(
-      "${name_of_test}-p${num_proc_base_run}"
-      "Skipping because FOUR_C_WITH_PYTHON is not enabled. Postprocessing tests require Python."
-      )
-  endif()
-
-  require_fixture(
-    ${name_of_test}-p${num_proc_base_run}
-    "${name_of_input_file}-p${num_proc_base_run};${name_of_input_file}-p${num_proc_base_run}-restart;test_cleanup"
+  set(multiValueArgs TIME_STEPS LABELS REQUIRED_DEPENDENCIES)
+  cmake_parse_arguments(
+    _parsed
+    "${options}"
+    "${oneValueArgs}"
+    "${multiValueArgs}"
+    ${ARGN}
     )
-  set_processors(${name_of_test}-p${num_proc_base_run} 1)
-  set_timeout(${name_of_test}-p${num_proc_base_run})
+
+  # validate input arguments
+  if(DEFINED _parsed_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "There are unparsed arguments: ${_parsed_UNPARSED_ARGUMENTS}!")
+  endif()
+
+  assert_required_arguments(
+    _parsed
+    BASED_ON
+    PVD_RESULT
+    PVD_REFERENCE
+    TOLERANCE
+    )
+
+  # get test directory of base test
+  get_test_property(${_parsed_BASED_ON} _internal_OUTPUT_DIR test_directory)
+
+  set(merged_timesteps_to_compare "")
+  if(DEFINED _parsed_TIME_STEPS)
+    list(JOIN _parsed_TIME_STEPS " " merged_timesteps_to_compare)
+  endif()
+
+  set(name_of_test "${_parsed_BASED_ON}-vtk-${_parsed_PVD_RESULT}")
+  set(test_command
+      "${FOUR_C_PYTHON_VENV_BUILD}/bin/vtk-compare ${test_directory}/${_parsed_PVD_RESULT} ${PROJECT_SOURCE_DIR}/tests/input_files/${_parsed_PVD_REFERENCE} ${_parsed_TOLERANCE} --points_in_time ${merged_timesteps_to_compare}"
+      )
+
+  # Ensure that Python is listed as required dependency
+  list(APPEND _parsed_REQUIRED_DEPENDENCIES "Python")
+
+  # Add test
+  _add_test_with_options(
+    NAME_OF_TEST
+    ${name_of_test}
+    TEST_COMMAND
+    ${test_command}
+    ADDITIONAL_FIXTURE
+    ${_parsed_BASED_ON}
+    TOTAL_PROCS
+    "1"
+    TIMEOUT
+    "${_parsed_TIMEOUT}"
+    LABELS
+    "${_parsed_LABELS}"
+    OUTPUT_DIR
+    "${test_directory}"
+    REQUIRED_DEPENDENCIES
+    "${_parsed_REQUIRED_DEPENDENCIES}"
+    )
 endfunction()
 
 ###------------------------------------------------------------------ Restart 4C simulation and compare VTK Output
@@ -1084,7 +1200,7 @@ function(four_c_test_restarted_vtk)
     set(result_dir "${sim2_dir}/${_parsed_PVD_RESULTFILENAME}")
 
     set(compare_cmd
-        "${FOUR_C_PYTHON_VENV_BUILD}/bin/vtk-compare ${result_dir} ${ref_path} ${_parsed_TOLERANCE} ${nsteps} ${steps_joined}"
+        "${FOUR_C_PYTHON_VENV_BUILD}/bin/vtk-compare ${result_dir} ${ref_path} ${_parsed_TOLERANCE} --points_in_time ${steps_joined}"
         )
     _add_test_with_options(
       NAME_OF_TEST
