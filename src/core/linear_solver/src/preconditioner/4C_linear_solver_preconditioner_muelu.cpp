@@ -14,6 +14,7 @@
 #include "4C_linear_solver_thyra_utils.hpp"
 #include "4C_utils_exceptions.hpp"
 
+#include <Amesos2_Factory.hpp>
 #include <MueLu_CreateXpetraPreconditioner.hpp>
 #include <MueLu_EpetraOperator.hpp>
 #include <MueLu_ParameterListInterpreter.hpp>
@@ -58,6 +59,8 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
   Teuchos::ParameterList muelu_params;
   auto comm = Core::Communication::to_teuchos_comm<int>(matrix.get_comm());
   Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFileName, Teuchos::Ptr(&muelu_params), *comm);
+
+  validate_coarse_solver(muelu_params);
 
   Teuchos::RCP<Core::LinAlg::BlockSparseMatrixBase> A =
       Teuchos::rcp_dynamic_cast<Core::LinAlg::BlockSparseMatrixBase>(Teuchos::rcpFromRef(matrix));
@@ -221,6 +224,16 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
     mueLuFactory.SetupHierarchy(*H_);
     p_ = std::make_shared<MueLu::EpetraOperator>(H_);
   }
+}
+
+void Core::LinearSolver::validate_coarse_solver(const Teuchos::ParameterList& params)
+{
+  if (!params.isParameter("coarse: type")) return;
+
+  const std::string solver = params.get<std::string>("coarse: type");
+
+  FOUR_C_ASSERT_ALWAYS(Amesos2::query(solver),
+      "Requested coarse solver {} is not available in your Trilinos build of Amesos2.", solver);
 }
 
 FOUR_C_NAMESPACE_CLOSE

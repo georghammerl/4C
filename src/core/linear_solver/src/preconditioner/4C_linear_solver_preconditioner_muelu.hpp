@@ -10,7 +10,6 @@
 
 #include "4C_config.hpp"
 
-#include "4C_linalg_blocksparsematrix.hpp"
 #include "4C_linear_solver_preconditioner_type.hpp"
 
 #include <MueLu_Hierarchy.hpp>
@@ -41,7 +40,7 @@ namespace Core::LinearSolver
   class MueLuPreconditioner : public PreconditionerTypeBase
   {
    public:
-    MueLuPreconditioner(Teuchos::ParameterList& muelulist);
+    explicit MueLuPreconditioner(Teuchos::ParameterList& muelulist);
 
     /*! \brief Create and compute the preconditioner
      *
@@ -75,6 +74,13 @@ namespace Core::LinearSolver
     //! MueLu hierarchy
     Teuchos::RCP<MueLu::Hierarchy<Scalar, LocalOrdinal, GlobalOrdinal, Node>> H_;
   };
+
+  /*!
+   * @brief Check whether the chosen coarse solver type is actually available
+   *
+   * @param[in] params MueLu parameter list to validate the coarse solver settings if set
+   */
+  void validate_coarse_solver(const Teuchos::ParameterList& params);
 }  // namespace Core::LinearSolver
 
 FOUR_C_NAMESPACE_CLOSE
