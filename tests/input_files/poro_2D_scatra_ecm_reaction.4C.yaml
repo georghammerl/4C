@@ -188,37 +188,37 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 3658
       QUANTITY: "phi"
-      VALUE: 9.892983583899781
+      VALUE: 9.89303458466124574
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3705
       QUANTITY: "phi"
-      VALUE: 11.297980509183958
+      VALUE: 11.2980177533205115
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3750
       QUANTITY: "phi"
-      VALUE: 43.707673034947426
+      VALUE: 43.7074845558652640
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3799
       QUANTITY: "phi"
-      VALUE: 11.297980509184033
+      VALUE: 11.2980177533206056
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3846
       QUANTITY: "phi"
-      VALUE: 9.892983583899845
+      VALUE: 9.89303458466132746
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3893
       QUANTITY: "phi"
-      VALUE: 7.291857112808861
+      VALUE: 7.29191695243924443
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
@@ -230,79 +230,79 @@ RESULT DESCRIPTION:
       DIS: "scatra"
       NODE: 3657
       QUANTITY: "phi2"
-      VALUE: 22.828890850359993
+      VALUE: 22.8288763026125103
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3704
       QUANTITY: "phi2"
-      VALUE: 21.5981294984908
+      VALUE: 21.5981200021674269
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3750
       QUANTITY: "phi2"
-      VALUE: 62.06287220180389
+      VALUE: 62.0629435401303979
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3798
       QUANTITY: "phi2"
-      VALUE: 21.59812949849084
+      VALUE: 21.5981200021674660
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3845
       QUANTITY: "phi4"
-      VALUE: 0.21758314801662929
+      VALUE: 0.21758295120459927
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3893
       QUANTITY: "phi4"
-      VALUE: 0.9406013741599354
+      VALUE: 0.940600961494011512
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 1953
       QUANTITY: "phi3"
-      VALUE: 70.66201997801053
+      VALUE: 70.6620144305123006
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3657
       QUANTITY: "phi3"
-      VALUE: 72.49750185081503
+      VALUE: 72.4974947016144142
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3704
       QUANTITY: "phi3"
-      VALUE: 72.27654785706234
+      VALUE: 72.2765403866738438
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3750
       QUANTITY: "phi3"
-      VALUE: 40.58243018871313
+      VALUE: 40.5823488655894451
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3798
       QUANTITY: "phi3"
-      VALUE: 72.2765478570623
+      VALUE: 72.2765403866737728
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3845
       QUANTITY: "phi5"
-      VALUE: 1.2824168519833712
+      VALUE: 1.28241704879540008
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"
       NODE: 3893
       QUANTITY: "phi5"
-      VALUE: 0.5593986258400651
+      VALUE: 0.559399038505988377
       TOLERANCE: 1e-08
   - SCATRA:
       DIS: "scatra"

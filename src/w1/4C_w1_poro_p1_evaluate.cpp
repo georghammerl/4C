@@ -630,7 +630,8 @@ void Discret::Elements::Wall1PoroP1<distype>::gauss_point_loop_p1(Teuchos::Param
         erea_v, sub_stiff, sub_force, fstress);
 
     // **********************evaluate stiffness matrix and force vector+++++++++++++++++++++++++
-    double detJ_w = Base::detJ_[gp] * Base::intpoints_.weight(gp);  // gpweights[gp];
+    double detJ_w =
+        Base::thickness_ * Base::detJ_[gp] * Base::intpoints_.weight(gp);  // gpweights[gp];
 
     const double reacoeff = Base::fluid_mat_->compute_reaction_coeff();
     {
@@ -671,7 +672,7 @@ void Discret::Elements::Wall1PoroP1<distype>::gauss_point_loop_p1(Teuchos::Param
       fstress(1) = visctress1(1, 1);
       fstress(2) = visctress1(0, 1);
 
-      fstress.scale(detJ_w * visc * J);
+      fstress.scale(visc * J);
 
       // B^T . C^-1
       Core::LinAlg::Matrix<Base::numdof_, 1> fstressb(Core::LinAlg::Initialization::zero);
@@ -869,7 +870,7 @@ void Discret::Elements::Wall1PoroP1<distype>::gauss_point_loop_p1_od(Teuchos::Pa
     //--------------------------------------------------------
 
     // **********************evaluate stiffness matrix and force vector+++++++++++++++++++++++++
-    double detJ_w = Base::detJ_[gp] * Base::intpoints_.weight(gp);
+    double detJ_w = Base::thickness_ * Base::detJ_[gp] * Base::intpoints_.weight(gp);
 
     for (int k = 0; k < Base::numnod_; k++)
     {
@@ -939,7 +940,7 @@ int Discret::Elements::Wall1PoroP1<distype>::evaluate_neumann(Teuchos::Parameter
     Base::compute_jacobian_determinant(gp, xcurr, deriv);
 
     /*------------------------------------ integration factor  -------*/
-    double fac = Base::detJ_[gp] * Base::intpoints_.weight(gp);
+    double fac = Base::thickness_ * Base::detJ_[gp] * Base::intpoints_.weight(gp);
 
     // load vector ar
     std::array<double, Base::numdim_> ar = {0.0, 0.0};
