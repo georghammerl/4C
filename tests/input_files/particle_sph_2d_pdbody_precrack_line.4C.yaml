@@ -1,0 +1,232 @@
+TITLE:
+  - "test PRE_CRACK_LINES (line segment) and per-particle Dirichlet BC for bond-based peridynamics"
+  - "Small 2D plate (10x10 particles) with a horizontal pre-crack and fixed particles"
+  - "Verifies: bonds crossing PRE_CRACK_LINES are broken at init (damage > 0)"
+  - "Verifies: DIRICHLET_FUNCT particles remain at reference position under loading"
+  - "see, e.g., particle ID 0 (fixed) and ID 44 (crack-adjacent) in result description"
+  - "particle ID 99 is free and moving due to gravity, no damage"
+PROBLEM TYPE:
+  PROBLEMTYPE: "Particle"
+IO:
+  STDOUTEVERY: 100
+  VERBOSITY: "Standard"
+BINNING STRATEGY:
+  BIN_SIZE_LOWER_BOUND: 4
+  DOMAINBOUNDINGBOX: "-10.0 -10.0 -0.01 15.0 10.0 0.01"
+PARTICLE DYNAMIC:
+  DYNAMICTYPE: "VelocityVerlet"
+  INTERACTION: "SPH"
+  RESULTSEVERY: 100
+  RESTARTEVERY: 200
+  TIMESTEP: 8.0e-6
+  NUMSTEP: 500
+  MAXTIME: 10
+  GRAVITY_ACCELERATION: "9810.0 0.0 0.0"
+  PHASE_TO_DYNLOADBALFAC: "pdphase 1.0"
+  PHASE_TO_MATERIAL_ID: "pdphase 1"
+  RIGID_BODY_MOTION: false
+  PD_BODY_INTERACTION: true
+PARTICLE DYNAMIC/INITIAL AND BOUNDARY CONDITIONS:
+  CONSTRAINT: "Projection2D"
+  DIRICHLET_BOUNDARY_CONDITION_FLAGGED: [pdphase]
+PARTICLE DYNAMIC/SPH:
+  KERNEL: QuinticSpline
+  KERNEL_SPACE_DIM: Kernel2D
+  INITIALPARTICLESPACING: 1.0
+  BOUNDARYPARTICLEFORMULATION: AdamiBoundaryFormulation
+  TRANSPORTVELOCITYFORMULATION: StandardTransportVelocity
+PARTICLE DYNAMIC/PD:
+  INTERACTION_HORIZON: 3.0
+  PERIDYNAMIC_GRID_SPACING: 1.0
+  PD_DIMENSION: Peridynamic_2DPlaneStrain
+  NORMALCONTACTLAW: NormalLinearSpring
+  NORMAL_STIFF: 60.0
+  PRE_CRACK_LINES:
+    - START: [-5.0, 0.0, 0.0]
+      END: [0.0, 0.0, 0.0]
+MATERIALS:
+  - MAT: 1
+    MAT_ParticlePD:
+      INITRADIUS: 0.5
+      INITDENSITY: 8000.0e-9
+      YOUNG: 1.0e3
+      CRITICAL_STRETCH: 0.015
+FUNCT1:
+  - COMPONENT: 0
+    SYMBOLIC_FUNCTION_OF_SPACE_TIME: "0.0"
+  - COMPONENT: 1
+    SYMBOLIC_FUNCTION_OF_SPACE_TIME: "0.0"
+  - COMPONENT: 2
+    SYMBOLIC_FUNCTION_OF_SPACE_TIME: "0.0"
+RESULT DESCRIPTION:
+  - PARTICLE:
+      ID: 0
+      QUANTITY: "posx"
+      VALUE: -4.50000000000000000e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 0
+      QUANTITY: "posy"
+      VALUE: -4.50000000000000000e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 0
+      QUANTITY: "velx"
+      VALUE: 0.00000000000000000e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 0
+      QUANTITY: "vely"
+      VALUE: 0.00000000000000000e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 44
+      QUANTITY: "posx"
+      VALUE: -4.99948195153028963e-01
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 44
+      QUANTITY: "posy"
+      VALUE: -5.00272320557125560e-01
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 44
+      QUANTITY: "velx"
+      VALUE: -1.31956568983981604e+00
+      TOLERANCE: 1e-10
+  - PARTICLE:
+      ID: 44
+      QUANTITY: "vely"
+      VALUE: -3.68642651490787954e-01
+      TOLERANCE: 1e-10
+  - PARTICLE:
+      ID: 44
+      QUANTITY: "pd_damage_phi"
+      VALUE: 3.57142857142857095e-01
+      TOLERANCE: 1e-12
+  - PARTICLE:
+      ID: 99
+      QUANTITY: "posx"
+      VALUE: 4.50035421581863293e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 99
+      QUANTITY: "posy"
+      VALUE: 4.50012535784883205e+00
+      TOLERANCE: 1e-09
+  - PARTICLE:
+      ID: 99
+      QUANTITY: "velx"
+      VALUE: 2.98326685283020199e-01
+      TOLERANCE: 1e-10
+  - PARTICLE:
+      ID: 99
+      QUANTITY: "vely"
+      VALUE: -1.21977607862312665e+00
+      TOLERANCE: 1e-10
+  - PARTICLE:
+      ID: 99
+      QUANTITY: "pd_damage_phi"
+      VALUE: 0.00000000000000000e+00
+      TOLERANCE: 1e-12
+PARTICLES:
+  - "TYPE pdphase POS -4.5 -4.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 -4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 -3.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 -3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 -2.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 -2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 -1.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 -1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 -0.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 -0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 0.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 0.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 1.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 1.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 2.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 2.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 3.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 3.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -4.5 4.5 0.0 PDBODYID 0 DIRICHLET_FUNCT 1"
+  - "TYPE pdphase POS -3.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -2.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -1.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS -0.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 0.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 1.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 2.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 3.5 4.5 0.0 PDBODYID 0"
+  - "TYPE pdphase POS 4.5 4.5 0.0 PDBODYID 0"
