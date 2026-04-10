@@ -84,11 +84,12 @@ namespace BeamInteraction::Potential
     std::vector<double> potential_law_prefactors{};
     Type type{};
     Strategy strategy{};
+    bool two_half_pass = false;
     std::optional<double> cutoff_radius{};
     BeamPotentialRegularizationParameters regularization{};
     int n_integration_segments{};
     int n_gauss_points{};
-    bool automatic_differentiation{};
+    bool automatic_differentiation = false;
     MasterSlaveChoice choice_master_slave{};
     std::optional<double> potential_reduction_length{};
     BeamPotentialVisualizationParameters runtime_output_params{};

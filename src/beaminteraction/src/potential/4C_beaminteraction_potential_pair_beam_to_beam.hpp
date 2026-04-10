@@ -580,6 +580,14 @@ namespace BeamInteraction
      */
     bool are_elements_much_more_separated_than_cutoff_distance();
 
+    /** \brief exchange master/slave allocation for the evaluation of the two-half-pass approach
+     *
+     *   All private members need to be exchanged to allow reusing the function to evaluate the
+     *   residual force vectors and stiffness matrices for the second half-pass.
+     */
+
+    void exchange_master_slave_allocation_for_two_half_pass();
+
     //@}
 
    private:

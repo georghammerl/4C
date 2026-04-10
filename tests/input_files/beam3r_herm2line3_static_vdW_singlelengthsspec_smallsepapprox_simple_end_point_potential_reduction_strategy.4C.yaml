@@ -19,10 +19,6 @@ TITLE:
   - "correct implementation with multiprocessing."
 PROBLEM TYPE:
   PROBLEMTYPE: "Structure"
-DISCRETISATION:
-  NUMFLUIDDIS: 0
-  NUMALEDIS: 0
-  NUMTHERMDIS: 0
 IO:
   STDOUTEVERY: 1000
   VERBOSITY: "Standard"
@@ -30,15 +26,6 @@ IO/MONITOR STRUCTURE DBC:
   INTERVAL_STEPS: 1
   PRECISION_SCREEN: 3
   FILE_TYPE: csv
-IO/RUNTIME VTK OUTPUT:
-  INTERVAL_STEPS: 1
-IO/RUNTIME VTK OUTPUT/BEAMS:
-  OUTPUT_BEAMS: true
-  DISPLACEMENT: true
-  INTERNAL_ENERGY_ELEMENT: true
-  TRIAD_VISUALIZATIONPOINT: true
-  STRAINS_GAUSSPOINT: true
-  MATERIAL_FORCES_GAUSSPOINT: true
 STRUCTURAL DYNAMIC:
   DYNAMICTYPE: "Statics"
   RESULTSEVERY: 100
@@ -69,10 +56,6 @@ beam_potential:
   strategy: single_length_specific_small_separations_simple
   cutoff_radius: 100
   potential_reduction_length: 15
-  runtime_output:
-    interval_steps: 1
-    force: true
-    moment: true
 DESIGN POINT DIRICH CONDITIONS:
   - E: 1
     NUMDOF: 9
