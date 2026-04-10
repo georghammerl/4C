@@ -2525,7 +2525,7 @@ bool Mortar::Element::evaluate_shape_lag_mult_lin(const Mortar::ShapeFcn& lmtype
   if (lmtype == Mortar::shape_none) return true;
 
   if (!xi) FOUR_C_THROW("evaluate_shape_lag_mult_lin called with xi=nullptr");
-  if (!is_slave()) FOUR_C_THROW("evaluate_shape_lag_mult_lin called for master element");
+  if (!is_source()) FOUR_C_THROW("evaluate_shape_lag_mult_lin called for master element");
 
   // check for feasible element types (line3,tri6, quad8 or quad9)
   if (shape() != Core::FE::CellType::line3 && shape() != Core::FE::CellType::tri6 &&

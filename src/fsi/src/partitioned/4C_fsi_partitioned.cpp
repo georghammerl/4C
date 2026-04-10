@@ -97,7 +97,7 @@ void FSI::Partitioned::setup_coupling(const Teuchos::ParameterList& fsidyn, MPI_
         structure_field()->interface()->fsi_cond_map(), *mb_fluid_field()->discretization(),
         mb_fluid_field()->interface()->fsi_cond_map(), "FSICoupling", ndim);
 
-    if (coupsf.master_dof_map()->num_global_elements() == 0)
+    if (coupsf.target_dof_map()->num_global_elements() == 0)
       FOUR_C_THROW("No nodes in matching FSI interface. Empty FSI coupling condition?");
   }
   else if ((fsidyn.sublist("PARTITIONED SOLVER").get<std::string>("COUPMETHOD") == "conforming") and
@@ -116,7 +116,7 @@ void FSI::Partitioned::setup_coupling(const Teuchos::ParameterList& fsidyn, MPI_
         *x_movingboundary->boundary_discretization(),  // use the matching boundary discretization
         x_movingboundary->struct_interface()->fsi_cond_map(), "FSICoupling", ndim);
 
-    if (coupsf.master_dof_map()->num_global_elements() == 0)
+    if (coupsf.target_dof_map()->num_global_elements() == 0)
       FOUR_C_THROW("No nodes in matching FSI interface. Empty FSI coupling condition?");
   }
   else if ((problem->get_problem_type() == Core::ProblemType::fbi))
@@ -775,11 +775,11 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::struct_to_fluid(
   const Coupling::Adapter::Coupling& coupsf = structure_fluid_coupling();
   if (matchingnodes_)
   {
-    return coupsf.master_to_slave(*iv);
+    return coupsf.target_to_source(*iv);
   }
   else
   {
-    return coupsfm_->master_to_slave(*iv);
+    return coupsfm_->target_to_source(*iv);
   }
 }
 
@@ -792,7 +792,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::fluid_to_struct(
   const Coupling::Adapter::Coupling& coupsf = structure_fluid_coupling();
   if (matchingnodes_)
   {
-    return coupsf.slave_to_master(*iv);
+    return coupsf.source_to_target(*iv);
   }
   else
   {
@@ -803,7 +803,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Partitioned::fluid_to_struct(
 
     iforce.reciprocal_multiply(1.0, *ishape, *iv, 0.0);
 
-    return coupsfm_->slave_to_master(iforce);
+    return coupsfm_->source_to_target(iforce);
   }
 }
 

@@ -65,7 +65,7 @@ bool Solid::ModelEvaluator::PartitionedSSI::assemble_jacobian(
 
     for (const auto& meshtying : ssi_part_->ssi_structure_mesh_tying()->mesh_tying_handlers())
     {
-      auto cond_slave_dof_map = meshtying->slave_master_coupling()->slave_dof_map();
+      auto cond_slave_dof_map = meshtying->slave_master_coupling()->source_dof_map();
       auto converter = meshtying->slave_side_converter();
 
       // transform and assemble slave-side rows of original Jacobian into new Jacobian (interior
@@ -90,7 +90,7 @@ bool Solid::ModelEvaluator::PartitionedSSI::assemble_jacobian(
 
       for (const auto& meshtying2 : ssi_part_->ssi_structure_mesh_tying()->mesh_tying_handlers())
       {
-        auto cond_slave_dof_map2 = meshtying2->slave_master_coupling()->slave_dof_map();
+        auto cond_slave_dof_map2 = meshtying2->slave_master_coupling()->source_dof_map();
         auto converter2 = meshtying2->slave_side_converter();
 
         // assemble derivatives of surface slave dofs w.r.t. line slave dofs (block l)
@@ -128,7 +128,7 @@ void Solid::ModelEvaluator::PartitionedSSI::run_pre_compute_x(
 
       // transform and assemble master-side part of structural increment vector to slave side
       coupling_map_extractor->insert_vector(
-          *meshtying->slave_master_coupling()->master_to_slave(
+          *meshtying->slave_master_coupling()->target_to_source(
               *coupling_map_extractor->extract_vector(dir_mutable, 2)),
           1, dir_mutable);
     }
@@ -159,7 +159,7 @@ bool Solid::ModelEvaluator::PartitionedSSI::assemble_force(
     {
       auto coupling_map_extractor = meshtying->slave_master_extractor();
       // transform and assemble slave-side part of structural right-hand side vector to master side
-      coupling_map_extractor->add_vector(*meshtying->slave_master_coupling()->slave_to_master(
+      coupling_map_extractor->add_vector(*meshtying->slave_master_coupling()->source_to_target(
                                              *coupling_map_extractor->extract_vector(f, 1)),
           2, f);
 

@@ -192,7 +192,7 @@ namespace CONTACT
     std::shared_ptr<Core::LinAlg::Vector<double>>
         z_thermo_;  // current vector of Thermo-Lagrange multipliers at t_n+1
     std::shared_ptr<Core::LinAlg::Map> thermo_act_dofs_;  // active thermo dofs
-    std::shared_ptr<Core::LinAlg::Map> thermo_s_dofs_;    // slave thermo dofs
+    std::shared_ptr<Core::LinAlg::Map> thermo_s_dofs_;    // source thermo dofs
 
     std::shared_ptr<Core::LinAlg::SparseMatrix>
         dinvA_;  // dinv on active displacement dofs (for recovery)
@@ -200,19 +200,19 @@ namespace CONTACT
         dinvAthr_;  // dinv on active thermal dofs (for recovery)
     // recovery of contact LM
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        kss_a_;  // Part of structure-stiffness (kss) that corresponds to active slave rows
+        kss_a_;  // Part of structure-stiffness (kss) that corresponds to active source rows
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        kst_a_;  // Part of coupling-stiffness  (kst) that corresponds to active slave rows
+        kst_a_;  // Part of coupling-stiffness  (kst) that corresponds to active source rows
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        rs_a_;  // Part of structural residual that corresponds to active slave rows
+        rs_a_;  // Part of structural residual that corresponds to active source rows
 
     // recovery of thermal LM
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        ktt_a_;  // Part of structure-stiffness (ktt) that corresponds to active slave rows
+        ktt_a_;  // Part of structure-stiffness (ktt) that corresponds to active source rows
     std::shared_ptr<Core::LinAlg::SparseMatrix>
-        kts_a_;  // Part of coupling-stiffness  (kts) that corresponds to active slave rows
+        kts_a_;  // Part of coupling-stiffness  (kts) that corresponds to active source rows
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        rt_a_;  // Part of structural residual that corresponds to active slave rows
+        rt_a_;  // Part of structural residual that corresponds to active source rows
 
     // pointer to TSI coupling object
     std::shared_ptr<Coupling::Adapter::Coupling> coupST_;

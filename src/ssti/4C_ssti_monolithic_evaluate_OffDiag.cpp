@@ -107,9 +107,9 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_off_diag_block_thermo_struct
     case Core::LinAlg::MatrixType::sparse:
     {
       slavematrix = std::make_shared<Core::LinAlg::SparseMatrix>(
-          *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map(), 27, false, true);
+          *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map(), 27, false, true);
       mastermatrix = std::make_shared<Core::LinAlg::SparseMatrix>(
-          *meshtying_strategy_thermo_->coupling_adapter()->master_dof_map(), 27, false, true);
+          *meshtying_strategy_thermo_->coupling_adapter()->target_dof_map(), 27, false, true);
       break;
     }
     default:
@@ -209,7 +209,7 @@ void SSTI::ThermoStructureOffDiagCoupling::copy_slave_to_master_thermo_structure
       // initialize auxiliary system matrix for linearizations of master-side scatra fluxes w.r.t.
       // master-side structural dofs
       Core::LinAlg::SparseMatrix mastermatrixsparse(
-          *meshtying_strategy_thermo_->coupling_adapter()->master_dof_map(), 27, false, true);
+          *meshtying_strategy_thermo_->coupling_adapter()->target_dof_map(), 27, false, true);
 
       // derive linearizations of master-side scatra fluxes w.r.t. master-side structural dofs and
       // assemble into auxiliary system matrix
@@ -217,14 +217,14 @@ void SSTI::ThermoStructureOffDiagCoupling::copy_slave_to_master_thermo_structure
       {
         for (const auto& meshtying : ssti_structure_meshtying_->mesh_tying_handlers())
         {
-          auto slave_dof_map = meshtying->slave_master_coupling()->slave_dof_map();
+          auto source_dof_map = meshtying->slave_master_coupling()->source_dof_map();
           auto slave_side_converter_struct = meshtying->slave_side_converter();
 
           auto slave_side_converter_thermo = Coupling::Adapter::CouplingSlaveConverter(
               *meshtying_strategy_thermo_->coupling_adapter());
 
           Coupling::Adapter::MatrixLogicalSplitAndTransform()(blockslavematrix->matrix(iblock, 0),
-              *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map(), *slave_dof_map,
+              *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map(), *source_dof_map,
               -1.0, &slave_side_converter_thermo, &(*slave_side_converter_struct),
               mastermatrixsparse, true, true);
         }
@@ -254,19 +254,19 @@ void SSTI::ThermoStructureOffDiagCoupling::copy_slave_to_master_thermo_structure
       // assemble into auxiliary system matrix
       for (const auto& meshtying : ssti_structure_meshtying_->mesh_tying_handlers())
       {
-        auto slave_dof_map = meshtying->slave_master_coupling()->slave_dof_map();
+        auto source_dof_map = meshtying->slave_master_coupling()->source_dof_map();
         auto slave_side_converter_struct = meshtying->slave_side_converter();
         auto slave_side_converter_thermo = Coupling::Adapter::CouplingSlaveConverter(
             *meshtying_strategy_thermo_->coupling_adapter());
 
         Coupling::Adapter::MatrixLogicalSplitAndTransform()(*sparseslavematrix,
-            *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map(), *slave_dof_map, -1.0,
-            &slave_side_converter_thermo, &(*slave_side_converter_struct), *sparsemastermatrix,
-            true, true);
+            *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map(), *source_dof_map,
+            -1.0, &slave_side_converter_thermo, &(*slave_side_converter_struct),
+            *sparsemastermatrix, true, true);
       }
 
       mastermatrix->complete(
-          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->master_dof_map());
+          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->target_dof_map());
       break;
     }
     default:
@@ -298,7 +298,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
   if (thermo_->scatra_field()->matrix_type() == Core::LinAlg::MatrixType::sparse)
   {
     evaluate_matrix = std::make_shared<Core::LinAlg::SparseMatrix>(
-        *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map(), 27, false, true);
+        *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map(), 27, false, true);
   }
   else
   {
@@ -354,7 +354,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
             Coupling::Adapter::CouplingSlaveConverter(*slave_slave_transformation);
 
         // old slave dofs from input
-        auto slave_map = slave_slave_transformation->slave_dof_map();
+        auto slave_map = slave_slave_transformation->source_dof_map();
 
         for (int iblock = 0; iblock < thermo_->scatra_field()->dof_block_maps()->num_maps();
             ++iblock)
@@ -364,7 +364,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
 
           auto scatra_slave_block_mapi =
               Core::LinAlg::intersect_map(*thermo_->scatra_field()->dof_block_maps()->map(iblock),
-                  *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map());
+                  *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map());
 
           Coupling::Adapter::MatrixLogicalSplitAndTransform()(evaluate_iblock,
               *scatra_slave_block_mapi, *slave_map, 1.0, nullptr, &slave_slave_converter,
@@ -382,7 +382,7 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
       auto slavematrix_sparse = Core::LinAlg::cast_to_sparse_matrix_and_check_success(slavematrix);
 
       evaluate_matrix->complete(
-          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map());
+          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map());
 
       // "slave side" from thermo and from structure do not need to be the same nodes.
       // Linearization is evaluated on scatra slave side node --> Transformation needed
@@ -395,14 +395,14 @@ void SSTI::ThermoStructureOffDiagCoupling::evaluate_thermo_structure_interface_s
             Coupling::Adapter::CouplingSlaveConverter(*slave_slave_transformation);
 
         // old slave dofs from input
-        auto slave_map = slave_slave_transformation->slave_dof_map();
+        auto slave_map = slave_slave_transformation->source_dof_map();
 
         Coupling::Adapter::MatrixLogicalSplitAndTransform()(*evaluate_matrix_sparse,
-            *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map(), *slave_map, 1.0,
+            *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map(), *slave_map, 1.0,
             nullptr, &slave_slave_converter, *slavematrix_sparse, true, true);
       }
       slavematrix->complete(
-          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->slave_dof_map());
+          *full_map_structure_, *meshtying_strategy_thermo_->coupling_adapter()->source_dof_map());
 
       break;
     }

@@ -187,7 +187,7 @@ void FSI::Algorithm::output()
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::struct_to_fluid(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv)
 {
-  return coupsf_->master_to_slave(*iv);
+  return coupsf_->target_to_source(*iv);
 }
 
 
@@ -196,7 +196,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::struct_to_fluid(
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::fluid_to_struct(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv)
 {
-  return coupsf_->slave_to_master(*iv);
+  return coupsf_->source_to_target(*iv);
 }
 
 
@@ -218,7 +218,7 @@ const Coupling::Adapter::Coupling& FSI::Algorithm::structure_fluid_coupling() co
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::struct_to_fluid(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->master_to_slave(*iv);
+  return coupsf_->target_to_source(*iv);
 }
 
 
@@ -227,7 +227,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::struct_to_fluid(
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::Algorithm::fluid_to_struct(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->slave_to_master(*iv);
+  return coupsf_->source_to_target(*iv);
 }
 
 FOUR_C_NAMESPACE_CLOSE

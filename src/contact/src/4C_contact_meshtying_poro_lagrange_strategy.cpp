@@ -101,16 +101,16 @@ void CONTACT::PoroMtLagrangeStrategy::evaluate_meshtying_poro_off_diag(
           "no parallel redistribution of poro meshtying implemented - feel free to implement");
     }
 
-    // first split into slave/master block row + remaining part
+    // first split into source/target block row + remaining part
     Core::LinAlg::split_matrix2x2(
-        kteffmatrix, gsmdofrowmap_, gndofrowmap_, fvelrow_, tempmap1, csm, tempmtx1, cn, tempmtx2);
+        kteffmatrix, gstdofrowmap_, gndofrowmap_, fvelrow_, tempmap1, csm, tempmtx1, cn, tempmtx2);
 
     //    std::cout<< " tempmap1 " << std::endl;
     //    tempmap1->print(std::cout);
 
-    // second split slave/master block row
+    // second split source/target block row
     Core::LinAlg::split_matrix2x2(
-        csm, gsdofrowmap_, gmdofrowmap_, fvelrow_, tempmap2, cs, tempmtx3, cm, tempmtx4);
+        csm, gsdofrowmap_, gtdofrowmap_, fvelrow_, tempmap2, cs, tempmtx3, cm, tempmtx4);
 
     // store some stuff for the recovery of the lagrange multiplier
     cs_ = cs;
@@ -122,7 +122,7 @@ void CONTACT::PoroMtLagrangeStrategy::evaluate_meshtying_poro_off_diag(
     // cn: nothing to do
 
     // cm: add T(mbar)*cs
-    Core::LinAlg::SparseMatrix cmmod(*gmdofrowmap_, 100);
+    Core::LinAlg::SparseMatrix cmmod(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*cm, false, 1.0, cmmod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> cmadd =
         Core::LinAlg::matrix_multiply(*get_m_hat(), true, *cs, false, false, false, true);

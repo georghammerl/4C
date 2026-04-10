@@ -155,7 +155,7 @@ void FSI::DirichletNeumannVolCoupl::extract_previous_interface_solution()
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVolCoupl::structure_to_ale(
     const Core::LinAlg::Vector<double>& iv) const
 {
-  return coupsa_->master_to_slave(iv);
+  return coupsa_->target_to_source(iv);
 }
 
 
@@ -164,7 +164,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVolCoupl::str
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannVolCoupl::ale_to_structure(
     Core::LinAlg::Vector<double>& iv) const
 {
-  return coupsa_->slave_to_master(iv);
+  return coupsa_->source_to_target(iv);
 }
 
 
@@ -214,7 +214,7 @@ void FSI::InterfaceCorrector::correct_interface_displacements(
   // FOUR_C_THROW("stop");
 
   std::shared_ptr<Core::LinAlg::Vector<double>> idisp_fluid_corrected =
-      icoupfs_->master_to_slave(*idisp_);
+      icoupfs_->target_to_source(*idisp_);
 
   deltadisp_->update(1.0, *idisp_fluid_corrected, -1.0);
 

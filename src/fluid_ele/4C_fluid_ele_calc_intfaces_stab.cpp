@@ -42,14 +42,14 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     // 3D:
     case Core::FE::CellType::tri3:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::tet4 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::tet4)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::tet4 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::tet4)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::tri3, Core::FE::CellType::tet4,
             Core::FE::CellType::tet4>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::wedge6 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::wedge6)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::wedge6 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::wedge6)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::tri3, Core::FE::CellType::wedge6,
             Core::FE::CellType::wedge6>::instance();
@@ -65,14 +65,14 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     // 3D:
     case Core::FE::CellType::tri6:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::tet10 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::tet10)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::tet10 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::tet10)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::tri6, Core::FE::CellType::tet10,
             Core::FE::CellType::tet10>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::wedge15 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::wedge15)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::wedge15 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::wedge15)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::tri6, Core::FE::CellType::wedge15,
             Core::FE::CellType::wedge15>::instance();
@@ -88,14 +88,14 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     // 3D:
     case Core::FE::CellType::quad4:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::hex8 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::hex8)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::hex8 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::hex8)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::quad4, Core::FE::CellType::hex8,
             Core::FE::CellType::hex8>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::wedge6 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::wedge6)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::wedge6 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::wedge6)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::quad4, Core::FE::CellType::wedge6,
             Core::FE::CellType::wedge6>::instance();
@@ -111,14 +111,14 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     // 3D:
     case Core::FE::CellType::quad8:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::hex20 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::hex20)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::hex20 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::hex20)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::quad8, Core::FE::CellType::hex20,
             Core::FE::CellType::hex20>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::wedge15 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::wedge15)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::wedge15 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::wedge15)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::quad8, Core::FE::CellType::wedge15,
             Core::FE::CellType::wedge15>::instance();
@@ -133,8 +133,8 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     }
     case Core::FE::CellType::quad9:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::hex27 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::hex27)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::hex27 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::hex27)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::quad9, Core::FE::CellType::hex27,
             Core::FE::CellType::hex27>::instance();
@@ -148,14 +148,14 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     // 2D:
     case Core::FE::CellType::line2:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::quad4 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::quad4)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::quad4 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::quad4)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::line2, Core::FE::CellType::quad4,
             Core::FE::CellType::quad4>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::tri3 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::tri3)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::tri3 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::tri3)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::line2, Core::FE::CellType::tri3,
             Core::FE::CellType::tri3>::instance();
@@ -170,20 +170,20 @@ Discret::Elements::FluidIntFaceStab* Discret::Elements::FluidIntFaceStab::impl(
     }
     case Core::FE::CellType::line3:
     {
-      if (surfele->parent_master_element()->shape() == Core::FE::CellType::quad8 &&
-          surfele->parent_slave_element()->shape() == Core::FE::CellType::quad8)
+      if (surfele->parent_target_element()->shape() == Core::FE::CellType::quad8 &&
+          surfele->parent_source_element()->shape() == Core::FE::CellType::quad8)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::line3, Core::FE::CellType::quad8,
             Core::FE::CellType::quad8>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::quad9 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::quad9)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::quad9 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::quad9)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::line3, Core::FE::CellType::quad9,
             Core::FE::CellType::quad9>::instance();
       }
-      else if (surfele->parent_master_element()->shape() == Core::FE::CellType::tri6 &&
-               surfele->parent_slave_element()->shape() == Core::FE::CellType::tri6)
+      else if (surfele->parent_target_element()->shape() == Core::FE::CellType::tri6 &&
+               surfele->parent_source_element()->shape() == Core::FE::CellType::tri6)
       {
         return FluidInternalSurfaceStab<Core::FE::CellType::line3, Core::FE::CellType::tri6,
             Core::FE::CellType::tri6>::instance();
@@ -482,8 +482,8 @@ int Discret::Elements::FluidInternalSurfaceStab<distype, pdistype,
 {
   TEUCHOS_FUNC_TIME_MONITOR("XFEM::Edgestab EOS: evaluate");
 
-  Fluid* pele = intface->parent_master_element();
-  Fluid* nele = intface->parent_slave_element();
+  Fluid* pele = intface->parent_target_element();
+  Fluid* nele = intface->parent_source_element();
 
   if (pele == nullptr) FOUR_C_THROW("pele is nullptr");
   if (nele == nullptr) FOUR_C_THROW("nele is nullptr");
@@ -1572,7 +1572,7 @@ void Discret::Elements::FluidInternalSurfaceStab<distype, pdistype, ndistype>::g
     for (int j = 0; j < nsd_; ++j) xyze_(j, i) = surfele->nodes()[i]->x()[j];
   }
 
-  if (surfele->parent_master_element()->is_ale())
+  if (surfele->parent_target_element()->is_ale())
   {
     for (int i = 0; i < iel; ++i)
     {

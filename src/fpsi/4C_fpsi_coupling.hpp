@@ -96,37 +96,37 @@ namespace FPSI
     std::shared_ptr<Core::LinAlg::Vector<double>> i_fluid_to_porofluid(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_pf_f_->slave_to_master(iv);
+      return icoup_pf_f_->source_to_target(iv);
     }
 
     std::shared_ptr<Core::LinAlg::Vector<double>> i_porofluid_to_fluid(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_pf_f_->master_to_slave(iv);
+      return icoup_pf_f_->target_to_source(iv);
     }
 
     std::shared_ptr<Core::LinAlg::Vector<double>> i_fluid_to_porostruct(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_ps_f_->slave_to_master(iv);
+      return icoup_ps_f_->source_to_target(iv);
     }
 
     std::shared_ptr<Core::LinAlg::Vector<double>> i_porostruct_to_fluid(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_ps_f_->master_to_slave(iv);
+      return icoup_ps_f_->target_to_source(iv);
     }
 
     std::shared_ptr<Core::LinAlg::Vector<double>> i_ale_to_porostruct(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_ps_a_->slave_to_master(iv);
+      return icoup_ps_a_->source_to_target(iv);
     }
 
     std::shared_ptr<Core::LinAlg::Vector<double>> i_porostruct_to_ale(
         const Core::LinAlg::Vector<double>& iv) const
     {
-      return icoup_ps_a_->master_to_slave(iv);
+      return icoup_ps_a_->target_to_source(iv);
     }
 
     //@}

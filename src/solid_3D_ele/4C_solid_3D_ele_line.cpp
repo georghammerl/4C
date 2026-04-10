@@ -49,15 +49,15 @@ Discret::Elements::SolidLine<dim>::SolidLine(int id, int owner, int nnode, const
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lline);
+  set_parent_target_element(parent, lline);
 
   num_dof_per_node_ = parent_element()->num_dof_per_node(*SolidLine::nodes()[0]);
   // Safety check if all nodes have the same number of dofs!
   for (int nlid = 1; nlid < num_node(); ++nlid)
   {
-    if (num_dof_per_node_ != parent_master_element()->num_dof_per_node(*SolidLine::nodes()[nlid]))
+    if (num_dof_per_node_ != parent_target_element()->num_dof_per_node(*SolidLine::nodes()[nlid]))
       FOUR_C_THROW("You need different NumDofPerNode for each node on this solid line? ({} != {})",
-          num_dof_per_node_, parent_master_element()->num_dof_per_node(*SolidLine::nodes()[nlid]));
+          num_dof_per_node_, parent_target_element()->num_dof_per_node(*SolidLine::nodes()[nlid]));
   }
 }
 

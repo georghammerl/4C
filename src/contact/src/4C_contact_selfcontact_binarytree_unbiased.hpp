@@ -104,8 +104,8 @@ namespace CONTACT
     /*!
     \brief Checks roughly whether self contact of two elements shall be evaluated (3D)
 
-    This method checks if the normal at the slave element center and the vector connecting this
-    slave element center and the center of the element it is projected to (master element) point in
+    This method checks if the normal at the source element center and the vector connecting this
+    source element center and the center of the element it is projected to (target element) point in
     the same direction. All these vectors are evaluated in the reference configuration to check the
     initial state. Only if both vectors point in the same direction integration shall be performed.
 

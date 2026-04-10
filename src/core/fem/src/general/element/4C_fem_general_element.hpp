@@ -1127,7 +1127,7 @@ might become invalid after a redistribution of the discretization.
   elements (for interior faces). In the latter case, we distinguish between the so-called
   parent master element and the parent slave element. The parent master element is
   the element that shares the node numbering with the face element. Boundary elements
-  have only one parent and the methods parent_element() and parent_master_element()
+  have only one parent and the methods parent_element() and parent_target_element()
   return the same element. The parent slave element is the element on the other
   side that usually has a different orientation of nodes.
 
@@ -1194,7 +1194,7 @@ might become invalid after a redistribution of the discretization.
 
     If no parent master has been assigned, nullptr is returned (e.g. on non-face discretizations)
     */
-    Element* parent_master_element() const { return parent_master_; }
+    Element* parent_target_element() const { return parent_master_; }
 
     /*!
     \brief Return the slave element the face element is connected to
@@ -1202,7 +1202,7 @@ might become invalid after a redistribution of the discretization.
     If no parent slave has been assigned, nullptr is returned (non-face discretizations, boundary
     faces)
     */
-    Element* parent_slave_element() const { return parent_slave_; }
+    Element* parent_source_element() const { return parent_slave_; }
 
     /*!
      \brief Get the index of a face element within the parent element
@@ -1254,7 +1254,7 @@ might become invalid after a redistribution of the discretization.
     \param master: parent element which shares the orientation of faces
     \param lface_master: local number of face within master element
     */
-    void set_parent_master_element(Element* master, const int lface_master)
+    void set_parent_target_element(Element* master, const int lface_master)
     {
       parent_master_ = master;
       lface_master_ = lface_master;

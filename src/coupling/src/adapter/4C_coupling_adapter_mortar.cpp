@@ -218,9 +218,9 @@ void Coupling::Adapter::CouplingMortar::check_slave_dirichlet_overlap(
   slavedis->evaluate_dirichlet(p, temp, nullptr, nullptr, nullptr, dbcmaps);
 
   // loop over all slave row nodes of the interface
-  for (int j = 0; j < interface_->slave_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->slave_row_nodes()->gid(j);
+    int gid = interface_->source_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -467,8 +467,8 @@ void Coupling::Adapter::CouplingMortar::setup_interface(
   issetup_ = true;
 
   // store old row maps (before parallel redistribution)
-  pslavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->slave_row_dofs());
-  pmasterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->master_row_dofs());
+  pslavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->source_row_dofs());
+  pmasterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->target_row_dofs());
 
   // print parallel distribution
   interface_->print_parallel_distribution();
@@ -492,8 +492,8 @@ void Coupling::Adapter::CouplingMortar::setup_interface(
   //**********************************************************************
 
   // store row maps (after parallel redistribution)
-  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->slave_row_dofs());
-  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->master_row_dofs());
+  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->source_row_dofs());
+  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface_->target_row_dofs());
 
   // create binary search tree
   interface_->create_search_tree();
@@ -526,9 +526,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
       std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all slave row nodes
-  for (int j = 0; j < interface_->slave_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->slave_row_nodes()->gid(j);
+    int gid = interface_->source_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -566,9 +566,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   }
 
   // loop over all master row nodes
-  for (int j = 0; j < interface_->master_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->target_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->master_row_nodes()->gid(j);
+    int gid = interface_->target_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -677,9 +677,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
       std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all master row nodes on the current interface
-  for (int j = 0; j < interface_->master_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->target_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->master_row_nodes()->gid(j);
+    int gid = interface_->target_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -716,9 +716,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   //**********************************************************************
   // export Xslavemod to fully overlapping column map for current interface
   std::shared_ptr<Core::LinAlg::Map> fullsdofs =
-      Core::LinAlg::allreduce_e_map(*(interface_->slave_row_dofs()));
+      Core::LinAlg::allreduce_e_map(*(interface_->source_row_dofs()));
   std::shared_ptr<Core::LinAlg::Map> fullsnodes =
-      Core::LinAlg::allreduce_e_map(*(interface_->slave_row_nodes()));
+      Core::LinAlg::allreduce_e_map(*(interface_->source_row_nodes()));
   Core::LinAlg::Vector<double> Xslavemodcol(*fullsdofs, false);
   Core::LinAlg::export_to(*Xslavemod, Xslavemodcol);
 
@@ -731,7 +731,7 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
     // be careful to modify BOTH mtnode in interface discret ...
     // (check if the node is available on this processor)
     bool isininterfacecolmap = false;
-    int ilid = interface_->slave_col_nodes()->lid(gid);
+    int ilid = interface_->source_col_nodes()->lid(gid);
     if (ilid >= 0) isininterfacecolmap = true;
     Core::Nodes::Node* node = nullptr;
     Mortar::Node* mtnode = nullptr;
@@ -865,9 +865,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   xm = std::make_shared<Core::LinAlg::Vector<double>>(*masterdofrowmap, true);
 
   // loop over all slave row nodes
-  for (int j = 0; j < interface_->slave_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->slave_row_nodes()->gid(j);
+    int gid = interface_->source_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -901,9 +901,9 @@ void Coupling::Adapter::CouplingMortar::mesh_relocation(Core::FE::Discretization
   }
 
   // loop over all master row nodes
-  for (int j = 0; j < interface_->master_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->target_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = interface_->master_row_nodes()->gid(j);
+    int gid = interface_->target_row_nodes()->gid(j);
     Core::Nodes::Node* node = interface_->discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
     Mortar::Node* mtnode = static_cast<Mortar::Node*>(node);
@@ -1232,7 +1232,7 @@ void Coupling::Adapter::CouplingMortar::evaluate_with_mesh_relocation(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
-Coupling::Adapter::CouplingMortar::master_to_slave(
+Coupling::Adapter::CouplingMortar::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv) const
 {
   // safety check
@@ -1255,7 +1255,7 @@ Coupling::Adapter::CouplingMortar::master_to_slave(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar::master_to_slave(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar::target_to_source(
     const Core::LinAlg::Vector<double>& mv) const
 {
   // safety check
@@ -1278,7 +1278,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar:
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::CouplingMortar::master_to_slave(
+void Coupling::Adapter::CouplingMortar::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv, Core::LinAlg::MultiVector<double>& sv) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -1307,7 +1307,7 @@ void Coupling::Adapter::CouplingMortar::master_to_slave(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::CouplingMortar::slave_to_master(
+void Coupling::Adapter::CouplingMortar::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv, Core::LinAlg::MultiVector<double>& mv) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -1336,7 +1336,7 @@ void Coupling::Adapter::CouplingMortar::slave_to_master(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar::slave_to_master(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar::source_to_target(
     const Core::LinAlg::Vector<double>& sv) const
 {
   // safety check
@@ -1356,7 +1356,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::CouplingMortar:
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 std::shared_ptr<Core::LinAlg::MultiVector<double>>
-Coupling::Adapter::CouplingMortar::slave_to_master(
+Coupling::Adapter::CouplingMortar::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv) const
 {
   // safety check

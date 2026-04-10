@@ -881,8 +881,8 @@ SSI::Utils::SSIMeshTying::SSIMeshTying(const std::string& conditionname_coupling
   std::vector<std::shared_ptr<const Core::LinAlg::Map>> master_maps;
   for (const auto& meshtying : meshtying_handlers_)
   {
-    slave_maps.emplace_back(meshtying->slave_master_coupling()->slave_dof_map());
-    master_maps.emplace_back(meshtying->slave_master_coupling()->master_dof_map());
+    slave_maps.emplace_back(meshtying->slave_master_coupling()->source_dof_map());
+    master_maps.emplace_back(meshtying->slave_master_coupling()->target_dof_map());
   }
 
   full_master_side_map_ = Core::LinAlg::MultiMapExtractor::merge_maps(master_maps);
@@ -974,8 +974,8 @@ void SSI::Utils::SSIMeshTying::setup_mesh_tying_handlers(const Core::FE::Discret
         dis, dis, inodegidvec_master, inodegidvec_slave, num_dofs, true, 1.0e-8);
 
     // setup multimap extractor for each coupling adapter
-    auto slave_map = coupling_adapter->slave_dof_map();
-    auto master_map = coupling_adapter->master_dof_map();
+    auto slave_map = coupling_adapter->source_dof_map();
+    auto master_map = coupling_adapter->target_dof_map();
     auto interior_map = split_map(*dis.dof_row_map(), *merge_map(slave_map, master_map));
 
     std::vector<std::shared_ptr<const Core::LinAlg::Map>> maps;
@@ -1305,7 +1305,7 @@ void SSI::Utils::SSIMeshTying::find_slave_slave_transformation_nodes(
   for (auto* meshtying_condition : meshtying_conditions)
   {
     if (meshtying_condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-        Inpar::S2I::side_slave)
+        Inpar::S2I::side_source)
     {
       Core::Communication::add_owned_node_gid_from_list(
           dis, *meshtying_condition->get_nodes(), original_slave_gids);
@@ -1340,7 +1340,7 @@ void SSI::Utils::SSIMeshTying::check_slave_side_has_dirichlet_conditions(
   maps[0] = std::move(struct_dbc_map);
   for (const auto& meshtying : meshtying_handlers_)
   {
-    maps[1] = meshtying->slave_master_coupling()->slave_dof_map();
+    maps[1] = meshtying->slave_master_coupling()->source_dof_map();
     if (Core::LinAlg::MultiMapExtractor::intersect_maps(maps)->num_global_elements() > 0)
       FOUR_C_THROW("Must not apply Dirichlet conditions to slave-side structural displacements!");
   }

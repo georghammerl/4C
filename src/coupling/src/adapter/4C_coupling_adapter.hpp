@@ -65,7 +65,7 @@ namespace Coupling::Adapter
    *  Core::LinAlg::Vector<double> from the other side without actually looking at the
    *  respective maps. Afterwards the communication happens within one
    *  field in the usual fashion. So the transfer functions
-   *  master_to_slave() and slave_to_master() are quite simple. The hard
+   *  target_to_source() and source_to_target() are quite simple. The hard
    *  work happens (once) during setup.
    *
 
@@ -264,56 +264,57 @@ namespace Coupling::Adapter
     /// idea is the same for all of them.
 
     /// transfer a dof vector from master to slave
-    std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::Vector<double>> target_to_source(
         const Core::LinAlg::Vector<double>& mv  ///< master vector (to be transferred)
     ) const override;
 
     /// transfer a dof vector from slave to master
-    std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::Vector<double>> source_to_target(
         const Core::LinAlg::Vector<double>& sv  ///< slave vector (to be transferred)
     ) const override;
 
     /// transfer a dof vector from master to slave
-    std::shared_ptr<Core::LinAlg::FEVector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::FEVector<double>> target_to_source(
         const Core::LinAlg::FEVector<double>& mv  ///< master vector (to be transferred)
     ) const;
 
     /// transfer a dof vector from slave to master
-    std::shared_ptr<Core::LinAlg::FEVector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::FEVector<double>> source_to_target(
         const Core::LinAlg::FEVector<double>& sv  ///< slave vector (to be transferred)
     ) const;
 
     /// transfer a dof vector from master to slave
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> target_to_source(
         const Core::LinAlg::MultiVector<double>& mv  ///< master vector (to be transferred)
     ) const override;
 
     /// transfer a dof vector from slave to master
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> source_to_target(
         const Core::LinAlg::MultiVector<double>& sv  ///< slave vector (to be transferred)
     ) const override;
 
     /// transfer a dof vector from master to slave
-    void master_to_slave(
+    void target_to_source(
         const Core::LinAlg::MultiVector<double>& mv,  ///< master vector (to be transferred)
         Core::LinAlg::MultiVector<double>& sv         ///< slave vector (containing result)
     ) const override;
 
     /// transfer a dof vector from slave to master
-    void slave_to_master(
+    void source_to_target(
         const Core::LinAlg::MultiVector<double>& sv,  ///< slave vector (to be transferred)
         Core::LinAlg::MultiVector<double>& mv         ///< master vector (containing result)
     ) const override;
 
     /// transfer a dof vector from master to slave
-    void master_to_slave(
+    void target_to_source(
         const Core::LinAlg::Vector<int>& mv,  ///< master vector (to be transferred)
         Core::LinAlg::Vector<int>& sv         ///< slave vector (containing result)
     ) const;
 
     /// transfer a dof vector from slave to master
-    void slave_to_master(const Core::LinAlg::Vector<int>& sv,  ///< slave vector (to be transferred)
-        Core::LinAlg::Vector<int>& mv  ///< master vector (containing result)
+    void source_to_target(
+        const Core::LinAlg::Vector<int>& sv,  ///< slave vector (to be transferred)
+        Core::LinAlg::Vector<int>& mv         ///< master vector (containing result)
     ) const;
 
     //@}
@@ -322,13 +323,16 @@ namespace Coupling::Adapter
     //@{
 
     /// the interface dof map of the master side
-    std::shared_ptr<const Core::LinAlg::Map> master_dof_map() const override
+    std::shared_ptr<const Core::LinAlg::Map> target_dof_map() const override
     {
       return masterdofmap_;
     }
 
     /// the interface dof map of the slave side
-    std::shared_ptr<const Core::LinAlg::Map> slave_dof_map() const override { return slavedofmap_; }
+    std::shared_ptr<const Core::LinAlg::Map> source_dof_map() const override
+    {
+      return slavedofmap_;
+    }
 
     /// the permuted interface dof map of the master side
     std::shared_ptr<const Core::LinAlg::Map> perm_master_dof_map() const
@@ -337,7 +341,10 @@ namespace Coupling::Adapter
     }
 
     /// the permuted interface dof map of the slave side
-    std::shared_ptr<const Core::LinAlg::Map> perm_slave_dof_map() const { return permslavedofmap_; }
+    std::shared_ptr<const Core::LinAlg::Map> perm_source_dof_map() const
+    {
+      return permslavedofmap_;
+    }
 
     //@}
 
@@ -354,7 +361,7 @@ namespace Coupling::Adapter
     std::shared_ptr<Core::LinAlg::Map> slave_to_master_map(Core::LinAlg::Map& slave);
 
     /// fill partial slavemap with gid of partial mastermap
-    std::shared_ptr<Core::LinAlg::Map> master_to_slave_map(Core::LinAlg::Map& master);
+    std::shared_ptr<Core::LinAlg::Map> target_to_source_map(Core::LinAlg::Map& master);
 
     /// redistribute crsmatrix from master row map to permuted master row map
     std::shared_ptr<Core::LinAlg::SparseMatrix> master_to_perm_master(

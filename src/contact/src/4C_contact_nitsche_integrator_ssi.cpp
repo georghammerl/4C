@@ -31,33 +31,36 @@ CONTACT::IntegratorNitscheSsi::IntegratorNitscheSsi(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorNitscheSsi::integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorNitscheSsi::integrate_gp_3d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
-  gpts_forces<3>(sele, mele, sval, sderiv, derivsxi, mval, mderiv, derivmxi, jac, derivjac, wgt,
-      gap, deriv_gap, normal, dnmap_unit, sxi, mxi);
+  gpts_forces<3>(source_elem, target_elem, source_val, source_deriv, source_derivs_xi, target_val,
+      target_deriv, target_derivs_xi, jac, derivjac, wgt, gap, deriv_gap, normal, dnmap_unit,
+      source_xi, target_xi);
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorNitscheSsi::integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-    Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-    Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-    Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorNitscheSsi::integrate_gp_2d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
   FOUR_C_THROW("2D is not implemented!");
 }
@@ -65,26 +68,26 @@ void CONTACT::IntegratorNitscheSsi::integrate_gp_2d(Mortar::Element& sele, Morta
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int dim>
-void CONTACT::IntegratorNitscheSsi::gpts_forces(Mortar::Element& slave_ele,
-    Mortar::Element& master_ele, const Core::LinAlg::SerialDenseVector& slave_shape,
-    const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-    const Core::LinAlg::SerialDenseVector& master_shape,
-    const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd, const double jac,
+void CONTACT::IntegratorNitscheSsi::gpts_forces(Mortar::Element& source_ele,
+    Mortar::Element& target_ele, const Core::LinAlg::SerialDenseVector& source_shape,
+    const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+    const Core::LinAlg::SerialDenseVector& target_shape,
+    const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd, const double jac,
     const Core::Gen::Pairedvector<int, double>& d_jac_dd, const double gp_wgt, const double gap,
     const Core::Gen::Pairedvector<int, double>& d_gap_dd, const double* gp_normal,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* slave_xi,
-    double* master_xi)
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* source_xi,
+    double* target_xi)
 {
-  if (slave_ele.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
+  if (source_ele.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
 
   static const bool do_fast_checks = true;
   // first rough check
   if (do_fast_checks)
   {
     if ((std::abs(theta_) < 1.0e-16) and
-        (gap > std::max(slave_ele.max_edge_size(), master_ele.max_edge_size())))
+        (gap > std::max(source_ele.max_edge_size(), target_ele.max_edge_size())))
       return;
   }
 
@@ -92,35 +95,35 @@ void CONTACT::IntegratorNitscheSsi::gpts_forces(Mortar::Element& slave_ele,
 
   // calculate normals and derivatives
   const Core::LinAlg::Matrix<dim, 1> normal(gp_normal, true);
-  Core::LinAlg::Matrix<dim, 1> slave_normal, master_normal;
-  std::vector<Core::Gen::Pairedvector<int, double>> d_slave_normal_dd;
-  std::vector<Core::Gen::Pairedvector<int, double>> d_master_normal_dd;
-  slave_ele.compute_unit_normal_at_xi(slave_xi, slave_normal.data());
-  master_ele.compute_unit_normal_at_xi(master_xi, master_normal.data());
-  slave_ele.deriv_unit_normal_at_xi(slave_xi, d_slave_normal_dd);
-  master_ele.deriv_unit_normal_at_xi(master_xi, d_master_normal_dd);
+  Core::LinAlg::Matrix<dim, 1> source_normal, target_normal;
+  std::vector<Core::Gen::Pairedvector<int, double>> d_source_normal_dd;
+  std::vector<Core::Gen::Pairedvector<int, double>> d_target_normal_dd;
+  source_ele.compute_unit_normal_at_xi(source_xi, source_normal.data());
+  target_ele.compute_unit_normal_at_xi(target_xi, target_normal.data());
+  source_ele.deriv_unit_normal_at_xi(source_xi, d_source_normal_dd);
+  target_ele.deriv_unit_normal_at_xi(target_xi, d_target_normal_dd);
 
   double pen = ppn_;
   double pet = ppt_;
-  double nitsche_wgt_slave(0.0), nitsche_wgt_master(0.0);
+  double nitsche_wgt_source(0.0), nitsche_wgt_target(0.0);
 
   CONTACT::Utils::nitsche_weights_and_scaling(
-      slave_ele, master_ele, nit_wgt_, dt_, nitsche_wgt_slave, nitsche_wgt_master, pen, pet);
+      source_ele, target_ele, nit_wgt_, dt_, nitsche_wgt_source, nitsche_wgt_target, pen, pet);
 
   double cauchy_nn_weighted_average(0.0);
   Core::Gen::Pairedvector<int, double> d_cauchy_nn_weighted_average_dd(
-      slave_ele.num_node() * 3 * 12 + slave_ele.mo_data().parent_disp().size() +
-      master_ele.mo_data().parent_disp().size());
+      source_ele.num_node() * 3 * 12 + source_ele.mo_data().parent_disp().size() +
+      target_ele.mo_data().parent_disp().size());
   Core::Gen::Pairedvector<int, double> d_cauchy_nn_weighted_average_ds(
-      slave_ele.mo_data().parent_scalar_dof().size() +
-      master_ele.mo_data().parent_scalar_dof().size());
+      source_ele.mo_data().parent_scalar_dof().size() +
+      target_ele.mo_data().parent_scalar_dof().size());
 
   // evaluate cauchy stress components and derivatives
-  so_ele_cauchy<dim>(slave_ele, slave_xi, d_slave_xi_dd, gp_wgt, slave_normal, d_slave_normal_dd,
-      normal, d_gp_normal_dd, nitsche_wgt_slave, cauchy_nn_weighted_average,
+  so_ele_cauchy<dim>(source_ele, source_xi, d_source_xi_dd, gp_wgt, source_normal,
+      d_source_normal_dd, normal, d_gp_normal_dd, nitsche_wgt_source, cauchy_nn_weighted_average,
       d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds);
-  so_ele_cauchy<dim>(master_ele, master_xi, d_master_xi_dd, gp_wgt, master_normal,
-      d_master_normal_dd, normal, d_gp_normal_dd, -nitsche_wgt_master, cauchy_nn_weighted_average,
+  so_ele_cauchy<dim>(target_ele, target_xi, d_target_xi_dd, gp_wgt, target_normal,
+      d_target_normal_dd, normal, d_gp_normal_dd, -nitsche_wgt_target, cauchy_nn_weighted_average,
       d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds);
 
   const double cauchy_nn_average_pen_gap = cauchy_nn_weighted_average + pen * gap;
@@ -133,20 +136,21 @@ void CONTACT::IntegratorNitscheSsi::gpts_forces(Mortar::Element& slave_ele,
   if (cauchy_nn_average_pen_gap < 0.0)
   {
     // test in normal contact direction
-    integrate_test<dim>(-1.0, slave_ele, slave_shape, slave_shape_deriv, d_slave_xi_dd, jac,
+    integrate_test<dim>(-1.0, source_ele, source_shape, source_shape_deriv, d_source_xi_dd, jac,
         d_jac_dd, gp_wgt, cauchy_nn_average_pen_gap, d_cauchy_nn_average_pen_gap_dd,
         d_cauchy_nn_weighted_average_ds, normal, d_gp_normal_dd);
     if (!two_half_pass_)
     {
-      integrate_test<dim>(+1.0, master_ele, master_shape, master_shape_deriv, d_master_xi_dd, jac,
+      integrate_test<dim>(+1.0, target_ele, target_shape, target_shape_deriv, d_target_xi_dd, jac,
           d_jac_dd, gp_wgt, cauchy_nn_average_pen_gap, d_cauchy_nn_average_pen_gap_dd,
           d_cauchy_nn_weighted_average_ds, normal, d_gp_normal_dd);
     }
 
     // integrate the scatra-scatra interface condition
-    integrate_ssi_interface_condition<dim>(slave_ele, slave_shape, slave_shape_deriv, d_slave_xi_dd,
-        master_ele, master_shape, master_shape_deriv, d_master_xi_dd, cauchy_nn_average_pen_gap,
-        d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds, jac, d_jac_dd, gp_wgt);
+    integrate_ssi_interface_condition<dim>(source_ele, source_shape, source_shape_deriv,
+        d_source_xi_dd, target_ele, target_shape, target_shape_deriv, d_target_xi_dd,
+        cauchy_nn_average_pen_gap, d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds,
+        jac, d_jac_dd, gp_wgt);
   }
 }
 
@@ -329,31 +333,31 @@ void CONTACT::IntegratorNitscheSsi::setup_gp_concentrations(Mortar::Element& ele
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int dim>
-void CONTACT::IntegratorNitscheSsi::integrate_ssi_interface_condition(Mortar::Element& slave_ele,
-    const Core::LinAlg::SerialDenseVector& slave_shape,
-    const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-    Mortar::Element& master_ele, const Core::LinAlg::SerialDenseVector& master_shape,
-    const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd,
+void CONTACT::IntegratorNitscheSsi::integrate_ssi_interface_condition(Mortar::Element& source_ele,
+    const Core::LinAlg::SerialDenseVector& source_shape,
+    const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+    Mortar::Element& target_ele, const Core::LinAlg::SerialDenseVector& target_shape,
+    const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd,
     const double cauchy_nn_average_pen_gap,
     const Core::Gen::Pairedvector<int, double>& d_cauchy_nn_weighted_average_dd,
     const Core::Gen::Pairedvector<int, double>& d_cauchy_nn_weighted_average_dc, const double jac,
     const Core::Gen::Pairedvector<int, double>& d_jac_dd, const double wgt)
 {
   // do only integrate if there is something to integrate!
-  if (slave_ele.mo_data().parent_scalar_dof().empty()) return;
-  if (master_ele.mo_data().parent_scalar_dof().empty()) FOUR_C_THROW("This is not allowed!");
+  if (source_ele.mo_data().parent_scalar_dof().empty()) return;
+  if (target_ele.mo_data().parent_scalar_dof().empty()) FOUR_C_THROW("This is not allowed!");
 
-  // prepare the slave and master side gauss point concentrations and derivatives w.r.t. the
+  // prepare the source and target side gauss point concentrations and derivatives w.r.t. the
   // concentration and the displacement
-  double slave_conc(0.0), master_conc(0.0);
-  Core::Gen::Pairedvector<int, double> d_slave_conc_dc(0), d_master_conc_dc(0), d_slave_conc_dd(0),
-      d_master_conc_dd(0);
-  setup_gp_concentrations<dim>(slave_ele, slave_shape, slave_shape_deriv, d_slave_xi_dd, slave_conc,
-      d_slave_conc_dc, d_slave_conc_dd);
-  setup_gp_concentrations<dim>(master_ele, master_shape, master_shape_deriv, d_master_xi_dd,
-      master_conc, d_master_conc_dc, d_master_conc_dd);
+  double source_conc(0.0), target_conc(0.0);
+  Core::Gen::Pairedvector<int, double> d_source_conc_dc(0), d_target_conc_dc(0),
+      d_source_conc_dd(0), d_target_conc_dd(0);
+  setup_gp_concentrations<dim>(source_ele, source_shape, source_shape_deriv, d_source_xi_dd,
+      source_conc, d_source_conc_dc, d_source_conc_dd);
+  setup_gp_concentrations<dim>(target_ele, target_shape, target_shape_deriv, d_target_xi_dd,
+      target_conc, d_target_conc_dc, d_target_conc_dd);
 
   // get the scatra-scatra interface condition kinetic model
   const int kinetic_model = get_scatra_ele_parameter_boundary()->kinetic_model();
@@ -370,17 +374,17 @@ void CONTACT::IntegratorNitscheSsi::integrate_ssi_interface_condition(Mortar::El
       const double permeability = (*get_scatra_ele_parameter_boundary()->permeabilities())[0];
 
       // calculate the interface flux
-      flux = permeability * (slave_conc - master_conc);
+      flux = permeability * (source_conc - target_conc);
 
       // initialize derivatives of flux w.r.t. concentrations
-      dflux_dc.resize(d_slave_conc_dc.size() + d_master_conc_dc.size());
-      for (const auto& p : d_slave_conc_dc) dflux_dc[p.first] += permeability * p.second;
-      for (const auto& p : d_master_conc_dc) dflux_dc[p.first] -= permeability * p.second;
+      dflux_dc.resize(d_source_conc_dc.size() + d_target_conc_dc.size());
+      for (const auto& p : d_source_conc_dc) dflux_dc[p.first] += permeability * p.second;
+      for (const auto& p : d_target_conc_dc) dflux_dc[p.first] -= permeability * p.second;
 
       // initialize derivatives of flux w.r.t. displacements
-      dflux_dd.resize(d_slave_conc_dd.size() + d_master_conc_dd.size());
-      for (const auto& p : d_slave_conc_dd) dflux_dd[p.first] += permeability * p.second;
-      for (const auto& p : d_master_conc_dd) dflux_dd[p.first] -= permeability * p.second;
+      dflux_dd.resize(d_source_conc_dd.size() + d_target_conc_dd.size());
+      for (const auto& p : d_source_conc_dd) dflux_dd[p.first] += permeability * p.second;
+      for (const auto& p : d_target_conc_dd) dflux_dd[p.first] -= permeability * p.second;
 
       break;
     }
@@ -390,31 +394,31 @@ void CONTACT::IntegratorNitscheSsi::integrate_ssi_interface_condition(Mortar::El
 
       // calculate the interface flux
       // the minus sign is to obtain the absolute value of the contact forces
-      flux = -permeability * cauchy_nn_average_pen_gap * (slave_conc - master_conc);
+      flux = -permeability * cauchy_nn_average_pen_gap * (source_conc - target_conc);
 
       // initialize derivatives of flux w.r.t. concentrations
-      dflux_dc.resize(d_slave_conc_dc.size() + d_master_conc_dc.size() +
+      dflux_dc.resize(d_source_conc_dc.size() + d_target_conc_dc.size() +
                       d_cauchy_nn_weighted_average_dc.size());
 
-      for (const auto& p : d_slave_conc_dc)
+      for (const auto& p : d_source_conc_dc)
         dflux_dc[p.first] -= permeability * cauchy_nn_average_pen_gap * p.second;
-      for (const auto& p : d_master_conc_dc)
+      for (const auto& p : d_target_conc_dc)
         dflux_dc[p.first] += permeability * cauchy_nn_average_pen_gap * p.second;
 
       for (const auto& p : d_cauchy_nn_weighted_average_dc)
-        dflux_dc[p.first] -= permeability * (slave_conc - master_conc) * p.second;
+        dflux_dc[p.first] -= permeability * (source_conc - target_conc) * p.second;
 
       // initialize derivatives of flux w.r.t. displacements
-      dflux_dd.resize(d_slave_conc_dd.size() + d_master_conc_dd.size() +
+      dflux_dd.resize(d_source_conc_dd.size() + d_target_conc_dd.size() +
                       d_cauchy_nn_weighted_average_dd.size());
 
-      for (const auto& p : d_slave_conc_dd)
+      for (const auto& p : d_source_conc_dd)
         dflux_dd[p.first] -= permeability * cauchy_nn_average_pen_gap * p.second;
-      for (const auto& p : d_master_conc_dd)
+      for (const auto& p : d_target_conc_dd)
         dflux_dd[p.first] += permeability * cauchy_nn_average_pen_gap * p.second;
 
       for (const auto& p : d_cauchy_nn_weighted_average_dd)
-        dflux_dd[p.first] -= permeability * (slave_conc - master_conc) * p.second;
+        dflux_dd[p.first] -= permeability * (source_conc - target_conc) * p.second;
 
       break;
     }
@@ -429,11 +433,11 @@ void CONTACT::IntegratorNitscheSsi::integrate_ssi_interface_condition(Mortar::El
     }
   }
 
-  integrate_scatra_test<dim>(-1.0, slave_ele, slave_shape, slave_shape_deriv, d_slave_xi_dd, jac,
-      d_jac_dd, wgt, flux, dflux_dd, dflux_dc);
+  integrate_scatra_test<dim>(-1.0, source_ele, source_shape, source_shape_deriv, d_source_xi_dd,
+      jac, d_jac_dd, wgt, flux, dflux_dd, dflux_dc);
   if (!two_half_pass_)
   {
-    integrate_scatra_test<dim>(1.0, master_ele, master_shape, master_shape_deriv, d_master_xi_dd,
+    integrate_scatra_test<dim>(1.0, target_ele, target_shape, target_shape_deriv, d_target_xi_dd,
         jac, d_jac_dd, wgt, flux, dflux_dd, dflux_dc);
   }
 }

@@ -61,44 +61,44 @@ namespace Mortar
        *
        * \param[in] params ParameterList with mortar meshtying/contact parameters from input file
        * \param[in/out] interfaces Collection of all mortar interfaces
-       * \param poroslave
-       * \param poromaster
+       * \param porosource
+       * \param porotarget
        *
-       * \todo ToDo Get rid of poroslave and poromaster parameters.
+       * \todo ToDo Get rid of porosource and porotarget parameters.
        *
        */
       void build_interfaces(const Teuchos::ParameterList& params,
-          std::vector<std::shared_ptr<Mortar::Interface>>& interfaces, bool& poroslave,
-          bool& poromaster) const;
+          std::vector<std::shared_ptr<Mortar::Interface>>& interfaces, bool& porosource,
+          bool& porotarget) const;
 
       /*! \brief Create the solver strategy object and pass all necessary data to it
        *
        * \param[in] params ParameterList with mortar meshtying/contact parameters from input file
-       * \param[in] poroslave
-       * \param[in] poromaster
+       * \param[in] porosource
+       * \param[in] porotarget
        * \param[in] dof_offset
        * \param interfaces Collection of all mortar interfaces
        *
-       * \todo ToDo Get rid of poroslave and poromaster parameters.
+       * \todo ToDo Get rid of porosource and porotarget parameters.
        *
        * */
       std::shared_ptr<CONTACT::MtAbstractStrategy> build_strategy(
-          const Teuchos::ParameterList& params, const bool& poroslave, const bool& poromaster,
+          const Teuchos::ParameterList& params, const bool& porosource, const bool& porotarget,
           const int& dof_offset, std::vector<std::shared_ptr<Mortar::Interface>>& interfaces) const;
 
       /*! \brief Create the solver strategy object and pass all necessary data to it
        *
        * \param[in] stype Type of solution strategy
        * \param[in] params ParameterList with mortar meshtying/contact parameters from input file
-       * \param[in] poroslave
-       * \param[in] poromaster
+       * \param[in] porosource
+       * \param[in] porotarget
        * \param[in] dof_offset
        * \param[in] dof_row_map Dof row map
        * \param[in] node_row_map Node row map
        * \param[in] dim Spatial dimension
        * \param[in] comm_ptr Communicator
        *
-       * \todo ToDo Get rid of poroslave and poromaster parameters.
+       * \todo ToDo Get rid of porosource and porotarget parameters.
        *
        * \note This routine can be used like a non-member function. If you need
        * access to the class members, use the alternative call.
@@ -106,7 +106,7 @@ namespace Mortar
        * */
       static std::shared_ptr<CONTACT::MtAbstractStrategy> build_strategy(
           CONTACT::SolvingStrategy stype, const Teuchos::ParameterList& params,
-          const bool& poroslave, const bool& poromaster, const int& dof_offset,
+          const bool& porosource, const bool& porotarget, const int& dof_offset,
           std::vector<std::shared_ptr<Mortar::Interface>>& interfaces,
           const Core::LinAlg::Map* dof_row_map, const Core::LinAlg::Map* node_row_map, int dim,
           const MPI_Comm& comm_ptr);

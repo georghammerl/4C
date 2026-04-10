@@ -793,7 +793,7 @@ int Discret::Elements::FluidEleCalcHDG<distype>::interpolate_solution_to_nodes(
       for (unsigned int idim = 0; idim < nsd_ - 1; idim++)
       {
         // If the face belongs to the element being considered
-        if (ele->faces()[f]->parent_master_element() == ele)
+        if (ele->faces()[f]->parent_target_element() == ele)
           xsishuffle(idim, i) = locations(idim, i);
         else
           // If the face does not belong to the element being considered it is

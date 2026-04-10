@@ -517,7 +517,7 @@ namespace Mortar
     \brief Return slave (true) or master status
 
     */
-    virtual bool is_slave() const { return isslave_; }
+    virtual bool is_source() const { return isslave_; }
 
     /*!
     \brief Return attached status
@@ -532,7 +532,7 @@ namespace Mortar
     simulations, where slave and master status are assigned dynamically
 
     */
-    virtual bool& set_slave() { return isslave_; }
+    virtual bool& set_source() { return isslave_; }
 
     /*!
     \brief Set attached status

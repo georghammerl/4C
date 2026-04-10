@@ -673,10 +673,10 @@ namespace CONTACT
     void init_internal_variables() final;
 
     /*!
-    \brief Master/Slave sorting for self contact
+    \brief Target/Source sorting for self contact
 
     */
-    void master_slave_sorting(int eleID, bool isslave);
+    void target_source_sorting(int eleID, bool issource);
 
     /*!
     \brief Evaluate Binary search tree for self contact search

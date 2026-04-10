@@ -70,11 +70,11 @@ namespace Coupling::Adapter
   non-matching interface meshes on input, initializes the mortar
   interface and computes the so-called coupling matrices \f$D\f$ and \f$M\f$.
 
-  The actual coupling methods master_to_slave() and slave_to_master()
+  The actual coupling methods target_to_source() and source_to_target()
   just evaluate one simple equation each, i.e. primal variables
   are projected from master to slave side via \f$D^{-1} M\f$ when
-  calling master_to_slave(), and dual variables are projected from
-  slave to master side via \f$M^T D^{-T}\f$ when calling slave_to_master().
+  calling target_to_source(), and dual variables are projected from
+  slave to master side via \f$M^T D^{-T}\f$ when calling source_to_target().
 
   Whenever you want to add a new problem class, check whether you
   can re-use one of the already existing setup() methods. If not,
@@ -208,7 +208,7 @@ namespace Coupling::Adapter
      *
      *  \return Slave vector
      */
-    std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::Vector<double>> target_to_source(
         const Core::LinAlg::Vector<double>& mv  ///< [in] master vector (to be transferred)
     ) const override;
 
@@ -216,7 +216,7 @@ namespace Coupling::Adapter
      *
      *  \return Slave vector
      */
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> target_to_source(
         const Core::LinAlg::MultiVector<double>& mv  ///< [in] master vector (to be transferred)
     ) const override;
 
@@ -225,7 +225,7 @@ namespace Coupling::Adapter
      *
      *  \return Master vector
      */
-    std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::Vector<double>> source_to_target(
         const Core::LinAlg::Vector<double>& sv  ///< [in] slave vector (to be transferred)
     ) const override;
 
@@ -233,18 +233,18 @@ namespace Coupling::Adapter
      *
      *  \return Master vector
      */
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> source_to_target(
         const Core::LinAlg::MultiVector<double>& sv  ///< [in] slave vector (to be transferred)
     ) const override;
 
     /// transfer a dof vector from master to slave
-    void master_to_slave(
+    void target_to_source(
         const Core::LinAlg::MultiVector<double>& mv,  ///< [in] master vector (to be transferred)
         Core::LinAlg::MultiVector<double>& sv         ///< [out] slave vector (containing result)
     ) const override;
 
     /// transfer a dof vector from slave to master
-    void slave_to_master(
+    void source_to_target(
         const Core::LinAlg::MultiVector<double>& sv,  ///< [in] slave vector (to be transferred)
         Core::LinAlg::MultiVector<double>& mv         ///< [out] master vector (containing result)
     ) const override;
@@ -255,13 +255,13 @@ namespace Coupling::Adapter
     //@{
 
     /// Get the interface dof row map of the master side
-    std::shared_ptr<const Core::LinAlg::Map> master_dof_map() const override
+    std::shared_ptr<const Core::LinAlg::Map> target_dof_map() const override
     {
       return pmasterdofrowmap_;
     }
 
     /// Get the interface dof row map of the slave side
-    std::shared_ptr<const Core::LinAlg::Map> slave_dof_map() const override
+    std::shared_ptr<const Core::LinAlg::Map> source_dof_map() const override
     {
       return pslavedofrowmap_;
     }

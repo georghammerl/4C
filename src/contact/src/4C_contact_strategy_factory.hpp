@@ -52,15 +52,15 @@ namespace CONTACT
        *
        * \param[in/out] params ParameterList with mortar/contact parameters from input file
        * \param[in/out] interfaces Collection of all mortar contact interfaces
-       * \param poroslave
-       * \param poromaster
+       * \param porosource
+       * \param porotarget
        *
-       * \todo ToDo Get rid of poroslave and poromaster parameters.
+       * \todo ToDo Get rid of porosource and porotarget parameters.
        *
        * */
       void build_interfaces(const Teuchos::ParameterList& params,
-          std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces, bool& poroslave,
-          bool& poromaster) const;
+          std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces, bool& porosource,
+          bool& porotarget) const;
 
       /** \brief Create a contact interface object based on the given information
        *
@@ -83,7 +83,7 @@ namespace CONTACT
        *
        * */
       std::shared_ptr<CONTACT::AbstractStrategy> build_strategy(
-          const Teuchos::ParameterList& params, const bool& poroslave, const bool& poromaster,
+          const Teuchos::ParameterList& params, const bool& porosource, const bool& porotarget,
           const int& dof_offset, std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces,
           CONTACT::ParamsInterface* cparams_interface = nullptr) const;
 
@@ -95,7 +95,7 @@ namespace CONTACT
        * */
       static std::shared_ptr<CONTACT::AbstractStrategy> build_strategy(
           const CONTACT::SolvingStrategy stype, const Teuchos::ParameterList& params,
-          const bool& poroslave, const bool& poromaster, const int& dof_offset,
+          const bool& porosource, const bool& porotarget, const int& dof_offset,
           std::vector<std::shared_ptr<CONTACT::Interface>>& interfaces,
           const Core::LinAlg::Map* dof_row_map, const Core::LinAlg::Map* node_row_map,
           const int dim, const MPI_Comm& comm_ptr,
@@ -126,17 +126,17 @@ namespace CONTACT
       /*! \brief Set Parent Elements for Poro Face Elements
        *
        *  */
-      void set_poro_parent_element(Mortar::Element::PhysicalType& slavetype,
-          Mortar::Element::PhysicalType& mastertype, CONTACT::Element& cele,
+      void set_poro_parent_element(Mortar::Element::PhysicalType& sourcetype,
+          Mortar::Element::PhysicalType& targettype, CONTACT::Element& cele,
           std::shared_ptr<Core::Elements::Element>& ele,
           const Core::FE::Discretization& discret) const;
 
       /*! \brief Find Physical Type (Poro or Structure) of Poro Interface
        *
        *  */
-      void find_poro_interface_types(bool& poromaster, bool& poroslave, bool& structmaster,
-          bool& structslave, Mortar::Element::PhysicalType& slavetype,
-          Mortar::Element::PhysicalType& mastertype) const;
+      void find_poro_interface_types(bool& porotarget, bool& porosource, bool& structtarget,
+          bool& structsource, Mortar::Element::PhysicalType& sourcetype,
+          Mortar::Element::PhysicalType& targettype) const;
 
       //!@}
 

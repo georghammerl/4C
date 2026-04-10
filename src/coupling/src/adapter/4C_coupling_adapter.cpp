@@ -526,13 +526,13 @@ void Coupling::Adapter::Coupling::build_dof_maps(const Core::FE::Discretization&
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::master_to_slave(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::target_to_source(
     const Core::LinAlg::Vector<double>& mv) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> sv =
       std::make_shared<Core::LinAlg::Vector<double>>(*slavedofmap_);
 
-  master_to_slave(mv, *sv);
+  target_to_source(mv, *sv);
 
   return sv;
 }
@@ -540,13 +540,13 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::maste
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::slave_to_master(
+std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::source_to_target(
     const Core::LinAlg::Vector<double>& sv) const
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> mv =
       std::make_shared<Core::LinAlg::Vector<double>>(*masterdofmap_);
 
-  slave_to_master(sv, *mv);
+  source_to_target(sv, *mv);
 
   return mv;
 }
@@ -554,13 +554,13 @@ std::shared_ptr<Core::LinAlg::Vector<double>> Coupling::Adapter::Coupling::slave
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::master_to_slave(
+std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::target_to_source(
     const Core::LinAlg::FEVector<double>& mv) const
 {
   std::shared_ptr<Core::LinAlg::FEVector<double>> sv =
       std::make_shared<Core::LinAlg::FEVector<double>>(*slavedofmap_, mv.num_vectors());
 
-  master_to_slave(mv.as_multi_vector(), sv->as_multi_vector());
+  target_to_source(mv.as_multi_vector(), sv->as_multi_vector());
 
   return sv;
 }
@@ -568,13 +568,13 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::mas
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::slave_to_master(
+std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::source_to_target(
     const Core::LinAlg::FEVector<double>& sv) const
 {
   std::shared_ptr<Core::LinAlg::FEVector<double>> mv =
       std::make_shared<Core::LinAlg::FEVector<double>>(*masterdofmap_, sv.num_vectors());
 
-  slave_to_master(sv.as_multi_vector(), mv->as_multi_vector());
+  source_to_target(sv.as_multi_vector(), mv->as_multi_vector());
 
   return mv;
 }
@@ -582,13 +582,13 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> Coupling::Adapter::Coupling::sla
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::master_to_slave(
+std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> sv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*slavedofmap_, mv.num_vectors());
 
-  master_to_slave(mv, *sv);
+  target_to_source(mv, *sv);
 
   return sv;
 }
@@ -596,13 +596,13 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::slave_to_master(
+std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv) const
 {
   std::shared_ptr<Core::LinAlg::MultiVector<double>> mv =
       std::make_shared<Core::LinAlg::MultiVector<double>>(*masterdofmap_, sv.num_vectors());
 
-  slave_to_master(sv, *mv);
+  source_to_target(sv, *mv);
 
   return mv;
 }
@@ -610,7 +610,7 @@ std::shared_ptr<Core::LinAlg::MultiVector<double>> Coupling::Adapter::Coupling::
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::Coupling::master_to_slave(
+void Coupling::Adapter::Coupling::target_to_source(
     const Core::LinAlg::MultiVector<double>& mv, Core::LinAlg::MultiVector<double>& sv) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -631,7 +631,7 @@ void Coupling::Adapter::Coupling::master_to_slave(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::Coupling::master_to_slave(
+void Coupling::Adapter::Coupling::target_to_source(
     const Core::LinAlg::Vector<int>& mv, Core::LinAlg::Vector<int>& sv) const
 {
   Core::LinAlg::Vector<int> perm(*permslavedofmap_);
@@ -643,7 +643,7 @@ void Coupling::Adapter::Coupling::master_to_slave(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::Coupling::slave_to_master(
+void Coupling::Adapter::Coupling::source_to_target(
     const Core::LinAlg::MultiVector<double>& sv, Core::LinAlg::MultiVector<double>& mv) const
 {
 #ifdef FOUR_C_ENABLE_ASSERTIONS
@@ -671,7 +671,7 @@ void Coupling::Adapter::Coupling::slave_to_master(
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-void Coupling::Adapter::Coupling::slave_to_master(
+void Coupling::Adapter::Coupling::source_to_target(
     const Core::LinAlg::Vector<int>& sv, Core::LinAlg::Vector<int>& mv) const
 {
   Core::LinAlg::Vector<int> perm(*permmasterdofmap_);
@@ -726,7 +726,7 @@ std::shared_ptr<Core::LinAlg::Map> Coupling::Adapter::Coupling::slave_to_master_
 
 /*----------------------------------------------------------------------*/
 /*----------------------------------------------------------------------*/
-std::shared_ptr<Core::LinAlg::Map> Coupling::Adapter::Coupling::master_to_slave_map(
+std::shared_ptr<Core::LinAlg::Map> Coupling::Adapter::Coupling::target_to_source_map(
     Core::LinAlg::Map& master)
 {
   int nummyele = 0;
@@ -797,14 +797,14 @@ void Coupling::Adapter::Coupling::setup_coupling_matrices(const Core::LinAlg::Ma
   matmm_ = std::make_shared<Core::LinAlg::SparseMatrix>(shiftedmastermap, 1);
   matsm_ = std::make_shared<Core::LinAlg::SparseMatrix>(shiftedmastermap, 1);
   matmm_trans_ = std::make_shared<Core::LinAlg::SparseMatrix>(masterdomainmap, 1);
-  matsm_trans_ = std::make_shared<Core::LinAlg::SparseMatrix>(*perm_slave_dof_map(), 1);
+  matsm_trans_ = std::make_shared<Core::LinAlg::SparseMatrix>(*perm_source_dof_map(), 1);
 
   int length = shiftedmastermap.num_my_elements();
   double one = 1.;
   for (int i = 0; i < length; ++i)
   {
-    int sgid = perm_slave_dof_map()->gid(i);
-    int mgid = master_dof_map()->gid(i);
+    int sgid = perm_source_dof_map()->gid(i);
+    int mgid = target_dof_map()->gid(i);
     int shiftedmgid = shiftedmastermap.gid(i);
 
     matmm_->insert_global_values(shiftedmgid, 1, &one, &mgid);
@@ -816,12 +816,12 @@ void Coupling::Adapter::Coupling::setup_coupling_matrices(const Core::LinAlg::Ma
   matmm_->complete(masterdomainmap, shiftedmastermap);
   matsm_->complete(slavedomainmap, shiftedmastermap);
   matmm_trans_->complete(shiftedmastermap, masterdomainmap);
-  matsm_trans_->complete(shiftedmastermap, *perm_slave_dof_map());
+  matsm_trans_->complete(shiftedmastermap, *perm_source_dof_map());
 
   // communicate slave to master matrix
   auto tmp = std::make_shared<Core::LinAlg::SparseMatrix>(slavedomainmap, 1);
 
-  Core::LinAlg::Import exporter(slavedomainmap, *perm_slave_dof_map());
+  Core::LinAlg::Import exporter(slavedomainmap, *perm_source_dof_map());
   tmp->import(*matsm_trans_, exporter, Core::LinAlg::CombineMode::insert);
   tmp->complete(shiftedmastermap, slavedomainmap);
   matsm_trans_ = tmp;

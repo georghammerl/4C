@@ -784,8 +784,8 @@ namespace Discret
       */
       int num_dof_per_node(const Core::Nodes::Node& node) const override
       {
-        return std::max(parent_master_element()->num_dof_per_node(node),
-            parent_slave_element()->num_dof_per_node(node));
+        return std::max(parent_target_element()->num_dof_per_node(node),
+            parent_source_element()->num_dof_per_node(node));
       }
 
       /*!
@@ -906,10 +906,10 @@ namespace Discret
       /*!
       \brief return the master parent ScaTraHDG element
       */
-      Discret::Elements::ScaTraHDG* parent_master_element() const
+      Discret::Elements::ScaTraHDG* parent_target_element() const
       {
         Core::Elements::Element* parent =
-            this->Core::Elements::FaceElement::parent_master_element();
+            this->Core::Elements::FaceElement::parent_target_element();
         // make sure the static cast below is really valid
         FOUR_C_ASSERT(dynamic_cast<Discret::Elements::ScaTraHDG*>(parent) != nullptr,
             "Master element is no ScaTraHDG element");
@@ -919,9 +919,10 @@ namespace Discret
       /*!
       \brief return the slave parent ScaTraHDG element
       */
-      Discret::Elements::ScaTraHDG* parent_slave_element() const
+      Discret::Elements::ScaTraHDG* parent_source_element() const
       {
-        Core::Elements::Element* parent = this->Core::Elements::FaceElement::parent_slave_element();
+        Core::Elements::Element* parent =
+            this->Core::Elements::FaceElement::parent_source_element();
         // make sure the static cast below is really valid
         FOUR_C_ASSERT(dynamic_cast<Discret::Elements::ScaTraHDG*>(parent) != nullptr,
             "Slave element is no ScaTraHDG element");

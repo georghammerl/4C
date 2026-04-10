@@ -58,7 +58,7 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
     const double& pen_n, CONTACT::NitscheWeighting weighting, CONTACT::Element* cele,
     const Core::LinAlg::Matrix<2, 1>& xsi, const double& full_fsi_traction, double& gap)
 {
-  // No master elements found
+  // No target elements found
   if (!cele->mo_data().num_search_elements())
   {
     gap = 1.e12;
@@ -68,9 +68,9 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
           cele->shape() == Core::FE::CellType::quad9))
     FOUR_C_THROW("This element shape is not yet implemented!");
 
-  // find the corresponding master element
+  // find the corresponding target element
   CONTACT::Element* other_cele = nullptr;
-  double mxi[2] = {0.0, 0.0};
+  double target_xi[2] = {0.0, 0.0};
   double projalpha = 0.0;
   static const double tol = 1e-4;
   double near = 0.;
@@ -84,14 +84,14 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
       FOUR_C_THROW("Cannot find element with gid {}", cele->mo_data().search_elements()[m]);
 
     Mortar::Projector::impl(*cele, *test_ele)
-        ->project_gauss_point_3d(*cele, xsi.data(), *test_ele, mxi, projalpha);
+        ->project_gauss_point_3d(*cele, xsi.data(), *test_ele, target_xi, projalpha);
     bool is_inside = false;
     switch (test_ele->shape())
     {
       case Core::FE::CellType::quad4:
       case Core::FE::CellType::quad8:
       case Core::FE::CellType::quad9:
-        if (abs(mxi[0]) < 1. + tol && abs(mxi[1]) < 1. + tol) is_inside = true;
+        if (abs(target_xi[0]) < 1. + tol && abs(target_xi[1]) < 1. + tol) is_inside = true;
         break;
       default:
         FOUR_C_THROW("This element shape is not yet implemented ({})!", test_ele->shape());
@@ -113,28 +113,28 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
   if (other_cele)
   {
     double center[2] = {0., 0.};
-    Core::LinAlg::Matrix<3, 1> sn, mn;
-    cele->compute_unit_normal_at_xi(center, sn.data());
-    other_cele->compute_unit_normal_at_xi(center, mn.data());
-    if (sn.dot(mn) > 0.) other_cele = nullptr;
+    Core::LinAlg::Matrix<3, 1> source_normal, target_normal;
+    cele->compute_unit_normal_at_xi(center, source_normal.data());
+    other_cele->compute_unit_normal_at_xi(center, target_normal.data());
+    if (source_normal.dot(target_normal) > 0.) other_cele = nullptr;
   }
-  // no master element hit
+  // no target element hit
   if (other_cele == nullptr)
   {
     gap = 1e12;
     return true;
   }
 
-  Core::LinAlg::Matrix<2, 1> mxi_m(mxi, true);
-  double mx_glob[3];
-  double sx_glob[3];
-  cele->local_to_global(xsi.data(), sx_glob, 0);
-  other_cele->local_to_global(mxi, mx_glob, 0);
-  Core::LinAlg::Matrix<3, 1> mx(mx_glob, true);
-  Core::LinAlg::Matrix<3, 1> sx(sx_glob, true);
+  Core::LinAlg::Matrix<2, 1> target_xi_matrix(target_xi, true);
+  double target_x_glob[3];
+  double source_x_glob[3];
+  cele->local_to_global(xsi.data(), source_x_glob, 0);
+  other_cele->local_to_global(target_xi, target_x_glob, 0);
+  Core::LinAlg::Matrix<3, 1> target_x(target_x_glob, true);
+  Core::LinAlg::Matrix<3, 1> source_x(source_x_glob, true);
 
-  Core::LinAlg::Matrix<3, 1> n(mx);
-  n.update(-1., sx, 1.);
+  Core::LinAlg::Matrix<3, 1> n(target_x);
+  n.update(-1., source_x, 1.);
   Core::LinAlg::Matrix<3, 1> diff(n);
   n.scale(1. / n.norm2());
   gap = diff.dot(n);
@@ -146,7 +146,7 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
   else
     gap *= -1.;
 
-  // master element on the other side
+  // target element on the other side
   if (gap < -near)
   {
     gap = 1e12;
@@ -154,19 +154,20 @@ bool CONTACT::Utils::check_nitsche_contact_state(CONTACT::Interface& contactinte
   }
 
 
-  double ws = 0.;
-  double wm = 0.;
+  double w_source = 0.;
+  double w_target = 0.;
   double my_pen = pen_n;
   double my_pen_t = 0.0;
   CONTACT::Utils::nitsche_weights_and_scaling(
-      *cele, *other_cele, weighting, 1., ws, wm, my_pen, my_pen_t);
+      *cele, *other_cele, weighting, 1., w_source, w_target, my_pen, my_pen_t);
 
   Core::LinAlg::Matrix<3, 1> ele_n;
   cele->compute_unit_normal_at_xi(xsi.data(), ele_n.data());
 
   double stress_plus_penalty =
-      ws * CONTACT::Utils::solid_cauchy_at_xi(cele, xsi, ele_n, ele_n) +
-      wm * CONTACT::Utils::solid_cauchy_at_xi(other_cele, mxi_m, ele_n, ele_n) + my_pen * gap;
+      w_source * CONTACT::Utils::solid_cauchy_at_xi(cele, xsi, ele_n, ele_n) +
+      w_target * CONTACT::Utils::solid_cauchy_at_xi(other_cele, target_xi_matrix, ele_n, ele_n) +
+      my_pen * gap;
 
   if (stress_plus_penalty >= full_fsi_traction)
     return true;  // aka evaluate FSI

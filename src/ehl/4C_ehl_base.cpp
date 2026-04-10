@@ -256,9 +256,9 @@ std::shared_ptr<Core::LinAlg::Vector<double>> EHL::Base::evaluate_fluid_force(
   Core::LinAlg::Vector<double> masteriforce(mortaradapter_->get_mortar_matrix_m()->domain_map());
 
   stritraction_D_ =
-      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubDisp_->master_dof_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubDisp_->target_dof_map());
   stritraction_M_ =
-      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubDisp_->master_dof_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubDisp_->target_dof_map());
 
   // add pressure force
   add_pressure_force(slaveiforce, masteriforce);
@@ -300,8 +300,8 @@ void EHL::Base::add_pressure_force(
           *lubrication_->lubrication_field()->dof_row_map(1));
   lubrimaptransform_->multiply(false, *lubrication_->lubrication_field()->prenp(), *p_full);
   std::shared_ptr<Core::LinAlg::Vector<double>> p_exp =
-      std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->slave_dof_map());
-  p_exp = ada_strDisp_to_lubDisp_->slave_to_master(*p_full);
+      std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->source_dof_map());
+  p_exp = ada_strDisp_to_lubDisp_->source_to_target(*p_full);
   stritraction = std::make_shared<Core::LinAlg::Vector<double>>(*mortaradapter_->normals());
   stritraction->multiply(-1., *mortaradapter_->normals(), *p_exp, 0.);
 
@@ -324,11 +324,11 @@ void EHL::Base::add_poiseuille_force(
 {
   // poiseuille flow forces
   std::shared_ptr<Core::LinAlg::Vector<double>> p_int =
-      ada_strDisp_to_lubPres_->slave_to_master(*lubrication_->lubrication_field()->prenp());
-  Core::LinAlg::Vector<double> p_int_full(*mortaradapter_->slave_dof_map());
+      ada_strDisp_to_lubPres_->source_to_target(*lubrication_->lubrication_field()->prenp());
+  Core::LinAlg::Vector<double> p_int_full(*mortaradapter_->source_dof_map());
   Core::LinAlg::export_to(*p_int, p_int_full);
 
-  Core::LinAlg::Vector<double> nodal_gap(*mortaradapter_->slave_dof_map());
+  Core::LinAlg::Vector<double> nodal_gap(*mortaradapter_->source_dof_map());
   slavemaptransform_->multiply(false, *mortaradapter_->nodal_gap(), nodal_gap);
 
   Core::LinAlg::SparseMatrix m(*mortaradapter_->surf_grad_matrix());
@@ -336,7 +336,7 @@ void EHL::Base::add_poiseuille_force(
   m.left_scale(nodal_gap);
   m.scale(-.5);
 
-  Core::LinAlg::Vector<double> poiseuille_force(*mortaradapter_->slave_dof_map());
+  Core::LinAlg::Vector<double> poiseuille_force(*mortaradapter_->source_dof_map());
   m.multiply(false, p_int_full, poiseuille_force);
 
   Core::LinAlg::Vector<double> slave_psl(mortaradapter_->get_mortar_matrix_d()->domain_map());
@@ -362,11 +362,11 @@ void EHL::Base::add_couette_force(
 {
   const int ndim = Global::Problem::instance()->n_dim();
   const std::shared_ptr<const Core::LinAlg::Vector<double>> relVel = mortaradapter_->rel_tang_vel();
-  Core::LinAlg::Vector<double> height(*mortaradapter_->slave_dof_map());
+  Core::LinAlg::Vector<double> height(*mortaradapter_->source_dof_map());
   slavemaptransform_->multiply(false, *mortaradapter_->nodal_gap(), height);
-  Core::LinAlg::Vector<double> h_inv(*mortaradapter_->slave_dof_map());
+  Core::LinAlg::Vector<double> h_inv(*mortaradapter_->source_dof_map());
   h_inv.reciprocal(height);
-  Core::LinAlg::Vector<double> hinv_relV(*mortaradapter_->slave_dof_map());
+  Core::LinAlg::Vector<double> hinv_relV(*mortaradapter_->source_dof_map());
   hinv_relV.multiply(1., h_inv, *relVel, 0.);
 
   Core::FE::Discretization& lub_dis = *lubrication_->lubrication_field()->discretization();
@@ -387,8 +387,8 @@ void EHL::Base::add_couette_force(
     for (int d = 0; d < ndim; ++d) visc_vec.replace_global_value(lub_dis.dof(1, lnode, d), visc);
   }
   std::shared_ptr<Core::LinAlg::Vector<double>> visc_vec_str =
-      ada_strDisp_to_lubDisp_->slave_to_master(visc_vec);
-  Core::LinAlg::Vector<double> couette_force(*mortaradapter_->slave_dof_map());
+      ada_strDisp_to_lubDisp_->source_to_target(visc_vec);
+  Core::LinAlg::Vector<double> couette_force(*mortaradapter_->source_dof_map());
   couette_force.multiply(-1., *visc_vec_str, hinv_relV, 0.);
 
   Core::LinAlg::Vector<double> slave_cou(mortaradapter_->get_mortar_matrix_d()->domain_map());
@@ -412,7 +412,7 @@ void EHL::Base::add_couette_force(
 void EHL::Base::set_average_velocity_field()
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> avVelLub =
-      ada_strDisp_to_lubDisp_->master_to_slave(*mortaradapter_->av_tang_vel());
+      ada_strDisp_to_lubDisp_->target_to_source(*mortaradapter_->av_tang_vel());
   lubrication_->lubrication_field()->set_average_velocity_field(1, avVelLub);
 }
 
@@ -422,7 +422,7 @@ void EHL::Base::set_average_velocity_field()
 void EHL::Base::set_relative_velocity_field()
 {
   std::shared_ptr<Core::LinAlg::Vector<double>> relVelLub =
-      ada_strDisp_to_lubDisp_->master_to_slave(*mortaradapter_->rel_tang_vel());
+      ada_strDisp_to_lubDisp_->target_to_source(*mortaradapter_->rel_tang_vel());
   lubrication_->lubrication_field()->set_relative_velocity_field(1, relVelLub);
 }
 
@@ -442,7 +442,7 @@ void EHL::Base::set_height_field()
 
   // store discrete gap in lubrication disp dof map (its the film height)
   std::shared_ptr<Core::LinAlg::Vector<double>> height =
-      ada_strDisp_to_lubDisp_->master_to_slave(*discretegap);
+      ada_strDisp_to_lubDisp_->target_to_source(*discretegap);
 
   // provide film height to lubrication discretization
   lubrication_->lubrication_field()->set_height_field(1, height);
@@ -465,7 +465,7 @@ void EHL::Base::set_height_dot()
   slavemaptransform_->multiply(false, heightdot, *discretegap);
   // store discrete heightDot in lubrication disp dof map (its the film height time derivative)
   std::shared_ptr<Core::LinAlg::Vector<double>> heightdotSet =
-      ada_strDisp_to_lubDisp_->master_to_slave(*discretegap);
+      ada_strDisp_to_lubDisp_->target_to_source(*discretegap);
 
   // provide film height time derivative to lubrication discretization
   lubrication_->lubrication_field()->set_height_dot_field(1, heightdotSet);
@@ -484,7 +484,7 @@ void EHL::Base::set_mesh_disp(const Core::LinAlg::Vector<double>& disp)
 
   // Transfer the displacement vector onto the lubrication field
   std::shared_ptr<Core::LinAlg::Vector<double>> lubridisp =
-      ada_strDisp_to_lubDisp_->master_to_slave(*slaveidisp);
+      ada_strDisp_to_lubDisp_->target_to_source(*slaveidisp);
 
   // Provide the lubrication discretization with the displacement
   lubrication_->lubrication_field()->apply_mesh_movement(lubridisp, 1);
@@ -499,11 +499,11 @@ void EHL::Base::setup_unprojectable_dbc()
   if (not Global::Problem::instance()->elasto_hydro_dynamic_params().get<bool>("UNPROJ_ZERO_DBC"))
     return;
 
-  Core::LinAlg::FEVector<double> inf_gap_toggle(*mortaradapter_->slave_dof_map(), true);
-  for (int i = 0; i < mortaradapter_->interface()->slave_row_nodes()->num_my_elements(); ++i)
+  Core::LinAlg::FEVector<double> inf_gap_toggle(*mortaradapter_->source_dof_map(), true);
+  for (int i = 0; i < mortaradapter_->interface()->source_row_nodes()->num_my_elements(); ++i)
   {
     Core::Nodes::Node* node = mortaradapter_->interface()->discret().g_node(
-        mortaradapter_->interface()->slave_row_nodes()->gid(i));
+        mortaradapter_->interface()->source_row_nodes()->gid(i));
     if (!node) FOUR_C_THROW("gnode returned nullptr");
     CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
     if (!cnode) FOUR_C_THROW("dynamic cast failed");
@@ -534,9 +534,9 @@ void EHL::Base::setup_unprojectable_dbc()
       inf_gap_toggle.as_multi_vector().get_vector(0).get_values()[i] = 1.;
 
   std::shared_ptr<Core::LinAlg::Vector<double>> exp =
-      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubPres_->master_dof_map());
+      std::make_shared<Core::LinAlg::Vector<double>>(*ada_strDisp_to_lubPres_->target_dof_map());
   Core::LinAlg::export_to(inf_gap_toggle.as_multi_vector(), exp->as_multi_vector());
-  inf_gap_toggle_lub_ = ada_strDisp_to_lubPres_->master_to_slave(*exp);
+  inf_gap_toggle_lub_ = ada_strDisp_to_lubPres_->target_to_source(*exp);
 
   static std::shared_ptr<Core::LinAlg::Vector<double>> old_toggle = nullptr;
   if (old_toggle != nullptr)
@@ -616,9 +616,9 @@ void EHL::Base::setup_field_coupling(
 
   // Maps of the interface dofs
   std::shared_ptr<const Core::LinAlg::Map> masterdofrowmap =
-      mortaradapter_->interface()->master_row_dofs();
+      mortaradapter_->interface()->target_row_dofs();
   std::shared_ptr<const Core::LinAlg::Map> slavedofrowmap =
-      mortaradapter_->interface()->slave_row_dofs();
+      mortaradapter_->interface()->source_row_dofs();
   std::shared_ptr<Core::LinAlg::Map> mergeddofrowmap =
       Core::LinAlg::merge_map(masterdofrowmap, slavedofrowmap, false);
 
@@ -635,7 +635,7 @@ void EHL::Base::setup_field_coupling(
   // 2. build coupling adapters
   //----------------------------------------------------------
   std::shared_ptr<const Core::LinAlg::Map> strucnodes =
-      mortaradapter_->interface()->slave_row_nodes();
+      mortaradapter_->interface()->source_row_nodes();
   const Core::LinAlg::Map* lubrinodes = lubricationdis->node_row_map();
   ada_strDisp_to_lubDisp_ = std::make_shared<Coupling::Adapter::Coupling>();
   ada_strDisp_to_lubDisp_->setup_coupling(
@@ -647,15 +647,15 @@ void EHL::Base::setup_field_coupling(
 
   ada_strDisp_to_lubPres_ = std::make_shared<Coupling::Adapter::Coupling>();
   ada_strDisp_to_lubPres_->setup_coupling(mortaradapter_->interface()->discret(), *lubricationdis,
-      *mortaradapter_->interface()->slave_row_nodes(), *lubricationdis->node_row_map(), 1, true,
+      *mortaradapter_->interface()->source_row_nodes(), *lubricationdis->node_row_map(), 1, true,
       1.e-3);
 
   // Setup of transformation matrix: slave node map <-> slave disp dof map
   slavemaptransform_ =
       std::make_shared<Core::LinAlg::SparseMatrix>(*slavedofrowmap, 81, false, false);
-  for (int i = 0; i < mortaradapter_->interface()->slave_row_nodes()->num_my_elements(); ++i)
+  for (int i = 0; i < mortaradapter_->interface()->source_row_nodes()->num_my_elements(); ++i)
   {
-    int gid = mortaradapter_->interface()->slave_row_nodes()->gid(i);
+    int gid = mortaradapter_->interface()->source_row_nodes()->gid(i);
     Core::Nodes::Node* node = structdis->g_node(gid);
     std::vector<int> dofs = structdis->dof(0, node);
     // slavemaptransform_->Assemble(1.0,dofs[0],gid);
@@ -665,7 +665,7 @@ void EHL::Base::setup_field_coupling(
       slavemaptransform_->assemble(1.0, row, gid);
     }
   }
-  slavemaptransform_->complete(*(mortaradapter_->interface()->slave_row_nodes()), *slavedofrowmap);
+  slavemaptransform_->complete(*(mortaradapter_->interface()->source_row_nodes()), *slavedofrowmap);
 
   // Setup of transformation matrix: lubrication pre dof map <-> lubrication disp dof map
   lubrimaptransform_ = std::make_shared<Core::LinAlg::SparseMatrix>(
@@ -776,12 +776,12 @@ void EHL::Base::output(bool forced_writerestart)
 
     // store discrete gap in lubrication disp dof map (its the film height)
     std::shared_ptr<Core::LinAlg::Vector<double>> height =
-        ada_strDisp_to_lubDisp_->master_to_slave(*discretegap);
+        ada_strDisp_to_lubDisp_->target_to_source(*discretegap);
 
-    Core::LinAlg::Vector<double> height_ex(*ada_lubPres_to_lubDisp_->slave_dof_map());
+    Core::LinAlg::Vector<double> height_ex(*ada_lubPres_to_lubDisp_->source_dof_map());
     Core::LinAlg::export_to(*height, height_ex);
     std::shared_ptr<Core::LinAlg::Vector<double>> h1 =
-        ada_lubPres_to_lubDisp_->slave_to_master(height_ex);
+        ada_lubPres_to_lubDisp_->source_to_target(height_ex);
     lubrication_->lubrication_field()->disc_writer()->write_vector(
         "height", h1, Core::IO::dofvector);
 
@@ -814,12 +814,12 @@ void EHL::Base::output(bool forced_writerestart)
             lubrication_->lubrication_field()->discretization()->dof(1, lnode, d), visc);
     }
 
-    Core::LinAlg::Vector<double> visc_vec_ex(*ada_lubPres_to_lubDisp_->slave_dof_map());
+    Core::LinAlg::Vector<double> visc_vec_ex(*ada_lubPres_to_lubDisp_->source_dof_map());
 
     Core::LinAlg::export_to(visc_vec, visc_vec_ex);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> v1 =
-        ada_lubPres_to_lubDisp_->slave_to_master(visc_vec_ex);
+        ada_lubPres_to_lubDisp_->source_to_target(visc_vec_ex);
 
     lubrication_->lubrication_field()->disc_writer()->write_vector(
         "viscosity", v1, Core::IO::dofvector);

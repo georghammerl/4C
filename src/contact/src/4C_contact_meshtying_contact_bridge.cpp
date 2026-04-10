@@ -128,7 +128,7 @@ void CONTACT::MeshtyingContactBridge::postprocess_quantities_per_interface(
 }
 
 /*----------------------------------------------------------------------*
- |  Recover lagr. mult and slave displ                       farah 06/14|
+ |  Recover lagr. mult and source displ                       farah 06/14|
  *----------------------------------------------------------------------*/
 void CONTACT::MeshtyingContactBridge::recover(std::shared_ptr<Core::LinAlg::Vector<double>> disi)
 {
@@ -140,7 +140,7 @@ void CONTACT::MeshtyingContactBridge::recover(std::shared_ptr<Core::LinAlg::Vect
 }
 
 /*----------------------------------------------------------------------*
- |  Recover lagr. mult and slave displ                       farah 06/14|
+ |  Recover lagr. mult and source displ                       farah 06/14|
  *----------------------------------------------------------------------*/
 void CONTACT::MeshtyingContactBridge::read_restart(Core::IO::DiscretizationReader& reader,
     std::shared_ptr<Core::LinAlg::Vector<double>> dis,

@@ -644,7 +644,7 @@ void SSI::SsiMono::prepare_time_step()
 
       // displacements
       coupling_map_extractor->insert_vector(
-          *coupling_adapter->master_to_slave(
+          *coupling_adapter->target_to_source(
               *coupling_map_extractor->extract_vector(*structure_field()->dispnp(), 2)),
           1, *structure_field()->write_access_dispnp());
       structure_field()->set_state(structure_field()->write_access_dispnp());
@@ -981,7 +981,7 @@ void SSI::SsiMono::update_iter_scatra() const
         auto multimap = meshtying->slave_master_extractor();
 
         auto master_dofs = multimap->extract_vector(*increment_manifold, 2);
-        auto master_dofs_to_slave = coupling_adapter->master_to_slave(*master_dofs);
+        auto master_dofs_to_slave = coupling_adapter->target_to_source(*master_dofs);
         multimap->insert_vector(*master_dofs_to_slave, 1, *increment_manifold);
       }
     }
@@ -1010,14 +1010,14 @@ void SSI::SsiMono::update_iter_structure() const
 
       // displacements
       coupling_map_extractor->insert_vector(
-          *coupling_adapter->master_to_slave(
+          *coupling_adapter->target_to_source(
               *coupling_map_extractor->extract_vector(*structure_field()->dispnp(), 2)),
           1, *structure_field()->write_access_dispnp());
       structure_field()->set_state(structure_field()->write_access_dispnp());
 
       // increment
       coupling_map_extractor->insert_vector(
-          *coupling_adapter->master_to_slave(
+          *coupling_adapter->target_to_source(
               *coupling_map_extractor->extract_vector(*increment_structure, 2)),
           1, *increment_structure);
     }
@@ -1684,7 +1684,7 @@ void SSI::SsiMono::set_scatra_manifold_solution(const Core::LinAlg::Vector<doubl
   for (const auto& coup : manifoldscatraflux_->scatra_manifold_couplings())
   {
     auto manifold_cond = coup->manifold_map_extractor()->extract_cond_vector(phi);
-    auto manifold_on_scatra_cond = coup->coupling_adapter().slave_to_master(*manifold_cond);
+    auto manifold_on_scatra_cond = coup->coupling_adapter().source_to_target(*manifold_cond);
     coup->scatra_map_extractor()->insert_cond_vector(*manifold_on_scatra_cond, *manifold_on_scatra);
   }
   scatra_field()->discretization()->set_state(0, "manifold_on_scatra", *manifold_on_scatra);

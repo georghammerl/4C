@@ -57,11 +57,11 @@ namespace CONTACT
      \param shape (in): shape of this element
      \param numnode (in): Number of nodes to this element
      \param nodeids (in): ids of nodes adjacent to this element
-     \param isslave (in): flag indicating whether element is slave or master side
+     \param issource (in): flag indicating whether element is source or target side
      \param isnurbs (in): flag indicating whether element is nurbs element or not
      */
     Element(int id, int owner, const Core::FE::CellType& shape, const int numnode,
-        const int* nodeids, const bool isslave, bool isnurbs = false);
+        const int* nodeids, const bool issource, bool isnurbs = false);
 
     /*!
      \brief Copy Constructor
@@ -218,15 +218,15 @@ namespace CONTACT
 
     /*!
      \brief Prepare D-Matrix (first mortar coupling matrix) deriv integration of contribution of one
-     slave element
+     source element
      */
-    virtual void prepare_dderiv(const std::vector<Mortar::Element*>& meles);
+    virtual void prepare_dderiv(const std::vector<Mortar::Element*>& target_elems);
 
     /*!
      \brief Prepare M-Matrix (second mortar coupling matrix) deriv integration of contribution of
-     one slave element
+     one source element
      */
-    virtual void prepare_mderiv(const std::vector<Mortar::Element*>& meles, const int m);
+    virtual void prepare_mderiv(const std::vector<Mortar::Element*>& target_elems, const int m);
 
     /*!
      \brief Access to D-Matrix (first mortar coupling matrix) deriv to add Gauss point contribution
@@ -247,16 +247,16 @@ namespace CONTACT
     }
 
     /*!
-     \brief Assemble D-Matrix (first mortar coupling matrix) deriv contribution of one slave element
-     into the adjacent nodes
+     \brief Assemble D-Matrix (first mortar coupling matrix) deriv contribution of one source
+     element into the adjacent nodes
      */
     virtual void assemble_dderiv_to_nodes(bool dual);
 
     /*!
-     \brief Assemble M-Matrix (second mortar coupling matrix) deriv contribution of one slave/master
-     pair into the adjacent nodes
+     \brief Assemble M-Matrix (second mortar coupling matrix) deriv contribution of one
+     source/target pair into the adjacent nodes
      */
-    virtual void assemble_mderiv_to_nodes(Mortar::Element& mele);
+    virtual void assemble_mderiv_to_nodes(Mortar::Element& target_elem);
 
     //@}
    private:

@@ -91,10 +91,10 @@ void FS3I::FS3IBase::check_interface_dirichlet_bc()
   std::shared_ptr<Core::FE::Discretization> slavedis =
       scatravec_[1]->scatra_field()->discretization();
 
-  std::shared_ptr<const Core::LinAlg::Map> mastermap = scatracoup_->master_dof_map();
+  std::shared_ptr<const Core::LinAlg::Map> mastermap = scatracoup_->target_dof_map();
   std::shared_ptr<const Core::LinAlg::Map> permmastermap = scatracoup_->perm_master_dof_map();
-  std::shared_ptr<const Core::LinAlg::Map> slavemap = scatracoup_->slave_dof_map();
-  std::shared_ptr<const Core::LinAlg::Map> permslavemap = scatracoup_->perm_slave_dof_map();
+  std::shared_ptr<const Core::LinAlg::Map> slavemap = scatracoup_->source_dof_map();
+  std::shared_ptr<const Core::LinAlg::Map> permslavemap = scatracoup_->perm_source_dof_map();
 
   const std::shared_ptr<const Core::LinAlg::MapExtractor> masterdirichmapex =
       scatravec_[0]->scatra_field()->dirich_maps();
@@ -111,7 +111,7 @@ void FS3I::FS3IBase::check_interface_dirichlet_bc()
     }
   }
   std::shared_ptr<Core::LinAlg::Vector<double>> test_slaveifdirich =
-      scatracoup_->master_to_slave(masterifdirich);
+      scatracoup_->target_to_source(masterifdirich);
 
   const std::shared_ptr<const Core::LinAlg::MapExtractor> slavedirichmapex =
       scatravec_[1]->scatra_field()->dirich_maps();
@@ -128,7 +128,7 @@ void FS3I::FS3IBase::check_interface_dirichlet_bc()
     }
   }
   std::shared_ptr<Core::LinAlg::Vector<double>> test_masterifdirich =
-      scatracoup_->slave_to_master(slaveifdirich);
+      scatracoup_->source_to_target(slaveifdirich);
 
   // check if the locations of non-zero entries do not match
   for (int i = 0; i < slavedis->dof_row_map()->num_my_elements(); ++i)
@@ -709,7 +709,7 @@ void FS3I::FS3IBase::setup_coupled_scatra_matrix() const
             *coup1, *(scatrafieldexvec_[0]), *(scatrafieldexvec_[0]));
     coupblock1->complete();
     (*fbitransform_)(coupblock1->matrix(1, 1), -1.0,
-        Coupling::Adapter::CouplingMasterConverter(*scatracoup_),
+        Coupling::Adapter::CouplingTargetConverter(*scatracoup_),
         scatrasystemmatrix_->matrix(1, 0));
 
     std::shared_ptr<Core::LinAlg::BlockSparseMatrixBase> coupblock2 =
@@ -728,7 +728,7 @@ void FS3I::FS3IBase::setup_coupled_scatra_matrix() const
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::FS3IBase::scatra2_to_scatra1(
     const Core::LinAlg::Vector<double>& iv) const
 {
-  return scatracoup_->slave_to_master(iv);
+  return scatracoup_->source_to_target(iv);
 }
 
 
@@ -737,7 +737,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::FS3IBase::scatra2_to_scatra1
 std::shared_ptr<Core::LinAlg::Vector<double>> FS3I::FS3IBase::scatra1_to_scatra2(
     const Core::LinAlg::Vector<double>& iv) const
 {
-  return scatracoup_->master_to_slave(iv);
+  return scatracoup_->target_to_source(iv);
 }
 
 /*----------------------------------------------------------------------*/

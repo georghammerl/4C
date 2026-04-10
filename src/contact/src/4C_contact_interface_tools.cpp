@@ -82,7 +82,7 @@ void CONTACT::Interface::fd_check_normal_deriv()
     reftetaz[j] = jcnode->data().teta()[2];
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int i = 0; i < dim * snodefullmap->num_my_elements(); ++i)
   {
     // store warnings for this finite difference
@@ -97,26 +97,26 @@ void CONTACT::Interface::fd_check_normal_deriv()
     // now finally get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(i / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[i % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[i % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (i % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (i % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -130,7 +130,7 @@ void CONTACT::Interface::fd_check_normal_deriv()
       if (!knode) FOUR_C_THROW("Cannot find node with gid %", kgid);
       Node* kcnode = dynamic_cast<Node*>(knode);
 
-      // build NEW averaged normal at each slave node
+      // build NEW averaged normal at each source node
       kcnode->build_averaged_normal();
 
       newnx[k] = kcnode->mo_data().n()[0];
@@ -178,12 +178,12 @@ void CONTACT::Interface::fd_check_normal_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newn[d] - refn[d]) / delta;
-          double analy = (kcnode->data().get_deriv_n()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_n()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "NORMAL(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "NORMAL(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -207,12 +207,12 @@ void CONTACT::Interface::fd_check_normal_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newtxi[d] - reftxi[d]) / delta;
-          double analy = (kcnode->data().get_deriv_txi()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_txi()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -236,12 +236,12 @@ void CONTACT::Interface::fd_check_normal_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newteta[d] - refteta[d]) / delta;
-          double analy = (kcnode->data().get_deriv_teta()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_teta()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -263,15 +263,15 @@ void CONTACT::Interface::fd_check_normal_deriv()
     // undo finite difference modification
     if (i % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (i % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -350,7 +350,7 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
     reftetaz[j] = jcnode->data().teta()[2];
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int i = 0; i < dim * snodefullmap->num_my_elements(); ++i)
   {
     // store warnings for this finite difference
@@ -367,26 +367,26 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
     // now finally get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(i / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[i % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[i % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (i % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (i % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -404,7 +404,7 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
 
       if (!kcnode->is_on_edge()) continue;
 
-      // build NEW averaged normal at each slave node
+      // build NEW averaged normal at each source node
       //      kcnode->BuildAveragedNormal();
 
       newnx[k] = kcnode->mo_data().n()[0];
@@ -452,15 +452,15 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newn[d] - refn[d]) / delta;
-          double analy = (kcnode->data().get_deriv_n()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_n()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
 
           if (abs(analy) > 1e-12)
-            std::cout << "NORMAL(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+            std::cout << "NORMAL(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                       << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -484,14 +484,14 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newtxi[d] - reftxi[d]) / delta;
-          double analy = (kcnode->data().get_deriv_txi()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_txi()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
 
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -515,14 +515,14 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newteta[d] - refteta[d]) / delta;
-          double analy = (kcnode->data().get_deriv_teta()[d])[snode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_teta()[d])[source_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
 
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << snode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << source_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -544,15 +544,15 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
     // undo finite difference modification
     if (i % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (i % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -561,7 +561,7 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
 
 
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int i = 0; i < dim * mnodefullmap->num_my_elements(); ++i)
   {
     // store warnings for this finite difference
@@ -578,26 +578,26 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
     // now finally get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(i / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[i % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[i % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (i % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (i % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -615,7 +615,7 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
 
       if (!kcnode->is_on_edge()) continue;
 
-      // build NEW averaged normal at each slave node
+      // build NEW averaged normal at each source node
       //      kcnode->BuildAveragedNormal();
 
       newnx[k] = kcnode->mo_data().n()[0];
@@ -663,15 +663,15 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newn[d] - refn[d]) / delta;
-          double analy = (kcnode->data().get_deriv_n()[d])[mnode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_n()[d])[target_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
 
           if (abs(analy) > 1e-12)
-            std::cout << "NORMAL(" << kgid << "," << d << "," << mnode->dofs()[i % dim]
+            std::cout << "NORMAL(" << kgid << "," << d << "," << target_node->dofs()[i % dim]
                       << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -695,13 +695,13 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newtxi[d] - reftxi[d]) / delta;
-          double analy = (kcnode->data().get_deriv_txi()[d])[mnode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_txi()[d])[target_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << mnode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_XI(" << kgid << "," << d << "," << target_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -725,13 +725,13 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
         for (int d = 0; d < dim; ++d)
         {
           double finit = (newteta[d] - refteta[d]) / delta;
-          double analy = (kcnode->data().get_deriv_teta()[d])[mnode->dofs()[i % dim]];
+          double analy = (kcnode->data().get_deriv_teta()[d])[target_node->dofs()[i % dim]];
           double dev = finit - analy;
 
           if (abs(finit) < 1e-12) continue;
-          // kgid: id of currently tested slave node
-          // snode->Dofs()[fd%dim]: currently modified slave dof
-          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << mnode->dofs()[i % dim]
+          // kgid: id of currently tested source node
+          // source_node->Dofs()[fd%dim]: currently modified source dof
+          std::cout << "TANGENT_ETA(" << kgid << "," << d << "," << target_node->dofs()[i % dim]
                     << ") : fd=" << finit << " derivn=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
@@ -753,15 +753,15 @@ void CONTACT::Interface::fd_check_normal_cpp_deriv()
     // undo finite difference modification
     if (i % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (i % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -804,7 +804,7 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
   int dim = n_dim();
 
   // print reference to screen (D-derivative-maps) and store them for later comparison
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -823,7 +823,7 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
     refDerivD[gid] = cnode->data().get_deriv_d();
   }
 
-  // global loop to apply FD scheme to all SLAVE dofs (=dim*nodes)
+  // global loop to apply FD scheme to all SOURCE dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -835,26 +835,26 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
+    int source_dof = source_node->dofs()[fd % dim];
 
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -886,14 +886,14 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
         if (abs(newD[p->first] - refD[p->first]) > 1e-12)
         {
           double finit = (newD[p->first] - refD[p->first]) / delta;
-          double analy = ((refDerivD[kgid])[p->first])[sdof];
+          double analy = ((refDerivD[kgid])[p->first])[source_dof];
           double dev = finit - analy;
 
-          // kgid: currently tested dof of slave node kgid
-          // (p->first)/Dim(): paired master
-          // sdof: currently modified slave dof
-          std::cout << "(" << (p->first) << "," << sdof << ") : fd=" << finit << " derivd=" << analy
-                    << " DEVIATION " << dev;
+          // kgid: currently tested dof of source node kgid
+          // (p->first)/Dim(): paired target
+          // source_dof: currently modified source dof
+          std::cout << "(" << (p->first) << "," << source_dof << ") : fd=" << finit
+                    << " derivd=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -914,22 +914,22 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all MASTER dofs (=dim*nodes)
+  // global loop to apply FD scheme to all TARGET dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -941,26 +941,26 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
+    int target_dof = target_node->dofs()[fd % dim];
 
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -992,14 +992,14 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
         if (abs(newD[p->first] - refD[p->first]) > 1e-12)
         {
           double finit = (newD[p->first] - refD[p->first]) / delta;
-          double analy = ((refDerivD[kgid])[p->first])[mdof];
+          double analy = ((refDerivD[kgid])[p->first])[target_dof];
           double dev = finit - analy;
 
-          // kgid: currently tested dof of slave node kgid
-          // (p->first)/Dim(): paired master
-          // sdof: currently modified slave dof
-          std::cout << "(" << (p->first) << "," << mdof << ") : fd=" << finit << " derivd=" << analy
-                    << " DEVIATION " << dev;
+          // kgid: currently tested dof of source node kgid
+          // (p->first)/Dim(): paired target
+          // source_dof: currently modified source dof
+          std::cout << "(" << (p->first) << "," << target_dof << ") : fd=" << finit
+                    << " derivd=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -1020,15 +1020,15 @@ void CONTACT::Interface::fd_check_mortar_d_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -1073,7 +1073,7 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
   int dim = n_dim();
 
   // print reference to screen (M-derivative-maps) and store them for later comparison
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -1088,7 +1088,7 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
     refDerivM[gid] = cnode->data().get_deriv_m();
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1100,26 +1100,26 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
+    int source_dof = source_node->dofs()[fd % dim];
 
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1151,14 +1151,14 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
         if (abs(newM[p->first] - refM[p->first]) > 1e-12)
         {
           double finit = (newM[p->first] - refM[p->first]) / delta;
-          double analy = ((refDerivM[kgid])[(p->first)])[sdof];
+          double analy = ((refDerivM[kgid])[(p->first)])[source_dof];
           double dev = finit - analy;
 
-          // kgid: currently tested dof of slave node kgid
-          // (p->first)/Dim(): paired master
-          // sdof: currently modified slave dof
-          std::cout << "(" << (p->first) << "," << sdof << ") : fd=" << finit << " derivm=" << analy
-                    << " DEVIATION " << dev;
+          // kgid: currently tested dof of source node kgid
+          // (p->first)/Dim(): paired target
+          // source_dof: currently modified source dof
+          std::cout << "(" << (p->first) << "," << source_dof << ") : fd=" << finit
+                    << " derivm=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -1179,22 +1179,22 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all MASTER dofs (=dim*nodes)
+  // global loop to apply FD scheme to all TARGET dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1206,26 +1206,26 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
+    int target_dof = target_node->dofs()[fd % dim];
 
-    std::cout << "\nDEVIATION FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    std::cout << "\nDEVIATION FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1257,14 +1257,14 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
         if (abs(newM[p->first] - refM[p->first]) > 1e-12)
         {
           double finit = (newM[p->first] - refM[p->first]) / delta;
-          double analy = ((refDerivM[kgid])[p->first])[mdof];
+          double analy = ((refDerivM[kgid])[p->first])[target_dof];
           double dev = finit - analy;
 
-          // dof: currently tested dof of slave node kgid
-          // (p->first)/Dim(): paired master
-          // mdof: currently modified master dof
-          std::cout << "(" << (p->first) << "," << mdof << ") : fd=" << finit << " derivm=" << analy
-                    << " DEVIATION " << dev;
+          // dof: currently tested dof of source node kgid
+          // (p->first)/Dim(): paired target
+          // target_dof: currently modified target dof
+          std::cout << "(" << (p->first) << "," << target_dof << ") : fd=" << finit
+                    << " derivm=" << analy << " DEVIATION " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -1285,15 +1285,15 @@ void CONTACT::Interface::fd_check_mortar_m_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -1337,7 +1337,7 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -1348,7 +1348,7 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
     refU[i] = cnode->fri_data().jump_var()[0];  // txi value
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1360,25 +1360,25 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1403,12 +1403,12 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
       if (abs(newU[k] - refU[k]) > 1e-12 && newU[k] != 1.0e12 && refU[k] != 1.0e12)
       {
         double finit = (newU[k] - refU[k]) / delta;
-        double analy = kcnode->fri_data().get_deriv_var_jump()[0][snode->dofs()[fd % dim]];
+        double analy = kcnode->fri_data().get_deriv_var_jump()[0][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivu -- 1=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -1429,22 +1429,22 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1458,25 +1458,25 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1501,12 +1501,12 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
       if (abs(newU[k] - refU[k]) > 1e-12 && newU[k] != 1.0e12 && refU[k] != 1.0e12)
       {
         double finit = (newU[k] - refU[k]) / delta;
-        double analy = kcnode->fri_data().get_deriv_var_jump()[0][mnode->dofs()[fd % dim]];
+        double analy = kcnode->fri_data().get_deriv_var_jump()[0][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivu -- 1=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -1528,15 +1528,15 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_txi()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -1571,7 +1571,7 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -1583,7 +1583,7 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
     refU[i] = cnode->fri_data().jump_var()[1];  // txi value
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1595,25 +1595,25 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1638,12 +1638,12 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
       if (abs(newU[k] - refU[k]) > 1e-12 && newU[k] != 1.0e12 && refU[k] != 1.0e12)
       {
         double finit = (newU[k] - refU[k]) / delta;
-        double analy = kcnode->fri_data().get_deriv_var_jump()[1][snode->dofs()[fd % dim]];
+        double analy = kcnode->fri_data().get_deriv_var_jump()[1][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivu -- 2=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -1664,22 +1664,22 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1693,25 +1693,25 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1736,12 +1736,12 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
       if (abs(newU[k] - refU[k]) > 1e-12 && newU[k] != 1.0e12 && refU[k] != 1.0e12)
       {
         double finit = (newU[k] - refU[k]) / delta;
-        double analy = kcnode->fri_data().get_deriv_var_jump()[1][mnode->dofs()[fd % dim]];
+        double analy = kcnode->fri_data().get_deriv_var_jump()[1][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivu -- 2=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -1763,15 +1763,15 @@ void CONTACT::Interface::fd_check_slip_incr_deriv_teta()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -1808,7 +1808,7 @@ void CONTACT::Interface::fd_check_alpha_deriv()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -1826,33 +1826,33 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     //        defgap-= (cnode->MoData().n()[j])*wii*(cnode->xspatial()[j]);
     //
     //      std::vector<std::map<int,double> > mmap = cnode->MoData().GetM();
-    //      std::map<int,double>::iterator mcurr;
+    //      std::map<int,double>::iterator t_curr;
     //
     //      for (int m=0;m<mnodefullmap->NumMyElements();++m)
     //      {
     //        int gid = mnodefullmap->GID(m);
-    //        Core::Nodes::Node* mnode = idiscret_->gNode(gid);
-    //        if (!mnode) FOUR_C_THROW("Cannot find node with gid %",gid);
-    //        Node* cmnode = dynamic_cast<Node*>(mnode);
-    //        const int* mdofs = cmnode->Dofs();
+    //        Core::Nodes::Node* target_node = idiscret_->gNode(gid);
+    //        if (!target_node) FOUR_C_THROW("Cannot find node with gid %",gid);
+    //        Node* c_target_node = dynamic_cast<Node*>(target_node);
+    //        const int* mdofs = c_target_node->Dofs();
     //        bool hasentry = false;
     //
-    //        // look for this master node in M-map of the active slave node
-    //        for (mcurr=mmap[0].begin();mcurr!=mmap[0].end();++mcurr)
-    //          if ((mcurr->first)==mdofs[0])
+    //        // look for this target node in M-map of the active source node
+    //        for (t_curr=mmap[0].begin();t_curr!=mmap[0].end();++t_curr)
+    //          if ((t_curr->first)==mdofs[0])
     //          {
     //            hasentry=true;
     //            break;
     //          }
     //
     //        double mik = (mmap[0])[mdofs[0]];
-    //        double* mxi = cmnode->xspatial();
+    //        double* target_xi = c_target_node->xspatial();
     //
-    //        // get out of here, if master node not adjacent or coupling very weak
+    //        // get out of here, if target node not adjacent or coupling very weak
     //        if (!hasentry || abs(mik)<1.0e-12) continue;
     //
     //        for (int j=0;j<dim;++j)
-    //          defgap+= (cnode->MoData().n()[j]) * mik * mxi[j];
+    //          defgap+= (cnode->MoData().n()[j]) * mik * target_xi[j];
     //      }
     //
     //      //std::cout << "SNode: " << cnode->Id() << " IntGap: " << cnode->Data().Getg() << "
@@ -1865,7 +1865,7 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     refa[i] = cnode->data().get_alpha_n();
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -1877,32 +1877,32 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==snode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==source_node->Owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << snode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << source_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -1933,33 +1933,33 @@ void CONTACT::Interface::fd_check_alpha_deriv()
       //          defgap-= (kcnode->MoData().n()[j])*wii*(kcnode->xspatial()[j]);
       //
       //        std::vector<std::map<int,double> > mmap = kcnode->MoData().GetM();
-      //        std::map<int,double>::iterator mcurr;
+      //        std::map<int,double>::iterator t_curr;
       //
       //        for (int m=0;m<mnodefullmap->NumMyElements();++m)
       //        {
       //          int gid = mnodefullmap->GID(m);
-      //          Core::Nodes::Node* mnode = idiscret_->gNode(gid);
-      //          if (!mnode) FOUR_C_THROW("Cannot find node with gid %",gid);
-      //          Node* cmnode = dynamic_cast<Node*>(mnode);
-      //          const int* mdofs = cmnode->Dofs();
+      //          Core::Nodes::Node* target_node = idiscret_->gNode(gid);
+      //          if (!target_node) FOUR_C_THROW("Cannot find node with gid %",gid);
+      //          Node* c_target_node = dynamic_cast<Node*>(target_node);
+      //          const int* mdofs = c_target_node->Dofs();
       //          bool hasentry = false;
       //
-      //          // look for this master node in M-map of the active slave node
-      //          for (mcurr=mmap[0].begin();mcurr!=mmap[0].end();++mcurr)
-      //            if ((mcurr->first)==mdofs[0])
+      //          // look for this target node in M-map of the active source node
+      //          for (t_curr=mmap[0].begin();t_curr!=mmap[0].end();++t_curr)
+      //            if ((t_curr->first)==mdofs[0])
       //            {
       //              hasentry=true;
       //              break;
       //            }
       //
       //          double mik = (mmap[0])[mdofs[0]];
-      //          double* mxi = cmnode->xspatial();
+      //          double* target_xi = c_target_node->xspatial();
       //
-      //          // get out of here, if master node not adjacent or coupling very weak
+      //          // get out of here, if target node not adjacent or coupling very weak
       //          if (!hasentry || abs(mik)<1.0e-12) continue;
       //
       //          for (int j=0;j<dim;++j)
-      //            defgap+= (kcnode->MoData().n()[j]) * mik * mxi[j];
+      //            defgap+= (kcnode->MoData().n()[j]) * mik * target_xi[j];
       //        }
       //
       //        //std::cout << "SNode: " << kcnode->Id() << " IntGap: " << kcnode->Data().Getg <<
@@ -1975,12 +1975,12 @@ void CONTACT::Interface::fd_check_alpha_deriv()
       if (abs(newa[k] - refa[k]) > 1e-12 && newa[k] != 1.0e12 && refa[k] != 1.0e12)
       {
         double finit = (newa[k] - refa[k]) / delta;
-        double analy = kcnode->data().get_alpha()[snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_alpha()[source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2000,22 +2000,22 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -2029,32 +2029,32 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==mnode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==target_node->Owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << mnode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << target_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -2079,27 +2079,27 @@ void CONTACT::Interface::fd_check_alpha_deriv()
       {
         // check two versions of weighted gap
         std::map<int, double>& mmap = kcnode->mo_data().get_m();
-        std::map<int, double>::const_iterator mcurr;
+        std::map<int, double>::const_iterator t_curr;
 
         for (int m = 0; m < mnodefullmap->num_my_elements(); ++m)
         {
           int gid = mnodefullmap->gid(m);
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          Node* cmnode = dynamic_cast<Node*>(mnode);
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          Node* c_target_node = dynamic_cast<Node*>(target_node);
           bool hasentry = false;
 
-          // look for this master node in M-map of the active slave node
-          for (mcurr = mmap.begin(); mcurr != mmap.end(); ++mcurr)
-            if ((mcurr->first) == cmnode->id())
+          // look for this target node in M-map of the active source node
+          for (t_curr = mmap.begin(); t_curr != mmap.end(); ++t_curr)
+            if ((t_curr->first) == c_target_node->id())
             {
               hasentry = true;
               break;
             }
 
-          double mik = mmap[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
 
-          // get out of here, if master node not adjacent or coupling very weak
+          // get out of here, if target node not adjacent or coupling very weak
           if (!hasentry || abs(mik) < 1.0e-12) continue;
         }
       }
@@ -2111,12 +2111,12 @@ void CONTACT::Interface::fd_check_alpha_deriv()
       if (abs(newa[k] - refa[k]) > 1e-12 && newa[k] != 1.0e12 && refa[k] != 1.0e12)
       {
         double finit = (newa[k] - refa[k]) / delta;
-        double analy = kcnode->data().get_alpha()[mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_alpha()[target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2137,15 +2137,15 @@ void CONTACT::Interface::fd_check_alpha_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -2183,7 +2183,7 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -2197,7 +2197,7 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
     refG2[i] = cnode->data().getgltl()[2];
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -2209,32 +2209,32 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==snode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==source_node->Owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << snode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << source_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -2262,12 +2262,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG0[k] - refG0[k]) > 1e-12 && newG0[k] != 1.0e12 && refG0[k] != 1.0e12)
       {
         double finit = (newG0[k] - refG0[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[0][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[0][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2286,12 +2286,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG1[k] - refG1[k]) > 1e-12 && newG1[k] != 1.0e12 && refG1[k] != 1.0e12)
       {
         double finit = (newG1[k] - refG1[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[1][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[1][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2310,12 +2310,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG2[k] - refG2[k]) > 1e-12 && newG2[k] != 1.0e12 && refG2[k] != 1.0e12)
       {
         double finit = (newG2[k] - refG2[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[2][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[2][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2335,22 +2335,22 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -2364,32 +2364,32 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==mnode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==target_node->Owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << mnode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << target_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -2413,27 +2413,27 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
         // check two versions of weighted gap
 
         std::map<int, double>& mmap = kcnode->mo_data().get_m();
-        std::map<int, double>::const_iterator mcurr;
+        std::map<int, double>::const_iterator t_curr;
 
         for (int m = 0; m < mnodefullmap->num_my_elements(); ++m)
         {
           int gid = mnodefullmap->gid(m);
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          Node* cmnode = dynamic_cast<Node*>(mnode);
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          Node* c_target_node = dynamic_cast<Node*>(target_node);
           bool hasentry = false;
 
-          // look for this master node in M-map of the active slave node
-          for (mcurr = mmap.begin(); mcurr != mmap.end(); ++mcurr)
-            if ((mcurr->first) == cmnode->id())
+          // look for this target node in M-map of the active source node
+          for (t_curr = mmap.begin(); t_curr != mmap.end(); ++t_curr)
+            if ((t_curr->first) == c_target_node->id())
             {
               hasentry = true;
               break;
             }
 
-          double mik = mmap[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
 
-          // get out of here, if master node not adjacent or coupling very weak
+          // get out of here, if target node not adjacent or coupling very weak
           if (!hasentry || abs(mik) < 1.0e-12) continue;
         }
       }
@@ -2446,12 +2446,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG0[k] - refG0[k]) > 1e-12 && newG0[k] != 1.0e12 && refG0[k] != 1.0e12)
       {
         double finit = (newG0[k] - refG0[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[0][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[0][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2470,12 +2470,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG1[k] - refG1[k]) > 1e-12 && newG1[k] != 1.0e12 && refG1[k] != 1.0e12)
       {
         double finit = (newG1[k] - refG1[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[1][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[1][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2494,12 +2494,12 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
       if (abs(newG2[k] - refG2[k]) > 1e-12 && newG2[k] != 1.0e12 && refG2[k] != 1.0e12)
       {
         double finit = (newG2[k] - refG2[k]) / delta;
-        double analy = kcnode->data().get_deriv_gltl()[2][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_gltl()[2][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2520,15 +2520,15 @@ void CONTACT::Interface::fd_check_gap_deriv_ltl()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -2566,7 +2566,7 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -2580,7 +2580,7 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
     refG2[i] = cnode->data().getjumpltl()[2];
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -2592,32 +2592,32 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==snode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==source_node->Owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << snode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << source_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -2645,12 +2645,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG0[k] - refG0[k]) > 1e-12 && newG0[k] != 1.0e12 && refG0[k] != 1.0e12)
       {
         double finit = (newG0[k] - refG0[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[0][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[0][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2669,12 +2669,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG1[k] - refG1[k]) > 1e-12 && newG1[k] != 1.0e12 && refG1[k] != 1.0e12)
       {
         double finit = (newG1[k] - refG1[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[1][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[1][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2693,12 +2693,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG2[k] - refG2[k]) > 1e-12 && newG2[k] != 1.0e12 && refG2[k] != 1.0e12)
       {
         double finit = (newG2[k] - refG2[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[2][snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[2][source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2718,22 +2718,22 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -2747,32 +2747,32 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==mnode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==target_node->Owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << mnode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << target_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -2795,27 +2795,27 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       {
         // check two versions of weighted gap
         std::map<int, double>& mmap = kcnode->mo_data().get_m();
-        std::map<int, double>::const_iterator mcurr;
+        std::map<int, double>::const_iterator t_curr;
 
         for (int m = 0; m < mnodefullmap->num_my_elements(); ++m)
         {
           int gid = mnodefullmap->gid(m);
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          Node* cmnode = dynamic_cast<Node*>(mnode);
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          Node* c_target_node = dynamic_cast<Node*>(target_node);
           bool hasentry = false;
 
-          // look for this master node in M-map of the active slave node
-          for (mcurr = mmap.begin(); mcurr != mmap.end(); ++mcurr)
-            if ((mcurr->first) == cmnode->id())
+          // look for this target node in M-map of the active source node
+          for (t_curr = mmap.begin(); t_curr != mmap.end(); ++t_curr)
+            if ((t_curr->first) == c_target_node->id())
             {
               hasentry = true;
               break;
             }
 
-          double mik = mmap[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
 
-          // get out of here, if master node not adjacent or coupling very weak
+          // get out of here, if target node not adjacent or coupling very weak
           if (!hasentry || abs(mik) < 1.0e-12) continue;
         }
       }
@@ -2828,12 +2828,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG0[k] - refG0[k]) > 1e-12 && newG0[k] != 1.0e12 && refG0[k] != 1.0e12)
       {
         double finit = (newG0[k] - refG0[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[0][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[0][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2852,12 +2852,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG1[k] - refG1[k]) > 1e-12 && newG1[k] != 1.0e12 && refG1[k] != 1.0e12)
       {
         double finit = (newG1[k] - refG1[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[1][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[1][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2876,12 +2876,12 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
       if (abs(newG2[k] - refG2[k]) > 1e-12 && newG2[k] != 1.0e12 && refG2[k] != 1.0e12)
       {
         double finit = (newG2[k] - refG2[k]) / delta;
-        double analy = kcnode->data().get_deriv_jumpltl()[2][mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_jumpltl()[2][target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivj=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -2902,15 +2902,15 @@ void CONTACT::Interface::fd_check_jump_deriv_ltl()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -2945,7 +2945,7 @@ void CONTACT::Interface::fd_check_gap_deriv()
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -2965,33 +2965,33 @@ void CONTACT::Interface::fd_check_gap_deriv()
     //        defgap-= (cnode->MoData().n()[j])*wii*(cnode->xspatial()[j]);
     //
     //      std::vector<std::map<int,double> > mmap = cnode->MoData().GetM();
-    //      std::map<int,double>::iterator mcurr;
+    //      std::map<int,double>::iterator t_curr;
     //
     //      for (int m=0;m<mnodefullmap->NumMyElements();++m)
     //      {
     //        int gid = mnodefullmap->GID(m);
-    //        Core::Nodes::Node* mnode = idiscret_->gNode(gid);
-    //        if (!mnode) FOUR_C_THROW("Cannot find node with gid %",gid);
-    //        Node* cmnode = dynamic_cast<Node*>(mnode);
-    //        const int* mdofs = cmnode->Dofs();
+    //        Core::Nodes::Node* target_node = idiscret_->gNode(gid);
+    //        if (!target_node) FOUR_C_THROW("Cannot find node with gid %",gid);
+    //        Node* c_target_node = dynamic_cast<Node*>(target_node);
+    //        const int* mdofs = c_target_node->Dofs();
     //        bool hasentry = false;
     //
-    //        // look for this master node in M-map of the active slave node
-    //        for (mcurr=mmap[0].begin();mcurr!=mmap[0].end();++mcurr)
-    //          if ((mcurr->first)==mdofs[0])
+    //        // look for this target node in M-map of the active source node
+    //        for (t_curr=mmap[0].begin();t_curr!=mmap[0].end();++t_curr)
+    //          if ((t_curr->first)==mdofs[0])
     //          {
     //            hasentry=true;
     //            break;
     //          }
     //
     //        double mik = (mmap[0])[mdofs[0]];
-    //        double* mxi = cmnode->xspatial();
+    //        double* target_xi = c_target_node->xspatial();
     //
-    //        // get out of here, if master node not adjacent or coupling very weak
+    //        // get out of here, if target node not adjacent or coupling very weak
     //        if (!hasentry || abs(mik)<1.0e-12) continue;
     //
     //        for (int j=0;j<dim;++j)
-    //          defgap+= (cnode->MoData().n()[j]) * mik * mxi[j];
+    //          defgap+= (cnode->MoData().n()[j]) * mik * target_xi[j];
     //      }
     //
     //      //std::cout << "SNode: " << cnode->Id() << " IntGap: " << cnode->Data().Getg() << "
@@ -3003,7 +3003,7 @@ void CONTACT::Interface::fd_check_gap_deriv()
     refG[i] = cnode->data().getg();
   }
 
-  // global loop to apply FD scheme to all slave dofs (=dim*nodes)
+  // global loop to apply FD scheme to all source dofs (=dim*nodes)
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -3015,32 +3015,32 @@ void CONTACT::Interface::fd_check_gap_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    int source_dof = source_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==snode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==source_node->Owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << snode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << source_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -3071,33 +3071,33 @@ void CONTACT::Interface::fd_check_gap_deriv()
       //          defgap-= (kcnode->MoData().n()[j])*wii*(kcnode->xspatial()[j]);
       //
       //        std::vector<std::map<int,double> > mmap = kcnode->MoData().GetM();
-      //        std::map<int,double>::iterator mcurr;
+      //        std::map<int,double>::iterator t_curr;
       //
       //        for (int m=0;m<mnodefullmap->NumMyElements();++m)
       //        {
       //          int gid = mnodefullmap->GID(m);
-      //          Core::Nodes::Node* mnode = idiscret_->gNode(gid);
-      //          if (!mnode) FOUR_C_THROW("Cannot find node with gid %",gid);
-      //          Node* cmnode = dynamic_cast<Node*>(mnode);
-      //          const int* mdofs = cmnode->Dofs();
+      //          Core::Nodes::Node* target_node = idiscret_->gNode(gid);
+      //          if (!target_node) FOUR_C_THROW("Cannot find node with gid %",gid);
+      //          Node* c_target_node = dynamic_cast<Node*>(target_node);
+      //          const int* mdofs = c_target_node->Dofs();
       //          bool hasentry = false;
       //
-      //          // look for this master node in M-map of the active slave node
-      //          for (mcurr=mmap[0].begin();mcurr!=mmap[0].end();++mcurr)
-      //            if ((mcurr->first)==mdofs[0])
+      //          // look for this target node in M-map of the active source node
+      //          for (t_curr=mmap[0].begin();t_curr!=mmap[0].end();++t_curr)
+      //            if ((t_curr->first)==mdofs[0])
       //            {
       //              hasentry=true;
       //              break;
       //            }
       //
       //          double mik = (mmap[0])[mdofs[0]];
-      //          double* mxi = cmnode->xspatial();
+      //          double* target_xi = c_target_node->xspatial();
       //
-      //          // get out of here, if master node not adjacent or coupling very weak
+      //          // get out of here, if target node not adjacent or coupling very weak
       //          if (!hasentry || abs(mik)<1.0e-12) continue;
       //
       //          for (int j=0;j<dim;++j)
-      //            defgap+= (kcnode->MoData().n()[j]) * mik * mxi[j];
+      //            defgap+= (kcnode->MoData().n()[j]) * mik * target_xi[j];
       //        }
       //
       //        //std::cout << "SNode: " << kcnode->Id() << " IntGap: " << kcnode->Data().Getg <<
@@ -3112,12 +3112,12 @@ void CONTACT::Interface::fd_check_gap_deriv()
       if (abs(newG[k] - refG[k]) > 1e-12 && newG[k] != 1.0e12 && refG[k] != 1.0e12)
       {
         double finit = (newG[k] - refG[k]) / delta;
-        double analy = kcnode->data().get_deriv_g()[snode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_g()[source_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // snode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << snode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // source_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << source_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -3137,22 +3137,22 @@ void CONTACT::Interface::fd_check_gap_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
               << std::endl;
   }
 
-  // global loop to apply FD scheme to all master dofs (=dim*nodes)
+  // global loop to apply FD scheme to all target dofs (=dim*nodes)
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
     // store warnings for this finite difference
@@ -3166,32 +3166,32 @@ void CONTACT::Interface::fd_check_gap_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / dim);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % dim];
-    std::cout << "\nDERIVATIVE FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    int target_dof = target_node->dofs()[fd % dim];
+    std::cout << "\nDERIVATIVE FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // apply finite difference scheme
-    /*if (Core::Communication::my_mpi_rank(Comm())==mnode->Owner())
+    /*if (Core::Communication::my_mpi_rank(Comm())==target_node->Owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->Id() << " Dof(l): " << fd%dim
-           << " Dof(g): " << mnode->Dofs()[fd%dim] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->Id() << " Dof(l): " << fd%dim
+           << " Dof(g): " << target_node->Dofs()[fd%dim] << std::endl;
     }*/
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -3216,26 +3216,26 @@ void CONTACT::Interface::fd_check_gap_deriv()
       {
         // check two versions of weighted gap
         std::map<int, double>& mmap = kcnode->mo_data().get_m();
-        std::map<int, double>::const_iterator mcurr;
+        std::map<int, double>::const_iterator t_curr;
 
         for (int m = 0; m < mnodefullmap->num_my_elements(); ++m)
         {
           int gid = mnodefullmap->gid(m);
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          Node* cmnode = dynamic_cast<Node*>(mnode);
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          Node* c_target_node = dynamic_cast<Node*>(target_node);
           bool hasentry = false;
 
-          // look for this master node in M-map of the active slave node
-          for (mcurr = mmap.begin(); mcurr != mmap.end(); ++mcurr)
-            if ((mcurr->first) == cmnode->id())
+          // look for this target node in M-map of the active source node
+          for (t_curr = mmap.begin(); t_curr != mmap.end(); ++t_curr)
+            if ((t_curr->first) == c_target_node->id())
             {
               hasentry = true;
               break;
             }
 
-          double mik = mmap[cmnode->id()];
-          // get out of here, if master node not adjacent or coupling very weak
+          double mik = mmap[c_target_node->id()];
+          // get out of here, if target node not adjacent or coupling very weak
           if (!hasentry || abs(mik) < 1.0e-12) continue;
         }
       }
@@ -3246,12 +3246,12 @@ void CONTACT::Interface::fd_check_gap_deriv()
       if (abs(newG[k] - refG[k]) > 1e-12 && newG[k] != 1.0e12 && refG[k] != 1.0e12)
       {
         double finit = (newG[k] - refG[k]) / delta;
-        double analy = kcnode->data().get_deriv_g()[mnode->dofs()[fd % dim]];
+        double analy = kcnode->data().get_deriv_g()[target_node->dofs()[fd % dim]];
         double dev = finit - analy;
 
-        // kgid: id of currently tested slave node
-        // mnode->Dofs()[fd%dim]: currently modified slave dof
-        std::cout << "(" << kgid << "," << mnode->dofs()[fd % dim] << ") : fd=" << finit
+        // kgid: id of currently tested source node
+        // target_node->Dofs()[fd%dim]: currently modified source dof
+        std::cout << "(" << kgid << "," << target_node->dofs()[fd % dim] << ") : fd=" << finit
                   << " derivg=" << analy << " DEVIATION " << dev;
 
         if (abs(dev) > 1e-4)
@@ -3272,15 +3272,15 @@ void CONTACT::Interface::fd_check_gap_deriv()
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
 
     std::cout << " ******************** GENERATED " << w << " WARNINGS ***************** "
@@ -3315,7 +3315,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
   std::vector<double> newTLMeta(nrow);
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -3336,7 +3336,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     refTLMeta[i] = valeta;
   }
 
-  // global loop to apply FD scheme to all slave dofs (=3*nodes)
+  // global loop to apply FD scheme to all source dofs (=3*nodes)
   for (int fd = 0; fd < 3 * snodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -3386,15 +3386,15 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     }
 
     // loop over all elements to reset candidates / search lists
-    // (use standard slave column map)
-    for (int i = 0; i < slave_col_elements()->num_my_elements(); ++i)
+    // (use standard source column map)
+    for (int i = 0; i < source_col_elements()->num_my_elements(); ++i)
     {
-      int gid = slave_col_elements()->gid(i);
+      int gid = source_col_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-      Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+      Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
     }
 
     // reset matrix containing interface contact segments (gmsh)
@@ -3403,29 +3403,29 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == snode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == source_node->owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->id() << " Dof(l): " << fd % 3
-                << " Dof(g): " << snode->dofs()[fd % 3] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->id() << " Dof(l): " << fd % 3
+                << " Dof(g): " << source_node->dofs()[fd % 3] << std::endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -3434,9 +3434,9 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // *******************************************************************
     // contents of evaluate()
     // *******************************************************************
-    // loop over proc's slave nodes of the interface
+    // loop over proc's source nodes of the interface
     // use standard column map to include processor's ghosted nodes
-    // use boundary map to include slave side boundary nodes
+    // use boundary map to include source side boundary nodes
     for (int i = 0; i < snodecolmapbound_->num_my_elements(); ++i)
     {
       int gid1 = snodecolmapbound_->gid(i);
@@ -3444,34 +3444,34 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid1);
       Node* cnode = dynamic_cast<Node*>(node);
 
-      // build averaged normal at each slave node
+      // build averaged normal at each source node
       cnode->build_averaged_normal();
     }
 
     // contact search algorithm
     evaluate_search_binarytree();
 
-    // loop over proc's slave elements of the interface for integration
+    // loop over proc's source elements of the interface for integration
     // use standard column map to include processor's ghosted elements
     for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
     {
       int gid1 = selecolmap_->gid(i);
       Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-      if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-      Mortar::Element* selement = dynamic_cast<Mortar::Element*>(ele1);
+      if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+      Mortar::Element* source_element = dynamic_cast<Mortar::Element*>(ele1);
 
-      // empty vector of master element pointers
+      // empty vector of target element pointers
       std::vector<Mortar::Element*> melements;
 
-      // loop over the candidate master elements of sele_
-      // use slave element's candidate list SearchElements !!!
-      for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+      // loop over the candidate target elements of source_elem_
+      // use source element's candidate list SearchElements !!!
+      for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
       {
-        int gid2 = selement->mo_data().search_elements()[j];
+        int gid2 = source_element->mo_data().search_elements()[j];
         Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-        if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-        Mortar::Element* melement = dynamic_cast<Mortar::Element*>(ele2);
-        melements.push_back(melement);
+        if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+        Mortar::Element* target_element = dynamic_cast<Mortar::Element*>(ele2);
+        melements.push_back(target_element);
       }
 
       //********************************************************************
@@ -3479,7 +3479,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
       // 2) integrate Mortar matrix M and weighted gap g
       // 3) compute directional derivative of M and g and store into nodes
       //********************************************************************
-      mortar_coupling(selement, melements, nullptr);
+      mortar_coupling(source_element, melements, nullptr);
     }
     // *******************************************************************
 
@@ -3509,7 +3509,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
         std::cout << "Xi-TLM-FD-derivative for node S" << kcnode->id() << std::endl;
         // std::cout << "Ref-Xi-TLM: " << refTLMxi[k] << std::endl;
         // std::cout << "New-Xi-TLM: " << newTLMxi[k] << std::endl;
-        std::cout << "Deriv: " << snode->dofs()[fd % 3] << " "
+        std::cout << "Deriv: " << source_node->dofs()[fd % 3] << " "
                   << (newTLMxi[k] - refTLMxi[k]) / delta << std::endl;
       }
       // print results (derivatives) to screen
@@ -3518,7 +3518,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
         std::cout << "Eta-TLM-FD-derivative for node S" << kcnode->id() << std::endl;
         // std::cout << "Ref-TLM: " << refTLMeta[k] << std::endl;
         // std::cout << "New-TLM: " << newTLMeta[k] << std::endl;
-        std::cout << "Deriv: " << snode->dofs()[fd % 3] << " "
+        std::cout << "Deriv: " << source_node->dofs()[fd % 3] << " "
                   << (newTLMeta[k] - refTLMeta[k]) / delta << std::endl;
       }
     }
@@ -3526,19 +3526,19 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
   }
 
-  // global loop to apply FD scheme to all master dofs (=3*nodes)
+  // global loop to apply FD scheme to all target dofs (=3*nodes)
   for (int fd = 0; fd < 3 * mnodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -3588,15 +3588,15 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     }
 
     // loop over all elements to reset candidates / search lists
-    // (use standard slave column map)
-    for (int i = 0; i < slave_col_elements()->num_my_elements(); ++i)
+    // (use standard source column map)
+    for (int i = 0; i < source_col_elements()->num_my_elements(); ++i)
     {
-      int gid = slave_col_elements()->gid(i);
+      int gid = source_col_elements()->gid(i);
       Core::Elements::Element* ele = discret().g_element(gid);
       if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-      Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+      Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-      mele->mo_data().search_elements().resize(0);
+      target_elem->mo_data().search_elements().resize(0);
     }
 
     // reset matrix containing interface contact segments (gmsh)
@@ -3605,29 +3605,29 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == mnode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == target_node->owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->id() << " Dof(l): " << fd % 3
-                << " Dof(g): " << mnode->dofs()[fd % 3] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->id() << " Dof(l): " << fd % 3
+                << " Dof(g): " << target_node->dofs()[fd % 3] << std::endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -3636,9 +3636,9 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // *******************************************************************
     // contents of evaluate()
     // *******************************************************************
-    // loop over proc's slave nodes of the interface
+    // loop over proc's source nodes of the interface
     // use standard column map to include processor's ghosted nodes
-    // use boundary map to include slave side boundary nodes
+    // use boundary map to include source side boundary nodes
     for (int i = 0; i < snodecolmapbound_->num_my_elements(); ++i)
     {
       int gid1 = snodecolmapbound_->gid(i);
@@ -3646,34 +3646,34 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid1);
       Node* cnode = dynamic_cast<Node*>(node);
 
-      // build averaged normal at each slave node
+      // build averaged normal at each source node
       cnode->build_averaged_normal();
     }
 
     // contact search algorithm
     evaluate_search_binarytree();
 
-    // loop over proc's slave elements of the interface for integration
+    // loop over proc's source elements of the interface for integration
     // use standard column map to include processor's ghosted elements
     for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
     {
       int gid1 = selecolmap_->gid(i);
       Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-      if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-      Mortar::Element* selement = dynamic_cast<Mortar::Element*>(ele1);
+      if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+      Mortar::Element* source_element = dynamic_cast<Mortar::Element*>(ele1);
 
-      // empty vector of master element pointers
+      // empty vector of target element pointers
       std::vector<Mortar::Element*> melements;
 
-      // loop over the candidate master elements of sele_
-      // use slave element's candidate list SearchElements !!!
-      for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+      // loop over the candidate target elements of source_elem_
+      // use source element's candidate list SearchElements !!!
+      for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
       {
-        int gid2 = selement->mo_data().search_elements()[j];
+        int gid2 = source_element->mo_data().search_elements()[j];
         Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-        if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-        Mortar::Element* melement = dynamic_cast<Mortar::Element*>(ele2);
-        melements.push_back(melement);
+        if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+        Mortar::Element* target_element = dynamic_cast<Mortar::Element*>(ele2);
+        melements.push_back(target_element);
       }
 
       //********************************************************************
@@ -3681,7 +3681,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
       // 2) integrate Mortar matrix M and weighted gap g
       // 3) compute directional derivative of M and g and store into nodes
       //********************************************************************
-      mortar_coupling(selement, melements, nullptr);
+      mortar_coupling(source_element, melements, nullptr);
     }
     // *******************************************************************
 
@@ -3711,7 +3711,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
         std::cout << "Xi-TLM-FD-derivative for node S" << kcnode->id() << std::endl;
         // std::cout << "Ref-TLM: " << refTLMxi[k] << std::endl;
         // std::cout << "New-TLM: " << newTLMxi[k] << std::endl;
-        std::cout << "Deriv: " << mnode->dofs()[fd % 3] << " "
+        std::cout << "Deriv: " << target_node->dofs()[fd % 3] << " "
                   << (newTLMxi[k] - refTLMxi[k]) / delta << std::endl;
       }
       // print results (derivatives) to screen
@@ -3720,7 +3720,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
         std::cout << "Eta-TLM-FD-derivative for node S" << kcnode->id() << std::endl;
         // std::cout << "Ref-TLM: " << refTLMeta[k] << std::endl;
         // std::cout << "New-TLM: " << newTLMeta[k] << std::endl;
-        std::cout << "Deriv: " << mnode->dofs()[fd % 3] << " "
+        std::cout << "Deriv: " << target_node->dofs()[fd % 3] << " "
                   << (newTLMeta[k] - refTLMeta[k]) / delta << std::endl;
       }
     }
@@ -3728,15 +3728,15 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
   }
 
@@ -3789,15 +3789,15 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
   }
 
   // loop over all elements to reset candidates / search lists
-  // (use standard slave column map)
-  for (int i = 0; i < slave_col_elements()->num_my_elements(); ++i)
+  // (use standard source column map)
+  for (int i = 0; i < source_col_elements()->num_my_elements(); ++i)
   {
-    int gid = slave_col_elements()->gid(i);
+    int gid = source_col_elements()->gid(i);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-    Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+    Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-    mele->mo_data().search_elements().resize(0);
+    target_elem->mo_data().search_elements().resize(0);
   }
 
   // reset matrix containing interface contact segments (gmsh)
@@ -3809,9 +3809,9 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
   // *******************************************************************
   // contents of evaluate()
   // *******************************************************************
-  // loop over proc's slave nodes of the interface
+  // loop over proc's source nodes of the interface
   // use standard column map to include processor's ghosted nodes
-  // use boundary map to include slave side boundary nodes
+  // use boundary map to include source side boundary nodes
   for (int i = 0; i < snodecolmapbound_->num_my_elements(); ++i)
   {
     int gid1 = snodecolmapbound_->gid(i);
@@ -3819,34 +3819,34 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     if (!node) FOUR_C_THROW("Cannot find node with gid %", gid1);
     Node* cnode = dynamic_cast<Node*>(node);
 
-    // build averaged normal at each slave node
+    // build averaged normal at each source node
     cnode->build_averaged_normal();
   }
 
   // contact search algorithm
   evaluate_search_binarytree();
 
-  // loop over proc's slave elements of the interface for integration
+  // loop over proc's source elements of the interface for integration
   // use standard column map to include processor's ghosted elements
   for (int i = 0; i < selecolmap_->num_my_elements(); ++i)
   {
     int gid1 = selecolmap_->gid(i);
     Core::Elements::Element* ele1 = idiscret_->g_element(gid1);
-    if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-    Mortar::Element* selement = dynamic_cast<Mortar::Element*>(ele1);
+    if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+    Mortar::Element* source_element = dynamic_cast<Mortar::Element*>(ele1);
 
-    // empty vector of master element pointers
+    // empty vector of target element pointers
     std::vector<Mortar::Element*> melements;
 
-    // loop over the candidate master elements of sele_
-    // use slave element's candidate list SearchElements !!!
-    for (int j = 0; j < selement->mo_data().num_search_elements(); ++j)
+    // loop over the candidate target elements of source_elem_
+    // use source element's candidate list SearchElements !!!
+    for (int j = 0; j < source_element->mo_data().num_search_elements(); ++j)
     {
-      int gid2 = selement->mo_data().search_elements()[j];
+      int gid2 = source_element->mo_data().search_elements()[j];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      Mortar::Element* melement = dynamic_cast<Mortar::Element*>(ele2);
-      melements.push_back(melement);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      Mortar::Element* target_element = dynamic_cast<Mortar::Element*>(ele2);
+      melements.push_back(target_element);
     }
 
     //********************************************************************
@@ -3854,7 +3854,7 @@ void CONTACT::Interface::fd_check_tang_lm_deriv()
     // 2) integrate Mortar matrix M and weighted gap g
     // 3) compute directional derivative of M and g and store into nodes
     //********************************************************************
-    mortar_coupling(selement, melements, nullptr);
+    mortar_coupling(source_element, melements, nullptr);
   }
   // *******************************************************************
 
@@ -3887,7 +3887,7 @@ void CONTACT::Interface::fd_check_stick_deriv(
   std::vector<double> newCteta(nrow);
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -3914,34 +3914,36 @@ void CONTACT::Interface::fd_check_stick_deriv(
       std::map<int, double>& mmapold = cnode->fri_data().get_m_old();
 
       std::map<int, double>::const_iterator colcurr;
-      std::set<int> mnodes;
+      std::set<int> target_nodes;
 
-      for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++) mnodes.insert(colcurr->first);
+      for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
+        target_nodes.insert(colcurr->first);
 
       for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-        mnodes.insert(colcurr->first);
+        target_nodes.insert(colcurr->first);
 
-      std::set<int>::iterator mcurr;
+      std::set<int>::iterator t_curr;
 
-      // loop over all master nodes (find adjacent ones to this slip node)
-      for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+      // loop over all target nodes (find adjacent ones to this slip node)
+      for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
       {
-        int gid = *mcurr;
-        Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+        int gid = *t_curr;
+        Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-        double mik = mmap[cmnode->id()];
-        double mikold = mmapold[cmnode->id()];
+        double mik = mmap[c_target_node->id()];
+        double mikold = mmapold[c_target_node->id()];
 
-        std::map<int, double>::iterator mcurr;
+        std::map<int, double>::iterator t_curr;
 
         for (int dim = 0; dim < cnode->num_dof(); ++dim)
         {
-          jumptxi += (cnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-          jumpteta += (cnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+          jumptxi += (cnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+          jumpteta +=
+              (cnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
         }
-      }  //  loop over master nodes
+      }  //  loop over target nodes
 
       // gp-wise slip !!!!!!!
       if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -3956,10 +3958,10 @@ void CONTACT::Interface::fd_check_stick_deriv(
     // store C in vector
     refCtxi[i] = jumptxi;
     refCteta[i] = jumpteta;
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
   // **************************************************************************
-  // global loop to apply FD scheme to all slave dofs (=3*nodes)
+  // global loop to apply FD scheme to all source dofs (=3*nodes)
   // **************************************************************************
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
@@ -3972,32 +3974,32 @@ void CONTACT::Interface::fd_check_stick_deriv(
     int gid = snodefullmap->gid(fd / dim);
     int coldof = 0;
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    FriNode* snode = dynamic_cast<FriNode*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    FriNode* source_node = dynamic_cast<FriNode*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == snode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == source_node->owner())
     {
-      // std::cout << "\nBuilding FD for Slave Node: " << snode->Id() << " Dof: " << fd%3
-      //     << " Dof: " << snode->Dofs()[fd%3] << endl;
+      // std::cout << "\nBuilding FD for Source Node: " << source_node->Id() << " Dof: " << fd%3
+      //     << " Dof: " << source_node->Dofs()[fd%3] << endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
-      coldof = snode->dofs()[0];
+      source_node->xspatial()[0] += delta;
+      coldof = source_node->dofs()[0];
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
-      coldof = snode->dofs()[1];
+      source_node->xspatial()[1] += delta;
+      coldof = source_node->dofs()[1];
     }
     else
     {
-      snode->xspatial()[2] += delta;
-      coldof = snode->dofs()[2];
+      source_node->xspatial()[2] += delta;
+      coldof = source_node->dofs()[2];
     }
 
     // compute element areas
@@ -4035,35 +4037,37 @@ void CONTACT::Interface::fd_check_stick_deriv(
         std::map<int, double> mmapold = kcnode->fri_data().get_m_old();
 
         std::map<int, double>::iterator colcurr;
-        std::set<int> mnodes;
+        std::set<int> target_nodes;
 
         for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
         for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
-        std::set<int>::iterator mcurr;
+        std::set<int>::iterator t_curr;
 
-        // loop over all master nodes (find adjacent ones to this stick node)
-        for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+        // loop over all target nodes (find adjacent ones to this stick node)
+        for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
         {
-          int gid = *mcurr;
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+          int gid = *t_curr;
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-          double mik = mmap[cmnode->id()];
-          double mikold = mmapold[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
+          double mikold = mmapold[c_target_node->id()];
 
-          std::map<int, double>::iterator mcurr;
+          std::map<int, double>::iterator t_curr;
 
           for (int dim = 0; dim < kcnode->num_dof(); ++dim)
           {
-            jumptxi += (kcnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-            jumpteta += (kcnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+            jumptxi +=
+                (kcnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+            jumpteta +=
+                (kcnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
           }
-        }  //  loop over master nodes
+        }  //  loop over target nodes
 
         // gp-wise slip !!!!!!!
         if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -4128,7 +4132,7 @@ void CONTACT::Interface::fd_check_stick_deriv(
       if (abs(newCtxi[k] - refCtxi[k]) > 1e-12)
       {
         std::cout << "STICK DIS-Deriv_xi:  " << kcnode->id()
-                  << "\t w.r.t Master: " << snode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << source_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCtxi[k] - refCtxi[k]) / delta
                   << "\t analyt= " << std::setprecision(4) << analyt_txi
                   << "\t Error= " << analyt_txi - ((newCtxi[k] - refCtxi[k]) / delta);
@@ -4141,7 +4145,7 @@ void CONTACT::Interface::fd_check_stick_deriv(
       if (abs(newCteta[k] - refCteta[k]) > 1e-12)
       {
         std::cout << "STICK DIS-Deriv_eta: " << kcnode->id()
-                  << "\t w.r.t Master: " << snode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << source_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCteta[k] - refCteta[k]) / delta
                   << "\t analyt= " << std::setprecision(4) << analyt_teta
                   << "\t Error= " << analyt_teta - ((newCteta[k] - refCteta[k]) / delta);
@@ -4154,20 +4158,20 @@ void CONTACT::Interface::fd_check_stick_deriv(
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
   // **************************************************************************
-  // global loop to apply FD scheme to all master dofs (=3*nodes)
+  // global loop to apply FD scheme to all target dofs (=3*nodes)
   // **************************************************************************
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
@@ -4180,32 +4184,32 @@ void CONTACT::Interface::fd_check_stick_deriv(
     int gid = mnodefullmap->gid(fd / dim);
     int coldof = 0;
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    FriNode* mnode = dynamic_cast<FriNode*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    FriNode* target_node = dynamic_cast<FriNode*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == mnode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == target_node->owner())
     {
-      // std::cout << "\nBuilding FD for Master Node: " << mnode->Id() << " Dof: " << fd%3
-      //     << " Dof: " << mnode->Dofs()[fd%3] << endl;
+      // std::cout << "\nBuilding FD for Target Node: " << target_node->Id() << " Dof: " << fd%3
+      //     << " Dof: " << target_node->Dofs()[fd%3] << endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
-      coldof = mnode->dofs()[0];
+      target_node->xspatial()[0] += delta;
+      coldof = target_node->dofs()[0];
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
-      coldof = mnode->dofs()[1];
+      target_node->xspatial()[1] += delta;
+      coldof = target_node->dofs()[1];
     }
     else
     {
-      mnode->xspatial()[2] += delta;
-      coldof = mnode->dofs()[2];
+      target_node->xspatial()[2] += delta;
+      coldof = target_node->dofs()[2];
     }
 
     // compute element areas
@@ -4243,35 +4247,37 @@ void CONTACT::Interface::fd_check_stick_deriv(
         std::map<int, double> mmapold = kcnode->fri_data().get_m_old();
 
         std::map<int, double>::iterator colcurr;
-        std::set<int> mnodes;
+        std::set<int> target_nodes;
 
         for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
         for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
-        std::set<int>::iterator mcurr;
+        std::set<int>::iterator t_curr;
 
-        // loop over all master nodes (find adjacent ones to this stick node)
-        for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+        // loop over all target nodes (find adjacent ones to this stick node)
+        for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
         {
-          int gid = *mcurr;
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+          int gid = *t_curr;
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-          double mik = mmap[cmnode->id()];
-          double mikold = mmapold[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
+          double mikold = mmapold[c_target_node->id()];
 
-          std::map<int, double>::iterator mcurr;
+          std::map<int, double>::iterator t_curr;
 
           for (int dim = 0; dim < kcnode->num_dof(); ++dim)
           {
-            jumptxi += (kcnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-            jumpteta += (kcnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+            jumptxi +=
+                (kcnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+            jumpteta +=
+                (kcnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
           }
-        }  //  loop over master nodes
+        }  //  loop over target nodes
         // gp-wise slip !!!!!!!
 
         if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -4337,7 +4343,7 @@ void CONTACT::Interface::fd_check_stick_deriv(
       if (abs(newCtxi[k] - refCtxi[k]) > 1e-12)
       {
         std::cout << "STICK DIS-Deriv_xi:  " << kcnode->id()
-                  << "\t w.r.t Master: " << mnode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << target_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCtxi[k] - refCtxi[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_txi
                   << "\t Error= " << analyt_txi - ((newCtxi[k] - refCtxi[k]) / delta);
@@ -4350,7 +4356,7 @@ void CONTACT::Interface::fd_check_stick_deriv(
       if (abs(newCteta[k] - refCteta[k]) > 1e-12)
       {
         std::cout << "STICK DIS-Deriv_eta: " << kcnode->id()
-                  << "\t w.r.t Master: " << mnode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << target_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCteta[k] - refCteta[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_teta
                   << "\t Error= " << analyt_teta - ((newCteta[k] - refCteta[k]) / delta);
@@ -4364,15 +4370,15 @@ void CONTACT::Interface::fd_check_stick_deriv(
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
   }
 
@@ -4415,7 +4421,7 @@ void CONTACT::Interface::fd_check_slip_deriv(
   int dim = n_dim();
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -4449,34 +4455,36 @@ void CONTACT::Interface::fd_check_slip_deriv(
       std::map<int, double>& mmapold = cnode->fri_data().get_m_old();
 
       std::map<int, double>::const_iterator colcurr;
-      std::set<int> mnodes;
+      std::set<int> target_nodes;
 
-      for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++) mnodes.insert(colcurr->first);
+      for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
+        target_nodes.insert(colcurr->first);
 
       for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-        mnodes.insert(colcurr->first);
+        target_nodes.insert(colcurr->first);
 
-      std::set<int>::iterator mcurr;
+      std::set<int>::iterator t_curr;
 
-      // loop over all master nodes (find adjacent ones to this slip node)
-      for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+      // loop over all target nodes (find adjacent ones to this slip node)
+      for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
       {
-        int gid = *mcurr;
-        Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-        FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+        int gid = *t_curr;
+        Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+        FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-        double mik = mmap[cmnode->id()];
-        double mikold = mmapold[cmnode->id()];
+        double mik = mmap[c_target_node->id()];
+        double mikold = mmapold[c_target_node->id()];
 
-        std::map<int, double>::iterator mcurr;
+        std::map<int, double>::iterator t_curr;
 
         for (int dim = 0; dim < cnode->num_dof(); ++dim)
         {
-          jumptxi += (cnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-          jumpteta += (cnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+          jumptxi += (cnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+          jumpteta +=
+              (cnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
         }
-      }  //  loop over master nodes
+      }  //  loop over target nodes
 
       // gp-wise slip !!!!!!!
       if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -4514,10 +4522,10 @@ void CONTACT::Interface::fd_check_slip_deriv(
     refCteta[i] = euclidean * zteta -
                   (frcoeff * (znor - cn * cnode->data().getg())) * (zteta + ct * jumpteta);
 
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
   // **********************************************************************************
-  // global loop to apply FD scheme for LM to all slave dofs (=3*nodes)
+  // global loop to apply FD scheme for LM to all source dofs (=3*nodes)
   // **********************************************************************************
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
@@ -4525,25 +4533,25 @@ void CONTACT::Interface::fd_check_slip_deriv(
     int gid = snodefullmap->gid(fd / dim);
     int coldof = 0;
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    FriNode* snode = dynamic_cast<FriNode*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    FriNode* source_node = dynamic_cast<FriNode*>(node);
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->mo_data().lm()[0] += delta;
-      coldof = snode->dofs()[0];
+      source_node->mo_data().lm()[0] += delta;
+      coldof = source_node->dofs()[0];
     }
     else if (fd % dim == 1)
     {
-      snode->mo_data().lm()[1] += delta;
-      coldof = snode->dofs()[1];
+      source_node->mo_data().lm()[1] += delta;
+      coldof = source_node->dofs()[1];
     }
     else
     {
-      snode->mo_data().lm()[2] += delta;
-      coldof = snode->dofs()[2];
+      source_node->mo_data().lm()[2] += delta;
+      coldof = source_node->dofs()[2];
     }
 
     // compute finite difference derivative
@@ -4579,34 +4587,36 @@ void CONTACT::Interface::fd_check_slip_deriv(
         std::map<int, double> mmapold = kcnode->fri_data().get_m_old();
 
         std::map<int, double>::iterator colcurr;
-        std::set<int> mnodes;
+        std::set<int> target_nodes;
 
         for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
         for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
-        std::set<int>::iterator mcurr;
+        std::set<int>::iterator t_curr;
 
-        // loop over all master nodes (find adjacent ones to this stick node)
-        for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+        // loop over all target nodes (find adjacent ones to this stick node)
+        for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
         {
-          int gid = *mcurr;
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
-          double mik = mmap[cmnode->id()];
-          double mikold = mmapold[cmnode->id()];
+          int gid = *t_curr;
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
+          double mik = mmap[c_target_node->id()];
+          double mikold = mmapold[c_target_node->id()];
 
-          std::map<int, double>::iterator mcurr;
+          std::map<int, double>::iterator t_curr;
 
           for (int dim = 0; dim < kcnode->num_dof(); ++dim)
           {
-            jumptxi += (kcnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-            jumpteta += (kcnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+            jumptxi +=
+                (kcnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+            jumpteta +=
+                (kcnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
           }
-        }  //  loop over master nodes
+        }  //  loop over target nodes
 
         // gp-wise slip !!!!!!!
         if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -4693,7 +4703,8 @@ void CONTACT::Interface::fd_check_slip_deriv(
       // print results (derivatives) to screen
       if (abs(newCtxi[k] - refCtxi[k]) > 1e-12)
       {
-        std::cout << "SLIP LM-Deriv_xi: " << kcnode->id() << "\t w.r.t: " << snode->dofs()[fd % dim]
+        std::cout << "SLIP LM-Deriv_xi: " << kcnode->id()
+                  << "\t w.r.t: " << source_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCtxi[k] - refCtxi[k]) / delta
                   << "\t analyt= " << std::setprecision(4) << analyt_txi
                   << "\t Error= " << analyt_txi - ((newCtxi[k] - refCtxi[k]) / delta);
@@ -4707,9 +4718,9 @@ void CONTACT::Interface::fd_check_slip_deriv(
       if (abs(newCteta[k] - refCteta[k]) > 1e-12)
       {
         std::cout << "SLIP LM-Deriv_eta: " << kcnode->id()
-                  << "\t w.r.t: " << snode->dofs()[fd % dim] << "\t FD= " << std::setprecision(4)
-                  << (newCteta[k] - refCteta[k]) / delta << "\t analyt= " << std::setprecision(4)
-                  << analyt_teta
+                  << "\t w.r.t: " << source_node->dofs()[fd % dim]
+                  << "\t FD= " << std::setprecision(4) << (newCteta[k] - refCteta[k]) / delta
+                  << "\t analyt= " << std::setprecision(4) << analyt_teta
                   << "\t Error= " << analyt_teta - ((newCteta[k] - refCteta[k]) / delta);
         if (abs(analyt_teta - (newCteta[k] - refCteta[k]) / delta) > 1.0e-4)
           std::cout << "*** WARNING ***" << std::endl;
@@ -4720,21 +4731,21 @@ void CONTACT::Interface::fd_check_slip_deriv(
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->mo_data().lm()[0] -= delta;
+      source_node->mo_data().lm()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->mo_data().lm()[1] -= delta;
+      source_node->mo_data().lm()[1] -= delta;
     }
     else
     {
-      snode->mo_data().lm()[2] -= delta;
+      source_node->mo_data().lm()[2] -= delta;
     }
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
 
   // ********************************************************************************************
-  // global loop to apply FD scheme to all slave dofs (=3*nodes)
+  // global loop to apply FD scheme to all source dofs (=3*nodes)
   // ********************************************************************************************
   for (int fd = 0; fd < dim * snodefullmap->num_my_elements(); ++fd)
   {
@@ -4745,25 +4756,25 @@ void CONTACT::Interface::fd_check_slip_deriv(
     int gid = snodefullmap->gid(fd / dim);
     int coldof = 0;
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    FriNode* snode = dynamic_cast<FriNode*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    FriNode* source_node = dynamic_cast<FriNode*>(node);
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] += delta;
-      coldof = snode->dofs()[0];
+      source_node->xspatial()[0] += delta;
+      coldof = source_node->dofs()[0];
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] += delta;
-      coldof = snode->dofs()[1];
+      source_node->xspatial()[1] += delta;
+      coldof = source_node->dofs()[1];
     }
     else
     {
-      snode->xspatial()[2] += delta;
-      coldof = snode->dofs()[2];
+      source_node->xspatial()[2] += delta;
+      coldof = source_node->dofs()[2];
     }
 
     // compute element areas
@@ -4808,35 +4819,37 @@ void CONTACT::Interface::fd_check_slip_deriv(
         std::map<int, double> mmapold = kcnode->fri_data().get_m_old();
 
         std::map<int, double>::iterator colcurr;
-        std::set<int> mnodes;
+        std::set<int> target_nodes;
 
         for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
         for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
-        std::set<int>::iterator mcurr;
+        std::set<int>::iterator t_curr;
 
-        // loop over all master nodes (find adjacent ones to this stick node)
-        for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+        // loop over all target nodes (find adjacent ones to this stick node)
+        for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
         {
-          int gid = *mcurr;
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+          int gid = *t_curr;
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-          double mik = mmap[cmnode->id()];
-          double mikold = mmapold[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
+          double mikold = mmapold[c_target_node->id()];
 
-          std::map<int, double>::iterator mcurr;
+          std::map<int, double>::iterator t_curr;
 
           for (int dim = 0; dim < kcnode->num_dof(); ++dim)
           {
-            jumptxi += (kcnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-            jumpteta += (kcnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+            jumptxi +=
+                (kcnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+            jumpteta +=
+                (kcnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
           }
-        }  //  loop over master nodes
+        }  //  loop over target nodes
 
         // gp-wise slip !!!!!!!
         if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -4927,7 +4940,7 @@ void CONTACT::Interface::fd_check_slip_deriv(
       if (abs(newCtxi[k] - refCtxi[k]) > 1e-12)
       {
         std::cout << "SLIP DIS-Deriv_xi: " << kcnode->id()
-                  << "\t w.r.t Slave: " << snode->dofs()[fd % dim]
+                  << "\t w.r.t Source: " << source_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCtxi[k] - refCtxi[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_txi
                   << "\t Error= " << analyt_txi - ((newCtxi[k] - refCtxi[k]) / delta);
@@ -4941,7 +4954,7 @@ void CONTACT::Interface::fd_check_slip_deriv(
       if (abs(newCteta[k] - refCteta[k]) > 1e-12)
       {
         std::cout << "SLIP DIS-Deriv_eta: " << kcnode->id()
-                  << "\t w.r.t Slave: " << snode->dofs()[fd % dim]
+                  << "\t w.r.t Source: " << source_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCteta[k] - refCteta[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_teta
                   << "\t Error= " << analyt_teta - ((newCteta[k] - refCteta[k]) / delta);
@@ -4954,20 +4967,20 @@ void CONTACT::Interface::fd_check_slip_deriv(
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
   // ********************************************************************************************
-  // global loop to apply FD scheme to all master dofs (=3*nodes)
+  // global loop to apply FD scheme to all target dofs (=3*nodes)
   // ********************************************************************************************
   for (int fd = 0; fd < dim * mnodefullmap->num_my_elements(); ++fd)
   {
@@ -4978,25 +4991,25 @@ void CONTACT::Interface::fd_check_slip_deriv(
     int gid = mnodefullmap->gid(fd / dim);
     int coldof = 0;
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    FriNode* mnode = dynamic_cast<FriNode*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    FriNode* target_node = dynamic_cast<FriNode*>(node);
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] += delta;
-      coldof = mnode->dofs()[0];
+      target_node->xspatial()[0] += delta;
+      coldof = target_node->dofs()[0];
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] += delta;
-      coldof = mnode->dofs()[1];
+      target_node->xspatial()[1] += delta;
+      coldof = target_node->dofs()[1];
     }
     else
     {
-      mnode->xspatial()[2] += delta;
-      coldof = mnode->dofs()[2];
+      target_node->xspatial()[2] += delta;
+      coldof = target_node->dofs()[2];
     }
 
     // compute element areas
@@ -5041,35 +5054,37 @@ void CONTACT::Interface::fd_check_slip_deriv(
         std::map<int, double> mmapold = kcnode->fri_data().get_m_old();
 
         std::map<int, double>::iterator colcurr;
-        std::set<int> mnodes;
+        std::set<int> target_nodes;
 
         for (colcurr = mmap.begin(); colcurr != mmap.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
         for (colcurr = mmapold.begin(); colcurr != mmapold.end(); colcurr++)
-          mnodes.insert(colcurr->first);
+          target_nodes.insert(colcurr->first);
 
-        std::set<int>::iterator mcurr;
+        std::set<int>::iterator t_curr;
 
-        // loop over all master nodes (find adjacent ones to this stick node)
-        for (mcurr = mnodes.begin(); mcurr != mnodes.end(); mcurr++)
+        // loop over all target nodes (find adjacent ones to this stick node)
+        for (t_curr = target_nodes.begin(); t_curr != target_nodes.end(); t_curr++)
         {
-          int gid = *mcurr;
-          Core::Nodes::Node* mnode = idiscret_->g_node(gid);
-          if (!mnode) FOUR_C_THROW("Cannot find node with gid %", gid);
-          FriNode* cmnode = dynamic_cast<FriNode*>(mnode);
+          int gid = *t_curr;
+          Core::Nodes::Node* target_node = idiscret_->g_node(gid);
+          if (!target_node) FOUR_C_THROW("Cannot find node with gid %", gid);
+          FriNode* c_target_node = dynamic_cast<FriNode*>(target_node);
 
-          double mik = mmap[cmnode->id()];
-          double mikold = mmapold[cmnode->id()];
+          double mik = mmap[c_target_node->id()];
+          double mikold = mmapold[c_target_node->id()];
 
-          std::map<int, double>::iterator mcurr;
+          std::map<int, double>::iterator t_curr;
 
           for (int dim = 0; dim < kcnode->num_dof(); ++dim)
           {
-            jumptxi += (kcnode->data().txi()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
-            jumpteta += (kcnode->data().teta()[dim]) * (mik - mikold) * (cmnode->xspatial()[dim]);
+            jumptxi +=
+                (kcnode->data().txi()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
+            jumpteta +=
+                (kcnode->data().teta()[dim]) * (mik - mikold) * (c_target_node->xspatial()[dim]);
           }
-        }  //  loop over master nodes
+        }  //  loop over target nodes
 
         // gp-wise slip !!!!!!!
         if (interface_params().get<bool>("GP_SLIP_INCR"))
@@ -5159,7 +5174,7 @@ void CONTACT::Interface::fd_check_slip_deriv(
       if (abs(newCtxi[k] - refCtxi[k]) > 1e-12)
       {
         std::cout << "SLIP DIS-Deriv_xi: " << kcnode->id()
-                  << "\t w.r.t Master: " << mnode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << target_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCtxi[k] - refCtxi[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_txi
                   << "\t Error= " << analyt_txi - ((newCtxi[k] - refCtxi[k]) / delta);
@@ -5172,7 +5187,7 @@ void CONTACT::Interface::fd_check_slip_deriv(
       if (abs(newCteta[k] - refCteta[k]) > 1e-12)
       {
         std::cout << "SLIP DIS-Deriv_eta: " << kcnode->id()
-                  << "\t w.r.t Master: " << mnode->dofs()[fd % dim]
+                  << "\t w.r.t Target: " << target_node->dofs()[fd % dim]
                   << "\t FD= " << std::setprecision(4) << (newCteta[k] - refCteta[k]) / delta
                   << "\t analyt= " << std::setprecision(5) << analyt_teta
                   << "\t Error= " << analyt_teta - ((newCteta[k] - refCteta[k]) / delta);
@@ -5186,15 +5201,15 @@ void CONTACT::Interface::fd_check_slip_deriv(
     // undo finite difference modification
     if (fd % dim == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % dim == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
   }
 
@@ -5225,7 +5240,7 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
 
   std::map<int, std::map<int, double>> deltastorage;
 
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -5262,7 +5277,7 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
 
   int w = 0;
 
-  // global loop to apply FD scheme to all SLAVE dofs (=3*nodes)
+  // global loop to apply FD scheme to all SOURCE dofs (=3*nodes)
   for (int fd = 0; fd < 3 * snodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -5271,26 +5286,26 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
-    int sdof = snode->dofs()[fd % 3];
+    int source_dof = source_node->dofs()[fd % 3];
 
-    std::cout << "DEVIATION FOR S-NODE # " << gid << " DOF: " << sdof << std::endl;
+    std::cout << "DEVIATION FOR SOURCE NODE # " << gid << " DOF: " << source_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -5322,12 +5337,12 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
 
         fd = (newlm[dof] - reflm[dof]) / delta;
 
-        dev = deltastorage[dof][sdof] - fd;
+        dev = deltastorage[dof][source_dof] - fd;
 
         if (dev)
         {
-          std::cout << " (" << dof << ", " << sdof << ") :\t fd=" << fd
-                    << " derivz=" << deltastorage[dof][sdof] << " DEVIATION: " << dev;
+          std::cout << " (" << dof << ", " << source_dof << ") :\t fd=" << fd
+                    << " derivz=" << deltastorage[dof][source_dof] << " DEVIATION: " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -5353,15 +5368,15 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
   }
   std::cout << "\n ******************** GENERATED " << w << " WARNINGS ***************** \n"
@@ -5369,7 +5384,7 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
 
   w = 0;
 
-  // global loop to apply FD scheme to all MASTER dofs (=3*nodes)
+  // global loop to apply FD scheme to all TARGET dofs (=3*nodes)
   for (int fd = 0; fd < 3 * mnodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -5378,26 +5393,26 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
-    int mdof = mnode->dofs()[fd % 3];
+    int target_dof = target_node->dofs()[fd % 3];
 
-    std::cout << "DEVIATION FOR M-NODE # " << gid << " DOF: " << mdof << std::endl;
+    std::cout << "DEVIATION FOR TARGET NODE # " << gid << " DOF: " << target_dof << std::endl;
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -5430,12 +5445,12 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
 
         fd = (newlm[dof] - reflm[dof]) / delta;
 
-        dev = deltastorage[dof][mdof] - fd;
+        dev = deltastorage[dof][target_dof] - fd;
 
         if (dev)
         {
-          std::cout << " (" << dof << ", " << mdof << ") :\t fd=" << fd
-                    << " derivz=" << deltastorage[dof][mdof] << " DEVIATION: " << dev;
+          std::cout << " (" << dof << ", " << target_dof << ") :\t fd=" << fd
+                    << " derivz=" << deltastorage[dof][target_dof] << " DEVIATION: " << dev;
 
           if (abs(dev) > 1e-4)
           {
@@ -5461,15 +5476,15 @@ void CONTACT::Interface::fd_check_penalty_trac_nor()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
   }
   std::cout << "\n ******************** GENERATED " << w << " WARNINGS ***************** \n"
@@ -5519,7 +5534,7 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
   std::vector<double> newtrac3(nrow);
 
   // store reference
-  // loop over proc's slave nodes
+  // loop over proc's source nodes
   for (int i = 0; i < snoderowmap_->num_my_elements(); ++i)
   {
     int gid = snoderowmap_->gid(i);
@@ -5630,9 +5645,9 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
       reftrac3[i] =
           n[2] * (lmuzawan - kappa * ppnor * gap) + trailtraction[2] * maxtantrac / magnitude;
     }
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
-  // global loop to apply FD scheme to all slave dofs (=3*nodes)
+  // global loop to apply FD scheme to all source dofs (=3*nodes)
   for (int fd = 0; fd < 3 * snodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -5641,29 +5656,29 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
     // now get the node we want to apply the FD scheme to
     int gid = snodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find slave node with gid %", gid);
-    Node* snode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find source node with gid %", gid);
+    Node* source_node = dynamic_cast<Node*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == snode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == source_node->owner())
     {
-      std::cout << "\nBuilding FD for Slave Node: " << snode->id() << " Dof: " << fd % 3
-                << " Dof: " << snode->dofs()[fd % 3] << std::endl;
+      std::cout << "\nBuilding FD for Source Node: " << source_node->id() << " Dof: " << fd % 3
+                << " Dof: " << source_node->dofs()[fd % 3] << std::endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] += delta;
+      source_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] += delta;
+      source_node->xspatial()[1] += delta;
     }
     else
     {
-      snode->xspatial()[2] += delta;
+      source_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -5795,11 +5810,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv0:      " << kcnode->dofs()[0] << " " << snode->dofs()[fd % 3] << " "
-                  << (newtrac1[k] - reftrac1[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv0:      " << kcnode->dofs()[0] << " " << source_node->dofs()[fd % 3]
+                  << " " << (newtrac1[k] - reftrac1[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -5811,11 +5826,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv1:      " << kcnode->dofs()[1] << " " << snode->dofs()[fd % 3] << " "
-                  << (newtrac2[k] - reftrac2[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv1:      " << kcnode->dofs()[1] << " " << source_node->dofs()[fd % 3]
+                  << " " << (newtrac2[k] - reftrac2[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -5827,11 +5842,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv2:      " << kcnode->dofs()[2] << " " << snode->dofs()[fd % 3] << " "
-                  << (newtrac3[k] - reftrac3[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv2:      " << kcnode->dofs()[2] << " " << source_node->dofs()[fd % 3]
+                  << " " << (newtrac3[k] - reftrac3[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -5840,19 +5855,19 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      snode->xspatial()[0] -= delta;
+      source_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      snode->xspatial()[1] -= delta;
+      source_node->xspatial()[1] -= delta;
     }
     else
     {
-      snode->xspatial()[2] -= delta;
+      source_node->xspatial()[2] -= delta;
     }
-  }  // loop over procs slave nodes
+  }  // loop over procs source nodes
 
-  // global loop to apply FD scheme to all master dofs (=3*nodes)
+  // global loop to apply FD scheme to all target dofs (=3*nodes)
   for (int fd = 0; fd < 3 * mnodefullmap->num_my_elements(); ++fd)
   {
     // Initialize
@@ -5861,29 +5876,29 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
     // now get the node we want to apply the FD scheme to
     int gid = mnodefullmap->gid(fd / 3);
     Core::Nodes::Node* node = idiscret_->g_node(gid);
-    if (!node) FOUR_C_THROW("Cannot find master node with gid %", gid);
-    Node* mnode = dynamic_cast<Node*>(node);
+    if (!node) FOUR_C_THROW("Cannot find target node with gid %", gid);
+    Node* target_node = dynamic_cast<Node*>(node);
 
     // apply finite difference scheme
-    if (Core::Communication::my_mpi_rank(get_comm()) == mnode->owner())
+    if (Core::Communication::my_mpi_rank(get_comm()) == target_node->owner())
     {
-      std::cout << "\nBuilding FD for Master Node: " << mnode->id() << " Dof: " << fd % 3
-                << " Dof: " << mnode->dofs()[fd % 3] << std::endl;
+      std::cout << "\nBuilding FD for Target Node: " << target_node->id() << " Dof: " << fd % 3
+                << " Dof: " << target_node->dofs()[fd % 3] << std::endl;
     }
 
     // do step forward (modify nodal displacement)
     double delta = 1e-8;
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] += delta;
+      target_node->xspatial()[0] += delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] += delta;
+      target_node->xspatial()[1] += delta;
     }
     else
     {
-      mnode->xspatial()[2] += delta;
+      target_node->xspatial()[2] += delta;
     }
 
     // compute element areas
@@ -6013,11 +6028,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv:      " << kcnode->dofs()[0] << " " << mnode->dofs()[fd % 3] << " "
-                  << (newtrac1[k] - reftrac1[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv:      " << kcnode->dofs()[0] << " " << target_node->dofs()[fd % 3]
+                  << " " << (newtrac1[k] - reftrac1[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -6029,11 +6044,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv:      " << kcnode->dofs()[1] << " " << mnode->dofs()[fd % 3] << " "
-                  << (newtrac2[k] - reftrac2[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv:      " << kcnode->dofs()[1] << " " << target_node->dofs()[fd % 3]
+                  << " " << (newtrac2[k] - reftrac2[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -6045,11 +6060,11 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
         // std::cout << "SlipCon-FD-derivative for node S" << kcnode->Id() << std::endl;
         // std::cout << "Ref-G: " << refG[k] << std::endl;
         // std::cout << "New-G: " << newG[k] << std::endl;
-        std::cout << "Deriv:      " << kcnode->dofs()[2] << " " << mnode->dofs()[fd % 3] << " "
-                  << (newtrac3[k] - reftrac3[k]) / delta << std::endl;
-        // std::cout << "Analytical: " << snode->Dofs()[fd%3] << " " <<
-        // kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]] << std::endl; if
-        // (abs(kcnode->Data().GetDerivG()[snode->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
+        std::cout << "Deriv:      " << kcnode->dofs()[2] << " " << target_node->dofs()[fd % 3]
+                  << " " << (newtrac3[k] - reftrac3[k]) / delta << std::endl;
+        // std::cout << "Analytical: " << source_node->Dofs()[fd%3] << " " <<
+        // kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]] << std::endl; if
+        // (abs(kcnode->Data().GetDerivG()[source_node->Dofs()[fd%3]]-(newG[k]-refG[k])/delta)>1.0e-5)
         //  std::cout <<
         //  "***WARNING*****************************************************************************"
         //  << std::endl;
@@ -6058,15 +6073,15 @@ void CONTACT::Interface::fd_check_penalty_trac_fric()
     // undo finite difference modification
     if (fd % 3 == 0)
     {
-      mnode->xspatial()[0] -= delta;
+      target_node->xspatial()[0] -= delta;
     }
     else if (fd % 3 == 1)
     {
-      mnode->xspatial()[1] -= delta;
+      target_node->xspatial()[1] -= delta;
     }
     else
     {
-      mnode->xspatial()[2] -= delta;
+      target_node->xspatial()[2] -= delta;
     }
   }
 

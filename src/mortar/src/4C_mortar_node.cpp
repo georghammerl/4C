@@ -165,7 +165,7 @@ void Mortar::Node::print(std::ostream& os) const
   os << "Mortar ";
   Core::Nodes::Node::print(os);
 
-  if (is_slave())
+  if (is_source())
     os << " Slave  ";
   else
     os << " Master ";
@@ -283,7 +283,7 @@ void Mortar::Node::unpack(Core::Communication::UnpackBuffer& buffer)
 void Mortar::Node::add_d_value(const int& colnode, const double& val)
 {
   // check if this is a master node or slave boundary node
-  if (not is_slave()) FOUR_C_THROW("AddDValue: function called for master node {}", id());
+  if (not is_source()) FOUR_C_THROW("AddDValue: function called for master node {}", id());
   if (is_on_bound()) FOUR_C_THROW("AddDValue: function called for boundary node {}", id());
 
   // check if this has been called before
@@ -323,7 +323,7 @@ void Mortar::Node::add_dlts_value(const int& colnode, const double& val)
 void Mortar::Node::add_dltl_value(const int& colnode, const double& val)
 {
   // check if this is a master node or slave boundary node
-  if (not is_slave()) FOUR_C_THROW("AddDValue: function called for master node {}", id());
+  if (not is_source()) FOUR_C_THROW("AddDValue: function called for master node {}", id());
   if (not is_on_edge()) FOUR_C_THROW("function called for non-edge node {}", id());
 
   // check if this has been called before
@@ -339,7 +339,7 @@ void Mortar::Node::add_dltl_value(const int& colnode, const double& val)
 void Mortar::Node::add_m_value(const int& colnode, const double& val)
 {
   // check if this is a master node or slave boundary node
-  if (not is_slave()) FOUR_C_THROW("AddMValue: function called for master node {}", id());
+  if (not is_source()) FOUR_C_THROW("AddMValue: function called for master node {}", id());
   if (is_on_boundor_ce()) FOUR_C_THROW("AddMValue: function called for boundary node {}", id());
 
   // add the pair (col,val) to the given row
@@ -370,7 +370,7 @@ void Mortar::Node::add_mlts_value(const int& colnode, const double& val)
 void Mortar::Node::add_mltl_value(const int& colnode, const double& val)
 {
   // check if this is a master node or slave boundary node
-  if (not is_slave()) FOUR_C_THROW("AddMValue: function called for master node {}", id());
+  if (not is_source()) FOUR_C_THROW("AddMValue: function called for master node {}", id());
   if (not is_on_edge()) FOUR_C_THROW("function called for non-edge node {}", id());
 
   // add the pair (col,val) to the given row
@@ -383,7 +383,7 @@ void Mortar::Node::add_mltl_value(const int& colnode, const double& val)
 void Mortar::Node::add_mmod_value(const int& colnode, const double& val)
 {
   // check if this is a master node or slave boundary node
-  if (not is_slave()) FOUR_C_THROW("AddMmodValue: function called for master node {}", id());
+  if (not is_source()) FOUR_C_THROW("AddMmodValue: function called for master node {}", id());
   if (is_on_bound()) FOUR_C_THROW("AddMmodValue: function called for boundary node {}", id());
 
   // add the pair (col,val) to the given row

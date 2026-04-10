@@ -28,7 +28,7 @@ Discret::Elements::Bele3Line::Bele3Line(int id, int owner, int nnode, const int*
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lline);
+  set_parent_target_element(parent, lline);
   set_num_dof_per_node(parent->num_dof_per_node(*nodes[0]));
   return;
 }

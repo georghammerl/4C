@@ -55,7 +55,7 @@ void PoroElast::MonolithicMeshtying::evaluate(
   Monolithic::evaluate(iterinc, firstiter);
 
   // get state vectors to store in contact data container
-  std::shared_ptr<Core::LinAlg::Vector<double>> fvel = fluid_structure_coupling().slave_to_master(
+  std::shared_ptr<Core::LinAlg::Vector<double>> fvel = fluid_structure_coupling().source_to_target(
       *fluid_field()->extract_velocity_part(fluid_field()->velnp()));
 
   // modified pressure vector modfpres is used to get pressure values to mortar/contact integrator.
@@ -78,7 +78,7 @@ void PoroElast::MonolithicMeshtying::evaluate(
     modfpres->replace_global_values(1, &val[i], &gid);
   }
   // convert velocity map to structure displacement map
-  modfpres = fluid_structure_coupling().slave_to_master(*modfpres);
+  modfpres = fluid_structure_coupling().source_to_target(*modfpres);
 
   // for the set_state() methods in EvaluatePoroMt() non const state vectors are needed
   // ->WriteAccess... methods are used (even though we will not change the states ...)

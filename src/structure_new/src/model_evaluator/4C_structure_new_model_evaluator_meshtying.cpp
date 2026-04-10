@@ -128,10 +128,10 @@ void Solid::ModelEvaluator::Meshtying::setup()
         {
           std::shared_ptr<Core::LinAlg::Vector<double>> original_vec =
               std::make_shared<Core::LinAlg::Vector<double>>(
-                  *(strategy_ptr_->non_redist_slave_row_dofs()), true);
+                  *(strategy_ptr_->non_redist_source_row_dofs()), true);
 
           Core::LinAlg::Export exporter(
-              Xslavemod->get_map(), *strategy_ptr_->non_redist_slave_row_dofs());
+              Xslavemod->get_map(), *strategy_ptr_->non_redist_source_row_dofs());
 
           original_vec->export_to(*Xslavemod, exporter, Core::LinAlg::CombineMode::insert);
 
@@ -147,7 +147,7 @@ void Solid::ModelEvaluator::Meshtying::setup()
           for (int d = 0; d < strategy_ptr_->n_dim(); ++d)
           {
             int dof = gdiscret->dof(node.user_node(), d);
-            if (strategy_ptr_->non_redist_slave_row_dofs()->lid(dof) != -1)
+            if (strategy_ptr_->non_redist_source_row_dofs()->lid(dof) != -1)
             {
               mesh_relocation_->get_values()[mesh_relocation_->get_map().lid(dof)] =
                   node.x()[d] -
@@ -395,7 +395,7 @@ void Solid::ModelEvaluator::Meshtying::apply_mesh_initialization(
   if (Xslavemod == nullptr) return;
 
   // create fully overlapping slave node map
-  std::shared_ptr<const Core::LinAlg::Map> slavemap = strategy_ptr_->slave_row_nodes_ptr();
+  std::shared_ptr<const Core::LinAlg::Map> slavemap = strategy_ptr_->source_row_nodes_ptr();
   std::shared_ptr<Core::LinAlg::Map> allreduceslavemap = Core::LinAlg::allreduce_e_map(*slavemap);
 
   // export modified node positions to column map of problem discretization

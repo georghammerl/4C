@@ -116,8 +116,8 @@ void FLD::Meshtying::setup_meshtying(const std::vector<int>& coupleddof, const b
 
   if (myrank_ == 0)
   {
-    int numdofmaster = (adaptermeshtying_->master_dof_map())->num_global_elements();
-    int numdofslave = (adaptermeshtying_->slave_dof_map())->num_global_elements();
+    int numdofmaster = (adaptermeshtying_->target_dof_map())->num_global_elements();
+    int numdofslave = (adaptermeshtying_->source_dof_map())->num_global_elements();
 
     std::cout << std::endl << "number of master dof's:   " << numdofmaster << std::endl;
     std::cout << "number of slave dof's:   " << numdofslave << std::endl << std::endl;
@@ -145,10 +145,10 @@ void FLD::Meshtying::setup_meshtying(const std::vector<int>& coupleddof, const b
       }
 
       // slave dof rowmap
-      gsdofrowmap_ = adaptermeshtying_->slave_dof_map();
+      gsdofrowmap_ = adaptermeshtying_->source_dof_map();
 
       // master dof rowmap
-      gmdofrowmap_ = adaptermeshtying_->master_dof_map();
+      gmdofrowmap_ = adaptermeshtying_->target_dof_map();
 
       // merge dofrowmap for slave and master discretization
       gsmdofrowmap_ = Core::LinAlg::merge_map(*gmdofrowmap_, *gsdofrowmap_, false);
@@ -220,10 +220,10 @@ void FLD::Meshtying::setup_meshtying(const std::vector<int>& coupleddof, const b
     case Inpar::FLUID::condensed_smat:
     {
       // slave dof rowmap
-      gsdofrowmap_ = adaptermeshtying_->slave_dof_map();
+      gsdofrowmap_ = adaptermeshtying_->source_dof_map();
 
       // master dof rowmap
-      gmdofrowmap_ = adaptermeshtying_->master_dof_map();
+      gmdofrowmap_ = adaptermeshtying_->target_dof_map();
 
       // merge dofrowmap for slave and master discretization
       gsmdofrowmap_ = Core::LinAlg::merge_map(*gmdofrowmap_, *gsdofrowmap_, false);
@@ -313,9 +313,9 @@ void FLD::Meshtying::check_overlapping_bc(Core::LinAlg::Map& map)
   bool overlap = false;
 
   // loop over all slave row nodes of the interface
-  for (int j = 0; j < adaptermeshtying_->interface()->slave_row_nodes()->num_my_elements(); ++j)
+  for (int j = 0; j < adaptermeshtying_->interface()->source_row_nodes()->num_my_elements(); ++j)
   {
-    int gid = adaptermeshtying_->interface()->slave_row_nodes()->gid(j);
+    int gid = adaptermeshtying_->interface()->source_row_nodes()->gid(j);
     Core::Nodes::Node* node = adaptermeshtying_->interface()->discret().g_node(gid);
     if (!node) FOUR_C_THROW("ERROR: Cannot find node with gid %", gid);
     auto* mtnode = static_cast<Mortar::Node*>(node);

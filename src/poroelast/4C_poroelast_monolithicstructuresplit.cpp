@@ -143,34 +143,34 @@ void PoroElast::MonolithicStructureSplit::setup_system_matrix(
     double ftiparam = fluid_field()->tim_int_param();
 
     (*sigtransform_)(s->full_row_map(), s->full_col_map(), s->matrix(0, 1), 1. / timescale,
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_),
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_),
         k_sf->matrix(0, 1),  // k_sf->Matrix(0,1),mat.Matrix(0,1)
         true, true);
 
     (*sggtransform_)(s->matrix(1, 1), (1.0 - ftiparam) / ((1.0 - stiparam) * scale * timescale),
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_),
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_), *f, true, true);
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_),
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_), *f, true, true);
 
     (*sgitransform_)(s->matrix(1, 0), (1.0 - ftiparam) / ((1.0 - stiparam) * scale),
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_),
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_),
         k_fs->matrix(1, 0),  // k_fs->Matrix(1,0), mat.Matrix(1,0)
         true);
 
     (*cfggtransform_)(s->full_row_map(),  // k_fs->FullRowMap(),
         s->full_col_map(),                // k_fs->FullColMap(),
-        k_fs->matrix(1, 1), 1. / timescale, Coupling::Adapter::CouplingMasterConverter(*icoupfs_),
+        k_fs->matrix(1, 1), 1. / timescale, Coupling::Adapter::CouplingTargetConverter(*icoupfs_),
         *f, true, true);
 
     (*cfigtransform_)(s->full_row_map(),  // k_fs->FullRowMap(),
         s->full_col_map(),                // k_fs->FullColMap(),
-        k_fs->matrix(0, 1), 1. / timescale, Coupling::Adapter::CouplingMasterConverter(*icoupfs_),
+        k_fs->matrix(0, 1), 1. / timescale, Coupling::Adapter::CouplingTargetConverter(*icoupfs_),
         *f, true, true);
 
     (*csggtransform_)(k_sf->matrix(1, 1), (1.0 - ftiparam) / ((1.0 - stiparam) * scale),
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_), *f, true);
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_), *f, true);
 
     (*csgitransform_)(k_sf->matrix(1, 0), (1.0 - ftiparam) / ((1.0 - stiparam) * scale),
-        Coupling::Adapter::CouplingMasterConverter(*icoupfs_), *f, true);
+        Coupling::Adapter::CouplingTargetConverter(*icoupfs_), *f, true);
   }
 
   /*----------------------------------------------------------------------*/

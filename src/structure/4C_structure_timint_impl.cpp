@@ -2658,8 +2658,8 @@ void Solid::TimIntImpl::cmt_linear_solve()
     if (contactsolver_->params().isSublist("Belos Parameters"))
     {
       Teuchos::ParameterList& mueluParams = contactsolver_->params().sublist("Belos Parameters");
-      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact masterDofMap", masterDofMap);
-      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact slaveDofMap", slaveDofMap);
+      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact targetDofMap", masterDofMap);
+      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact sourceDofMap", slaveDofMap);
       mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact innerDofMap", innerDofMap);
       mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact activeDofMap", activeDofMap);
       std::shared_ptr<CONTACT::AbstractStrategy> costrat =
@@ -2672,7 +2672,7 @@ void Solid::TimIntImpl::cmt_linear_solve()
       // construct the mapping of the dual node IDs to primal node IDs
       std::map<int, int> dual2primal_map;
       const std::shared_ptr<const Core::LinAlg::Map> slave_node_row_map =
-          strategy->slave_row_nodes_ptr();
+          strategy->source_row_nodes_ptr();
       const Core::LinAlg::Map* solid_node_map = discretization()->node_row_map();
       for (int dual_lid = 0; dual_lid < slave_node_row_map->num_my_elements(); dual_lid++)
       {

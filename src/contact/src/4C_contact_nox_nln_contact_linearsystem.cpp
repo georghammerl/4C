@@ -99,7 +99,7 @@ Core::LinAlg::SolverParams NOX::Nln::CONTACT::LinearSystem::set_solver_options(
   // nothing more to do for a pure structural solver
   if (solverType == NOX::Nln::sol_structure) return solver_params;
 
-  // update information about active slave dofs
+  // update information about active source dofs
   // ---------------------------------------------------------------------
   // feed solver/preconditioner with additional information about the
   // contact/meshtying problem
@@ -120,11 +120,11 @@ Core::LinAlg::SolverParams NOX::Nln::CONTACT::LinearSystem::set_solver_options(
 
       const auto& strategy = dynamic_cast<const Mortar::StrategyBase&>(*precInterface->second);
 
-      std::shared_ptr<Core::LinAlg::Map> masterDofMap, slaveDofMap, innerDofMap, activeDofMap;
+      std::shared_ptr<Core::LinAlg::Map> targetDofMap, sourceDofMap, innerDofMap, activeDofMap;
       strategy.collect_maps_for_preconditioner(
-          masterDofMap, slaveDofMap, innerDofMap, activeDofMap);
-      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact masterDofMap", masterDofMap);
-      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact slaveDofMap", slaveDofMap);
+          targetDofMap, sourceDofMap, innerDofMap, activeDofMap);
+      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact targetDofMap", targetDofMap);
+      mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact sourceDofMap", sourceDofMap);
       mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact innerDofMap", innerDofMap);
       mueluParams.set<std::shared_ptr<Core::LinAlg::Map>>("contact activeDofMap", activeDofMap);
       // contact or contact/meshtying
@@ -140,14 +140,14 @@ Core::LinAlg::SolverParams NOX::Nln::CONTACT::LinearSystem::set_solver_options(
       // aggregation
       std::map<int, int> dual2primal_map;
 
-      const auto& slave_node_row_map = strategy.slave_row_nodes_ptr();
+      const auto& source_node_row_map = strategy.source_row_nodes_ptr();
 
       const auto& discret = Global::Problem::instance()->get_dis("structure");
       const auto* solid_node_map = discret->node_row_map();
 
-      for (int dual_lid = 0; dual_lid < slave_node_row_map->num_my_elements(); dual_lid++)
+      for (int dual_lid = 0; dual_lid < source_node_row_map->num_my_elements(); dual_lid++)
       {
-        const int dual_gid = slave_node_row_map->gid(dual_lid);
+        const int dual_gid = source_node_row_map->gid(dual_lid);
         if (discret->have_global_node(dual_gid))
           (dual2primal_map)[dual_lid] = solid_node_map->lid(dual_gid);
       }

@@ -165,16 +165,16 @@ void CONTACT::Utils::get_contact_condition_groups(
 
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
-void CONTACT::Utils::get_master_slave_side_info(std::vector<bool>& isslave,
+void CONTACT::Utils::get_target_source_side_info(std::vector<bool>& issource,
     std::vector<bool>& isself, const std::vector<const Core::Conditions::Condition*>& cond_grp)
 {
-  bool hasslave = false;
-  bool hasmaster = false;
+  bool hassource = false;
+  bool hastarget = false;
   bool hasself = false;
   std::vector<const std::string*> sides(cond_grp.size());
   // safety...
-  isslave.clear();
-  isslave.resize(cond_grp.size(), false);
+  issource.clear();
+  issource.resize(cond_grp.size(), false);
   isself.clear();
   isself.resize(cond_grp.size(), false);
 
@@ -183,22 +183,22 @@ void CONTACT::Utils::get_master_slave_side_info(std::vector<bool>& isslave,
     sides[j] = &cond_grp[j]->parameters().get<std::string>("Side");
     if (*sides[j] == "Slave")
     {
-      hasslave = true;
-      isslave[j] = true;
+      hassource = true;
+      issource[j] = true;
       isself[j] = false;
     }
     else if (*sides[j] == "Master")
     {
-      hasmaster = true;
-      isslave[j] = false;
+      hastarget = true;
+      issource[j] = false;
       isself[j] = false;
     }
     else if (*sides[j] == "Selfcontact")
     {
-      hasmaster = true;
-      hasslave = true;
+      hastarget = true;
+      hassource = true;
       hasself = true;
-      isslave[j] = false;
+      issource[j] = false;
       isself[j] = true;
     }
     else
@@ -207,8 +207,8 @@ void CONTACT::Utils::get_master_slave_side_info(std::vector<bool>& isslave,
     }
   }
 
-  if (!hasslave) FOUR_C_THROW("Slave side missing in contact condition group!");
-  if (!hasmaster) FOUR_C_THROW("Master side missing in contact condition group!");
+  if (!hassource) FOUR_C_THROW("Source side missing in contact condition group!");
+  if (!hastarget) FOUR_C_THROW("Target side missing in contact condition group!");
 
   // check for self contact group
   if (hasself)
@@ -231,7 +231,7 @@ void CONTACT::Utils::get_master_slave_side_info(std::vector<bool>& isslave,
  *----------------------------------------------------------------------------*/
 void CONTACT::Utils::get_initialization_info(bool& Two_half_pass,
     bool& Check_nonsmooth_selfcontactsurface, bool& Searchele_AllProc, std::vector<bool>& isactive,
-    std::vector<bool>& isslave, std::vector<bool>& isself,
+    std::vector<bool>& issource, std::vector<bool>& isself,
     const std::vector<const Core::Conditions::Condition*>& cond_grp)
 {
   std::vector<const std::string*> active(cond_grp.size());
@@ -241,9 +241,9 @@ void CONTACT::Utils::get_initialization_info(bool& Two_half_pass,
   for (std::size_t j = 0; j < cond_grp.size(); ++j)
   {
     active[j] = &cond_grp[j]->parameters().get<std::string>("Initialization");
-    if (isslave[j])
+    if (issource[j])
     {
-      // slave sides may be initialized as "Active" or as "Inactive"
+      // source sides may be initialized as "Active" or as "Inactive"
       if (*active[j] == "Active")
         isactive[j] = true;
       else if (*active[j] == "Inactive")
@@ -263,9 +263,9 @@ void CONTACT::Utils::get_initialization_info(bool& Two_half_pass,
     }
     else
     {
-      // master sides must NOT be initialized as "Active" as this makes no sense
+      // target sides must NOT be initialized as "Active" as this makes no sense
       if (*active[j] == "Active")
-        FOUR_C_THROW("Master side cannot be active!");
+        FOUR_C_THROW("Target side cannot be active!");
       else if (*active[j] == "Inactive")
         isactive[j] = false;
       else

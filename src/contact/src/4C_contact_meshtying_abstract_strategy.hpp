@@ -127,13 +127,13 @@ namespace CONTACT
     /*!
     \brief Gather maps needed for contact/meshtying specific multigrid preconditioners
 
-    @param MasterDofMap Dof row map of master interface
-    @param SlaveDofMap Dof row map of slave interface
+    @param TargetDofMap Dof row map of target interface
+    @param SourceDofMap Dof row map of source interface
     @param InnerDofMap Dof row map of interior volume
-    @param ActiveDofMap Dof row map of active slave contact interface
+    @param ActiveDofMap Dof row map of active source contact interface
     */
-    void collect_maps_for_preconditioner(std::shared_ptr<Core::LinAlg::Map>& MasterDofMap,
-        std::shared_ptr<Core::LinAlg::Map>& SlaveDofMap,
+    void collect_maps_for_preconditioner(std::shared_ptr<Core::LinAlg::Map>& TargetDofMap,
+        std::shared_ptr<Core::LinAlg::Map>& SourceDofMap,
         std::shared_ptr<Core::LinAlg::Map>& InnerDofMap,
         std::shared_ptr<Core::LinAlg::Map>& ActiveDofMap) const override;
 
@@ -150,13 +150,13 @@ namespace CONTACT
     std::shared_ptr<const Core::LinAlg::SparseMatrix> m_matrix() const override { return mmatrix_; }
 
     /*!
-    \brief Get dual quadratic 3d slave element flag
+    \brief Get dual quadratic 3d source element flag
 
-    Returns TRUE if at least one higher-order 3d slave element with
+    Returns TRUE if at least one higher-order 3d source element with
     dual Lagrange multiplier shape functions in any interface.
 
     */
-    virtual const bool& dualquadslavetrafo() const { return dualquadslavetrafo_; };
+    virtual const bool& dualquadsourcetrafo() const { return dualquadsourcetrafo_; };
 
     /*!
     \brief Return parallel redistribution status (yes or no)
@@ -374,8 +374,8 @@ namespace CONTACT
     /*! Fill the maps vector for the linear solver preconditioner
      *
      * The following order is defined:
-     * (0) masterDofMap
-     * (1) slaveDofMap
+     * (0) targetDofMap
+     * (1) sourceDofMap
      * (2) innerDofMap
      * (3) activeDofMap
      *
@@ -479,23 +479,23 @@ namespace CONTACT
     void evaluate_reference_state() override {}
     void evaluate_relative_movement() override {}
     void predict_relative_movement() override {}
-    std::shared_ptr<const Core::LinAlg::Map> slave_row_nodes_ptr() const override
+    std::shared_ptr<const Core::LinAlg::Map> source_row_nodes_ptr() const override
     {
       return gsnoderowmap_;
     }
     std::shared_ptr<const Core::LinAlg::Map> active_row_nodes() const override { return nullptr; }
     std::shared_ptr<const Core::LinAlg::Map> active_row_dofs() const override { return nullptr; }
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_slave_row_dofs() const override
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_source_row_dofs() const override
     {
       return non_redist_gsdofrowmap_;
     }
-    std::shared_ptr<const Core::LinAlg::Map> non_redist_master_row_dofs() const override
+    std::shared_ptr<const Core::LinAlg::Map> non_redist_target_row_dofs() const override
     {
-      return non_redist_gmdofrowmap_;
+      return non_redist_gtdofrowmap_;
     }
     std::shared_ptr<const Core::LinAlg::Map> slip_row_nodes() const override { return nullptr; }
-    std::shared_ptr<const Core::LinAlg::Map> slave_dof_row_map_ptr() const { return gsdofrowmap_; }
-    std::shared_ptr<const Core::LinAlg::Map> master_dof_row_map_ptr() const { return gmdofrowmap_; }
+    std::shared_ptr<const Core::LinAlg::Map> source_dof_row_map_ptr() const { return gsdofrowmap_; }
+    std::shared_ptr<const Core::LinAlg::Map> target_dof_row_map_ptr() const { return gtdofrowmap_; }
 
     //! @}
 
@@ -587,7 +587,7 @@ namespace CONTACT
     /*!
     \brief Assemble global coordinate vector
 
-    \param sidename (in): std::string indicating slave or master side
+    \param sidename (in): std::string indicating source or target side
     \param ref (in): boolean indicating evaluation in reference configuration
     \param vec (in/out)):  empty global vetcor to be assembled to
 
@@ -598,20 +598,20 @@ namespace CONTACT
     \brief Do mesh initialization for rotational invariance
 
     Only do this ONCE for meshtying upon initialization!
-    This method relocates the slave nodes such that the meshtying constraint
+    This method relocates the source nodes such that the meshtying constraint
     is satisfied in the reference configuration, which is a prerequisite for
     ensuring both rotational invariance and absence of initial stresses at the
     same time. Basically the constraint equation needs to be solved for this,
     which is specific to the applied solving strategy (dual Lagrange or Penalty).
     In the dual LM, matrix D is diagonal, thus its inversion is trivial and no
     linear system needs to be solved. In the penalty case, matrix D is not diagonal
-    and we apply a default Core::LinAlg::Solver to solve for the modified slave positions.
+    and we apply a default Core::LinAlg::Solver to solve for the modified source positions.
     Thus, this linear system solve is done in the derived method FIRST and then
     we refer back to this base class function.
 
-    \param Xslavemod (in): modified slave reference configuration
+    \param Xsourcemod (in): modified source reference configuration
     */
-    virtual void mesh_initialization(std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod);
+    virtual void mesh_initialization(std::shared_ptr<Core::LinAlg::Vector<double>> Xsourcemod);
 
    private:
     /*!
@@ -634,15 +634,15 @@ namespace CONTACT
         std::shared_ptr<Core::LinAlg::Vector<double>> dis) override;
 
     /*!
-    \brief Restrict slave boundary to actual meshtying zone
+    \brief Restrict source boundary to actual meshtying zone
 
     Only do this ONCE for meshtying upon initialization!
     This method first detects for each interface the actually tied part
-    of the slave surface (i.e. the nodes that carry a D/M contribution).
-    Then all slave maps on interface level and on global level are
+    of the source surface (i.e. the nodes that carry a D/M contribution).
+    Then all source maps on interface level and on global level are
     re-initialized and re-setup according to the the above defined
-    actual slave meshtying zone. This is necessary for problems in which
-    the slave surface does not fully project onto the master surface
+    actual source meshtying zone. This is necessary for problems in which
+    the source surface does not fully project onto the target surface
     and thus the actual meshtying zone cannot be defined within the
     input file. Thus, it is computed here.
 
@@ -671,26 +671,26 @@ namespace CONTACT
     //! Global Lagrange multiplier dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> glmdofrowmap_;
 
-    //! Global slave dof row map (of all interfaces)
+    //! Global source dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gsdofrowmap_;
 
-    //! Global master dof row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map> gmdofrowmap_;
+    //! Global target dof row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map> gtdofrowmap_;
 
     //! Global internal dof row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gndofrowmap_;
 
-    //! Global slave and master dof row map (slave+master map)
-    std::shared_ptr<Core::LinAlg::Map> gsmdofrowmap_;
+    //! Global source and target dof row map (source+target map)
+    std::shared_ptr<Core::LinAlg::Map> gstdofrowmap_;
 
     //! Global displacement dof row map (s+m+n map)
     std::shared_ptr<Core::LinAlg::Map> gdisprowmap_;
 
-    //! Global slave node row map (of all interfaces)
+    //! Global source node row map (of all interfaces)
     std::shared_ptr<Core::LinAlg::Map> gsnoderowmap_;
 
-    //! Global master node row map (of all interfaces)
-    std::shared_ptr<Core::LinAlg::Map> gmnoderowmap_;
+    //! Global target node row map (of all interfaces)
+    std::shared_ptr<Core::LinAlg::Map> gtnoderowmap_;
 
     //! @name Parallel redistribution
     //!@{
@@ -698,16 +698,16 @@ namespace CONTACT
     //! Global Lagrange multiplier dof row map (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Map> non_redist_glmdofrowmap_;
 
-    //! Global slave dof row map (before parallel redistribution)
+    //! Global source dof row map (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Map> non_redist_gsdofrowmap_;
 
-    //! Global master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map> non_redist_gmdofrowmap_;
+    //! Global target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map> non_redist_gtdofrowmap_;
 
-    //! Global slave and master dof row map (before parallel redistribution)
-    std::shared_ptr<Core::LinAlg::Map> non_redist_gsmdofrowmap_;
+    //! Global source and target dof row map (before parallel redistribution)
+    std::shared_ptr<Core::LinAlg::Map> non_redist_gstdofrowmap_;
 
-    //! Global dirichlet toggle of all slave dofs (before parallel redistribution)
+    //! Global dirichlet toggle of all source dofs (before parallel redistribution)
     std::shared_ptr<Core::LinAlg::Vector<double>> non_redist_gsdirichtoggle_;
 
     //!@}
@@ -715,7 +715,7 @@ namespace CONTACT
     //! @name Binning strategy
     //!@{
 
-    //! Initial element column map for binning strategy (slave and master)
+    //! Initial element column map for binning strategy (source and target)
     std::vector<std::shared_ptr<Core::LinAlg::Map>> initial_elecolmap_;
 
     //! Global Mortar matrix \f$D\f$
@@ -752,7 +752,7 @@ namespace CONTACT
      *
      * \todo What transformation?
      */
-    bool dualquadslavetrafo_;
+    bool dualquadsourcetrafo_;
 
     //!@}
 
@@ -789,7 +789,7 @@ namespace CONTACT
     //! Structural force
     std::shared_ptr<Core::LinAlg::Vector<double>> f_;
 
-    //! Structural force (slave)
+    //! Structural force (source)
     std::shared_ptr<Core::LinAlg::Vector<double>> fs_;
 
     //! Matrix containing \f$D\f$ and \f$-M\f$

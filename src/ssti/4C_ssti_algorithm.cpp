@@ -319,7 +319,7 @@ void SSTI::SSTIAlgorithm::distribute_scatra_solution() const
         std::make_shared<Core::LinAlg::Vector<double>>(
             *scatra_field()->discretization()->dof_row_map(), true);
     meshtying_strategy_scatra_->interface_maps()->insert_vector(
-        *meshtying_strategy_scatra_->coupling_adapter()->master_to_slave(
+        *meshtying_strategy_scatra_->coupling_adapter()->target_to_source(
             *meshtying_strategy_scatra_->interface_maps()->extract_vector(
                 *scatra_field()->phinp(), 2)),
         1, *imasterphinp);
@@ -343,7 +343,7 @@ void SSTI::SSTIAlgorithm::distribute_thermo_solution()
         std::make_shared<Core::LinAlg::Vector<double>>(
             *thermo_field()->discretization()->dof_row_map(), true);
     meshtying_strategy_thermo_->interface_maps()->insert_vector(
-        *meshtying_strategy_thermo_->coupling_adapter()->master_to_slave(
+        *meshtying_strategy_thermo_->coupling_adapter()->target_to_source(
             *meshtying_strategy_thermo_->interface_maps()->extract_vector(
                 *thermo_field()->phinp(), 2)),
         1, *imastertempnp);

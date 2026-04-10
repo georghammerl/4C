@@ -1528,7 +1528,7 @@ void STI::Monolithic::solve()
       {
         case Inpar::S2I::coupling_matching_nodes:
         {
-          icoupthermo_->master_to_slave(*masterincrement, *slaveincrement);
+          icoupthermo_->target_to_source(*masterincrement, *slaveincrement);
           break;
         }
         case Inpar::S2I::coupling_mortar_standard:
@@ -1574,7 +1574,7 @@ void STI::Monolithic::apply_dirichlet_off_diag(
       case Inpar::S2I::coupling_matching_nodes:
       {
         if (!thermo_field()->discretization()->has_condition("PointCoupling"))
-          thermoscatra_domain_interface->apply_dirichlet(*icoupthermo_->slave_dof_map(), false);
+          thermoscatra_domain_interface->apply_dirichlet(*icoupthermo_->source_dof_map(), false);
         break;
       }
 
@@ -1659,7 +1659,7 @@ void STI::Monolithic::assemble_domain_interface_off_diag(
         // initialize temporary matrix for slave-side rows of current thermo-scatra matrix
         // block
         Core::LinAlg::SparseMatrix thermoscatrarowsslave(
-            *icoupthermo_->slave_dof_map(), 27, false, true);
+            *icoupthermo_->source_dof_map(), 27, false, true);
 
         // extract current thermo-scatra matrix block
         auto& thermoscatrablock =
@@ -1672,10 +1672,10 @@ void STI::Monolithic::assemble_domain_interface_off_diag(
 
         // extract slave-side rows of thermo-scatra matrix block into temporary matrix
         ScaTra::MeshtyingStrategyS2I::extract_matrix_rows(
-            thermoscatrablock, thermoscatrarowsslave, *icoupthermo_->slave_dof_map());
+            thermoscatrablock, thermoscatrarowsslave, *icoupthermo_->source_dof_map());
 
         // finalize temporary matrix with slave-side rows of thermo-scatra matrix block
-        thermoscatrarowsslave.complete(*maps_->map(0), *icoupthermo_->slave_dof_map());
+        thermoscatrarowsslave.complete(*maps_->map(0), *icoupthermo_->source_dof_map());
 
         // undo Complete() from above before performing subsequent matrix row transformation
         if (scatra_field()->matrix_type() == Core::LinAlg::MatrixType::block_condition and

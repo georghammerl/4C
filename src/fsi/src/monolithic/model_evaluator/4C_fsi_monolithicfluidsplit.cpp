@@ -755,14 +755,14 @@ void FSI::MonolithicFluidSplit::setup_system_matrix(Core::LinAlg::BlockSparseMat
     // We cannot copy the pressure value. It is not used anyway. So no exact
     // match here.
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmii, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), mat.matrix(1, 2), false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), mat.matrix(1, 2), false);
 
     {
       std::shared_ptr<Core::LinAlg::SparseMatrix> lfmgi =
           std::make_shared<Core::LinAlg::SparseMatrix>(s->row_map(), 81, false);
       (*fmgitransform_)(fmgi, (1.0 - stiparam) / (1.0 - ftiparam) * scale,
           Coupling::Adapter::CouplingSlaveConverter(coupsf),
-          Coupling::Adapter::CouplingMasterConverter(coupfa), *lfmgi, false, false);
+          Coupling::Adapter::CouplingTargetConverter(coupfa), *lfmgi, false, false);
 
       lfmgi->complete(aii.domain_map(), s->range_map());
 
@@ -1468,7 +1468,7 @@ void FSI::MonolithicFluidSplit::recover_lagrange_multiplier()
 
     // extract inner velocity DOFs after calling AleToFluid()
     std::shared_ptr<Core::LinAlg::Map> velothermap = Core::LinAlg::split_map(
-        *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling().master_dof_map());
+        *fluid_field()->velocity_row_map(), *interface_fluid_ale_coupling().target_dof_map());
     Core::LinAlg::MapExtractor velothermapext =
         Core::LinAlg::MapExtractor(*fluid_field()->velocity_row_map(), velothermap, false);
     auxvec = std::make_shared<Core::LinAlg::Vector<double>>(*velothermap, true);

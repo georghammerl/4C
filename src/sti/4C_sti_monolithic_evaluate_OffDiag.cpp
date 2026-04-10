@@ -224,9 +224,9 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_scat
     case Core::LinAlg::MatrixType::sparse:
     {
       slavematrix = std::make_shared<Core::LinAlg::SparseMatrix>(
-          *meshtying_strategy_scatra()->coupling_adapter()->slave_dof_map(), 27, false, true);
+          *meshtying_strategy_scatra()->coupling_adapter()->source_dof_map(), 27, false, true);
       mastermatrix = std::make_shared<Core::LinAlg::SparseMatrix>(
-          *meshtying_strategy_scatra()->coupling_adapter()->master_dof_map(), 27, false, true);
+          *meshtying_strategy_scatra()->coupling_adapter()->target_dof_map(), 27, false, true);
       break;
     }
     default:
@@ -333,7 +333,7 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_scatra_thermo_inter
     case Core::LinAlg::MatrixType::sparse:
     {
       slavematrix->complete(*interface_map_thermo(),
-          *meshtying_strategy_scatra()->coupling_adapter()->slave_dof_map());
+          *meshtying_strategy_scatra()->coupling_adapter()->source_dof_map());
       break;
     }
     default:
@@ -366,7 +366,7 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::copy_slave_to_master_scatra_
       // initialize auxiliary system matrix for linearizations of master-side scatra
       // fluxes w.r.t. slave-side thermo dofs
       Core::LinAlg::SparseMatrix mastermatrixsparse(
-          *meshtying_strategy_scatra()->coupling_adapter()->master_dof_map(), 27, false, true);
+          *meshtying_strategy_scatra()->coupling_adapter()->target_dof_map(), 27, false, true);
 
       // derive linearizations of master-side scatra fluxes w.r.t. slave-side thermo dofs
       // and assemble into auxiliary system matrix
@@ -380,8 +380,9 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::copy_slave_to_master_scatra_
       }
 
       // finalize auxiliary system matrix
-      mastermatrixsparse.complete(*meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map(),
-          *meshtying_strategy_scatra()->coupling_adapter()->master_dof_map());
+      mastermatrixsparse.complete(
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map(),
+          *meshtying_strategy_scatra()->coupling_adapter()->target_dof_map());
 
       // split auxiliary system matrix and assemble into scatra-thermo matrix block
       blockmastermatrix = Core::LinAlg::split_matrix<Core::LinAlg::DefaultBlockMatrixStrategy>(
@@ -510,8 +511,8 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
     {
       // finalize auxiliary system matrices
       slavematrix->complete();
-      mastermatrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->slave_dof_map(),
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map());
+      mastermatrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->source_dof_map(),
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map());
 
       // assemble linearizations of slave-side thermo fluxes w.r.t. slave-side scatra dofs
       // into thermo-scatra matrix block
@@ -519,7 +520,7 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
 
       // initialize temporary matrix
       Core::LinAlg::SparseMatrix ksm(
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map(), 27, false, true);
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map(), 27, false, true);
 
       // transform linearizations of slave-side thermo fluxes w.r.t. master-side scatra dofs
       Coupling::Adapter::MatrixColTransform()(mastermatrix->row_map(), mastermatrix->col_map(),
@@ -529,8 +530,8 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
           ksm, true, false);
 
       // finalize temporary matrix
-      ksm.complete(*meshtying_strategy_scatra()->coupling_adapter()->master_dof_map(),
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map());
+      ksm.complete(*meshtying_strategy_scatra()->coupling_adapter()->target_dof_map(),
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map());
 
       // split temporary matrix and assemble into thermo-scatra matrix block
       const auto blockksm = Core::LinAlg::split_matrix<Core::LinAlg::DefaultBlockMatrixStrategy>(
@@ -546,10 +547,10 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
     }
     case Core::LinAlg::MatrixType::sparse:
     {
-      slavematrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->slave_dof_map(),
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map());
-      mastermatrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->slave_dof_map(),
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map());
+      slavematrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->source_dof_map(),
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map());
+      mastermatrix->complete(*meshtying_strategy_scatra()->coupling_adapter()->source_dof_map(),
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map());
 
       // assemble linearizations of slave-side thermo fluxes w.r.t. slave-side scatra dofs
       // into thermo-scatra matrix block
@@ -566,7 +567,7 @@ void STI::ScatraThermoOffDiagCouplingMatchingNodes::evaluate_off_diag_block_ther
 
       // finalize matrix
       thermoscatrablockinterface->complete(*interface_map_scatra(),
-          *meshtying_strategy_thermo()->coupling_adapter()->slave_dof_map());
+          *meshtying_strategy_thermo()->coupling_adapter()->source_dof_map());
 
       break;
     }
@@ -650,9 +651,9 @@ void STI::ScatraThermoOffDiagCouplingMortarStandard::
   condparams.set<Inpar::S2I::EvaluationActions>("action", Inpar::S2I::evaluate_condition_od);
 
   // create strategy for assembly of auxiliary system matrices
-  ScaTra::MortarCellAssemblyStrategy strategyscatrathermos2i(slavematrix, Inpar::S2I::side_slave,
-      Inpar::S2I::side_slave, nullptr, Inpar::S2I::side_undefined, Inpar::S2I::side_undefined,
-      mastermatrix_sparse, Inpar::S2I::side_master, Inpar::S2I::side_slave, nullptr,
+  ScaTra::MortarCellAssemblyStrategy strategyscatrathermos2i(slavematrix, Inpar::S2I::side_source,
+      Inpar::S2I::side_source, nullptr, Inpar::S2I::side_undefined, Inpar::S2I::side_undefined,
+      mastermatrix_sparse, Inpar::S2I::side_master, Inpar::S2I::side_source, nullptr,
       Inpar::S2I::side_undefined, Inpar::S2I::side_undefined, nullptr, Inpar::S2I::side_undefined,
       nullptr, Inpar::S2I::side_undefined, 0, 1);
 
@@ -665,7 +666,7 @@ void STI::ScatraThermoOffDiagCouplingMortarStandard::
   {
     // consider conditions for slave side only
     if (condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-        Inpar::S2I::side_slave)
+        Inpar::S2I::side_source)
     {
       // add condition to parameter list
       condparams.set<const Core::Conditions::Condition*>("condition", condition);
@@ -796,11 +797,11 @@ void STI::ScatraThermoOffDiagCouplingMortarStandard::
   condparams.set<Inpar::S2I::EvaluationActions>("action", Inpar::S2I::evaluate_condition_od);
 
   // create strategy for assembly of auxiliary system matrix
-  ScaTra::MortarCellAssemblyStrategy strategythermoscatras2i(slavematrix, Inpar::S2I::side_slave,
-      Inpar::S2I::side_slave, slavematrix, Inpar::S2I::side_slave, Inpar::S2I::side_master, nullptr,
+  ScaTra::MortarCellAssemblyStrategy strategythermoscatras2i(slavematrix, Inpar::S2I::side_source,
+      Inpar::S2I::side_source, slavematrix, Inpar::S2I::side_source, Inpar::S2I::side_master,
+      nullptr, Inpar::S2I::side_undefined, Inpar::S2I::side_undefined, nullptr,
       Inpar::S2I::side_undefined, Inpar::S2I::side_undefined, nullptr, Inpar::S2I::side_undefined,
-      Inpar::S2I::side_undefined, nullptr, Inpar::S2I::side_undefined, nullptr,
-      Inpar::S2I::side_undefined, 0, 1);
+      nullptr, Inpar::S2I::side_undefined, 0, 1);
 
   // extract scatra-scatra interface kinetics conditions
   std::vector<const Core::Conditions::Condition*> conditions;
@@ -811,7 +812,7 @@ void STI::ScatraThermoOffDiagCouplingMortarStandard::
   {
     // consider conditions for slave side only
     if (condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-        Inpar::S2I::side_slave)
+        Inpar::S2I::side_source)
     {
       // add condition to parameter list
       condparams.set<const Core::Conditions::Condition*>("condition", condition);

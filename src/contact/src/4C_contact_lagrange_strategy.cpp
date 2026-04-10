@@ -52,7 +52,6 @@ CONTACT::LagrangeStrategy::LagrangeStrategy(
       fconservation_(nullptr)
 {
   // empty constructor body
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -65,7 +64,7 @@ void CONTACT::LagrangeStrategy::initialize()
   lindmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
       *gsdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
   linmmatrix_ = std::make_shared<Core::LinAlg::SparseMatrix>(
-      *gmdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
+      *gtdofrowmap_, 100, true, false, Core::LinAlg::SparseMatrix::FE_MATRIX);
 
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
@@ -139,7 +138,6 @@ void CONTACT::LagrangeStrategy::initialize()
       linslipRHS_ = std::make_shared<Core::LinAlg::Vector<double>>(*gslipt_, true);
     }
   }
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -211,19 +209,19 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
   }
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    smatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
+    smatrix_->complete(*gstdofrowmap_, *gactivedofs_);
   }
   else
   {
     // fill_complete() global matrix S
-    smatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    smatrix_->complete(*gstdofrowmap_, *gactiven_);
   }
 
   // fill_complete() global matrices LinD, LinM
   // (again for linD gsdofrowmap_ is sufficient as domain map,
-  // but in the edge node modification case, master entries occur!)
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
+  // but in the edge node modification case, target entries occur!)
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
 
   // fill_complete global Matrix linstickLM_, linstickDIS_
   std::shared_ptr<Core::LinAlg::Map> gstickt = Core::LinAlg::split_map(*gactivet_, *gslipt_);
@@ -233,26 +231,26 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
     linstickLM_->complete(*gstickdofs, *gstickdofs);
-    linstickDIS_->complete(*gsmdofrowmap_, *gstickdofs);
+    linstickDIS_->complete(*gstdofrowmap_, *gstickdofs);
     linslipLM_->complete(*gslipdofs_, *gslipdofs_);
-    linslipDIS_->complete(*gsmdofrowmap_, *gslipdofs_);
+    linslipDIS_->complete(*gstdofrowmap_, *gslipdofs_);
   }
   else
   {
     linstickLM_->complete(*gstickdofs, *gstickt);
-    linstickDIS_->complete(*gsmdofrowmap_, *gstickt);
+    linstickDIS_->complete(*gstdofrowmap_, *gstickt);
 
     // fill_complete global Matrix linslipLM_ and linslipDIS_
     linslipLM_->complete(*gslipdofs_, *gslipt_);
-    linslipDIS_->complete(*gsmdofrowmap_, *gslipt_);
+    linslipDIS_->complete(*gstdofrowmap_, *gslipt_);
   }
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
   // Concretely, we apply the following transformations:
   // LinD      ---->   T^(-T) * LinD
   //----------------------------------------------------------------------
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     // modify lindmatrix_
     std::shared_ptr<Core::LinAlg::SparseMatrix> temp1 =
@@ -435,7 +433,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     if (parallel_redistribution_status())
     {
       lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
     }
 
     kteff->un_complete();
@@ -460,38 +458,38 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx2;
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx3;
 
-    // split into slave/master part + structure part
+    // split into source/target part + structure part
     std::shared_ptr<Core::LinAlg::SparseMatrix> kteffmatrix =
         std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(kteff);
     if (parallel_redistribution_status())
     {
       // split and transform to redistributed maps
-      Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gsmdofrowmap_, gndofrowmap_,
-          non_redist_gsmdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
-      ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gsmdofrowmap_, *gsmdofrowmap_);
-      ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gsmdofrowmap_);
-      knsm = Core::LinAlg::matrix_col_transform(*knsm, *gsmdofrowmap_);
+      Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gstdofrowmap_, gndofrowmap_,
+          non_redist_gstdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
+      ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gstdofrowmap_, *gstdofrowmap_);
+      ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gstdofrowmap_);
+      knsm = Core::LinAlg::matrix_col_transform(*knsm, *gstdofrowmap_);
     }
     else
     {
       // only split, no need to transform
-      Core::LinAlg::split_matrix2x2(kteffmatrix, gsmdofrowmap_, gndofrowmap_, gsmdofrowmap_,
+      Core::LinAlg::split_matrix2x2(kteffmatrix, gstdofrowmap_, gndofrowmap_, gstdofrowmap_,
           gndofrowmap_, ksmsm, ksmn, knsm, knn);
     }
 
-    // further splits into slave part + master part
+    // further splits into source part + target part
     Core::LinAlg::split_matrix2x2(
-        ksmsm, gsdofrowmap_, gmdofrowmap_, gsdofrowmap_, gmdofrowmap_, kss, ksm, kms, kmm);
+        ksmsm, gsdofrowmap_, gtdofrowmap_, gsdofrowmap_, gtdofrowmap_, kss, ksm, kms, kmm);
     Core::LinAlg::split_matrix2x2(
-        ksmn, gsdofrowmap_, gmdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
+        ksmn, gsdofrowmap_, gtdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        knsm, gndofrowmap_, tempmap, gsdofrowmap_, gmdofrowmap_, kns, knm, tempmtx1, tempmtx2);
+        knsm, gndofrowmap_, tempmap, gsdofrowmap_, gtdofrowmap_, kns, knm, tempmtx1, tempmtx2);
 
     /********************************************************************/
     /* (4) Split feff into 3 subvectors                                 */
     /********************************************************************/
 
-    // we want to split f into 3 groups s.m,n
+    // we want to split f into 3 groups s,m,n
     std::shared_ptr<Core::LinAlg::Vector<double>> fs, fm, fn;
 
     // temporarily we need the group sm
@@ -502,28 +500,28 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     {
       // split and transform to redistributed maps
       Core::LinAlg::split_vector(
-          *problem_dofs(), *feff, non_redist_gsmdofrowmap_, fsm, gndofrowmap_, fn);
+          *problem_dofs(), *feff, non_redist_gstdofrowmap_, fsm, gndofrowmap_, fn);
       std::shared_ptr<Core::LinAlg::Vector<double>> fsmtemp =
-          std::make_shared<Core::LinAlg::Vector<double>>(*gsmdofrowmap_);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gstdofrowmap_);
       Core::LinAlg::export_to(*fsm, *fsmtemp);
       fsm = fsmtemp;
     }
     else
     {
       // only split, no need to transform
-      Core::LinAlg::split_vector(*problem_dofs(), *feff, gsmdofrowmap_, fsm, gndofrowmap_, fn);
+      Core::LinAlg::split_vector(*problem_dofs(), *feff, gstdofrowmap_, fsm, gndofrowmap_, fn);
     }
 
-    // abbreviations for slave and master set
-    const int sset = gsdofrowmap_->num_global_elements();
-    const int mset = gmdofrowmap_->num_global_elements();
+    // abbreviations for source and target set
+    const int source_set = gsdofrowmap_->num_global_elements();
+    const int target_set = gtdofrowmap_->num_global_elements();
 
     // we want to split fsm into 2 groups s,m
     fs = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_);
-    fm = std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_);
+    fm = std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_);
 
     // do the vector splitting sm -> s+m
-    Core::LinAlg::split_vector(*gsmdofrowmap_, *fsm, gsdofrowmap_, fs, gmdofrowmap_, fm);
+    Core::LinAlg::split_vector(*gstdofrowmap_, *fsm, gsdofrowmap_, fs, gtdofrowmap_, fm);
 
     // store some stuff for static condensation of LM
     fs_ = fs;
@@ -533,14 +531,14 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     kss_ = kss;
 
     //--------------------------------------------------------------------
-    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
     //--------------------------------------------------------------------
     // Concretely, we apply the following transformations:
     // D         ---->   D * T^(-1)
     // D^(-1)    ---->   T * D^(-1)
     // \hat{M}   ---->   T * \hat{M}
     //--------------------------------------------------------------------
-    if (is_dual_quad_slave_trafo())
+    if (is_dual_quad_source_trafo())
     {
       // modify dmatrix_, invd_ and mhatmatrix_
       std::shared_ptr<Core::LinAlg::SparseMatrix> temp2 =
@@ -555,7 +553,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     }
 
     /********************************************************************/
-    /* (5) Split slave quantities into active / inactive, stick / slip  */
+    /* (5) Split source quantities into active / inactive, stick / slip  */
     /********************************************************************/
     // we want to split kssmod into 2 groups a,i = 4 blocks
     std::shared_ptr<Core::LinAlg::SparseMatrix> kaa, kai, kia, kii;
@@ -572,9 +570,9 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     Core::LinAlg::split_matrix2x2(
         ksn, gactivedofs_, gidofs, gndofrowmap_, tempmap, kan, tempmtx1, kin, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        ksm, gactivedofs_, gidofs, gmdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
+        ksm, gactivedofs_, gidofs, gtdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        kms, gmdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
+        kms, gtdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
 
     // we want to split kaa into 2 groups sl,st = 4 blocks
     std::shared_ptr<Core::LinAlg::SparseMatrix> kslsl, kslst, kstsl, kstst, kast, kasl;
@@ -643,7 +641,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
 
     // active part of mmatrix
     std::shared_ptr<Core::LinAlg::SparseMatrix> mmatrixa;
-    Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mmatrixa,
+    Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mmatrixa,
         tempmtx1, tempmtx2, tempmtx3);
 
     // do the multiplication mhataam = invda * mmatrixa
@@ -652,12 +650,12 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
         std::make_shared<Core::LinAlg::SparseMatrix>(*gactivedofs_, 10);
     if (aset)
       mhataam = Core::LinAlg::matrix_multiply(*invda, false, *mmatrixa, false, false, false, true);
-    mhataam->complete(*gmdofrowmap_, *gactivedofs_);
+    mhataam->complete(*gtdofrowmap_, *gactivedofs_);
 
     // for the case without full linearization, we still need the
     // "classical" active part of mhat, which is isolated here
     std::shared_ptr<Core::LinAlg::SparseMatrix> mhata;
-    Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mhata,
+    Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mhata,
         tempmtx1, tempmtx2, tempmtx3);
 
     // scaling of invd and dai
@@ -680,7 +678,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     //-------------------------------------------------------- SECOND LINE
     // kmn: add T(mhataam)*kan
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmnmod =
-        std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+        std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmn, false, 1.0, *kmnmod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmnadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kan, false, false, false, true);
@@ -689,7 +687,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
 
     // kmm: add T(mhataam)*kam
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmmmod =
-        std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+        std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmm, false, 1.0, *kmmmod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmmadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kam, false, false, false, true);
@@ -700,7 +698,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmimod;
     if (iset)
     {
-      kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
       Core::LinAlg::matrix_add(*kmi, false, 1.0, *kmimod, 1.0);
       std::shared_ptr<Core::LinAlg::SparseMatrix> kmiadd =
           Core::LinAlg::matrix_multiply(*mhataam, true, *kai, false, false, false, true);
@@ -712,7 +710,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmamod;
     if (aset)
     {
-      kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
       Core::LinAlg::matrix_add(*kma, false, 1.0, *kmamod, 1.0);
       std::shared_ptr<Core::LinAlg::SparseMatrix> kmaadd =
           Core::LinAlg::matrix_multiply(*mhataam, true, *kaa, false, false, false, true);
@@ -879,22 +877,22 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
 
     //---------------------------------------------------------- SECOND LINE
     // fm: add alphaf * old contact forces (t_n)
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the product Mold^T * zold to fit
     if (is_self_contact())
     {
-      Core::LinAlg::Vector<double> tempvecm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> tempvecm(*gtdofrowmap_);
       Core::LinAlg::Vector<double> tempvecm2(mold_->domain_map());
       Core::LinAlg::Vector<double> zoldexp(mold_->row_map());
       if (mold_->row_map().num_global_elements()) Core::LinAlg::export_to(*zold_, zoldexp);
       mold_->multiply(true, zoldexp, tempvecm2);
-      if (mset) Core::LinAlg::export_to(tempvecm2, tempvecm);
+      if (target_set) Core::LinAlg::export_to(tempvecm2, tempvecm);
       fm->update(alphaf_, tempvecm, 1.0);
     }
     // if there is no self contact everything is ok
     else
     {
-      Core::LinAlg::Vector<double> tempvecm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> tempvecm(*gtdofrowmap_);
       mold_->multiply(true, *zold_, tempvecm);
       fm->update(alphaf_, tempvecm, 1.0);
     }
@@ -902,7 +900,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     // fs: prepare alphaf * old contact forces (t_n)
     Core::LinAlg::Vector<double> fsadd(*gsdofrowmap_);
 
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the product Dold^T * zold to fit
     if (is_self_contact())
     {
@@ -910,7 +908,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       Core::LinAlg::Vector<double> zoldexp(dold_->row_map());
       if (dold_->row_map().num_global_elements()) Core::LinAlg::export_to(*zold_, zoldexp);
       dold_->multiply(true, zoldexp, tempvec);
-      if (sset) Core::LinAlg::export_to(tempvec, fsadd);
+      if (source_set) Core::LinAlg::export_to(tempvec, fsadd);
     }
     // if there is no self contact everything is ok
     else
@@ -927,7 +925,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     }
 
     // fm: add T(mhat)*fa
-    Core::LinAlg::Vector<double> fmmod(*gmdofrowmap_);
+    Core::LinAlg::Vector<double> fmmod(*gtdofrowmap_);
     if (aset) mhataam->multiply(true, *fa, fmmod);
     fmmod.update(1.0, *fm, 1.0);
 
@@ -1026,10 +1024,10 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       // nothing to do (ndof-map independent of redistribution)
 
       //---------------------------------------------------------- SECOND LINE
-      kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gmdofrowmap_);
-      kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gmdofrowmap_);
-      if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gmdofrowmap_);
-      if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gmdofrowmap_);
+      kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gtdofrowmap_);
+      kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gtdofrowmap_);
+      if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gtdofrowmap_);
+      if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gtdofrowmap_);
 
       //----------------------------------------------------------- THIRD LINE
       if (iset)
@@ -1085,7 +1083,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     // add n submatrices to kteffnew
     Core::LinAlg::matrix_add(*knn, false, 1.0, *kteffnew, 1.0);
     Core::LinAlg::matrix_add(*knm, false, 1.0, *kteffnew, 1.0);
-    if (sset) Core::LinAlg::matrix_add(*kns, false, 1.0, *kteffnew, 1.0);
+    if (source_set) Core::LinAlg::matrix_add(*kns, false, 1.0, *kteffnew, 1.0);
 
     //-------------------------------------------------------- SECOND LINE
     // add m submatrices to kteffnew
@@ -1223,12 +1221,12 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
   else
   {
     //----------------------------------------------------------------------
-    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
     //----------------------------------------------------------------------
     // Concretely, we apply the following transformations:
     // D         ---->   D * T^(-1)
     //----------------------------------------------------------------------
-    if (is_dual_quad_slave_trafo())
+    if (is_dual_quad_source_trafo())
     {
       // modify dmatrix_
       std::shared_ptr<Core::LinAlg::SparseMatrix> temp2 =
@@ -1240,7 +1238,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     if (parallel_redistribution_status())
     {
       lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
     }
 
     // add contact stiffness
@@ -1249,7 +1247,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     kteff->add(*linmmatrix_, false, 1.0 - alphaf_, 1.0);
     kteff->complete();
 
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the products Dold^T * zold / D^T * z to fit
     // thus we have to export the products Mold^T * zold / M^T * z to fit
     if (is_self_contact())
@@ -1294,7 +1292,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       Core::LinAlg::export_to(fs, fsexp);
       feff->update(-(1.0 - alphaf_), fsexp, 1.0);
 
-      Core::LinAlg::Vector<double> fm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> fm(*gtdofrowmap_);
       mmatrix_->multiply(true, *z_, fm);
       Core::LinAlg::Vector<double> fmexp(*problem_dofs());
       Core::LinAlg::export_to(fm, fmexp);
@@ -1307,7 +1305,7 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       Core::LinAlg::export_to(fsold, fsoldexp);
       feff->update(-alphaf_, fsoldexp, 1.0);
 
-      Core::LinAlg::Vector<double> fmold(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> fmold(*gtdofrowmap_);
       mold_->multiply(true, *zold_, fmold);
       Core::LinAlg::Vector<double> fmoldexp(*problem_dofs());
       Core::LinAlg::export_to(fmold, fmoldexp);
@@ -1352,10 +1350,10 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       //      Core::LinAlg::SparseMatrix(*gactivet_,81));
       //
       //      deriv1->Add(*linstickLM_,false,1.0,1.0);
-      //      deriv1->Complete(*gsmdofrowmap_,*gactivet_);
+      //      deriv1->Complete(*gstdofrowmap_,*gactivet_);
       //
       //      deriv2->Add(*linstickDIS_,false,1.0,1.0);
-      //      deriv2->Complete(*gsmdofrowmap_,*gactivet_);
+      //      deriv2->Complete(*gstdofrowmap_,*gactivet_);
       //
       //      std::cout << "DERIV 1 *********** "<< *deriv1 << std::endl;
       //      std::cout << "DERIV 2 *********** "<< *deriv2 << std::endl;
@@ -1378,10 +1376,10 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
       //      Core::LinAlg::SparseMatrix(*gactivet_,81));
       //
       //      deriv1->Add(*linslipLM_,false,1.0,1.0);
-      //      deriv1->Complete(*gsmdofrowmap_,*gslipt_);
+      //      deriv1->Complete(*gstdofrowmap_,*gslipt_);
       //
       //      deriv2->Add(*linslipDIS_,false,1.0,1.0);
-      //      deriv2->Complete(*gsmdofrowmap_,*gslipt_);
+      //      deriv2->Complete(*gstdofrowmap_,*gslipt_);
       //
       //      std::cout << *deriv1 << std::endl;
       //      std::cout << *deriv2 << std::endl;
@@ -1390,8 +1388,6 @@ void CONTACT::LagrangeStrategy::evaluate_friction(
     }
   }
 #endif  // #ifdef CONTACTFDSLIP
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -1406,21 +1402,21 @@ void CONTACT::LagrangeStrategy::compute_contact_stresses()
   // further scaling for nonsmooth contact
   if (nonSmoothContact_)
   {
-    forcenormal_ = std::make_shared<Core::LinAlg::Vector<double>>(slave_dof_row_map(true));
+    forcenormal_ = std::make_shared<Core::LinAlg::Vector<double>>(source_dof_row_map(true));
     d_matrix()->multiply(true, *stressnormal_, *forcenormal_);
-    forcetangential_ = std::make_shared<Core::LinAlg::Vector<double>>(slave_dof_row_map(true));
+    forcetangential_ = std::make_shared<Core::LinAlg::Vector<double>>(source_dof_row_map(true));
     d_matrix()->multiply(true, *stresstangential_, *forcetangential_);
 
-    Core::LinAlg::Vector<double> forcenormal(slave_dof_row_map(true));
+    Core::LinAlg::Vector<double> forcenormal(source_dof_row_map(true));
     d_matrix()->multiply(true, *stressnormal_, forcenormal);
 
-    Core::LinAlg::Vector<double> forcetangential(slave_dof_row_map(true));
+    Core::LinAlg::Vector<double> forcetangential(source_dof_row_map(true));
     d_matrix()->multiply(true, *stresstangential_, forcetangential);
 
     // add penalty force normal
     if (fLTLn_ != nullptr)
     {
-      Core::LinAlg::Vector<double> dummy(slave_dof_row_map(true));
+      Core::LinAlg::Vector<double> dummy(source_dof_row_map(true));
       Core::LinAlg::export_to(*fLTLn_, dummy);
       forcenormal_->update(1.0, dummy, 1.0);
       forcenormal.update(1.0, dummy, 1.0);
@@ -1429,7 +1425,7 @@ void CONTACT::LagrangeStrategy::compute_contact_stresses()
     // add penalty force tangential
     if (fLTLt_ != nullptr)
     {
-      Core::LinAlg::Vector<double> dummy(slave_dof_row_map(true));
+      Core::LinAlg::Vector<double> dummy(source_dof_row_map(true));
       Core::LinAlg::export_to(*fLTLt_, dummy);
       forcetangential_->update(1.0, dummy, 1.0);
       forcetangential.update(1.0, dummy, 1.0);
@@ -1438,10 +1434,10 @@ void CONTACT::LagrangeStrategy::compute_contact_stresses()
     // loop over all interfaces
     for (int i = 0; i < (int)interface_.size(); ++i)
     {
-      // loop over all slave row nodes on the current interface
-      for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+      // loop over all source row nodes on the current interface
+      for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
       {
-        int gid = interface_[i]->slave_row_nodes()->gid(j);
+        int gid = interface_[i]->source_row_nodes()->gid(j);
         Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
         if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
         Node* cnode = dynamic_cast<Node*>(node);
@@ -1503,8 +1499,6 @@ void CONTACT::LagrangeStrategy::compute_contact_stresses()
   }
 
   step++;
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -1521,7 +1515,7 @@ void CONTACT::LagrangeStrategy::save_reference_state(
   // guarantee uniqueness
   std::set<std::pair<int, int>> donebefore;
 
-  // kappa will be the shape function integral on the slave sides
+  // kappa will be the shape function integral on the source sides
   // (1) build the nodal information
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
@@ -1530,61 +1524,61 @@ void CONTACT::LagrangeStrategy::save_reference_state(
       FOUR_C_THROW("fill_complete() not called on interface %", i);
 
     // reset kappa
-    // loop over all slave row nodes on the current interface
-    for (int j = 0; j < interface_[i]->master_row_nodes()->num_my_elements(); ++j)
+    // loop over all source row nodes on the current interface
+    for (int j = 0; j < interface_[i]->target_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->master_row_nodes()->gid(j);
+      int gid = interface_[i]->target_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
       cnode->data().kappa() = 0.0;
     }
 
-    // loop over proc's slave elements of the interface for integration
+    // loop over proc's source elements of the interface for integration
     // use standard column map to include processor's ghosted elements
-    for (int j = 0; j < interface_[i]->master_col_elements()->num_my_elements(); ++j)
+    for (int j = 0; j < interface_[i]->target_col_elements()->num_my_elements(); ++j)
     {
-      int gid1 = interface_[i]->master_col_elements()->gid(j);
+      int gid1 = interface_[i]->target_col_elements()->gid(j);
       Core::Elements::Element* ele1 = interface_[i]->discret().g_element(gid1);
-      if (!ele1) FOUR_C_THROW("Cannot find slave element with gid %", gid1);
-      Element* selement = dynamic_cast<Element*>(ele1);
+      if (!ele1) FOUR_C_THROW("Cannot find source element with gid %", gid1);
+      Element* source_element = dynamic_cast<Element*>(ele1);
 
-      // loop over slave edges -> match node number for tri3/quad4
-      for (int k = 0; k < selement->num_node(); ++k)
+      // loop over source edges -> match node number for tri3/quad4
+      for (int k = 0; k < source_element->num_node(); ++k)
       {
         int nodeIds[2] = {0, 0};
         int nodeLIds[2] = {0, 0};
 
-        if (selement->shape() == Core::FE::CellType::quad4)
+        if (source_element->shape() == Core::FE::CellType::quad4)
         {
           if (k == 0)
           {
-            nodeIds[0] = selement->node_ids()[0];
-            nodeIds[1] = selement->node_ids()[1];
+            nodeIds[0] = source_element->node_ids()[0];
+            nodeIds[1] = source_element->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (k == 1)
           {
-            nodeIds[0] = selement->node_ids()[1];
-            nodeIds[1] = selement->node_ids()[2];
+            nodeIds[0] = source_element->node_ids()[1];
+            nodeIds[1] = source_element->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (k == 2)
           {
-            nodeIds[0] = selement->node_ids()[2];
-            nodeIds[1] = selement->node_ids()[3];
+            nodeIds[0] = source_element->node_ids()[2];
+            nodeIds[1] = source_element->node_ids()[3];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 3;
           }
           else if (k == 3)
           {
-            nodeIds[0] = selement->node_ids()[3];
-            nodeIds[1] = selement->node_ids()[0];
+            nodeIds[0] = source_element->node_ids()[3];
+            nodeIds[1] = source_element->node_ids()[0];
 
             nodeLIds[0] = 3;
             nodeLIds[1] = 0;
@@ -1592,28 +1586,28 @@ void CONTACT::LagrangeStrategy::save_reference_state(
           else
             FOUR_C_THROW("loop counter and edge number do not match!");
         }
-        else if (selement->shape() == Core::FE::CellType::tri3)
+        else if (source_element->shape() == Core::FE::CellType::tri3)
         {
           if (k == 0)
           {
-            nodeIds[0] = selement->node_ids()[0];
-            nodeIds[1] = selement->node_ids()[1];
+            nodeIds[0] = source_element->node_ids()[0];
+            nodeIds[1] = source_element->node_ids()[1];
 
             nodeLIds[0] = 0;
             nodeLIds[1] = 1;
           }
           else if (k == 1)
           {
-            nodeIds[0] = selement->node_ids()[1];
-            nodeIds[1] = selement->node_ids()[2];
+            nodeIds[0] = source_element->node_ids()[1];
+            nodeIds[1] = source_element->node_ids()[2];
 
             nodeLIds[0] = 1;
             nodeLIds[1] = 2;
           }
           else if (k == 2)
           {
-            nodeIds[0] = selement->node_ids()[2];
-            nodeIds[1] = selement->node_ids()[0];
+            nodeIds[0] = source_element->node_ids()[2];
+            nodeIds[1] = source_element->node_ids()[0];
 
             nodeLIds[0] = 2;
             nodeLIds[1] = 0;
@@ -1623,8 +1617,10 @@ void CONTACT::LagrangeStrategy::save_reference_state(
         }
 
         // check if both nodes on edge geometry
-        bool node0Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[0]])->is_on_edge();
-        bool node1Edge = dynamic_cast<Mortar::Node*>(selement->nodes()[nodeLIds[1]])->is_on_edge();
+        bool node0Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[0]])->is_on_edge();
+        bool node1Edge =
+            dynamic_cast<Mortar::Node*>(source_element->nodes()[nodeLIds[1]])->is_on_edge();
 
         if (!node0Edge or !node1Edge) continue;
 
@@ -1645,11 +1641,11 @@ void CONTACT::LagrangeStrategy::save_reference_state(
 
           // create line ele:
           Mortar::Element lineEle(
-              j, selement->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
+              j, source_element->owner(), Core::FE::CellType::line2, 2, nodeIds, false);
 
           // get nodes
           std::array<Core::Nodes::Node*, 2> nodes = {
-              selement->nodes()[nodeLIds[0]], selement->nodes()[nodeLIds[1]]};
+              source_element->nodes()[nodeLIds[0]], source_element->nodes()[nodeLIds[1]]};
           lineEle.build_nodal_pointers(nodes.data());
 
           // init data container for dual shapes
@@ -1664,10 +1660,10 @@ void CONTACT::LagrangeStrategy::save_reference_state(
       }  // end edge loop
     }
 
-    // loop over all slave row nodes on the current interface
-    for (int j = 0; j < interface_[i]->master_row_nodes()->num_my_elements(); ++j)
+    // loop over all source row nodes on the current interface
+    for (int j = 0; j < interface_[i]->target_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->master_row_nodes()->gid(j);
+      int gid = interface_[i]->target_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
@@ -1693,13 +1689,12 @@ void CONTACT::LagrangeStrategy::save_reference_state(
       }
     }
   }
-  return;
 }
 
 /*----------------------------------------------------------------------*
  |  add penalty terms for ltl contact                        farah 11/16|
  *----------------------------------------------------------------------*/
-void CONTACT::LagrangeStrategy::add_master_contributions(Core::LinAlg::SparseOperator& kteff,
+void CONTACT::LagrangeStrategy::add_target_contributions(Core::LinAlg::SparseOperator& kteff,
     Core::LinAlg::Vector<double>& feff, bool add_time_integration)
 {
   // create new contact force vector for LTL contact
@@ -1713,11 +1708,11 @@ void CONTACT::LagrangeStrategy::add_master_contributions(Core::LinAlg::SparseOpe
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
     // line to segment
-    interface_[i]->add_lts_forces_master(*fc);
-    interface_[i]->add_lts_stiffness_master(kc);
+    interface_[i]->add_lts_forces_target(*fc);
+    interface_[i]->add_lts_stiffness_target(kc);
     // node to segment
-    interface_[i]->add_nts_forces_master(*fc);
-    interface_[i]->add_nts_stiffness_master(kc);
+    interface_[i]->add_nts_forces_target(*fc);
+    interface_[i]->add_nts_stiffness_target(kc);
   }
 
   // force
@@ -1742,9 +1737,6 @@ void CONTACT::LagrangeStrategy::add_master_contributions(Core::LinAlg::SparseOpe
   kteff.un_complete();
   kteff.add(kc, false, fac, 1.);
   kteff.complete();
-
-  // bye bye
-  return;
 }
 
 
@@ -1795,9 +1787,6 @@ void CONTACT::LagrangeStrategy::add_line_to_lin_contributions(Core::LinAlg::Spar
   kteff.un_complete();
   kteff.add(kc, false, fac, 1.);
   kteff.complete();
-
-  // bye bye
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -1864,9 +1853,6 @@ void CONTACT::LagrangeStrategy::add_line_to_lin_contributions_friction(
   kteff.un_complete();
   kteff.add(kc, false, fac, 1.);
   kteff.complete();
-
-  // bye bye
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -1888,8 +1874,8 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     // LTL contributions:
     add_line_to_lin_contributions(*kteff, feff);
 
-    // penalty support for master side quantities:
-    add_master_contributions(*kteff, *feff);
+    // penalty support for target side quantities:
+    add_target_contributions(*kteff, *feff);
 
 #ifdef CONTACTFDGAPLTL
     // FD check of weighted gap g derivatives (non-penetr. condition)
@@ -1963,9 +1949,9 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
     // fill_complete() global matrix N
     if (nmatrix_ != nullptr) nmatrix_->complete(*gactivedofs_, *gactivedofs_);
-    smatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
-    tderivmatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
-    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
+    smatrix_->complete(*gstdofrowmap_, *gactivedofs_);
+    tderivmatrix_->complete(*gstdofrowmap_, *gactivedofs_);
+    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gstdofrowmap_, *gactivedofs_);
   }
   else
   {
@@ -1976,35 +1962,35 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     if (nmatrix_ != nullptr) nmatrix_->complete(*gactivedofs_, *gactiven_);
 
     // fill_complete() global matrix S
-    smatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    smatrix_->complete(*gstdofrowmap_, *gactiven_);
 
     // fill_complete() global matrix Tderiv
     // (actually gsdofrowmap_ is in general sufficient as domain map,
-    // but in the edge node modification case, master entries occur!)
-    tderivmatrix_->complete(*gsmdofrowmap_, *gactivet_);
+    // but in the edge node modification case, target entries occur!)
+    tderivmatrix_->complete(*gstdofrowmap_, *gactivet_);
 
     // fill_complete() global matrix Nderiv
-    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gstdofrowmap_, *gactiven_);
   }
 
   // fill_complete() global matrices LinD, LinM
   // (again for linD gsdofrowmap_ is sufficient as domain map,
-  // but in the edge node modification case, master entries occur!)
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
+  // but in the edge node modification case, target entries occur!)
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
 
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
   // Concretely, we apply the following transformations:
   // LinD      ---->   T^(-T) * LinD
   //----------------------------------------------------------------------
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     if (lagmultquad == Mortar::lagmult_lin)
     {
       if (parallel_redistribution_status())
-        trafo_ = Core::LinAlg::matrix_row_transform(*trafo_, *gsmdofrowmap_);
+        trafo_ = Core::LinAlg::matrix_row_transform(*trafo_, *gstdofrowmap_);
       lindmatrix_ =
           Core::LinAlg::matrix_multiply(*lindmatrix_, false, *trafo_, false, false, false, true);
       linmmatrix_ =
@@ -2195,7 +2181,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     std::shared_ptr<Core::LinAlg::SparseMatrix> kteffmatrix =
         std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(kteff);
 
-    if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+    if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // basis transformation
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -2204,7 +2190,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       Core::LinAlg::matrix_add(*eye, false, 1.0, systrafo, 1.0);
       if (parallel_redistribution_status())
         trafo_ = Core::LinAlg::matrix_row_col_transform(
-            *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+            *trafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
       Core::LinAlg::matrix_add(*trafo_, false, 1.0, systrafo, 1.0);
       systrafo.complete();
 
@@ -2221,7 +2207,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     if (parallel_redistribution_status())
     {
       lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
     }
 
     kteffmatrix->un_complete();
@@ -2245,30 +2231,30 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx2;
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx3;
 
-    // split into slave/master part + structure part
+    // split into source/target part + structure part
     if (parallel_redistribution_status())
     {
       // split and transform to redistributed maps
-      Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gsmdofrowmap_, gndofrowmap_,
-          non_redist_gsmdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
-      ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gsmdofrowmap_, *gsmdofrowmap_);
-      ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gsmdofrowmap_);
-      knsm = Core::LinAlg::matrix_col_transform(*knsm, *gsmdofrowmap_);
+      Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gstdofrowmap_, gndofrowmap_,
+          non_redist_gstdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
+      ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gstdofrowmap_, *gstdofrowmap_);
+      ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gstdofrowmap_);
+      knsm = Core::LinAlg::matrix_col_transform(*knsm, *gstdofrowmap_);
     }
     else
     {
       // only split, no need to transform
-      Core::LinAlg::split_matrix2x2(kteffmatrix, gsmdofrowmap_, gndofrowmap_, gsmdofrowmap_,
+      Core::LinAlg::split_matrix2x2(kteffmatrix, gstdofrowmap_, gndofrowmap_, gstdofrowmap_,
           gndofrowmap_, ksmsm, ksmn, knsm, knn);
     }
 
-    // further splits into slave part + master part
+    // further splits into source part + target part
     Core::LinAlg::split_matrix2x2(
-        ksmsm, gsdofrowmap_, gmdofrowmap_, gsdofrowmap_, gmdofrowmap_, kss, ksm, kms, kmm);
+        ksmsm, gsdofrowmap_, gtdofrowmap_, gsdofrowmap_, gtdofrowmap_, kss, ksm, kms, kmm);
     Core::LinAlg::split_matrix2x2(
-        ksmn, gsdofrowmap_, gmdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
+        ksmn, gsdofrowmap_, gtdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        knsm, gndofrowmap_, tempmap, gsdofrowmap_, gmdofrowmap_, kns, knm, tempmtx1, tempmtx2);
+        knsm, gndofrowmap_, tempmap, gsdofrowmap_, gtdofrowmap_, kns, knm, tempmtx1, tempmtx2);
 
     /**********************************************************************/
     /* (4) Split feff into 3 subvectors                                   */
@@ -2284,28 +2270,28 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     {
       // split and transform to redistributed maps
       Core::LinAlg::split_vector(
-          *problem_dofs(), *feff, non_redist_gsmdofrowmap_, fsm, gndofrowmap_, fn);
+          *problem_dofs(), *feff, non_redist_gstdofrowmap_, fsm, gndofrowmap_, fn);
       std::shared_ptr<Core::LinAlg::Vector<double>> fsmtemp =
-          std::make_shared<Core::LinAlg::Vector<double>>(*gsmdofrowmap_);
+          std::make_shared<Core::LinAlg::Vector<double>>(*gstdofrowmap_);
       Core::LinAlg::export_to(*fsm, *fsmtemp);
       fsm = fsmtemp;
     }
     else
     {
       // only split, no need to transform
-      Core::LinAlg::split_vector(*problem_dofs(), *feff, gsmdofrowmap_, fsm, gndofrowmap_, fn);
+      Core::LinAlg::split_vector(*problem_dofs(), *feff, gstdofrowmap_, fsm, gndofrowmap_, fn);
     }
 
-    // abbreviations for slave  and master set
-    const int sset = gsdofrowmap_->num_global_elements();
-    const int mset = gmdofrowmap_->num_global_elements();
+    // abbreviations for source and target set
+    const int source_set = gsdofrowmap_->num_global_elements();
+    const int target_set = gtdofrowmap_->num_global_elements();
 
     // we want to split fsm into 2 groups s,m
     fs = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_);
-    fm = std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_);
+    fm = std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_);
 
     // do the vector splitting sm -> s+m
-    Core::LinAlg::split_vector(*gsmdofrowmap_, *fsm, gsdofrowmap_, fs, gmdofrowmap_, fm);
+    Core::LinAlg::split_vector(*gstdofrowmap_, *fsm, gsdofrowmap_, fs, gtdofrowmap_, fm);
 
     // store some stuff for static condensation of LM
     fs_ = fs;
@@ -2315,14 +2301,14 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     kss_ = kss;
 
     //----------------------------------------------------------------------
-    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
     //----------------------------------------------------------------------
     // Concretely, we apply the following transformations:
     // D         ---->   D * T^(-1)
     // D^(-1)    ---->   T * D^(-1)
     // \hat{M}   ---->   T * \hat{M}
     //----------------------------------------------------------------------
-    if (is_dual_quad_slave_trafo() && lagmultquad != Mortar::lagmult_lin)
+    if (is_dual_quad_source_trafo() && lagmultquad != Mortar::lagmult_lin)
     {
       // modify dmatrix_, invd_ and mhatmatrix_
       std::shared_ptr<Core::LinAlg::SparseMatrix> temp2 =
@@ -2337,7 +2323,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     }
 
     /**********************************************************************/
-    /* (5) Split slave quantities into active / inactive                  */
+    /* (5) Split source quantities into active / inactive                  */
     /**********************************************************************/
     // we want to split kssmod into 2 groups a,i = 4 blocks
     std::shared_ptr<Core::LinAlg::SparseMatrix> kaa, kai, kia, kii;
@@ -2354,9 +2340,9 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     Core::LinAlg::split_matrix2x2(
         ksn, gactivedofs_, gidofs, gndofrowmap_, tempmap, kan, tempmtx1, kin, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        ksm, gactivedofs_, gidofs, gmdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
+        ksm, gactivedofs_, gidofs, gtdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
     Core::LinAlg::split_matrix2x2(
-        kms, gmdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
+        kms, gtdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
 
     // abbreviations for active and inactive set
     const int aset = gactivedofs_->num_global_elements();
@@ -2393,7 +2379,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
     // active part of mmatrix
     std::shared_ptr<Core::LinAlg::SparseMatrix> mmatrixa;
-    Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mmatrixa,
+    Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mmatrixa,
         tempmtx1, tempmtx2, tempmtx3);
 
     // do the multiplication mhataam = invda * mmatrixa
@@ -2402,12 +2388,12 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         std::make_shared<Core::LinAlg::SparseMatrix>(*gactivedofs_, 10);
     if (aset)
       mhataam = Core::LinAlg::matrix_multiply(*invda, false, *mmatrixa, false, false, false, true);
-    mhataam->complete(*gmdofrowmap_, *gactivedofs_);
+    mhataam->complete(*gtdofrowmap_, *gactivedofs_);
 
     // for the case without full linearization, we still need the
     // "classical" active part of mhat, which is isolated here
     std::shared_ptr<Core::LinAlg::SparseMatrix> mhata;
-    Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mhata,
+    Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mhata,
         tempmtx1, tempmtx2, tempmtx3);
 
     // scaling of invd and dai
@@ -2429,7 +2415,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     //---------------------------------------------------------- SECOND LINE
     // kmn: add T(mhataam)*kan
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmnmod =
-        std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+        std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmn, false, 1.0, *kmnmod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmnadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kan, false, false, false, true);
@@ -2438,7 +2424,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
     // kmm: add T(mhataam)*kam
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmmmod =
-        std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+        std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmm, false, 1.0, *kmmmod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmmadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kam, false, false, false, true);
@@ -2449,7 +2435,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmimod;
     if (iset)
     {
-      kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
       Core::LinAlg::matrix_add(*kmi, false, 1.0, *kmimod, 1.0);
       std::shared_ptr<Core::LinAlg::SparseMatrix> kmiadd =
           Core::LinAlg::matrix_multiply(*mhataam, true, *kai, false, false, false, true);
@@ -2461,7 +2447,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmamod;
     if (aset)
     {
-      kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
       Core::LinAlg::matrix_add(*kma, false, 1.0, *kmamod, 1.0);
       std::shared_ptr<Core::LinAlg::SparseMatrix> kmaadd =
           Core::LinAlg::matrix_multiply(*mhataam, true, *kaa, false, false, false, true);
@@ -2567,22 +2553,22 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
 
     //---------------------------------------------------------- SECOND LINE
     // fm: add alphaf * old contact forces (t_n)
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the product Mold^T * zold to fit
     if (is_self_contact())
     {
-      Core::LinAlg::Vector<double> tempvecm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> tempvecm(*gtdofrowmap_);
       Core::LinAlg::Vector<double> tempvecm2(mold_->domain_map());
       Core::LinAlg::Vector<double> zoldexp(mold_->row_map());
       if (mold_->row_map().num_global_elements()) Core::LinAlg::export_to(*zold_, zoldexp);
       mold_->multiply(true, zoldexp, tempvecm2);
-      if (mset) Core::LinAlg::export_to(tempvecm2, tempvecm);
+      if (target_set) Core::LinAlg::export_to(tempvecm2, tempvecm);
       fm->update(alphaf_, tempvecm, 1.0);
     }
     // if there is no self contact everything is ok
     else
     {
-      Core::LinAlg::Vector<double> tempvecm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> tempvecm(*gtdofrowmap_);
       mold_->multiply(true, *zold_, tempvecm);
       fm->update(alphaf_, tempvecm, 1.0);
     }
@@ -2590,7 +2576,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     // fs: prepare alphaf * old contact forces (t_n)
     Core::LinAlg::Vector<double> fsadd(*gsdofrowmap_);
 
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the product Dold^T * zold to fit
     if (is_self_contact())
     {
@@ -2598,7 +2584,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       Core::LinAlg::Vector<double> zoldexp(dold_->row_map());
       if (dold_->row_map().num_global_elements()) Core::LinAlg::export_to(*zold_, zoldexp);
       dold_->multiply(true, zoldexp, tempvec);
-      if (sset) Core::LinAlg::export_to(tempvec, fsadd);
+      if (source_set) Core::LinAlg::export_to(tempvec, fsadd);
     }
     // if there is no self contact everything is ok
     else
@@ -2615,7 +2601,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     }
 
     // fm: add T(mhat)*fa
-    Core::LinAlg::Vector<double> fmmod(*gmdofrowmap_);
+    Core::LinAlg::Vector<double> fmmod(*gtdofrowmap_);
     if (aset) mhataam->multiply(true, *fa, fmmod);
     fmmod.update(1.0, *fm, 1.0);
 
@@ -2666,10 +2652,10 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       // nothing to do (ndof-map independent of redistribution)
 
       //---------------------------------------------------------- SECOND LINE
-      kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gmdofrowmap_);
-      kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gmdofrowmap_);
-      if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gmdofrowmap_);
-      if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gmdofrowmap_);
+      kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gtdofrowmap_);
+      kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gtdofrowmap_);
+      if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gtdofrowmap_);
+      if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gtdofrowmap_);
 
       //----------------------------------------------------------- THIRD LINE
       if (iset)
@@ -2709,7 +2695,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     // add n submatrices to kteffnew
     Core::LinAlg::matrix_add(*knn, false, 1.0, *kteffnew, 1.0);
     Core::LinAlg::matrix_add(*knm, false, 1.0, *kteffnew, 1.0);
-    if (sset) Core::LinAlg::matrix_add(*kns, false, 1.0, *kteffnew, 1.0);
+    if (source_set) Core::LinAlg::matrix_add(*kns, false, 1.0, *kteffnew, 1.0);
 
     //---------------------------------------------------------- SECOND LINE
     // add m submatrices to kteffnew
@@ -2799,12 +2785,12 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
   else
   {
     //----------------------------------------------------------------------
-    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+    // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
     //----------------------------------------------------------------------
     // Concretely, we apply the following transformations:
     // D         ---->   D * T^(-1)
     //----------------------------------------------------------------------
-    if (is_dual_quad_slave_trafo())
+    if (is_dual_quad_source_trafo())
     {
       if (lagmultquad == Mortar::lagmult_lin)
       {
@@ -2815,7 +2801,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
         Core::LinAlg::matrix_add(*eye, false, 1.0, systrafo, 1.0);
         if (parallel_redistribution_status())
           trafo_ = Core::LinAlg::matrix_row_col_transform(
-              *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+              *trafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
         Core::LinAlg::matrix_add(*trafo_, false, 1.0, systrafo, 1.0);
         systrafo.complete();
 
@@ -2839,7 +2825,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     if (parallel_redistribution_status())
     {
       lindmatrix_ = Core::LinAlg::matrix_row_transform(*lindmatrix_, *non_redist_gsdofrowmap_);
-      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gmdofrowmap_);
+      linmmatrix_ = Core::LinAlg::matrix_row_transform(*linmmatrix_, *non_redist_gtdofrowmap_);
     }
 
     // add contact stiffness
@@ -2848,7 +2834,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     kteff->add(*linmmatrix_, false, 1.0 - alphaf_, 1.0);
     kteff->complete();
 
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the products Dold^T * zold / D^T * z to fit
     // thus we have to export the products Mold^T * zold / M^T * z to fit
     if (is_self_contact())
@@ -2893,7 +2879,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       Core::LinAlg::export_to(fs, fsexp);
       feff->update(-(1.0 - alphaf_), fsexp, 1.0);
 
-      Core::LinAlg::Vector<double> fm(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> fm(*gtdofrowmap_);
       mmatrix_->multiply(true, *z_, fm);
       Core::LinAlg::Vector<double> fmexp(*problem_dofs());
       Core::LinAlg::export_to(fm, fmexp);
@@ -2906,7 +2892,7 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
       Core::LinAlg::export_to(fsold, fsoldexp);
       feff->update(-alphaf_, fsoldexp, 1.0);
 
-      Core::LinAlg::Vector<double> fmold(*gmdofrowmap_);
+      Core::LinAlg::Vector<double> fmold(*gtdofrowmap_);
       mold_->multiply(true, *zold_, fmold);
       Core::LinAlg::Vector<double> fmoldexp(*problem_dofs());
       Core::LinAlg::export_to(fmold, fmoldexp);
@@ -2937,8 +2923,6 @@ void CONTACT::LagrangeStrategy::evaluate_contact(
     interface_[i]->FDCheckTangLMDeriv();
   }
 #endif  // #ifdef CONTACTFDTANGLM
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -3079,8 +3063,8 @@ void CONTACT::LagrangeStrategy::build_saddle_point_system(
 
   /* Step 1: Transform matrix blocks to current Lagrange multiplier dof_row_map
    *
-   * This does not change the parallel layout, but only replace the slave displacement GIDs with the
-   * Lagrange multiplier DOF GIDs. There is no communication involved.
+   * This does not change the parallel layout, but only replace the source displacement GIDs with
+   * the Lagrange multiplier DOF GIDs. There is no communication involved.
    */
   {
     // transform constraint matrix kzd to lmdofmap (MatrixRowTransform)
@@ -3129,7 +3113,7 @@ void CONTACT::LagrangeStrategy::build_saddle_point_system(
     std::shared_ptr<Core::LinAlg::Vector<double>> mergedzeros =
         std::make_shared<Core::LinAlg::Vector<double>>(*mergedmap);
 
-    /* ToDo (mayr.mt) Is this due to symmetry BCs? Basically, slave DOFs should not carry any
+    /* ToDo (mayr.mt) Is this due to symmetry BCs? Basically, source DOFs should not carry any
      * Dirichlet BCs.
      */
     Core::LinAlg::Vector<double> dirichtoggleexp(*mergedmap);
@@ -3209,8 +3193,6 @@ void CONTACT::LagrangeStrategy::build_saddle_point_system(
     blocksol = mergedsol;
     blockrhs = mergedrhs;
   }
-
-  return;
 }
 
 /*------------------------------------------------------------------------*
@@ -3245,7 +3227,7 @@ void CONTACT::LagrangeStrategy::update_displacements_and_l_mincrements(
     sollm->replace_map(*gsdofrowmap_);
   }
 
-  /* For self contact, slave and master sets may have changed, thus we have to reinitialize the LM
+  /* For self contact, source and target sets may have changed, thus we have to reinitialize the LM
    * vector map
    */
   if (is_self_contact())
@@ -3261,8 +3243,6 @@ void CONTACT::LagrangeStrategy::update_displacements_and_l_mincrements(
     zincr_->update(1.0, *sollm, 0.0);
     z_->update(1.0, *zincr_, 1.0);
   }
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -3355,8 +3335,6 @@ void CONTACT::LagrangeStrategy::evaluate_constr_rhs()
   }
   else
     constrrhs_ = constrrhs;
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -3364,7 +3342,7 @@ void CONTACT::LagrangeStrategy::evaluate_constr_rhs()
 void CONTACT::LagrangeStrategy::evaluate_force(CONTACT::ParamsInterface& cparams)
 {
   //---------------------------------------------------------------
-  // For selfcontact the master/slave sets are updated within the -
+  // For selfcontact the target/source sets are updated within the -
   // contact search, see SelfBinaryTree.                          -
   // Therefore, we have to initialize the mortar matrices after   -
   // interface evaluations.                                       -
@@ -3409,7 +3387,7 @@ void CONTACT::LagrangeStrategy::evaluate_force(CONTACT::ParamsInterface& cparams
     eval_str_contact_rhs();
 
   auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+  if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
   {
     systrafo_ = std::make_shared<Core::LinAlg::SparseMatrix>(*problem_dofs(), 100, false, true);
     std::shared_ptr<Core::LinAlg::SparseMatrix> eye =
@@ -3417,7 +3395,7 @@ void CONTACT::LagrangeStrategy::evaluate_force(CONTACT::ParamsInterface& cparams
     Core::LinAlg::matrix_add(*eye, false, 1.0, *systrafo_, 1.0);
     if (parallel_redistribution_status())
       trafo_ = Core::LinAlg::matrix_row_col_transform(
-          *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+          *trafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
     Core::LinAlg::matrix_add(*trafo_, false, 1.0, *systrafo_, 1.0);
     systrafo_->complete();
 
@@ -3425,13 +3403,10 @@ void CONTACT::LagrangeStrategy::evaluate_force(CONTACT::ParamsInterface& cparams
     Core::LinAlg::matrix_add(*eye, false, 1.0, *invsystrafo_, 1.0);
     if (parallel_redistribution_status())
       invtrafo_ = Core::LinAlg::matrix_row_col_transform(
-          *invtrafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+          *invtrafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
     Core::LinAlg::matrix_add(*invtrafo_, false, 1.0, *invsystrafo_, 1.0);
     invsystrafo_->complete();
   }
-
-  // bye bye
-  return;
 }
 
 
@@ -3451,8 +3426,8 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms()
       // LTL contributions:
       add_line_to_lin_contributions(*k, nonsmooth_Penalty_force_, false);
 
-      // penalty support for master side quantities:
-      add_master_contributions(*k, *nonsmooth_Penalty_force_, false);
+      // penalty support for target side quantities:
+      add_target_contributions(*k, *nonsmooth_Penalty_force_, false);
     }
     else
     {
@@ -3472,7 +3447,6 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms()
     assemble_all_contact_terms_friction();
   else
     assemble_all_contact_terms_frictionless();
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -3497,19 +3471,19 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
   }
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
-    smatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
+    smatrix_->complete(*gstdofrowmap_, *gactivedofs_);
   }
   else
   {
     // fill_complete() global matrix S
-    smatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    smatrix_->complete(*gstdofrowmap_, *gactiven_);
   }
 
   // fill_complete() global matrices LinD, LinM
   // (again for linD gsdofrowmap_ is sufficient as domain map,
-  // but in the edge node modification case, master entries occur!)
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
+  // but in the edge node modification case, target entries occur!)
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
 
   // fill_complete global Matrix linstickLM_, linstickDIS_
   std::shared_ptr<Core::LinAlg::Map> gstickt = Core::LinAlg::split_map(*gactivet_, *gslipt_);
@@ -3519,22 +3493,22 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
   if (constr_direction_ == CONTACT::ConstraintDirection::xyz)
   {
     linstickLM_->complete(*gstickdofs, *gstickdofs);
-    linstickDIS_->complete(*gsmdofrowmap_, *gstickdofs);
+    linstickDIS_->complete(*gstdofrowmap_, *gstickdofs);
     linslipLM_->complete(*gslipdofs_, *gslipdofs_);
-    linslipDIS_->complete(*gsmdofrowmap_, *gslipdofs_);
+    linslipDIS_->complete(*gstdofrowmap_, *gslipdofs_);
   }
   else
   {
     linstickLM_->complete(*gstickdofs, *gstickt);
-    linstickDIS_->complete(*gsmdofrowmap_, *gstickt);
+    linstickDIS_->complete(*gstdofrowmap_, *gstickt);
 
     // fill_complete global Matrix linslipLM_ and linslipDIS_
     linslipLM_->complete(*gslipdofs_, *gslipt_);
-    linslipDIS_->complete(*gsmdofrowmap_, *gslipt_);
+    linslipDIS_->complete(*gstdofrowmap_, *gslipt_);
   }
 
   auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     if (lagmultquad == Mortar::lagmult_lin)
       FOUR_C_THROW("no linear LM interpolation for frictional contact");
@@ -3705,7 +3679,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_friction()
     mhatmatrix_ = Core::LinAlg::matrix_multiply(*invd, false, *mmatrix_, false, false, false, true);
   }
 
-  if (is_dual_quad_slave_trafo() && lagmultquad != Mortar::lagmult_lin)
+  if (is_dual_quad_source_trafo() && lagmultquad != Mortar::lagmult_lin)
   {
     // modify dmatrix_, invd_ and mhatmatrix_
     std::shared_ptr<Core::LinAlg::SparseMatrix> temp2 =
@@ -3760,9 +3734,9 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
 
     // fill_complete() global matrix N
     if (nmatrix_ != nullptr) nmatrix_->complete(*gactivedofs_, *gactivedofs_);
-    smatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
-    tderivmatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
-    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gsmdofrowmap_, *gactivedofs_);
+    smatrix_->complete(*gstdofrowmap_, *gactivedofs_);
+    tderivmatrix_->complete(*gstdofrowmap_, *gactivedofs_);
+    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gstdofrowmap_, *gactivedofs_);
   }
   else
   {
@@ -3773,25 +3747,25 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
     if (nmatrix_ != nullptr) nmatrix_->complete(*gactivedofs_, *gactiven_);
 
     // fill_complete() global matrix S
-    smatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    smatrix_->complete(*gstdofrowmap_, *gactiven_);
 
     // fill_complete() global matrix Tderiv
     // (actually gsdofrowmap_ is in general sufficient as domain map,
-    // but in the edge node modification case, master entries occur!)
-    tderivmatrix_->complete(*gsmdofrowmap_, *gactivet_);
+    // but in the edge node modification case, target entries occur!)
+    tderivmatrix_->complete(*gstdofrowmap_, *gactivet_);
 
     // fill_complete() global matrix Nderiv
-    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gsmdofrowmap_, *gactiven_);
+    if (nderivmatrix_ != nullptr) nderivmatrix_->complete(*gstdofrowmap_, *gactiven_);
   }
 
   // fill_complete() global matrices LinD, LinM
   // (again for linD gsdofrowmap_ is sufficient as domain map,
-  // but in the edge node modification case, master entries occur!)
-  lindmatrix_->complete(*gsmdofrowmap_, *gsdofrowmap_);
-  linmmatrix_->complete(*gsmdofrowmap_, *gmdofrowmap_);
+  // but in the edge node modification case, target entries occur!)
+  lindmatrix_->complete(*gstdofrowmap_, *gsdofrowmap_);
+  linmmatrix_->complete(*gstdofrowmap_, *gtdofrowmap_);
 
   auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (is_dual_quad_slave_trafo())
+  if (is_dual_quad_source_trafo())
   {
     if (lagmultquad == Mortar::lagmult_lin)
     {
@@ -3962,7 +3936,7 @@ void CONTACT::LagrangeStrategy::assemble_all_contact_terms_frictionless()
     mhatmatrix_ = Core::LinAlg::matrix_multiply(*invd, false, *mmatrix_, false, false, false, true);
   }
 
-  if (is_dual_quad_slave_trafo() && lagmultquad != Mortar::lagmult_lin)
+  if (is_dual_quad_source_trafo() && lagmultquad != Mortar::lagmult_lin)
   {
     // modify dmatrix_, invd_ and mhatmatrix_
     std::shared_ptr<Core::LinAlg::SparseMatrix> temp2 =
@@ -4011,7 +3985,7 @@ void CONTACT::LagrangeStrategy::eval_str_contact_rhs()
 
   strcontactrhs_ = std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs(), true);
 
-  // for self contact, slave and master sets may have changed,
+  // for self contact, source and target sets may have changed,
   // thus we have to export the products Dold^T * zold / D^T * z to fit
   // thus we have to export the products Mold^T * zold / M^T * z to fit
   if (is_self_contact())
@@ -4041,7 +4015,7 @@ void CONTACT::LagrangeStrategy::eval_str_contact_rhs()
     Core::LinAlg::export_to(fs, fsexp);
     strcontactrhs_->update(+1., fsexp, 1.0);
 
-    Core::LinAlg::Vector<double> fm(*gmdofrowmap_);
+    Core::LinAlg::Vector<double> fm(*gtdofrowmap_);
     mmatrix_->multiply(true, *z_, fm);
     Core::LinAlg::Vector<double> fmexp(*problem_dofs());
     Core::LinAlg::export_to(fm, fmexp);
@@ -4143,7 +4117,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matri
     case CONTACT::MatBlockType::displ_displ:
     {
       mat_ptr = std::make_shared<Core::LinAlg::SparseMatrix>(
-          slave_master_dof_row_map(true), 100, false, true);
+          source_target_dof_row_map(true), 100, false, true);
 
       // build matrix kdd
       Core::LinAlg::matrix_add(*lindmatrix_, false, 1.0, *mat_ptr, 1.0);
@@ -4156,13 +4130,13 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matri
       // (only necessary in the parallel redistribution case)
       if (parallel_redistribution_status())
         mat_ptr = Core::LinAlg::matrix_row_col_transform(
-            *mat_ptr, *slave_master_dof_row_map_ptr(false), *slave_master_dof_row_map_ptr(false));
+            *mat_ptr, *source_target_dof_row_map_ptr(false), *source_target_dof_row_map_ptr(false));
 
       std::shared_ptr<Core::LinAlg::SparseMatrix> full_mat_ptr =
           std::make_shared<Core::LinAlg::SparseMatrix>(*problem_dofs(), 100, false, true);
       Core::LinAlg::matrix_add(*mat_ptr, false, 1., *full_mat_ptr, 1.);
       full_mat_ptr->complete();
-      if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+      if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
         full_mat_ptr = Core::LinAlg::matrix_multiply(
             *invsystrafo_, true, *full_mat_ptr, false, false, false, true);
 
@@ -4193,7 +4167,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matri
     case CONTACT::MatBlockType::lm_displ:
     {
       // build constraint matrix kzd
-      Core::LinAlg::SparseMatrix kzd_ptr(slave_dof_row_map(true), 100, false, true);
+      Core::LinAlg::SparseMatrix kzd_ptr(source_dof_row_map(true), 100, false, true);
 
       // build constraint matrix kzd
       if (gactiven_->num_global_elements())
@@ -4240,8 +4214,8 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matri
       }
       else
       {
-        kzz_ptr =
-            std::make_shared<Core::LinAlg::SparseMatrix>(slave_dof_row_map(true), 100, false, true);
+        kzz_ptr = std::make_shared<Core::LinAlg::SparseMatrix>(
+            source_dof_row_map(true), 100, false, true);
       }
 
       // build unity matrix for inactive dofs
@@ -4270,7 +4244,7 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::LagrangeStrategy::get_matri
       // transform constraint matrix kzz to lmdofmap
       if (is_self_contact())
       {
-        kzz_ptr->complete(*gsmdofrowmap_, *gsmdofrowmap_);
+        kzz_ptr->complete(*gstdofrowmap_, *gstdofrowmap_);
         mat_ptr = Core::LinAlg::matrix_row_col_transform_gids(
             *kzz_ptr, *lin_system_lm_dof_row_map_ptr(), *lin_system_lm_dof_row_map_ptr());
       }
@@ -4359,8 +4333,8 @@ std::shared_ptr<const Core::LinAlg::Vector<double>> CONTACT::LagrangeStrategy::g
 
       std::shared_ptr<Core::LinAlg::Vector<double>> tmp =
           std::make_shared<Core::LinAlg::Vector<double>>(*problem_dofs());
-      if (is_dual_quad_slave_trafo() && Teuchos::getIntegralValue<Mortar::LagMultQuad>(
-                                            params(), "LM_QUAD") == Mortar::lagmult_lin)
+      if (is_dual_quad_source_trafo() && Teuchos::getIntegralValue<Mortar::LagMultQuad>(
+                                             params(), "LM_QUAD") == Mortar::lagmult_lin)
       {
         invsystrafo_->multiply(true, *vec_ptr, *tmp);
         vec_ptr = tmp;
@@ -4446,13 +4420,13 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
             Mortar::lagmult_const)
       FOUR_C_THROW("Condensation only for dual LM");
 
-    // extract slave displacements from disi
+    // extract source displacements from disi
     Core::LinAlg::Vector<double> disis(*gsdofrowmap_);
     if (gsdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disis);
 
-    // extract master displacements from disi
-    Core::LinAlg::Vector<double> disim(*gmdofrowmap_);
-    if (gmdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disim);
+    // extract target displacements from disi
+    Core::LinAlg::Vector<double> disim(*gtdofrowmap_);
+    if (gtdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disim);
 
     // extract other displacements from disi
     Core::LinAlg::Vector<double> disin(*gndofrowmap_);
@@ -4475,7 +4449,7 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
     /* Undo basis transformation to solution                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+    if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // undo basis transformation to solution
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -4484,7 +4458,7 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
       Core::LinAlg::matrix_add(*eye, false, 1.0, systrafo, 1.0);
       if (parallel_redistribution_status())
         trafo_ = Core::LinAlg::matrix_row_col_transform(
-            *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+            *trafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
       Core::LinAlg::matrix_add(*trafo_, false, 1.0, systrafo, 1.0);
       systrafo.complete();
       Core::LinAlg::Vector<double> disinew(*disi);
@@ -4494,7 +4468,7 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
     /**********************************************************************/
     /* Update Lagrange multipliers z_n+1                                  */
     /**********************************************************************/
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the products Dold * zold and Mold^T * zold to fit
     if (is_self_contact())
     {
@@ -4558,7 +4532,7 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
     /* Undo basis transformation to solution                              */
     /* (currently only needed for quadratic FE with linear dual LM)       */
     /**********************************************************************/
-    if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+    if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
     {
       // undo basis transformation to solution
       Core::LinAlg::SparseMatrix systrafo(*problem_dofs(), 100, false, true);
@@ -4567,7 +4541,7 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
       Core::LinAlg::matrix_add(*eye, false, 1.0, systrafo, 1.0);
       if (parallel_redistribution_status())
         trafo_ = Core::LinAlg::matrix_row_col_transform(
-            *trafo_, *non_redist_gsmdofrowmap_, *non_redist_gsmdofrowmap_);
+            *trafo_, *non_redist_gstdofrowmap_, *non_redist_gstdofrowmap_);
       Core::LinAlg::matrix_add(*trafo_, false, 1.0, systrafo, 1.0);
       systrafo.complete();
       Core::LinAlg::Vector<double> disinew(*disi);
@@ -4577,8 +4551,6 @@ void CONTACT::LagrangeStrategy::recover(std::shared_ptr<Core::LinAlg::Vector<dou
 
   // store updated LM into nodes
   store_nodal_quantities(Mortar::StrategyBase::lmupdate);
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -4595,10 +4567,10 @@ void CONTACT::LagrangeStrategy::update_active_set()
   // loop over all interfaces
   for (int i = 0; i < (int)interface_.size(); ++i)
   {
-    // loop over all slave nodes on the current interface
-    for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+    // loop over all source nodes on the current interface
+    for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
     {
-      int gid = interface_[i]->slave_row_nodes()->gid(j);
+      int gid = interface_[i]->source_row_nodes()->gid(j);
       Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
       if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
       Node* cnode = dynamic_cast<Node*>(node);
@@ -4742,7 +4714,7 @@ void CONTACT::LagrangeStrategy::update_active_set()
           }  // if (ftype == CONTACT::FrictionType::coulomb)
         }  // if (nz <= 0)
       }  // if (cnode->Active()==false)
-    }  // loop over all slave nodes
+    }  // loop over all source nodes
   }  // loop over all interfaces
 
   // broadcast convergence status among processors
@@ -4878,8 +4850,6 @@ void CONTACT::LagrangeStrategy::update_active_set()
   }
   else
     isincontact_ = false;
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -4898,10 +4868,10 @@ void CONTACT::LagrangeStrategy::update_active_set_semi_smooth(const bool firstSt
     // loop over all interfaces
     for (int i = 0; i < (int)interface_.size(); ++i)
     {
-      // loop over all slave nodes on the current interface
-      for (int j = 0; j < interface_[i]->slave_row_nodes()->num_my_elements(); ++j)
+      // loop over all source nodes on the current interface
+      for (int j = 0; j < interface_[i]->source_row_nodes()->num_my_elements(); ++j)
       {
-        int gid = interface_[i]->slave_row_nodes()->gid(j);
+        int gid = interface_[i]->source_row_nodes()->gid(j);
         Core::Nodes::Node* node = interface_[i]->discret().g_node(gid);
         if (!node) FOUR_C_THROW("Cannot find node with gid %", gid);
         Node* cnode = dynamic_cast<Node*>(node);
@@ -4909,8 +4879,8 @@ void CONTACT::LagrangeStrategy::update_active_set_semi_smooth(const bool firstSt
         // The nested active set strategy cannot deal with the case of
         // active nodes that have no integration segments/cells attached,
         // as this leads to zero rows in D and M and thus to singular systems.
-        // However, this case might possibly happen when slave nodes slide
-        // over the edge of a master body within one fixed active set step.
+        // However, this case might possibly happen when source nodes slide
+        // over the edge of a target body within one fixed active set step.
         // (Remark: Semi-smooth Newton has no problems in this case, as it
         // updates the active set after EACH Newton step, see below, and thus
         // would always set the corresponding nodes to INACTIVE.)
@@ -4961,12 +4931,12 @@ void CONTACT::LagrangeStrategy::update_active_set_semi_smooth(const bool firstSt
   // store the previous active set
   if (gactivenodes_ != nullptr)
   {
-    gOldActiveSlaveNodes_ = std::make_shared<Core::LinAlg::Map>(*gactivenodes_);
+    gOldActiveSourceNodes_ = std::make_shared<Core::LinAlg::Map>(*gactivenodes_);
     if (friction_) gOldslipnodes_ = std::make_shared<Core::LinAlg::Map>(*gslipnodes_);
   }
   else
   {
-    gOldActiveSlaveNodes_ = std::make_shared<Core::LinAlg::Map>(0, 0, get_comm());
+    gOldActiveSourceNodes_ = std::make_shared<Core::LinAlg::Map>(0, 0, get_comm());
     if (friction_) gOldslipnodes_ = std::make_shared<Core::LinAlg::Map>(0, 0, get_comm());
   }
 
@@ -5094,8 +5064,6 @@ void CONTACT::LagrangeStrategy::update_active_set_semi_smooth(const bool firstSt
   }
   else
     isincontact_ = false;
-
-  return;
 }
 
 /*----------------------------------------------------------------------*
@@ -5114,82 +5082,6 @@ void CONTACT::LagrangeStrategy::update(std::shared_ptr<const Core::LinAlg::Vecto
   CONTACT::AbstractStrategy::update(dis);
 
   if (fconservation_ == nullptr) return;
-
-  // *****************************************************************
-  // This is output functionality for conservation properties of LTL
-  // penalty contact
-  // *****************************************************************
-
-  //  std::shared_ptr<Core::LinAlg::Vector<double>> fconservationS =
-  //      Teuchos::rcp(new Core::LinAlg::Vector<double>(slave_dof_row_map(true)),true);
-  //  std::shared_ptr<Core::LinAlg::Vector<double>> fconservationM =
-  //      Teuchos::rcp(new Core::LinAlg::Vector<double>(master_dof_row_map(true)),true);
-  //
-  //  Core::LinAlg::export_to(*fconservation_,*fconservationS);
-  //  Core::LinAlg::export_to(*fconservation_,*fconservationM);
-  ////  fconservationM->Scale(-1.0);
-  //  // check conservation properties:
-  //  interface_[0]->EvalResultantMoment(*fconservationS, *fconservationM);
-  //
-  //
-  //  double lssum = 0.0;   // local slave sum
-  //  double gssum = 0.0;   // global slave sum
-  //  double lmsum = 0.0;   // local master sum
-  //  double gmsum = 0.0;   // global master sum
-  //  double gcsum = 0.0;   // global complete sum
-  //  // slave
-  ////  for (int i=0;i<fconservationS->MyLength();++i)
-  ////  {
-  ////    lssum+=(*fconservationS)[i];
-  ////  }
-  ////  Core::Communication::sum_all(&lssum,&gssum,1, Comm());
-  ////  // master
-  ////  for (int i=0;i<fconservationM->MyLength();++i)
-  ////  {
-  ////    lmsum+=(*fconservationM)[i];
-  ////  }
-  ////  Core::Communication::sum_all(&lmsum,&gmsum,1, Comm());
-  //
-  //
-  //
-  //  // complete balance check
-  //  gcsum = gssum+gmsum;
-  //  if (abs(gcsum)>1.0e-11)
-  //    FOUR_C_THROW("Conservation of linear momentum is not fulfilled!");
-  //  if (Core::Communication::my_mpi_rank(Comm())==0)
-  //  {
-  //    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<" << std::endl;
-  //    std::cout << ">>      Linear Momentum Conservation      <<" << std::endl;
-  //    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<" << std::endl;
-  //    std::cout << ">>      Standard terms (lm)               <<" << std::endl;
-  //    std::cout << "SLAVE:   " << std::setw(14) << gssum<< std::endl;
-  //    std::cout << "MASTER:  " << std::setw(14) << gmsum << std::endl;
-  //    std::cout << "Balance: " << std::setw(14) << gcsum << std::endl;
-  //    std::cout << "--------------------------------------------" << std::endl;
-  //  }
-  //
-  //
-  //  FILE* MyFile = nullptr;
-  //  std::ostringstream filename;
-  //  const std::string filebase = "xxx";
-  //  filename << filebase <<".lmom";
-  //  MyFile = fopen(filename.str().c_str(), "at+");
-  //
-  //  // store data
-  //  if (MyFile)
-  //  {
-  //    fprintf(MyFile, "%d\t", step);
-  //    fprintf(MyFile, "%g\t", gssum);
-  //    fprintf(MyFile, "%g\t", gmsum);
-  //    fprintf(MyFile, "%g\n", gcsum);
-  //    fclose(MyFile);
-  //  }
-  //  else
-  //    FOUR_C_THROW("File could not be opened.");
-  //
-  //  ++step;
-
-  return;
 }
 
 void CONTACT::LagrangeStrategy::condense_friction(
@@ -5282,32 +5174,32 @@ void CONTACT::LagrangeStrategy::condense_friction(
   std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx2;
   std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx3;
 
-  // split into slave/master part + structure part
+  // split into source/target part + structure part
   std::shared_ptr<Core::LinAlg::SparseMatrix> kteffmatrix =
       std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(kteff);
   if (parallel_redistribution_status())
   {
     // split and transform to redistributed maps
-    Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gsmdofrowmap_, gndofrowmap_,
-        non_redist_gsmdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
-    ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gsmdofrowmap_, *gsmdofrowmap_);
-    ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gsmdofrowmap_);
-    knsm = Core::LinAlg::matrix_col_transform(*knsm, *gsmdofrowmap_);
+    Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gstdofrowmap_, gndofrowmap_,
+        non_redist_gstdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
+    ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gstdofrowmap_, *gstdofrowmap_);
+    ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gstdofrowmap_);
+    knsm = Core::LinAlg::matrix_col_transform(*knsm, *gstdofrowmap_);
   }
   else
   {
     // only split, no need to transform
-    Core::LinAlg::split_matrix2x2(kteffmatrix, gsmdofrowmap_, gndofrowmap_, gsmdofrowmap_,
+    Core::LinAlg::split_matrix2x2(kteffmatrix, gstdofrowmap_, gndofrowmap_, gstdofrowmap_,
         gndofrowmap_, ksmsm, ksmn, knsm, knn);
   }
 
-  // further splits into slave part + master part
+  // further splits into source part + target part
   Core::LinAlg::split_matrix2x2(
-      ksmsm, gsdofrowmap_, gmdofrowmap_, gsdofrowmap_, gmdofrowmap_, kss, ksm, kms, kmm);
+      ksmsm, gsdofrowmap_, gtdofrowmap_, gsdofrowmap_, gtdofrowmap_, kss, ksm, kms, kmm);
   Core::LinAlg::split_matrix2x2(
-      ksmn, gsdofrowmap_, gmdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
+      ksmn, gsdofrowmap_, gtdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      knsm, gndofrowmap_, tempmap, gsdofrowmap_, gmdofrowmap_, kns, knm, tempmtx1, tempmtx2);
+      knsm, gndofrowmap_, tempmap, gsdofrowmap_, gtdofrowmap_, kns, knm, tempmtx1, tempmtx2);
 
   /********************************************************************/
   /* (4) Split feff into 3 subvectors                                 */
@@ -5324,27 +5216,27 @@ void CONTACT::LagrangeStrategy::condense_friction(
   {
     // split and transform to redistributed maps
     Core::LinAlg::split_vector(
-        *problem_dofs(), *feff, non_redist_gsmdofrowmap_, fsm, gndofrowmap_, fn);
+        *problem_dofs(), *feff, non_redist_gstdofrowmap_, fsm, gndofrowmap_, fn);
     std::shared_ptr<Core::LinAlg::Vector<double>> fsmtemp =
-        std::make_shared<Core::LinAlg::Vector<double>>(*gsmdofrowmap_);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gstdofrowmap_);
     Core::LinAlg::export_to(*fsm, *fsmtemp);
     fsm = fsmtemp;
   }
   else
   {
     // only split, no need to transform
-    Core::LinAlg::split_vector(*problem_dofs(), *feff, gsmdofrowmap_, fsm, gndofrowmap_, fn);
+    Core::LinAlg::split_vector(*problem_dofs(), *feff, gstdofrowmap_, fsm, gndofrowmap_, fn);
   }
 
-  // abbreviations for slave set
-  const int sset = gsdofrowmap_->num_global_elements();
+  // abbreviations for source set
+  const int source_set = gsdofrowmap_->num_global_elements();
 
   // we want to split fsm into 2 groups s,m
   fs = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_);
-  fm = std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_);
+  fm = std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_);
 
   // do the vector splitting sm -> s+m
-  Core::LinAlg::split_vector(*gsmdofrowmap_, *fsm, gsdofrowmap_, fs, gmdofrowmap_, fm);
+  Core::LinAlg::split_vector(*gstdofrowmap_, *fsm, gsdofrowmap_, fs, gtdofrowmap_, fm);
 
   // store some stuff for static condensation of LM
   fs_ = fs;
@@ -5354,7 +5246,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   kss_ = kss;
 
   /********************************************************************/
-  /* (5) Split slave quantities into active / inactive, stick / slip  */
+  /* (5) Split source quantities into active / inactive, stick / slip  */
   /********************************************************************/
   // we want to split kssmod into 2 groups a,i = 4 blocks
   std::shared_ptr<Core::LinAlg::SparseMatrix> kaa, kai, kia, kii;
@@ -5371,9 +5263,9 @@ void CONTACT::LagrangeStrategy::condense_friction(
   Core::LinAlg::split_matrix2x2(
       ksn, gactivedofs_, gidofs, gndofrowmap_, tempmap, kan, tempmtx1, kin, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      ksm, gactivedofs_, gidofs, gmdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
+      ksm, gactivedofs_, gidofs, gtdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      kms, gmdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
+      kms, gtdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
 
   // we want to split kaa into 2 groups sl,st = 4 blocks
   std::shared_ptr<Core::LinAlg::SparseMatrix> kslsl, kslst, kstsl, kstst, kast, kasl;
@@ -5442,7 +5334,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
 
   // active part of mmatrix
   std::shared_ptr<Core::LinAlg::SparseMatrix> mmatrixa;
-  Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mmatrixa,
+  Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mmatrixa,
       tempmtx1, tempmtx2, tempmtx3);
 
   // do the multiplication mhataam = invda * mmatrixa
@@ -5451,12 +5343,12 @@ void CONTACT::LagrangeStrategy::condense_friction(
       std::make_shared<Core::LinAlg::SparseMatrix>(*gactivedofs_, 10);
   if (aset)
     mhataam = Core::LinAlg::matrix_multiply(*invda, false, *mmatrixa, false, false, false, true);
-  mhataam->complete(*gmdofrowmap_, *gactivedofs_);
+  mhataam->complete(*gtdofrowmap_, *gactivedofs_);
 
   // for the case without full linearization, we still need the
   // "classical" active part of mhat, which is isolated here
   std::shared_ptr<Core::LinAlg::SparseMatrix> mhata;
-  Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mhata,
+  Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mhata,
       tempmtx1, tempmtx2, tempmtx3);
 
   // scaling of invd and dai
@@ -5479,7 +5371,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   //-------------------------------------------------------- SECOND LINE
   // kmn: add T(mhataam)*kan
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmnmod =
-      std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
   Core::LinAlg::matrix_add(*kmn, false, 1.0, *kmnmod, 1.0);
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmnadd =
       Core::LinAlg::matrix_multiply(*mhataam, true, *kan, false, false, false, true);
@@ -5488,7 +5380,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
 
   // kmm: add T(mhataam)*kam
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmmmod =
-      std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
   Core::LinAlg::matrix_add(*kmm, false, 1.0, *kmmmod, 1.0);
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmmadd =
       Core::LinAlg::matrix_multiply(*mhataam, true, *kam, false, false, false, true);
@@ -5499,7 +5391,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmimod;
   if (iset)
   {
-    kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+    kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmi, false, 1.0, *kmimod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmiadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kai, false, false, false, true);
@@ -5511,7 +5403,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmamod;
   if (aset)
   {
-    kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+    kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kma, false, 1.0, *kmamod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmaadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kaa, false, false, false, true);
@@ -5671,7 +5563,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   //---------------------------------------------------------- SECOND LINE
 
   // fm: add T(mhat)*fa
-  Core::LinAlg::Vector<double> fmmod(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fmmod(*gtdofrowmap_);
   if (aset) mhataam->multiply(true, *fa, fmmod);
   fmmod.update(1.0, *fm, 1.0);
 
@@ -5761,10 +5653,10 @@ void CONTACT::LagrangeStrategy::condense_friction(
     // nothing to do (ndof-map independent of redistribution)
 
     //---------------------------------------------------------- SECOND LINE
-    kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gmdofrowmap_);
-    kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gmdofrowmap_);
-    if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gmdofrowmap_);
-    if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gmdofrowmap_);
+    kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gtdofrowmap_);
+    kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gtdofrowmap_);
+    if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gtdofrowmap_);
+    if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gtdofrowmap_);
 
     //----------------------------------------------------------- THIRD LINE
     if (iset)
@@ -5819,7 +5711,7 @@ void CONTACT::LagrangeStrategy::condense_friction(
   // add n submatrices to kteffnew
   Core::LinAlg::matrix_add(*knn, false, 1.0, kteffnew, 1.0);
   Core::LinAlg::matrix_add(*knm, false, 1.0, kteffnew, 1.0);
-  if (sset) Core::LinAlg::matrix_add(*kns, false, 1.0, kteffnew, 1.0);
+  if (source_set) Core::LinAlg::matrix_add(*kns, false, 1.0, kteffnew, 1.0);
 
   //-------------------------------------------------------- SECOND LINE
   // add m submatrices to kteffnew
@@ -5992,10 +5884,10 @@ void CONTACT::LagrangeStrategy::condense_friction(
       //      Core::LinAlg::SparseMatrix(*gactivet_,81));
       //
       //      deriv1->Add(*linstickLM_,false,1.0,1.0);
-      //      deriv1->Complete(*gsmdofrowmap_,*gactivet_);
+      //      deriv1->Complete(*gstdofrowmap_,*gactivet_);
       //
       //      deriv2->Add(*linstickDIS_,false,1.0,1.0);
-      //      deriv2->Complete(*gsmdofrowmap_,*gactivet_);
+      //      deriv2->Complete(*gstdofrowmap_,*gactivet_);
       //
       //      std::cout << "DERIV 1 *********** "<< *deriv1 << std::endl;
       //      std::cout << "DERIV 2 *********** "<< *deriv2 << std::endl;
@@ -6018,10 +5910,10 @@ void CONTACT::LagrangeStrategy::condense_friction(
       //      Core::LinAlg::SparseMatrix(*gactivet_,81));
       //
       //      deriv1->Add(*linslipLM_,false,1.0,1.0);
-      //      deriv1->Complete(*gsmdofrowmap_,*gslipt_);
+      //      deriv1->Complete(*gstdofrowmap_,*gslipt_);
       //
       //      deriv2->Add(*linslipDIS_,false,1.0,1.0);
-      //      deriv2->Complete(*gsmdofrowmap_,*gslipt_);
+      //      deriv2->Complete(*gstdofrowmap_,*gslipt_);
       //
       //      std::cout << *deriv1 << std::endl;
       //      std::cout << *deriv2 << std::endl;
@@ -6032,7 +5924,6 @@ void CONTACT::LagrangeStrategy::condense_friction(
 #endif  // #ifdef CONTACTFDSLIP
 
   feff->scale(-1.);
-  return;
 }
 
 void CONTACT::LagrangeStrategy::condense_frictionless(
@@ -6057,8 +5948,8 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
     // LTL contributions:
     add_line_to_lin_contributions(*kteff_op, feff);
 
-    // penalty support for master side quantities:
-    add_master_contributions(*kteff_op, *feff);
+    // penalty support for target side quantities:
+    add_target_contributions(*kteff_op, *feff);
 
 #ifdef CONTACTFDGAPLTL
     // FD check of weighted gap g derivatives (non-penetr. condition)
@@ -6128,30 +6019,30 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx2;
   std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx3;
 
-  // split into slave/master part + structure part
+  // split into source/target part + structure part
   if (parallel_redistribution_status())
   {
     // split and transform to redistributed maps
-    Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gsmdofrowmap_, gndofrowmap_,
-        non_redist_gsmdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
-    ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gsmdofrowmap_, *gsmdofrowmap_);
-    ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gsmdofrowmap_);
-    knsm = Core::LinAlg::matrix_col_transform(*knsm, *gsmdofrowmap_);
+    Core::LinAlg::split_matrix2x2(kteffmatrix, non_redist_gstdofrowmap_, gndofrowmap_,
+        non_redist_gstdofrowmap_, gndofrowmap_, ksmsm, ksmn, knsm, knn);
+    ksmsm = Core::LinAlg::matrix_row_col_transform(*ksmsm, *gstdofrowmap_, *gstdofrowmap_);
+    ksmn = Core::LinAlg::matrix_row_transform(*ksmn, *gstdofrowmap_);
+    knsm = Core::LinAlg::matrix_col_transform(*knsm, *gstdofrowmap_);
   }
   else
   {
     // only split, no need to transform
-    Core::LinAlg::split_matrix2x2(kteffmatrix, gsmdofrowmap_, gndofrowmap_, gsmdofrowmap_,
+    Core::LinAlg::split_matrix2x2(kteffmatrix, gstdofrowmap_, gndofrowmap_, gstdofrowmap_,
         gndofrowmap_, ksmsm, ksmn, knsm, knn);
   }
 
-  // further splits into slave part + master part
+  // further splits into source part + target part
   Core::LinAlg::split_matrix2x2(
-      ksmsm, gsdofrowmap_, gmdofrowmap_, gsdofrowmap_, gmdofrowmap_, kss, ksm, kms, kmm);
+      ksmsm, gsdofrowmap_, gtdofrowmap_, gsdofrowmap_, gtdofrowmap_, kss, ksm, kms, kmm);
   Core::LinAlg::split_matrix2x2(
-      ksmn, gsdofrowmap_, gmdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
+      ksmn, gsdofrowmap_, gtdofrowmap_, gndofrowmap_, tempmap, ksn, tempmtx1, kmn, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      knsm, gndofrowmap_, tempmap, gsdofrowmap_, gmdofrowmap_, kns, knm, tempmtx1, tempmtx2);
+      knsm, gndofrowmap_, tempmap, gsdofrowmap_, gtdofrowmap_, kns, knm, tempmtx1, tempmtx2);
 
   /**********************************************************************/
   /* (4) Split feff into 3 subvectors                                   */
@@ -6167,27 +6058,27 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   {
     // split and transform to redistributed maps
     Core::LinAlg::split_vector(
-        *problem_dofs(), *feff, non_redist_gsmdofrowmap_, fsm, gndofrowmap_, fn);
+        *problem_dofs(), *feff, non_redist_gstdofrowmap_, fsm, gndofrowmap_, fn);
     std::shared_ptr<Core::LinAlg::Vector<double>> fsmtemp =
-        std::make_shared<Core::LinAlg::Vector<double>>(*gsmdofrowmap_);
+        std::make_shared<Core::LinAlg::Vector<double>>(*gstdofrowmap_);
     Core::LinAlg::export_to(*fsm, *fsmtemp);
     fsm = fsmtemp;
   }
   else
   {
     // only split, no need to transform
-    Core::LinAlg::split_vector(*problem_dofs(), *feff, gsmdofrowmap_, fsm, gndofrowmap_, fn);
+    Core::LinAlg::split_vector(*problem_dofs(), *feff, gstdofrowmap_, fsm, gndofrowmap_, fn);
   }
 
-  // abbreviations for slave set
-  const int sset = gsdofrowmap_->num_global_elements();
+  // abbreviations for source set
+  const int source_set = gsdofrowmap_->num_global_elements();
 
   // we want to split fsm into 2 groups s,m
   fs = std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_);
-  fm = std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_);
+  fm = std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_);
 
   // do the vector splitting sm -> s+m
-  Core::LinAlg::split_vector(*gsmdofrowmap_, *fsm, gsdofrowmap_, fs, gmdofrowmap_, fm);
+  Core::LinAlg::split_vector(*gstdofrowmap_, *fsm, gsdofrowmap_, fs, gtdofrowmap_, fm);
 
   // store some stuff for static condensation of LM
   fs_ = fs;
@@ -6197,7 +6088,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   kss_ = kss;
 
   /**********************************************************************/
-  /* (5) Split slave quantities into active / inactive                  */
+  /* (5) Split source quantities into active / inactive                  */
   /**********************************************************************/
   // we want to split kssmod into 2 groups a,i = 4 blocks
   std::shared_ptr<Core::LinAlg::SparseMatrix> kaa, kai, kia, kii;
@@ -6214,9 +6105,9 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   Core::LinAlg::split_matrix2x2(
       ksn, gactivedofs_, gidofs, gndofrowmap_, tempmap, kan, tempmtx1, kin, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      ksm, gactivedofs_, gidofs, gmdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
+      ksm, gactivedofs_, gidofs, gtdofrowmap_, tempmap, kam, tempmtx1, kim, tempmtx2);
   Core::LinAlg::split_matrix2x2(
-      kms, gmdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
+      kms, gtdofrowmap_, tempmap, gactivedofs_, gidofs, kma, kmi, tempmtx1, tempmtx2);
 
   // abbreviations for active and inactive set
   const int aset = gactivedofs_->num_global_elements();
@@ -6253,7 +6144,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
 
   // active part of mmatrix
   std::shared_ptr<Core::LinAlg::SparseMatrix> mmatrixa;
-  Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mmatrixa,
+  Core::LinAlg::split_matrix2x2(mmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mmatrixa,
       tempmtx1, tempmtx2, tempmtx3);
 
   // do the multiplication mhataam = invda * mmatrixa
@@ -6262,12 +6153,12 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
       std::make_shared<Core::LinAlg::SparseMatrix>(*gactivedofs_, 10);
   if (aset)
     mhataam = Core::LinAlg::matrix_multiply(*invda, false, *mmatrixa, false, false, false, true);
-  mhataam->complete(*gmdofrowmap_, *gactivedofs_);
+  mhataam->complete(*gtdofrowmap_, *gactivedofs_);
 
   // for the case without full linearization, we still need the
   // "classical" active part of mhat, which is isolated here
   std::shared_ptr<Core::LinAlg::SparseMatrix> mhata;
-  Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gmdofrowmap_, tempmap, mhata,
+  Core::LinAlg::split_matrix2x2(mhatmatrix_, gactivedofs_, gidofs, gtdofrowmap_, tempmap, mhata,
       tempmtx1, tempmtx2, tempmtx3);
 
   // scaling of invd and dai
@@ -6289,7 +6180,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   //---------------------------------------------------------- SECOND LINE
   // kmn: add T(mhataam)*kan
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmnmod =
-      std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
   Core::LinAlg::matrix_add(*kmn, false, 1.0, *kmnmod, 1.0);
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmnadd =
       Core::LinAlg::matrix_multiply(*mhataam, true, *kan, false, false, false, true);
@@ -6298,7 +6189,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
 
   // kmm: add T(mhataam)*kam
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmmmod =
-      std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+      std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
   Core::LinAlg::matrix_add(*kmm, false, 1.0, *kmmmod, 1.0);
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmmadd =
       Core::LinAlg::matrix_multiply(*mhataam, true, *kam, false, false, false, true);
@@ -6309,7 +6200,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmimod;
   if (iset)
   {
-    kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+    kmimod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kmi, false, 1.0, *kmimod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmiadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kai, false, false, false, true);
@@ -6321,7 +6212,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   std::shared_ptr<Core::LinAlg::SparseMatrix> kmamod;
   if (aset)
   {
-    kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gmdofrowmap_, 100);
+    kmamod = std::make_shared<Core::LinAlg::SparseMatrix>(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*kma, false, 1.0, *kmamod, 1.0);
     std::shared_ptr<Core::LinAlg::SparseMatrix> kmaadd =
         Core::LinAlg::matrix_multiply(*mhataam, true, *kaa, false, false, false, true);
@@ -6428,7 +6319,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   //---------------------------------------------------------- SECOND LINE
 
   // fm: add T(mhat)*fa
-  Core::LinAlg::Vector<double> fmmod(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fmmod(*gtdofrowmap_);
   if (aset) mhataam->multiply(true, *fa, fmmod);
   fmmod.update(1.0, *fm, 1.0);
 
@@ -6471,10 +6362,10 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
     // nothing to do (ndof-map independent of redistribution)
 
     //---------------------------------------------------------- SECOND LINE
-    kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gmdofrowmap_);
-    kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gmdofrowmap_);
-    if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gmdofrowmap_);
-    if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gmdofrowmap_);
+    kmnmod = Core::LinAlg::matrix_row_transform(*kmnmod, *non_redist_gtdofrowmap_);
+    kmmmod = Core::LinAlg::matrix_row_transform(*kmmmod, *non_redist_gtdofrowmap_);
+    if (iset) kmimod = Core::LinAlg::matrix_row_transform(*kmimod, *non_redist_gtdofrowmap_);
+    if (aset) kmamod = Core::LinAlg::matrix_row_transform(*kmamod, *non_redist_gtdofrowmap_);
 
     //----------------------------------------------------------- THIRD LINE
     if (iset)
@@ -6512,7 +6403,7 @@ void CONTACT::LagrangeStrategy::condense_frictionless(
   // add n submatrices to kteffnew
   Core::LinAlg::matrix_add(*knn, false, 1.0, kteffnew, 1.0);
   Core::LinAlg::matrix_add(*knm, false, 1.0, kteffnew, 1.0);
-  if (sset) Core::LinAlg::matrix_add(*kns, false, 1.0, kteffnew, 1.0);
+  if (source_set) Core::LinAlg::matrix_add(*kns, false, 1.0, kteffnew, 1.0);
 
   //---------------------------------------------------------- SECOND LINE
   // add m submatrices to kteffnew
@@ -6630,7 +6521,7 @@ void CONTACT::LagrangeStrategy::run_pre_apply_jacobian_inverse(
   if (!is_in_contact() && !was_in_contact() && !was_in_contact_last_time_step()) return;
 
   auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
-  if (is_dual_quad_slave_trafo() && lagmultquad == Mortar::lagmult_lin)
+  if (is_dual_quad_source_trafo() && lagmultquad == Mortar::lagmult_lin)
   {
     if (not(systrafo_->domain_map().same_as(kteff->domain_map()))) FOUR_C_THROW("stop");
 
@@ -6651,8 +6542,6 @@ void CONTACT::LagrangeStrategy::run_pre_apply_jacobian_inverse(
     condense_friction(kteff, rhs);
   else
     condense_frictionless(kteff, rhs);
-
-  return;
 }
 
 void CONTACT::LagrangeStrategy::run_post_apply_jacobian_inverse(
@@ -6679,13 +6568,13 @@ void CONTACT::LagrangeStrategy::run_post_apply_jacobian_inverse(
             Mortar::lagmult_const)
       FOUR_C_THROW("Condensation only for dual LM");
 
-    // extract slave displacements from disi
+    // extract source displacements from disi
     Core::LinAlg::Vector<double> disis(*gsdofrowmap_);
     if (gsdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disis);
 
-    // extract master displacements from disi
-    Core::LinAlg::Vector<double> disim(*gmdofrowmap_);
-    if (gmdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disim);
+    // extract target displacements from disi
+    Core::LinAlg::Vector<double> disim(*gtdofrowmap_);
+    if (gtdofrowmap_->num_global_elements()) Core::LinAlg::export_to(*disi, disim);
 
     // extract other displacements from disi
     Core::LinAlg::Vector<double> disin(*gndofrowmap_);
@@ -6707,7 +6596,7 @@ void CONTACT::LagrangeStrategy::run_post_apply_jacobian_inverse(
     /**********************************************************************/
     /* Update Lagrange multipliers z_n+1                                  */
     /**********************************************************************/
-    // for self contact, slave and master sets may have changed,
+    // for self contact, source and target sets may have changed,
     // thus we have to export the products Dold * zold and Mold^T * zold to fit
     if (is_self_contact())
     {

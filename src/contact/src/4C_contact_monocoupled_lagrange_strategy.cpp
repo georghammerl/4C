@@ -129,7 +129,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx2;
     std::shared_ptr<Core::LinAlg::SparseMatrix> tempmtx3;
 
-    // split into slave/master part + structure part
+    // split into source/target part + structure part
     std::shared_ptr<Core::LinAlg::SparseMatrix> kteffmatrix =
         std::dynamic_pointer_cast<Core::LinAlg::SparseMatrix>(kteff);
 
@@ -141,19 +141,19 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
     {
       // only split, no need to transform
       Core::LinAlg::split_matrix2x2(
-          kteffmatrix, gsmdofrowmap_, gndofrowmap_, domainmap, tempmap0, ksm, ksm0, kn, kn0);
+          kteffmatrix, gstdofrowmap_, gndofrowmap_, domainmap, tempmap0, ksm, ksm0, kn, kn0);
     }
 
-    // further splits into slave part + master part
+    // further splits into source part + target part
     Core::LinAlg::split_matrix2x2(
-        ksm, gsdofrowmap_, gmdofrowmap_, domainmap, tempmap0, ks, ks0, km, km0);
+        ksm, gsdofrowmap_, gtdofrowmap_, domainmap, tempmap0, ks, ks0, km, km0);
 
     // store some stuff for static condensation of LM
     csx_s_.insert(std::pair<int, std::shared_ptr<Core::LinAlg::SparseMatrix>>(Column_Block_Id, ks));
 
 
     /**********************************************************************/
-    /* (5) Split slave quantities into active / inactive                  */
+    /* (5) Split source quantities into active / inactive                  */
     /**********************************************************************/
 
     // we want to split kssmod into 2 groups a,i = 4 blocks
@@ -169,7 +169,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
     // do the splitting
     Core::LinAlg::split_matrix2x2(ks, gactivedofs_, gidofs, domainmap, tempmap1, ka, ka0, ki, ki0);
 
-    // abbreviations for master, active and inactive set
+    // abbreviations for target, active and inactive set
     int aset = gactivedofs_->num_global_elements();
     int iset = gidofs->num_global_elements();
 
@@ -182,7 +182,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::evaluate_off_diag_contact(
 
     //---------------------------------------------------------- SECOND LINE
     // km: add T(mhataam)*kan
-    Core::LinAlg::SparseMatrix kmmod(*gmdofrowmap_, 100);
+    Core::LinAlg::SparseMatrix kmmod(*gtdofrowmap_, 100);
     Core::LinAlg::matrix_add(*km, false, 1.0, kmmod, 1.0);
     if (aset)
     {
@@ -340,7 +340,7 @@ void CONTACT::MonoCoupledLagrangeStrategy::recover_coupled(
       /**********************************************************************/
       /* Update Lagrange multipliers z_n+1                                  */
       /**********************************************************************/
-      // for self contact, slave and master sets may have changed,
+      // for self contact, source and target sets may have changed,
       // thus we have to export the products Dold * zold and Mold^T * zold to fit
       if (is_self_contact())  // is not considered yet!
       {

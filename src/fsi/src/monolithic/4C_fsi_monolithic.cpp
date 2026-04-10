@@ -217,7 +217,7 @@ void FSI::MonolithicBase::output()
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_ale(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->master_to_slave(*iv);
+  return coupsa_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -225,7 +225,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_ale
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_struct(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->slave_to_master(*iv);
+  return coupsa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -233,7 +233,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_struct
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_fluid(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->master_to_slave(*iv);
+  return coupsf_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -241,7 +241,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_flu
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_struct(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->slave_to_master(*iv);
+  return coupsf_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -249,7 +249,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_stru
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -257,7 +257,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid(
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_ale_interface(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -265,7 +265,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_ale_
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid_interface(
     std::shared_ptr<Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->slave_to_master(*iv);
+  return icoupfa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -273,7 +273,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid_
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_ale(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->master_to_slave(*iv);
+  return coupsa_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -281,7 +281,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_ale
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_struct(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsa_->slave_to_master(*iv);
+  return coupsa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -289,7 +289,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_struct
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_fluid(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->master_to_slave(*iv);
+  return coupsf_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -297,7 +297,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::struct_to_flu
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_struct(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupsf_->slave_to_master(*iv);
+  return coupsf_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -305,7 +305,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_stru
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return coupfa_->slave_to_master(*iv);
+  return coupfa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -313,7 +313,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid(
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_ale_interface(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->master_to_slave(*iv);
+  return icoupfa_->target_to_source(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -321,7 +321,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::fluid_to_ale_
 std::shared_ptr<Core::LinAlg::Vector<double>> FSI::MonolithicBase::ale_to_fluid_interface(
     std::shared_ptr<const Core::LinAlg::Vector<double>> iv) const
 {
-  return icoupfa_->slave_to_master(*iv);
+  return icoupfa_->source_to_target(*iv);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -408,10 +408,10 @@ void FSI::Monolithic::setup_system()
   // map at the structural side. This enables us to use just one
   // interface dof map for all fields and have just one transfer
   // operator from the interface map to the full field map.
-  if (not coupsf.master_dof_map()->same_as(*coupsa.master_dof_map()))
+  if (not coupsf.target_dof_map()->same_as(*coupsa.target_dof_map()))
     FOUR_C_THROW("structure interface dof maps do not match");
 
-  if (coupsf.master_dof_map()->num_global_elements() == 0)
+  if (coupsf.target_dof_map()->num_global_elements() == 0)
     FOUR_C_THROW("No nodes in matching FSI interface. Empty FSI coupling condition?");
 
   // the fluid-ale coupling always matches
@@ -421,7 +421,7 @@ void FSI::Monolithic::setup_system()
   coupfa.setup_coupling(*fluid_field()->discretization(), *ale_field()->discretization(),
       *fluidnodemap, *alenodemap, ndim);
 
-  fluid_field()->set_mesh_map(coupfa.master_dof_map());
+  fluid_field()->set_mesh_map(coupfa.target_dof_map());
 
   return;
 }

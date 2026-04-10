@@ -77,7 +77,7 @@ void Adapter::FluidAleXFEM::nonlinear_solve(std::shared_ptr<Core::LinAlg::Vector
     std::shared_ptr<const Core::LinAlg::Vector<double>> dispnp = fluid_field()->dispnp();
     std::shared_ptr<Core::LinAlg::Vector<double>> audispnp =
         fluid_field()->interface()->extract_au_cond_vector(*dispnp);
-    ale_field()->apply_ale_update_displacements(aucoupfa_->master_to_slave(*audispnp));
+    ale_field()->apply_ale_update_displacements(aucoupfa_->target_to_source(*audispnp));
   }
 
   // Note: We do not look for moving ale boundaries (outside the coupling

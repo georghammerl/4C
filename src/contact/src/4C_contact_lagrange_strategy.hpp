@@ -173,10 +173,10 @@ namespace CONTACT
     //! Assemble all contact contributions (frictional contact)
     virtual void assemble_all_contact_terms_friction();
 
-    const Core::LinAlg::Map& slave_n_dof_row_map(const bool& redist) const override
+    const Core::LinAlg::Map& source_n_dof_row_map(const bool& redist) const override
     {
       if ((not redist) and parallel_redistribution_status())
-        FOUR_C_THROW("The original / not redistributed slave normal row map is not available!");
+        FOUR_C_THROW("The original / not redistributed source normal row map is not available!");
 
       return *gsdofrowmap_;
     }
@@ -184,7 +184,7 @@ namespace CONTACT
     //! Get the active node row map of the previous Newton step
     std::shared_ptr<const Core::LinAlg::Map> get_old_active_row_nodes() const override
     {
-      return gOldActiveSlaveNodes_;
+      return gOldActiveSourceNodes_;
     };
 
     //! Get the slip node row map of the previous Newton step
@@ -213,7 +213,7 @@ namespace CONTACT
     (DOFs), respectively.
 
     In terms of data structures and parallel layout, the Lagrange multiplier DOFs have the same
-    parallel layout as their slave side displacement DOFs counterparts, but distinct global IDs
+    parallel layout as their source side displacement DOFs counterparts, but distinct global IDs
     (GIDs). For evaluation of mortar matrices, the salve side dof_row_map #gsdofrowmap_ is used.
     However, for assembling the saddle-point system, the constraint equations need their own unique
     map, #glmdofrowmap_. To also account for the possibility of a parallel redistribution of the
@@ -328,7 +328,7 @@ namespace CONTACT
     \brief Update active set and check for convergence
 
     In this function we loop over all interfaces and then over all
-    slave nodes to check, whether the assumption of them being active
+    source nodes to check, whether the assumption of them being active
     or inactive respectively has been correct. If a single node changes
     state, the active set is adapted accordingly and the convergence
     flag is kept on false. Here we have the "standard" case of two
@@ -344,7 +344,7 @@ namespace CONTACT
     \brief Update active set and check for convergence
 
     In this function we loop over all interfaces and then over all
-    slave nodes to check, whether the assumption of them being active
+    source nodes to check, whether the assumption of them being active
     or inactive respectively has been correct. If a single node changes
     state, the active set is adapted accordingly and the convergence
     flag is kept on false.
@@ -446,7 +446,7 @@ namespace CONTACT
 
     For a lagrangian strategy this involves heavy modification to the initial kteff and feff.
     Hence, they are in fact build from scratch here.
-    The application of modifications to groups of dofs (slave, master, active etc.)
+    The application of modifications to groups of dofs (source, target, active etc.)
     results in some matrix and vector splitting and a lot of matrix-vector calculation in here!
 
     */
@@ -472,10 +472,10 @@ namespace CONTACT
         std::shared_ptr<Core::LinAlg::Vector<double>>& feff, bool add_time_integration = true);
 
     /*!
-    \brief Add penalty terms for master contact
+    \brief Add penalty terms for target contact
 
     */
-    void add_master_contributions(Core::LinAlg::SparseOperator& kteff,
+    void add_target_contributions(Core::LinAlg::SparseOperator& kteff,
         Core::LinAlg::Vector<double>& feff, bool add_time_integration = true);
 
     /*!
@@ -523,7 +523,7 @@ namespace CONTACT
 
 
     std::shared_ptr<Core::LinAlg::Vector<double>>
-        fs_;  //< slave side effective forces (needed for LM)
+        fs_;  //< source side effective forces (needed for LM)
     std::shared_ptr<Core::LinAlg::SparseMatrix>
         invd_;  //< inverse of Mortar matrix D (needed for LM)
     std::shared_ptr<Core::LinAlg::SparseMatrix> ksn_;  //< stiffness block K_sn (needed for LM)
@@ -549,10 +549,10 @@ namespace CONTACT
         zigzagthree_;  //< active node set of third-last active set try
 
     std::shared_ptr<Core::LinAlg::Map>
-        gOldActiveSlaveNodes_;  // active slave nodes from previous newton step
+        gOldActiveSourceNodes_;  // active source nodes from previous newton step
 
     std::shared_ptr<Core::LinAlg::Map>
-        gOldslipnodes_;  // active slave nodes from previous newton step
+        gOldslipnodes_;  // active source nodes from previous newton step
 
     std::shared_ptr<Core::LinAlg::Vector<double>> fLTLOld_;  //< old line to line forces
     std::shared_ptr<Core::LinAlg::Vector<double>> fLTL_;   //< current line to line forces combined

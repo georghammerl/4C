@@ -50,7 +50,7 @@ Discret::Elements::FluidIntFace::FluidIntFace(int id,  ///< element id
     )
     : Core::Elements::FaceElement(id, owner)
 {
-  set_parent_master_element(parent_master, lsurface_master);
+  set_parent_target_element(parent_master, lsurface_master);
   set_parent_slave_element(parent_slave, lsurface_slave);
   set_local_trafo_map(localtrafomap);
   set_node_ids(nnode, nodeids);
@@ -84,7 +84,7 @@ Core::Elements::Element* Discret::Elements::FluidIntFace::clone() const
 Core::FE::CellType Discret::Elements::FluidIntFace::shape() const
 {
   // could be called for master parent or slave parent element, doesn't matter
-  return Core::FE::get_shape_of_boundary_element(num_node(), parent_master_element()->shape());
+  return Core::FE::get_shape_of_boundary_element(num_node(), parent_target_element()->shape());
 }
 
 /*----------------------------------------------------------------------*
@@ -132,8 +132,8 @@ void Discret::Elements::FluidIntFace::patch_location_vector(
 
 
   //-----------------------------------------------------------------------
-  const int m_numnode = parent_master_element()->num_node();
-  Core::Nodes::Node** m_nodes = parent_master_element()->nodes();
+  const int m_numnode = parent_target_element()->num_node();
+  Core::Nodes::Node** m_nodes = parent_target_element()->nodes();
 
   if (m_numnode != static_cast<int>(nds_master.size()))
   {
@@ -141,8 +141,8 @@ void Discret::Elements::FluidIntFace::patch_location_vector(
   }
 
   //-----------------------------------------------------------------------
-  const int s_numnode = parent_slave_element()->num_node();
-  Core::Nodes::Node** s_nodes = parent_slave_element()->nodes();
+  const int s_numnode = parent_source_element()->num_node();
+  Core::Nodes::Node** s_nodes = parent_source_element()->nodes();
 
   if (s_numnode != static_cast<int>(nds_slave.size()))
   {
@@ -343,8 +343,8 @@ void Discret::Elements::FluidIntFace::patch_location_vector(
   TEUCHOS_FUNC_TIME_MONITOR("XFEM::Edgestab EOS: PatchLocationVector");
 
   //-----------------------------------------------------------------------
-  const int m_numnode = parent_master_element()->num_node();
-  Core::Nodes::Node** m_nodes = parent_master_element()->nodes();
+  const int m_numnode = parent_target_element()->num_node();
+  Core::Nodes::Node** m_nodes = parent_target_element()->nodes();
 
   if (m_numnode != static_cast<int>(nds_master.size()))
   {
@@ -352,8 +352,8 @@ void Discret::Elements::FluidIntFace::patch_location_vector(
   }
 
   //-----------------------------------------------------------------------
-  const int s_numnode = parent_slave_element()->num_node();
-  Core::Nodes::Node** s_nodes = parent_slave_element()->nodes();
+  const int s_numnode = parent_source_element()->num_node();
+  Core::Nodes::Node** s_nodes = parent_source_element()->nodes();
 
   if (s_numnode != static_cast<int>(nds_slave.size()))
   {

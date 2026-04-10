@@ -56,7 +56,7 @@ namespace CONTACT
      \param coords (in): span of nodal coordinates, length 3
      \param owner  (in): Owner of this node.
      \param dofs   (in): list of global degrees of freedom
-     \param isslave(in): flag indicating whether node is slave or master
+     \param issource(in): flag indicating whether node is source or target
      \param initactive (in): flag indicating whether initially set to active
      \param hurstexponentfunction (in): Function for Hurst exponent of the surface
      \param initialtopologystddeviationfunction (in): function for topology standard deviation
@@ -68,7 +68,7 @@ namespace CONTACT
 
      */
     RoughNode(int id, std::span<const double> coords, const int owner, const std::vector<int>& dofs,
-        const bool isslave, const bool initactive, const int hurstexponentfunction,
+        const bool issource, const bool initactive, const int hurstexponentfunction,
         int initialtopologystddeviationfunction, int resolution, bool randomtopologyflag,
         bool randomseedflag, int randomgeneratorseed);
 

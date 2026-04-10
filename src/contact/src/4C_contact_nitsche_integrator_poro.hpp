@@ -47,32 +47,32 @@ namespace CONTACT
             This is where the distinction between methods should be,
             i.e. mortar, augmented, gpts,...
      */
-    void integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_2d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
      \brief Perform integration at GP
             This is where the distinction between methods should be,
             i.e. mortar, augmented, gpts,...
      */
-    void integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_3d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
     \brief Evaluate cauchy stress component and its derivatives
@@ -92,14 +92,17 @@ namespace CONTACT
     \brief evaluate GPTS forces and linearization at this gp
     */
     template <int dim>
-    void gpts_forces(Mortar::Element& sele, Mortar::Element& mele,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dsxi,
-        const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& mderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dmxi, const double jac,
+    void gpts_forces(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi,
+        const Core::LinAlg::SerialDenseVector& target_val,
+        const Core::LinAlg::SerialDenseMatrix& target_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi, const double jac,
         const Core::Gen::Pairedvector<int, double>& jacintcellmap, const double wgt,
         const double gap, const Core::Gen::Pairedvector<int, double>& dgapgp, const double* gpn,
-        std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* sxi, double* mxi);
+        std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* source_xi,
+        double* target_xi);
 
    protected:
     template <int dim>

@@ -162,7 +162,7 @@ void CONTACT::NodePoroDataContainer::unpack(Core::Communication::UnpackBuffer& b
  |  ctor (public)                                            seitz 08/15|
  *----------------------------------------------------------------------*/
 CONTACT::NodeTSIDataContainer::NodeTSIDataContainer(double t_ref, double t_dam)
-    : temp_(-1.e12), t_ref_(t_ref), t_dam_(t_dam), thermo_lm_(0.), temp_master_(-1.e12)
+    : temp_(-1.e12), t_ref_(t_ref), t_dam_(t_dam), thermo_lm_(0.), temp_target_(-1.e12)
 {
   return;
 }
@@ -173,11 +173,11 @@ CONTACT::NodeTSIDataContainer::NodeTSIDataContainer(double t_ref, double t_dam)
  *----------------------------------------------------------------------*/
 void CONTACT::NodeTSIDataContainer::pack(Core::Communication::PackBuffer& data) const
 {
-  add_to_pack(data, temp_master_);
+  add_to_pack(data, temp_target_);
   add_to_pack(data, t_ref_);
   add_to_pack(data, t_dam_);
-  add_to_pack(data, derivTempMasterDisp_);
-  add_to_pack(data, derivTempMasterTemp_);
+  add_to_pack(data, derivTempTargetDisp_);
+  add_to_pack(data, derivTempTargetTemp_);
   return;
 }
 
@@ -187,11 +187,11 @@ void CONTACT::NodeTSIDataContainer::pack(Core::Communication::PackBuffer& data) 
  *----------------------------------------------------------------------*/
 void CONTACT::NodeTSIDataContainer::unpack(Core::Communication::UnpackBuffer& buffer)
 {
-  extract_from_pack(buffer, temp_master_);
+  extract_from_pack(buffer, temp_target_);
   extract_from_pack(buffer, t_ref_);
   extract_from_pack(buffer, t_dam_);
-  extract_from_pack(buffer, derivTempMasterDisp_);
-  extract_from_pack(buffer, derivTempMasterTemp_);
+  extract_from_pack(buffer, derivTempTargetDisp_);
+  extract_from_pack(buffer, derivTempTargetTemp_);
   return;
 }
 
@@ -201,9 +201,9 @@ void CONTACT::NodeTSIDataContainer::unpack(Core::Communication::UnpackBuffer& bu
  *----------------------------------------------------------------------*/
 void CONTACT::NodeTSIDataContainer::clear()
 {
-  temp_master_ = -1.e12;
-  derivTempMasterDisp_.clear();
-  derivTempMasterTemp_.clear();
+  temp_target_ = -1.e12;
+  derivTempTargetDisp_.clear();
+  derivTempTargetTemp_.clear();
   return;
 }
 
@@ -212,8 +212,8 @@ void CONTACT::NodeTSIDataContainer::clear()
  |  ctor (public)                                            mwgee 10/07|
  *----------------------------------------------------------------------*/
 CONTACT::Node::Node(int id, std::span<const double> coords, const int owner,
-    const std::vector<int>& dofs, const bool isslave, const bool initactive)
-    : Mortar::Node(id, coords, owner, dofs, isslave),
+    const std::vector<int>& dofs, const bool issource, const bool initactive)
+    : Mortar::Node(id, coords, owner, dofs, issource),
       active_(false),
       initactive_(initactive),
       involvedm_(false),
@@ -270,7 +270,7 @@ void CONTACT::Node::print(std::ostream& os) const
   // Print id and coordinates
   os << "Contact ";
   Mortar::Node::print(os);
-  if (is_slave())
+  if (is_source())
     if (is_init_active()) os << " InitActive ";
   return;
 }
@@ -328,11 +328,11 @@ void CONTACT::Node::unpack(Core::Communication::UnpackBuffer& buffer)
 
   // active_
   extract_from_pack(buffer, active_);
-  // isslave_
+  // issource_
   extract_from_pack(buffer, initactive_);
-  // isslave_
+  // issource_
   extract_from_pack(buffer, involvedm_);
-  // isslave_
+  // issource_
   extract_from_pack(buffer, linsize_);
 
   // data_
@@ -381,8 +381,8 @@ void CONTACT::Node::unpack(Core::Communication::UnpackBuffer& buffer)
  *----------------------------------------------------------------------*/
 void CONTACT::Node::addg_value(const double val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("AddgValue: function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("AddgValue: function called for target node {}", id());
   if (is_on_bound() == true) FOUR_C_THROW("AddgValue: function called for boundary node {}", id());
 
   // initialize if called for the first time
@@ -398,7 +398,7 @@ void CONTACT::Node::addg_value(const double val)
  *----------------------------------------------------------------------*/
 void CONTACT::Node::addnts_gap_value(const double val)
 {
-  // check if this is a master node or slave boundary node
+  // check if this is a target node or source boundary node
   // initialize if called for the first time
   if (data().getgnts() == 1.0e12) data().getgnts() = 0;
 
@@ -423,8 +423,8 @@ void CONTACT::Node::addlts_gap_value(const double val)
  *----------------------------------------------------------------------*/
 void CONTACT::Node::addltl_gap_value(const double* val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("function called for target node {}", id());
   if (!is_on_edge()) FOUR_C_THROW("function call for non edge node! {}", id());
 
   // initialize if called for the first time
@@ -447,8 +447,8 @@ void CONTACT::Node::addltl_gap_value(const double* val)
  *----------------------------------------------------------------------*/
 void CONTACT::Node::addltl_jump_value(const double* val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("function called for target node {}", id());
   if (!is_on_edge()) FOUR_C_THROW("function call for non edge node! {}", id());
 
   // initialize if called for the first time
@@ -472,8 +472,8 @@ void CONTACT::Node::addltl_jump_value(const double* val)
  *----------------------------------------------------------------------*/
 void CONTACT::Node::add_deriv_z_value(const int row, const int col, const double val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("AddZValue: function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("AddZValue: function called for target node {}", id());
   if (is_on_bound() == true) FOUR_C_THROW("AddZValue: function called for boundary node {}", id());
 
   // check if this has been called before
@@ -599,7 +599,7 @@ void CONTACT::Node::build_averaged_edge_tangent()
   //**************************************************
   //              CALCULATE EDGES
   //**************************************************
-  // empty vector of slave element pointers
+  // empty vector of source element pointers
   std::vector<std::shared_ptr<Mortar::Element>> lineElementsS;
   std::set<std::pair<int, int>> donebefore;
 
@@ -809,7 +809,6 @@ void CONTACT::Node::build_averaged_edge_tangent()
   // std::cout << "tangent = " << MoData().EdgeTangent()[0] << "  " << MoData().EdgeTangent()[1] <<
   // "  " << MoData().EdgeTangent()[2] << std::endl;
 
-  // bye bye
   return;
 }
 
@@ -866,7 +865,7 @@ void CONTACT::Node::build_averaged_normal()
   double length = sqrt(n_tmp[0] * n_tmp[0] + n_tmp[1] * n_tmp[1] + n_tmp[2] * n_tmp[2]);
   if (length < 1e-12)
   {
-    std::cout << "normal zero: node slave= " << is_slave() << "  length= " << length << std::endl;
+    std::cout << "normal zero: node source= " << is_source() << "  length= " << length << std::endl;
     FOUR_C_THROW("Nodal normal length 0, node ID {}", id());
   }
   else
@@ -926,7 +925,7 @@ void CONTACT::Node::build_averaged_normal()
                 data().txi()[2] * data().txi()[2]);
     if (ltxi < 1e-12)
     {
-      std::cout << "tangent 1 zero: node slave= " << is_slave() << "  length= " << ltxi
+      std::cout << "tangent 1 zero: node source= " << is_source() << "  length= " << ltxi
                 << std::endl;
       FOUR_C_THROW("Nodal tangent length 0, node ID {}", id());
     }
@@ -1228,8 +1227,8 @@ void CONTACT::Node::deriv_averaged_normal(
  *----------------------------------------------------------------------*/
 void CONTACT::Node::add_ncoup_value(const double val)
 {
-  // check if this is a master node or slave boundary node
-  if (is_slave() == false) FOUR_C_THROW("AddNcoupValue: function called for master node {}", id());
+  // check if this is a target node or source boundary node
+  if (is_source() == false) FOUR_C_THROW("AddNcoupValue: function called for target node {}", id());
   if (is_on_bound() == true)
     FOUR_C_THROW("AddNcoupValue: function called for boundary node {}", id());
 

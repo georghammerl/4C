@@ -191,16 +191,16 @@ void Core::LinearSolver::MueLuPreconditioner::setup(
       H_->GetLevel(0)->Set("Nullspace" + std::to_string(block + 1), nullspace);
     }
 
-    if (muelulist_.sublist("Belos Parameters").isParameter("contact slaveDofMap"))
+    if (muelulist_.sublist("Belos Parameters").isParameter("contact sourceDofMap"))
     {
-      const auto slave_dof_map =
+      const auto source_dof_map =
           muelulist_.sublist("Belos Parameters")
-              .get<std::shared_ptr<Core::LinAlg::Map>>("contact slaveDofMap");
+              .get<std::shared_ptr<Core::LinAlg::Map>>("contact sourceDofMap");
 
-      if (slave_dof_map == nullptr) FOUR_C_THROW("Interface contact map is not available!");
+      if (source_dof_map == nullptr) FOUR_C_THROW("Interface contact map is not available!");
 
       Teuchos::RCP<EpetraMap> ep_slave_dof_map =
-          Teuchos::make_rcp<EpetraMap>(Teuchos::rcpFromRef(slave_dof_map->get_epetra_map()));
+          Teuchos::make_rcp<EpetraMap>(Teuchos::rcpFromRef(source_dof_map->get_epetra_map()));
 
       H_->GetLevel(0)->Set("Primal interface DOF map",
           Teuchos::rcp_dynamic_cast<const Xpetra::Map<LO, GO, NO>>(ep_slave_dof_map, true));

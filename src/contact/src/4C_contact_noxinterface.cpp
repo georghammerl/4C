@@ -80,7 +80,7 @@ double CONTACT::NoxInterface::get_constraint_rhs_norms(const Core::LinAlg::Vecto
     constrRhs_red = std::make_shared<Core::LinAlg::Vector<double>>(*constrRhs);
 
   // replace the map
-  constrRhs_red->replace_map(strategy().slave_dof_row_map(true));
+  constrRhs_red->replace_map(strategy().source_dof_row_map(true));
 
   double constrNorm = -1.0;
   Teuchos::RCP<const NOX::Nln::Vector> constrRhs_nox = Teuchos::null;
@@ -88,18 +88,18 @@ double CONTACT::NoxInterface::get_constraint_rhs_norms(const Core::LinAlg::Vecto
   {
     case NOX::Nln::StatusTest::quantity_contact_normal:
     {
-      // create vector with redistributed slave dof row map in normal direction
+      // create vector with redistributed source dof row map in normal direction
       std::shared_ptr<Core::LinAlg::Vector<double>> nConstrRhs =
-          Core::LinAlg::extract_my_vector(*constrRhs_red, strategy().slave_n_dof_row_map(true));
+          Core::LinAlg::extract_my_vector(*constrRhs_red, strategy().source_n_dof_row_map(true));
 
       constrNorm = NOX::Nln::Aux::calc_vector_norm(*nConstrRhs, type, isScaled);
       break;
     }
     case NOX::Nln::StatusTest::quantity_contact_friction:
     {
-      // create vector with redistributed slave dof row map in tangential directions
+      // create vector with redistributed source dof row map in tangential directions
       std::shared_ptr<Core::LinAlg::Vector<double>> tConstrRhs =
-          Core::LinAlg::extract_my_vector(*constrRhs_red, strategy().slave_t_dof_row_map(true));
+          Core::LinAlg::extract_my_vector(*constrRhs_red, strategy().source_t_dof_row_map(true));
 
       constrNorm = NOX::Nln::Aux::calc_vector_norm(*tConstrRhs, type, isScaled);
       break;
@@ -132,21 +132,21 @@ double CONTACT::NoxInterface::get_lagrange_multiplier_update_rms(
   {
     case NOX::Nln::StatusTest::quantity_contact_normal:
     {
-      // extract vectors with redistributed slave dof row map in normal direction
+      // extract vectors with redistributed source dof row map in normal direction
       z_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_np(true), strategy().slave_n_dof_row_map(true));
+          *strategy().lagrange_multiplier_np(true), strategy().source_n_dof_row_map(true));
       zincr_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_increment(), strategy().slave_n_dof_row_map(true));
+          *strategy().lagrange_multiplier_increment(), strategy().source_n_dof_row_map(true));
 
       break;
     }
     case NOX::Nln::StatusTest::quantity_contact_friction:
     {
-      // extract vectors with redistributed slave dof row map in tangential directions
+      // extract vectors with redistributed source dof row map in tangential directions
       z_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_np(true), strategy().slave_t_dof_row_map(true));
+          *strategy().lagrange_multiplier_np(true), strategy().source_t_dof_row_map(true));
       zincr_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_increment(), strategy().slave_t_dof_row_map(true));
+          *strategy().lagrange_multiplier_increment(), strategy().source_t_dof_row_map(true));
 
       break;
     }
@@ -181,16 +181,16 @@ double CONTACT::NoxInterface::get_lagrange_multiplier_update_norms(
   {
     case NOX::Nln::StatusTest::quantity_contact_normal:
     {
-      // extract vector with redistributed slave dof row map in normal direction
+      // extract vector with redistributed source dof row map in normal direction
       zincr_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_increment(), strategy().slave_n_dof_row_map(true));
+          *strategy().lagrange_multiplier_increment(), strategy().source_n_dof_row_map(true));
       break;
     }
     case NOX::Nln::StatusTest::quantity_contact_friction:
     {
-      // extract vector with redistributed slave dof row map in tangential directions
+      // extract vector with redistributed source dof row map in tangential directions
       zincr_ptr = Core::LinAlg::extract_my_vector(
-          *strategy().lagrange_multiplier_increment(), strategy().slave_t_dof_row_map(true));
+          *strategy().lagrange_multiplier_increment(), strategy().source_t_dof_row_map(true));
 
       break;
     }
@@ -229,7 +229,7 @@ double CONTACT::NoxInterface::get_previous_lagrange_multiplier_norms(
     case NOX::Nln::StatusTest::quantity_contact_normal:
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> znold_ptr =
-          Core::LinAlg::extract_my_vector(*zold_ptr, strategy().slave_n_dof_row_map(true));
+          Core::LinAlg::extract_my_vector(*zold_ptr, strategy().source_n_dof_row_map(true));
 
       zoldnorm = NOX::Nln::Aux::calc_vector_norm(*znold_ptr, type, isScaled);
       break;
@@ -237,7 +237,7 @@ double CONTACT::NoxInterface::get_previous_lagrange_multiplier_norms(
     case NOX::Nln::StatusTest::quantity_contact_friction:
     {
       std::shared_ptr<Core::LinAlg::Vector<double>> ztold_ptr =
-          Core::LinAlg::extract_my_vector(*zold_ptr, strategy().slave_t_dof_row_map(true));
+          Core::LinAlg::extract_my_vector(*zold_ptr, strategy().source_t_dof_row_map(true));
 
       zoldnorm = NOX::Nln::Aux::calc_vector_norm(*ztold_ptr, type, isScaled);
       break;

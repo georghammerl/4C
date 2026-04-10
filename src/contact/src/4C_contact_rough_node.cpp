@@ -40,10 +40,10 @@ Core::Communication::ParObject* CONTACT::RoughNodeType::create(
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 CONTACT::RoughNode::RoughNode(int id, std::span<const double> coords, const int owner,
-    const std::vector<int>& dofs, const bool isslave, const bool initactive,
+    const std::vector<int>& dofs, const bool issource, const bool initactive,
     const int hurstexponentfunction, int initialtopologystddeviationfunction, int resolution,
     bool randomtopologyflag, bool randomseedflag, int randomgeneratorseed)
-    : CONTACT::Node(id, coords, owner, dofs, isslave, initactive),
+    : CONTACT::Node(id, coords, owner, dofs, issource, initactive),
       hurstexponentfunction_(hurstexponentfunction),
       initialtopologystddeviationfunction_(initialtopologystddeviationfunction),
       resolution_(resolution),
@@ -52,7 +52,7 @@ CONTACT::RoughNode::RoughNode(int id, std::span<const double> coords, const int 
       randomgeneratorseed_(randomgeneratorseed)
 {
 #ifdef FOUR_C_WITH_MIRCO
-  if (isslave)
+  if (issource)
   {
     hurstExponent_ = Global::Problem::instance()
                          ->function_by_id<Core::Utils::FunctionOfSpaceTime>(hurstexponentfunction_)

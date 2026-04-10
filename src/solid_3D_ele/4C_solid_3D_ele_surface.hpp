@@ -157,7 +157,7 @@ namespace Discret::Elements
 
     [[nodiscard]] Core::Elements::Element* parent_element() const override
     {
-      return parent_master_element();
+      return parent_target_element();
     }
 
     //! Return local surface number

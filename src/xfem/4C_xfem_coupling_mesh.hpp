@@ -239,7 +239,7 @@ namespace XFEM
       Core::Elements::FaceElement* fele =
           dynamic_cast<Core::Elements::FaceElement*>(cutter_dis_->g_element(sid));
       if (!fele) FOUR_C_THROW("Cast to FaceElement failed!");
-      fele->set_parent_master_element(
+      fele->set_parent_target_element(
           coupl_dis_->g_element(fele->parent_element_id()), fele->face_parent_number());
       return fele->parent_element();
     }

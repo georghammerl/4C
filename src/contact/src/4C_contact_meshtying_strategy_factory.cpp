@@ -317,8 +317,8 @@ void Mortar::STRATEGY::FactoryMT::read_and_check_input(Teuchos::ParameterList& p
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList& mtparams,
-    std::vector<std::shared_ptr<Mortar::Interface>>& interfaces, bool& poroslave,
-    bool& poromaster) const
+    std::vector<std::shared_ptr<Mortar::Interface>>& interfaces, bool& porosource,
+    bool& porotarget) const
 {
   int dim = Global::Problem::instance()->n_dim();
 
@@ -390,24 +390,24 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
     foundgroups.push_back(groupid1);
     ++numgroupsfound;
 
-    // find out which sides are Master and Slave
-    bool hasslave = false;
-    bool hasmaster = false;
+    // find out which sides are Target and Source
+    bool hassource = false;
+    bool hastarget = false;
     std::vector<const std::string*> sides((int)currentgroup.size());
-    std::vector<bool> isslave((int)currentgroup.size());
+    std::vector<bool> issource((int)currentgroup.size());
 
     for (int j = 0; j < (int)sides.size(); ++j)
     {
       sides[j] = &currentgroup[j]->parameters().get<std::string>("Side");
       if (*sides[j] == "Slave")
       {
-        hasslave = true;
-        isslave[j] = true;
+        hassource = true;
+        issource[j] = true;
       }
       else if (*sides[j] == "Master")
       {
-        hasmaster = true;
-        isslave[j] = false;
+        hastarget = true;
+        issource[j] = false;
       }
       else
       {
@@ -415,8 +415,8 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
       }
     }
 
-    if (!hasslave) FOUR_C_THROW("Slave side missing in contact condition group!");
-    if (!hasmaster) FOUR_C_THROW("Master side missing in contact condition group!");
+    if (!hassource) FOUR_C_THROW("Source side missing in contact condition group!");
+    if (!hastarget) FOUR_C_THROW("Target side missing in contact condition group!");
 
     // find out which sides are initialized as Active
     std::vector<const std::string*> active((int)currentgroup.size());
@@ -427,19 +427,19 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
       active[j] = &currentgroup[j]->parameters().get<std::string>("Initialization");
       if (*sides[j] == "Slave")
       {
-        // slave sides must be initialized as "Active"
+        // source sides must be initialized as "Active"
         if (*active[j] == "Active")
           isactive[j] = true;
         else if (*active[j] == "Inactive")
-          FOUR_C_THROW("Slave side must be active for meshtying!");
+          FOUR_C_THROW("Source side must be active for meshtying!");
         else
           FOUR_C_THROW("Unknown contact init qualifier!");
       }
       else if (*sides[j] == "Master")
       {
-        // master sides must NOT be initialized as "Active" as this makes no sense
+        // target sides must NOT be initialized as "Active" as this makes no sense
         if (*active[j] == "Active")
-          FOUR_C_THROW("Master side cannot be active!");
+          FOUR_C_THROW("Target side cannot be active!");
         else if (*active[j] == "Inactive")
           isactive[j] = false;
         else
@@ -452,7 +452,7 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
     }
 
     // create an empty meshtying interface and store it in this Manager
-    // (for structural meshtying we currently choose redundant master storage)
+    // (for structural meshtying we currently choose redundant target storage)
     interfaces.push_back(Mortar::Interface::create(groupid1, get_comm(), dim, mtparams,
         Global::Problem::instance()->output_control_file(),
         Global::Problem::instance()->spatial_approximation_type()));
@@ -482,7 +482,7 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
 
         // create Node object
         std::shared_ptr<Mortar::Node> mtnode = std::make_shared<Mortar::Node>(
-            node->id(), node->x(), node->owner(), discret().dof(0, node), isslave[j]);
+            node->id(), node->x(), node->owner(), discret().dof(0, node), issource[j]);
         //-------------------
         // get nurbs weight!
         if (nurbs)
@@ -554,7 +554,7 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
       {
         std::shared_ptr<Mortar::Element> mtele =
             std::make_shared<Mortar::Element>(ele->id() + ggsize, ele->owner(), ele->shape(),
-                ele->num_node(), ele->node_ids(), isslave[j], nurbs);
+                ele->num_node(), ele->node_ids(), issource[j], nurbs);
         //------------------------------------------------------------------
         // get knotvector, normal factor and zero-size information for nurbs
         if (nurbs)
@@ -581,12 +581,12 @@ void Mortar::STRATEGY::FactoryMT::build_interfaces(const Teuchos::ParameterList&
 /*----------------------------------------------------------------------------*
  *----------------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::MtAbstractStrategy> Mortar::STRATEGY::FactoryMT::build_strategy(
-    const Teuchos::ParameterList& params, const bool& poroslave, const bool& poromaster,
+    const Teuchos::ParameterList& params, const bool& porosource, const bool& porotarget,
     const int& dof_offset, std::vector<std::shared_ptr<Mortar::Interface>>& interfaces) const
 {
   const auto stype = Teuchos::getIntegralValue<CONTACT::SolvingStrategy>(params, "STRATEGY");
 
-  return build_strategy(stype, params, poroslave, poromaster, dof_offset, interfaces,
+  return build_strategy(stype, params, porosource, porotarget, dof_offset, interfaces,
       discret().dof_row_map(), discret().node_row_map(), n_dim(), get_comm());
 }
 
@@ -594,7 +594,7 @@ std::shared_ptr<CONTACT::MtAbstractStrategy> Mortar::STRATEGY::FactoryMT::build_
  *----------------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::MtAbstractStrategy> Mortar::STRATEGY::FactoryMT::build_strategy(
     const CONTACT::SolvingStrategy stype, const Teuchos::ParameterList& params,
-    const bool& poroslave, const bool& poromaster, const int& dof_offset,
+    const bool& porosource, const bool& porotarget, const int& dof_offset,
     std::vector<std::shared_ptr<Mortar::Interface>>& interfaces,
     const Core::LinAlg::Map* dof_row_map, const Core::LinAlg::Map* node_row_map, const int dim,
     const MPI_Comm& comm_ptr)

@@ -239,11 +239,11 @@ namespace Mortar
     // As the base class Mortar::StrategyBase is always called from the control routine
     // (time integrator), these functions need to be defined purely virtual here.
 
-    virtual std::shared_ptr<const Core::LinAlg::Map> slave_row_nodes_ptr() const = 0;
+    virtual std::shared_ptr<const Core::LinAlg::Map> source_row_nodes_ptr() const = 0;
     virtual std::shared_ptr<const Core::LinAlg::Map> active_row_nodes() const = 0;
     virtual std::shared_ptr<const Core::LinAlg::Map> active_row_dofs() const = 0;
-    virtual std::shared_ptr<const Core::LinAlg::Map> non_redist_slave_row_dofs() const = 0;
-    virtual std::shared_ptr<const Core::LinAlg::Map> non_redist_master_row_dofs() const = 0;
+    virtual std::shared_ptr<const Core::LinAlg::Map> non_redist_source_row_dofs() const = 0;
+    virtual std::shared_ptr<const Core::LinAlg::Map> non_redist_target_row_dofs() const = 0;
     virtual bool active_set_converged() const = 0;
     virtual void apply_force_stiff_cmt(std::shared_ptr<Core::LinAlg::Vector<double>> dis,
         std::shared_ptr<Core::LinAlg::SparseOperator>& kt,
@@ -374,8 +374,8 @@ namespace Mortar
     }
     virtual void reset_wear() {}
     virtual void output_wear() {}
-    virtual std::shared_ptr<const Core::LinAlg::Map> master_slip_nodes() const { return nullptr; }
-    virtual std::shared_ptr<const Core::LinAlg::Map> master_active_nodes() const { return nullptr; }
+    virtual std::shared_ptr<const Core::LinAlg::Map> target_slip_nodes() const { return nullptr; }
+    virtual std::shared_ptr<const Core::LinAlg::Map> target_active_nodes() const { return nullptr; }
 
     // constraint preconditioner functions
     bool is_saddle_point_system() const override = 0;

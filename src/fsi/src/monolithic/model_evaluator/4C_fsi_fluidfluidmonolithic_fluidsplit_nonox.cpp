@@ -518,13 +518,13 @@ void FSI::FluidFluidMonolithicFluidSplitNoNOX::setup_system_matrix()
     // We cannot copy the pressure value. It is not used anyway. So no exact
     // match here.
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmii, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), systemmatrix_->matrix(1, 2), false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), systemmatrix_->matrix(1, 2), false);
 
     {
       Core::LinAlg::SparseMatrix lfmgi(s->row_map(), 81, false);
       (*fmgitransform_)(fmgi, (1.0 - stiparam) / (1.0 - ftiparam) * scale,
           Coupling::Adapter::CouplingSlaveConverter(coupsf),
-          Coupling::Adapter::CouplingMasterConverter(coupfa), lfmgi, false, false);
+          Coupling::Adapter::CouplingTargetConverter(coupfa), lfmgi, false, false);
 
       lfmgi.complete(aii.domain_map(), s->range_map());
 

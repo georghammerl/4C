@@ -61,9 +61,9 @@ void FLD::Utils::DbcHdgFluid::read_dirichlet_condition(const Teuchos::ParameterL
       const Core::Elements::FaceElement* faceele =
           dynamic_cast<const Core::Elements::FaceElement*>(discret.l_row_face(i));
       const unsigned int dofperface =
-          faceele->parent_master_element()->num_dof_per_face(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_face(faceele->face_master_number());
       const unsigned int dofpercomponent =
-          faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_component(faceele->face_master_number());
       const unsigned int component = dofperface / dofpercomponent;
 
       if (onoff.size() <= component || onoff[component] == 0 ||
@@ -236,9 +236,9 @@ void FLD::Utils::DbcHdgFluid::do_dirichlet_condition(const Teuchos::ParameterLis
       const Core::Elements::FaceElement* faceele =
           dynamic_cast<const Core::Elements::FaceElement*>(discret.l_row_face(i));
       const unsigned int dofperface =
-          faceele->parent_master_element()->num_dof_per_face(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_face(faceele->face_master_number());
       const unsigned int dofpercomponent =
-          faceele->parent_master_element()->num_dof_per_component(faceele->face_master_number());
+          faceele->parent_target_element()->num_dof_per_component(faceele->face_master_number());
       const unsigned int component = dofperface / dofpercomponent;
 
       if (onoff.size() <= component || onoff[component] == 0 ||
@@ -343,7 +343,7 @@ void FLD::Utils::DbcHdgFluid::do_dirichlet_condition(const Teuchos::ParameterLis
         // cast the const qualifier away, thus the Evaluate routine can be called.
         Core::FE::DiscretizationFaces& non_const_dis =
             const_cast<Core::FE::DiscretizationFaces&>(discret);
-        faceele->parent_master_element()->evaluate(
+        faceele->parent_target_element()->evaluate(
             initParams, non_const_dis, dummy, elemat1, elemat2, elevec1, elevec2, elevec3);
       }
       else

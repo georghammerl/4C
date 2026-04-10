@@ -401,7 +401,7 @@ void Adapter::CouplingNonLinMortar::add_mortar_elements(
           std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
       double normalfac = 0.0;
       bool zero_size = knots->get_boundary_ele_and_parent_knots(parentknots, mortarknots, normalfac,
-          faceele->parent_master_element()->id(), faceele->face_master_number());
+          faceele->parent_target_element()->id(), faceele->face_master_number());
 
       // store nurbs specific data to node
       cele->zero_sized() = zero_size;
@@ -438,7 +438,7 @@ void Adapter::CouplingNonLinMortar::add_mortar_elements(
             std::dynamic_pointer_cast<Core::Elements::FaceElement>(ele);
         double normalfac = 0.0;
         bool zero_size = knots->get_boundary_ele_and_parent_knots(parentknots, mortarknots,
-            normalfac, faceele->parent_master_element()->id(), faceele->face_master_number());
+            normalfac, faceele->parent_target_element()->id(), faceele->face_master_number());
 
         // store nurbs specific data to node
         cele->zero_sized() = zero_size;
@@ -530,9 +530,9 @@ void Adapter::CouplingNonLinMortar::complete_interface(
   interface->create_search_tree();
 
   // store old row maps (before parallel redistribution)
-  pslavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_dofs());
-  pmasterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->master_row_dofs());
-  pslavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_nodes());
+  pslavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_dofs());
+  pmasterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->target_row_dofs());
+  pslavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_nodes());
   psmdofrowmap_ = Core::LinAlg::merge_map(pslavedofrowmap_, pmasterdofrowmap_, false);
 
   // print parallel distribution
@@ -561,9 +561,9 @@ void Adapter::CouplingNonLinMortar::complete_interface(
   }
 
   // store row maps (after parallel redistribution)
-  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_dofs());
-  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->master_row_dofs());
-  slavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_nodes());
+  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_dofs());
+  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->target_row_dofs());
+  slavenoderowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_nodes());
   smdofrowmap_ = Core::LinAlg::merge_map(slavedofrowmap_, masterdofrowmap_, false);
 
   // store interface
@@ -742,8 +742,8 @@ void Adapter::CouplingNonLinMortar::setup_spring_dashpot(
   }
 
   // store old row maps (before parallel redistribution)
-  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->slave_row_dofs());
-  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->master_row_dofs());
+  slavedofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->source_row_dofs());
+  masterdofrowmap_ = std::make_shared<Core::LinAlg::Map>(*interface->target_row_dofs());
 
   // store interface
   interface_ = interface;
@@ -798,9 +798,9 @@ void Adapter::CouplingNonLinMortar::integrate_lin_d(const std::string& statename
   interface_->set_element_areas();
 
   // loop over all slave col elements and direct integration
-  for (int j = 0; j < interface_->slave_col_elements()->num_my_elements(); ++j)
+  for (int j = 0; j < interface_->source_col_elements()->num_my_elements(); ++j)
   {
-    int gid = interface_->slave_col_elements()->gid(j);
+    int gid = interface_->source_col_elements()->gid(j);
     Core::Elements::Element* ele = interface_->discret().g_element(gid);
     if (!ele) FOUR_C_THROW("ERROR: Cannot find ele with gid %", gid);
     CONTACT::Element* cele = dynamic_cast<CONTACT::Element*>(ele);
@@ -881,7 +881,6 @@ void Adapter::CouplingNonLinMortar::integrate_lin_dm(const std::string& statenam
   // transform to initial parallel distrib.
   matrix_row_col_transform();
 
-  // bye bye
   return;
 }
 

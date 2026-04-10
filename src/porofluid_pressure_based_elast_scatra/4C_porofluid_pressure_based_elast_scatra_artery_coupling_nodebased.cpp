@@ -188,7 +188,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNodeBasedAlgorithm::se
 
   // transform boundary DOFs to continuous dis
   std::shared_ptr<Core::LinAlg::Vector<double>> temp = homogenized_field_extractor_->insert_vector(
-      *coupling_artery_homogenized_->slave_to_master(*vec2_coupled), 1);
+      *coupling_artery_homogenized_->source_to_target(*vec2_coupled), 1);
 
   // add to continuous vec
   temp->update(1.0, *homogenized_vector, 1.0);
@@ -255,7 +255,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNodeBasedAlgorithm::
   const std::shared_ptr<const Core::LinAlg::Vector<double>> artery_inner_dofs =
       global_extractor_->extract_vector(*global_vector, 1);
   const std::shared_ptr<Core::LinAlg::Vector<double>> artery_boundary_dofs =
-      coupling_artery_homogenized_->master_to_slave(*boundary_dofs);
+      coupling_artery_homogenized_->target_to_source(*boundary_dofs);
 
   // build vector for artery
   // 1) inner DOFs
@@ -324,7 +324,7 @@ void PoroPressureBased::PorofluidElastScatraArteryCouplingNodeBasedAlgorithm::ch
 
   // transform boundary DOFs to homogenized discretization
   const std::shared_ptr<Core::LinAlg::Vector<double>> transformed_coupled_dofs =
-      coupling_artery_homogenized_->slave_to_master(*artery_coupled_dofs);
+      coupling_artery_homogenized_->source_to_target(*artery_coupled_dofs);
 
   // process coupled (boundary) DOFs of the second field
   const std::shared_ptr<Core::LinAlg::Vector<double>> homogenized_coupled_dofs =

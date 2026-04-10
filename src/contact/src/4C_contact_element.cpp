@@ -51,8 +51,8 @@ Core::LinAlg::SerialDenseMatrix CONTACT::ElementType::compute_null_space(
  |  ctor (public)                                            mwgee 10/07|
  *----------------------------------------------------------------------*/
 CONTACT::Element::Element(int id, int owner, const Core::FE::CellType& shape, const int numnode,
-    const int* nodeids, const bool isslave, bool isnurbs)
-    : Mortar::Element(id, owner, shape, numnode, nodeids, isslave, isnurbs)
+    const int* nodeids, const bool issource, bool isnurbs)
+    : Mortar::Element(id, owner, shape, numnode, nodeids, issource, isnurbs)
 {
   // empty constructor
 }
@@ -361,24 +361,26 @@ void CONTACT::Element::d_jac_d_xi(
 }
 
 
-void CONTACT::Element::prepare_dderiv(const std::vector<Mortar::Element*>& meles)
+void CONTACT::Element::prepare_dderiv(const std::vector<Mortar::Element*>& target_elems)
 {
   // number of dofs that may appear in the linearization
   int numderiv = 0;
   numderiv += num_node() * 3 * 12;
-  for (unsigned m = 0; m < meles.size(); ++m) numderiv += (meles.at(m))->num_node() * 3;
+  for (unsigned t = 0; t < target_elems.size(); ++t)
+    numderiv += (target_elems.at(t))->num_node() * 3;
   d_matrix_deriv_ = std::make_shared<Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>>(
       numderiv, 0, Core::LinAlg::SerialDenseMatrix(num_node(), num_node()));
 }
 
-void CONTACT::Element::prepare_mderiv(const std::vector<Mortar::Element*>& meles, const int m)
+void CONTACT::Element::prepare_mderiv(
+    const std::vector<Mortar::Element*>& target_elems, const int m)
 {
   // number of dofs that may appear in the linearization
   int numderiv = 0;
   numderiv += num_node() * 3 * 12;
-  for (unsigned i = 0; i < meles.size(); ++i) numderiv += meles[i]->num_node() * 3;
+  for (unsigned i = 0; i < target_elems.size(); ++i) numderiv += target_elems[i]->num_node() * 3;
   m_matrix_deriv_ = std::make_shared<Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>>(
-      numderiv, 0, Core::LinAlg::SerialDenseMatrix(num_node(), meles.at(m)->num_node()));
+      numderiv, 0, Core::LinAlg::SerialDenseMatrix(num_node(), target_elems.at(m)->num_node()));
 }
 
 
@@ -419,7 +421,7 @@ void CONTACT::Element::assemble_dderiv_to_nodes(bool dual)
   d_matrix_deriv_ = nullptr;
 }
 
-void CONTACT::Element::assemble_mderiv_to_nodes(Mortar::Element& mele)
+void CONTACT::Element::assemble_mderiv_to_nodes(Mortar::Element& target_elem)
 {
   if (m_matrix_deriv_ == nullptr)
     FOUR_C_THROW("assemble_mderiv_to_nodes called w/o prepare_mderiv first");
@@ -429,9 +431,9 @@ void CONTACT::Element::assemble_mderiv_to_nodes(Mortar::Element& mele)
   {
     CONTACT::Node* cnode_j = dynamic_cast<CONTACT::Node*>(nodes()[j]);
 
-    for (int k = 0; k < mele.num_node(); ++k)
+    for (int k = 0; k < target_elem.num_node(); ++k)
     {
-      CONTACT::Node* cnode_k = dynamic_cast<CONTACT::Node*>(mele.nodes()[k]);
+      CONTACT::Node* cnode_k = dynamic_cast<CONTACT::Node*>(target_elem.nodes()[k]);
       std::map<int, double>& dmmap_jk = cnode_j->data().get_deriv_m()[cnode_k->id()];
 
       for (Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>::const_iterator p =

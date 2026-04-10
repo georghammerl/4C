@@ -28,7 +28,7 @@ Discret::Elements::Shell7pLine::Shell7pLine(int id, int owner, int nnode, const 
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lline);
+  set_parent_target_element(parent, lline);
   // type of gaussian integration
   switch (shape())
   {

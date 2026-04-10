@@ -23,30 +23,30 @@ void CONTACT::Interface::round_robin_extend_ghosting(bool firstevaluation)
 {
   std::vector<int> element_GIDs_to_be_ghosted;
   std::vector<int> node_GIDs_to_be_ghosted;
-  for (int k = 0; k < slave_col_elements()->num_my_elements(); ++k)
+  for (int k = 0; k < source_col_elements()->num_my_elements(); ++k)
   {
-    int gid = slave_col_elements()->gid(k);
+    int gid = source_col_elements()->gid(k);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-    Element* slave_ele = dynamic_cast<Element*>(ele);
+    Element* source_ele = dynamic_cast<Element*>(ele);
 
-    for (int j = 0; j < slave_ele->mo_data().num_search_elements(); ++j)
+    for (int j = 0; j < source_ele->mo_data().num_search_elements(); ++j)
     {
-      int gid2 = slave_ele->mo_data().search_elements()[j];
+      int gid2 = source_ele->mo_data().search_elements()[j];
       Core::Elements::Element* ele2 = idiscret_->g_element(gid2);
-      if (!ele2) FOUR_C_THROW("Cannot find master element with gid %", gid2);
-      Element* melement = dynamic_cast<Element*>(ele2);
+      if (!ele2) FOUR_C_THROW("Cannot find target element with gid %", gid2);
+      Element* target_element = dynamic_cast<Element*>(ele2);
 
-      element_GIDs_to_be_ghosted.push_back(melement->id());
+      element_GIDs_to_be_ghosted.push_back(target_element->id());
 
-      for (int z = 0; z < melement->num_node(); ++z)
+      for (int z = 0; z < target_element->num_node(); ++z)
       {
-        int gidn = melement->node_ids()[z];
+        int gidn = target_element->node_ids()[z];
         node_GIDs_to_be_ghosted.push_back(gidn);
       }
     }
     // reset found elements
-    slave_ele->delete_search_elements();
+    source_ele->delete_search_elements();
   }
 
   std::shared_ptr<Core::LinAlg::Map> currently_ghosted_elements =
@@ -83,7 +83,7 @@ void CONTACT::Interface::round_robin_change_ownership()
   // get friction type
   auto ftype = Teuchos::getIntegralValue<CONTACT::FrictionType>(interface_params(), "FRICTION");
 
-  // change master-side proc ownership
+  // change target-side proc ownership
   // some local variables
   MPI_Comm comm_v(get_comm());
   const int myrank = Core::Communication::my_mpi_rank(comm_v);
@@ -96,16 +96,16 @@ void CONTACT::Interface::round_robin_change_ownership()
   std::vector<int> ecol, erow;
 
   // create dummy
-  Core::LinAlg::Map MasterColNodesdummy(*master_col_nodes());
-  Core::LinAlg::Map MasterColelesdummy(*master_col_elements());
+  Core::LinAlg::Map TargetColNodesdummy(*target_col_nodes());
+  Core::LinAlg::Map TargetColelesdummy(*target_col_elements());
 
   // create origin maps
-  std::shared_ptr<Core::LinAlg::Map> SCN = std::make_shared<Core::LinAlg::Map>(*slave_col_nodes());
+  std::shared_ptr<Core::LinAlg::Map> SCN = std::make_shared<Core::LinAlg::Map>(*source_col_nodes());
   std::shared_ptr<Core::LinAlg::Map> SCE =
-      std::make_shared<Core::LinAlg::Map>(*slave_col_elements());
-  std::shared_ptr<Core::LinAlg::Map> SRN = std::make_shared<Core::LinAlg::Map>(*slave_row_nodes());
+      std::make_shared<Core::LinAlg::Map>(*source_col_elements());
+  std::shared_ptr<Core::LinAlg::Map> SRN = std::make_shared<Core::LinAlg::Map>(*source_row_nodes());
   std::shared_ptr<Core::LinAlg::Map> SRE =
-      std::make_shared<Core::LinAlg::Map>(*slave_row_elements());
+      std::make_shared<Core::LinAlg::Map>(*source_row_elements());
 
   // *****************************************
   // Elements
@@ -124,32 +124,32 @@ void CONTACT::Interface::round_robin_change_ownership()
   Core::Communication::PackBuffer dataeles;
 
   // now pack/store
-  for (int i = 0; i < (int)MasterColelesdummy.num_my_elements(); ++i)
+  for (int i = 0; i < (int)TargetColelesdummy.num_my_elements(); ++i)
   {
-    int gid = MasterColelesdummy.gid(i);
+    int gid = TargetColelesdummy.gid(i);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-    Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+    Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
-    mele->pack(dataeles);
+    target_elem->pack(dataeles);
 
-    const bool locally_owned = mele->owner() == myrank;
+    const bool locally_owned = target_elem->owner() == myrank;
     add_to_pack(dataeles, locally_owned);
   }
   std::swap(sdataeles, dataeles());
 
   // delete the elements from discretization
-  for (int i = 0; i < (int)MasterColelesdummy.num_my_elements(); ++i)
+  for (int i = 0; i < (int)TargetColelesdummy.num_my_elements(); ++i)
   {
-    int gid = MasterColelesdummy.gid(i);
+    int gid = TargetColelesdummy.gid(i);
     Core::Elements::Element* ele = discret().g_element(gid);
     if (!ele) FOUR_C_THROW("Cannot find ele with gid {}", gid);
-    Mortar::Element* mele = dynamic_cast<Mortar::Element*>(ele);
+    Mortar::Element* target_elem = dynamic_cast<Mortar::Element*>(ele);
 
     // check for ghosting
-    if (mele->owner() == myrank)
+    if (target_elem->owner() == myrank)
     {
-      idiscret_->delete_element(mele->id());
+      idiscret_->delete_element(target_elem->id());
     }
   }
 
@@ -212,9 +212,9 @@ void CONTACT::Interface::round_robin_change_ownership()
 
   Core::Communication::PackBuffer datanodes;
 
-  for (int i = 0; i < (int)MasterColNodesdummy.num_my_elements(); ++i)
+  for (int i = 0; i < (int)TargetColNodesdummy.num_my_elements(); ++i)
   {
-    int gid = MasterColNodesdummy.gid(i);
+    int gid = TargetColNodesdummy.gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find ele with gid {}", gid);
 
@@ -247,9 +247,9 @@ void CONTACT::Interface::round_robin_change_ownership()
   std::swap(sdatanodes, datanodes());
 
   // DELETING
-  for (int i = 0; i < (int)MasterColNodesdummy.num_my_elements(); ++i)
+  for (int i = 0; i < (int)TargetColNodesdummy.num_my_elements(); ++i)
   {
-    int gid = MasterColNodesdummy.gid(i);
+    int gid = TargetColNodesdummy.gid(i);
     Core::Nodes::Node* node = discret().g_node(gid);
     if (!node) FOUR_C_THROW("Cannot find ele with gid {}", gid);
 
@@ -371,7 +371,7 @@ void CONTACT::Interface::round_robin_change_ownership()
 
 
 /*----------------------------------------------------------------------*
- |  change master ownership clockwise for contact            farah 10/13|
+ |  change target ownership clockwise for contact            farah 10/13|
  |  interface without evaluation of the interface                       |
  *----------------------------------------------------------------------*/
 void CONTACT::Interface::round_robin_detect_ghosting()
@@ -387,14 +387,14 @@ void CONTACT::Interface::round_robin_detect_ghosting()
   round_robin_extend_ghosting(true);
 
   // Init Maps
-  std::shared_ptr<Core::LinAlg::Map> initial_slave_node_column_map =
-      std::make_shared<Core::LinAlg::Map>(*slave_col_nodes());
-  std::shared_ptr<Core::LinAlg::Map> initial_slave_element_column_map =
-      std::make_shared<Core::LinAlg::Map>(*slave_col_elements());
-  std::shared_ptr<Core::LinAlg::Map> initial_master_node_column_map =
-      std::make_shared<Core::LinAlg::Map>(*master_col_nodes());
-  std::shared_ptr<Core::LinAlg::Map> initial_master_element_column_map =
-      std::make_shared<Core::LinAlg::Map>(*master_col_elements());
+  std::shared_ptr<Core::LinAlg::Map> initial_source_node_column_map =
+      std::make_shared<Core::LinAlg::Map>(*source_col_nodes());
+  std::shared_ptr<Core::LinAlg::Map> initial_source_element_column_map =
+      std::make_shared<Core::LinAlg::Map>(*source_col_elements());
+  std::shared_ptr<Core::LinAlg::Map> initial_target_node_column_map =
+      std::make_shared<Core::LinAlg::Map>(*target_col_nodes());
+  std::shared_ptr<Core::LinAlg::Map> initial_target_element_column_map =
+      std::make_shared<Core::LinAlg::Map>(*target_col_elements());
 
   // *************************************
   // start RR loop for current interface
@@ -438,13 +438,13 @@ void CONTACT::Interface::round_robin_detect_ghosting()
 
   // Append ghost nodes/elements to be ghosted to existing column maps
   eextendedghosting_ =
-      Core::LinAlg::merge_map(eextendedghosting_, initial_slave_element_column_map, true);
+      Core::LinAlg::merge_map(eextendedghosting_, initial_source_element_column_map, true);
   nextendedghosting_ =
-      Core::LinAlg::merge_map(nextendedghosting_, initial_slave_node_column_map, true);
+      Core::LinAlg::merge_map(nextendedghosting_, initial_source_node_column_map, true);
   eextendedghosting_ =
-      Core::LinAlg::merge_map(eextendedghosting_, initial_master_element_column_map, true);
+      Core::LinAlg::merge_map(eextendedghosting_, initial_target_element_column_map, true);
   nextendedghosting_ =
-      Core::LinAlg::merge_map(nextendedghosting_, initial_master_node_column_map, true);
+      Core::LinAlg::merge_map(nextendedghosting_, initial_target_node_column_map, true);
 
   // finally extend ghosting
   discret().export_column_elements(*eextendedghosting_);

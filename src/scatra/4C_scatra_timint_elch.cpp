@@ -888,7 +888,7 @@ void ScaTra::ScaTraTimIntElch::read_restart_problem_specific(
   {
     // only slave side has relevant information
     if (s2ikinetics_cond->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-            static_cast<int>(Inpar::S2I::side_slave) and
+            static_cast<int>(Inpar::S2I::side_source) and
         s2ikinetics_cond->parameters().get<Inpar::S2I::KineticModels>("KINETIC_MODEL") ==
             static_cast<int>(Inpar::S2I::kinetics_butlervolmerreducedcapacitance))
     {
@@ -1621,7 +1621,7 @@ void ScaTra::ScaTraTimIntElch::write_restart() const
   {
     // only slave side has relevant information
     if (s2ikinetics_cond->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE") ==
-            static_cast<int>(Inpar::S2I::side_slave) and
+            static_cast<int>(Inpar::S2I::side_source) and
         s2ikinetics_cond->parameters().get<Inpar::S2I::KineticModels>("KINETIC_MODEL") ==
             static_cast<int>(Inpar::S2I::kinetics_butlervolmerreducedcapacitance))
     {

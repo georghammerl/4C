@@ -37,10 +37,10 @@ namespace Mortar
 
     virtual void clear() = 0;
 
-    virtual void assemble_rhs(Mortar::Element* mele, CONTACT::VecBlockType row,
+    virtual void assemble_rhs(Mortar::Element* target_elem, CONTACT::VecBlockType row,
         std::shared_ptr<Core::LinAlg::FEVector<double>> fc) const = 0;
 
-    virtual void assemble_matrix(Mortar::Element* mele, CONTACT::MatBlockType block,
+    virtual void assemble_matrix(Mortar::Element* target_elem, CONTACT::MatBlockType block,
         std::shared_ptr<Core::LinAlg::SparseMatrix> kc) const = 0;
 
     virtual double* rhs(int dof) = 0;
@@ -196,19 +196,19 @@ namespace Mortar
     double* ked(int col, int dof) override { return &ssi_elch_data_.k_ed_[col](dof); }
     double* kde(int col) override { return ssi_elch_data_.k_de_[col].data(); }
 
-    void assemble_rhs(Mortar::Element* mele, CONTACT::VecBlockType row,
+    void assemble_rhs(Mortar::Element* target_elem, CONTACT::VecBlockType row,
         std::shared_ptr<Core::LinAlg::FEVector<double>> fc) const override;
 
-    void assemble_matrix(Mortar::Element* mele, CONTACT::MatBlockType block,
+    void assemble_matrix(Mortar::Element* target_elem, CONTACT::MatBlockType block,
         std::shared_ptr<Core::LinAlg::SparseMatrix> kc) const override;
 
     template <int num_dof_per_node>
-    void assemble_rhs(Mortar::Element* mele,
+    void assemble_rhs(Mortar::Element* target_elem,
         const Core::LinAlg::Matrix<Core::FE::num_nodes(parent_distype) * num_dof_per_node, 1>& rhs,
         std::vector<int>& dofs, std::shared_ptr<Core::LinAlg::FEVector<double>> fc) const;
 
     template <int num_dof_per_node>
-    void assemble_matrix(Mortar::Element* mele,
+    void assemble_matrix(Mortar::Element* target_elem,
         const std::unordered_map<int,
             Core::LinAlg::Matrix<Core::FE::num_nodes(parent_distype) * num_dof_per_node, 1>>& k,
         std::vector<int>& dofs, std::shared_ptr<Core::LinAlg::SparseMatrix> kc) const;

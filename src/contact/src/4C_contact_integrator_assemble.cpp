@@ -17,37 +17,30 @@ FOUR_C_NAMESPACE_OPEN
 
 /*----------------------------------------------------------------------*
  |  Assemble g~ contribution (2D / 3D)                        popp 01/08|
- |  This method assembles the contribution of a 1D/2D slave and master  |
- |  overlap pair to the weighted gap of the adjacent slave nodes.       |
+ |  This method assembles the contribution of a 1D/2D source and target  |
+ |  overlap pair to the weighted gap of the adjacent source nodes.       |
  *----------------------------------------------------------------------*/
 bool CONTACT::Integrator::assemble_g(
-    MPI_Comm comm, Mortar::Element& sele, Core::LinAlg::SerialDenseVector& gseg)
+    MPI_Comm comm, Mortar::Element& source_elem, Core::LinAlg::SerialDenseVector& gseg)
 {
-  // get adjacent slave nodes to assemble to
-  Core::Nodes::Node** snodes = sele.nodes();
-  if (!snodes) FOUR_C_THROW("AssembleG: Null pointer for snodes!");
+  // get adjacent source nodes to assemble to
+  Core::Nodes::Node** source_nodes = source_elem.nodes();
+  if (!source_nodes) FOUR_C_THROW("AssembleG: Null pointer for source_nodes!");
 
-  // loop over all slave nodes
-  for (int slave = 0; slave < sele.num_node(); ++slave)
+  // loop over all source nodes
+  for (int source = 0; source < source_elem.num_node(); ++source)
   {
-    CONTACT::Node* snode = dynamic_cast<CONTACT::Node*>(snodes[slave]);
+    CONTACT::Node* source_node = dynamic_cast<CONTACT::Node*>(source_nodes[source]);
 
-    // only process slave node rows that belong to this proc
-    if (snode->owner() != Core::Communication::my_mpi_rank(comm)) continue;
+    // only process source node rows that belong to this proc
+    if (source_node->owner() != Core::Communication::my_mpi_rank(comm)) continue;
 
-    // do not process slave side boundary nodes
+    // do not process source side boundary nodes
     // (their row entries would be zero anyway!)
-    if (snode->is_on_bound()) continue;
+    if (source_node->is_on_bound()) continue;
 
-    double val = gseg(slave);
-    snode->addg_value(val);
-
-    /*
-#ifdef FOUR_C_ENABLE_ASSERTIONS
-    std::cout << "Node: " << snode->Id() << "  Owner: " << snode->Owner() << std::endl;
-    std::cout << "Weighted gap: " << snode->Getg() << std::endl;
-#endif
-    */
+    double val = gseg(source);
+    source_node->addg_value(val);
   }
 
   return true;
@@ -61,24 +54,24 @@ bool CONTACT::Integrator::assemble_g(
 bool CONTACT::Integrator::assemble_g(
     MPI_Comm comm, Mortar::IntElement& sintele, Core::LinAlg::SerialDenseVector& gseg)
 {
-  // get adjacent slave int nodes to assemble to
-  Core::Nodes::Node** snodes = sintele.nodes();
-  if (!snodes) FOUR_C_THROW("AssembleG: Null pointer for sintnodes!");
+  // get adjacent source int nodes to assemble to
+  Core::Nodes::Node** source_nodes = sintele.nodes();
+  if (!source_nodes) FOUR_C_THROW("AssembleG: Null pointer for sintnodes!");
 
-  // loop over all slave nodes
-  for (int slave = 0; slave < sintele.num_node(); ++slave)
+  // loop over all source nodes
+  for (int source = 0; source < sintele.num_node(); ++source)
   {
-    CONTACT::Node* snode = dynamic_cast<CONTACT::Node*>(snodes[slave]);
+    CONTACT::Node* source_node = dynamic_cast<CONTACT::Node*>(source_nodes[source]);
 
-    // only process slave node rows that belong to this proc
-    if (snode->owner() != Core::Communication::my_mpi_rank(comm)) continue;
+    // only process source node rows that belong to this proc
+    if (source_node->owner() != Core::Communication::my_mpi_rank(comm)) continue;
 
-    // do not process slave side boundary nodes
+    // do not process source side boundary nodes
     // (their row entries would be zero anyway!)
-    if (snode->is_on_bound()) continue;
+    if (source_node->is_on_bound()) continue;
 
-    double val = gseg(slave);
-    snode->addg_value(val);
+    double val = gseg(source);
+    source_node->addg_value(val);
   }
 
   return true;

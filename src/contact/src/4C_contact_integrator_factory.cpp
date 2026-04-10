@@ -21,7 +21,7 @@ FOUR_C_NAMESPACE_OPEN
  *----------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integrator(
     const CONTACT::SolvingStrategy& sol_type, Teuchos::ParameterList& mortar_params,
-    const Core::FE::CellType& slave_type, MPI_Comm comm) const
+    const Core::FE::CellType& source_type, MPI_Comm comm) const
 {
   std::shared_ptr<CONTACT::Integrator> integrator = nullptr;
   switch (sol_type)
@@ -31,13 +31,13 @@ std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integra
       if (mortar_params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::ssi)
       {
         integrator =
-            std::make_shared<CONTACT::IntegratorNitscheSsi>(mortar_params, slave_type, comm);
+            std::make_shared<CONTACT::IntegratorNitscheSsi>(mortar_params, source_type, comm);
       }
       else if (mortar_params.get<CONTACT::Problemtype>("PROBTYPE") ==
                CONTACT::Problemtype::ssi_elch)
       {
         integrator =
-            std::make_shared<CONTACT::IntegratorNitscheSsiElch>(mortar_params, slave_type, comm);
+            std::make_shared<CONTACT::IntegratorNitscheSsiElch>(mortar_params, source_type, comm);
       }
       else if (mortar_params.get<CONTACT::Problemtype>("PROBTYPE") ==
                    CONTACT::Problemtype::poroelast ||
@@ -45,21 +45,21 @@ std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integra
                    CONTACT::Problemtype::poroscatra)
       {
         integrator =
-            std::make_shared<CONTACT::IntegratorNitschePoro>(mortar_params, slave_type, comm);
+            std::make_shared<CONTACT::IntegratorNitschePoro>(mortar_params, source_type, comm);
       }
       else if (mortar_params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::fsi)
       {
         integrator =
-            std::make_shared<CONTACT::IntegratorNitscheFsi>(mortar_params, slave_type, comm);
+            std::make_shared<CONTACT::IntegratorNitscheFsi>(mortar_params, source_type, comm);
       }
       else if (mortar_params.get<CONTACT::Problemtype>("PROBTYPE") == CONTACT::Problemtype::fpi)
       {
         integrator =
-            std::make_shared<CONTACT::IntegratorNitscheFpi>(mortar_params, slave_type, comm);
+            std::make_shared<CONTACT::IntegratorNitscheFpi>(mortar_params, source_type, comm);
       }
       else
       {
-        integrator = std::make_shared<CONTACT::IntegratorNitsche>(mortar_params, slave_type, comm);
+        integrator = std::make_shared<CONTACT::IntegratorNitsche>(mortar_params, source_type, comm);
       }
       break;
     }
@@ -68,20 +68,20 @@ std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integra
     {
       if (Teuchos::getIntegralValue<Mortar::AlgorithmType>(mortar_params, "ALGORITHM") ==
           Mortar::algorithm_gpts)
-        integrator = std::make_shared<CONTACT::IntegratorNitsche>(mortar_params, slave_type, comm);
+        integrator = std::make_shared<CONTACT::IntegratorNitsche>(mortar_params, source_type, comm);
       else
-        integrator = std::make_shared<CONTACT::Integrator>(mortar_params, slave_type, comm);
+        integrator = std::make_shared<CONTACT::Integrator>(mortar_params, source_type, comm);
       break;
     }
     case CONTACT::SolvingStrategy::lagmult:
     case CONTACT::SolvingStrategy::uzawa:
     {
-      integrator = std::make_shared<CONTACT::Integrator>(mortar_params, slave_type, comm);
+      integrator = std::make_shared<CONTACT::Integrator>(mortar_params, source_type, comm);
       break;
     }
     case CONTACT::SolvingStrategy::ehl:
     {
-      integrator = std::make_shared<CONTACT::IntegratorEhl>(mortar_params, slave_type, comm);
+      integrator = std::make_shared<CONTACT::IntegratorEhl>(mortar_params, source_type, comm);
 
       break;
     }
@@ -100,10 +100,10 @@ std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::Factory::build_integra
  *----------------------------------------------------------------------*/
 std::shared_ptr<CONTACT::Integrator> CONTACT::INTEGRATOR::build_integrator(
     const CONTACT::SolvingStrategy& sol_type, Teuchos::ParameterList& mortar_params,
-    const Core::FE::CellType& slave_type, MPI_Comm comm)
+    const Core::FE::CellType& source_type, MPI_Comm comm)
 {
   Factory factory;
-  return factory.build_integrator(sol_type, mortar_params, slave_type, comm);
+  return factory.build_integrator(sol_type, mortar_params, source_type, comm);
 }
 
 FOUR_C_NAMESPACE_CLOSE

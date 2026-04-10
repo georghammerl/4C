@@ -301,7 +301,7 @@ Discret::Elements::LubricationBoundary::LubricationBoundary(int id, int owner, i
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
   return;
 }
 

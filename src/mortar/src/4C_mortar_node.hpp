@@ -378,7 +378,7 @@ namespace Mortar
     /*!
      \brief Is node on slave or master side of mortar interface
      */
-    bool is_slave() const { return isslave_; }
+    bool is_source() const { return isslave_; }
 
     /*!
      \brief Modify slave / master status of current node
@@ -391,7 +391,7 @@ namespace Mortar
      changed to master, thy do NOT carry Lagrange multipliers and their
      neighbors' dual shape fct. are modified!
      */
-    bool& set_slave() { return isslave_; }
+    bool& set_source() { return isslave_; }
 
     /*!
      \brief Return attached status

@@ -31,7 +31,7 @@ Discret::Elements::Vele3Surface::Vele3Surface(int id, int owner, int nnode, cons
 {
   set_node_ids(nnode, nodeids);
   build_nodal_pointers(nodes);
-  set_parent_master_element(parent, lsurface);
+  set_parent_target_element(parent, lsurface);
   return;
 }
 

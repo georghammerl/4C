@@ -24,7 +24,7 @@ namespace Coupling::Adapter
 {
   class Coupling;
   class CouplingSlaveConverter;
-  class CouplingMasterConverter;
+  class CouplingTargetConverter;
 }  // namespace Coupling::Adapter
 
 namespace Adapter
@@ -94,7 +94,7 @@ namespace SSI
     int manifold_condition_id() const { return manifold_condition_id_; }
 
     //! from master to slave side
-    std::shared_ptr<Coupling::Adapter::CouplingMasterConverter> master_converter() const
+    std::shared_ptr<Coupling::Adapter::CouplingTargetConverter> master_converter() const
     {
       return master_converter_;
     }
@@ -134,7 +134,7 @@ namespace SSI
     std::shared_ptr<Core::LinAlg::MapExtractor> manifold_map_extractor_;
 
     //! Master converter for scatra - manifold coupling
-    std::shared_ptr<Coupling::Adapter::CouplingMasterConverter> master_converter_;
+    std::shared_ptr<Coupling::Adapter::CouplingTargetConverter> master_converter_;
 
     //! Map extractor for dofs in this kinetics condition
     std::shared_ptr<Core::LinAlg::MapExtractor> scatra_map_extractor_;

@@ -49,54 +49,58 @@ namespace CONTACT
     /*!
      \brief Perform integration at GP
      */
-    void integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_2d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
      \brief Perform integration at GP
      */
-    void integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_3d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
    private:
     // integrate surface gradient
-    void gp_weighted_surf_grad_and_deriv(Mortar::Element& sele, const double* xi,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dsxigp,
-        const Core::LinAlg::SerialDenseVector& lmval,
-        const Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void gp_weighted_surf_grad_and_deriv(Mortar::Element& source_elem, const double* xi,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_gp,
+        const Core::LinAlg::SerialDenseVector& lm_val,
+        const Core::LinAlg::SerialDenseMatrix& lm_deriv,
         const Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv,
         const Core::LinAlg::SerialDenseMatrix& sderiv2, const double& wgt, const double& jac,
         const Core::Gen::Pairedvector<int, double>& jacintcellmap);
 
     // integrate relative and average tangential velocity
-    void gp_weighted_av_rel_vel(Mortar::Element& sele, Mortar::Element& mele,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseVector& lmval,
-        const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-        const Core::LinAlg::SerialDenseMatrix& mderiv,
-        const Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void gp_weighted_av_rel_vel(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseVector& lm_val,
+        const Core::LinAlg::SerialDenseVector& target_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv,
+        const Core::LinAlg::SerialDenseMatrix& target_deriv,
+        const Core::LinAlg::SerialDenseMatrix& lm_deriv,
         const Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap,
         const double& wgt, const double& jac, const Core::Gen::Pairedvector<int, double>& derivjac,
         const double* normal, const std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit,
-        const double& gap, const Core::Gen::Pairedvector<int, double>& deriv_gap, const double* sxi,
-        const double* mxi, const std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi);
+        const double& gap, const Core::Gen::Pairedvector<int, double>& deriv_gap,
+        const double* source_xi, const double* target_xi,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi);
   };
 }  // namespace CONTACT
 

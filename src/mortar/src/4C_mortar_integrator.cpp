@@ -844,7 +844,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_segment_2d(Mortar::
   if (ndim_ != 2) FOUR_C_THROW("2D integration method called for non-2D problem");
 
   // check input data
-  if ((!sele.is_slave()) || (mele.is_slave()))
+  if ((!sele.is_source()) || (mele.is_source()))
     FOUR_C_THROW("IntegrateAndDerivSegment called on a wrong type of Mortar::Element pair!");
   if ((sxia < -1.0) || (sxib > 1.0))
     FOUR_C_THROW("IntegrateAndDerivSegment called with infeasible slave limits!");
@@ -1252,7 +1252,7 @@ Mortar::IntegratorCalc<distype_s, distype_m>::integrate_mmod_2d(Mortar::Element&
   if (ndim_ != 2) FOUR_C_THROW("2D integration method called for non-2D problem");
 
   // check input data
-  if ((!sele.is_slave()) || (mele.is_slave()))
+  if ((!sele.is_source()) || (mele.is_source()))
     FOUR_C_THROW("IntegrateMmod2D called on a wrong type of Mortar::Element pair!");
   if ((sxia < -1.0) || (sxib > 1.0))
     FOUR_C_THROW("IntegrateMmod2D called with infeasible slave limits!");
@@ -1385,7 +1385,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_ele_based_3d(
   // check input data
   for (int test = 0; test < (int)meles.size(); ++test)
   {
-    if ((!sele.is_slave()) || (meles[test]->is_slave()))
+    if ((!sele.is_source()) || (meles[test]->is_source()))
       FOUR_C_THROW("IntegrateDerivCell3D called on a wrong type of Mortar::Element pair!");
   }
 
@@ -1513,7 +1513,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane(
   Core::FE::CellType mdt = mele.shape();
 
   // check input data
-  if ((!sele.is_slave()) || (mele.is_slave()))
+  if ((!sele.is_source()) || (mele.is_source()))
     FOUR_C_THROW(
         "integrate_deriv_cell_3d_aux_plane called on a wrong type of Mortar::Element pair!");
   if (cell == nullptr)
@@ -1703,7 +1703,7 @@ void Mortar::IntegratorCalc<distype_s, distype_m>::integrate_cell_3d_aux_plane_q
   Core::FE::CellType pmdt = mele.shape();
 
   // check input data
-  if ((!sele.is_slave()) || (mele.is_slave()))
+  if ((!sele.is_source()) || (mele.is_source()))
     FOUR_C_THROW(
         "ERROR: integrate_deriv_cell_3d_aux_plane_quad called on a wrong type of Mortar::Element "
         "pair!");

@@ -172,7 +172,7 @@ int Discret::Elements::Wall1Line::evaluate_neumann(Teuchos::ParameterList& param
 
       double normalfac = 0.0;
       bool zero_size = knots->get_boundary_ele_and_parent_knots(
-          parentknots, boundknots, normalfac, parent_master_element()->id(), face_master_number());
+          parentknots, boundknots, normalfac, parent_target_element()->id(), face_master_number());
 
       if (zero_size) return (0);
 

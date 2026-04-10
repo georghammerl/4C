@@ -652,15 +652,15 @@ void FSI::MonolithicStructureSplit::setup_system_matrix(Core::LinAlg::BlockSpars
   mat.assign(0, 0, Core::LinAlg::DataAccess::Share, s->matrix(0, 0));
 
   (*sigtransform_)(s->full_row_map(), s->full_col_map(), s->matrix(0, 1), 1. / timescale,
-      Coupling::Adapter::CouplingMasterConverter(coupsf), mat.matrix(0, 1));
+      Coupling::Adapter::CouplingTargetConverter(coupsf), mat.matrix(0, 1));
   (*sggtransform_)(s->matrix(1, 1), (1.0 - ftiparam) / ((1.0 - stiparam) * scale * timescale),
-      Coupling::Adapter::CouplingMasterConverter(coupsf),
-      Coupling::Adapter::CouplingMasterConverter(coupsf), *f, true, true);
+      Coupling::Adapter::CouplingTargetConverter(coupsf),
+      Coupling::Adapter::CouplingTargetConverter(coupsf), *f, true, true);
 
   std::shared_ptr<Core::LinAlg::SparseMatrix> lsgi =
       std::make_shared<Core::LinAlg::SparseMatrix>(f->row_map(), 81, false);
   (*sgitransform_)(s->matrix(1, 0), (1.0 - ftiparam) / ((1.0 - stiparam) * scale),
-      Coupling::Adapter::CouplingMasterConverter(coupsf), *lsgi);
+      Coupling::Adapter::CouplingTargetConverter(coupsf), *lsgi);
 
   lsgi->complete(s->matrix(1, 0).domain_map(), f->range_map());
 
@@ -686,10 +686,10 @@ void FSI::MonolithicStructureSplit::setup_system_matrix(Core::LinAlg::BlockSpars
 
     Core::LinAlg::SparseMatrix lfmgi(f->row_map(), 81, false);
     (*fmgitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmgi, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), lfmgi, false, false);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), lfmgi, false, false);
 
     (*fmiitransform_)(mmm->full_row_map(), mmm->full_col_map(), fmii, 1.,
-        Coupling::Adapter::CouplingMasterConverter(coupfa), lfmgi, false, true);
+        Coupling::Adapter::CouplingTargetConverter(coupfa), lfmgi, false, true);
 
     lfmgi.complete(aii.domain_map(), f->range_map());
 

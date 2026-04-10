@@ -339,7 +339,7 @@ void SSI::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition
   {
     cond.add_component(parameter<int>("ConditionID"));
     cond.add_component(deprecated_selection<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE",
-        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_slave},
+        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_source},
             {"Master", Inpar::S2I::side_master}},
         {.description = "interface_side"}));
     cond.add_component(parameter<int>("S2I_KINETICS_ID"));
@@ -475,7 +475,7 @@ void SSI::set_valid_conditions(std::vector<Core::Conditions::ConditionDefinition
   {
     cond.add_component(parameter<int>("ConditionID"));
     cond.add_component(deprecated_selection<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE",
-        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_slave},
+        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_source},
             {"Master", Inpar::S2I::side_master}},
         {.description = "interface_side"}));
     cond.add_component(parameter<int>("S2I_KINETICS_ID"));

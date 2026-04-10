@@ -47,10 +47,12 @@ void CONTACT::NitscheStrategy::apply_force_stiff_cmt(
     interface->evaluate(0, step_, iter_);
     for (int e = 0; e < interface->discret().element_col_map()->num_my_elements(); ++e)
     {
-      auto* mele = dynamic_cast<Mortar::Element*>(
+      auto* target_elem = dynamic_cast<Mortar::Element*>(
           interface->discret().g_element(interface->discret().element_col_map()->gid(e)));
-      mele->get_nitsche_container().assemble_rhs(mele, CONTACT::VecBlockType::displ, fc);
-      mele->get_nitsche_container().assemble_matrix(mele, CONTACT::MatBlockType::displ_displ, kc);
+      target_elem->get_nitsche_container().assemble_rhs(
+          target_elem, CONTACT::VecBlockType::displ, fc);
+      target_elem->get_nitsche_container().assemble_matrix(
+          target_elem, CONTACT::MatBlockType::displ_displ, kc);
     }
   }
 
@@ -277,10 +279,10 @@ std::shared_ptr<Core::LinAlg::FEVector<double>> CONTACT::NitscheStrategy::create
   {
     for (int e = 0; e < interface->discret().element_col_map()->num_my_elements(); ++e)
     {
-      auto* mele = dynamic_cast<Mortar::Element*>(
+      auto* target_elem = dynamic_cast<Mortar::Element*>(
           interface->discret().g_element(interface->discret().element_col_map()->gid(e)));
-      auto& nitsche_container = mele->get_nitsche_container();
-      nitsche_container.assemble_rhs(mele, bt, fc);
+      auto& nitsche_container = target_elem->get_nitsche_container();
+      nitsche_container.assemble_rhs(target_elem, bt, fc);
     }
   }
   fc->complete();
@@ -350,9 +352,9 @@ std::shared_ptr<Core::LinAlg::SparseMatrix> CONTACT::NitscheStrategy::create_mat
   {
     for (int e = 0; e < interface->discret().element_col_map()->num_my_elements(); ++e)
     {
-      auto* mele = dynamic_cast<Mortar::Element*>(
+      auto* target_elem = dynamic_cast<Mortar::Element*>(
           interface->discret().g_element(interface->discret().element_col_map()->gid(e)));
-      mele->get_nitsche_container().assemble_matrix(mele, bt, kc);
+      target_elem->get_nitsche_container().assemble_matrix(target_elem, bt, kc);
     }
   }
 
@@ -407,11 +409,11 @@ void CONTACT::NitscheStrategy::update_trace_ineq_estimates()
   {
     for (int e = 0; e < interface->discret().element_col_map()->num_my_elements(); ++e)
     {
-      auto* mele = dynamic_cast<Mortar::Element*>(
+      auto* target_elem = dynamic_cast<Mortar::Element*>(
           interface->discret().g_element(interface->discret().element_col_map()->gid(e)));
-      if (NitWgt == CONTACT::NitscheWeighting::slave && !mele->is_slave()) continue;
-      if (NitWgt == CONTACT::NitscheWeighting::master && mele->is_slave()) continue;
-      mele->estimate_nitsche_trace_max_eigenvalue(mat_eval_context);
+      if (NitWgt == CONTACT::NitscheWeighting::slave && !target_elem->is_source()) continue;
+      if (NitWgt == CONTACT::NitscheWeighting::master && target_elem->is_source()) continue;
+      target_elem->estimate_nitsche_trace_max_eigenvalue(mat_eval_context);
     }
   }
 }
@@ -473,7 +475,7 @@ void CONTACT::NitscheStrategy::reconnect_parent_elements()
       Core::Elements::Element* vele = voldis->g_element(volgid);
       if (!vele) FOUR_C_THROW("Cannot find element with gid %", volgid);
 
-      faceele->set_parent_master_element(vele, faceele->face_parent_number());
+      faceele->set_parent_target_element(vele, faceele->face_parent_number());
     }
   }
 }

@@ -142,17 +142,17 @@ void CONTACT::UnbiasedSelfBinaryTree::define_search_elements()
   // do as long as there are still contact pairs
   if (contact_pairs().find(eleID) != contact_pairs().end() && !contact_pairs().empty())
   {
-    // get the current element to content of "isslave"
+    // get the current element to content of "issource"
     Core::Elements::Element* element = discret().g_element(eleID);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
-    if (celement->is_slave() != true)
+    if (celement->is_source() != true)
       FOUR_C_THROW("Element: this should not happen!");
     else
       for (int i = 0; i < element->num_node(); ++i)
       {
         Core::Nodes::Node* node = element->nodes()[i];
         CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
-        if (cnode->is_slave() != true) FOUR_C_THROW("Node: this should not happen!");
+        if (cnode->is_source() != true) FOUR_C_THROW("Node: this should not happen!");
       }
 
     // get the ID of elements in contact with current one
@@ -374,7 +374,7 @@ bool CONTACT::UnbiasedSelfBinaryTree::rough_check_ref_config(int ele1gid, int el
       FOUR_C_THROW("rough_check_ref_config called for unknown element type");
       break;
   }
-  // get center of master element
+  // get center of target element
   const Core::Elements::Element* ele2 = discret().g_element(ele2gid);
   const Core::FE::CellType dtele2 = ele2->shape();
   switch (dtele2)
@@ -412,7 +412,7 @@ bool CONTACT::UnbiasedSelfBinaryTree::rough_check_ref_config(int ele1gid, int el
   const double ele1ele2vecnorm = ele1ele2vec.norm2();
   if (ele1ele2vecnorm > 1.0e-14) ele1ele2vec.scale(1.0 / ele1ele2vecnorm);
 
-  // calculate scalar product of slavemastervector and slavenormal in reference coordinates
+  // calculate scalar product of sourcetargetvector and sourcenormal in reference coordinates
   scalarprod.multiply_tn(1.0, ele1ele2vec, ele1normal, 0.0);
   const double scalarprodnorm = scalarprod.max_value();
 
@@ -476,27 +476,27 @@ void CONTACT::UnbiasedSelfBinaryTree::search_contact()
   }
 
   //**********************************************************************
-  // STEP 5: all contact elements have to be slave elements
+  // STEP 5: all contact elements have to be source elements
   //**********************************************************************
   std::map<int, std::shared_ptr<SelfBinaryTreeNode>>::iterator leafiter = set_leafsmap().begin();
   std::map<int, std::shared_ptr<SelfBinaryTreeNode>>::iterator leafiter_end = set_leafsmap().end();
 
-  // set all contact elements and nodes to slave
+  // set all contact elements and nodes to source
   while (leafiter != leafiter_end)
   {
     const int gid = leafiter->first;
     Core::Elements::Element* element = discret().g_element(gid);
     CONTACT::Element* celement = dynamic_cast<CONTACT::Element*>(element);
 
-    // set contact element to slave
-    celement->set_slave() = true;
+    // set contact element to source
+    celement->set_source() = true;
 
-    // set nodes to slave
+    // set nodes to source
     for (int i = 0; i < element->num_node(); ++i)
     {
       Core::Nodes::Node* node = element->nodes()[i];
       CONTACT::Node* cnode = dynamic_cast<CONTACT::Node*>(node);
-      cnode->set_slave() = true;
+      cnode->set_source() = true;
     }
     // increment iterator
     ++leafiter;

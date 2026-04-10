@@ -91,8 +91,8 @@ namespace CONTACT
         std::vector<std::vector<const Core::Conditions::Condition*>>& ccond_grps,
         const std::vector<const Core::Conditions::Condition*>& cconds);
 
-    /// Gather information which side is master and which side is slave
-    void get_master_slave_side_info(std::vector<bool>& isslave, std::vector<bool>& isself,
+    /// Gather information which side is target and which side is source
+    void get_target_source_side_info(std::vector<bool>& issource, std::vector<bool>& isself,
         const std::vector<const Core::Conditions::Condition*>& cond_grp);
 
     /**
@@ -103,13 +103,13 @@ namespace CONTACT
      *                  non-smooth self contact shall be performed for current condition group
      * \param [in,out]  Searchele_AllProc: Search elements on all processors
      * \param [in,out]  isactive:  condition is set active
-     * \param [in]      isslave:   condition is defined as slave side
+     * \param [in]      issource:   condition is defined as source side
      * \param [in]      isself:    condition is self contact condition
      * \param [in]      cond_grp: current contact condition group (i.e. conditions with same ID)
      *
      * */
     void get_initialization_info(bool& Two_half_pass, bool& Check_nonsmooth_selfcontactsurface,
-        bool& Searchele_AllProc, std::vector<bool>& isactive, std::vector<bool>& isslave,
+        bool& Searchele_AllProc, std::vector<bool>& isactive, std::vector<bool>& issource,
         std::vector<bool>& isself, const std::vector<const Core::Conditions::Condition*>& cond_grp);
 
   }  // namespace Utils

@@ -39,11 +39,11 @@ std::vector<Core::IO::InputSpec> Inpar::S2I::valid_parameters()
           // flag for interface side underlying Lagrange multiplier definition
           deprecated_selection<InterfaceSides>("LMSIDE",
               {
-                  {"slave", side_slave},
+                  {"slave", side_source},
                   {"master", side_master},
               },
               {.description = "flag for interface side underlying Lagrange multiplier definition",
-                  .default_value = side_slave}),
+                  .default_value = side_source}),
 
           // flag for evaluation of interface linearizations and residuals on slave side only
           parameter<bool>(
@@ -136,7 +136,7 @@ void Inpar::S2I::set_valid_conditions(std::vector<Core::Conditions::ConditionDef
     {
       cond.add_component(parameter<int>("ConditionID"));
       cond.add_component(deprecated_selection<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE",
-          {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_slave},
+          {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_source},
               {"Master", Inpar::S2I::side_master}},
           {.description = "interface side"}));
       cond.add_component(parameter<int>("S2I_KINETICS_ID"));
@@ -352,7 +352,7 @@ void Inpar::S2I::set_valid_conditions(std::vector<Core::Conditions::ConditionDef
         deprecated_selection<InterfaceSides>(
             "INTERFACE_SIDE", {{"Master", side_master}, {"Undefined", side_undefined}}),
         all_of({
-            deprecated_selection<InterfaceSides>("INTERFACE_SIDE", {{"Slave", side_slave}}),
+            deprecated_selection<InterfaceSides>("INTERFACE_SIDE", {{"Slave", side_source}}),
             one_of(kinetic_model_choices),
         }),
     });
@@ -437,7 +437,7 @@ void Inpar::S2I::set_valid_conditions(std::vector<Core::Conditions::ConditionDef
         Core::Conditions::S2ISCLCoupling, true, Core::Conditions::geometry_type_surface);
 
     s2isclcond.add_component(deprecated_selection<InterfaceSides>("INTERFACE_SIDE",
-        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_slave},
+        {{"Undefined", Inpar::S2I::side_undefined}, {"Slave", Inpar::S2I::side_source},
             {"Master", Inpar::S2I::side_master}},
         {.description = "interface side"}));
 

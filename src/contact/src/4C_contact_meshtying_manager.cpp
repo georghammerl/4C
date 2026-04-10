@@ -121,24 +121,24 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
     foundgroups.push_back(groupid1);
     ++numgroupsfound;
 
-    // find out which sides are Master and Slave
-    bool hasslave = false;
-    bool hasmaster = false;
+    // find out which sides are Target and Source
+    bool hassource = false;
+    bool hastarget = false;
     std::vector<const std::string*> sides(currentgroup.size());
-    std::vector<bool> isslave(currentgroup.size());
+    std::vector<bool> issource(currentgroup.size());
 
     for (unsigned j = 0; j < sides.size(); ++j)
     {
       sides[j] = &currentgroup[j]->parameters().get<std::string>("Side");
       if (*sides[j] == "Slave")
       {
-        hasslave = true;
-        isslave[j] = true;
+        hassource = true;
+        issource[j] = true;
       }
       else if (*sides[j] == "Master")
       {
-        hasmaster = true;
-        isslave[j] = false;
+        hastarget = true;
+        issource[j] = false;
       }
       else
       {
@@ -146,8 +146,8 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
       }
     }
 
-    if (!hasslave) FOUR_C_THROW("Slave side missing in contact condition group!");
-    if (!hasmaster) FOUR_C_THROW("Master side missing in contact condition group!");
+    if (!hassource) FOUR_C_THROW("Source side missing in contact condition group!");
+    if (!hastarget) FOUR_C_THROW("Target side missing in contact condition group!");
 
     // find out which sides are initialized as Active
     std::vector<const std::string*> active(currentgroup.size());
@@ -158,25 +158,25 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
       active[j] = &currentgroup[j]->parameters().get<std::string>("Initialization");
       if (*sides[j] == "Slave")
       {
-        // slave sides must be initialized as "Active"
+        // source sides must be initialized as "Active"
         if (*active[j] == "Active")
           isactive[j] = true;
         else if (*active[j] == "Inactive")
-          FOUR_C_THROW(" Slave side must be active for meshtying!");
+          FOUR_C_THROW(" Source side must be active for meshtying!");
         else
           FOUR_C_THROW(
-              "Unknown initialization qualifier for slave side of mortar meshtying interface!");
+              "Unknown initialization qualifier for source side of mortar meshtying interface!");
       }
       else if (*sides[j] == "Master")
       {
-        // master sides must NOT be initialized as "Active" as this makes no sense
+        // target sides must NOT be initialized as "Active" as this makes no sense
         if (*active[j] == "Active")
-          FOUR_C_THROW("Master side cannot be active!");
+          FOUR_C_THROW("Target side cannot be active!");
         else if (*active[j] == "Inactive")
           isactive[j] = false;
         else
           FOUR_C_THROW(
-              "Unknown initialization qualifier for master side of mortar meshtying interface!");
+              "Unknown initialization qualifier for target side of mortar meshtying interface!");
       }
       else
       {
@@ -214,7 +214,7 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
 
         // create Node object
         std::shared_ptr<Mortar::Node> mtnode = std::make_shared<Mortar::Node>(
-            node->id(), node->x(), node->owner(), discret.dof(0, node), isslave[j]);
+            node->id(), node->x(), node->owner(), discret.dof(0, node), issource[j]);
         //-------------------
         // get nurbs weight!
         if (nurbs) Mortar::Utils::prepare_nurbs_node(node, *mtnode);
@@ -284,7 +284,7 @@ CONTACT::MtManager::MtManager(Core::FE::Discretization& discret, double alphaf)
         std::shared_ptr<Core::Elements::Element> ele = element.second;
         std::shared_ptr<Mortar::Element> mtele =
             std::make_shared<Mortar::Element>(ele->id() + ggsize, ele->owner(), ele->shape(),
-                ele->num_node(), ele->node_ids(), isslave[j], nurbs);
+                ele->num_node(), ele->node_ids(), issource[j], nurbs);
         //------------------------------------------------------------------
         // get knotvector, normal factor and zero-size information for nurbs
         if (nurbs) Mortar::Utils::prepare_nurbs_element(discret, ele, *mtele, spatialDim);
@@ -676,24 +676,24 @@ void CONTACT::MtManager::postprocess_quantities(Core::IO::DiscretizationWriter& 
       std::make_shared<Core::LinAlg::Vector<double>>(*problem);
   Core::LinAlg::export_to(*traction, *tractionexp);
 
-  // evaluate slave and master forces
-  std::shared_ptr<Core::LinAlg::Vector<double>> fcslave =
+  // evaluate source and target forces
+  std::shared_ptr<Core::LinAlg::Vector<double>> fcsource =
       std::make_shared<Core::LinAlg::Vector<double>>(get_strategy().d_matrix()->row_map());
-  std::shared_ptr<Core::LinAlg::Vector<double>> fcmaster =
+  std::shared_ptr<Core::LinAlg::Vector<double>> fctarget =
       std::make_shared<Core::LinAlg::Vector<double>>(get_strategy().m_matrix()->domain_map());
-  std::shared_ptr<Core::LinAlg::Vector<double>> fcslaveexp =
+  std::shared_ptr<Core::LinAlg::Vector<double>> fcsourceexp =
       std::make_shared<Core::LinAlg::Vector<double>>(*problem);
-  std::shared_ptr<Core::LinAlg::Vector<double>> fcmasterexp =
+  std::shared_ptr<Core::LinAlg::Vector<double>> fctargetexp =
       std::make_shared<Core::LinAlg::Vector<double>>(*problem);
-  get_strategy().d_matrix()->multiply(true, *traction, *fcslave);
-  get_strategy().m_matrix()->multiply(true, *traction, *fcmaster);
-  Core::LinAlg::export_to(*fcslave, *fcslaveexp);
-  Core::LinAlg::export_to(*fcmaster, *fcmasterexp);
+  get_strategy().d_matrix()->multiply(true, *traction, *fcsource);
+  get_strategy().m_matrix()->multiply(true, *traction, *fctarget);
+  Core::LinAlg::export_to(*fcsource, *fcsourceexp);
+  Core::LinAlg::export_to(*fctarget, *fctargetexp);
 
   // write to output
   output.write_vector("interfacetraction", tractionexp);
-  output.write_vector("slaveforces", fcslaveexp);
-  output.write_vector("masterforces", fcmasterexp);
+  output.write_vector("sourceforces", fcsourceexp);
+  output.write_vector("targetforces", fctargetexp);
 
   return;
 }

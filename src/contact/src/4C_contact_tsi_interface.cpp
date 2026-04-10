@@ -43,7 +43,7 @@ void CONTACT::TSIInterface::assemble_lin_stick(Core::LinAlg::SparseMatrix& linst
 
   // do the additional thermal linearizations
   // be aware, that there is another contribution to the linDIS part, since the temperature used
-  // in the calculation of the friction coefficient may be the master side temperature, which has
+  // in the calculation of the friction coefficient may be the target side temperature, which has
   // a displacement derivative due to the projection
 
 
@@ -160,7 +160,7 @@ void CONTACT::TSIInterface::assemble_lin_slip(Core::LinAlg::SparseMatrix& linsli
 
   // do the additional thermal linearizations
   // be aware, that there is another contribution to the linDIS part, since the temperature used
-  // in the calculation of the friction coefficient may be the master side temperature, which has
+  // in the calculation of the friction coefficient may be the target side temperature, which has
   // a displacement derivative due to the projection
 
 
@@ -309,7 +309,7 @@ void CONTACT::TSIInterface::assemble_lin_conduct(Core::LinAlg::SparseMatrix& lin
 void CONTACT::TSIInterface::assemble_dual_mass_lumped(
     Core::LinAlg::SparseMatrix& dualMassGlobal, Core::LinAlg::SparseMatrix& linDualMassGlobal)
 {
-  // loop over proc's slave nodes of the interface for assembly
+  // loop over proc's source nodes of the interface for assembly
   // use standard row map to assemble each node only once
   for (int i = 0; i < activenodes_->num_my_elements(); ++i)
   {
@@ -348,14 +348,14 @@ void CONTACT::TSIInterface::assemble_dual_mass_lumped(
       for (std::map<int, std::map<int, double>>::const_iterator a = derivDualMass.begin();
           a != derivDualMass.end(); ++a)
       {
-        int sgid = a->first;
-        Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        int s_gid = a->first;
+        Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
         for (std::map<int, double>::const_iterator b = a->second.begin(); b != a->second.end(); ++b)
           // val               row                col
-          linDualMassGlobal.fe_assemble(b->second * thermo_lm, csnode->dofs()[0], b->first);
+          linDualMassGlobal.fe_assemble(b->second * thermo_lm, c_source_node->dofs()[0], b->first);
       }
     }
 
@@ -363,7 +363,7 @@ void CONTACT::TSIInterface::assemble_dual_mass_lumped(
     {
       if (conode->num_element() != 1)
         FOUR_C_THROW(
-            "some inconsistency: for lagmult_const every slave node may only have one element "
+            "some inconsistency: for lagmult_const every source node may only have one element "
             "attached (it's the center-node!)");
 
       CONTACT::Element* coele =
@@ -395,7 +395,7 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
 
   const double dt = interface_params().get<double>("TIMESTEP");
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < node_rowmap->num_my_elements(); ++j)
   {
     int gid = node_rowmap->gid(j);
@@ -447,30 +447,30 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
     }
 
     // get sizes and iterator start
-    int slavesize = (int)dderiv.size();
-    int mastersize = (int)mderiv.size();
-    std::map<int, std::map<int, double>>::iterator scurr = dderiv.begin();
-    std::map<int, std::map<int, double>>::iterator mcurr = mderiv.begin();
+    int sourcesize = (int)dderiv.size();
+    int targetsize = (int)mderiv.size();
+    std::map<int, std::map<int, double>>::iterator s_curr = dderiv.begin();
+    std::map<int, std::map<int, double>>::iterator t_curr = mderiv.begin();
 
     /********************************************** LinDMatrix **********/
-    // loop over all DISP slave nodes in the DerivD-map of the current LM slave node
+    // loop over all DISP source nodes in the DerivD-map of the current LM source node
     if (linD_X)
     {
-      for (int k = 0; k < slavesize; ++k)
+      for (int k = 0; k < sourcesize; ++k)
       {
-        int sgid = scurr->first;
-        ++scurr;
+        int s_gid = s_curr->first;
+        ++s_curr;
 
-        Core::Nodes::Node* snode = idiscret_->g_node(sgid);
-        if (!snode) FOUR_C_THROW("Cannot find node with gid %", sgid);
-        Node* csnode = dynamic_cast<Node*>(snode);
+        Core::Nodes::Node* source_node = idiscret_->g_node(s_gid);
+        if (!source_node) FOUR_C_THROW("Cannot find node with gid %", s_gid);
+        Node* c_source_node = dynamic_cast<Node*>(source_node);
 
         // Mortar matrix D derivatives
-        std::map<int, double>& thisdderiv = cnode->data().get_deriv_d()[sgid];
+        std::map<int, double>& thisdderiv = cnode->data().get_deriv_d()[s_gid];
         int mapsize = (int)(thisdderiv.size());
 
         // inner product D_{jk,c} * z_j for index j
-        int row = csnode->dofs()[0];
+        int row = c_source_node->dofs()[0];
         std::map<int, double>::iterator scolcurr = thisdderiv.begin();
 
         // loop over all directional derivative entries
@@ -480,8 +480,8 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
           double val = lm * (scolcurr->second);
           ++scolcurr;
 
-          // owner of LM slave node can do the assembly, although it actually
-          // might not own the corresponding rows in lindglobal (DISP slave node)
+          // owner of LM source node can do the assembly, although it actually
+          // might not own the corresponding rows in lindglobal (DISP source node)
           // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
           // std::cout << "Assemble LinD: " << row << " " << col << " " << val << std::endl;
           if (abs(val) > 1.0e-12) linD_X->fe_assemble(val * fac, row, col);
@@ -492,29 +492,29 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
           FOUR_C_THROW("AssembleLinDM: Not all derivative entries of DerivD considered!");
       }
 
-      // check for completeness of DerivD-Slave-iteration
-      if (scurr != dderiv.end())
-        FOUR_C_THROW("AssembleLinDM: Not all DISP slave entries of DerivD considered!");
+      // check for completeness of DerivD-Source-iteration
+      if (s_curr != dderiv.end())
+        FOUR_C_THROW("AssembleLinDM: Not all DISP source entries of DerivD considered!");
     } /******************************** Finished with LinDMatrix **********/
 
     /********************************************** LinMMatrix **********/
     if (linM_X)
     {
-      // loop over all master nodes in the DerivM-map of the current LM slave node
-      for (int l = 0; l < mastersize; ++l)
+      // loop over all target nodes in the DerivM-map of the current LM source node
+      for (int l = 0; l < targetsize; ++l)
       {
-        int mgid = mcurr->first;
-        ++mcurr;
+        int t_gid = t_curr->first;
+        ++t_curr;
 
-        Core::Nodes::Node* mnode = idiscret_->g_node(mgid);
-        if (!mnode) FOUR_C_THROW("Cannot find node with gid %", mgid);
-        Node* cmnode = dynamic_cast<Node*>(mnode);
+        Core::Nodes::Node* target_node = idiscret_->g_node(t_gid);
+        if (!target_node) FOUR_C_THROW("Cannot find node with gid %", t_gid);
+        Node* c_target_node = dynamic_cast<Node*>(target_node);
 
         // Mortar matrix M derivatives
-        std::map<int, double>& thismderiv = cnode->data().get_deriv_m()[mgid];
+        std::map<int, double>& thismderiv = cnode->data().get_deriv_m()[t_gid];
         int mapsize = (int)(thismderiv.size());
 
-        int row = cmnode->dofs()[0];
+        int row = c_target_node->dofs()[0];
         std::map<int, double>::iterator mcolcurr = thismderiv.begin();
 
         // loop over all directional derivative entries
@@ -524,8 +524,8 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
           double val = lm * (mcolcurr->second);
           ++mcolcurr;
 
-          // owner of LM slave node can do the assembly, although it actually
-          // might not own the corresponding rows in lindglobal (DISP slave node)
+          // owner of LM source node can do the assembly, although it actually
+          // might not own the corresponding rows in lindglobal (DISP source node)
           // (FE_MATRIX automatically takes care of non-local assembly inside!!!)
           // std::cout << "Assemble LinM: " << row << " " << col << " " << val << std::endl;
           if (abs(val) > 1.0e-12) linM_X->fe_assemble(-val * fac, row, col);
@@ -536,9 +536,9 @@ void CONTACT::TSIInterface::assemble_lin_dm_x(Core::LinAlg::SparseMatrix* linD_X
           FOUR_C_THROW("AssembleLinDM: Not all derivative entries of DerivM considered!");
       }
 
-      // check for completeness of DerivM-Master-iteration
-      if (mcurr != mderiv.end())
-        FOUR_C_THROW("AssembleLinDM: Not all master entries of DerivM considered!");
+      // check for completeness of DerivM-Target-iteration
+      if (t_curr != mderiv.end())
+        FOUR_C_THROW("AssembleLinDM: Not all target entries of DerivM considered!");
     } /******************************** Finished with LinMMatrix **********/
   }
 
@@ -562,7 +562,7 @@ void CONTACT::TSIInterface::assemble_dm_lin_diss(Core::LinAlg::SparseMatrix* d_L
 
   const double dt = interface_params().get<double>("TIMESTEP");
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < activenodes_->num_my_elements(); ++j)
   {
     int gid = activenodes_->gid(j);
@@ -672,7 +672,7 @@ void CONTACT::TSIInterface::assemble_dm_lin_diss(Core::LinAlg::SparseMatrix* d_L
             m_LinDissContactLM->fe_assemble(
                 -fac * k->second * jump_tan(d) / (dt * dval), kcnode->dofs()[0], cnode->dofs()[d]);
         }
-  }  // loop over all active LM slave nodes (row map)
+  }  // loop over all active LM source nodes (row map)
 }
 
 void CONTACT::TSIInterface::assemble_lin_l_mn_dm_temp(
@@ -685,7 +685,7 @@ void CONTACT::TSIInterface::assemble_lin_l_mn_dm_temp(
   using _cip = Core::Gen::Pairedvector<int, double>::const_iterator;
   using _cimm = std::map<int, std::map<int, double>>::const_iterator;
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < activenodes_->num_my_elements(); ++j)
   {
     int gid = activenodes_->gid(j);
@@ -762,7 +762,7 @@ void CONTACT::TSIInterface::assemble_dm_l_mn(const double fac, Core::LinAlg::Spa
   using _cim = std::map<int, double>::const_iterator;
   using _cip = Core::Gen::Pairedvector<int, double>::const_iterator;
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < activenodes_->num_my_elements(); ++j)
   {
     int gid = activenodes_->gid(j);
@@ -806,7 +806,7 @@ void CONTACT::TSIInterface::assemble_inactive(Core::LinAlg::SparseMatrix* linCon
   std::shared_ptr<Core::LinAlg::Map> inactivenodes =
       Core::LinAlg::split_map(*snoderowmap_, *activenodes_);
 
-  // loop over all LM slave nodes (row map)
+  // loop over all LM source nodes (row map)
   for (int j = 0; j < inactivenodes->num_my_elements(); ++j)
   {
     int gid = inactivenodes->gid(j);

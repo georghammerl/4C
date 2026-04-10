@@ -82,7 +82,7 @@ namespace Mortar
   enum class ExtendGhosting
   {
     redundant_all,     ///< Store all master & slave surfaces redundantly on all MPI ranks
-    redundant_master,  ///< Store all master surfaces redundantly on all MPI ranks
+    redundant_target,  ///< Store all master surfaces redundantly on all MPI ranks
     roundrobin,        ///< Extend master-sided ghosting via Round-Robin loop
     binning            ///< Extend master-sided ghosting via binning
   };

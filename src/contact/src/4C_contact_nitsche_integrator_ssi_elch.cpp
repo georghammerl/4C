@@ -65,45 +65,46 @@ CONTACT::IntegratorNitscheSsiElch::IntegratorNitscheSsiElch(
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
-void CONTACT::IntegratorNitscheSsiElch::integrate_gp_3d(Mortar::Element& sele,
-    Mortar::Element& mele, Core::LinAlg::SerialDenseVector& sval,
-    Core::LinAlg::SerialDenseVector& lmval, Core::LinAlg::SerialDenseVector& mval,
-    Core::LinAlg::SerialDenseMatrix& sderiv, Core::LinAlg::SerialDenseMatrix& mderiv,
-    Core::LinAlg::SerialDenseMatrix& lmderiv,
+void CONTACT::IntegratorNitscheSsiElch::integrate_gp_3d(Mortar::Element& source_elem,
+    Mortar::Element& target_elem, Core::LinAlg::SerialDenseVector& source_val,
+    Core::LinAlg::SerialDenseVector& lm_val, Core::LinAlg::SerialDenseVector& target_val,
+    Core::LinAlg::SerialDenseMatrix& source_deriv, Core::LinAlg::SerialDenseMatrix& target_deriv,
+    Core::LinAlg::SerialDenseMatrix& lm_deriv,
     Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
     double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
     std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-    Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-    std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi)
+    Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+    std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi)
 {
-  gpts_forces<3>(sele, mele, sval, sderiv, derivsxi, mval, mderiv, derivmxi, jac, derivjac, wgt,
-      gap, deriv_gap, normal, dnmap_unit, sxi, mxi);
+  gpts_forces<3>(source_elem, target_elem, source_val, source_deriv, source_derivs_xi, target_val,
+      target_deriv, target_derivs_xi, jac, derivjac, wgt, gap, deriv_gap, normal, dnmap_unit,
+      source_xi, target_xi);
 }
 
 /*----------------------------------------------------------------------*
  *----------------------------------------------------------------------*/
 template <int dim>
-void CONTACT::IntegratorNitscheSsiElch::gpts_forces(Mortar::Element& slave_ele,
-    Mortar::Element& master_ele, const Core::LinAlg::SerialDenseVector& slave_shape,
-    const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-    const Core::LinAlg::SerialDenseVector& master_shape,
-    const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd, const double jac,
+void CONTACT::IntegratorNitscheSsiElch::gpts_forces(Mortar::Element& source_ele,
+    Mortar::Element& target_ele, const Core::LinAlg::SerialDenseVector& source_shape,
+    const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+    const Core::LinAlg::SerialDenseVector& target_shape,
+    const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd, const double jac,
     const Core::Gen::Pairedvector<int, double>& d_jac_dd, const double gp_wgt, const double gap,
     const Core::Gen::Pairedvector<int, double>& d_gap_dd, const double* gp_normal,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* slave_xi,
-    double* master_xi)
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_gp_normal_dd, double* source_xi,
+    double* target_xi)
 {
-  if (slave_ele.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
+  if (source_ele.owner() != Core::Communication::my_mpi_rank(Comm_)) return;
 
   static const bool do_fast_checks = true;
   // first rough check
   if (do_fast_checks)
   {
     if ((std::abs(theta_) < 1.0e-16) and
-        (gap > std::max(slave_ele.max_edge_size(), master_ele.max_edge_size())))
+        (gap > std::max(source_ele.max_edge_size(), target_ele.max_edge_size())))
       return;
   }
 
@@ -111,35 +112,35 @@ void CONTACT::IntegratorNitscheSsiElch::gpts_forces(Mortar::Element& slave_ele,
 
   // calculate normals and derivatives
   const Core::LinAlg::Matrix<dim, 1> normal(gp_normal, true);
-  Core::LinAlg::Matrix<dim, 1> slave_normal, master_normal;
-  std::vector<Core::Gen::Pairedvector<int, double>> d_slave_normal_dd;
-  std::vector<Core::Gen::Pairedvector<int, double>> d_master_normal_dd;
-  slave_ele.compute_unit_normal_at_xi(slave_xi, slave_normal.data());
-  master_ele.compute_unit_normal_at_xi(master_xi, master_normal.data());
-  slave_ele.deriv_unit_normal_at_xi(slave_xi, d_slave_normal_dd);
-  master_ele.deriv_unit_normal_at_xi(master_xi, d_master_normal_dd);
+  Core::LinAlg::Matrix<dim, 1> source_normal, target_normal;
+  std::vector<Core::Gen::Pairedvector<int, double>> d_source_normal_dd;
+  std::vector<Core::Gen::Pairedvector<int, double>> d_target_normal_dd;
+  source_ele.compute_unit_normal_at_xi(source_xi, source_normal.data());
+  target_ele.compute_unit_normal_at_xi(target_xi, target_normal.data());
+  source_ele.deriv_unit_normal_at_xi(source_xi, d_source_normal_dd);
+  target_ele.deriv_unit_normal_at_xi(target_xi, d_target_normal_dd);
 
   double pen = ppn_;
   double pet = ppt_;
-  double nitsche_wgt_slave(0.0), nitsche_wgt_master(0.0);
+  double nitsche_wgt_source(0.0), nitsche_wgt_target(0.0);
 
   CONTACT::Utils::nitsche_weights_and_scaling(
-      slave_ele, master_ele, nit_wgt_, dt_, nitsche_wgt_slave, nitsche_wgt_master, pen, pet);
+      source_ele, target_ele, nit_wgt_, dt_, nitsche_wgt_source, nitsche_wgt_target, pen, pet);
 
   double cauchy_nn_weighted_average(0.0);
   Core::Gen::Pairedvector<int, double> d_cauchy_nn_weighted_average_dd(
-      slave_ele.num_node() * 3 * 12 + slave_ele.mo_data().parent_disp().size() +
-      master_ele.mo_data().parent_disp().size());
+      source_ele.num_node() * 3 * 12 + source_ele.mo_data().parent_disp().size() +
+      target_ele.mo_data().parent_disp().size());
   Core::Gen::Pairedvector<int, double> d_cauchy_nn_weighted_average_ds(
-      slave_ele.mo_data().parent_scalar_dof().size() +
-      master_ele.mo_data().parent_scalar_dof().size());
+      source_ele.mo_data().parent_scalar_dof().size() +
+      target_ele.mo_data().parent_scalar_dof().size());
 
   // evaluate cauchy stress components and derivatives
-  so_ele_cauchy<dim>(slave_ele, slave_xi, d_slave_xi_dd, gp_wgt, slave_normal, d_slave_normal_dd,
-      normal, d_gp_normal_dd, nitsche_wgt_slave, cauchy_nn_weighted_average,
+  so_ele_cauchy<dim>(source_ele, source_xi, d_source_xi_dd, gp_wgt, source_normal,
+      d_source_normal_dd, normal, d_gp_normal_dd, nitsche_wgt_source, cauchy_nn_weighted_average,
       d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds);
-  so_ele_cauchy<dim>(master_ele, master_xi, d_master_xi_dd, gp_wgt, master_normal,
-      d_master_normal_dd, normal, d_gp_normal_dd, -nitsche_wgt_master, cauchy_nn_weighted_average,
+  so_ele_cauchy<dim>(target_ele, target_xi, d_target_xi_dd, gp_wgt, target_normal,
+      d_target_normal_dd, normal, d_gp_normal_dd, -nitsche_wgt_target, cauchy_nn_weighted_average,
       d_cauchy_nn_weighted_average_dd, d_cauchy_nn_weighted_average_ds);
 
   const double cauchy_nn_average_pen_gap = cauchy_nn_weighted_average + pen * gap;
@@ -152,26 +153,26 @@ void CONTACT::IntegratorNitscheSsiElch::gpts_forces(Mortar::Element& slave_ele,
   if (cauchy_nn_average_pen_gap < 0.0)
   {
     // test in normal contact direction
-    integrate_test<dim>(-1.0, slave_ele, slave_shape, slave_shape_deriv, d_slave_xi_dd, jac,
+    integrate_test<dim>(-1.0, source_ele, source_shape, source_shape_deriv, d_source_xi_dd, jac,
         d_jac_dd, gp_wgt, cauchy_nn_average_pen_gap, d_cauchy_nn_average_pen_gap_dd,
         d_cauchy_nn_weighted_average_ds, normal, d_gp_normal_dd);
     if (!two_half_pass_)
     {
-      integrate_test<dim>(+1.0, master_ele, master_shape, master_shape_deriv, d_master_xi_dd, jac,
+      integrate_test<dim>(+1.0, target_ele, target_shape, target_shape_deriv, d_target_xi_dd, jac,
           d_jac_dd, gp_wgt, cauchy_nn_average_pen_gap, d_cauchy_nn_average_pen_gap_dd,
           d_cauchy_nn_weighted_average_ds, normal, d_gp_normal_dd);
     }
 
     ElementDataBundle<dim> electrode_quantities, electrolyte_quantities;
-    bool slave_is_electrode(true);
-    assign_electrode_and_electrolyte_quantities<dim>(slave_ele, slave_xi, slave_shape,
-        slave_shape_deriv, slave_normal, d_slave_xi_dd, master_ele, master_xi, master_shape,
-        master_shape_deriv, master_normal, d_master_xi_dd, slave_is_electrode, electrode_quantities,
-        electrolyte_quantities);
+    bool source_is_electrode(true);
+    assign_electrode_and_electrolyte_quantities<dim>(source_ele, source_xi, source_shape,
+        source_shape_deriv, source_normal, d_source_xi_dd, target_ele, target_xi, target_shape,
+        target_shape_deriv, target_normal, d_target_xi_dd, source_is_electrode,
+        electrode_quantities, electrolyte_quantities);
 
     // integrate the scatra-scatra interface condition
     integrate_ssi_interface_condition<dim>(
-        slave_is_electrode, jac, d_jac_dd, gp_wgt, electrode_quantities, electrolyte_quantities);
+        source_is_electrode, jac, d_jac_dd, gp_wgt, electrode_quantities, electrolyte_quantities);
   }
 }
 
@@ -324,12 +325,12 @@ void CONTACT::IntegratorNitscheSsiElch::calculate_spatial_derivative_of_det_f(co
  *----------------------------------------------------------------------*/
 template <int dim>
 void CONTACT::IntegratorNitscheSsiElch::integrate_ssi_interface_condition(
-    const bool slave_is_electrode, const double jac,
+    const bool source_is_electrode, const double jac,
     const Core::Gen::Pairedvector<int, double>& d_jac_dd, const double wgt,
     const ElementDataBundle<dim>& electrode_quantities,
     const ElementDataBundle<dim>& electrolyte_quantities)
 {
-  if (slave_is_electrode)
+  if (source_is_electrode)
   {
     if (electrode_quantities.element->mo_data().parent_scalar_dof().empty()) return;
     if (electrolyte_quantities.element->mo_data().parent_scalar_dof().empty())
@@ -470,10 +471,10 @@ void CONTACT::IntegratorNitscheSsiElch::integrate_ssi_interface_condition(
         for (const auto& [d_electrolytepot_dd_dof, d_electrolytepot_dd_val] : d_electrolyte_pot_dd)
           dj_dd[d_electrolytepot_dd_dof] += dj_dpot_electrolyte * d_electrolytepot_dd_val;
 
-        if (!two_half_pass_ or slave_is_electrode)
+        if (!two_half_pass_ or source_is_electrode)
           integrate_elch_test<dim>(
               1.0, electrode_quantities, jac, d_jac_dd, wgt, j, dj_dd, dj_delch);
-        if (!two_half_pass_ or !slave_is_electrode)
+        if (!two_half_pass_ or !source_is_electrode)
           integrate_elch_test<dim>(
               -1.0, electrolyte_quantities, jac, d_jac_dd, wgt, j, dj_dd, dj_delch);
       }
@@ -524,21 +525,21 @@ void CONTACT::IntegratorNitscheSsiElch::integrate_elch_test(const double fac,
 
   for (int s = 0; s < ele.num_node(); ++s)
   {
-    const int slave_parent = Core::FE::get_parent_node_number_from_face_node_number(
+    const int source_parent = Core::FE::get_parent_node_number_from_face_node_number(
         ele.parent_element()->shape(), ele.face_parent_number(), s);
-    const int slave_parent_conc = slave_parent * numdofpernode_;
-    const int slave_parent_pot = slave_parent_conc + 1;
+    const int source_parent_conc = source_parent * numdofpernode_;
+    const int source_parent_pot = source_parent_conc + 1;
 
-    *ele.get_nitsche_container().rhs_e(slave_parent_conc) -= shape_func(s) * val * time_fac_rhs;
-    *ele.get_nitsche_container().rhs_e(slave_parent_pot) -=
+    *ele.get_nitsche_container().rhs_e(source_parent_conc) -= shape_func(s) * val * time_fac_rhs;
+    *ele.get_nitsche_container().rhs_e(source_parent_pot) -=
         num_electrons * shape_func(s) * val * time_fac_rhs;
 
     for (const auto& d_testval_ds : d_test_val_ds)
     {
       double* row = ele.get_nitsche_container().kee(d_testval_ds.first);
 
-      row[slave_parent_conc] += shape_func(s) * fac * jac * wgt * d_testval_ds.second * time_fac;
-      row[slave_parent_pot] +=
+      row[source_parent_conc] += shape_func(s) * fac * jac * wgt * d_testval_ds.second * time_fac;
+      row[source_parent_pot] +=
           num_electrons * shape_func(s) * fac * jac * wgt * d_testval_ds.second * time_fac;
     }
 
@@ -546,8 +547,8 @@ void CONTACT::IntegratorNitscheSsiElch::integrate_elch_test(const double fac,
     {
       double* row = ele.get_nitsche_container().ked(dval_dd.first);
 
-      row[slave_parent_conc] += shape_func(s) * dval_dd.second * time_fac;
-      row[slave_parent_pot] += num_electrons * shape_func(s) * dval_dd.second * time_fac;
+      row[source_parent_conc] += shape_func(s) * dval_dd.second * time_fac;
+      row[source_parent_pot] += num_electrons * shape_func(s) * dval_dd.second * time_fac;
     }
 
     for (int e = 0; e < dim - 1; ++e)
@@ -556,8 +557,8 @@ void CONTACT::IntegratorNitscheSsiElch::integrate_elch_test(const double fac,
       {
         double* row = ele.get_nitsche_container().ked(d_xi_dd_e.first);
 
-        row[slave_parent_conc] += shape_deriv(s, e) * d_xi_dd_e.second * val * time_fac;
-        row[slave_parent_pot] +=
+        row[source_parent_conc] += shape_deriv(s, e) * d_xi_dd_e.second * val * time_fac;
+        row[source_parent_pot] +=
             num_electrons * shape_deriv(s, e) * d_xi_dd_e.second * val * time_fac;
       }
     }
@@ -658,73 +659,73 @@ void CONTACT::IntegratorNitscheSsiElch::so_ele_cauchy(Mortar::Element& mortar_el
  *----------------------------------------------------------------------*/
 template <int dim>
 void CONTACT::IntegratorNitscheSsiElch::assign_electrode_and_electrolyte_quantities(
-    Mortar::Element& slave_ele, double* slave_xi,
-    const Core::LinAlg::SerialDenseVector& slave_shape,
-    const Core::LinAlg::SerialDenseMatrix& slave_shape_deriv,
-    const Core::LinAlg::Matrix<dim, 1>& slave_normal,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_slave_xi_dd,
-    Mortar::Element& master_ele, double* master_xi,
-    const Core::LinAlg::SerialDenseVector& master_shape,
-    const Core::LinAlg::SerialDenseMatrix& master_shape_deriv,
-    const Core::LinAlg::Matrix<dim, 1>& master_normal,
-    const std::vector<Core::Gen::Pairedvector<int, double>>& d_master_xi_dd,
-    bool& slave_is_electrode, ElementDataBundle<dim>& electrode_quantities,
+    Mortar::Element& source_ele, double* source_xi,
+    const Core::LinAlg::SerialDenseVector& source_shape,
+    const Core::LinAlg::SerialDenseMatrix& source_shape_deriv,
+    const Core::LinAlg::Matrix<dim, 1>& source_normal,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi_dd,
+    Mortar::Element& target_ele, double* target_xi,
+    const Core::LinAlg::SerialDenseVector& target_shape,
+    const Core::LinAlg::SerialDenseMatrix& target_shape_deriv,
+    const Core::LinAlg::Matrix<dim, 1>& target_normal,
+    const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi_dd,
+    bool& source_is_electrode, ElementDataBundle<dim>& electrode_quantities,
     ElementDataBundle<dim>& electrolyte_quantities)
 {
   std::shared_ptr<const Mat::Electrode> electrode_material =
-      std::dynamic_pointer_cast<const Mat::Electrode>(slave_ele.parent_element()->material(1));
+      std::dynamic_pointer_cast<const Mat::Electrode>(source_ele.parent_element()->material(1));
   if (electrode_material == nullptr)
   {
-    slave_is_electrode = false;
+    source_is_electrode = false;
 
     electrode_material =
-        std::dynamic_pointer_cast<const Mat::Electrode>(master_ele.parent_element()->material(1));
+        std::dynamic_pointer_cast<const Mat::Electrode>(target_ele.parent_element()->material(1));
 
     // safety check
     FOUR_C_ASSERT_ALWAYS(electrode_material != nullptr,
-        "Something went wrong, neither slave nor master side is electrode material. This is a "
+        "Something went wrong, neither source nor target side is electrode material. This is a "
         "fatal error!");
   }
   else
   {
-    auto master_also_electrode =
-        std::dynamic_pointer_cast<const Mat::Electrode>(master_ele.parent_element()->material(1));
+    auto target_also_electrode =
+        std::dynamic_pointer_cast<const Mat::Electrode>(target_ele.parent_element()->material(1));
 
-    FOUR_C_ASSERT_ALWAYS(master_also_electrode == nullptr,
-        "Both, slave and master side are electrode materials, this should not be the case!");
+    FOUR_C_ASSERT_ALWAYS(target_also_electrode == nullptr,
+        "Both, source and target side are electrode materials, this should not be the case!");
   }
 
-  if (slave_is_electrode)
+  if (source_is_electrode)
   {
-    electrode_quantities.element = &slave_ele;
-    electrode_quantities.xi = slave_xi;
-    electrode_quantities.gp_normal = &slave_normal;
-    electrode_quantities.shape_funct = &slave_shape;
-    electrode_quantities.shape_deriv = &slave_shape_deriv;
-    electrode_quantities.d_xi_dd = &d_slave_xi_dd;
+    electrode_quantities.element = &source_ele;
+    electrode_quantities.xi = source_xi;
+    electrode_quantities.gp_normal = &source_normal;
+    electrode_quantities.shape_funct = &source_shape;
+    electrode_quantities.shape_deriv = &source_shape_deriv;
+    electrode_quantities.d_xi_dd = &d_source_xi_dd;
 
-    electrolyte_quantities.element = &master_ele;
-    electrolyte_quantities.xi = master_xi;
-    electrolyte_quantities.gp_normal = &master_normal;
-    electrolyte_quantities.shape_funct = &master_shape;
-    electrolyte_quantities.shape_deriv = &master_shape_deriv;
-    electrolyte_quantities.d_xi_dd = &d_master_xi_dd;
+    electrolyte_quantities.element = &target_ele;
+    electrolyte_quantities.xi = target_xi;
+    electrolyte_quantities.gp_normal = &target_normal;
+    electrolyte_quantities.shape_funct = &target_shape;
+    electrolyte_quantities.shape_deriv = &target_shape_deriv;
+    electrolyte_quantities.d_xi_dd = &d_target_xi_dd;
   }
   else
   {
-    electrolyte_quantities.element = &slave_ele;
-    electrolyte_quantities.xi = slave_xi;
-    electrolyte_quantities.gp_normal = &slave_normal;
-    electrolyte_quantities.shape_funct = &slave_shape;
-    electrolyte_quantities.shape_deriv = &slave_shape_deriv;
-    electrolyte_quantities.d_xi_dd = &d_slave_xi_dd;
+    electrolyte_quantities.element = &source_ele;
+    electrolyte_quantities.xi = source_xi;
+    electrolyte_quantities.gp_normal = &source_normal;
+    electrolyte_quantities.shape_funct = &source_shape;
+    electrolyte_quantities.shape_deriv = &source_shape_deriv;
+    electrolyte_quantities.d_xi_dd = &d_source_xi_dd;
 
-    electrode_quantities.element = &master_ele;
-    electrode_quantities.xi = master_xi;
-    electrode_quantities.gp_normal = &master_normal;
-    electrode_quantities.shape_funct = &master_shape;
-    electrode_quantities.shape_deriv = &master_shape_deriv;
-    electrode_quantities.d_xi_dd = &d_master_xi_dd;
+    electrode_quantities.element = &target_ele;
+    electrode_quantities.xi = target_xi;
+    electrode_quantities.gp_normal = &target_normal;
+    electrode_quantities.shape_funct = &target_shape;
+    electrode_quantities.shape_deriv = &target_shape_deriv;
+    electrode_quantities.d_xi_dd = &d_target_xi_dd;
   }
 }
 FOUR_C_NAMESPACE_CLOSE

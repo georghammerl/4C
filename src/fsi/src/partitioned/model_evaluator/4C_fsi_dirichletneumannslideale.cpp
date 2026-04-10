@@ -48,7 +48,7 @@ void FSI::DirichletNeumannSlideale::setup()
       mb_fluid_field()->discretization(), structure_fluid_coupling_mortar(), true, aletype);
 
   islave_ = std::make_shared<Core::LinAlg::Vector<double>>(
-      *structure_fluid_coupling_mortar().slave_dof_map(), true);
+      *structure_fluid_coupling_mortar().source_dof_map(), true);
 }
 
 
@@ -104,7 +104,7 @@ std::shared_ptr<Core::LinAlg::Vector<double>> FSI::DirichletNeumannSlideale::flu
     // new Core::LinAlg::Vector<double> for aledisp in interface
     std::shared_ptr<Core::LinAlg::Vector<double>> iale =
         std::make_shared<Core::LinAlg::Vector<double>>(
-            *(structure_fluid_coupling_mortar().master_dof_map()), true);
+            *(structure_fluid_coupling_mortar().target_dof_map()), true);
 
     std::shared_ptr<Core::LinAlg::Vector<double>> idispn =
         structure_field()->extract_interface_dispn();

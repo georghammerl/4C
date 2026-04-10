@@ -252,14 +252,14 @@ namespace Coupling::VolMortar
 
      */
     virtual void define_vertices_master(
-        Core::Elements::Element& ele, std::vector<Mortar::Vertex>& slave_vertices);
+        Core::Elements::Element& ele, std::vector<Mortar::Vertex>& source_vertices);
 
     /*!
      \brief define vertices for 2D polygon clipping (slave)
 
      */
     virtual void define_vertices_slave(
-        Core::Elements::Element& ele, std::vector<Mortar::Vertex>& slave_vertices);
+        Core::Elements::Element& ele, std::vector<Mortar::Vertex>& source_vertices);
 
     /*!
      \brief create integration cells for 2D volmortar

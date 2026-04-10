@@ -47,7 +47,7 @@ namespace Wear
     \brief Assemble Mortar wear matrices T and E (maser side)
 
     */
-    virtual void assemble_te_master(
+    virtual void assemble_te_target(
         Core::LinAlg::SparseMatrix& tglobal, Core::LinAlg::SparseMatrix& eglobal);
 
     /*!
@@ -58,9 +58,9 @@ namespace Wear
 
     /*!
     \brief Assemble matrices LinT containing linearizations
-           w.r.t. displacements (for master side)
+           w.r.t. displacements (for target side)
     */
-    virtual void assemble_lin_t_d_master(Core::LinAlg::SparseMatrix& lintglobal);
+    virtual void assemble_lin_t_d_target(Core::LinAlg::SparseMatrix& lintglobal);
 
     /*!
     \brief Assemble matrices LinT containing linearizations
@@ -72,7 +72,7 @@ namespace Wear
     \brief Assemble matrices LinT containing linearizations
            w.r.t. LM
     */
-    virtual void assemble_lin_t_lm_master(Core::LinAlg::SparseMatrix& lintglobal);
+    virtual void assemble_lin_t_lm_target(Core::LinAlg::SparseMatrix& lintglobal);
 
     /*!
     \brief Assemble matrices LinE containing linearizations
@@ -82,16 +82,16 @@ namespace Wear
 
     /*!
     \brief Assemble matrices LinE containing linearizations
-           w.r.t. displacements (for master side)
+           w.r.t. displacements (for target side)
     */
-    virtual void assemble_lin_e_d_master(Core::LinAlg::SparseMatrix& lineglobal);
+    virtual void assemble_lin_e_d_target(Core::LinAlg::SparseMatrix& lineglobal);
 
     /*!
     \brief Assemble matrix S containing linearizations
 
     This method builds an algebraic form of the FULL linearization
     of the normal contact condition g~ = 0. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal normals and of the Mortar matrices D  and M.
 
     */
@@ -108,7 +108,7 @@ namespace Wear
 
     This method builds an algebraic form of the FULL linearization
     of the tangential stick condition delta tg = 0. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal tangents and of the Mortar matrices D  and M.
 
     */
@@ -120,7 +120,7 @@ namespace Wear
 
     This method builds an algebraic form of the FULL linearization
     of the tangential slip condition. Concretely, this
-    includes assembling the linearizations of the slave side
+    includes assembling the linearizations of the source side
     nodal tangents and of the Mortar matrices D  and M.
 
     */
@@ -163,10 +163,10 @@ namespace Wear
     bool build_active_set(bool init = false) override;
 
     /*!
-    \brief Build corresponding active set for master side
+    \brief Build corresponding active set for target side
 
     */
-    virtual bool build_active_set_master();
+    virtual bool build_active_set_target();
 
     /*!
     \brief Check mortar wear T derivatives with finite differences
@@ -175,10 +175,10 @@ namespace Wear
     void fd_check_mortar_t_deriv();
 
     /*!
-    \brief Check mortar wear T derivatives with finite differences (Master)
+    \brief Check mortar wear T derivatives with finite differences (Target)
 
     */
-    void fd_check_mortar_t_master_deriv();
+    void fd_check_mortar_t_target_deriv();
 
     /*!
     \brief Check mortar wear E derivatives with finite differences
@@ -187,10 +187,10 @@ namespace Wear
     void fd_check_mortar_e_deriv();
 
     /*!
-    \brief Check mortar wear E derivatives with finite differences (for master)
+    \brief Check mortar wear E derivatives with finite differences (for target)
 
     */
-    void fd_check_mortar_e_master_deriv();
+    void fd_check_mortar_e_target_deriv();
 
     /*!
     \brief Check mortar wear T derivatives with finite differences
@@ -201,10 +201,10 @@ namespace Wear
 
     /*!
     \brief Check mortar wear T derivatives with finite differences
-      --> for wear condition (Master)
+      --> for wear condition (Target)
 
     */
-    void fd_check_deriv_t_d_master(Core::LinAlg::SparseMatrix& lintdis);
+    void fd_check_deriv_t_d_target(Core::LinAlg::SparseMatrix& lintdis);
 
     /*!
     \brief Check mortar wear E derivatives with finite differences
@@ -215,10 +215,10 @@ namespace Wear
 
     /*!
     \brief Check mortar wear E derivatives with finite differences
-      --> for wear condition (Master)
+      --> for wear condition (Target)
 
     */
-    void fd_check_deriv_e_d_master(Core::LinAlg::SparseMatrix& linedis);
+    void fd_check_deriv_e_d_target(Core::LinAlg::SparseMatrix& linedis);
     /*!
     \brief Check weighted gap g derivatives with finite differences
 
@@ -260,7 +260,7 @@ namespace Wear
     /*!
     \brief Assemble inactive rhs (incremental delta_w_)
     */
-    virtual void assemble_inactive_wear_rhs_master(Core::LinAlg::FEVector<double>& inactiverhs);
+    virtual void assemble_inactive_wear_rhs_target(Core::LinAlg::FEVector<double>& inactiverhs);
 
     /*!
     \brief Assemble wear-cond. rhs
@@ -270,7 +270,7 @@ namespace Wear
     /*!
     \brief Assemble wear-cond. rhs
     */
-    virtual void assemble_wear_cond_rhs_master(Core::LinAlg::FEVector<double>& rhs);
+    virtual void assemble_wear_cond_rhs_target(Core::LinAlg::FEVector<double>& rhs);
 
     /*!
     \brief Initialize / reset interface for contact
@@ -298,8 +298,8 @@ namespace Wear
     Derived version!
 
     */
-    void split_slave_dofs();
-    void split_master_dofs();
+    void split_source_dofs();
+    void split_target_dofs();
     /*!
     \brief Set element areas
 
@@ -332,7 +332,7 @@ namespace Wear
     virtual void update_w_sets(int offset_if, int maxdofwear, bool bothdiscr);
 
     /*!
-    \brief Get map of slave wear dofs (Filled()==true is prerequisite)
+    \brief Get map of source wear dofs (Filled()==true is prerequisite)
 
     */
     virtual std::shared_ptr<const Core::LinAlg::Map> w_dofs() const
@@ -344,7 +344,7 @@ namespace Wear
     }
 
     /*!
-    \brief Get map of master wear dofs (Filled()==true is prerequisite)
+    \brief Get map of target wear dofs (Filled()==true is prerequisite)
 
     */
     virtual std::shared_ptr<const Core::LinAlg::Map> wm_dofs() const
@@ -383,10 +383,10 @@ namespace Wear
     \brief Get row map of active nodes (Filled()==true is prerequisite)
 
     */
-    virtual std::shared_ptr<const Core::LinAlg::Map> active_master_nodes() const
+    virtual std::shared_ptr<const Core::LinAlg::Map> active_target_nodes() const
     {
       if (filled())
-        return activmasternodes_;
+        return activtargetnodes_;
       else
         FOUR_C_THROW("CONTACT::Interface::fill_complete was not called");
     }
@@ -395,10 +395,10 @@ namespace Wear
     \brief Get row map of active nodes (Filled()==true is prerequisite)
 
     */
-    virtual std::shared_ptr<const Core::LinAlg::Map> slip_master_nodes() const
+    virtual std::shared_ptr<const Core::LinAlg::Map> slip_target_nodes() const
     {
       if (filled())
-        return slipmasternodes_;
+        return sliptargetnodes_;
       else
         FOUR_C_THROW("CONTACT::Interface::fill_complete was not called");
     }
@@ -407,7 +407,7 @@ namespace Wear
     \brief Get row map of active nodes (Filled()==true is prerequisite)
 
     */
-    virtual std::shared_ptr<const Core::LinAlg::Map> slip_master_n_dofs() const
+    virtual std::shared_ptr<const Core::LinAlg::Map> slip_target_n_dofs() const
     {
       if (filled())
         return slipmn_;
@@ -436,21 +436,21 @@ namespace Wear
 
 
     // both-sided wear specific stuff
-    std::shared_ptr<Core::LinAlg::Map> involvednodes_;  // row map of all involved master nodes
-    std::shared_ptr<Core::LinAlg::Map> involveddofs_;   // row map of all involved master dofs
+    std::shared_ptr<Core::LinAlg::Map> involvednodes_;  // row map of all involved target nodes
+    std::shared_ptr<Core::LinAlg::Map> involveddofs_;   // row map of all involved target dofs
 
-    std::shared_ptr<Core::LinAlg::Map> wdofmap_;   // row map of all slave wear dofs
-    std::shared_ptr<Core::LinAlg::Map> wmdofmap_;  // row map of all master wear dofs
+    std::shared_ptr<Core::LinAlg::Map> wdofmap_;   // row map of all source wear dofs
+    std::shared_ptr<Core::LinAlg::Map> wmdofmap_;  // row map of all target wear dofs
 
-    std::shared_ptr<Core::LinAlg::Map> sndofmap_;  // row map of all slave dofs (first entries)
-    std::shared_ptr<Core::LinAlg::Map> mndofmap_;  // row map of all master dofs (first entries)
+    std::shared_ptr<Core::LinAlg::Map> sndofmap_;  // row map of all source dofs (first entries)
+    std::shared_ptr<Core::LinAlg::Map> mndofmap_;  // row map of all target dofs (first entries)
 
     std::shared_ptr<Core::LinAlg::Map>
-        activmasternodes_;  // row map of all active master nodes (first entries)
+        activtargetnodes_;  // row map of all active target nodes (first entries)
     std::shared_ptr<Core::LinAlg::Map>
-        slipmasternodes_;  // row map of all active master nodes (first entries)
+        sliptargetnodes_;  // row map of all active target nodes (first entries)
     std::shared_ptr<Core::LinAlg::Map>
-        slipmn_;  // row map of all active master nodes (first entries)
+        slipmn_;  // row map of all active target nodes (first entries)
 
     bool wear_;      // bool for wear
     bool wearimpl_;  // bool for implicit wear

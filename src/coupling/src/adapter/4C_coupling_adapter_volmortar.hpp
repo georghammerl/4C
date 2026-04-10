@@ -144,27 +144,27 @@ namespace Coupling::Adapter
 
 
     /// transfer a dof vector from master to slave
-    std::shared_ptr<Core::LinAlg::Vector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::Vector<double>> target_to_source(
         const Core::LinAlg::Vector<double>& mv) const override;
 
     /// transfer a dof vector from slave to master
-    std::shared_ptr<Core::LinAlg::Vector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::Vector<double>> source_to_target(
         const Core::LinAlg::Vector<double>& sv) const override;
 
     /// transfer a dof vector from master to slave
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> master_to_slave(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> target_to_source(
         const Core::LinAlg::MultiVector<double>& mv) const override;
 
     /// transfer a dof vector from slave to master
-    std::shared_ptr<Core::LinAlg::MultiVector<double>> slave_to_master(
+    std::shared_ptr<Core::LinAlg::MultiVector<double>> source_to_target(
         const Core::LinAlg::MultiVector<double>& sv) const override;
 
     /// transfer a dof vector from master to slave
-    void master_to_slave(const Core::LinAlg::MultiVector<double>& mv,
+    void target_to_source(const Core::LinAlg::MultiVector<double>& mv,
         Core::LinAlg::MultiVector<double>& sv) const override;
 
     /// transfer a dof vector from slave to master
-    void slave_to_master(const Core::LinAlg::MultiVector<double>& sv,
+    void source_to_target(const Core::LinAlg::MultiVector<double>& sv,
         Core::LinAlg::MultiVector<double>& mv) const override;
 
     //@}
@@ -173,10 +173,10 @@ namespace Coupling::Adapter
     //@{
 
     /// the interface dof map of the master side
-    std::shared_ptr<const Core::LinAlg::Map> master_dof_map() const override;
+    std::shared_ptr<const Core::LinAlg::Map> target_dof_map() const override;
 
     /// the interface dof map of the slave side
-    std::shared_ptr<const Core::LinAlg::Map> slave_dof_map() const override;
+    std::shared_ptr<const Core::LinAlg::Map> source_dof_map() const override;
 
     //@}
 

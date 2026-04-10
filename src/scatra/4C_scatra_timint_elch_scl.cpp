@@ -343,7 +343,7 @@ void ScaTra::ScaTraTimIntElchSCL::add_problem_specific_parameters_and_vectors(
 void ScaTra::ScaTraTimIntElchSCL::copy_solution_to_micro_field()
 {
   // extract coupled values from macro, copy to micro, and insert into full micro vector
-  auto macro_to_micro_coupled_nodes = macro_micro_coupling_adapter_->master_to_slave(
+  auto macro_to_micro_coupled_nodes = macro_micro_coupling_adapter_->target_to_source(
       *macro_coupling_dofs_->extract_cond_vector(*phinp()));
   micro_coupling_dofs_->insert_cond_vector(
       *macro_to_micro_coupled_nodes, *micro_scatra_field()->phinp());
@@ -603,7 +603,7 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
 
       switch (coupling_condition->parameters().get<Inpar::S2I::InterfaceSides>("INTERFACE_SIDE"))
       {
-        case Inpar::S2I::side_slave:
+        case Inpar::S2I::side_source:
           my_macro_slave_node_gids.emplace_back(coupling_node_gid);
           break;
         case Inpar::S2I::side_master:
@@ -627,9 +627,10 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
     auto fist_macro_slave_dof_gid = discret_->dof(0, macro_slave_node)[0];
 
     for (int slave_dof_lid = 0;
-        slave_dof_lid < macro_coupling_adapter->slave_dof_map()->num_my_elements(); ++slave_dof_lid)
+        slave_dof_lid < macro_coupling_adapter->source_dof_map()->num_my_elements();
+        ++slave_dof_lid)
     {
-      const int slave_dof_gid = macro_coupling_adapter->slave_dof_map()->gid(slave_dof_lid);
+      const int slave_dof_gid = macro_coupling_adapter->source_dof_map()->gid(slave_dof_lid);
       if (fist_macro_slave_dof_gid == slave_dof_gid)
       {
         const int first_macro_master_dof_gid =
@@ -757,9 +758,10 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
   std::vector<int> my_slave_dofs;
   std::vector<int> my_perm_master_dofs;
   for (int slave_lid = 0;
-      slave_lid < macro_micro_coupling_adapter_temp.slave_dof_map()->num_my_elements(); ++slave_lid)
+      slave_lid < macro_micro_coupling_adapter_temp.source_dof_map()->num_my_elements();
+      ++slave_lid)
   {
-    const int slave_gid = macro_micro_coupling_adapter_temp.slave_dof_map()->gid(slave_lid);
+    const int slave_gid = macro_micro_coupling_adapter_temp.source_dof_map()->gid(slave_lid);
 
     for (int dbc_lid = 0;
         dbc_lid < micro_scatra_field()->dirich_maps()->cond_map()->num_my_elements(); ++dbc_lid)
@@ -780,11 +782,11 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
   std::vector<int> my_master_dofs;
   std::vector<int> my_perm_slave_dofs;
   for (int master_lid = 0;
-      master_lid < macro_micro_coupling_adapter_temp.master_dof_map()->num_my_elements();
+      master_lid < macro_micro_coupling_adapter_temp.target_dof_map()->num_my_elements();
       ++master_lid)
   {
-    const int slave_gid = macro_micro_coupling_adapter_temp.perm_slave_dof_map()->gid(master_lid);
-    const int master_gid = macro_micro_coupling_adapter_temp.master_dof_map()->gid(master_lid);
+    const int slave_gid = macro_micro_coupling_adapter_temp.perm_source_dof_map()->gid(master_lid);
+    const int master_gid = macro_micro_coupling_adapter_temp.target_dof_map()->gid(master_lid);
     if (std::find(glob_slave_dofs.begin(), glob_slave_dofs.end(), slave_gid) !=
         glob_slave_dofs.end())
     {
@@ -793,11 +795,11 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
     }
   }
 
-  auto slave_dof_map = std::make_shared<Core::LinAlg::Map>(
+  auto source_dof_map = std::make_shared<Core::LinAlg::Map>(
       -1, static_cast<int>(my_slave_dofs.size()), my_slave_dofs.data(), 0, comm);
-  auto perm_slave_dof_map = std::make_shared<Core::LinAlg::Map>(
+  auto perm_source_dof_map = std::make_shared<Core::LinAlg::Map>(
       -1, static_cast<int>(my_perm_slave_dofs.size()), my_perm_slave_dofs.data(), 0, comm);
-  auto master_dof_map = std::make_shared<Core::LinAlg::Map>(
+  auto target_dof_map = std::make_shared<Core::LinAlg::Map>(
       -1, static_cast<int>(my_master_dofs.size()), my_master_dofs.data(), 0, comm);
   auto perm_master_dof_map = std::make_shared<Core::LinAlg::Map>(
       -1, static_cast<int>(my_perm_master_dofs.size()), my_perm_master_dofs.data(), 0, comm);
@@ -805,21 +807,21 @@ void ScaTra::ScaTraTimIntElchSCL::setup_coupling()
 
   macro_micro_coupling_adapter_ = std::make_shared<Coupling::Adapter::Coupling>();
   macro_micro_coupling_adapter_->setup_coupling(
-      slave_dof_map, perm_slave_dof_map, master_dof_map, perm_master_dof_map);
+      source_dof_map, perm_source_dof_map, target_dof_map, perm_master_dof_map);
 
   macro_coupling_dofs_ = std::make_shared<Core::LinAlg::MapExtractor>(
-      *dof_row_map(), macro_micro_coupling_adapter_->master_dof_map());
+      *dof_row_map(), macro_micro_coupling_adapter_->target_dof_map());
 
   micro_coupling_dofs_ = std::make_shared<Core::LinAlg::MapExtractor>(
-      *microdis->dof_row_map(), macro_micro_coupling_adapter_->slave_dof_map());
+      *microdis->dof_row_map(), macro_micro_coupling_adapter_->source_dof_map());
 
   // setup relation between first node of micro sub problem and following nodes. This is required
   // for scaling (see scale_micro_problem())
   std::set<int> my_micro_coupling_nodes;
   for (int lid_micro = 0;
-      lid_micro < macro_micro_coupling_adapter_->slave_dof_map()->num_my_elements(); ++lid_micro)
+      lid_micro < macro_micro_coupling_adapter_->source_dof_map()->num_my_elements(); ++lid_micro)
   {
-    const int gid_micro = macro_micro_coupling_adapter_->slave_dof_map()->gid(lid_micro);
+    const int gid_micro = macro_micro_coupling_adapter_->source_dof_map()->gid(lid_micro);
     my_micro_coupling_nodes.insert(gid_micro);
   }
 
@@ -868,16 +870,16 @@ void ScaTra::ScaTraTimIntElchSCL::scale_micro_problem()
   }
 
   // transform to micro discretization
-  auto nodal_size_micro = macro_micro_coupling_adapter_->master_to_slave(
+  auto nodal_size_micro = macro_micro_coupling_adapter_->target_to_source(
       *macro_coupling_dofs_->extract_cond_vector(*nodal_size_macro));
 
   // communicate nodal size to all procs to be able to scale all rows in micro discretization
   // attached to a macro node
   std::map<int, double> my_nodal_size_micro;
   for (int lid_micro = 0;
-      lid_micro < macro_micro_coupling_adapter_->slave_dof_map()->num_my_elements(); ++lid_micro)
+      lid_micro < macro_micro_coupling_adapter_->source_dof_map()->num_my_elements(); ++lid_micro)
   {
-    const int gid_micro = macro_micro_coupling_adapter_->slave_dof_map()->gid(lid_micro);
+    const int gid_micro = macro_micro_coupling_adapter_->source_dof_map()->gid(lid_micro);
     my_nodal_size_micro.insert(
         std::make_pair(gid_micro, nodal_size_micro->local_values_as_span()[lid_micro]));
   }
@@ -907,7 +909,7 @@ void ScaTra::ScaTraTimIntElchSCL::assemble_and_apply_mesh_tying()
   auto micro_residual =
       micro_coupling_dofs_->extract_cond_vector(*micro_scatra_field()->residual());
   auto micro_residual_on_macro_side =
-      macro_micro_coupling_adapter_->slave_to_master(*micro_residual);
+      macro_micro_coupling_adapter_->source_to_target(*micro_residual);
 
   auto full_macro_vector = std::make_shared<Core::LinAlg::Vector<double>>(*dof_row_map(), true);
   macro_coupling_dofs_->insert_cond_vector(*micro_residual_on_macro_side, *full_macro_vector);
@@ -1002,7 +1004,7 @@ void ScaTra::ScaTraTimIntElchSCL::assemble_and_apply_mesh_tying()
           : Core::LinAlg::cast_to_block_sparse_matrix_base_and_check_success(
                 system_matrix_elch_scl_)
                 ->matrix(1, 1);
-  auto slavemaps = macro_micro_coupling_adapter_->slave_dof_map();
+  auto slavemaps = macro_micro_coupling_adapter_->source_dof_map();
   const double one = 1.0;
   for (int doflid_slave = 0; doflid_slave < slavemaps->num_my_elements(); ++doflid_slave)
   {
@@ -1036,7 +1038,7 @@ void ScaTra::ScaTraTimIntElchSCL::update_iter_micro_macro()
 
   // reconstruct slave result from master side
   auto macro_extract = macro_coupling_dofs_->extract_cond_vector(*increment_macro);
-  auto macro_extract_to_micro = macro_micro_coupling_adapter_->master_to_slave(*macro_extract);
+  auto macro_extract_to_micro = macro_micro_coupling_adapter_->target_to_source(*macro_extract);
   micro_coupling_dofs_->insert_cond_vector(*macro_extract_to_micro, *increment_micro);
 
   update_iter(*increment_macro);

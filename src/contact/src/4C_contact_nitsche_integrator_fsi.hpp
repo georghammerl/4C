@@ -44,22 +44,23 @@ namespace CONTACT
 
     //! @name currently unsupported derived methods
     //! @{
-    void integrate_deriv_segment_2d(Mortar::Element& sele, double& sxia, double& sxib,
-        Mortar::Element& mele, double& mxia, double& mxib, MPI_Comm comm,
-        const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
+    void integrate_deriv_segment_2d(Mortar::Element& source_elem, double& source_xi_a,
+        double& source_xi_b, Mortar::Element& target_elem, double& target_xi_a, double& target_xi_b,
+        MPI_Comm comm, const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
     {
       FOUR_C_THROW("Segment based integration is currently unsupported!");
     }
 
-    void integrate_deriv_ele_2d(Mortar::Element& sele, std::vector<Mortar::Element*> meles,
-        bool* boundary_ele, const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
+    void integrate_deriv_ele_2d(Mortar::Element& source_elem,
+        std::vector<Mortar::Element*> target_elems, bool* boundary_ele,
+        const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
     {
       FOUR_C_THROW("Element based integration in 2D is currently unsupported!");
     }
 
-    void integrate_deriv_cell_3d_aux_plane(Mortar::Element& sele, Mortar::Element& mele,
-        std::shared_ptr<Mortar::IntCell> cell, double* auxn, MPI_Comm comm,
-        const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
+    void integrate_deriv_cell_3d_aux_plane(Mortar::Element& source_elem,
+        Mortar::Element& target_elem, std::shared_ptr<Mortar::IntCell> cell, double* auxn,
+        MPI_Comm comm, const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override
     {
       FOUR_C_THROW("The auxiliary plane 3-D coupling integration case is currently unsupported!");
     }
@@ -70,8 +71,8 @@ namespace CONTACT
      Second, Build all integrals and linearizations without segmentation -- 3D
      (i.e. M, g, LinM, Ling and possibly D, LinD)
      */
-    void integrate_deriv_ele_3d(Mortar::Element& sele, std::vector<Mortar::Element*> meles,
-        bool* boundary_ele, bool* proj_, MPI_Comm comm,
+    void integrate_deriv_ele_3d(Mortar::Element& source_elem,
+        std::vector<Mortar::Element*> target_elems, bool* boundary_ele, bool* proj_, MPI_Comm comm,
         const std::shared_ptr<Mortar::ParamsInterface>& cparams_ptr) override;
 
     //! @}
@@ -82,32 +83,32 @@ namespace CONTACT
             This is where the distinction between methods should be,
             i.e. mortar, augmented, gpts,...
      */
-    void integrate_gp_3d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_3d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override;
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override;
 
     /*!
      \brief Perform integration at GP
             This is where the distinction between methods should be,
             i.e. mortar, augmented, gpts,...
      */
-    void integrate_gp_2d(Mortar::Element& sele, Mortar::Element& mele,
-        Core::LinAlg::SerialDenseVector& sval, Core::LinAlg::SerialDenseVector& lmval,
-        Core::LinAlg::SerialDenseVector& mval, Core::LinAlg::SerialDenseMatrix& sderiv,
-        Core::LinAlg::SerialDenseMatrix& mderiv, Core::LinAlg::SerialDenseMatrix& lmderiv,
+    void integrate_gp_2d(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        Core::LinAlg::SerialDenseVector& source_val, Core::LinAlg::SerialDenseVector& lm_val,
+        Core::LinAlg::SerialDenseVector& target_val, Core::LinAlg::SerialDenseMatrix& source_deriv,
+        Core::LinAlg::SerialDenseMatrix& target_deriv, Core::LinAlg::SerialDenseMatrix& lm_deriv,
         Core::Gen::Pairedvector<int, Core::LinAlg::SerialDenseMatrix>& dualmap, double& wgt,
         double& jac, Core::Gen::Pairedvector<int, double>& derivjac, double* normal,
         std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double& gap,
-        Core::Gen::Pairedvector<int, double>& deriv_gap, double* sxi, double* mxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivsxi,
-        std::vector<Core::Gen::Pairedvector<int, double>>& derivmxi) override
+        Core::Gen::Pairedvector<int, double>& deriv_gap, double* source_xi, double* target_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& source_derivs_xi,
+        std::vector<Core::Gen::Pairedvector<int, double>>& target_derivs_xi) override
     {
       FOUR_C_THROW("2d problems not available for IntegratorNitscheFsi, as CutFEM is only 3D!");
     }
@@ -117,17 +118,20 @@ namespace CONTACT
     \brief evaluate GPTS forces and linearization at this gp
     */
     template <int dim>
-    void gpts_forces(Mortar::Element& sele, Mortar::Element& mele,
-        const Core::LinAlg::SerialDenseVector& sval, const Core::LinAlg::SerialDenseMatrix& sderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dsxi,
-        const Core::LinAlg::SerialDenseVector& mval, const Core::LinAlg::SerialDenseMatrix& mderiv,
-        const std::vector<Core::Gen::Pairedvector<int, double>>& dmxi, const double jac,
+    void gpts_forces(Mortar::Element& source_elem, Mortar::Element& target_elem,
+        const Core::LinAlg::SerialDenseVector& source_val,
+        const Core::LinAlg::SerialDenseMatrix& source_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_source_xi,
+        const Core::LinAlg::SerialDenseVector& target_val,
+        const Core::LinAlg::SerialDenseMatrix& target_deriv,
+        const std::vector<Core::Gen::Pairedvector<int, double>>& d_target_xi, const double jac,
         const Core::Gen::Pairedvector<int, double>& jacintcellmap, const double wgt,
         const double gap, const Core::Gen::Pairedvector<int, double>& dgapgp, const double* gpn,
-        std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* sxi, double* mxi);
+        std::vector<Core::Gen::Pairedvector<int, double>>& dnmap_unit, double* source_xi,
+        double* target_xi);
 
     /// Update Element contact state -2...not_specified, -1...no_contact, 0...mixed, 1...contact
-    void update_ele_contact_state(Mortar::Element& sele, int state);
+    void update_ele_contact_state(Mortar::Element& source_elem, int state);
 
     /// Element contact state -2...not_specified, -1...no_contact, 0...mixed, 1...contact
     int ele_contact_state_;

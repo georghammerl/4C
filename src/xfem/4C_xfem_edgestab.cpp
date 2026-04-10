@@ -93,8 +93,8 @@ void XFEM::XfemEdgeStab::evaluate_edge_stab_ghost_penalty(
 
 
   // get the parent fluid elements
-  Discret::Elements::Fluid* p_master = faceele->parent_master_element();
-  Discret::Elements::Fluid* p_slave = faceele->parent_slave_element();
+  Discret::Elements::Fluid* p_master = faceele->parent_target_element();
+  Discret::Elements::Fluid* p_slave = faceele->parent_source_element();
 
   // get corresponding element handles if available
   Cut::ElementHandle* p_master_handle = wizard.get_element(p_master);
@@ -676,8 +676,8 @@ void XFEM::XfemEdgeStab::evaluate_edge_stab_std(
 
 
   // get the parent fluid elements
-  Discret::Elements::Fluid* p_master = faceele->parent_master_element();
-  Discret::Elements::Fluid* p_slave = faceele->parent_slave_element();
+  Discret::Elements::Fluid* p_master = faceele->parent_target_element();
+  Discret::Elements::Fluid* p_slave = faceele->parent_source_element();
 
   size_t p_master_numnode = p_master->num_node();
   size_t p_slave_numnode = p_slave->num_node();
@@ -731,8 +731,8 @@ void XFEM::XfemEdgeStab::evaluate_edge_stab_boundary_gp(
 
 
   // get the parent fluid elements
-  Discret::Elements::Fluid* p_master = faceele->parent_master_element();
-  Discret::Elements::Fluid* p_slave = faceele->parent_slave_element();
+  Discret::Elements::Fluid* p_master = faceele->parent_target_element();
+  Discret::Elements::Fluid* p_slave = faceele->parent_source_element();
 
   size_t p_master_numnode = p_master->num_node();
   size_t p_slave_numnode = p_slave->num_node();

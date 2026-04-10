@@ -806,7 +806,7 @@ void XFEM::MultiFieldMapExtractor::extract_vector(const Core::LinAlg::MultiVecto
   std::shared_ptr<Core::LinAlg::MultiVector<double>> partial_ma_interface =
       ma_map_extractor(map_type).extract_vector(full, block);
   std::shared_ptr<Core::LinAlg::MultiVector<double>> partial_sl_interface =
-      i_coupling(block).master_to_slave(partial_ma_interface, map_type);
+      i_coupling(block).target_to_source(partial_ma_interface, map_type);
   sl_map_extractor(block, map_type)
       .insert_vector(*partial_sl_interface, MultiField::block_interface, partial);
 }
@@ -885,7 +885,7 @@ void XFEM::MultiFieldMapExtractor::insert_vector(const Core::LinAlg::MultiVector
       sl_map_extractor(block, map_type).extract_vector(partial, MultiField::block_interface);
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> partial_ma_interface =
-      i_coupling(block).slave_to_master(partial_sl_interface, map_type);
+      i_coupling(block).source_to_target(partial_sl_interface, map_type);
 
   ma_map_extractor(map_type).insert_vector(*partial_ma_interface, block, full);
 }
@@ -910,7 +910,7 @@ void XFEM::MultiFieldMapExtractor::add_vector(const Core::LinAlg::MultiVector<do
       sl_map_extractor(block, map_type).extract_vector(partial, MultiField::block_interface);
 
   std::shared_ptr<Core::LinAlg::MultiVector<double>> partial_ma_interface =
-      i_coupling(block).slave_to_master(partial_sl_interface, map_type);
+      i_coupling(block).source_to_target(partial_sl_interface, map_type);
 
   ma_map_extractor(map_type).add_vector(*partial_ma_interface, block, full, scale);
 }

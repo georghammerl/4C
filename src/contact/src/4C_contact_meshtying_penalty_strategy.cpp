@@ -63,7 +63,7 @@ void CONTACT::MtPenaltyStrategy::mortar_coupling(
   MtAbstractStrategy::mortar_coupling(dis);
 
   //----------------------------------------------------------------------
-  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SLAVE DISPLACEMENT DOFS
+  // CHECK IF WE NEED TRANSFORMATION MATRICES FOR SOURCE DISPLACEMENT DOFS
   //----------------------------------------------------------------------
   // Concretely, we apply the following transformations:
   // D         ---->   D * T^(-1)
@@ -71,7 +71,7 @@ void CONTACT::MtPenaltyStrategy::mortar_coupling(
   // These modifications are applied once right here, thus the
   // following code (evaluate_meshtying) remains unchanged.
   //----------------------------------------------------------------------
-  if (dualquadslavetrafo())
+  if (dualquadsourcetrafo())
   {
     // type of LM interpolation for quadratic elements
     auto lagmultquad = Teuchos::getIntegralValue<Mortar::LagMultQuad>(params(), "LM_QUAD");
@@ -99,8 +99,8 @@ void CONTACT::MtPenaltyStrategy::mortar_coupling(
   // of the global problem (stored in the "p"-version of dof maps)
   if (par_redist())
   {
-    mtm_ = Core::LinAlg::matrix_row_transform(*mtm_, *non_redist_gmdofrowmap_);
-    mtd_ = Core::LinAlg::matrix_row_transform(*mtd_, *non_redist_gmdofrowmap_);
+    mtm_ = Core::LinAlg::matrix_row_transform(*mtm_, *non_redist_gtdofrowmap_);
+    mtd_ = Core::LinAlg::matrix_row_transform(*mtd_, *non_redist_gtdofrowmap_);
     dtm_ = Core::LinAlg::matrix_row_transform(*dtm_, *non_redist_gsdofrowmap_);
     dtd_ = Core::LinAlg::matrix_row_transform(*dtd_, *non_redist_gsdofrowmap_);
   }
@@ -148,22 +148,22 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
   const double t_start = Teuchos::Time::wallTime();
 
   //**********************************************************************
-  // (1) get master positions on global level
+  // (1) get target positions on global level
   //**********************************************************************
-  // fill Xmaster first
-  std::shared_ptr<Core::LinAlg::Vector<double>> Xmaster =
-      std::make_shared<Core::LinAlg::Vector<double>>(*gmdofrowmap_, true);
-  assemble_coords("master", true, *Xmaster);
+  // fill Xtarget first
+  std::shared_ptr<Core::LinAlg::Vector<double>> Xtarget =
+      std::make_shared<Core::LinAlg::Vector<double>>(*gtdofrowmap_, true);
+  assemble_coords("target", true, *Xtarget);
 
   //**********************************************************************
-  // (2) solve for modified slave positions on global level
+  // (2) solve for modified source positions on global level
   //**********************************************************************
   // create linear problem
-  std::shared_ptr<Core::LinAlg::Vector<double>> Xslavemod =
+  std::shared_ptr<Core::LinAlg::Vector<double>> Xsourcemod =
       std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
   std::shared_ptr<Core::LinAlg::Vector<double>> rhs =
       std::make_shared<Core::LinAlg::Vector<double>>(*gsdofrowmap_, true);
-  mmatrix_->multiply(false, *Xmaster, *rhs);
+  mmatrix_->multiply(false, *Xtarget, *rhs);
 
   // solve with default solver
   Teuchos::ParameterList solvparams;
@@ -173,13 +173,13 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
 
   Core::LinAlg::SolverParams solver_params;
   solver_params.refactor = true;
-  solver.solve(dmatrix_, Xslavemod, rhs, solver_params);
+  solver.solve(dmatrix_, Xsourcemod, rhs, solver_params);
 
   //**********************************************************************
   // (3) perform mesh initialization node by node
   //**********************************************************************
   // this can be done in the AbstractStrategy now
-  MtAbstractStrategy::mesh_initialization(Xslavemod);
+  MtAbstractStrategy::mesh_initialization(Xsourcemod);
 
   // time measurement
   Core::Communication::barrier(get_comm());
@@ -190,8 +190,8 @@ CONTACT::MtPenaltyStrategy::mesh_initialization()
               << std::endl;
   }
 
-  // return xslavemod for global problem
-  return Xslavemod;
+  // return xsourcemod for global problem
+  return Xsourcemod;
 }
 
 /*----------------------------------------------------------------------*
@@ -233,7 +233,7 @@ void CONTACT::MtPenaltyStrategy::evaluate_meshtying(
   dmatrix_->multiply(false, tempvec1, tempvec2);
   g_->update(-1.0, tempvec2, 0.0);
 
-  Core::LinAlg::Vector<double> tempvec3(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> tempvec3(*gtdofrowmap_);
   Core::LinAlg::Vector<double> tempvec4(*gsdofrowmap_);
   Core::LinAlg::export_to(*dis, tempvec3);
   mmatrix_->multiply(false, tempvec3, tempvec4);
@@ -248,7 +248,7 @@ void CONTACT::MtPenaltyStrategy::evaluate_meshtying(
   store_nodal_quantities(Mortar::StrategyBase::lmupdate);
 
   // add penalty meshtying force terms
-  Core::LinAlg::Vector<double> fm(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fm(*gtdofrowmap_);
   mmatrix_->multiply(true, *z_, fm);
   Core::LinAlg::Vector<double> fmexp(*problem_dofs());
   Core::LinAlg::export_to(fm, fmexp);
@@ -267,7 +267,7 @@ void CONTACT::MtPenaltyStrategy::evaluate_meshtying(
   Core::LinAlg::export_to(fsold, fsoldexp);
   feff->update(alphaf_, fsoldexp, 1.0);
 
-  Core::LinAlg::Vector<double> fmold(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fmold(*gtdofrowmap_);
   mmatrix_->multiply(true, *zold_, fmold);
   Core::LinAlg::Vector<double> fmoldexp(*problem_dofs());
   Core::LinAlg::export_to(fmold, fmoldexp);
@@ -282,7 +282,7 @@ void CONTACT::MtPenaltyStrategy::initialize_uzawa(
     std::shared_ptr<Core::LinAlg::Vector<double>>& feff)
 {
   // remove penalty meshtying force terms
-  Core::LinAlg::Vector<double> fm(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fm(*gtdofrowmap_);
   mmatrix_->multiply(true, *z_, fm);
   Core::LinAlg::Vector<double> fmexp(*problem_dofs());
   Core::LinAlg::export_to(fm, fmexp);
@@ -300,7 +300,7 @@ void CONTACT::MtPenaltyStrategy::initialize_uzawa(
   z_->update(-pp, *g_, 1.0);
 
   // add penalty meshtying force terms
-  Core::LinAlg::Vector<double> fmnew(*gmdofrowmap_);
+  Core::LinAlg::Vector<double> fmnew(*gtdofrowmap_);
   mmatrix_->multiply(true, *z_, fmnew);
   Core::LinAlg::Vector<double> fmexpnew(*problem_dofs());
   Core::LinAlg::export_to(fmnew, fmexpnew);
