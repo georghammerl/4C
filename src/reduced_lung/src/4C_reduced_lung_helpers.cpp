@@ -21,6 +21,7 @@
 #include "4C_linear_solver_method_linalg.hpp"
 #include "4C_rebalance.hpp"
 #include "4C_reduced_lung_airways.hpp"
+#include "4C_reduced_lung_airways_model_registry.hpp"
 #include "4C_reduced_lung_input.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
 #include "4C_reduced_lung_terminal_unit_model_registry.hpp"
@@ -314,11 +315,12 @@ namespace ReducedLung
         auto wall_model_type =
             parameters.lung_tree.airways.wall_model_type.at(global_element_id, "wall_model_type");
 
-        add_airway_with_model_selection(airways, global_element_id, local_element_id, parameters,
-            flow_model_name, wall_model_type);
+        const int n_state_equations =
+            Airways::ModelRegistry::add_airway_with_model_selection(airways, global_element_id,
+                local_element_id, parameters, flow_model_name, wall_model_type);
 
         // 3 dofs with rigid walls, 4 dofs with compliant walls.
-        dof_per_ele[global_element_id] = 2 + airways.models.back().data.n_state_equations;
+        dof_per_ele[global_element_id] = 2 + n_state_equations;
         n_airways++;
       }
       else if (element_type == ReducedLungParameters::LungTree::ElementType::TerminalUnit)
@@ -653,54 +655,6 @@ namespace ReducedLung
         -1, locally_relevant_dof_indices.size(), locally_relevant_dof_indices.data(), 0, comm);
 
     return column_map;
-  }
-
-  void add_airway_with_model_selection(AirwayContainer& airways, int global_element_id,
-      int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType flow_model_type,
-      ReducedLungParameters::LungTree::Airways::WallModelType wall_model_type)
-  {
-    using ResistanceType = ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType;
-    using WallModelType = ReducedLungParameters::LungTree::Airways::WallModelType;
-
-    if (flow_model_type == ResistanceType::Linear)
-    {
-      if (wall_model_type == WallModelType::Rigid)
-      {
-        add_airway_ele<LinearResistive, RigidWall>(
-            airways, global_element_id, local_element_id, parameters);
-      }
-      else if (wall_model_type == WallModelType::KelvinVoigt)
-      {
-        add_airway_ele<LinearResistive, KelvinVoigtWall>(
-            airways, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Wall model not implemented.");
-      }
-    }
-    else if (flow_model_type == ResistanceType::NonLinear)
-    {
-      if (wall_model_type == WallModelType::Rigid)
-      {
-        add_airway_ele<NonLinearResistive, RigidWall>(
-            airways, global_element_id, local_element_id, parameters);
-      }
-      else if (wall_model_type == WallModelType::KelvinVoigt)
-      {
-        add_airway_ele<NonLinearResistive, KelvinVoigtWall>(
-            airways, global_element_id, local_element_id, parameters);
-      }
-      else
-      {
-        FOUR_C_THROW("Wall model not implemented.");
-      }
-    }
-    else
-    {
-      FOUR_C_THROW("Flow model not implemented.");
-    }
   }
 
   void collect_runtime_output_data(
