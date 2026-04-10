@@ -1153,7 +1153,7 @@ void Discret::Elements::FluidEleCalcPoro<distype>::gauss_point_loop(Teuchos::Par
     std::shared_ptr<std::vector<double>> scalars = std::make_shared<std::vector<double>>(0);
     const double scalaraf = Base::funct_.dot(escaaf);
     scalars->push_back(scalaraf);
-    params.set<std::shared_ptr<std::vector<double>>>("scalar", scalars);
+    params.set<std::shared_ptr<std::vector<double>>>("scalars", scalars);
 
     compute_porosity(params, press_, volchange, *(iquad), Base::funct_, eporositynp, porosity_,
         &dphi_dp, &dphi_dJ, &dphi_dJdp,
@@ -1666,7 +1666,7 @@ void Discret::Elements::FluidEleCalcPoro<distype>::gauss_point_loop_od(
     std::shared_ptr<std::vector<double>> scalars = std::make_shared<std::vector<double>>(0);
     const double scalaraf = Base::funct_.dot(escaaf);
     scalars->push_back(scalaraf);
-    params.set<std::shared_ptr<std::vector<double>>>("scalar", scalars);
+    params.set<std::shared_ptr<std::vector<double>>>("scalars", scalars);
 
     double dphi_dp = 0.0;
     double dphi_dJ = 0.0;

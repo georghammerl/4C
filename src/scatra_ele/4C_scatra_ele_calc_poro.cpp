@@ -356,7 +356,7 @@ void Discret::Elements::ScaTraEleCalcPoro<distype>::compute_porosity(
       const double phinp = my::ephinp_[k].dot(my::funct_);
       scalars->push_back(phinp);
     }
-    params.set<std::shared_ptr<std::vector<double>>>("scalar", scalars);
+    params.set<std::shared_ptr<std::vector<double>>>("scalars", scalars);
 
     params.set<double>("delta time", my::scatraparatimint_->dt());
 

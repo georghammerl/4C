@@ -93,7 +93,7 @@ void Discret::Elements::Wall1Poro<distype>::pre_evaluate(Teuchos::ParameterList&
         for (int i = 0; i < numnod_; i++)
           for (int j = 0; j < numscal; j++) scalar->at(j) += myscalar[numscal * i + j] / numnod_;
 
-        params.set("scalar", scalar);
+        params.set("scalars", scalar);
       }
     }
   }
