@@ -13,6 +13,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
 #include "4C_linear_solver_method_parameters.hpp"
+#include "4C_linear_solver_preconditioner_muelu.hpp"
 #include "4C_linear_solver_thyra_utils.hpp"
 
 #include <Stratimikos_DefaultLinearSolverBuilder.hpp>
@@ -109,6 +110,10 @@ void Core::LinearSolver::TekoPreconditioner::setup(
         {
           const int number_of_equations = inverseList.get<int>("PDE equations");
 
+          auto& current_block_inverse_params =
+              tekoParams.sublist("Inverse Factory Library").sublist(inverse);
+          validate_coarse_solver(current_block_inverse_params);
+
           Teuchos::RCP<XpetraMultiVector> nullspace =
               Teuchos::make_rcp<EpetraMultiVector>(Teuchos::rcpFromRef(
                   inverseList.get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("nullspace")
@@ -119,11 +124,8 @@ void Core::LinearSolver::TekoPreconditioner::setup(
                       .get<std::shared_ptr<Core::LinAlg::MultiVector<double>>>("Coordinates")
                       ->get_epetra_multi_vector()));
 
-          tekoParams.sublist("Inverse Factory Library")
-              .sublist(inverse)
-              .set("number of equations", number_of_equations);
-          Teuchos::ParameterList& userParamList =
-              tekoParams.sublist("Inverse Factory Library").sublist(inverse).sublist("user data");
+          current_block_inverse_params.set("number of equations", number_of_equations);
+          Teuchos::ParameterList& userParamList = current_block_inverse_params.sublist("user data");
           userParamList.set("Nullspace", nullspace);
           userParamList.set("Coordinates", coordinates);
         }
