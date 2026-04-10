@@ -11,6 +11,7 @@
 
 #include "4C_config.hpp"
 
+#include "4C_fem_general_element.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_utils_exceptions.hpp"
@@ -124,6 +125,21 @@ namespace Discret::Elements
         std::back_inserter(displacement_location_array));
 
     return displacement_location_array;
+  }
+
+  inline Core::Elements::LocationArray get_reduced_displacement_location_array(
+      const Core::Elements::LocationArray& la, int num_nodes, int dim)
+  {
+    auto porosity_dofs = [i = -1, dim](const auto&) mutable
+    {
+      i = (i + 1) % (dim + 1);
+      return i == dim;
+    };
+
+    Core::Elements::LocationArray la_displ = la;
+    std::erase_if(la_displ[0].lm_, porosity_dofs);
+
+    return la_displ;
   }
 
   inline std::vector<int> get_reduced_porosity_location_array(

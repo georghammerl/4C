@@ -21,9 +21,96 @@
 #include "4C_utils_exceptions.hpp"
 
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 FOUR_C_NAMESPACE_OPEN
+
+namespace
+{
+
+  template <typename T, typename Variant>
+  struct IsMemberOfVariant;
+
+  template <typename T, typename... Types>
+  struct IsMemberOfVariant<T, std::variant<Types...>>
+      : public std::disjunction<std::is_same<T, Types>...>
+  {
+  };
+
+  template <typename T>
+  concept IsSolidInterface =
+      IsMemberOfVariant<std::remove_cvref_t<T>, Discret::Elements::SolidCalcVariant<2>>::value ||
+      IsMemberOfVariant<std::remove_cvref_t<T>, Discret::Elements::SolidCalcVariant<3>>::value;
+
+  template <typename T>
+  concept IsSolidScatraInterface = IsMemberOfVariant<std::remove_cvref_t<T>,
+                                       Discret::Elements::SolidScatraCalcVariant<2>>::value ||
+                                   IsMemberOfVariant<std::remove_cvref_t<T>,
+                                       Discret::Elements::SolidScatraCalcVariant<3>>::value;
+
+  template <IsSolidScatraInterface SolidInterface>
+  const auto& get_location_array(const Core::Elements::LocationArray& la)
+  {
+    // The solid-scatra interface expects all location arrays!
+    return la;
+  }
+
+  template <IsSolidInterface SolidInterface>
+  const auto& get_location_array(const Core::Elements::LocationArray& la)
+  {
+    // The solid interface only expects the first location array!
+    return la[0].lm_;
+  }
+
+  template <unsigned dim>
+  void add_element_averaged_scalars_to_params(
+      Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>& element,
+      Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+      const std::vector<int>& lm)
+  {
+    FOUR_C_ASSERT(discretization.has_state(2, "scalar"),
+        "The solid-poro-scatra element expects a scalar state to be defined in the "
+        "discretization!");
+
+    // check if you can get the scalar state
+    std::shared_ptr<const Core::LinAlg::Vector<double>> scalarnp =
+        discretization.get_state(2, "scalar");
+    FOUR_C_ASSERT(scalarnp != nullptr, "The scalar state pointer is null in the discretization!");
+
+    // extract local values of the global vectors
+    std::vector<double> myscalar = Core::FE::extract_values(*scalarnp, lm);
+
+    FOUR_C_ASSERT_ALWAYS(
+        element.num_material() >= 3, "No third material defined for Solid-poro-scatra element!");
+    std::shared_ptr<Core::Mat::Material> scatramat = element.material(2);
+
+    int numscal = 1;
+    if (scatramat->material_type() == Core::Materials::m_matlist or
+        scatramat->material_type() == Core::Materials::m_matlist_reactions)
+    {
+      std::shared_ptr<Mat::MatList> matlist = std::dynamic_pointer_cast<Mat::MatList>(scatramat);
+      numscal = matlist->num_mat();
+    }
+
+    const int num_nodes = Core::FE::num_nodes(element.shape());
+    std::shared_ptr<std::vector<double>> scalar =
+        std::make_shared<std::vector<double>>(numscal, 0.0);
+    FOUR_C_ASSERT_ALWAYS(std::cmp_equal(myscalar.size(), numscal * num_nodes),
+        "Sizes of number of scalars does not match!");
+
+    for (int i = 0; i < num_nodes; i++)
+    {
+      for (int j = 0; j < numscal; j++)
+      {
+        scalar->at(j) += myscalar[numscal * i + j] / num_nodes;
+      }
+    }
+
+    params.set("scalars", scalar);
+  }
+
+}  // namespace
 
 template <unsigned dim>
 int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
@@ -79,13 +166,25 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
           [&](auto& interface)
           {
             interface->evaluate_nonlinear_force_stiffness_mass(*this, this->struct_poro_material(),
-                discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
+                discretization,
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
                 params, &force_displ, &K_dd, nullptr);
           },
           *solid_calc_variant_);
 
       if (la.size() > 1)
       {
+        const bool with_scatra =
+            poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+
+        if (with_scatra)
+        {
+          FOUR_C_ASSERT(la.size() > 2, "For solid-poro-scatra, we expect 3 location arrays!");
+          // We also have a scalar
+          add_element_averaged_scalars_to_params(*this, params, discretization, la[2].lm_);
+        }
+
         Core::LinAlg::SerialDenseVector force_p(num_nodes);
         Core::LinAlg::SerialDenseMatrix K_dp(num_displ_dofs, num_nodes);
         Core::LinAlg::SerialDenseMatrix K_pd(num_nodes, num_displ_dofs);
@@ -146,13 +245,25 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
           [&](auto& interface)
           {
             interface->evaluate_nonlinear_force_stiffness_mass(*this, this->struct_poro_material(),
-                discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
+                discretization,
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
                 params, &force_displ, nullptr, nullptr);
           },
           *solid_calc_variant_);
 
       if (la.size() > 1)
       {
+        const bool with_scatra =
+            poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+
+        if (with_scatra)
+        {
+          FOUR_C_ASSERT(la.size() > 2, "For solid-poro-scatra, we expect 3 location arrays!");
+          // We also have a scalar
+          add_element_averaged_scalars_to_params(*this, params, discretization, la[2].lm_);
+        }
+
         Core::LinAlg::SerialDenseVector force_p(num_nodes);
         const SolidPoroPrimaryVariables primary_variables =
             extract_solid_poro_primary_variables(discretization, la, shape(), *initial_porosity_);
@@ -184,6 +295,16 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
     }
     case Core::Elements::struct_calc_nlnstiffmass:
     {
+      const bool with_scatra =
+          poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+
+      if (with_scatra)
+      {
+        FOUR_C_ASSERT(la.size() > 2, "For solid-poro-scatra, we expect 3 location arrays!");
+        // We also have a scalar
+        add_element_averaged_scalars_to_params(*this, params, discretization, la[2].lm_);
+      }
+
       // Create local matrices that we will assemble later on
       Core::LinAlg::SerialDenseVector force_displ(num_displ_dofs);
       Core::LinAlg::SerialDenseMatrix K_dd(num_displ_dofs, num_displ_dofs);
@@ -193,7 +314,9 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
           [&](auto& interface)
           {
             interface->evaluate_nonlinear_force_stiffness_mass(*this, this->struct_poro_material(),
-                discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
+                discretization,
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
                 params, &force_displ, &K_dd, &M_dd);
           },
           *solid_calc_variant_);
@@ -258,6 +381,16 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
     }
     case Core::Elements::struct_poro_calc_fluidcoupling:
     {
+      const bool with_scatra =
+          poro_ele_property_.impltype != Inpar::ScaTra::ImplType::impltype_undefined;
+
+      if (with_scatra)
+      {
+        FOUR_C_ASSERT(la.size() > 2, "For solid-poro-scatra, we expect 3 location arrays!");
+        // We also have a scalar
+        add_element_averaged_scalars_to_params(*this, params, discretization, la[2].lm_);
+      }
+
       Core::LinAlg::SerialDenseMatrix K_displ_fluid(num_displ_dofs, (dim + 1) * num_nodes);
       Core::LinAlg::SerialDenseMatrix K_por_pres(num_nodes, num_nodes);
 
@@ -295,7 +428,9 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
           [&](auto& interface)
           {
             interface->update(*this, solid_poro_material(), discretization,
-                get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim), params);
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
+                params);
           },
           *solid_calc_variant_);
       return 0;
@@ -306,7 +441,9 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
           [&](auto& interface)
           {
             interface->recover(*this, discretization,
-                get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim), params);
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
+                params);
           },
           *solid_calc_variant_);
       return 0;
@@ -321,7 +458,9 @@ int Discret::Elements::SolidPoroPressureVelocityBasedP1<dim>::evaluate(
                     .mutable_data = get_stress_data(*this, params)},
                 StrainIO{.type = get_io_strain_type(*this, params),
                     .mutable_data = get_strain_data(*this, params)},
-                discretization, get_reduced_displacement_location_array(la[0].lm_, num_nodes, dim),
+                discretization,
+                get_reduced_displacement_location_array(
+                    get_location_array<decltype(interface)>(la), num_nodes, dim),
                 params);
           },
           *solid_calc_variant_);
