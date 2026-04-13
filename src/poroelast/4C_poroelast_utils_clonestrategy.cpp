@@ -64,10 +64,22 @@ void PoroElast::Utils::PoroelastCloneStrategy::set_element_data(
     fluid->set_is_ale(true);
 
     if (auto* solid_poro_pressure_velocity_based =
-            dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBased<3>*>(oldele);
+            dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBased<2>*>(oldele);
         solid_poro_pressure_velocity_based)
     {
       fluid->set_kinematic_type(solid_poro_pressure_velocity_based->kinematic_type());
+    }
+    else if (auto* solid_poro_pressure_velocity_based =
+                 dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBased<3>*>(oldele);
+        solid_poro_pressure_velocity_based)
+    {
+      fluid->set_kinematic_type(solid_poro_pressure_velocity_based->kinematic_type());
+    }
+    else if (auto* solid_poro_pressure_velocity_based_p1 =
+                 dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBasedP1<2>*>(oldele);
+        solid_poro_pressure_velocity_based_p1)
+    {
+      fluid->set_kinematic_type(solid_poro_pressure_velocity_based_p1->kinematic_type());
     }
     else if (auto* solid_poro_pressure_velocity_based_p1 =
                  dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBasedP1<3>*>(oldele);
@@ -116,6 +128,13 @@ void PoroElast::Utils::PoroelastCloneStrategy::set_anisotropic_permeability_dire
         wall1_tri3_poro_ele->get_anisotropic_permeability_directions());
   }
   else if (const auto* const solid_poro_ele =
+               dynamic_cast<const Discret::Elements::SolidPoroPressureVelocityBased<2>* const>(
+                   oldele))
+  {
+    fluid->set_anisotropic_permeability_directions(
+        solid_poro_ele->get_anisotropic_permeability_directions());
+  }
+  else if (const auto* const solid_poro_ele =
                dynamic_cast<const Discret::Elements::SolidPoroPressureVelocityBased<3>* const>(
                    oldele))
   {
@@ -145,6 +164,13 @@ void PoroElast::Utils::PoroelastCloneStrategy::set_anisotropic_permeability_noda
   {
     fluid->set_anisotropic_permeability_nodal_coeffs(
         wall1_tri3_poro_ele->get_anisotropic_permeability_nodal_coeffs());
+  }
+  else if (const auto* const solid_poro_ele =
+               dynamic_cast<const Discret::Elements::SolidPoroPressureVelocityBased<2>* const>(
+                   oldele))
+  {
+    fluid->set_anisotropic_permeability_nodal_coeffs(
+        solid_poro_ele->get_anisotropic_permeability_nodal_coeffs());
   }
   else if (const auto* const solid_poro_ele =
                dynamic_cast<const Discret::Elements::SolidPoroPressureVelocityBased<3>* const>(

@@ -36,6 +36,8 @@ bool PoroElastScaTra::Utils::is_poro_scatra_element(const Core::Elements::Elemen
   return actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<2>::instance() or
          actele->element_type() == Discret::Elements::SolidPoroPressureBasedType<3>::instance() or
          actele->element_type() ==
+             Discret::Elements::SolidPoroPressureVelocityBasedType<2>::instance() or
+         actele->element_type() ==
              Discret::Elements::SolidPoroPressureVelocityBasedType<3>::instance() or
          actele->element_type() == Discret::Elements::WallTri3PoroScatraType::instance() or
          actele->element_type() == Discret::Elements::WallQuad4PoroScatraType::instance() or
@@ -49,6 +51,8 @@ bool PoroElastScaTra::Utils::is_poro_p1_scatra_element(const Core::Elements::Ele
 {
   // checks if element is a porop1 scatra element (new elements need to be listed here)
   return actele->element_type() ==
+             Discret::Elements::SolidPoroPressureVelocityBasedP1Type<2>::instance() or
+         actele->element_type() ==
              Discret::Elements::SolidPoroPressureVelocityBasedP1Type<3>::instance() or
          actele->element_type() == Discret::Elements::WallQuad4PoroP1ScatraType::instance() or
          actele->element_type() == Discret::Elements::WallTri3PoroP1ScatraType::instance() or

@@ -128,10 +128,10 @@ void Mat::StructPoroReaction::compute_porosity(const Teuchos::ParameterList& par
   // evaluate change of reference porosity due to reaction
 
   // TODO: do not read from parameter list!
-  if (params.isParameter("scalar"))
+  if (params.isParameter("scalars"))
   {
     std::shared_ptr<std::vector<double>> scalars =
-        params.get<std::shared_ptr<std::vector<double>>>("scalar");
+        params.get<std::shared_ptr<std::vector<double>>>("scalars");
     reaction(porosity, J, scalars, params);
   }
 
@@ -154,10 +154,10 @@ void Mat::StructPoroReaction::constitutive_derivatives(const Teuchos::ParameterL
   // evaluate change of reference porosity due to reaction
 
   // TODO: do not read from parameter list!
-  if (params.isParameter("scalar"))
+  if (params.isParameter("scalars"))
   {
     std::shared_ptr<std::vector<double>> scalars =
-        params.get<std::shared_ptr<std::vector<double>>>("scalar");
+        params.get<std::shared_ptr<std::vector<double>>>("scalars");
     reaction(porosity, J, scalars, params);
   }
 

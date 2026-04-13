@@ -38,9 +38,19 @@ Inpar::ScaTra::ImplType PoroElastScaTra::Utils::PoroScatraCloneStrategy::get_imp
   {
     return (dynamic_cast<Discret::Elements::SolidPoroPressureBased<3>*>(ele))->get_impl_type();
   }
+  else if (eletypename == "SolidPoroPressureVelocityBasedType<2>")
+  {
+    return (dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBased<2>*>(ele))
+        ->get_impl_type();
+  }
   else if (eletypename == "SolidPoroPressureVelocityBasedType<3>")
   {
     return (dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBased<3>*>(ele))
+        ->get_impl_type();
+  }
+  else if (eletypename == "SolidPoroPressureVelocityBasedP1Type<2>")
+  {
+    return (dynamic_cast<Discret::Elements::SolidPoroPressureVelocityBasedP1<2>*>(ele))
         ->get_impl_type();
   }
   else if (eletypename == "SolidPoroPressureVelocityBasedP1Type<3>")

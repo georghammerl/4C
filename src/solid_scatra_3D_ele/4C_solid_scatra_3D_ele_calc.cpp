@@ -804,6 +804,10 @@ Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::get_normal_ca
         "dimension different than 3. The element formulation is {}.",
         Core::Utils::get_type_name<SolidFormulation>().c_str());
   }
+  else if constexpr (Core::FE::is_nurbs<celltype>)
+  {
+    FOUR_C_THROW("Cannot evaluate the Cauchy stress at xi for NURBS elements.");
+  }
   else
   {
     // project scalar values to xi

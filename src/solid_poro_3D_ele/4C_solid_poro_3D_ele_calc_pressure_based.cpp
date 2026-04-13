@@ -561,6 +561,7 @@ void Discret::Elements::SolidPoroPressureBasedEleCalc<
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad4>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad8>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::quad9>;
+template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::nurbs9>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::tri3>;
 template class Discret::Elements::SolidPoroPressureBasedEleCalc<Core::FE::CellType::tri6>;
 

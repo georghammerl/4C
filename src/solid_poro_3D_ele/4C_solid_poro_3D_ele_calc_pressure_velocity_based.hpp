@@ -37,7 +37,11 @@ namespace Discret
     class SolidPoroPressureVelocityBasedEleCalc
     {
      public:
-      SolidPoroPressureVelocityBasedEleCalc();
+      SolidPoroPressureVelocityBasedEleCalc()
+        requires(Core::FE::dim<celltype> == 3);
+      SolidPoroPressureVelocityBasedEleCalc(
+          double reference_thickness, Discret::Elements::PlaneAssumption plane_assumption)
+        requires(Core::FE::dim<celltype> == 2);
 
       void evaluate_nonlinear_force_stiffness(const Core::Elements::Element& ele,
           Mat::StructPoro& porostructmat, Mat::FluidPoro& porofluidmat,
@@ -67,6 +71,8 @@ namespace Discret
       static constexpr int num_str_ = num_dim_ * (num_dim_ + 1) / 2;
 
       Core::FE::GaussIntegration gauss_integration_;
+
+      ElementProperties<celltype> element_properties_;
     };
   }  // namespace Elements
 }  // namespace Discret

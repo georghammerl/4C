@@ -36,11 +36,14 @@ namespace
 
   template <typename T>
   concept IsSolidInterface =
+      IsMemberOfVariant<std::remove_cvref_t<T>, Discret::Elements::SolidCalcVariant<2>>::value ||
       IsMemberOfVariant<std::remove_cvref_t<T>, Discret::Elements::SolidCalcVariant<3>>::value;
 
   template <typename T>
   concept IsSolidScatraInterface = IsMemberOfVariant<std::remove_cvref_t<T>,
-      Discret::Elements::SolidScatraCalcVariant<3>>::value;
+                                       Discret::Elements::SolidScatraCalcVariant<2>>::value ||
+                                   IsMemberOfVariant<std::remove_cvref_t<T>,
+                                       Discret::Elements::SolidScatraCalcVariant<3>>::value;
 
   template <IsSolidScatraInterface SolidInterface>
   const auto& get_location_array(const Core::Elements::LocationArray& la)
@@ -66,6 +69,10 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
 {
   FOUR_C_ASSERT(solid_calc_variant_.has_value(),
       "The solid calculation interface is not initialized for element id {}.", id());
+  FOUR_C_ASSERT(solidporo_press_vel_based_calc_variant_.has_value(),
+      "The solidporo calculation interface is not initialized for element id {}. The element needs "
+      "to be fully setup before packing.",
+      id());
   if (!material_post_setup_)
   {
     std::visit([&](auto& interface)
@@ -116,7 +123,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
                     this->kinematic_type(), discretization, primary_variables, params,
                     diagonal_block_matrices, &elemat2);
               },
-              solidporo_press_vel_based_calc_variant_);
+              *solidporo_press_vel_based_calc_variant_);
         }
       }
       return 0;
@@ -149,7 +156,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
                     this->kinematic_type(), discretization, primary_variables, params,
                     diagonal_block_matrices, nullptr);
               },
-              solidporo_press_vel_based_calc_variant_);
+              *solidporo_press_vel_based_calc_variant_);
         }
       }
       return 0;
@@ -183,7 +190,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
                     this->kinematic_type(), discretization, primary_variables, params,
                     diagonal_block_matrices, nullptr);
               },
-              solidporo_press_vel_based_calc_variant_);
+              *solidporo_press_vel_based_calc_variant_);
         }
       }
       return 0;
@@ -223,7 +230,7 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
                   this->kinematic_type(), discretization, primary_variables, params,
                   off_diagonal_block_matrices);
             },
-            solidporo_press_vel_based_calc_variant_);
+            *solidporo_press_vel_based_calc_variant_);
       }
       return 0;
     }
@@ -302,13 +309,13 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate(Teuchos::Pa
 }
 
 
-
 template <unsigned dim>
 double Discret::Elements::SolidPoroPressureVelocityBased<dim>::get_normal_cauchy_stress_at_xi(
     const std::vector<double>& disp, const std::optional<std::vector<double>>& pressures,
     const Core::LinAlg::Tensor<double, 3>& xi, const Core::LinAlg::Tensor<double, 3>& n,
     const Core::LinAlg::Tensor<double, 3>& dir,
     SolidPoroCauchyNDirLinearizations<3>& linearizations)
+  requires(dim == 3)
 {
   double cauchy_stress_n_dir = std::visit(
       [&]<typename Interface>(Interface& solid) -> double
@@ -382,6 +389,17 @@ int Discret::Elements::SolidPoroPressureVelocityBased<dim>::evaluate_neumann(
       "Cannot yet evaluate volume neumann forces within the pressure-velocity based poro "
       "implementation.");
 }
+
+
+template int Discret::Elements::SolidPoroPressureVelocityBased<2>::evaluate(
+    Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+    Core::Elements::LocationArray& la, Core::LinAlg::SerialDenseMatrix& elemat1,
+    Core::LinAlg::SerialDenseMatrix& elemat2, Core::LinAlg::SerialDenseVector& elevec1,
+    Core::LinAlg::SerialDenseVector& elevec2, Core::LinAlg::SerialDenseVector& elevec3);
+template int Discret::Elements::SolidPoroPressureVelocityBased<2>::evaluate_neumann(
+    Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+    const Core::Conditions::Condition& condition, std::vector<int>& lm,
+    Core::LinAlg::SerialDenseVector& elevec1, Core::LinAlg::SerialDenseMatrix* elemat1);
 
 template int Discret::Elements::SolidPoroPressureVelocityBased<3>::evaluate(
     Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
