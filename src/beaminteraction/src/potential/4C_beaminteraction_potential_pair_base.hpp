@@ -148,11 +148,6 @@ namespace BeamInteraction
      *  */
     virtual void print(std::ostream& out) const = 0;
 
-    /** \brief print this beam potential element pair to screen
-     *
-     *  */
-    virtual void print_summary_one_line_per_active_segment_pair(std::ostream& out) const = 0;
-
    protected:
     //! returns init state
     inline bool const& is_init() const { return isinit_; };

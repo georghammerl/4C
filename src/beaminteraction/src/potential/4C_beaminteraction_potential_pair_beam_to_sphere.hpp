@@ -138,12 +138,6 @@ namespace BeamInteraction
      *  */
     void print(std::ostream& out) const override;
 
-    /** \brief print this beam potential element pair to screen
-     *
-     *  */
-    void print_summary_one_line_per_active_segment_pair(std::ostream& out) const override;
-    //@}
-
     //! @name Access methods
     /*!
     \brief Get first element (beam)

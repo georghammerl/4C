@@ -3823,36 +3823,6 @@ void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::prin
   out << "\n";
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-template <unsigned int numnodes, unsigned int numnodalvalues, typename T>
-void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues,
-    T>::print_summary_one_line_per_active_segment_pair(std::ostream& out) const
-{
-  check_init_setup();
-
-  // Todo difficulty here is that the same element pair is evaluated more than once
-  //      to be more precise, once for every common potlaw;
-  //      contribution of previous evaluations is overwritten if multiple potlaws are applied
-}
-
-/*-----------------------------------------------------------------------------------------------*
- *-----------------------------------------------------------------------------------------------*/
-template <unsigned int numnodes, unsigned int numnodalvalues, typename T>
-void BeamInteraction::BeamToBeamPotentialPair<numnodes, numnodalvalues, T>::get_shape_functions(
-    std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N1_i,
-    std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N2_i,
-    std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N1_i_xi,
-    std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N2_i_xi,
-    Core::FE::IntegrationPoints1D& gausspoints) const
-{
-  Discret::Utils::Beam::evaluate_shape_functions_and_derivs_all_gps<numnodes, numnodalvalues>(
-      gausspoints, N1_i, N1_i_xi, beam_element1()->shape(), ele1length_);
-
-  Discret::Utils::Beam::evaluate_shape_functions_and_derivs_all_gps<numnodes, numnodalvalues>(
-      gausspoints, N2_i, N2_i_xi, beam_element2()->shape(), ele2length_);
-}
-
 /*-----------------------------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------------------------*/
 

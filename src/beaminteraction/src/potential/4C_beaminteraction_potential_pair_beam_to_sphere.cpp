@@ -459,18 +459,6 @@ void BeamInteraction::BeamToSpherePotentialPair<numnodes, numnodalvalues>::print
   // Todo add more relevant information here
 }
 
-/*----------------------------------------------------------------------------*
- *----------------------------------------------------------------------------*/
-template <unsigned int numnodes, unsigned int numnodalvalues>
-void BeamInteraction::BeamToSpherePotentialPair<numnodes,
-    numnodalvalues>::print_summary_one_line_per_active_segment_pair(std::ostream& out) const
-{
-  check_init_setup();
-
-  // Todo difficulty here is that the same element pair is evaluated more than once
-  //      to be more precise, once for every common potlaw;
-  //      contribution of previous evaluations is overwritten if multiple potlaws are applied
-}
 
 /*-----------------------------------------------------------------------------------------------*
  *-----------------------------------------------------------------------------------------------*/
