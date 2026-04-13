@@ -297,24 +297,6 @@ namespace ReducedLung
       const Junctions::ConnectionData& connections, const Junctions::BifurcationData& bifurcations,
       const BoundaryConditions::BoundaryConditionContainer& boundary_conditions);
 
-  /*!
-   * @brief Add an airway element with the appropriate template instantiation based on model types.
-   *
-   * This helper function encapsulates the template instantiation logic for adding airway elements
-   * based on the flow model (Linear/NonLinear) and wall model (Rigid/KelvinVoigt) types.
-   *
-   * @param airways Container for all airway models.
-   * @param global_element_id Unique global identifier for the element.
-   * @param local_element_id Local element id for the row map.
-   * @param parameters Reduced lung parameters containing model and geometry information.
-   * @param flow_model_type The flow model type.
-   * @param wall_model_type The wall model type.
-   */
-  void add_airway_with_model_selection(Airways::AirwayContainer& airways, int global_element_id,
-      int local_element_id, const ReducedLungParameters& parameters,
-      ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType flow_model_type,
-      ReducedLungParameters::LungTree::Airways::WallModelType wall_model_type);
-
   void collect_runtime_output_data(
       Core::IO::DiscretizationVisualizationWriterMesh& visualization_writer,
       const Airways::AirwayContainer& airways,

@@ -10,6 +10,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_elementtype.hpp"
 #include "4C_rebalance.hpp"
+#include "4C_reduced_lung_airways_model_registry.hpp"
 #include "4C_reduced_lung_helpers.hpp"
 #include "4C_reduced_lung_input.hpp"
 #include "4C_reduced_lung_terminal_unit_model_registry.hpp"
@@ -173,7 +174,7 @@ namespace
             params.lung_tree.airways.flow_model.resistance_type.at(element_id, "resistance_type");
         const auto wall_model_type =
             params.lung_tree.airways.wall_model_type.at(element_id, "wall_model_type");
-        add_airway_with_model_selection(
+        Airways::ModelRegistry::add_airway_with_model_selection(
             airways, element_id, local_element_id, params, flow_model_type, wall_model_type);
       }
       else

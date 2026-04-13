@@ -6,25 +6,91 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 // Reimplemented airway tests to match the style of the terminal unit tests.
-// Tests only linear and nonlinear resistive flow without inertia.
 #include <gtest/gtest.h>
 
 #include "4C_reduced_lung_airways.hpp"
 
 #include "4C_linalg_sparsematrix.hpp"
+#include "4C_reduced_lung_airways_model_registry.hpp"
 #include "4C_reduced_lung_helpers.hpp"
 #include "4C_reduced_lung_terminal_unit.hpp"
 #include "4C_reduced_lung_test_utils_test.hpp"
 // needed for export_to
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 
+#include <unordered_map>
+
 
 namespace
 {
+  namespace Core = FourC::Core;
   using namespace FourC::ReducedLung;
   using namespace FourC::Core::LinAlg;
   using namespace FourC::ReducedLung::Airways;
 
+  using FlowModelType = ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType;
+  using WallModelType = ReducedLungParameters::LungTree::Airways::WallModelType;
+
+  ReducedLungParameters make_airway_registry_parameters()
+  {
+    ReducedLungParameters params{};
+    params.air_properties = {
+        .density = 1.176e-06,
+        .dynamic_viscosity = 1.79105e-05,
+    };
+
+    params.lung_tree.topology.node_coordinates =
+        Core::IO::InputField<std::vector<double>>(std::unordered_map<int, std::vector<double>>{
+            {1, {0.0, 0.0, 0.0}},
+            {2, {1.0, 0.0, 0.0}},
+            {3, {2.0, 0.0, 0.0}},
+            {4, {3.0, 0.0, 0.0}},
+            {5, {4.0, 0.0, 0.0}},
+        });
+    params.lung_tree.topology.element_nodes =
+        Core::IO::InputField<std::vector<int>>(std::unordered_map<int, std::vector<int>>{
+            {1, {1, 2}},
+            {2, {2, 3}},
+            {3, {3, 4}},
+            {4, {4, 5}},
+        });
+
+    params.lung_tree.airways.radius = Core::IO::InputField<double>(
+        std::unordered_map<int, double>{{1, 1.0}, {2, 0.9}, {3, 0.8}, {4, 0.7}});
+    params.lung_tree.airways.flow_model.include_inertia = Core::IO::InputField<bool>(
+        std::unordered_map<int, bool>{{1, false}, {2, false}, {3, false}, {4, false}});
+    params.lung_tree.airways.flow_model.resistance_model.non_linear.turbulence_factor_gamma =
+        Core::IO::InputField<double>(
+            std::unordered_map<int, double>{{1, 0.5}, {2, 0.6}, {3, 0.7}, {4, 0.8}});
+
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_poisson_ratio =
+        Core::IO::InputField<double>(
+            std::unordered_map<int, double>{{1, 0.3}, {2, 0.3}, {3, 0.3}, {4, 0.3}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_elasticity =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{
+            {1, 50000.0}, {2, 51000.0}, {3, 52000.0}, {4, 53000.0}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_thickness =
+        Core::IO::InputField<double>(
+            std::unordered_map<int, double>{{1, 0.001}, {2, 0.001}, {3, 0.001}, {4, 0.001}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.viscosity.viscous_time_constant =
+        Core::IO::InputField<double>(
+            std::unordered_map<int, double>{{1, 0.01}, {2, 0.01}, {3, 0.01}, {4, 0.01}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.viscosity.viscous_phase_shift =
+        Core::IO::InputField<double>(
+            std::unordered_map<int, double>{{1, 0.0}, {2, 0.0}, {3, 0.0}, {4, 0.0}});
+
+    return params;
+  }
+
+  void assign_model_evaluators(AirwayModel& model)
+  {
+    model.internal_state_updater = WallMechanics::make_internal_state_updater(
+        model.wall_model, FlowResistance::make_internal_state_updater(model.flow_model));
+    model.residual_evaluator =
+        WallMechanics::make_residual_evaluator(model.wall_model, model.flow_model);
+    model.jacobian_evaluator =
+        WallMechanics::make_jacobian_evaluator(model.wall_model, model.flow_model);
+  }
 
   TEST(AirwayTests, JacobianVsFiniteDifferenceRigidWall)
   {
@@ -77,12 +143,7 @@ namespace
       model.flow_model = LinearResistive{.has_inertia = std::vector<bool>{false, false, false}};
       model.wall_model = RigidWall{};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
 
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
 
@@ -101,12 +162,7 @@ namespace
       // Wall model: rigid
       model.wall_model = RigidWall{};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
 
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
       TestUtils::check_jacobian_column_against_fd(
@@ -128,12 +184,7 @@ namespace
       // Wall model: rigid
       model.wall_model = RigidWall{};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
 
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
@@ -156,12 +207,7 @@ namespace
       // Wall model: rigid
       model.wall_model = RigidWall{};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
 
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
@@ -241,12 +287,7 @@ namespace
           .has_inertia = std::vector<bool>{false, false, false},
       };
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
       TestUtils::check_jacobian_column_against_fd(
@@ -266,12 +307,7 @@ namespace
           .has_inertia = std::vector<bool>{true, true, true},
       };
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
       TestUtils::check_jacobian_column_against_fd(
@@ -292,12 +328,7 @@ namespace
               .has_inertia = std::vector<bool>{false, false, false},
               .k_turb = std::vector<double>{2.0, 1.0, 1.0}};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
       TestUtils::check_jacobian_column_against_fd(
@@ -318,12 +349,7 @@ namespace
               .has_inertia = std::vector<bool>{true, true, true},
               .k_turb = std::vector<double>{2.0, 1.0, 1.0}};
 
-      model.internal_state_updater =
-          std::visit(Airways::MakeInternalStateUpdater{model.flow_model}, model.wall_model);
-      model.residual_evaluator =
-          std::visit(Airways::MakeResidualEvaluator{model.flow_model}, model.wall_model);
-      model.jacobian_evaluator =
-          std::visit(Airways::MakeJacobianEvaluator{model.flow_model}, model.wall_model);
+      assign_model_evaluators(model);
       model.internal_state_updater(model.data, locally_relevant_dofs, dt);
       model.jacobian_evaluator(model.data, jac, locally_relevant_dofs, dt);
       TestUtils::check_jacobian_column_against_fd(
@@ -335,5 +361,100 @@ namespace
       TestUtils::check_jacobian_column_against_fd(
           model.data.lid_q2, 3, model, jac, locally_relevant_dofs, dt, eps, row_map);
     }
+  }
+
+  TEST(AirwayModelRegistryTest, ThrowsOnUnknownFlowType)
+  {
+    AirwayContainer airways;
+    ReducedLungParameters params{};
+    EXPECT_THROW(Airways::ModelRegistry::add_airway_with_model_selection(
+                     airways, 0, 0, params, static_cast<FlowModelType>(-1), WallModelType::Rigid),
+        Core::Exception);
+  }
+
+  TEST(AirwayModelRegistryTest, ThrowsOnUnknownWallType)
+  {
+    AirwayContainer airways;
+    ReducedLungParameters params{};
+    EXPECT_THROW(Airways::ModelRegistry::add_airway_with_model_selection(
+                     airways, 0, 0, params, FlowModelType::Linear, static_cast<WallModelType>(-1)),
+        Core::Exception);
+  }
+
+  TEST(AirwayModelRegistryTest, CreatesAndReusesAllModelCombinations)
+  {
+    AirwayContainer airways;
+    const auto params = make_airway_registry_parameters();
+
+    EXPECT_EQ(Airways::ModelRegistry::add_airway_with_model_selection(
+                  airways, 0, 0, params, FlowModelType::Linear, WallModelType::Rigid),
+        1);
+    EXPECT_EQ(Airways::ModelRegistry::add_airway_with_model_selection(
+                  airways, 1, 1, params, FlowModelType::Linear, WallModelType::KelvinVoigt),
+        2);
+    EXPECT_EQ(Airways::ModelRegistry::add_airway_with_model_selection(
+                  airways, 2, 2, params, FlowModelType::NonLinear, WallModelType::Rigid),
+        1);
+    EXPECT_EQ(Airways::ModelRegistry::add_airway_with_model_selection(
+                  airways, 3, 3, params, FlowModelType::NonLinear, WallModelType::KelvinVoigt),
+        2);
+
+    ASSERT_EQ(airways.models.size(), 4u);
+
+    bool saw_linear_rigid = false;
+    bool saw_linear_kv = false;
+    bool saw_nonlinear_rigid = false;
+    bool saw_nonlinear_kv = false;
+    for (const auto& model : airways.models)
+    {
+      if (std::holds_alternative<LinearResistive>(model.flow_model) &&
+          std::holds_alternative<RigidWall>(model.wall_model))
+      {
+        saw_linear_rigid = true;
+        EXPECT_EQ(model.data.n_state_equations, 1);
+        EXPECT_EQ(model.data.number_of_elements(), 1u);
+      }
+      else if (std::holds_alternative<LinearResistive>(model.flow_model) &&
+               std::holds_alternative<KelvinVoigtWall>(model.wall_model))
+      {
+        saw_linear_kv = true;
+        EXPECT_EQ(model.data.n_state_equations, 2);
+        EXPECT_EQ(model.data.number_of_elements(), 1u);
+      }
+      else if (std::holds_alternative<NonLinearResistive>(model.flow_model) &&
+               std::holds_alternative<RigidWall>(model.wall_model))
+      {
+        saw_nonlinear_rigid = true;
+        EXPECT_EQ(model.data.n_state_equations, 1);
+        EXPECT_EQ(model.data.number_of_elements(), 1u);
+      }
+      else if (std::holds_alternative<NonLinearResistive>(model.flow_model) &&
+               std::holds_alternative<KelvinVoigtWall>(model.wall_model))
+      {
+        saw_nonlinear_kv = true;
+        EXPECT_EQ(model.data.n_state_equations, 2);
+        EXPECT_EQ(model.data.number_of_elements(), 1u);
+      }
+    }
+    EXPECT_TRUE(saw_linear_rigid);
+    EXPECT_TRUE(saw_linear_kv);
+    EXPECT_TRUE(saw_nonlinear_rigid);
+    EXPECT_TRUE(saw_nonlinear_kv);
+
+    EXPECT_EQ(Airways::ModelRegistry::add_airway_with_model_selection(
+                  airways, 0, 4, params, FlowModelType::Linear, WallModelType::Rigid),
+        1);
+    ASSERT_EQ(airways.models.size(), 4u);
+
+    int linear_rigid_element_count = 0;
+    for (const auto& model : airways.models)
+    {
+      if (std::holds_alternative<LinearResistive>(model.flow_model) &&
+          std::holds_alternative<RigidWall>(model.wall_model))
+      {
+        linear_rigid_element_count = static_cast<int>(model.data.number_of_elements());
+      }
+    }
+    EXPECT_EQ(linear_rigid_element_count, 2);
   }
 }  // namespace

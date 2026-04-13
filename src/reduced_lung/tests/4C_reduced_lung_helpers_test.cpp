@@ -109,6 +109,74 @@ namespace
     return params;
   }
 
+  ReducedLungParameters make_revisited_airway_model_parameters()
+  {
+    ReducedLungParameters params{};
+    params.air_properties = {
+        .density = 1.176e-06,
+        .dynamic_viscosity = 1.79105e-05,
+    };
+
+    params.lung_tree.topology.num_nodes = 5;
+    params.lung_tree.topology.num_elements = 4;
+    params.lung_tree.topology.node_coordinates =
+        Core::IO::InputField<std::vector<double>>(std::unordered_map<int, std::vector<double>>{
+            {1, {0.0, 0.0, 0.0}},
+            {2, {1.0, 0.0, 0.0}},
+            {3, {2.0, 0.0, 0.0}},
+            {4, {3.0, 0.0, 0.0}},
+            {5, {4.0, 0.0, 0.0}},
+        });
+    params.lung_tree.topology.element_nodes =
+        Core::IO::InputField<std::vector<int>>(std::unordered_map<int, std::vector<int>>{
+            {1, {1, 2}},
+            {2, {2, 3}},
+            {3, {3, 4}},
+            {4, {4, 5}},
+        });
+
+    params.lung_tree.element_type =
+        Core::IO::InputField<ReducedLungParameters::LungTree::ElementType>(
+            std::unordered_map<int, ReducedLungParameters::LungTree::ElementType>{
+                {1, ReducedLungParameters::LungTree::ElementType::Airway},
+                {2, ReducedLungParameters::LungTree::ElementType::Airway},
+                {3, ReducedLungParameters::LungTree::ElementType::Airway},
+                {4, ReducedLungParameters::LungTree::ElementType::Airway}});
+
+    params.lung_tree.airways.radius = Core::IO::InputField<double>(
+        std::unordered_map<int, double>{{1, 1.0}, {2, 0.9}, {3, 0.8}, {4, 0.7}});
+    params.lung_tree.airways.flow_model.resistance_type =
+        Core::IO::InputField<ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType>(
+            std::unordered_map<int,
+                ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType>{
+                {1, ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType::Linear},
+                {2, ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType::Linear},
+                {3, ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType::Linear},
+                {4, ReducedLungParameters::LungTree::Airways::FlowModel::ResistanceType::Linear}});
+    params.lung_tree.airways.flow_model.include_inertia = Core::IO::InputField<bool>(
+        std::unordered_map<int, bool>{{1, false}, {2, false}, {3, false}, {4, false}});
+
+    params.lung_tree.airways.wall_model_type =
+        Core::IO::InputField<ReducedLungParameters::LungTree::Airways::WallModelType>(
+            std::unordered_map<int, ReducedLungParameters::LungTree::Airways::WallModelType>{
+                {1, ReducedLungParameters::LungTree::Airways::WallModelType::Rigid},
+                {2, ReducedLungParameters::LungTree::Airways::WallModelType::KelvinVoigt},
+                {3, ReducedLungParameters::LungTree::Airways::WallModelType::Rigid},
+                {4, ReducedLungParameters::LungTree::Airways::WallModelType::Rigid}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_poisson_ratio =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{{2, 0.3}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_elasticity =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{{2, 50000.0}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.elasticity.wall_thickness =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{{2, 0.001}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.viscosity.viscous_time_constant =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{{2, 0.01}});
+    params.lung_tree.airways.wall_model.kelvin_voigt.viscosity.viscous_phase_shift =
+        Core::IO::InputField<double>(std::unordered_map<int, double>{{2, 0.0}});
+
+    return params;
+  }
+
   ReducedLungParameters::LungTree::Topology make_bifurcation_topology()
   {
     ReducedLungParameters::LungTree::Topology topology{};
@@ -326,6 +394,28 @@ namespace
 
     ASSERT_EQ(terminal_units.models.size(), 1u);
     EXPECT_EQ(terminal_units.models[0].data.global_element_id, (std::vector<int>{2}));
+  }
+
+  TEST(ReducedLungHelpersTests, CreateLocalElementModelsUsesSelectedModelStateCount)
+  {
+    const auto params = make_revisited_airway_model_parameters();
+    auto discretization =
+        make_discretization_from_topology(params.lung_tree.topology, "revisited_airway_model_test");
+
+    Airways::AirwayContainer airways;
+    TerminalUnits::TerminalUnitContainer terminal_units;
+    std::map<int, int> dof_per_ele;
+    int n_airways = -1;
+    int n_terminal_units = -1;
+
+    create_local_element_models(
+        *discretization, params, airways, terminal_units, dof_per_ele, n_airways, n_terminal_units);
+
+    EXPECT_EQ(n_airways, 4);
+    EXPECT_EQ(n_terminal_units, 0);
+    EXPECT_EQ(dof_per_ele, (std::map<int, int>{{0, 3}, {1, 4}, {2, 3}, {3, 3}}));
+
+    ASSERT_EQ(airways.models.size(), 2u);
   }
 
   TEST(ReducedLungHelpersTests, CreateGlobalEleIdsPerNodeCollectsAdjacency)
