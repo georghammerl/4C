@@ -716,6 +716,8 @@ function(four_c_test_nested_parallelism)
       "${test_file_full_path1}"
       OUTPUT_DIR
       "${test_directory}"
+      ADDITIONAL_FIXTURE
+      ${name_of_test}
       REQUIRED_DEPENDENCIES
       "${_parsed_REQUIRED_DEPENDENCIES}"
       )
