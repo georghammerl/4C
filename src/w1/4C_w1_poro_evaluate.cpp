@@ -1073,7 +1073,8 @@ void Discret::Elements::Wall1Poro<distype>::fill_matrix_and_vectors(const int& g
     Core::LinAlg::Matrix<numstr_, 1> sfac(C_inv_vec);  // auxiliary integrated stress
 
     // scale and add viscous stress
-    sfac.update(detJ_w, fstress, fac2);  // detJ*w(gp)*[S11,S22,S33,S12=S21,S23=S32,S13=S31]
+    sfac.update(
+        detJ_w * porosity, fstress, fac2);  // detJ*w(gp)*[S11,S22,S33,S12=S21,S23=S32,S13=S31]
 
     std::vector<double> SmB_L(2);  // intermediate Sm.B_L
     // kgeo += (B_L^T . sigma . B_L) * detJ * w(gp)  with B_L = Ni,Xj see NiliFEM-Skript
@@ -1349,21 +1350,19 @@ void Discret::Elements::Wall1Poro<distype>::fill_matrix_and_vectors_brinkman(con
   fstress(1) = tmp(1, 1);
   fstress(2) = tmp(0, 1);
 
-  fstress.scale(detJ_w * visc * J * porosity);
+  fstress.scale(visc * J);
 
   // B^T . C^-1
   Core::LinAlg::Matrix<numdof_, 1> fstressb(Core::LinAlg::Initialization::zero);
   fstressb.multiply_tn(bop, fstress);
 
-  if (force != nullptr) force->update(1.0, fstressb, 1.0);
+  if (force != nullptr) force->update(detJ_w * porosity, fstressb, 1.0);
 
   // evaluate viscous terms (for darcy-brinkman flow only)
   if (stiffmatrix != nullptr)
   {
     Core::LinAlg::Matrix<numdim_, numdim_> tmp4;
     tmp4.multiply_nt(fvelder, defgrd_inv);
-
-    double fac = detJ_w * visc;
 
     Core::LinAlg::Matrix<numstr_, numdof_> fstress_dus(Core::LinAlg::Initialization::zero);
     for (int n = 0; n < numnod_; ++n)
@@ -1395,11 +1394,11 @@ void Discret::Elements::Wall1Poro<distype>::fill_matrix_and_vectors_brinkman(con
 
     // additional viscous fluid stress- stiffness term (B^T . fstress . dJ/d(us) * porosity * detJ
     // * w(gp))
-    tmp.multiply(fac * porosity, fstressb, dJ_dus);
+    tmp.multiply(detJ_w * porosity, fstressb, dJ_dus);
     stiffmatrix->update(1.0, tmp, 1.0);
 
     // additional fluid stress- stiffness term (B^T .  d\phi/d(us) . fstress  * J * w(gp))
-    tmp.multiply(fac * J, fstressb, dphi_dus);
+    tmp.multiply(detJ_w, fstressb, dphi_dus);
     stiffmatrix->update(1.0, tmp, 1.0);
 
     // additional fluid stress- stiffness term (B^T .  phi . dfstress/d(us)  * J * w(gp))
