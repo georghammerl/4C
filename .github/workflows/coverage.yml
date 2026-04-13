@@ -48,6 +48,7 @@ jobs:
       image: ghcr.io/4c-multiphysics/4c-dependencies-ubuntu24.04:35e0657d
       options: --user root --env OMPI_ALLOW_RUN_AS_ROOT=1 --env OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
     strategy:
+      fail-fast: false
       matrix:
         test-chunk: ${{fromJson(needs.clang18_coverage_build.outputs.test-chunks)}}
     defaults:
