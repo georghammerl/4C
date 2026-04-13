@@ -42,8 +42,30 @@ namespace Discret::Elements
         const Core::LinAlg::SymmetricTensor<double, size, size>& tensor,
         Core::LinAlg::SerialDenseMatrix& data, const int row)
     {
-      for (unsigned i = 0; i < tensor.container().size(); ++i)
-        data(row, static_cast<int>(i)) = tensor.data()[i];
+      FOUR_C_ASSERT(data.num_rows() > row,
+          "The given row index {} is out of bounds for the given data matrix with {} rows.", row,
+          data.num_rows());
+      FOUR_C_ASSERT(data.num_cols() == 6,
+          "This function expects a matrix with 6 columns. Given matrix has {} columns.",
+          data.num_cols());
+
+      if constexpr (size == 2)
+      {
+        // We need to map it to the 3D space here
+        // Note: Currently, we do not support the out-of-plane components that might be implicitly
+        // non-zero
+        data(row, 0) = tensor(0, 0);
+        data(row, 1) = tensor(1, 1);
+        data(row, 2) = 0.0;
+        data(row, 3) = tensor(0, 1);
+        data(row, 4) = 0.0;
+        data(row, 5) = 0.0;
+      }
+      else
+      {
+        for (unsigned i = 0; i < tensor.container().size(); ++i)
+          data(row, static_cast<int>(i)) = tensor.data()[i];
+      }
     }
   }  // namespace Internal
 
