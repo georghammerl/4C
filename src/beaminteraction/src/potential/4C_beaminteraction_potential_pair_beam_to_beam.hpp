@@ -132,11 +132,6 @@ namespace BeamInteraction
      *  */
     void print(std::ostream& out) const override;
 
-    /** \brief print this beam potential element pair to screen
-     *
-     *  */
-    void print_summary_one_line_per_active_segment_pair(std::ostream& out) const override;
-    //@}
 
     //! @name Access methods
     /*!
@@ -503,16 +498,6 @@ namespace BeamInteraction
       // this is a dummy since for type FAD, no analytic linearization is required
     }
 
-    /*!
-    \brief Calculate shape function values for given parameter values
-    Todo call more general utils method
-    */
-    void get_shape_functions(
-        std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N1_i,
-        std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N2_i,
-        std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N1_i_xi,
-        std::vector<Core::LinAlg::Matrix<1, numnodes * numnodalvalues, double>>& N2_i_xi,
-        Core::FE::IntegrationPoints1D& gausspoints) const;
 
     /*!
     \brief Compute coordinates of centerline point
