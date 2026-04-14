@@ -35,7 +35,7 @@ set(_dependencies
     porofluid_pressure_based
     scatra
     shell7p
-    solid_3D_ele
+    solid_ele
     solver_nonlin_nox
     ssi
     ssti

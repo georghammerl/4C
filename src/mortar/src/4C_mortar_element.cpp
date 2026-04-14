@@ -14,7 +14,7 @@
 #include "4C_mat_so3_material.hpp"
 #include "4C_material_base.hpp"
 #include "4C_mortar_node.hpp"
-#include "4C_solid_3D_ele_surface.hpp"
+#include "4C_solid_ele_surface.hpp"
 
 #include <memory>
 

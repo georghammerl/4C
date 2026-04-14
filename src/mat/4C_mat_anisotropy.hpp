@@ -14,7 +14,7 @@
 #include "4C_linalg_fixedsizematrix.hpp"
 #include "4C_linalg_tensor.hpp"
 #include "4C_mat_anisotropy_cylinder_coordinate_system_manager.hpp"
-#include "4C_solid_3D_ele_fibers.hpp"
+#include "4C_solid_ele_fibers.hpp"
 #include "4C_utils_parameter_list.fwd.hpp"
 
 #include <optional>

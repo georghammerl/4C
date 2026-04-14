@@ -10,7 +10,7 @@
 #include "4C_fem_general_element.hpp"
 #include "4C_membrane_scatra.hpp"
 #include "4C_shell7p_ele_scatra.hpp"
-#include "4C_solid_scatra_3D_ele.hpp"
+#include "4C_solid_scatra_ele.hpp"
 #include "4C_truss3_scatra.hpp"
 
 FOUR_C_NAMESPACE_OPEN

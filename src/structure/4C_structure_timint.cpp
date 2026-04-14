@@ -36,7 +36,7 @@
 #include "4C_mortar_strategy_base.hpp"
 #include "4C_mortar_utils.hpp"
 #include "4C_poroelast_utils.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 #include "4C_stru_multi_microstatic.hpp"
 #include "4C_structure_resulttest.hpp"
 #include "4C_structure_timint_genalpha.hpp"

@@ -21,7 +21,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linear_solver_method.hpp"
 #include "4C_linear_solver_method_linalg.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 #include "4C_structure_aux.hpp"
 #include "4C_structure_new_timint_base.hpp"
 #include "4C_utils_exceptions.hpp"

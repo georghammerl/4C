@@ -11,10 +11,10 @@
 #include "4C_contact_node.hpp"
 #include "4C_fem_general_utils_boundary_integration.hpp"
 #include "4C_linalg_tensor_conversion.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_solid_3D_ele_calc_lib_nitsche.hpp"
-#include "4C_solid_poro_3D_ele_calc_lib_nitsche.hpp"
-#include "4C_solid_poro_3D_ele_pressure_velocity_based.hpp"
+#include "4C_solid_ele.hpp"
+#include "4C_solid_ele_calc_lib_nitsche.hpp"
+#include "4C_solid_poro_ele_calc_lib_nitsche.hpp"
+#include "4C_solid_poro_ele_pressure_velocity_based.hpp"
 #include "4C_xfem_xfluid_contact_communicator.hpp"
 
 FOUR_C_NAMESPACE_OPEN

@@ -18,7 +18,7 @@
 #include "4C_mat_membrane_material_interfaces.hpp"
 #include "4C_mat_so3_material.hpp"
 #include "4C_material_parameter_base.hpp"
-#include "4C_solid_3D_ele_fibers.hpp"
+#include "4C_solid_ele_fibers.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

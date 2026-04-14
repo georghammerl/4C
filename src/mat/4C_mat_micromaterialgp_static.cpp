@@ -13,8 +13,8 @@
 #include "4C_io.hpp"
 #include "4C_io_control.hpp"
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_solid_3D_ele_interface_serializable.hpp"
+#include "4C_solid_ele.hpp"
+#include "4C_solid_ele_interface_serializable.hpp"
 #include "4C_stru_multi_microstatic.hpp"
 #include "4C_utils_singleton_owner.hpp"
 

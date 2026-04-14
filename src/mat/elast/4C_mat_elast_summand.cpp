@@ -52,7 +52,7 @@
 #include "4C_mat_elast_volpow.hpp"
 #include "4C_mat_elast_volsussmanbathe.hpp"
 #include "4C_mat_par_bundle.hpp"
-#include "4C_solid_3D_ele_fibers.hpp"
+#include "4C_solid_ele_fibers.hpp"
 #include "4C_utils_enum.hpp"
 
 FOUR_C_NAMESPACE_OPEN

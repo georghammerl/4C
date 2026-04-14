@@ -18,7 +18,7 @@
 #include "4C_mat_material_factory.hpp"
 #include "4C_mat_par_bundle.hpp"
 #include "4C_material_parameter_base.hpp"
-#include "4C_solid_3D_ele_calc_lib_integration.hpp"
+#include "4C_solid_ele_calc_lib_integration.hpp"
 #include "4C_utils_singleton_owner.hpp"
 
 

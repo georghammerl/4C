@@ -19,8 +19,8 @@
 #include "4C_cut_volumecell.hpp"
 #include "4C_geometry_pair_element.hpp"
 #include "4C_linalg_sparsematrix.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_solid_3D_ele_calc_lib.hpp"
+#include "4C_solid_ele.hpp"
+#include "4C_solid_ele_calc_lib.hpp"
 #include "4C_utils_exceptions.hpp"
 #include "4C_xfem_condition_manager.hpp"
 

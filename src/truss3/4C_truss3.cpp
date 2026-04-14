@@ -12,7 +12,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_node.hpp"
 #include "4C_io_input_spec_builders.hpp"
-#include "4C_solid_3D_ele_nullspace.hpp"
+#include "4C_solid_ele_nullspace.hpp"
 #include "4C_structure_new_elements_paramsinterface.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
 

@@ -12,8 +12,8 @@
 #include "4C_fem_general_utils_local_connectivity_matrices.hpp"
 #include "4C_scatra_ele_parameter_boundary.hpp"
 #include "4C_scatra_ele_parameter_timint.hpp"
-#include "4C_solid_scatra_3D_ele.hpp"
-#include "4C_solid_scatra_3D_ele_calc_lib_nitsche.hpp"
+#include "4C_solid_scatra_ele.hpp"
+#include "4C_solid_scatra_ele_calc_lib_nitsche.hpp"
 #include "4C_utils_exceptions.hpp"
 
 FOUR_C_NAMESPACE_OPEN

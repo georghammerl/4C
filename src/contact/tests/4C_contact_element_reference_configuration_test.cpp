@@ -9,7 +9,7 @@
 
 #include "4C_contact_element.hpp"
 #include "4C_contact_selfcontact_binarytree_unbiased.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 #include "4C_unittest_utils_assertions_test.hpp"
 
 namespace
