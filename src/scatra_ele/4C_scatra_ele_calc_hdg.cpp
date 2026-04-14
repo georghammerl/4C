@@ -444,7 +444,7 @@ int Discret::Elements::ScaTraEleCalcHDG<distype, probdim>::project_dirich_field(
   using scalarType = Core::LinAlg::SerialDenseMatrix::scalarType;
   Teuchos::SerialDenseSolver<ordinalType, scalarType> inverseMass;
   inverseMass.setMatrix(Teuchos::rcpFromRef(mass.base()));
-  inverseMass.setVectors(Teuchos::rcpFromRef(trVec), Teuchos::rcpFromRef(trVec));
+  inverseMass.setVectors(Teuchos::rcpFromRef(trVec.base()), Teuchos::rcpFromRef(trVec.base()));
   inverseMass.solve();
 
   for (unsigned int node = 0; node < shapesface_->nfdofs_; node++) elevec1[node] = trVec(node);

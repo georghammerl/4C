@@ -331,7 +331,7 @@ void FLD::Utils::DbcHdgFluid::do_dirichlet_condition(const Teuchos::ParameterLis
 
       initParams.set<unsigned int>(
           "faceconsider", static_cast<unsigned int>(faceele->face_master_number()));
-      if (static_cast<unsigned int>(elevec1.numRows()) != dofperface) elevec1.shape(dofperface, 1);
+      if (static_cast<unsigned int>(elevec1.numRows()) != dofperface) elevec1.resize(dofperface);
       std::vector<int> dofs = discret.dof(0, discret.l_row_face(i));
 
       bool do_evaluate = false;

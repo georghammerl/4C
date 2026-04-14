@@ -481,13 +481,19 @@ Core::LinAlg::SecondOrderTensorInterpolator<loc_dim>::get_interpolated_matrix(
       polynomial_space_.evaluate(ref_locs[i], p_vec);
 
       // P matrix
-      P.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec, p_vec, 1.0);
+      P.base().multiply(
+          Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec.base(), p_vec.base(), 1.0);
+
+      Core::LinAlg::SerialDenseVector rot_vect_q_rel(
+          Teuchos::Copy, all_rot_vect_Q_rel[i].data(), 3);
+      Core::LinAlg::SerialDenseVector rot_vect_r_rel(
+          Teuchos::Copy, all_rot_vect_R_rel[i].data(), 3);
 
       // RHS of the rotation interpolation
-      b_Q.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec,
-          Core::LinAlg::SerialDenseVector(Teuchos::Copy, all_rot_vect_Q_rel[i].data(), 3), 1.0);
-      b_R.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec,
-          Core::LinAlg::SerialDenseVector(Teuchos::Copy, all_rot_vect_R_rel[i].data(), 3), 1.0);
+      b_Q.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec.base(),
+          rot_vect_q_rel.base(), 1.0);
+      b_R.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, all_norm_weights[i], p_vec.base(),
+          rot_vect_r_rel.base(), 1.0);
 
       // compute contribution to the natural logarithm of the interpolated eigenvalues (logarithmic
       // weighted average approach in Satheesh 2024, Section 2.4.1)
@@ -535,14 +541,16 @@ Core::LinAlg::SecondOrderTensorInterpolator<loc_dim>::get_interpolated_matrix(
     polynomial_space_.evaluate(interp_loc, p_vec);
 
     // ...for Q
-    rot_serial_dense_vec.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, a_Q.base(), p_vec, 0.0);
+    rot_serial_dense_vec.multiply(
+        Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, a_Q.base(), p_vec.base(), 0.0);
     Core::LinAlg::Matrix<3, 1> rot_vect_Q_rel_interp(Initialization::zero);
     rot_vect_Q_rel_interp(0) = rot_serial_dense_vec(0);
     rot_vect_Q_rel_interp(1) = rot_serial_dense_vec(1);
     rot_vect_Q_rel_interp(2) = rot_serial_dense_vec(2);
 
     // ...for R
-    rot_serial_dense_vec.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, a_R.base(), p_vec, 0.0);
+    rot_serial_dense_vec.multiply(
+        Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, a_R.base(), p_vec.base(), 0.0);
     Core::LinAlg::Matrix<3, 1> rot_vect_R_rel_interp(Initialization::zero);
     rot_vect_R_rel_interp(0) = rot_serial_dense_vec(0);
     rot_vect_R_rel_interp(1) = rot_serial_dense_vec(1);

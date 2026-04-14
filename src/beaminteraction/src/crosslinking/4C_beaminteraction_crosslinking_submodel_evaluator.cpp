@@ -3377,7 +3377,7 @@ void BeamInteraction::SubmodelEvaluator::Crosslinking::
   for (unsigned int i = 0; i < 2; ++i)
   {
     // currently, only forces (not moments) considered
-    bspotforce[i].reshape(3, 1);
+    bspotforce[i].resize(3);
     clbspotforcenorm[i] = Core::LinAlg::norm2(bspotforce[i]);
 
     // adjusted off-rate according to Bell's equation (Howard, eq 5.10, p.89)

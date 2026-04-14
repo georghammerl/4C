@@ -73,7 +73,7 @@ namespace Core::Utils
     Core::LinAlg::SerialDenseVector rhs(residuum);
     Teuchos::SerialDenseSolver<int, double> solver;
     solver.setMatrix(Teuchos::rcpFromRef(jacobian.base()));
-    solver.setVectors(Teuchos::rcpFromRef(dx), Teuchos::rcpFromRef(rhs));
+    solver.setVectors(Teuchos::rcpFromRef(dx.base()), Teuchos::rcpFromRef(rhs.base()));
     solver.factorWithEquilibration(true);
     solver.factor();
     solver.solve();

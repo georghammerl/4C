@@ -12,6 +12,7 @@
 
 #include "4C_linalg_map.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
+#include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_vector.hpp"
 #include "4C_utils_shared_ptr_from_ref.hpp"
 
@@ -161,6 +162,21 @@ namespace Core::LinAlg
     virtual void assemble(int eid, const std::vector<int>& lmstride,
         const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
         const std::vector<int>& lmrowowner, const std::vector<int>& lmcol) = 0;
+
+    /*!
+      \brief Assemble a local vector by interpreting it as a column matrix.
+
+      \note The size of \p lmcol must match the generated view column count
+      (typically 1).
+    */
+    void assemble(int eid, const std::vector<int>& lmstride,
+        const Core::LinAlg::SerialDenseVector& Vele, const std::vector<int>& lmrow,
+        const std::vector<int>& lmrowowner, const std::vector<int>& lmcol)
+    {
+      Core::LinAlg::SerialDenseMatrix Vele_as_matrix(
+          Teuchos::View, Vele.values(), Vele.length(), Vele.length(), 1);
+      assemble(eid, lmstride, Vele_as_matrix, lmrow, lmrowowner, lmcol);
+    }
 
     /// single value assemble using gids
     virtual void assemble(double val, int rgid, int cgid) = 0;

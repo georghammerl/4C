@@ -14,6 +14,9 @@
 #include "4C_linalg_serialdensevector.hpp"
 #include "4C_utils_exceptions.hpp"
 
+#include <cctype>
+#include <string>
+
 FOUR_C_NAMESPACE_OPEN
 
 namespace Core::LinAlg::Internal
@@ -31,7 +34,7 @@ namespace Core::LinAlg::Internal
   }
 
   template <>
-  inline std::string get_matrix_or_vector_string<Core::LinAlg::SerialDenseVector::Base>()
+  inline std::string get_matrix_or_vector_string<Core::LinAlg::SerialDenseVector>()
   {
     return "Vector";
   }
@@ -52,12 +55,39 @@ namespace Core::LinAlg::Internal
   }
 
   template <>
-  inline std::string get_matrix_or_vector_case<Core::LinAlg::SerialDenseVector::Base>(char ch)
+  inline std::string get_matrix_or_vector_case<Core::LinAlg::SerialDenseVector>(char ch)
   {
     char c = std::tolower(ch);
     std::string s;
     s = c;
     return s;
+  }
+
+  template <typename VectorOrMatrix>
+  inline int get_num_rows(const VectorOrMatrix& obj)
+  {
+    return obj.numRows();
+  }
+
+  template <typename VectorOrMatrix>
+  inline int get_num_cols(const VectorOrMatrix& obj)
+  {
+    return obj.numCols();
+  }
+
+  template <>
+  inline int get_num_rows<Core::LinAlg::SerialDenseVector>(
+      const Core::LinAlg::SerialDenseVector& obj)
+  {
+    return obj.length();
+  }
+
+  template <>
+  inline int get_num_cols<Core::LinAlg::SerialDenseVector>(
+      const Core::LinAlg::SerialDenseVector& obj)
+  {
+    static_cast<void>(obj);
+    return 1;
   }
 
   /*!
@@ -81,9 +111,10 @@ namespace Core::LinAlg::Internal
   /*!
    \brief Utility function to check for error code of LINALG multiplication
    */
-  template <bool transpose1, bool transpose2, typename VectorOrMatrix1, typename VectorOrMatrix2>
+  template <bool transpose1, bool transpose2, typename VectorOrMatrix1, typename VectorOrMatrix2,
+      typename VectorOrMatrix3>
   inline void check_error_code_in_debug(
-      int errorCode, const VectorOrMatrix1& a, const VectorOrMatrix2& b, const VectorOrMatrix2& c)
+      int errorCode, const VectorOrMatrix1& a, const VectorOrMatrix2& b, const VectorOrMatrix3& c)
   {
     FOUR_C_ASSERT(errorCode == 0,
         "Error code ({}) is returned. Something went wrong with the {}-{} multiplication {} = {}{} "
@@ -91,13 +122,13 @@ namespace Core::LinAlg::Internal
         "Dimensions of {}, {}, and {} are ({}x{}), ({}x{}), and ({}x{}) respectively.",
         errorCode, get_matrix_or_vector_string<VectorOrMatrix1>(),
         get_matrix_or_vector_string<VectorOrMatrix2>(),
-        get_matrix_or_vector_case<VectorOrMatrix2>('c'),
+        get_matrix_or_vector_case<VectorOrMatrix3>('c'),
         get_matrix_or_vector_case<VectorOrMatrix1>('a'), get_transpose_string<transpose1>(),
         get_matrix_or_vector_case<VectorOrMatrix2>('b'), get_transpose_string<transpose2>(),
         get_matrix_or_vector_case<VectorOrMatrix1>('a'),
         get_matrix_or_vector_case<VectorOrMatrix2>('b'),
-        get_matrix_or_vector_case<VectorOrMatrix2>('c'), a.numRows(), a.numCols(), b.numRows(),
-        b.numCols(), c.numRows(), c.numCols());
+        get_matrix_or_vector_case<VectorOrMatrix3>('c'), get_num_rows(a), get_num_cols(a),
+        get_num_rows(b), get_num_cols(b), get_num_rows(c), get_num_cols(c));
   }
 }  // namespace Core::LinAlg::Internal
 
@@ -110,10 +141,9 @@ namespace Core::LinAlg
    \param b (in):        Vector b
    \param c (out):       Vector c
    */
-  inline int multiply(
-      SerialDenseVector::Base& c, const SerialDenseMatrix& A, const SerialDenseVector::Base& b)
+  inline int multiply(SerialDenseVector& c, const SerialDenseMatrix& A, const SerialDenseVector& b)
   {
-    const int err = c.multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b, 0.0);
+    const int err = c.multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b.base(), 0.0);
     Internal::check_error_code_in_debug<false, false>(err, A, b, c);
     return err;
   }
@@ -125,11 +155,43 @@ namespace Core::LinAlg
    \param b (in):        Vector b
    \param c (out):       Vector c
    */
-  inline int multiply(double beta, SerialDenseVector::Base& c, double alpha,
-      const SerialDenseMatrix& A, const SerialDenseVector::Base& b)
+  inline int multiply(double beta, SerialDenseVector& c, double alpha, const SerialDenseMatrix& A,
+      const SerialDenseVector& b)
   {
-    const int err = c.multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, alpha, A.base(), b, beta);
+    const int err =
+        c.multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, alpha, A.base(), b.base(), beta);
     Internal::check_error_code_in_debug<false, false>(err, A, b, c);
+    return err;
+  }
+
+  /*!
+   \brief Matrix-vector multiplication C = A*b with matrix-shaped output
+
+   \param A (in):        Matrix A
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply(SerialDenseMatrix& C, const SerialDenseMatrix& A, const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b.base(), 0.0);
+    Internal::check_error_code_in_debug<false, false>(err, A, b, C);
+    return err;
+  }
+
+  /*!
+   \brief Matrix-vector multiplication C = alpha*A*b + beta*C with matrix-shaped output
+
+   \param A (in):        Matrix A
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply(double beta, SerialDenseMatrix& C, double alpha, const SerialDenseMatrix& A,
+      const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::NO_TRANS, Teuchos::NO_TRANS, alpha, A.base(), b.base(), beta);
+    Internal::check_error_code_in_debug<false, false>(err, A, b, C);
     return err;
   }
 
@@ -141,9 +203,9 @@ namespace Core::LinAlg
    \param c (out):       Vector c
    */
   inline int multiply_tn(
-      SerialDenseVector::Base& c, const SerialDenseMatrix& A, const SerialDenseVector::Base& b)
+      SerialDenseVector& c, const SerialDenseMatrix& A, const SerialDenseVector& b)
   {
-    const int err = c.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b, 0.0);
+    const int err = c.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b.base(), 0.0);
     Internal::check_error_code_in_debug<true, false>(err, A, b, c);
     return err;
   }
@@ -155,16 +217,143 @@ namespace Core::LinAlg
    \param b (in):        Vector b
    \param c (out):       Vector c
    */
-  inline int multiply_tn(double beta, SerialDenseVector::Base& c, double alpha,
-      const SerialDenseMatrix& A, const SerialDenseVector::Base& b)
+  inline int multiply_tn(double beta, SerialDenseVector& c, double alpha,
+      const SerialDenseMatrix& A, const SerialDenseVector& b)
   {
-    const int err = c.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, alpha, A.base(), b, beta);
+    const int err = c.multiply(Teuchos::TRANS, Teuchos::NO_TRANS, alpha, A.base(), b.base(), beta);
     Internal::check_error_code_in_debug<true, false>(err, A, b, c);
     return err;
   }
 
   /*!
-   \brief Matrix-matrix multiplication C = A*B
+   \brief Matrix-vector multiplication C = A^T*b with matrix-shaped output
+
+   \param A (in):        Matrix A
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tn(
+      SerialDenseMatrix& C, const SerialDenseMatrix& A, const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, A.base(), b.base(), 0.0);
+    Internal::check_error_code_in_debug<true, false>(err, A, b, C);
+    return err;
+  }
+
+  /*!
+   \brief Matrix-vector multiplication C = alpha*A^T*b + beta*C with matrix-shaped output
+
+   \param A (in):        Matrix A
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tn(double beta, SerialDenseMatrix& C, double alpha,
+      const SerialDenseMatrix& A, const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::TRANS, Teuchos::NO_TRANS, alpha, A.base(), b.base(), beta);
+    Internal::check_error_code_in_debug<true, false>(err, A, b, C);
+    return err;
+  }
+
+  /*!
+   \brief Mixed multiplication C = a^T*B
+
+   \param a (in):        Vector a
+   \param B (in):        Matrix B
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tn(
+      SerialDenseMatrix& C, const SerialDenseVector& a, const SerialDenseMatrix& B)
+  {
+    const int err =
+        C.base().multiply(Teuchos::TRANS, Teuchos::NO_TRANS, 1.0, a.base(), B.base(), 0.0);
+    Internal::check_error_code_in_debug<true, false>(err, a, B, C);
+    return err;
+  }
+
+  /*!
+   \brief Mixed multiplication C = alpha*a^T*B + beta*C
+
+   \param a (in):        Vector a
+   \param B (in):        Matrix B
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tn(double beta, SerialDenseMatrix& C, double alpha,
+      const SerialDenseVector& a, const SerialDenseMatrix& B)
+  {
+    const int err =
+        C.base().multiply(Teuchos::TRANS, Teuchos::NO_TRANS, alpha, a.base(), B.base(), beta);
+    Internal::check_error_code_in_debug<true, false>(err, a, B, C);
+    return err;
+  }
+
+  /*!
+   \brief Mixed multiplication C = a^T*B^T
+
+   \param a (in):        Vector a
+   \param B (in):        Matrix B
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tt(
+      SerialDenseMatrix& C, const SerialDenseVector& a, const SerialDenseMatrix& B)
+  {
+    const int err = C.base().multiply(Teuchos::TRANS, Teuchos::TRANS, 1.0, a.base(), B.base(), 0.0);
+    Internal::check_error_code_in_debug<true, true>(err, a, B, C);
+    return err;
+  }
+
+  /*!
+   \brief Mixed multiplication C = alpha*a^T*B^T + beta*C
+
+   \param a (in):        Vector a
+   \param B (in):        Matrix B
+   \param C (out):       Matrix C
+   */
+  inline int multiply_tt(double beta, SerialDenseMatrix& C, double alpha,
+      const SerialDenseVector& a, const SerialDenseMatrix& B)
+  {
+    const int err =
+        C.base().multiply(Teuchos::TRANS, Teuchos::TRANS, alpha, a.base(), B.base(), beta);
+    Internal::check_error_code_in_debug<true, true>(err, a, B, C);
+    return err;
+  }
+
+  /*!
+   \brief Outer product C = a*b^T
+
+   \param a (in):        Vector a
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply_nt(
+      SerialDenseMatrix& C, const SerialDenseVector& a, const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, 1.0, a.base(), b.base(), 0.0);
+    Internal::check_error_code_in_debug<false, true>(err, a, b, C);
+    return err;
+  }
+
+  /*!
+   \brief Outer product C = alpha*a*b^T + beta*C
+
+   \param a (in):        Vector a
+   \param b (in):        Vector b
+   \param C (out):       Matrix C
+   */
+  inline int multiply_nt(double beta, SerialDenseMatrix& C, double alpha,
+      const SerialDenseVector& a, const SerialDenseVector& b)
+  {
+    const int err =
+        C.base().multiply(Teuchos::NO_TRANS, Teuchos::TRANS, alpha, a.base(), b.base(), beta);
+    Internal::check_error_code_in_debug<false, true>(err, a, b, C);
+    return err;
+  }
+
+  /*!
+    \brief Matrix-matrix multiplication C = A*B
 
    \param A (in):        Matrix A
    \param b (in):        Matrix B

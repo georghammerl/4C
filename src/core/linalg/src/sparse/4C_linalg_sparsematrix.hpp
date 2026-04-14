@@ -13,6 +13,7 @@
 #include "4C_linalg.hpp"
 #include "4C_linalg_graph.hpp"
 #include "4C_linalg_mapextractor.hpp"
+#include "4C_linalg_serialdensevector.hpp"
 #include "4C_linalg_sparseoperator.hpp"
 #include "4C_linalg_utils_exceptions.hpp"
 
@@ -198,10 +199,40 @@ namespace Core::LinAlg
         const Core::LinAlg::SerialDenseMatrix& Aele, const std::vector<int>& lmrow,
         const std::vector<int>& lmrowowner, const std::vector<int>& lmcol) override;
 
+    /*!
+      \brief Assemble a local vector by interpreting it as a column matrix.
+
+      \note The size of \p lmcol must match the generated view column count
+      (typically 1).
+    */
+    void assemble(int eid, const std::vector<int>& lmstride,
+        const Core::LinAlg::SerialDenseVector& Vele, const std::vector<int>& lmrow,
+        const std::vector<int>& lmrowowner, const std::vector<int>& lmcol)
+    {
+      Core::LinAlg::SerialDenseMatrix Vele_as_matrix(
+          Teuchos::View, Vele.values(), Vele.length(), Vele.length(), 1);
+      assemble(eid, lmstride, Vele_as_matrix, lmrow, lmrowowner, lmcol);
+    }
+
     /// assemble method, if ONLY local values are assembled
     void assemble(int eid, const Core::LinAlg::SerialDenseMatrix& Aele,
         const std::vector<int>& lmrow, const std::vector<int>& lmrowowner,
         const std::vector<int>& lmcol);
+
+    /*!
+      \brief Assemble a local vector by interpreting it as a column matrix.
+
+      \note The size of \p lmcol must match the generated view column count
+      (typically 1).
+    */
+    void assemble(int eid, const Core::LinAlg::SerialDenseVector& Vele,
+        const std::vector<int>& lmrow, const std::vector<int>& lmrowowner,
+        const std::vector<int>& lmcol)
+    {
+      Core::LinAlg::SerialDenseMatrix Vele_as_matrix(
+          Teuchos::View, Vele.values(), Vele.length(), Vele.length(), 1);
+      assemble(eid, Vele_as_matrix, lmrow, lmrowowner, lmcol);
+    }
 
     /// single value assemble used by BlockSparseMatrix
     void assemble(double val, int rgid, int cgid) override;
