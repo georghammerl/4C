@@ -606,9 +606,13 @@ void Adapter::StructureBaseAlgorithmNew::detect_element_technologies(
       if (shell7p->get_ele_tech().find(Inpar::Solid::EleTech::eas) != shell7p->get_ele_tech().end())
         iseas_local = 1;
 
-    Discret::Elements::Solid<3>* solid = dynamic_cast<Discret::Elements::Solid<3>*>(actele);
-    if (solid != nullptr)
-      if (solid->have_eas()) iseas_local = 1;
+    const auto* solid3 = dynamic_cast<Discret::Elements::Solid<3>*>(actele);
+    if (solid3 != nullptr)
+      if (solid3->have_eas()) iseas_local = 1;
+
+    const auto* solid2 = dynamic_cast<Discret::Elements::Solid<2>*>(actele);
+    if (solid2 != nullptr)
+      if (solid2->have_eas()) iseas_local = 1;
 
     // Detect non-additive rotation-vector DOFs --------------------------------
     if (actele->element_type() == Discret::Elements::Beam3rType::instance() or

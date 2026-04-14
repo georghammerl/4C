@@ -7,7 +7,12 @@
 
 #include "4C_solid_3D_ele_line.hpp"
 
+#include "4C_fem_discretization.hpp"
+#include "4C_fem_general_cell_type_traits.hpp"
+#include "4C_fem_general_extract_values.hpp"
+#include "4C_legacy_enum_definitions_element_actions.hpp"
 #include "4C_linalg_serialdensematrix.hpp"
+#include "4C_linalg_tensor.hpp"
 #include "4C_solid_3D_ele_neumann_evaluator.hpp"
 #include "4C_utils_exceptions.hpp"
 
@@ -18,6 +23,32 @@
 
 FOUR_C_NAMESPACE_OPEN
 
+
+namespace
+{
+  template <Core::FE::CellType celltype, unsigned dim>
+  std::array<Core::LinAlg::Tensor<double, dim>, Core::FE::num_nodes(celltype)>
+  evaluate_current_coordinates(const Core::Elements::Element& ele,
+      const Core::FE::Discretization& discretization, const std::vector<int>& lm)
+  {
+    constexpr unsigned num_dofs = dim * Core::FE::num_nodes(celltype);
+    std::array<double, num_dofs> mydisp =
+        Core::FE::extract_values_as_array<num_dofs>(*discretization.get_state("displacement"), lm);
+
+    std::array<Core::LinAlg::Tensor<double, dim>, Core::FE::num_nodes(celltype)>
+        current_nodal_coordinates;
+
+    for (int i = 0; i < Core::FE::num_nodes(celltype); ++i)
+    {
+      for (std::size_t d = 0; d < dim; ++d)
+      {
+        current_nodal_coordinates[i](d) = ele.nodes()[i]->x()[d] + mydisp[i * dim + d];
+      }
+    }
+
+    return current_nodal_coordinates;
+  }
+}  // namespace
 
 template <unsigned dim>
 Discret::Elements::SolidLineType<dim> Discret::Elements::SolidLineType<dim>::instance_;
@@ -108,11 +139,91 @@ void Discret::Elements::SolidLine<dim>::print(std::ostream& os) const
 }
 
 template <unsigned dim>
+int Discret::Elements::SolidLine<dim>::evaluate(Teuchos::ParameterList& params,
+    Core::FE::Discretization& discretization, std::vector<int>& lm,
+    Core::LinAlg::SerialDenseMatrix& elematrix1, Core::LinAlg::SerialDenseMatrix& elematrix2,
+    Core::LinAlg::SerialDenseVector& elevector1, Core::LinAlg::SerialDenseVector& elevector2,
+    Core::LinAlg::SerialDenseVector& elevector3)
+{
+  set_params_interface_ptr(params);
+
+  Core::Elements::ActionType act =
+      Core::Elements::string_to_action_type(params.get<std::string>("action"));
+
+  switch (act)
+  {
+    case Core::Elements::ActionType::calc_struct_constrarea:
+    {
+      FOUR_C_ASSERT_ALWAYS(
+          shape() == Core::FE::CellType::line2, "Area Constraint only works for line2 elements!");
+
+      constexpr Core::FE::CellType celltype = Core::FE::CellType::line2;
+
+
+      // We are not interested in volume of ghosted elements
+      if (Core::Communication::my_mpi_rank(discretization.get_comm()) != owner()) return 0;
+
+      auto current_nodal_coordinates =
+          evaluate_current_coordinates<celltype, dim>(*this, discretization, lm);
+
+      elevector3[0] = 0.5 * (current_nodal_coordinates[0](1) + current_nodal_coordinates[1](1)) *
+                      (current_nodal_coordinates[1](0) - current_nodal_coordinates[0](0));
+    }
+    break;
+    case Core::Elements::ActionType::calc_struct_areaconstrstiff:
+    {
+      FOUR_C_ASSERT_ALWAYS(
+          shape() == Core::FE::CellType::line2, "Area Constraint only works for line2 elements!");
+
+      constexpr Core::FE::CellType celltype = Core::FE::CellType::line2;
+
+      // We are not interested in volume of ghosted elements
+      if (Core::Communication::my_mpi_rank(discretization.get_comm()) != owner()) return 0;
+
+      auto current_nodal_coordinates =
+          evaluate_current_coordinates<celltype, dim>(*this, discretization, lm);
+
+      FOUR_C_ASSERT(elevector1.length() == 4,
+          "Expected elevector1 to have size 4 for line2 area constraint! Given vector has size {}",
+          elevector1.length());
+      FOUR_C_ASSERT(elematrix1.num_cols() == 4 && elematrix1.num_rows() == 4,
+          "Expected elematrix1 to have 4 rows and 4 columns for line2 area constraint! Given "
+          "matrix has {} rows and {} columns",
+          elematrix1.num_rows(), elematrix1.num_cols());
+
+      elevector1[0] = 0.5 * (current_nodal_coordinates[0](1) + current_nodal_coordinates[1](1));
+      elevector1[1] = 0.5 * (current_nodal_coordinates[0](0) - current_nodal_coordinates[1](0));
+      elevector1[2] = -0.5 * (current_nodal_coordinates[0](1) + current_nodal_coordinates[1](1));
+      elevector1[3] = 0.5 * (current_nodal_coordinates[0](0) - current_nodal_coordinates[1](0));
+      elevector2 = elevector1;
+
+      elematrix1.put_scalar(0.0);
+      elematrix1(0, 1) = 0.5;
+      elematrix1(0, 3) = 0.5;
+      elematrix1(1, 0) = 0.5;
+      elematrix1(1, 2) = -0.5;
+      elematrix1(2, 1) = -0.5;
+      elematrix1(2, 3) = -0.5;
+      elematrix1(3, 0) = 0.5;
+      elematrix1(3, 2) = -0.5;
+
+      elevector3[0] = 0.5 * (current_nodal_coordinates[0](1) + current_nodal_coordinates[1](1)) *
+                      (current_nodal_coordinates[1](0) - current_nodal_coordinates[0](0));
+    }
+    break;
+    default:
+      FOUR_C_THROW("Unknown type of action {} for SolidLine element", action_type_to_string(act));
+  }
+  return 0;
+}
+
+template <unsigned dim>
 int Discret::Elements::SolidLine<dim>::evaluate_neumann(Teuchos::ParameterList& params,
     Core::FE::Discretization& discretization, const Core::Conditions::Condition& condition,
     std::vector<int>& lm, Core::LinAlg::SerialDenseVector& elevec1,
     Core::LinAlg::SerialDenseMatrix* elemat1)
 {
+  static_assert(dim == 2 || dim == 3, "SolidLine element only implemented for 2D and 3D!");
   set_params_interface_ptr(params);
 
   const double total_time = std::invoke(
