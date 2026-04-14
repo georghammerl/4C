@@ -716,8 +716,11 @@ void Discret::Elements::SolidScatraEleCalc<celltype, SolidFormulation>::calculat
 {
   std::vector<char>& serialized_stress_data = stressIO.mutable_data;
   std::vector<char>& serialized_strain_data = strainIO.mutable_data;
-  Core::LinAlg::SerialDenseMatrix stress_data(stiffness_matrix_integration_.num_points(), num_str_);
-  Core::LinAlg::SerialDenseMatrix strain_data(stiffness_matrix_integration_.num_points(), num_str_);
+  constexpr std::size_t num_str_for_output = 6;
+  Core::LinAlg::SerialDenseMatrix stress_data(
+      stiffness_matrix_integration_.num_points(), num_str_for_output);
+  Core::LinAlg::SerialDenseMatrix strain_data(
+      stiffness_matrix_integration_.num_points(), num_str_for_output);
 
   const ElementNodes<celltype> nodal_coordinates =
       evaluate_element_nodes<celltype>(ele, discretization, la[0].lm_);
