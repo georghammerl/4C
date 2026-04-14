@@ -313,8 +313,10 @@ double Discret::Elements::evaluate_material_strain_energy(Mat::So3Material& mate
     const Core::LinAlg::SymmetricTensor<double, 2, 2>& gl_strain, Teuchos::ParameterList& params,
     const Mat::EvaluationContext<2>& context, const int gp, const int eleGID)
 {
+  constexpr auto dummy_defgrd =
+      Core::LinAlg::get_full(Core::LinAlg::TensorGenerators::identity<double, 2, 2>);
   const Core::LinAlg::Tensor<double, 2, 2> defgrd =
-      Discret::Elements::compute_deformation_gradient_from_gl_strains({}, gl_strain);
+      Discret::Elements::compute_deformation_gradient_from_gl_strains(dummy_defgrd, gl_strain);
 
   double strain_energy = 0.0;
   transform_to_3d(material, element_properties, defgrd, gl_strain, params, context, gp, eleGID,

@@ -41,6 +41,8 @@ namespace Core::Elements
     struct_calc_reset_istep,  //!< reset elementwise internal variables, during iteration to last
                               //!< converged state
     struct_calc_energy,       //!< compute internal energy
+    calc_struct_constrarea,
+    calc_struct_areaconstrstiff,
     struct_postprocess_thickness,         //!< postprocess thickness of membrane finite elements
     struct_init_gauss_point_data_output,  //!< initialize quantities for output of gauss point
                                           //!< data
@@ -99,6 +101,10 @@ namespace Core::Elements
       return struct_calc_reset_istep;
     else if (action == "calc_struct_energy")
       return struct_calc_energy;
+    else if (action == "calc_struct_constrarea")
+      return calc_struct_constrarea;
+    else if (action == "calc_struct_areaconstrstiff")
+      return calc_struct_areaconstrstiff;
     else if (action == "struct_init_gauss_point_data_output")
       return struct_init_gauss_point_data_output;
     else if (action == "struct_gauss_point_data_output")
@@ -150,6 +156,10 @@ namespace Core::Elements
         return "struct_calc_stress";
       case struct_calc_thickness:
         return "struct_calc_thickness";
+      case calc_struct_constrarea:
+        return "calc_struct_constrarea";
+      case calc_struct_areaconstrstiff:
+        return "calc_struct_areaconstrstiff";
       case struct_calc_eleload:
         return "struct_calc_eleload";
       case struct_calc_fsiload:

@@ -97,6 +97,12 @@ namespace Discret::Elements
       return SolidLineType<dim>::instance();
     }
 
+    int evaluate(Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
+        std::vector<int>& lm, Core::LinAlg::SerialDenseMatrix& elematrix1,
+        Core::LinAlg::SerialDenseMatrix& elematrix2, Core::LinAlg::SerialDenseVector& elevector1,
+        Core::LinAlg::SerialDenseVector& elevector2,
+        Core::LinAlg::SerialDenseVector& elevector3) override;
+
     int evaluate_neumann(Teuchos::ParameterList& params, Core::FE::Discretization& discretization,
         const Core::Conditions::Condition& condition, std::vector<int>& lm,
         Core::LinAlg::SerialDenseVector& elevec1,
