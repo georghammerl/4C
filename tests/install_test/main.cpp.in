@@ -10,7 +10,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_fem_general_element.hpp"
 #include "4C_fem_general_node.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 
 int main(int argc, char** argv)
 {

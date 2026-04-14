@@ -13,7 +13,7 @@
 #include "4C_io_input_parameter_container.hpp"
 #include "4C_linalg_tensor.hpp"
 #include "4C_mat_anisotropy_cylinder_coordinate_system_provider.hpp"
-#include "4C_solid_3D_ele_fibers.hpp"
+#include "4C_solid_ele_fibers.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

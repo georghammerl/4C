@@ -16,7 +16,7 @@
 #include "4C_fem_general_utils_createdis.hpp"
 #include "4C_global_data.hpp"
 #include "4C_mat_material_factory.hpp"
-#include "4C_solid_scatra_3D_ele.hpp"
+#include "4C_solid_scatra_ele.hpp"
 #include "4C_thermo_element.hpp"
 #include "4C_tsi_problem_access.hpp"
 

@@ -13,7 +13,7 @@
 #include "4C_fem_general_utils_gausspoints.hpp"
 #include "4C_inpar_structure.hpp"
 #include "4C_mat_fluidporo_singlephase.hpp"
-#include "4C_solid_poro_3D_ele_calc_lib.hpp"
+#include "4C_solid_poro_ele_calc_lib.hpp"
 #include "4C_w1.hpp"
 #include "4C_w1_poro_eletypes.hpp"
 

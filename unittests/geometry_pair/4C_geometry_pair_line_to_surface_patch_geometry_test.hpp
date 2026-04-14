@@ -11,8 +11,8 @@
 
 #include "4C_fem_discretization.hpp"
 #include "4C_geometry_pair_element_faces.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_solid_3D_ele_surface.hpp"
+#include "4C_solid_ele.hpp"
+#include "4C_solid_ele_surface.hpp"
 
 #include <memory>
 #include <unordered_map>

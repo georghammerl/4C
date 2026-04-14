@@ -12,7 +12,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_io_input_spec_builders.hpp"
 #include "4C_mat_material_factory.hpp"
-#include "4C_solid_3D_ele_nullspace.hpp"
+#include "4C_solid_ele_nullspace.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <sstream>

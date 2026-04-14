@@ -20,7 +20,7 @@
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_linalg_utils_sparse_algebra_math.hpp"
 #include "4C_linalg_vector.hpp"
-#include "4C_solid_3D_ele_calc_lib.hpp"
+#include "4C_solid_ele_calc_lib.hpp"
 #include "4C_solver_nonlin_nox_linearproblem.hpp"
 #include "4C_structure_new_timint_basedataglobalstate.hpp"
 #include "4C_structure_new_timint_basedatasdyn.hpp"

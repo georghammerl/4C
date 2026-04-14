@@ -9,7 +9,7 @@
 #define FOUR_C_GEOMETRY_PAIR_LINE_TO_VOLUME_SEGMENTATION_GEOMETRY_FUNCTIONS_TEST_HPP
 
 #include "4C_beam3_reissner.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 
 namespace
 {

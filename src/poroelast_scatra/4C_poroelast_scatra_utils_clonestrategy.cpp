@@ -13,9 +13,9 @@
 #include "4C_poroelast_scatra_utils.hpp"
 #include "4C_poroelast_utils_clonestrategy.hpp"
 #include "4C_scatra_ele.hpp"
-#include "4C_solid_poro_3D_ele_pressure_based.hpp"
-#include "4C_solid_poro_3D_ele_pressure_velocity_based.hpp"
-#include "4C_solid_poro_3D_ele_pressure_velocity_based_p1.hpp"
+#include "4C_solid_poro_ele_pressure_based.hpp"
+#include "4C_solid_poro_ele_pressure_velocity_based.hpp"
+#include "4C_solid_poro_ele_pressure_velocity_based_p1.hpp"
 #include "4C_w1_poro_p1_scatra.hpp"
 #include "4C_w1_poro_scatra.hpp"
 

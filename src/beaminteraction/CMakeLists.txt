@@ -19,7 +19,7 @@ set(_dependencies
     mat
     rigidsphere
     shell_kl_nurbs
-    solid_3D_ele
+    solid_ele
     structure
     structure_new
     timestepping

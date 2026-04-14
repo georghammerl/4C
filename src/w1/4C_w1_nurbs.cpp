@@ -9,7 +9,7 @@
 
 #include "4C_comm_utils_factory.hpp"
 #include "4C_io_input_spec_builders.hpp"
-#include "4C_solid_3D_ele_nullspace.hpp"
+#include "4C_solid_ele_nullspace.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

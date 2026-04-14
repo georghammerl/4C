@@ -5,4 +5,4 @@
 #
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-add_subdirectory(solid_3D_ele)
+add_subdirectory(solid_ele)

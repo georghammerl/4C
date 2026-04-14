@@ -10,7 +10,7 @@
 #include "4C_fem_discretization.hpp"
 #include "4C_global_data.hpp"
 #include "4C_mat_micromaterial.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 #include "4C_stru_multi_microstatic.hpp"
 #include "4C_structure_new_model_evaluator_data.hpp"
 #include "4C_structure_new_timint_basedataglobalstate.hpp"

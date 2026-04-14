@@ -15,7 +15,7 @@
 #include "4C_linalg_symmetric_tensor.hpp"
 #include "4C_linalg_tensor.hpp"
 #include "4C_material_base.hpp"
-#include "4C_solid_3D_ele_fibers.hpp"
+#include "4C_solid_ele_fibers.hpp"
 
 #include <Teuchos_ParameterList.hpp>
 

@@ -23,7 +23,7 @@
 #include "4C_fluid_ele.hpp"
 #include "4C_mat_newtonianfluid.hpp"
 #include "4C_mortar_element.hpp"
-#include "4C_solid_3D_ele_surface.hpp"
+#include "4C_solid_ele_surface.hpp"
 #include "4C_xfem_condition_manager.hpp"
 
 FOUR_C_NAMESPACE_OPEN

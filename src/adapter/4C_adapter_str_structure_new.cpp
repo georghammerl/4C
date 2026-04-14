@@ -34,7 +34,7 @@
 #include "4C_rebalance_binning_based.hpp"
 #include "4C_rigidsphere.hpp"
 #include "4C_shell7p_ele.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 #include "4C_solver_nonlin_nox_group.hpp"
 #include "4C_solver_nonlin_nox_group_prepostoperator.hpp"
 #include "4C_structure_new_solver_factory.hpp"

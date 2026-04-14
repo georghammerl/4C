@@ -13,7 +13,7 @@
 #include "4C_geometry_pair_line_to_3D_evaluation_data.hpp"
 #include "4C_geometry_pair_line_to_volume_segmentation.hpp"
 #include "4C_linalg_serialdensevector.hpp"
-#include "4C_solid_3D_ele.hpp"
+#include "4C_solid_ele.hpp"
 
 
 

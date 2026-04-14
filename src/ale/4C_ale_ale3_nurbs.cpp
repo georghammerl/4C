@@ -8,7 +8,7 @@
 #include "4C_ale_ale3_nurbs.hpp"
 
 #include "4C_fem_general_node.hpp"
-#include "4C_solid_3D_ele_nullspace.hpp"
+#include "4C_solid_ele_nullspace.hpp"
 
 FOUR_C_NAMESPACE_OPEN
 

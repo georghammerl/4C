@@ -16,8 +16,8 @@
 #include "4C_linalg_tensor_generators.hpp"
 #include "4C_linalg_utils_densematrix_multiply.hpp"
 #include "4C_mat_elasthyper.hpp"
-#include "4C_solid_3D_ele.hpp"
-#include "4C_solid_3D_ele_calc_lib_nitsche.hpp"
+#include "4C_solid_ele.hpp"
+#include "4C_solid_ele_calc_lib_nitsche.hpp"
 #include "4C_utils_exceptions.hpp"
 
 #include <memory>

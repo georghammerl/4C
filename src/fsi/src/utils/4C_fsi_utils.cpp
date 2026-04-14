@@ -25,8 +25,8 @@
 #include "4C_linalg_utils_sparse_algebra_create.hpp"
 #include "4C_linalg_utils_sparse_algebra_manipulation.hpp"
 #include "4C_mortar_interface.hpp"
-#include "4C_solid_3D_ele_line.hpp"
-#include "4C_solid_3D_ele_surface.hpp"
+#include "4C_solid_ele_line.hpp"
+#include "4C_solid_ele_surface.hpp"
 
 #include <map>
 #include <set>

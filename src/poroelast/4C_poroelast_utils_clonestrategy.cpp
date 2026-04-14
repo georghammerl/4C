@@ -13,9 +13,9 @@
 #include "4C_mat_par_bundle.hpp"
 #include "4C_mat_structporo.hpp"
 #include "4C_poroelast_utils.hpp"
-#include "4C_solid_poro_3D_ele_pressure_based.hpp"
-#include "4C_solid_poro_3D_ele_pressure_velocity_based.hpp"
-#include "4C_solid_poro_3D_ele_pressure_velocity_based_p1.hpp"
+#include "4C_solid_poro_ele_pressure_based.hpp"
+#include "4C_solid_poro_ele_pressure_velocity_based.hpp"
+#include "4C_solid_poro_ele_pressure_velocity_based_p1.hpp"
 #include "4C_w1_poro.hpp"
 
 FOUR_C_NAMESPACE_OPEN
