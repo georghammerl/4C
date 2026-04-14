@@ -110,7 +110,7 @@ namespace TESTING::INTERNAL
              << " has dimension " << vec2.size() << std::endl;
     }
 
-    return AssertNear(vec1Expr, vec2Expr, "" /*lengthExpr*/, toleranceExpr, vec1.begin(),
+    return assert_near(vec1Expr, vec2Expr, "" /*lengthExpr*/, toleranceExpr, vec1.begin(),
         vec2.begin(), vec1.size(), tolerance);
   }
 
