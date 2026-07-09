@@ -2200,16 +2200,22 @@ namespace Cut::Kernel
         if (det < 1.0e-16) std::cout << "!!! determinant of jacobian is smaller than 1.0e-16 !!!\n";
       }
 
-      if (det < 1.0e-16 && det > 1.0e-16)
-#if EXTENDED_CUT_DEBUG_OUTPUT
-        std::cout << "Determinant in  compute position is very close to zero" << std::endl;
-#endif
-      if (Core::MathOperations<FloatType>::abs(det) == 0.0)  // here might lie problem for the cln
+      if (det < -1.0e-16)
       {
+        std::stringstream msg;
+        msg << "Determinant in compute position is negative: " << det;
+        FOUR_C_THROW("{}", msg.str());
+      }
+
+      if (Core::MathOperations<FloatType>::abs(det) < 1.0e-16)
+      {
+#if EXTENDED_CUT_DEBUG_OUTPUT
+        std::cout << "Determinant in compute position is very close to zero" << std::endl;
+#endif
         /* then calculation of a normal to a line like this makes no sense at
          * all! */
 #if EXTENDED_CUT_DEBUG_OUTPUT
-        std::cout << "Absolute value of the determinant is zero " << std::endl;
+        std::cout << "Absolute value of the determinant is close to zero" << std::endl;
 #endif
         zeroarea_ = true;
         return false;
