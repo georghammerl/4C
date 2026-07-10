@@ -2197,17 +2197,18 @@ namespace Cut::Kernel
       if (debug)
       {
         std::cout << "det-metric               = " << det << std::endl;
-        if (det < 1.0e-16) std::cout << "!!! determinant of jacobian is smaller than 1.0e-16 !!!\n";
+        if (det < BASICTOL)
+          std::cout << "!!! determinant of jacobian is smaller than " << BASICTOL << " !!!\n";
       }
 
-      if (det < -1.0e-16)
+      if (det < -BASICTOL)
       {
         std::stringstream msg;
         msg << "Determinant in compute position is negative: " << det;
         FOUR_C_THROW("{}", msg.str());
       }
 
-      if (Core::MathOperations<FloatType>::abs(det) < 1.0e-16)
+      if (Core::MathOperations<FloatType>::abs(det) < BASICTOL)
       {
 #if EXTENDED_CUT_DEBUG_OUTPUT
         std::cout << "Determinant in compute position is very close to zero" << std::endl;
