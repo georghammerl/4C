@@ -50,15 +50,18 @@ jobs:
           spack_ref: v1.2.2
           # `4c-multiphysics` is not part of any tagged spack-packages release
           # yet, so pin to a `develop` commit that contains it instead.
+          # Pinned to the commit that added the 4C package (eaed8e6): a later
+          # commit (6c4f647) removed trilinos@16.2.1, which the package
+          # requires but was not yet updated so far, breaking concretization.
           # TODO: switch `packages_ref` to a release tag (e.g. v2026.09.0) once
-          # one ships the `4c-multiphysics` package.
-          packages_ref: 3d3479b22972c881471e088fff791dd5f5c11630
+          # one ships a `4c-multiphysics` package that no longer needs this.
+          packages_ref: eaed8e6d6c80bf7fcaeea0de4b00e19256bb846f
           buildcache: true
           color: true
 
-      - name: Find external packages and compilers
+      - name: Find compilers
         run: |
-          spack external find
+          # Detect the runner's compiler; no `spack external find`, so everything else is freshly built by Spack.
           spack compiler find
 
       - name: Determine the latest 4C release known to Spack
