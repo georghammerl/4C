@@ -32,8 +32,10 @@ jobs:
           # pin the compiler per OS to one that is known to work.
           - name: ubuntu-24.04
             compiler: gcc@13
+            compiler_bin: /usr/bin/g++-13
           - name: ubuntu-26.04
             compiler: gcc@15
+            compiler_bin: /usr/bin/g++-15
         # add macOS support as soon as 4C (and an updated spack repo entry) support it
         variant:
           # Optional Spack variants (see `spack info 4c-multiphysics`).
@@ -67,8 +69,10 @@ jobs:
 
       - name: Find compilers
         run: |
-          # Detect the runner's compiler; no `spack external find`, so everything else is freshly built by Spack.
-          spack compiler find
+          # Register only this one compiler: a broad `spack compiler find`
+          # also picks up system clang/LLVM and registers it as an external
+          # `libllvm`, which then breaks mesa (missing llvm-config).
+          spack compiler find ${{ matrix.os.compiler_bin }}
 
       - name: Determine the latest 4C release known to Spack
         id: version
