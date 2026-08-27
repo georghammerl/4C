@@ -20,14 +20,20 @@ concurrency:
 
 jobs:
   spack-build:
-    name: Build and test 4C (${{ matrix.os }}, ${{ matrix.variant.name }})
-    runs-on: ${{ matrix.os }}
+    name: Build and test 4C (${{ matrix.os.name }}, ${{ matrix.variant.name }})
+    runs-on: ${{ matrix.os.name }}
     # deal.II and the "full" variant build many extra dependencies from source
     timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-26.04]
+        os:
+          # gcc@14 hits an internal compiler error on 4C's tensor templates;
+          # pin the compiler per OS to one that is known to work.
+          - name: ubuntu-24.04
+            compiler: gcc@13
+          - name: ubuntu-26.04
+            compiler: gcc@15
         # add macOS support as soon as 4C (and an updated spack repo entry) support it
         variant:
           # Optional Spack variants (see `spack info 4c-multiphysics`).
@@ -82,17 +88,17 @@ jobs:
           echo "Latest 4C release known to Spack: $LATEST_VERSION"
           echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
           echo "### Spack build test" >> "$GITHUB_STEP_SUMMARY"
-          echo "- OS: \`${{ matrix.os }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- OS: \`${{ matrix.os.name }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Variant: \`${{ matrix.variant.name }}\` (\`${{ matrix.variant.spec_args }}\`)" >> "$GITHUB_STEP_SUMMARY"
           echo "- 4C version: \`$LATEST_VERSION\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show the concretized spec
         run: spack spec -l "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.variant.spec_args
-          }}"
+          }} %${{ matrix.os.compiler }}"
 
       - name: Install 4C
         run: |
-          spack install --fail-fast --verbose "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.variant.spec_args }}"
+          spack install --fail-fast --verbose "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.variant.spec_args }} %${{ matrix.os.compiler }}"
           spack find --long --variants 4c-multiphysics
 
       - name: Checkout tutorial input files matching the installed release
@@ -140,7 +146,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v7
         with:
-          name: spack_smoke_test_output-${{ matrix.os }}-${{ matrix.variant.name }}
+          name: spack_smoke_test_output-${{ matrix.os.name }}-${{ matrix.variant.name }}
           path: |
             ${{ github.workspace }}/spack_smoke_test
             ${{ github.workspace }}/spack_build_logs
