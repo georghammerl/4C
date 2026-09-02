@@ -97,7 +97,7 @@ jobs:
           junit-report-base-name: gcc13_assertions_test_report
           retention-days: 2
       - name: Report failure
-        if: always() && needs.gcc13_assertions_test.result == 'failure'
+        if: always() && needs.gcc13_assertions_test.result != 'success'
         uses: ./.github/actions/report_nightly_test_failure
         with:
           title: "Nightly test failure: gcc13_assertions"
@@ -268,7 +268,7 @@ jobs:
           junit-report-base-name: clang18_test_report
           retention-days: 2
       - name: Report failure
-        if: always() && needs.clang18_test.result == 'failure'
+        if: always() && needs.clang18_test.result != 'success'
         uses: ./.github/actions/report_nightly_test_failure
         with:
           title: "Nightly test failure: clang18"
@@ -443,7 +443,7 @@ jobs:
           junit-report-base-name: gcc13_no_optional_dependencies_test_report
           retention-days: 2
       - name: Report failure
-        if: always() && needs.gcc13_no_optional_dependencies_test.result == 'failure'
+        if: always() && needs.gcc13_no_optional_dependencies_test.result != 'success'
         uses: ./.github/actions/report_nightly_test_failure
         with:
           title: "Nightly test failure: gcc13_no_optional_dependencies"
@@ -544,7 +544,7 @@ jobs:
           junit-report-base-name: gcc13_asan_test_report
           retention-days: 2
       - name: Report failure
-        if: always() && needs.gcc13_asan_test.result == 'failure'
+        if: always() && needs.gcc13_asan_test.result != 'success'
         uses: ./.github/actions/report_nightly_test_failure
         with:
           title: "Nightly test failure: gcc13_asan"
