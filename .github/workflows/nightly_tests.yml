@@ -85,6 +85,8 @@ jobs:
     needs: gcc13_assertions_test
     runs-on: ubuntu-latest
     if: success() || failure()
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -93,6 +95,17 @@ jobs:
         with:
           junit-report-base-name: gcc13_assertions_test_report
           retention-days: 2
+      - name: Report failure
+        if: needs.gcc13_assertions_test.result == 'failure'
+        uses: ./.github/actions/report_nightly_test_failure
+        with:
+          title: "Nightly test failure: gcc13_assertions"
+          body: >
+            The `gcc13_assertions` nightly job failed. See the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id
+            }})
+            for details.
+          labels: "nightly-failure,gcc13-assertions"
 
   clang18_build:
     runs-on: ubuntu-latest
@@ -242,6 +255,8 @@ jobs:
     needs: clang18_test
     runs-on: ubuntu-latest
     if: success() || failure()
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -250,6 +265,17 @@ jobs:
         with:
           junit-report-base-name: clang18_test_report
           retention-days: 2
+      - name: Report failure
+        if: needs.clang18_test.result == 'failure'
+        uses: ./.github/actions/report_nightly_test_failure
+        with:
+          title: "Nightly test failure: clang18"
+          body: >
+            The `clang18` nightly job failed. See the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id
+            }})
+            for details.
+          labels: "nightly-failure,clang18"
 
   clang18_build_oldest_supported_dependencies:
     runs-on: ubuntu-latest
@@ -403,6 +429,8 @@ jobs:
     needs: gcc13_no_optional_dependencies_test
     runs-on: ubuntu-latest
     if: success() || failure()
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -411,6 +439,17 @@ jobs:
         with:
           junit-report-base-name: gcc13_no_optional_dependencies_test_report
           retention-days: 2
+      - name: Report failure
+        if: needs.gcc13_no_optional_dependencies_test.result == 'failure'
+        uses: ./.github/actions/report_nightly_test_failure
+        with:
+          title: "Nightly test failure: gcc13_no_optional_dependencies"
+          body: >
+            The `gcc13_no_optional_dependencies` nightly job failed. See the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id
+            }})
+            for details.
+          labels: "nightly-failure,gcc13-no-optional-dependencies"
 
   gcc13_asan_build:
     runs-on: ubuntu-latest
@@ -490,6 +529,8 @@ jobs:
     needs: gcc13_asan_test
     runs-on: ubuntu-latest
     if: success() || failure()
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -498,6 +539,17 @@ jobs:
         with:
           junit-report-base-name: gcc13_asan_test_report
           retention-days: 2
+      - name: Report failure
+        if: needs.gcc13_asan_test.result == 'failure'
+        uses: ./.github/actions/report_nightly_test_failure
+        with:
+          title: "Nightly test failure: gcc13_asan"
+          body: >
+            The `gcc13_asan` nightly job failed. See the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id
+            }})
+            for details.
+          labels: "nightly-failure,gcc13-asan"
 
   clang18_performance_tests_build:
     runs-on: ubuntu-latest
