@@ -88,7 +88,7 @@ jobs:
           spack_ref: v1.2.2
           # Test the package implementation from PR #6479 in the fork.
           packages_repository: georghammerl/spack-packages
-          packages_ref: 9c006a07dcb4394965b3b0213696dee2a9fa0257
+          packages_ref: cab3393e93516d10e57e5f5d369e6dd9c07ecb54
           # Do not let an existing binary hide changes to the package recipe.
           buildcache: false
           color: true
