@@ -36,13 +36,13 @@ jobs:
             variant: minimal
             spec_args: ""
             version: main
-          - name: Ubuntu 24.04, 4C v2026.2, minimal
+          - name: Ubuntu 24.04, 4C v2026.2.0, minimal
             os: ubuntu-24.04
             compiler: gcc@13
             compiler_bin: /usr/bin/g++-13
             variant: minimal
             spec_args: ""
-            version: "2026.2"
+            version: "2026.2.0"
           - name: Ubuntu 24.04, latest release, minimal
             os: ubuntu-24.04
             compiler: gcc@13
@@ -118,7 +118,7 @@ jobs:
               exit 1
             fi
           else
-            # Explicit versions, such as `main` or `2026.2`, are used as-is.
+            # Explicit versions must be `main` or a full release, such as `2026.2.0`.
             VERSION=${{ matrix.version }}
           fi
           echo "4C version to test: $VERSION"
