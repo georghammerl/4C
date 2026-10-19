@@ -135,6 +135,10 @@ jobs:
           fi
           spack compiler find ${{ matrix.compiler_bin }}
 
+      - name: Use runner GNU Make for Intel builds
+        if: startsWith(matrix.compiler, 'oneapi@')
+        run: spack external find --not-buildable --path /usr/bin gmake
+
       - name: Install Intel oneAPI compilers
         if: startsWith(matrix.compiler, 'oneapi@')
         run: |
