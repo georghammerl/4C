@@ -135,6 +135,13 @@ jobs:
           fi
           spack compiler find ${{ matrix.compiler_bin }}
 
+      - name: Isolate Android libraries from Intel MPI discovery
+        if: startsWith(matrix.compiler, 'oneapi@')
+        run: |
+          if [ -d /usr/local/lib/android ]; then
+            sudo mv /usr/local/lib/android /usr/local/android-sdk
+          fi
+
       - name: Use runner GNU Make for Intel builds
         if: startsWith(matrix.compiler, 'oneapi@')
         run: spack external find --not-buildable --path /usr/bin gmake
@@ -218,7 +225,8 @@ jobs:
           # package's stage subdirectory to avoid name clashes.
           STAGE_DIR="$(spack location --stages 2>/dev/null || true)"
           if [ -n "$STAGE_DIR" ] && [ -d "$STAGE_DIR" ]; then
-            (cd "$STAGE_DIR" && find . -name "*.txt" -exec cp --parents {} "$GITHUB_WORKSPACE/spack_build_logs/" \;)
+            (cd "$STAGE_DIR" && find . -type f \( -name "*.txt" -o -name "*.log" -o -name "spack-build-env*" \) \
+              -exec cp --parents {} "$GITHUB_WORKSPACE/spack_build_logs/" \;)
           else
             echo "Spack stage directory not found; no build logs to collect." >&2
           fi
