@@ -29,6 +29,78 @@ jobs:
       matrix:
         include:
           # Add each supported OS, variant, and version combination explicitly.
+          - name: Ubuntu 24.04, GCC 13, 4C v2026.2.0, minimal
+            os: ubuntu-24.04
+            compiler: gcc@13
+            compiler_bin: /usr/bin/g++-13
+            variant: minimal
+            spec_args: ""
+            version: "2026.2.0"
+          - name: Ubuntu 24.04, GCC 13, latest release, minimal
+            os: ubuntu-24.04
+            compiler: gcc@13
+            compiler_bin: /usr/bin/g++-13
+            variant: minimal
+            spec_args: ""
+            version: latest-release
+          - name: Ubuntu 24.04, GCC 13, latest release, extended
+            os: ubuntu-24.04
+            compiler: gcc@13
+            compiler_bin: /usr/bin/g++-13
+            variant: extended
+            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
+            version: latest-release
+          - name: Ubuntu 26.04, GCC 15, latest release, minimal
+            os: ubuntu-26.04
+            compiler: gcc@15
+            compiler_bin: /usr/bin/g++-15
+            variant: minimal
+            spec_args: ""
+            version: latest-release
+          - name: Ubuntu 26.04, GCC 15, 4C main, extended
+            os: ubuntu-26.04
+            compiler: gcc@15
+            compiler_bin: /usr/bin/g++-15
+            variant: extended
+            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
+            version: main
+          - name: Ubuntu 26.04, GCC 15, latest release, dealii
+            os: ubuntu-26.04
+            compiler: gcc@15
+            compiler_bin: /usr/bin/g++-15
+            variant: dealii
+            spec_args: "+dealii"
+            version: latest-release
+          - name: Ubuntu 24.04, Clang 18, 4C main, extended
+            os: ubuntu-24.04
+            compiler: clang@18
+            compiler_bin: /usr/bin/clang++-18
+            variant: extended
+            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
+            version: main
+          - name: Ubuntu 24.04, Clang 18, latest release, dealii
+            os: ubuntu-24.04
+            compiler: clang@18
+            compiler_bin: /usr/bin/clang++-18
+            variant: dealii
+            spec_args: "+dealii"
+            version: latest-release
+          - name: Ubuntu 24.04, Intel oneAPI 2025.3.2, 4C main, extended
+            os: ubuntu-24.04
+            compiler: oneapi@2025.3.2
+            compiler_bin: /usr/bin/g++-13
+            variant: extended
+            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
+            mpi_spec: "^intel-oneapi-mpi"
+            version: main
+          - name: Ubuntu 24.04, Intel oneAPI 2025.3.2, latest release, dealii
+            os: ubuntu-24.04
+            compiler: oneapi@2025.3.2
+            compiler_bin: /usr/bin/g++-13
+            variant: dealii
+            spec_args: "+dealii"
+            mpi_spec: "^intel-oneapi-mpi"
+            version: latest-release
           - name: macOS arm64, 4C main, minimal
             os: macos-26
             compiler: apple-clang@21.0.0
@@ -36,48 +108,6 @@ jobs:
             variant: minimal
             spec_args: ""
             version: main
-          - name: Ubuntu 24.04, 4C v2026.2.0, minimal
-            os: ubuntu-24.04
-            compiler: gcc@13
-            compiler_bin: /usr/bin/g++-13
-            variant: minimal
-            spec_args: ""
-            version: "2026.2.0"
-          - name: Ubuntu 24.04, latest release, minimal
-            os: ubuntu-24.04
-            compiler: gcc@13
-            compiler_bin: /usr/bin/g++-13
-            variant: minimal
-            spec_args: ""
-            version: latest-release
-          - name: Ubuntu 24.04, latest release, extended
-            os: ubuntu-24.04
-            compiler: gcc@13
-            compiler_bin: /usr/bin/g++-13
-            variant: extended
-            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
-            version: latest-release
-          - name: Ubuntu 26.04, latest release, minimal
-            os: ubuntu-26.04
-            compiler: gcc@15
-            compiler_bin: /usr/bin/g++-15
-            variant: minimal
-            spec_args: ""
-            version: latest-release
-          - name: Ubuntu 26.04, 4C main, extended
-            os: ubuntu-26.04
-            compiler: gcc@15
-            compiler_bin: /usr/bin/g++-15
-            variant: extended
-            spec_args: "+vtk +gmsh +mirco +arborx +fftw +backtrace"
-            version: main
-          - name: Ubuntu 26.04, latest release, dealii
-            os: ubuntu-26.04
-            compiler: gcc@15
-            compiler_bin: /usr/bin/g++-15
-            variant: dealii
-            spec_args: "+dealii"
-            version: latest-release
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@v2
@@ -91,17 +121,27 @@ jobs:
           spack_ref: v1.2.2
           # Test the package implementation from PR #6479 in the fork.
           packages_repository: georghammerl/spack-packages
-          packages_ref: f3aa9f49668a1e67e81b0ba1623f6fd00ff2aa14
+          packages_ref: 89c8b78a958ab3a782f64edc878f510d7e6b9aeb
           # Do not let an existing binary hide changes to the package recipe.
           buildcache: false
           color: true
 
       - name: Find compilers
         run: |
-          # Register only this one compiler: a broad `spack compiler find`
-          # also picks up system clang/LLVM and registers it as an external
-          # `libllvm`, which then breaks mesa (missing llvm-config).
+          # Avoid broad discovery, which also registers system LLVM as an
+          # external libllvm and breaks Mesa when llvm-config is missing.
+          if [[ "${{ matrix.compiler }}" == clang@* ]]; then
+            spack compiler find /usr/bin/g++-13
+          fi
           spack compiler find ${{ matrix.compiler_bin }}
+
+      - name: Install Intel oneAPI compilers
+        if: startsWith(matrix.compiler, 'oneapi@')
+        run: |
+          spack install --fail-fast --verbose "intel-oneapi-compilers@${COMPILER#oneapi@} %gcc@13"
+          spack compiler info "intel-oneapi-compilers@${COMPILER#oneapi@}"
+        env:
+          COMPILER: ${{ matrix.compiler }}
 
       - name: Determine the 4C version to test
         id: version
@@ -125,16 +165,17 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "### Spack build test" >> "$GITHUB_STEP_SUMMARY"
           echo "- OS: \`${{ matrix.os }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Compiler: \`${{ matrix.compiler }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Variant: \`${{ matrix.variant }}\` (\`${{ matrix.spec_args }}\`)" >> "$GITHUB_STEP_SUMMARY"
           echo "- 4C version: \`$VERSION\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Show the concretized spec
         run: spack spec -l "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.spec_args
-          }} %${{ matrix.compiler }}"
+          }} %${{ matrix.compiler }} ${{ matrix.mpi_spec }}"
 
       - name: Install 4C
         run: |
-          spack install --fail-fast --verbose "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.spec_args }} %${{ matrix.compiler }}"
+          spack install --fail-fast --verbose "4c-multiphysics@${{ steps.version.outputs.version }} ${{ matrix.spec_args }} %${{ matrix.compiler }} ${{ matrix.mpi_spec }}"
           spack find --long --variants 4c-multiphysics
 
       - name: Checkout tutorial input files matching the tested version
@@ -183,8 +224,8 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v7
         with:
-          name: spack_smoke_test_output-${{ matrix.os }}-${{ matrix.variant }}-${{ steps.version.outputs.version
-            }}
+          name: spack_smoke_test_output-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.variant }}-${{
+            steps.version.outputs.version }}
           path: |
             ${{ github.workspace }}/spack_smoke_test
             ${{ github.workspace }}/spack_build_logs
