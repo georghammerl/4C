@@ -22,6 +22,8 @@ Install external dependencies with Spack
 
 Spack automatically resolves and installs the 4C dependency stack while leaving the source checkout under your
 control. It records the selected compiler, MPI implementation, package versions, and variants in ``spack.lock``.
+Before installing Spack, install Git, CMake, Ninja, and ``unzip``. On Ubuntu, use
+``sudo apt install git cmake ninja-build unzip``.
 
 Starting with no existing Spack installation, run the following commands in Bash to clone Spack and initialize it::
 

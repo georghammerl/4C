@@ -64,7 +64,7 @@ def get_generated_presets(cache_variables: dict[str, str]) -> dict[str, object]:
 
     return {
         "version": 5,
-        "include": ["../CMakePresets.json"],
+        "include": ["../presets/spack/CMakePresets.json"],
         "configurePresets": [
             {
                 "name": ".spack-profile",
