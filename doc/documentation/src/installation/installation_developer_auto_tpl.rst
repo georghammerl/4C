@@ -32,7 +32,9 @@ Starting with no existing Spack installation, run the following commands in Bash
 
 .. note::
 
-    The ``printf`` command enables Spack automatically in future Bash sessions.
+    The ``. "$spack_root/share/spack/setup-env.sh"`` command makes ``spack`` available in the current shell, from
+    any directory. The ``printf`` command enables it automatically in future Bash sessions. In an already open
+    terminal, run ``source ~/.bashrc`` or open a new terminal before using ``spack`` there.
 
 .. note::
 
@@ -56,6 +58,9 @@ Create a checkout-local environment and install the dependencies, but not 4C its
 
 The ``%gcc@13.3.0`` constraint is an example. Use ``spack compiler find`` to register compilers available on your
 machine, then use ``spack compiler list`` to select the compiler and version for the ``spack add`` specification.
+The dependency stack requires a Fortran-capable compiler (due to the dependency on Trilinos). For GCC, install matching
+``gcc``, ``g++``, and ``gfortran`` packages before running ``spack compiler find``; for example,
+``sudo apt install gcc-13 g++-13 gfortran-13`` on Ubuntu.
 
 The dependency-only installation deliberately excludes the 4C package and its source resources. During CMake
 configuration, |FOURC| downloads its ryml source; a configuration with ``+mirco`` also downloads the MIRCO source.
